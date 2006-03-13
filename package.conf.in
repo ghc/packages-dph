@@ -1,0 +1,24 @@
+name:		PACKAGE
+version:	VERSION
+license:	BSD3
+maintainer:	ndp@cse.unsw.edu.au
+exposed:	True
+
+exposed-modules:
+hidden-modules:
+
+import-dirs:	IMPORT_DIR
+library-dirs:	LIB_DIR
+hs-libraries:   "HSndp"
+extra-libraries:
+
+include-dirs:
+includes:		
+depends:	base
+hugs-options:
+cc-options:
+ld-options:
+framework-dirs:
+frameworks:
+haddock-interfaces:	HADDOCK_IFACE
+haddock-html:		HTML_DIR
