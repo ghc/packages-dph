@@ -22,7 +22,7 @@
 # ---------------------
 
 # Executable containing GHC 6.5 (upwards)
-GHC     = /home/chak/sandbox/bin/ghc
+GHC     = ../../../../../../ghc/compiler/ghc-inplace
 
 # Executable containing the package manager for GHC
 GHC_PKG = ghc-pkg
@@ -55,7 +55,9 @@ LD	= ld
 # Haskell compiler
 #
 HC      = $(GHC)
-HCFLAGS = -fglasgow-exts -O2 -funbox-strict-fields\
+#HCFLAGS = -fglasgow-exts -O2 -funbox-strict-fields\
+# -O2 currently makes GHC loop!!!
+HCFLAGS = -fglasgow-exts -O -funbox-strict-fields\
 	  -fliberate-case-threshold100 -fno-method-sharing\
 #         -fallow-undecidable-instances
 #	  -fno-cse

@@ -65,8 +65,7 @@ infixr 9 >:
 -- of this class.
 --
 class UA e where
-{- ** AT VERSION **
-  data UArr e
+--  data UArr e
 
   -- |Yield the length of an unboxed array (if segmented, number of segments)
   lengthU :: UArr e               -> Int
@@ -77,62 +76,40 @@ class UA e where
   -- |Extract a slice out of an immutable unboxed array
   sliceU  :: UArr e -> Int -> Int -> UArr e
 
-  --!!!TODO: Do we still need this?
-  -- Cast the element type
-  castU   :: UArr e               -> UArr e'
-
--}
--- GADT VERSION
+-- GADT TO REPLACE AT FOR THE MOMENT
 data UArr e where
   UAUnit :: Int                         -> UArr Unit
   UAProd ::          UArr e1 -> UArr e2 -> UArr (e1 :*: e2)
   UASum  :: USel  -> UArr e1 -> UArr e2 -> UArr (e1 :+: e2)
   UAPrim ::          (Prim e)           -> UArr e
   UAUArr :: USegd -> UArr e             -> UArr (UArr e)
-lengthU :: UArr e               -> Int
-indexU  :: UArr e -> Int        -> e
-sliceU	:: UArr e -> Int -> Int -> UArr e
--- END GADT VERSION
 
 -- |This type class covers those element types of unboxed arrays that can be
 -- contained in immutable versions of these arrays.
 --
 class UA e => MUA e where
-{- ** AT VERSION **
-  data MUArr e s
+--  data MUArr e s
 
   -- |Allocate a mutable parallel array (which must not be segmented)
--}
--- This function we need to define as part of the class already, as it doesn't
--- pattern match on the GADT.
   newMU          :: Int                   -> ST s (MUArr e s)
-{-
 
   -- |Update an element in a mutable parallel array (must not be segmented)
   writeMU        :: MUArr e s -> Int -> e -> ST s ()
 
   -- |Convert a mutable into an immutable parallel array
   unsafeFreezeMU :: MUArr e s -> Int      -> ST s (UArr e)
--}
--- GADT VERSION
+
+-- GADT TO REPLACE AT FOR THE MOMENT
 data MUArr e s where
   MUAUnit :: Int                                  -> MUArr Unit s
   MUAProd ::             MUArr e1 s -> MUArr e2 s -> MUArr (e1 :*: e2) s
   MUASum  :: MUSel s  -> MUArr e1 s -> MUArr e2 s -> MUArr (e1 :+: e2) s
   MUAPrim ::             (MPrim e s)              -> MUArr e s
   MUAUArr :: MUSegd s -> MUArr e s                -> MUArr (UArr e) s
---newMU          :: Int                   -> ST s (MUArr e s)
-writeMU        :: MUArr e s -> Int -> e -> ST s ()
-unsafeFreezeMU :: MUArr e s -> Int      -> ST s (UArr e)
--- END GADT VERSION
 
 -- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
 -- iteratively define a segmented mutable array; i.e., arrays of type `MUArr s
 -- (UArr s e)'.  These arrays have *no* MUA instance.
--- GADT VERSION: That is `GADT_MUAUArr' variants.
-
--- !!!TODO: Can we replace `writeMU' in `MUArr' by `nextMSU' and cover all
--- mutable array types in the class???
 
 -- |Allocate a segmented parallel array (providing the number of segments and
 -- number of base elements); there can only be one segmentation level.
@@ -189,161 +166,24 @@ unsafeFreezeMSU (MUAUArr segd a) n =
 -- |Family of representation types
 -- -------------------------------
 
--- GADT VERSION: the equation of each functions must all be together (rather
--- than spread over the various instances)
-lengthU (UAUnit n) = n
-lengthU (UAProd l _)     = lengthU l
-lengthU (UASum sel _ _)     = lengthBU (selUS sel)
-lengthU (UAPrim (PrimBool   ua))    = lengthBU ua
-lengthU (UAPrim (PrimChar   ua))    = lengthBU ua
-lengthU (UAPrim (PrimInt    ua))    = lengthBU ua
-lengthU (UAPrim (PrimFloat  ua))    = lengthBU ua
-lengthU (UAPrim (PrimDouble ua))    = lengthBU ua
-lengthU (UAUArr segd _)    = lengthBU (segdUS segd)
-
-indexU  (UAUnit _) _        = Unit
-indexU  (UAProd l r) i   = indexU l i :*: indexU r i
-indexU  (UASum sel l r) i   = if (selUS sel)`indexBU`i then Inr $ indexU r i 
-					 	       else Inl $ indexU l i
-indexU (UAPrim (PrimBool   ua)) i   = ua `indexBU` i
-indexU (UAPrim (PrimChar   ua)) i   = ua `indexBU` i
-indexU (UAPrim (PrimInt    ua)) i   = ua `indexBU` i
-indexU (UAPrim (PrimFloat  ua)) i   = ua `indexBU` i
-indexU (UAPrim (PrimDouble ua)) i   = ua `indexBU` i
-indexU (UAUArr segd a) i   = sliceU a (psumUS segd `indexBU` i) 
-				      (segdUS segd `indexBU` i)
-
-sliceU  (UAUnit _) _ n	   = UAUnit n
-sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
-sliceU  (UASum sel l r) i n = 
-  let
-    sel'     = sliceBU (selUS sel) i n
-    li       = lidxUS sel`indexBU`i
-    ri       = ridxUS sel`indexBU`i
-    lidx     = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
-    ridx     = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
-    (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
-					   ridx`indexBU`(n - 1))
-  in
-  UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
-sliceU (UAPrim (PrimBool   ua)) i n = UAPrim . PrimBool   $ sliceBU ua i n
-sliceU (UAPrim (PrimChar   ua)) i n = UAPrim . PrimChar   $ sliceBU ua i n
-sliceU (UAPrim (PrimInt    ua)) i n = UAPrim . PrimInt    $ sliceBU ua i n
-sliceU (UAPrim (PrimFloat  ua)) i n = UAPrim . PrimFloat  $ sliceBU ua i n
-sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
-sliceU (UAUArr segd a) i n = 
-  let
-    segd1 = segdUS segd
-    psum  = psumUS segd
-    m     = if i == 0 then 0 else psum `indexBU` (i - 1)
-    psum' = mapBU (subtract m) (sliceBU psum i n)
-    segd' = USegd (sliceBU segd1 i n) psum'
-    i'    = psum `indexBU` i
-  in
-  UAUArr segd' (sliceU a i' (psum `indexBU` (i + n - 1) - i' + 1))
-
-{-
-newMU   n                   = return $ MUAUnit n
-newMU n = 
-  do
-    a <- newMU n
-    b <- newMU n
-    return $ MUAProd a b
-newMU n = do
-	    sel  <- newMBU n
-	    lidx <- newMBU n
-	    ridx <- newMBU n
-	    a    <- newMU n
-	    b    <- newMU n
-	    return $ MUASum (MUSel sel lidx ridx) a b
-newMU          n                = liftM (MUAPrim . MPrimBool  ) $ newMBU n
-newMU          n                = liftM (MUAPrim . MPrimChar  ) $ newMBU n
-newMU          n                = liftM (MUAPrim . MPrimInt   ) $ newMBU n
-newMU          n                = liftM (MUAPrim . MPrimFloat ) $ newMBU n
-newMU          n                = liftM (MUAPrim . MPrimDouble) $ newMBU n
--}
-
-{- ** ALL COMMENTED OUT **
-{-# SPECIALISE INLINE writeMU :: MUArr Unit s -> Int -> Unit -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr (a :*: b) s -> Int -> (a :*: b) -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr (a :+: b) s -> Int -> (a :+: b) -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr Bool s -> Int -> Bool -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr Char s -> Int -> Char -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr Int s -> Int -> Int -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr Float s -> Int -> Float -> ST s () #-}
-{-# SPECIALISE INLINE writeMU :: MUArr Double s -> Int -> Double -> ST s () #-}
--}
--- ** BUT WE ADD THIS SINGLE PRAGMA **
-{-# SPECIALISE INLINE writeMU :: MUArr Int s -> Int -> Int -> ST s () #-}
-writeMU (MUAUnit _  ) _ _         = return ()
-writeMU (MUAProd a b) i (x :*: y) = 
-  do
-    writeMU a i x
-    writeMU b i y
-writeMU (MUASum sel l r) i (Inl x) = 
-  do
-    let lidx = lidxMUS sel
-	ridx = ridxMUS sel
-    writeMBU (selMUS sel) i False
-    li <- if i == 0 then return 0 else liftM (+ 1) $ lidx`readMBU`(i - 1)
-    ri <- if i == 0 then return 0 else	             ridx`readMBU`(i - 1)
-    writeMBU lidx i li
-    writeMBU ridx i ri
-    writeMU l li x
-writeMU (MUASum sel l r) i (Inr x) = 
-  do
-    let lidx = lidxMUS sel
-	ridx = ridxMUS sel
-    writeMBU (selMUS sel) i True
-    li <- if i == 0 then return 0 else               lidx`readMBU`(i - 1)
-    ri <- if i == 0 then return 0 else liftM (+ 1) $ ridx`readMBU`(i - 1)
-    writeMBU lidx i li
-    writeMBU ridx i ri
-    writeMU r ri x
-  --FIXME: that works only when the array is constructed left to right, but
-  --not for something like permutations
-writeMU        (MUAPrim (MPrimBool   ua)) i e = writeMBU ua i e
-writeMU        (MUAPrim (MPrimChar   ua)) i e = writeMBU ua i e
-writeMU        (MUAPrim (MPrimInt    ua)) i e = writeMBU ua i e
-writeMU        (MUAPrim (MPrimFloat  ua)) i e = writeMBU ua i e
-writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
-
-unsafeFreezeMU (MUAUnit _) n = return $ UAUnit n
-unsafeFreezeMU (MUAProd a b) n = 
-  do
-    a' <- unsafeFreezeMU a n
-    b' <- unsafeFreezeMU b n
-    return $ UAProd a' b'
-unsafeFreezeMU (MUASum sel l r) n = 
-  do
-    sel' <- unsafeFreezeMBU (selMUS  sel) n
-    lidx <- unsafeFreezeMBU (lidxMUS sel) n
-    ridx <- unsafeFreezeMBU (ridxMUS sel) n
-    let ln = if n == 0 then 0 else lidx`indexBU`(n - 1)
-	rn = if n == 0 then 0 else ridx`indexBU`(n - 1)
-    l' <- unsafeFreezeMU l ln
-    r' <- unsafeFreezeMU r rn
-    return $ UASum (USel sel' lidx ridx) l' r'
-unsafeFreezeMU (MUAPrim (MPrimBool   ua)) n   = liftM (UAPrim . PrimBool  ) $ unsafeFreezeMBU ua n
-unsafeFreezeMU (MUAPrim (MPrimChar   ua)) n   = liftM (UAPrim . PrimChar  ) $ unsafeFreezeMBU ua n
-unsafeFreezeMU (MUAPrim (MPrimInt    ua)) n   = liftM (UAPrim . PrimInt   ) $ unsafeFreezeMBU ua n
-unsafeFreezeMU (MUAPrim (MPrimFloat  ua)) n   = liftM (UAPrim . PrimFloat ) $ unsafeFreezeMBU ua n
-unsafeFreezeMU (MUAPrim (MPrimDouble ua)) n   = liftM (UAPrim . PrimDouble) $ unsafeFreezeMBU ua n
--- END GADT VERSION - Spread out again for AT version.
-
 -- |Array operations on the unit representation.
 --
 instance UA Unit where
---  castP   (PAUnit i) = PAUnit i
+  lengthU (UAUnit n)     = n
+  indexU  (UAUnit _) _   = Unit
+  sliceU  (UAUnit _) _ n = UAUnit n
 
 instance MUA Unit where
-  newMU   n                   = return $ MUAUnit n
---  writeMU (MUAUnit _) _ _     = return ()
+  newMU   n                    = return $ MUAUnit n
+  writeMU (MUAUnit _) _ _      = return ()
+  unsafeFreezeMU (MUAUnit _) n = return $ UAUnit n
 
 -- |Array operations on the pair representation.
 --
 instance (UA a, UA b) => UA (a :*: b) where
---castP   (UAProd l r)     = UAProd l r
+  lengthU (UAProd l _)     = lengthU l
+  indexU  (UAProd l r) i   = indexU l i :*: indexU r i
+  sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
 
 instance (MUA a, MUA b) => MUA (a :*: b) where
   newMU n = 
@@ -351,12 +191,15 @@ instance (MUA a, MUA b) => MUA (a :*: b) where
       a <- newMU n
       b <- newMU n
       return $ MUAProd a b
-{-
   writeMU (MUAProd a b) i (x :*: y) = 
     do
       writeMU a i x
       writeMU b i y
--}
+  unsafeFreezeMU (MUAProd a b) n = 
+    do
+      a' <- unsafeFreezeMU a n
+      b' <- unsafeFreezeMU b n
+      return $ UAProd a' b'
 
 -- |Selector for immutable arrays of sums
 --
@@ -377,7 +220,20 @@ data MUSel s = MUSel {
 -- |Array operations on the sum representation
 --
 instance (UA a, UA b) => UA (a :+: b) where
---  castP (UASum sel l r) = UASum sel l r
+  lengthU (UASum sel _ _)     = lengthBU (selUS sel)
+  indexU  (UASum sel l r) i   = if (selUS sel)`indexBU`i then Inr $ indexU r i 
+					 	         else Inl $ indexU l i
+  sliceU  (UASum sel l r) i n = 
+    let
+      sel'     = sliceBU (selUS sel) i n
+      li       = lidxUS sel`indexBU`i
+      ri       = ridxUS sel`indexBU`i
+      lidx     = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
+      ridx     = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
+      (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
+					     ridx`indexBU`(n - 1))
+    in
+    UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
 
 instance (MUA a, MUA b) => MUA (a :+: b) where
   newMU n = do
@@ -387,7 +243,6 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 	      a    <- newMU n
 	      b    <- newMU n
 	      return $ MUASum (MUSel sel lidx ridx) a b
-{-
   writeMU (MUASum sel l r) i (Inl x) = 
     do
       let lidx = lidxMUS sel
@@ -410,7 +265,16 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
       writeMU r ri x
     --FIXME: that works only when the array is constructed left to right, but
     --not for something like permutations
--}
+  unsafeFreezeMU (MUASum sel l r) n = 
+    do
+      sel' <- unsafeFreezeMBU (selMUS  sel) n
+      lidx <- unsafeFreezeMBU (lidxMUS sel) n
+      ridx <- unsafeFreezeMBU (ridxMUS sel) n
+      let ln = if n == 0 then 0 else lidx`indexBU`(n - 1)
+	  rn = if n == 0 then 0 else ridx`indexBU`(n - 1)
+      l' <- unsafeFreezeMU l ln
+      r' <- unsafeFreezeMU r rn
+      return $ UASum (USel sel' lidx ridx) l' r'
 
 -- GADT VERSION: Auxilliary GADT to specialise operations on arrays of basic
 -- type
@@ -437,34 +301,64 @@ data MPrim e s where
 --     in `UAPrimU'.
 
 instance UA Bool where
+  lengthU (UAPrim (PrimBool   ua))    = lengthBU ua
+  indexU (UAPrim (PrimBool   ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimBool   ua)) i n = UAPrim . PrimBool   $ sliceBU ua i n
 
 instance MUA Bool where
-  newMU          n                = liftM (MUAPrim . MPrimBool  ) $ newMBU n
---  writeMU        (MUAPrim (MPrimBool   ua)) i e = writeMBU ua i e
+  newMU          n                            = 
+    liftM (MUAPrim . MPrimBool  ) $ newMBU n
+  writeMU        (MUAPrim (MPrimBool ua)) i e = writeMBU ua i e
+  unsafeFreezeMU (MUAPrim (MPrimBool ua)) n   = 
+    liftM (UAPrim . PrimBool  ) $ unsafeFreezeMBU ua n
 
 instance UA Char where
+  lengthU (UAPrim (PrimChar   ua))    = lengthBU ua
+  indexU (UAPrim (PrimChar   ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimChar   ua)) i n = UAPrim . PrimChar   $ sliceBU ua i n
 
 instance MUA Char where
-  newMU          n                = liftM (MUAPrim . MPrimChar  ) $ newMBU n
---  writeMU        (MUAPrim (MPrimChar   ua)) i e = writeMBU ua i e
+  newMU          n                              = 
+    liftM (MUAPrim . MPrimChar  ) $ newMBU n
+  writeMU        (MUAPrim (MPrimChar ua)) i e = writeMBU ua i e
+  unsafeFreezeMU (MUAPrim (MPrimChar ua)) n   = 
+    liftM (UAPrim . PrimChar  ) $ unsafeFreezeMBU ua n
 
 instance UA Int where
+  lengthU (UAPrim (PrimInt    ua))    = lengthBU ua
+  indexU (UAPrim (PrimInt    ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimInt    ua)) i n = UAPrim . PrimInt    $ sliceBU ua i n
 
 instance MUA Int where
-  newMU          n                = liftM (MUAPrim . MPrimInt   ) $ newMBU n
---  writeMU        (MUAPrim (MPrimInt    ua)) i e = writeMBU ua i e
+  newMU          n                            = 
+    liftM (MUAPrim . MPrimInt   ) $ newMBU n
+  writeMU        (MUAPrim (MPrimInt  ua)) i e = writeMBU ua i e
+  unsafeFreezeMU (MUAPrim (MPrimInt  ua)) n   = 
+    liftM (UAPrim . PrimInt   ) $ unsafeFreezeMBU ua n
 
 instance UA Float where
+  lengthU (UAPrim (PrimFloat  ua))    = lengthBU ua
+  indexU (UAPrim (PrimFloat  ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimFloat  ua)) i n = UAPrim . PrimFloat  $ sliceBU ua i n
 
 instance MUA Float where
-  newMU          n                = liftM (MUAPrim . MPrimFloat ) $ newMBU n
---  writeMU        (MUAPrim (MPrimFloat  ua)) i e = writeMBU ua i e
+  newMU          n                             = 
+    liftM (MUAPrim . MPrimFloat ) $ newMBU n
+  writeMU        (MUAPrim (MPrimFloat ua)) i e = writeMBU ua i e
+  unsafeFreezeMU (MUAPrim (MPrimFloat ua)) n   = 
+    liftM (UAPrim . PrimFloat ) $ unsafeFreezeMBU ua n
 
 instance UA Double where
+  lengthU (UAPrim (PrimDouble ua))    = lengthBU ua
+  indexU (UAPrim (PrimDouble ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
 
 instance MUA Double where
-  newMU          n                = liftM (MUAPrim . MPrimDouble) $ newMBU n
---  writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
+  newMU          n                              = 
+    liftM (MUAPrim . MPrimDouble) $ newMBU n
+  writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
+  unsafeFreezeMU (MUAPrim (MPrimDouble ua)) n   = 
+    liftM (UAPrim . PrimDouble) $ unsafeFreezeMBU ua n
 
 -- |Segment descriptors are used to represent the structure of nested arrays.
 --
@@ -483,6 +377,20 @@ data MUSegd s = MUSegd {
 -- |Array operations on the segmented array representation
 --
 instance UA a => UA (UArr a) where
+  lengthU (UAUArr segd _)    = lengthBU (segdUS segd)
+  indexU (UAUArr segd a) i   = sliceU a (psumUS segd `indexBU` i) 
+				        (segdUS segd `indexBU` i)
+  sliceU (UAUArr segd a) i n = 
+    let
+      segd1 = segdUS segd
+      psum  = psumUS segd
+      m     = if i == 0 then 0 else psum `indexBU` (i - 1)
+      psum' = mapBU (subtract m) (sliceBU psum i n)
+      segd' = USegd (sliceBU segd1 i n) psum'
+      i'    = psum `indexBU` i
+    in
+    UAUArr segd' (sliceU a i' (psum `indexBU` (i + n - 1) - i' + 1))
+
 
 
 -- |NB: There is no `MUA' instance for `MUAUArr', as we cannot implement its
