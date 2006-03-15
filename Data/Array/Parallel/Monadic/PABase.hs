@@ -46,7 +46,8 @@ import Monad (liftM)
 import Data.Generics
 
 -- friends
-import PAPrim (BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU,
+import Data.Array.Parallel.Base.UArr
+              (BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU,
 	       readMBU, writeMBU, unsafeFreezeMBU, replicateBU, loopBU,
 	       loopArr, sliceBU, mapBU, scanBU, sliceMBU, insertMBU, 
 	       ST)

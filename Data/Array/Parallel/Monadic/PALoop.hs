@@ -33,7 +33,8 @@ module PALoop (
 import Data.Generics
 
 -- friends
-import PAPrim (UArr, lengthU, indexU, loopArr, loopAcc, loopSndAcc, sumU,
+import Data.Array.Parallel.Base.UArr
+              (UArr, lengthU, indexU, loopArr, loopAcc, loopSndAcc, sumU,
 	       scanU, ST, runST)
 import PABase (PArray, FArray, PArr, SPArr, MSPArr, PArrInt, PAPrimU(..),
 	       PAPArr(..), Segd(..), 

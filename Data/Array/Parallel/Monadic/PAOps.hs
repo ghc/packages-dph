@@ -39,7 +39,7 @@ module PAOps (
 import Data.Generics
 
 -- friends
-import PAPrim    (indexU, runST)
+import Data.Array.Parallel.Base.UArr  (indexU, runST)
 import PABase    (PArray, FArray, PArr, SPArr, PAProd, PArrBool, PArrInt,
 		  SPArrInt, SPArrBool, UInt,
 		  lengthP, toSegd, sliceP, newMP, newMSP, writeMP, nextMSP,

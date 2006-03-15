@@ -1,4 +1,4 @@
--- |GHC-specific low-level support for unboxed and boxed arrays
+-- |GHC-specific low-level support for unboxed arrays
 --
 --  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --  Copyright (c) 2006	       Manuel M T Chakravarty
@@ -43,18 +43,14 @@
 --    smaller array.
 
 
-module PAPrim (
-  -- * Unboxed and boxed primitive arrays (both immutable and mutable)
-  BUArr, MBUArr, BBArr, MBBArr,
+module Data.Array.Parallel.Base.UArr (
+  -- * Unboxed primitive arrays (both immutable and mutable)
+  BUArr, MBUArr,
 
   -- * Class with operations on primitive unboxed arrays
   UAE, lengthBU, lengthMBU, newMBU, indexBU, readMBU, writeMBU,
   unsafeFreezeMBU, replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, sliceBU,
   mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, sliceMBU, insertMBU,
-
-  -- * Operations on primitive boxed arrays
-  lengthBB, lengthMBB, newMBB, indexBB, readMBB, writeMBB, unsafeFreezeMBB,
-  sliceBB, sliceMBB, insertMBB,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
@@ -77,26 +73,14 @@ import GHC.Prim           (Char#, Int#, Float#, Double#, ByteArray#,
 import GHC.Base		  (Char(..), Int(..), and#, or#, neWord#, int2Word#)
 import GHC.Float	  (Float(..), Double(..))
 import GHC.ST		  (ST(..), runST)
-import GHC.Arr		  (Array(..), STArray(..), bounds, boundsSTArray,
-			   (!), newSTArray, readSTArray, writeSTArray) 
 import Data.Array.Base    (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
 			   bOOL_INDEX, bOOL_BIT, bOOL_NOT_BIT)
 
 -- config
-import PADebug            (debug)
+import Data.Array.Parallel.Base.Debug (check, checkLen, checkCritical)
 
 
-infixl 9 `indexBU`, `readMBU`, `indexBB`, `readMBB`
-
-
--- Debugging
--- ---------
-
--- Whether to check for critical bounds errors that might corrupt the heap
---
-debugCritical :: Bool
-debugCritical = True
-
+infixl 9 `indexBU`, `readMBU`
 
 -- |Unboxed arrays
 -- ---------------
@@ -478,116 +462,6 @@ instance (Show e, UAE e) => Show (BUArr e) where
   showsPrec _ a =   showString "toBU " 
 		  . showList [a `indexBU` i | i <- [0..lengthBU a - 1]]
 
-
--- |Boxed arrays
--- -------------
-
--- |Boxed arrays in both an immutable and a mutable variant
---
--- NB: We use a newtype instead of a type, as we need to be able to partially
---     apply the new type constructors (which type synonyms only support in a
---     restricted way).
---
-newtype BBArr    e = BBArr  (Array     Int e)
-newtype MBBArr s e = MBBArr (STArray s Int e)
-
--- |Length of an immutable boxed array
---
-lengthBB :: BBArr e -> Int
-lengthBB (BBArr arr) = (+ 1) . snd . bounds $ arr
-
--- |Length of an immutable boxed array
---
-lengthMBB :: MBBArr s e -> Int
-lengthMBB (MBBArr marr) = (+ 1) . snd . boundsSTArray $ marr
-
--- |Allocate a boxed array initialised with the given value
---
-newMBB :: Int -> e -> ST s (MBBArr s e)
-newMBB n = liftM MBBArr . newSTArray (0, n - 1)
-
--- |Access an element in an immutable, boxed array
---
-indexBB :: BBArr e -> Int -> e
-indexBB (BBArr arr) = (arr!)
-
--- |Access an element in an mutable, boxed array
---
-readMBB :: MBBArr s e -> Int -> ST s e
-readMBB (MBBArr marr) = readSTArray marr
-
--- |Update an element in an mutable, boxed array
---
-writeMBB :: MBBArr s e -> Int -> e -> ST s ()
-writeMBB (MBBArr marr) = writeSTArray marr
-
--- |Turn a mutable into an immutable array WITHOUT copying its contents, which
--- implies that the mutable array must not be mutated anymore after this
--- operation has been executed.
---
--- * The explicit size parameter supports partially filled arrays (and must be
---   less than or equal the size used when allocating the mutable array)
---
-unsafeFreezeMBB :: MBBArr s e -> Int -> ST s (BBArr e)
-{-# INLINE unsafeFreezeMBB #-}
-unsafeFreezeMBB (MBBArr (STArray _ m1 marr#)) n = 
-  checkLen "PAPrim.unsafeFreezeMB: " (m1 + 1) n $ ST $ \s1# ->
-  case unsafeFreezeArray# marr# s1# of {(# s2#, arr# #) ->
-  (# s2#, BBArr (Array 0 (n - 1) arr#) #)}
-
--- |Loop-based combinators on boxed arrays
--- -
-
--- |Extract a slice from an array (given by its start index and length)
---
-sliceBB :: BBArr e -> Int -> Int -> BBArr e
-{-# INLINE sliceBB #-}
-sliceBB arr i n = 
-  runST (do
-    ma <- newMBB n bottomBBArrElem
-    copy0 ma
-    unsafeFreezeMBB ma n
-  )
-  where
-    fence = n `min` (lengthBB arr - i)
-    copy0 ma = copy 0
-      where
-        copy off | off == fence = return ()
-		 | otherwise	= do
-				    writeMBB ma off (arr `indexBB` (i + off))
-				    copy (off + 1)
-
-bottomBBArrElem = 
-  error "PAPrim: Touched an uninitialised element in a `BBArr'"
-
--- |Extract a slice from a mutable array (the slice is immutable)
---
-sliceMBB :: MBBArr s e -> Int -> Int -> ST s (BBArr e)
-sliceMBB arr i n = 
-  do
-    arr' <- unsafeFreezeMBB arr (i + n)
-    return $ sliceBB arr' i n
-
--- |Insert a the contents of an immutable array into a mutable array from the
--- specified position on
---
-insertMBB :: MBBArr s e -> Int -> BBArr e -> ST s ()
-insertMBB marr i arr = ins i 0
-  where
-    n = lengthBB arr
-    --
-    ins i j | j == n    = return ()
-	    | otherwise = do
-			    writeMBB marr i (arr `indexBB` j)
-			    ins (i + 1) (j + 1)
-
--- Show instance
---
-instance Show e => Show (BBArr e) where
-  showsPrec _ a =   showString "toBB " 
-		  . showList [a `indexBB` i | i <- [0..lengthBB a - 1]]
-
-
 -- Auxilliary functions
 -- --------------------
 
@@ -596,41 +470,3 @@ instance Show e => Show (BBArr e) where
 cHAR_SCALE :: Int# -> Int#
 cHAR_SCALE n# = 4# *# n#
 
--- Check that the second integer is greater or equal to `0' and less than the
--- first integer
---
-check :: String -> Int -> Int -> a -> a
-{-# INLINE check #-}
-check loc n i v 
-  | debug      = if (i >= 0 && i < n) then v else err loc n i
-  | otherwise  = v
-  where
-    err loc n i = error $ "PAPrim: " ++ loc ++ ": Out of bounds (size = "
-			  ++ show n ++ "; index = " ++ show i ++ ")"
--- FIXME: Interestingly, ghc seems not to be able to optimise this if we test
---	  for `not debug' (it doesn't inline the `not'...)
-
--- Check that the second integer is greater or equal to `0' and less than the
--- first integer; this version is used to check operations that could corrupt
--- the heap
---
-checkCritical :: String -> Int -> Int -> a -> a
-{-# INLINE checkCritical #-}
-checkCritical loc n i v 
-  | debugCritical = if (i >= 0 && i < n) then v else err loc n i
-  | otherwise     = v
-  where
-    err loc n i = error $ "PAPrim: " ++ loc ++ ": Out of bounds (size = "
-			  ++ show n ++ "; index = " ++ show i ++ ")"
-
--- Check that the second integer is greater or equal to `0' and less or equal
--- than the first integer
---
-checkLen :: String -> Int -> Int -> a -> a
-{-# INLINE checkLen #-}
-checkLen loc n i v 
-  | debug      = if (i >= 0 && i <= n) then v else err loc n i
-  | otherwise  = v
-  where
-    err loc n i = error $ "PAPrim: " ++ loc ++ ": Out of bounds (size = "
-			  ++ show n ++ "; length = " ++ show i ++ ")"

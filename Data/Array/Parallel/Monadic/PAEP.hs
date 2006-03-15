@@ -37,7 +37,7 @@ module PAEP (
 import Data.Generics
 
 -- friends
-import PAPrim    (UArr, MUArr, ST)
+import Data.Array.Parallel.Base.UArr  (UArr, MUArr, ST)
 import PABase    (PArray, FArray, PArr, MPArr, SPArr, MSPArr)
 import qualified
        PABase    (lengthP, indexP, sliceP, newMP, newMSP, writeMP, nextMSP,
