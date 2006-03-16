@@ -80,7 +80,7 @@ CONF	   = parr.conf
 # Files
 #
 SRCS    = ../Base/UArr.hs ../Base/BArr.hs ../Base/Debug.hs\
-	  PAPrim.hs PABase.hs PAEP.hs PALoop.hs PAFusion.hs PAOps.hs PArray.hs
+	  UArr.hs PAEP.hs PALoop.hs PAFusion.hs PAOps.hs PArray.hs
 OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS))) ../Base/Config/Debug.o
 LIB     = parrHS
 
@@ -182,12 +182,13 @@ TEST_UNIT_HCFLAGS=-ddump-simpl -no-recomp
 test/unit/TestUArr.hs-HCFLAGS  = $(TEST_UNIT_HCFLAGS)
 test/unit/TestBUArr.hs-HCFLAGS = $(TEST_UNIT_HCFLAGS)
 
-test/unit/TestUArr.o : PABase.o
-test/unit/TestBUArr.o: PABase.o
+test/unit/TestUArr.o : UArr.o
+test/unit/TestBUArr.o: UArr.o
 
-BASEOBJS=../Base/Config.o ../Base/Debug.o ../Base/BUArr.o ../Base/BBArr.o
+BASEOBJS=../Base/Config.o ../Base/Debug.o ../Base/Generics.o\
+         ../Base/BUArr.o ../Base/BBArr.o
 
-test/unit/TestUArr : test/unit/TestUArr.o PABase.o $(BASEOBJS)
+test/unit/TestUArr : test/unit/TestUArr.o UArr.o $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
 test/unit/TestBUArr: test/unit/TestBUArr.o $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
@@ -288,9 +289,9 @@ clean:
 ../Base/Generics.o: ../Base/Generics.hs
 ../Base/BUArr.o   : ../Base/BUArr.hs ../Base/Debug.hi
 ../Base/BBArr.o   : ../Base/BBArr.hs ../Base/Debug.hi
-PABase.o  : PABase.hs ../Base/Generics.hi ../Base/BUArr.hi
-PALoop.o  : PALoop.hs PABase.hi
-PAEP.o    : PAEP.hs PALoop.hi PABase.hi
-PAFusion.o: PAFusion.hs PABase.hi PALoop.hi
-PAOps.o   : PAOps.hs PAFusion.hi PAEP.hi PALoop.hi PABase.hi
-PArray.o  : PArray.hs PAEP.hi PABase.hi
+UArr.o    : UArr.hs ../Base/Generics.hi ../Base/BUArr.hi
+PALoop.o  : PALoop.hs UArr.hi
+PAEP.o    : PAEP.hs PALoop.hi UArr.hi
+PAFusion.o: PAFusion.hs UArr.hi PALoop.hi
+PAOps.o   : PAOps.hs PAFusion.hi PAEP.hi PALoop.hi UArr.hi
+PArray.o  : PArray.hs PAEP.hi UArr.hi

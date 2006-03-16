@@ -1,36 +1,22 @@
--- |Generic arrays
---
---  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---  Copyright (c) 2006         Manuel M T Chakravarty
---
---  $Id: PABase.hs,v 1.18 2002/12/02 10:09:23 chak Exp $
---
---  This file may be used, modified, and distributed under the same conditions
---  and the same warranty disclaimer as set out in the X11 license.
---
---- Description ---------------------------------------------------------------
---
---  Language: Haskell 98 + GADTs
---
---  This module defines parallel arrays generically as a GADT.
---
---  This implementation does not support boxed arrays as a fallback for
---  element types for which we do not have a special representation.  This is
---  to simplify the presentation.  !!!FIXME: Not clear that's an issue anymore.
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Monadic.UArr
+-- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
+--		 (c) 2006         Manuel M T Chakravarty
+-- License     : see libraries/base/LICENSE
 -- 
---- Todo ----------------------------------------------------------------------
+-- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (GADTS)
 --
---  * Currently, we don't make use of `PAPrim.UAE' in `PAPrimU' to avoid
---    storing dictionaries in `PAPrimU' (which would also force us to make it
---    into a data, instead of a newtype).  This is because it supposedly is
---    more efficient this way.  However, it is not entirely clear whether it
---    really makes a big difference.
+-- Description ---------------------------------------------------------------
 --
---  * What about sum types?  We might want to handle enumeration types and
---    maybe also `Maybe' differently.
+-- This module defines unlifted arrays generically as a GADT.
+--
+-- Todo ----------------------------------------------------------------------
 --
 
-module PABase (
+module Data.Array.Parallel.Monadic.UArr (
   -- * Array types and classes containing the admissble elements types
   UA, MUA, UArr(..), MUArr(..), USel(..), USegd(..),
 
@@ -43,10 +29,10 @@ module PABase (
 import Monad (liftM)
 
 -- GHC-specific modules
-import Data.Generics
+import Data.Array.Parallel.Base.Generics
 
 -- friends
-import Data.Array.Parallel.Base.UArr
+import Data.Array.Parallel.Base.BUArr
               (BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU,
 	       readMBU, writeMBU, unsafeFreezeMBU, replicateBU, loopBU,
 	       loopArr, sliceBU, mapBU, scanBU, sliceMBU, insertMBU, 
@@ -79,11 +65,11 @@ class UA e where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data UArr e where
-  UAUnit :: Int                         -> UArr Unit
-  UAProd ::          UArr e1 -> UArr e2 -> UArr (e1 :*: e2)
-  UASum  :: USel  -> UArr e1 -> UArr e2 -> UArr (e1 :+: e2)
-  UAPrim ::          (Prim e)           -> UArr e
-  UAUArr :: USegd -> UArr e             -> UArr (UArr e)
+  UAUnit :: !Int                               -> UArr Unit
+  UAProd ::           !(UArr e1) -> !(UArr e2) -> UArr (e1 :*: e2)
+  UASum  :: !USel  -> !(UArr e1) -> !(UArr e2) -> UArr (e1 :+: e2)
+  UAPrim ::           !(Prim e)                -> UArr e
+  UAUArr :: !USegd -> !(UArr e)                -> UArr (UArr e)
 
 -- |This type class covers those element types of unboxed arrays that can be
 -- contained in immutable versions of these arrays.
@@ -102,11 +88,11 @@ class UA e => MUA e where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data MUArr e s where
-  MUAUnit :: Int                                  -> MUArr Unit s
-  MUAProd ::             MUArr e1 s -> MUArr e2 s -> MUArr (e1 :*: e2) s
-  MUASum  :: MUSel s  -> MUArr e1 s -> MUArr e2 s -> MUArr (e1 :+: e2) s
-  MUAPrim ::             (MPrim e s)              -> MUArr e s
-  MUAUArr :: MUSegd s -> MUArr e s                -> MUArr (UArr e) s
+  MUAUnit :: !Int                                          -> MUArr Unit s
+  MUAProd ::                !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :*: e2) s
+  MUASum  :: !(MUSel s)  -> !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :+: e2) s
+  MUAPrim ::                !(MPrim e s)                   -> MUArr e s
+  MUAUArr :: !(MUSegd s) -> !(MUArr e s)                   -> MUArr (UArr e) s
 
 -- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
 -- iteratively define a segmented mutable array; i.e., arrays of type `MUArr s
@@ -205,17 +191,17 @@ instance (MUA a, MUA b) => MUA (a :*: b) where
 -- |Selector for immutable arrays of sums
 --
 data USel = USel {
-	      selUS  :: BUArr Bool,  -- selector (False => left)
-	      lidxUS :: BUArr Int,   -- left indices
-	      ridxUS :: BUArr Int    -- right indices
+	      selUS  :: !(BUArr Bool),  -- selector (False => left)
+	      lidxUS :: !(BUArr Int),   -- left indices
+	      ridxUS :: !(BUArr Int)    -- right indices
 	    }
 
 -- |Selector for mutable arrays of sums
 --
 data MUSel s = MUSel {
-	         selMUS  :: MBUArr s Bool,  -- selector (False => left)
-	         lidxMUS :: MBUArr s Int,   -- left indices
-	         ridxMUS :: MBUArr s Int    -- right indices
+	         selMUS  :: !(MBUArr s Bool),  -- selector (False => left)
+	         lidxMUS :: !(MBUArr s Int),   -- left indices
+	         ridxMUS :: !(MBUArr s Int)    -- right indices
 	       }
 
 -- |Array operations on the sum representation
@@ -280,18 +266,18 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 -- GADT VERSION: Auxilliary GADT to specialise operations on arrays of basic
 -- type
 data Prim e where
-  PrimBool   :: BUArr Bool   -> Prim Bool
-  PrimChar   :: BUArr Char   -> Prim Char
-  PrimInt    :: BUArr Int    -> Prim Int
-  PrimFloat  :: BUArr Float  -> Prim Float
-  PrimDouble :: BUArr Double -> Prim Double
+  PrimBool   :: !(BUArr Bool)   -> Prim Bool
+  PrimChar   :: !(BUArr Char)   -> Prim Char
+  PrimInt    :: !(BUArr Int)    -> Prim Int
+  PrimFloat  :: !(BUArr Float)  -> Prim Float
+  PrimDouble :: !(BUArr Double) -> Prim Double
 
 data MPrim e s where
-  MPrimBool   :: MBUArr s Bool   -> MPrim Bool s
-  MPrimChar   :: MBUArr s Char   -> MPrim Char s
-  MPrimInt    :: MBUArr s Int    -> MPrim Int s
-  MPrimFloat  :: MBUArr s Float  -> MPrim Float s
-  MPrimDouble :: MBUArr s Double -> MPrim Double s
+  MPrimBool   :: !(MBUArr s Bool)   -> MPrim Bool s
+  MPrimChar   :: !(MBUArr s Char)   -> MPrim Char s
+  MPrimInt    :: !(MBUArr s Int)    -> MPrim Int s
+  MPrimFloat  :: !(MBUArr s Float)  -> MPrim Float s
+  MPrimDouble :: !(MBUArr s Double) -> MPrim Double s
 -- END GADT VERSION
 
 -- |Array operations on unboxed arrays
@@ -364,15 +350,15 @@ instance MUA Double where
 -- |Segment descriptors are used to represent the structure of nested arrays.
 --
 data USegd = USegd {
-	       segdUS :: BUArr Int,  -- segment lengths
-	       psumUS :: BUArr Int   -- prefix sum of former
+	       segdUS :: !(BUArr Int),  -- segment lengths
+	       psumUS :: !(BUArr Int)   -- prefix sum of former
 	     }
 
 -- |Mutable segment descriptor
 --
 data MUSegd s = MUSegd {
-	          segdMUS :: MBUArr s Int,  -- segment lengths
-	          psumMUS :: MBUArr s Int   -- prefix sum of former
+	          segdMUS :: !(MBUArr s Int),  -- segment lengths
+	          psumMUS :: !(MBUArr s Int)   -- prefix sum of former
 	        }
 
 -- |Array operations on the segmented array representation

@@ -1,5 +1,5 @@
-import PAPrim (ST, runST)
-import PABase
+import Data.Array.Parallel.Base.BUArr (ST, runST)
+import Data.Array.Parallel.Monadic.UArr
 
 replicateU :: MUA e => Int -> e -> UArr e
 replicateU n e =
