@@ -185,7 +185,7 @@ test/unit/TestBUArr.hs-HCFLAGS = $(TEST_UNIT_HCFLAGS)
 test/unit/TestUArr.o : PABase.o
 test/unit/TestBUArr.o: PABase.o
 
-BASEOBJS=../Base/Config.o ../Base/Debug.o ../Base/UArr.o ../Base/BArr.o
+BASEOBJS=../Base/Config.o ../Base/Debug.o ../Base/BUArr.o ../Base/BBArr.o
 
 test/unit/TestUArr : test/unit/TestUArr.o PABase.o $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
@@ -283,13 +283,14 @@ clean:
 
 # Dependencies
 #
-../Base/Config.o : ../Base/Config.hs
-../Base/Debug.o  : ../Base/Debug.hs ../Base/Config.hi
-../Base/UArr.o   : ../Base/UArr.hs ../Base/Debug.hi
-../Base/BArr.o   : ../Base/BArr.hs ../Base/Debug.hi
-PABase.o  : PABase.hs ../Base/UArr.hi
-PAEP.o    : PAEP.hs PALoop.hi PABase.hi
+../Base/Config.o  : ../Base/Config.hs
+../Base/Debug.o   : ../Base/Debug.hs ../Base/Config.hi
+../Base/Generics.o: ../Base/Generics.hs
+../Base/BUArr.o   : ../Base/BUArr.hs ../Base/Debug.hi
+../Base/BBArr.o   : ../Base/BBArr.hs ../Base/Debug.hi
+PABase.o  : PABase.hs ../Base/Generics.hi ../Base/BUArr.hi
 PALoop.o  : PALoop.hs PABase.hi
+PAEP.o    : PAEP.hs PALoop.hi PABase.hi
 PAFusion.o: PAFusion.hs PABase.hi PALoop.hi
 PAOps.o   : PAOps.hs PAFusion.hi PAEP.hi PALoop.hi PABase.hi
 PArray.o  : PArray.hs PAEP.hi PABase.hi

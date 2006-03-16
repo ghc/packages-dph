@@ -43,7 +43,7 @@
 --    smaller array.
 
 
-module Data.Array.Parallel.Base.UArr (
+module Data.Array.Parallel.Base.BUArr (
   -- * Unboxed primitive arrays (both immutable and mutable)
   BUArr, MBUArr,
 
