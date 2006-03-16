@@ -185,7 +185,8 @@ test/unit/TestBUArr.hs-HCFLAGS = $(TEST_UNIT_HCFLAGS)
 test/unit/TestUArr.o : UArr.o
 test/unit/TestBUArr.o: UArr.o
 
-BASEOBJS=../Base/Config.o ../Base/Debug.o ../Base/Generics.o\
+BASEOBJS=../Base/Config.o ../Base/Debug.o\
+         ../Base/Hyperstrict.o ../Base/Generics.o\
          ../Base/BUArr.o ../Base/BBArr.o
 
 test/unit/TestUArr : test/unit/TestUArr.o UArr.o $(BASEOBJS)
@@ -286,7 +287,8 @@ clean:
 #
 ../Base/Config.o  : ../Base/Config.hs
 ../Base/Debug.o   : ../Base/Debug.hs ../Base/Config.hi
-../Base/Generics.o: ../Base/Generics.hs
+../Base/Generics.o: ../Base/Generics.hs ../Base/Hyperstrict.hi
+../Base/Hyperstrict.o: ../Base/Hyperstrict.hs
 ../Base/BUArr.o   : ../Base/BUArr.hs ../Base/Debug.hi
 ../Base/BBArr.o   : ../Base/BBArr.hs ../Base/Debug.hi
 UArr.o    : UArr.hs ../Base/Generics.hi ../Base/BUArr.hi
