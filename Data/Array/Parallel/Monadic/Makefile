@@ -57,7 +57,8 @@ LD	= ld
 HC      = $(GHC)
 #HCFLAGS = -fglasgow-exts -O2 -funbox-strict-fields\
 # -O2 currently makes GHC loop!!!
-HCFLAGS = -fglasgow-exts -O -funbox-strict-fields\
+HCFLAGS = -i../../../..\
+	  -fglasgow-exts -O -funbox-strict-fields\
 	  -fliberate-case-threshold100 -fno-method-sharing\
 #         -fallow-undecidable-instances
 #	  -fno-cse
@@ -78,8 +79,9 @@ CONF	   = parr.conf
 
 # Files
 #
-SRCS    = PAPrim.hs PABase.hs PAEP.hs PALoop.hs PAFusion.hs PAOps.hs PArray.hs
-OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS))) PADebug.o
+SRCS    = ../Base/UArr.hs ../Base/BArr.hs ../Base/Debug.hs\
+	  PAPrim.hs PABase.hs PAEP.hs PALoop.hs PAFusion.hs PAOps.hs PArray.hs
+OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS))) ../Base/Config/Debug.o
 LIB     = parrHS
 
 TARFILES = README TODO Makefile $(SRCS)\
@@ -110,11 +112,11 @@ default: all
 #
 .PHONY: PADebug.hs-build
 PADebug.hs-build:
-ifneq ($(DEBUG),$(subst debug = ,,$(shell $(GREP) 'debug =' PADebug.hs)))
-	echo "-- Generated file -- DO NOT EDIT! --"	 >PADebug.hs
-	echo "module PADebug (debug) where"		>>PADebug.hs
-	echo "debug = $(DEBUG)"				>>PADebug.hs
-endif
+#ifneq ($(DEBUG),$(subst debug = ,,$(shell $(GREP) 'debug =' PADebug.hs)))
+#	echo "-- Generated file -- DO NOT EDIT! --"	 >PADebug.hs
+#	echo "module PADebug (debug) where"		>>PADebug.hs
+#	echo "debug = $(DEBUG)"				>>PADebug.hs
+#endif
 
 # Templates
 #
@@ -183,9 +185,11 @@ test/unit/TestBUArr.hs-HCFLAGS = $(TEST_UNIT_HCFLAGS)
 test/unit/TestUArr.o : PABase.o
 test/unit/TestBUArr.o: PABase.o
 
-test/unit/TestUArr : test/unit/TestUArr.o PABase.o PAPrim.o PADebug.o
+BASEOBJS=../Base/Config.o ../Base/Debug.o ../Base/UArr.o ../Base/BArr.o
+
+test/unit/TestUArr : test/unit/TestUArr.o PABase.o $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
-test/unit/TestBUArr: test/unit/TestBUArr.o PAPrim.o PADebug.o
+test/unit/TestBUArr: test/unit/TestBUArr.o $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
 
 # Simple tests in test/simple/
@@ -268,7 +272,7 @@ test/smvm/smvm: $(TEST_SMVM_OBJS) $(BENCHOBJS)
 
 .PHONY: clean
 clean:
-	-$(RM) *.hi *.o\
+	-$(RM) *.hi *.o ../Base/*.hi ../Base/*.o\
 	  test/unit/*.hi test/unit/*.o test/unit/TestUArr test/unit/TestBUArr\
 	  test/simple/*.hi test/simple/*.o\
 	  test/benchutils/*.hi test/benchutils/*.o\
@@ -279,12 +283,13 @@ clean:
 
 # Dependencies
 #
-PADebug.hs: PADebug.hs-build
-PADebug.o : PADebug.hs
-PAPrim.o  : PAPrim.hs PADebug.hi
-PABase.o  : PABase.hs PAPrim.hi
-PAEP.o    : PAEP.hs PALoop.hi PABase.hi PAPrim.hi
-PALoop.o  : PALoop.hs PABase.hi PAPrim.hi
+../Base/Config.o : ../Base/Config.hs
+../Base/Debug.o  : ../Base/Debug.hs ../Base/Config.hi
+../Base/UArr.o   : ../Base/UArr.hs ../Base/Debug.hi
+../Base/BArr.o   : ../Base/BArr.hs ../Base/Debug.hi
+PABase.o  : PABase.hs ../Base/UArr.hi
+PAEP.o    : PAEP.hs PALoop.hi PABase.hi
+PALoop.o  : PALoop.hs PABase.hi
 PAFusion.o: PAFusion.hs PABase.hi PALoop.hi
 PAOps.o   : PAOps.hs PAFusion.hi PAEP.hi PALoop.hi PABase.hi
 PArray.o  : PArray.hs PAEP.hi PABase.hi

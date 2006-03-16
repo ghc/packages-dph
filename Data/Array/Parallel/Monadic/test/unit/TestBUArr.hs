@@ -1,4 +1,4 @@
-import PAPrim
+import Data.Array.Parallel.Base.UArr
 
 replicateBU_test :: UAE e => Int -> e -> BUArr e
 replicateBU_test n e =

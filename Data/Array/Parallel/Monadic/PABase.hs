@@ -10,7 +10,7 @@
 --
 --- Description ---------------------------------------------------------------
 --
---  Language: Haskell 98 + multi-parameter classes, GADTs & kind annotations
+--  Language: Haskell 98 + GADTs
 --
 --  This module defines parallel arrays generically as a GADT.
 --
