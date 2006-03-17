@@ -79,7 +79,8 @@ CONF	   = parr.conf
 
 # Files
 #
-SRCS    = ../Base/UArr.hs ../Base/BArr.hs ../Base/Debug.hs\
+SRCS    = ../Base/UArr.hs ../Base/BArr.hs ../Base/Debug.hs ../Base/Generics.hs\
+	  ../Base/Hyperstrict.hs ../Base/Prim.hs\
 	  UArr.hs PAEP.hs PALoop.hs PAFusion.hs PAOps.hs PArray.hs
 OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS))) ../Base/Config/Debug.o
 LIB     = parrHS
@@ -186,7 +187,7 @@ test/unit/TestUArr.o : UArr.o
 test/unit/TestBUArr.o: UArr.o
 
 BASEOBJS=../Base/Config.o ../Base/Debug.o\
-         ../Base/Hyperstrict.o ../Base/Generics.o\
+         ../Base/Hyperstrict.o ../Base/Generics.o ../Base/Prim.o\
          ../Base/BUArr.o ../Base/BBArr.o
 
 test/unit/TestUArr : test/unit/TestUArr.o UArr.o $(BASEOBJS)
@@ -285,13 +286,14 @@ clean:
 
 # Dependencies
 #
-../Base/Config.o  : ../Base/Config.hs
-../Base/Debug.o   : ../Base/Debug.hs ../Base/Config.hi
-../Base/Generics.o: ../Base/Generics.hs ../Base/Hyperstrict.hi
+../Base/Config.o     : ../Base/Config.hs
+../Base/Debug.o      : ../Base/Debug.hs ../Base/Config.hi
+../Base/Prim.o       : ../Base/Prim.hs
 ../Base/Hyperstrict.o: ../Base/Hyperstrict.hs
-../Base/BUArr.o   : ../Base/BUArr.hs ../Base/Debug.hi
-../Base/BBArr.o   : ../Base/BBArr.hs ../Base/Debug.hi
-UArr.o    : UArr.hs ../Base/Generics.hi ../Base/BUArr.hi
+../Base/Generics.o   : ../Base/Generics.hs ../Base/Hyperstrict.hi
+../Base/BUArr.o      : ../Base/BUArr.hs ../Base/Debug.hi
+../Base/BBArr.o      : ../Base/BBArr.hs ../Base/Debug.hi
+UArr.o    : UArr.hs ../Base/BUArr.hi ../Base/Generics.hi ../Base/Prim.hi
 PALoop.o  : PALoop.hs UArr.hi
 PAEP.o    : PAEP.hs PALoop.hi UArr.hi
 PAFusion.o: PAFusion.hs UArr.hi PALoop.hi

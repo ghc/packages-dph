@@ -32,11 +32,14 @@ import Monad (liftM)
 import Data.Array.Parallel.Base.Generics
 
 -- friends
-import Data.Array.Parallel.Base.BUArr
-              (BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU,
-	       readMBU, writeMBU, unsafeFreezeMBU, replicateBU, loopBU,
-	       loopArr, sliceBU, mapBU, scanBU, sliceMBU, insertMBU, 
-	       ST)
+import Data.Array.Parallel.Base.BUArr (
+  BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, readMBU, writeMBU,
+  unsafeFreezeMBU, replicateBU, loopBU, loopArr, sliceBU, mapBU, scanBU,
+  sliceMBU, insertMBU,  
+  ST)
+import Data.Array.Parallel.Base.Prim (
+  Prim(..), MPrim(..),
+  unPrim, unMPrim, mkPrim, mkMPrim)
 
 
 infixl 9 `indexU`
@@ -263,23 +266,6 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
       r' <- unsafeFreezeMU r rn
       return $ UASum (USel sel' lidx ridx) l' r'
 
--- GADT VERSION: Auxilliary GADT to specialise operations on arrays of basic
--- type
-data Prim e where
-  PrimBool   :: !(BUArr Bool)   -> Prim Bool
-  PrimChar   :: !(BUArr Char)   -> Prim Char
-  PrimInt    :: !(BUArr Int)    -> Prim Int
-  PrimFloat  :: !(BUArr Float)  -> Prim Float
-  PrimDouble :: !(BUArr Double) -> Prim Double
-
-data MPrim e s where
-  MPrimBool   :: !(MBUArr s Bool)   -> MPrim Bool s
-  MPrimChar   :: !(MBUArr s Char)   -> MPrim Char s
-  MPrimInt    :: !(MBUArr s Int)    -> MPrim Int s
-  MPrimFloat  :: !(MBUArr s Float)  -> MPrim Float s
-  MPrimDouble :: !(MBUArr s Double) -> MPrim Double s
--- END GADT VERSION
-
 -- |Array operations on unboxed arrays
 -- -
 --
@@ -288,9 +274,9 @@ data MPrim e s where
 --     in `UAPrimU'.
 
 instance UA Bool where
-  lengthU (UAPrim (PrimBool   ua))    = lengthBU ua
-  indexU (UAPrim (PrimBool   ua)) i   = ua `indexBU` i
-  sliceU (UAPrim (PrimBool   ua)) i n = UAPrim . PrimBool   $ sliceBU ua i n
+  lengthU (UAPrim (PrimBool ua))    = lengthBU ua
+  indexU (UAPrim (PrimBool ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool   $ sliceBU ua i n
 
 instance MUA Bool where
   newMU          n                            = 
@@ -300,9 +286,9 @@ instance MUA Bool where
     liftM (UAPrim . PrimBool  ) $ unsafeFreezeMBU ua n
 
 instance UA Char where
-  lengthU (UAPrim (PrimChar   ua))    = lengthBU ua
-  indexU (UAPrim (PrimChar   ua)) i   = ua `indexBU` i
-  sliceU (UAPrim (PrimChar   ua)) i n = UAPrim . PrimChar   $ sliceBU ua i n
+  lengthU (UAPrim (PrimChar ua))    = lengthBU ua
+  indexU (UAPrim (PrimChar ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar   $ sliceBU ua i n
 
 instance MUA Char where
   newMU          n                              = 
@@ -312,9 +298,9 @@ instance MUA Char where
     liftM (UAPrim . PrimChar  ) $ unsafeFreezeMBU ua n
 
 instance UA Int where
-  lengthU (UAPrim (PrimInt    ua))    = lengthBU ua
-  indexU (UAPrim (PrimInt    ua)) i   = ua `indexBU` i
-  sliceU (UAPrim (PrimInt    ua)) i n = UAPrim . PrimInt    $ sliceBU ua i n
+  lengthU (UAPrim (PrimInt ua))    = lengthBU ua
+  indexU (UAPrim (PrimInt ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt    $ sliceBU ua i n
 
 instance MUA Int where
   newMU          n                            = 
@@ -324,9 +310,9 @@ instance MUA Int where
     liftM (UAPrim . PrimInt   ) $ unsafeFreezeMBU ua n
 
 instance UA Float where
-  lengthU (UAPrim (PrimFloat  ua))    = lengthBU ua
-  indexU (UAPrim (PrimFloat  ua)) i   = ua `indexBU` i
-  sliceU (UAPrim (PrimFloat  ua)) i n = UAPrim . PrimFloat  $ sliceBU ua i n
+  lengthU (UAPrim (PrimFloat ua))    = lengthBU ua
+  indexU (UAPrim (PrimFloat ua)) i   = ua `indexBU` i
+  sliceU (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat  $ sliceBU ua i n
 
 instance MUA Float where
   newMU          n                             = 
