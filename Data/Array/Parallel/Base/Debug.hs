@@ -14,6 +14,7 @@ module Data.Array.Parallel.Base.Debug (
     check
   , checkCritical
   , checkLen
+  , checkEq
 ) where
 
 import Data.Array.Parallel.Base.Config  (debug, debugCritical)
@@ -51,4 +52,13 @@ checkLen :: String -> Int -> Int -> a -> a
 checkLen loc n i v 
   | debug      = if (i >= 0 && i <= n) then v else outOfBounds loc n i
   | otherwise  = v
+
+checkEq :: (Eq a, Show a) => String -> String -> a -> a -> b -> b
+checkEq loc msg x y v
+  | debug     = if x == y then v else err
+  | otherwise = v
+  where
+    err = error $ loc ++ ": " ++ msg
+                  ++ " (first = " ++ show x
+                  ++ "; second = " ++ show y ++ ")"
 

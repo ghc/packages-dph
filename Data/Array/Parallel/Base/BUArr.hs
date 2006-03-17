@@ -49,7 +49,8 @@ module Data.Array.Parallel.Base.BUArr (
 
   -- * Class with operations on primitive unboxed arrays
   UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU, writeMBU,
-  unsafeFreezeMBU, replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, sliceBU,
+  unsafeFreezeMBU, unsafeFreezeAllMBU,
+  replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, sliceBU,
   mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, sliceMBU, insertMBU,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
@@ -139,6 +140,19 @@ unsafeFreezeMBU :: MBUArr s e -> Int -> ST s (BUArr e)
 unsafeFreezeMBU (MBUArr m mba#) n = 
   checkLen "PAPrim.unsafeFreezeMU: " m n $ ST $ \s# ->
   (# s#, BUArr 0 n (unsafeCoerce# mba#) #)
+
+-- |Turn a mutable into an immutable array WITHOUT copying its contents, which
+-- implies that the mutable array must not be mutated anymore after this
+-- operation has been executed.
+--
+-- * In contrast to 'unsafeFreezeMBU', this operation always freezes the
+-- entire array.
+-- 
+unsafeFreezeAllMBU :: MBUArr s e -> ST s (BUArr e)
+{-# INLINE unsafeFreezeAllMBU #-}
+unsafeFreezeAllMBU (MBUArr m mba#) = 
+  ST $ \s# -> (# s#, BUArr m (unsafeCoerce# mba#) #)
+
 
 -- |Instances of unboxed arrays
 -- -
