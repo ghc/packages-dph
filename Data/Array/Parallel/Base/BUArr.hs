@@ -1,46 +1,46 @@
--- |GHC-specific low-level support for unboxed arrays
---
---  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---  Copyright (c) 2006	       Manuel M T Chakravarty
---
---  $Id: PAPrim.hs,v 1.8 2002/08/22 17:10:31 chak Exp $
---
---  This file may be used, modified, and distributed under the same conditions
---  and the same warranty disclaimer as set out in the X11 license.
---
---- Description ---------------------------------------------------------------
---
---  Language: Haskell 98 + unboxed arrays & GHC-internal libraries
---
---  We define our own infrastructure for unboxed arrays, but recycle some of
---  the existing abstractions for boxed arrays.  It's more important to have
---  precise control over the implementation of unboxed arrays, because they
---  are more performance critical.  All arrays defined here are `Int'-indexed
---  without H98 `Ix' support.
---
---  So far, we only support Char, Int, Float, and Double in unboxed arrays
---  (adding more is merely a matter of tedious typing).
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Base.BUArr
+-- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
+--		 (c) 2006         Manuel M T Chakravarty
+-- License     : see libraries/base/LICENSE
 -- 
---- Todo ----------------------------------------------------------------------
+-- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (unboxed values and GHC libraries)
 --
---  * For some not understood reason, `checkCritical' prevents the write
---    operations to be inlined.  Instead, a specialised version of them is
---    called.  Interestingly, this doesn't seem to affect runtime negatively
---    (as opposed to still checking, but inlining everything).  Nevertheless,
---    bounds checks cost performance.  (Checking only the writes in SMVM costs
---    about a factor of two for the fully fused version and about 50% for the
---    partially fused version.)
+-- Description ---------------------------------------------------------------
 --
---    We could check only check some of the writes (eg, in permutations) as we
---    know for others that they can never be out of bounds (provided this
---    library is correct).
+-- This module define our own infrastructure for unboxed arrays, but recycle
+-- some of the existing abstractions for boxed arrays.  It's more important to
+-- have precise control over the implementation of unboxed arrays, because
+-- they are more performance critical.  All arrays defined here are
+-- `Int'-indexed without H98 `Ix' support.
 --
---  * There is no proper block copy support yet.  It would be helpful for
---    sliceing and inserting.
+-- So far, we only support Char, Int, Float, and Double in unboxed arrays
+-- (adding more is merely a matter of tedious typing).
 --
---  * If during freezing it becomes clear that the array is much smaller than
---    originally allocated, it might be worthwhile to copy the data into a new,
---    smaller array.
+-- Todo ----------------------------------------------------------------------
+--
+-- * For some not understood reason, `checkCritical' prevents the write
+--   operations to be inlined.  Instead, a specialised version of them is
+--   called.  Interestingly, this doesn't seem to affect runtime negatively
+--   (as opposed to still checking, but inlining everything).  Nevertheless,
+--   bounds checks cost performance.  (Checking only the writes in SMVM costs
+--   about a factor of two for the fully fused version and about 50% for the
+--   partially fused version.)
+--
+--   We could check only check some of the writes (eg, in permutations) as we
+--   know for others that they can never be out of bounds (provided this
+--   library is correct).
+--
+-- * There is no proper block copy support yet.  It would be helpful for
+--   sliceing and inserting.  But do we need slicing if we have clipping?
+--   (Clipping instead of slicing may introduce space leaks..)
+--
+-- * If during freezing it becomes clear that the array is much smaller than
+--   originally allocated, it might be worthwhile to copy the data into a new,
+--   smaller array.
 
 
 module Data.Array.Parallel.Base.BUArr (
@@ -48,7 +48,7 @@ module Data.Array.Parallel.Base.BUArr (
   BUArr, MBUArr,
 
   -- * Class with operations on primitive unboxed arrays
-  UAE, lengthBU, lengthMBU, newMBU, indexBU, readMBU, writeMBU,
+  UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU, writeMBU,
   unsafeFreezeMBU, replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, sliceBU,
   mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, sliceMBU, insertMBU,
 
@@ -61,20 +61,20 @@ module Data.Array.Parallel.Base.BUArr (
 import Monad (liftM)
 
 -- GHC-internal definitions
-import GHC.Prim           (Char#, Int#, Float#, Double#, ByteArray#,
-			   MutableByteArray#, (*#), newByteArray#,
-			   unsafeFreezeArray#, unsafeCoerce#,
-			   indexWideCharArray#, readWideCharArray#,
-			   writeWideCharArray#, indexIntArray#, readIntArray#, 
-			   writeIntArray#, indexWordArray#, readWordArray#, 
-			   writeWordArray#, indexFloatArray#, readFloatArray#, 
-			   writeFloatArray#, indexDoubleArray#,
-			   readDoubleArray#, writeDoubleArray#) 
-import GHC.Base		  (Char(..), Int(..), and#, or#, neWord#, int2Word#)
-import GHC.Float	  (Float(..), Double(..))
-import GHC.ST		  (ST(..), runST)
-import Data.Array.Base    (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
-			   bOOL_INDEX, bOOL_BIT, bOOL_NOT_BIT)
+import GHC.Prim        (Char#, Int#, Float#, Double#, ByteArray#,
+		        MutableByteArray#, (*#), newByteArray#,
+		        unsafeFreezeArray#, unsafeCoerce#,
+		        indexWideCharArray#, readWideCharArray#,
+		        writeWideCharArray#, indexIntArray#, readIntArray#, 
+		        writeIntArray#, indexWordArray#, readWordArray#, 
+		        writeWordArray#, indexFloatArray#, readFloatArray#, 
+		        writeFloatArray#, indexDoubleArray#,
+		        readDoubleArray#, writeDoubleArray#) 
+import GHC.Base	       (Char(..), Int(..), (+#), and#, or#, neWord#, int2Word#)
+import GHC.Float       (Float(..), Double(..))
+import GHC.ST	       (ST(..), runST)
+import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
+			bOOL_INDEX, bOOL_BIT, bOOL_NOT_BIT)
 
 -- config
 import Data.Array.Parallel.Base.Debug (check, checkLen, checkCritical)
@@ -88,13 +88,13 @@ infixl 9 `indexBU`, `readMBU`
 -- Unboxed arrays of primitive element types arrays constructed from an
 -- explicit length and a byte array in both an immutable and a mutable variant
 --
-data BUArr    e = BUArr  !Int ByteArray#
-data MBUArr s e = MBUArr !Int (MutableByteArray# s)
+data BUArr    e = BUArr  !Int !Int ByteArray#
+data MBUArr s e = MBUArr !Int      (MutableByteArray# s)
 
 -- |Number of elements of an immutable unboxed array
 --
 lengthBU :: BUArr e -> Int
-lengthBU (BUArr n _) = n
+lengthBU (BUArr _ n _) = n
 
 -- |Number of elements of a mutable unboxed array
 --
@@ -108,6 +108,15 @@ class UAE e where
   indexBU  :: BUArr e    -> Int      -> e
   readMBU  :: MBUArr s e -> Int      -> ST s e
   writeMBU :: MBUArr s e -> Int -> e -> ST s ()
+
+-- |Produces an array that consists of a subrange of the original one without
+-- copying any elements.
+--
+clipBU :: BUArr e -> Int -> Int -> BUArr e
+clipBU (BUArr start len arr) newStart newLen = 
+  let start' = start + newStart
+  in
+  BUArr start' (len - newStart `min` newLen) arr
 
 -- |Allocate an uninitialised unboxed array
 --
@@ -129,7 +138,7 @@ unsafeFreezeMBU :: MBUArr s e -> Int -> ST s (BUArr e)
 {-# INLINE unsafeFreezeMBU #-}
 unsafeFreezeMBU (MBUArr m mba#) n = 
   checkLen "PAPrim.unsafeFreezeMU: " m n $ ST $ \s# ->
-  (# s#, BUArr n (unsafeCoerce# mba#) #)
+  (# s#, BUArr 0 n (unsafeCoerce# mba#) #)
 
 -- |Instances of unboxed arrays
 -- -
@@ -141,7 +150,7 @@ instance UAE () where
   sizeBU _ _ = 0
 
   {-# INLINE indexBU #-}
-  indexBU (BUArr _ _) (I# _) = ()
+  indexBU (BUArr _ _ _) (I# _) = ()
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr _ _) (I# _) =
@@ -157,9 +166,9 @@ instance UAE Bool where
   sizeBU (I# n#) _ = I# (bOOL_SCALE n#)
 
   {-# INLINE indexBU #-}
-  indexBU (BUArr n ba#) i@(I# i#) =
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check "PAPrim.indexBU[Bool]" n i $
-      (indexWordArray# ba# (bOOL_INDEX i#) `and#` bOOL_BIT i#) 
+      (indexWordArray# ba# (bOOL_INDEX (s# +# i#)) `and#` bOOL_BIT i#) 
       `neWord#` int2Word# 0#
 
   {-# INLINE readMBU #-}
@@ -184,9 +193,9 @@ instance UAE Char where
   sizeBU (I# n#) _ = I# (cHAR_SCALE n#)
 
   {-# INLINE indexBU #-}
-  indexBU (BUArr n ba#) i@(I# i#) =
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check "PAPrim.indexBU[Char]" n i $
-    case indexWideCharArray# ba# i# 	    of {r# ->
+    case indexWideCharArray# ba# (s# +# i#)	    of {r# ->
     (C# r#)}
 
   {-# INLINE readMBU #-}
@@ -207,9 +216,9 @@ instance UAE Int where
   sizeBU (I# n#) _ = I# (wORD_SCALE n#)
 
   {-# INLINE indexBU #-}
-  indexBU (BUArr n ba#) i@(I# i#) =
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check "PAPrim.indexBU[Int]" n i $
-    case indexIntArray# ba# i# 	       of {r# ->
+    case indexIntArray# ba# (s# +# i#) 	       of {r# ->
     (I# r#)}
 
   {-# INLINE readMBU #-}
@@ -230,9 +239,9 @@ instance UAE Float where
   sizeBU (I# n#) _ = I# (fLOAT_SCALE n#)
 
   {-# INLINE indexBU #-}
-  indexBU (BUArr n ba#) i@(I# i#) =
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check "PAPrim.indexBU[Float]" n i $
-    case indexFloatArray# ba# i#         of {r# ->
+    case indexFloatArray# ba# (s# +# i#)         of {r# ->
     (F# r#)}
 
   {-# INLINE readMBU #-}
@@ -253,9 +262,9 @@ instance UAE Double where
   sizeBU (I# n#) _ = I# (dOUBLE_SCALE n#)
 
   {-# INLINE indexBU #-}
-  indexBU (BUArr n ba#) i@(I# i#) =
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check "PAPrim.indexBU[Double]" n i $
-    case indexDoubleArray# ba# i#         of {r# ->
+    case indexDoubleArray# ba# (s# +# i#)         of {r# ->
     (D# r#)}
 
   {-# INLINE readMBU #-}
