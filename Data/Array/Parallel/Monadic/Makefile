@@ -55,12 +55,9 @@ LD	= ld
 # Haskell compiler
 #
 HC      = $(GHC)
-#HCFLAGS = -fglasgow-exts -O2 -funbox-strict-fields\
-# -O2 currently makes GHC loop!!!
 HCFLAGS = -i../../../..\
-	  -fglasgow-exts -O -funbox-strict-fields\
-	  -fliberate-case-threshold100 -fno-method-sharing\
-#         -fallow-undecidable-instances
+          -fglasgow-exts -O2 -funbox-strict-fields\
+	  -fliberate-case-threshold100 -fno-method-sharing
 #	  -fno-cse
 # NB: method sharing and CSE can hinder fusion
 HLDFLAGS= -L. -l$(LIB)

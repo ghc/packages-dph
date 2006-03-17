@@ -151,7 +151,7 @@ unsafeFreezeMBU (MBUArr m mba#) n =
 unsafeFreezeAllMBU :: MBUArr s e -> ST s (BUArr e)
 {-# INLINE unsafeFreezeAllMBU #-}
 unsafeFreezeAllMBU (MBUArr m mba#) = 
-  ST $ \s# -> (# s#, BUArr m (unsafeCoerce# mba#) #)
+  ST $ \s# -> (# s#, BUArr 0 m (unsafeCoerce# mba#) #)
 
 
 -- |Instances of unboxed arrays
