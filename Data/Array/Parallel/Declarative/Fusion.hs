@@ -1,34 +1,34 @@
--- |Fusion rules and associated combinators
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Declarative.Fusion
+-- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
+--		 (c) 2006         Manuel M T Chakravarty
+-- License     : see libraries/base/LICENSE
+-- 
+-- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (Rewrite Rules)
 --
---  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
+-- Description ---------------------------------------------------------------
 --
---  $Id: PAFusion.hs,v 1.8 2002/08/23 05:41:35 chak Exp $
+-- Combinator-based array fusion
 --
---  This file may be used, modified, and distributed under the same conditions
---  and the same warranty disclaimer as set out in the X11 license.
---
---- Description ---------------------------------------------------------------
---
---  Language: Haskell 98 + multi-parameter classes + rewrite rules
---
---  Combinator-based array fusion
---
---- Todo ----------------------------------------------------------------------
+-- Todo ----------------------------------------------------------------------
 --
 --  * Add more fusion rules
 --
 
-module PAFusion (
+module Data.Array.Parallel.Declarative.Fusion (
   noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL
 ) where
 
--- GHC-specific modules
-import Data.Generics
-
 -- friends
-import PABase (PArr, PAUnit, PAPArr(..), (>:), zipP)
-import PALoop (loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
-import PAEP   (replicateP, loopP, replicateSP, loopSP)
+import Data.Array.Parallel.Base.Generics
+import Data.Array.Parallel.Monadic.UArr (
+  UArr(UAUnit, UAUArr), (>:), zipU)
+import Data.Array.Parallel.Declarative.Loop (
+  replicateU, loopU, replicateSU, loopSU,
+  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 
 
 -- |Special forms of loop arguments
@@ -115,12 +115,12 @@ keepSFL f = \a _ -> (f a, Just a)
 
 {-# RULES  -- -} (for font-locking)
 
-"loopP/replicateP" forall em start n v.
-  loopP em start (replicateP n v) = 
-    loopP (\a _ -> em v a) start (replicateP n noAL)
+"loopU/replicateU" forall em start n v.
+  loopU em start (replicateU n v) = 
+    loopU (\a _ -> em v a) start (replicateU n noAL)
 
-"loopP/loopP" forall em1 em2 start1 start2 arr.
-  loopP em2 start2 (loopArr (loopP em1 start1 arr)) =
+"loopU/loopU" forall em1 em2 start1 start2 arr.
+  loopU em2 start2 (loopArr (loopU em1 start1 arr)) =
     let
       em (acc1, acc2) e = case em1 e acc1 of
 			    (acc1', Nothing) -> ((acc1', acc2), Nothing)
@@ -128,9 +128,9 @@ keepSFL f = \a _ -> (f a, Just a)
 			      case em2 e' acc2 of
 			        (acc2', res) -> ((acc1', acc2'), res)
     in
-    loopSndAcc (loopP em (start1, start2) arr)
+    loopSndAcc (loopU em (start1, start2) arr)
 
--- fusion across a zipP
+-- fusion across a zipU
 --
 -- * we can only fuse across a zip if the the fused loop does not drop any
 --   elements; the case of a `mapEFL' guarantees this and is easy to recognise
@@ -138,25 +138,25 @@ keepSFL f = \a _ -> (f a, Just a)
 -- * note that, due to `mapEFL', we are ignoring the accumulator; so, we can
 --   just forget about the accumulator of the inner loop
 {- FIXME: typing problem
-"loopP/zipP/loopP-left" forall f1 start1 em2 start2 pa1 pa2.
-  loopP em2 start2 (zipP (loopArr (loopP (mapEFL f1) start1 pa1)) pa2) =
+"loopU/zipU/loopU-left" forall f1 start1 em2 start2 pa1 pa2.
+  loopU em2 start2 (zipU (loopArr (loopU (mapEFL f1) start1 pa1)) pa2) =
     let
       em acc2 (e1 :*: e2) = 
         case em2 acc2 (f1 e1 :*: e2) of
 	  (acc2', Nothing ) -> (acc2', Nothing )
 	  (acc2', Just e'') -> (acc2', Just e'')
     in
-    loopP em start2 (zipP pa1 pa2)
+    loopU em start2 (zipU pa1 pa2)
 
-"loopP/zipP/loopP-right" forall f1 start1 em2 start2 pa1 pa2.
-  loopP em2 start2 (zipP pa2 (loopArr (loopP (mapEFL f1) start1 pa1))) =
+"loopU/zipU/loopU-right" forall f1 start1 em2 start2 pa1 pa2.
+  loopU em2 start2 (zipU pa2 (loopArr (loopU (mapEFL f1) start1 pa1))) =
     let
       em acc2 (e1 :*: e2) = 
         case em2 acc2 (e1 :*: f1 e2) of
 	  (acc2', Nothing ) -> (acc2', Nothing )
 	  (acc2', Just e'') -> (acc2', Just e'')
     in
-    loopP em start2 (zipP pa1 pa2)
+    loopU em start2 (zipU pa1 pa2)
 -}
 --FIXME: similar zip rules work for scanEFL, too
 
@@ -170,15 +170,15 @@ keepSFL f = \a _ -> (f a, Just a)
 --FIXME: would it be better to match on PAPArr instead of on ">:"?
 --       Problem mit matching auf PAPArr is that GHC inserts some sort of
 --	 $wPAPArr, which messes everything up.  Can we prevent this?
-"loopSP/loopP[map]" forall f1 em2 sm2 segd start1 start2 arr.
-  loopSP em2 sm2 start2 (segd >: loopArr (loopP (mapEFL f1) start1 arr)) =
+"loopSU/loopU[map]" forall f1 em2 sm2 segd start1 start2 arr.
+  loopSU em2 sm2 start2 (segd >: loopArr (loopU (mapEFL f1) start1 arr)) =
     let
       em acc2 e = em2 acc2 (f1 e)
     in
-    loopSP em sm2 start2 (segd >: arr)
+    loopSU em sm2 start2 (segd >: arr)
 
-"loopSP/loopP[scan]" forall f1 em2 sm2 segd start1 start2 arr.
-  loopSP em2 sm2 start2 (segd >: loopArr (loopP (scanEFL f1) start1 arr)) =
+"loopSU/loopU[scan]" forall f1 em2 sm2 segd start1 start2 arr.
+  loopSU em2 sm2 start2 (segd >: loopArr (loopU (scanEFL f1) start1 arr)) =
     let
       em (acc1, acc2) e = case em2 acc2 acc1 of
 			    (acc2', res) -> ((f1 acc1 e, acc2'), res)
@@ -186,7 +186,7 @@ keepSFL f = \a _ -> (f a, Just a)
       sm (acc1, acc2) i = case sm2 acc2 i of
 			    (acc2', res) -> ((acc1, acc2'), res)
     in
-    loopSndAcc $ loopSP em sm (start1, start2) (segd >: arr)
+    loopSndAcc $ loopSU em sm (start1, start2) (segd >: arr)
 
 --FIXME: there are zip variants, too
 
