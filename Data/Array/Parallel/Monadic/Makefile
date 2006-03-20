@@ -78,7 +78,9 @@ CONF	   = parr.conf
 #
 SRCS    = ../Base/UArr.hs ../Base/BArr.hs ../Base/Debug.hs ../Base/Generics.hs\
 	  ../Base/Hyperstrict.hs ../Base/Prim.hs\
-	  UArr.hs PAEP.hs PALoop.hs PAFusion.hs PAOps.hs PArray.hs
+	  UArr.hs\
+	   ../Declarative/Loop.hs PAFusion.hs\
+	  PAEP.hs PAOps.hs PArray.hs
 OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS))) ../Base/Config/Debug.o
 LIB     = parrHS
 
@@ -187,9 +189,12 @@ BASEOBJS=../Base/Config.o ../Base/Debug.o\
          ../Base/Hyperstrict.o ../Base/Generics.o ../Base/Prim.o\
          ../Base/BUArr.o ../Base/BBArr.o
 
+test/unit/TestBUArr: test/unit/TestBUArr.o $(BASEOBJS)
+	$(HC) -o $@ $(HCFLAGS) $^
 test/unit/TestUArr : test/unit/TestUArr.o UArr.o $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
-test/unit/TestBUArr: test/unit/TestBUArr.o $(BASEOBJS)
+test/unit/TestLoop : test/unit/TestLoop.o UArr.o ../Declarative/Loop.o\
+		     $(BASEOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^
 
 # Simple tests in test/simple/
@@ -291,8 +296,8 @@ clean:
 ../Base/BUArr.o      : ../Base/BUArr.hs ../Base/Debug.hi
 ../Base/BBArr.o      : ../Base/BBArr.hs ../Base/Debug.hi
 UArr.o    : UArr.hs ../Base/BUArr.hi ../Base/Generics.hi ../Base/Prim.hi
-PALoop.o  : PALoop.hs UArr.hi
-PAEP.o    : PAEP.hs PALoop.hi UArr.hi
-PAFusion.o: PAFusion.hs UArr.hi PALoop.hi
-PAOps.o   : PAOps.hs PAFusion.hi PAEP.hi PALoop.hi UArr.hi
-PArray.o  : PArray.hs PAEP.hi UArr.hi
+../Declarative/Loop.o: ../Declarative/Loop.hs UArr.hi
+PAEP.o    : PAEP.hs ../Declarative/Loop.hi UArr.hi
+PAFusion.o: PAFusion.hs UArr.hi ../Declarative/Loop.hi
+PAOps.o   : PAOps.hs PAFusion.hi PAEP.hi ../Declarative/Loop.hi UArr.hi
+PArray.o  : PArray.hs PAEP.hi PAOps.hi UArr.hi

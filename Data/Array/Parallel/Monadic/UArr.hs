@@ -23,7 +23,7 @@
 
 module Data.Array.Parallel.Monadic.UArr (
   -- * Array types and classes containing the admissble elements types
-  UA, MUA, UArr(..), MUArr(..), USel(..), USegd(..),
+  UA, MUA, UArr(..), MUArr(..), USel(..), MUSel(..), USegd(..), MUSegd(..),
 
   -- * Basic operations on parallel arrays
   lengthU, indexU, clipU, sliceU, newMU, newMSU, writeMU, nextMSU,

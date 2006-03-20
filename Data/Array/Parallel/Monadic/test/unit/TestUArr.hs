@@ -28,5 +28,3 @@ sumU arr = sumUp (lengthU arr) 0
       acc' `seq` sumUp i' acc'
 
 main = print $ sumU (replicateU 5 (10 :: Int))
-
--- !!!FIXME: GHC 6.5 seems to optimise the writes away...
