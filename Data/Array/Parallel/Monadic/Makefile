@@ -76,12 +76,13 @@ CONF	   = parr.conf
 
 # Files
 #
-SRCS    = ../Base/UArr.hs ../Base/BArr.hs ../Base/Debug.hs ../Base/Generics.hs\
-	  ../Base/Hyperstrict.hs ../Base/Prim.hs\
+SRCS    = ../Base/Config.hs ../Base/Debug.hs\
+          ../Base/BUArr.hs ../Base/BBArr.hs\
+	  ../Base/Generics.hs ../Base/Hyperstrict.hs ../Base/Prim.hs\
 	  UArr.hs\
 	  ../Declarative/Loop.hs ../Declarative/Fusion.hs\
-	  PAOps.hs PArray.hs
-OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS))) ../Base/Config/Debug.o
+	  ../Unlifted/ListLike.hs ../Unlifted/NeslLike.hs ../Unlifted.hs
+OBJS    = $(patsubst %.hs,%.o,$(filter %.hs,$(SRCS)))
 LIB     = parrHS
 
 TARFILES = README TODO Makefile $(SRCS)\
@@ -91,7 +92,7 @@ TARFILES = README TODO Makefile $(SRCS)\
 
 # files that contain a `versnum = "x.y.z"' line
 #
-VERSFILE=PArray.hs
+VERSFILE=../Unlifted.hs
 
 # this is far from elegant, but extracts the plain version number
 #
@@ -225,6 +226,9 @@ test/sumsq/SumSq.hs-HCFLAGS = $(TEST_SUMSQ_HCFLAGS)
 
 test/sumsq/SumSq.o: lib$(LIB).a
 
+test/sumsq/sumsq: test/sumsq/SumSq.o
+	$(HC) -o $@ $(HCFLAGS) $^ $(HLDFLAGS)
+
 # Simple dot product test in test/dotp/
 #
 TEST_DOTP_HCFLAGS=$(BENCHFLAGS) -ddump-simpl -ddump-simpl-stats
@@ -290,6 +294,7 @@ clean:
 
 # Dependencies
 #
+# Base/
 ../Base/Config.o     : ../Base/Config.hs
 ../Base/Debug.o      : ../Base/Debug.hs ../Base/Config.hi
 ../Base/Prim.o       : ../Base/Prim.hs
@@ -297,9 +302,17 @@ clean:
 ../Base/Generics.o   : ../Base/Generics.hs ../Base/Hyperstrict.hi
 ../Base/BUArr.o      : ../Base/BUArr.hs ../Base/Debug.hi
 ../Base/BBArr.o      : ../Base/BBArr.hs ../Base/Debug.hi
+# Monadic/
 UArr.o    : UArr.hs ../Base/BUArr.hi ../Base/Generics.hi ../Base/Prim.hi
+# Declarative/
 ../Declarative/Loop.o  : ../Declarative/Loop.hs UArr.hi
 ../Declarative/Fusion.o: ../Declarative/Fusion.hs ../Declarative/Loop.hi\
 			 UArr.hi
-PAOps.o   : PAOps.hs PAFusion.hi ../Declarative/Loop.hi UArr.hi
-PArray.o  : PArray.hs PAOps.hi UArr.hi
+# Unlifted/
+../Unlifted/ListLike.o: ../Unlifted/ListLike.hs ../Declarative/Fusion.hi\
+                        ../Declarative/Loop.hi UArr.hi
+../Unlifted/NeslLike.o: ../Unlifted/NeslLike.hs ../Unlifted/ListLike.hi\
+			../Declarative/Fusion.hi ../Declarative/Loop.hi UArr.hi
+# Public interface
+../Unlifted.o: ../Unlifted.hs ../Unlifted/ListLike.hi ../Unlifted/NeslLike.hi\
+	       UArr.hi
