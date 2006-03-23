@@ -96,9 +96,11 @@ gangIO (Gang n mvs) p =
 gangST :: Gang -> (Int -> ST s ()) -> ST s ()
 gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
 
+{- Comes from GHC.IOBase now...
 -- | Unsafely embed an 'ST' computation in the 'IO' monad without fixing the
 -- state type. This should go into 'Control.Monad.ST'.
 unsafeSTToIO :: ST s a -> IO a
 unsafeSTToIO (ST m) = IO $ \ s -> (unsafeCoerce# m) s
+ -}
 
 

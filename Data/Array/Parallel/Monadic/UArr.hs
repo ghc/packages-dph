@@ -182,20 +182,26 @@ instance MUA Unit where
 --
 instance (UA a, UA b) => UA (a :*: b) where
   lengthU (UAProd l _)     = lengthU l
+  {-# INLINE indexU #-}
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
+  {-# INLINE clipU #-}
   clipU   (UAProd l r) i n = UAProd (clipU l i n) (clipU r i n)
+  {-# INLINE sliceU #-}
   sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
 
 instance (MUA a, MUA b) => MUA (a :*: b) where
+  {-# INLINE newMU #-}
   newMU n = 
     do
       a <- newMU n
       b <- newMU n
       return $ MUAProd a b
+  {-# INLINE writeMU #-}
   writeMU (MUAProd a b) i (x :*: y) = 
     do
       writeMU a i x
       writeMU b i y
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAProd a b) n = 
     do
       a' <- unsafeFreezeMU a n
@@ -222,8 +228,10 @@ data MUSel s = MUSel {
 --
 instance (UA a, UA b) => UA (a :+: b) where
   lengthU (UASum sel _ _)     = lengthBU (selUS sel)
+  {-# INLINE indexU #-}
   indexU  (UASum sel l r) i   = if (selUS sel)`indexBU`i then Inr $ indexU r i 
 					 	         else Inl $ indexU l i
+  {-# INLINE clipU #-}
   clipU   (UASum sel l r) i n = 
     let
       sel'     = clipBU (selUS sel) i n
@@ -235,6 +243,7 @@ instance (UA a, UA b) => UA (a :+: b) where
 					     ridx`indexBU`(n - 1))
     in
     UASum (USel sel' lidx ridx) (clipU l li ln) (clipU r ri rn)
+  {-# INLINE sliceU #-}
   sliceU  (UASum sel l r) i n = 
     let
       sel'     = sliceBU (selUS sel) i n
@@ -248,6 +257,7 @@ instance (UA a, UA b) => UA (a :+: b) where
     UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
 
 instance (MUA a, MUA b) => MUA (a :+: b) where
+  {-# INLINE newMU #-}
   newMU n = do
 	      sel  <- newMBU n
 	      lidx <- newMBU n
@@ -255,6 +265,7 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 	      a    <- newMU n
 	      b    <- newMU n
 	      return $ MUASum (MUSel sel lidx ridx) a b
+  {-# INLINE writeMU #-}
   writeMU (MUASum sel l r) i (Inl x) = 
     do
       let lidx = lidxMUS sel
@@ -277,6 +288,7 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
       writeMU r ri x
     --FIXME: that works only when the array is constructed left to right, but
     --not for something like permutations
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUASum sel l r) n = 
     do
       sel' <- unsafeFreezeMBU (selMUS  sel) n
@@ -297,66 +309,96 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 
 instance UA Bool where
   lengthU (UAPrim (PrimBool ua))    = lengthBU ua
+  {-# INLINE indexU #-}
   indexU (UAPrim (PrimBool ua)) i   = ua `indexBU` i
+  {-# INLINE clipU #-}
   clipU  (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ clipBU ua i n
+  {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ sliceBU ua i n
 
 instance MUA Bool where
+  {-# INLINE newMU #-}
   newMU          n                            = 
     liftM (MUAPrim . MPrimBool  ) $ newMBU n
+  {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimBool ua)) i e = writeMBU ua i e
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimBool ua)) n   = 
     liftM (UAPrim . PrimBool  ) $ unsafeFreezeMBU ua n
 
 instance UA Char where
   lengthU (UAPrim (PrimChar ua))    = lengthBU ua
+  {-# INLINE indexU #-}
   indexU (UAPrim (PrimChar ua)) i   = ua `indexBU` i
+  {-# INLINE clipU #-}
   clipU  (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ clipBU ua i n
+  {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ sliceBU ua i n
 
 instance MUA Char where
+  {-# INLINE newMU #-}
   newMU          n                              = 
     liftM (MUAPrim . MPrimChar  ) $ newMBU n
+  {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimChar ua)) i e = writeMBU ua i e
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimChar ua)) n   = 
     liftM (UAPrim . PrimChar  ) $ unsafeFreezeMBU ua n
 
 instance UA Int where
   lengthU (UAPrim (PrimInt ua))    = lengthBU ua
+  {-# INLINE indexU #-}
   indexU (UAPrim (PrimInt ua)) i   = ua `indexBU` i
+  {-# INLINE clipU #-}
   clipU  (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ clipBU ua i n
+  {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ sliceBU ua i n
 
 instance MUA Int where
+  {-# INLINE newMU #-}
   newMU          n                            = 
     liftM (MUAPrim . MPrimInt   ) $ newMBU n
+  {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimInt  ua)) i e = writeMBU ua i e
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimInt  ua)) n   = 
     liftM (UAPrim . PrimInt   ) $ unsafeFreezeMBU ua n
 
 instance UA Float where
   lengthU (UAPrim (PrimFloat ua))    = lengthBU ua
+  {-# INLINE indexU #-}
   indexU (UAPrim (PrimFloat ua)) i   = ua `indexBU` i
+  {-# INLINE clipU #-}
   clipU  (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ clipBU ua i n
+  {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ sliceBU ua i n
 
 instance MUA Float where
+  {-# INLINE newMU #-}
   newMU          n                             = 
     liftM (MUAPrim . MPrimFloat ) $ newMBU n
+  {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimFloat ua)) i e = writeMBU ua i e
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimFloat ua)) n   = 
     liftM (UAPrim . PrimFloat ) $ unsafeFreezeMBU ua n
 
 instance UA Double where
   lengthU (UAPrim (PrimDouble ua))    = lengthBU ua
+  {-# INLINE indexU #-}
   indexU (UAPrim (PrimDouble ua)) i   = ua `indexBU` i
+  {-# INLINE clipU #-}
   clipU  (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ clipBU ua i n
+  {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
 
 instance MUA Double where
+  {-# INLINE newMU #-}
   newMU          n                              = 
     liftM (MUAPrim . MPrimDouble) $ newMBU n
+  {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
+  {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimDouble ua)) n   = 
     liftM (UAPrim . PrimDouble) $ unsafeFreezeMBU ua n
 
@@ -378,8 +420,10 @@ data MUSegd s = MUSegd {
 --
 instance UA a => UA (UArr a) where
   lengthU (UAUArr segd _)    = lengthBU (segdUS segd)
+  {-# INLINE indexU #-}
   indexU (UAUArr segd a) i   = sliceU a (psumUS segd `indexBU` i) 
 				        (segdUS segd `indexBU` i)
+  {-# INLINE clipU #-}
   clipU (UAUArr segd a) i n = 
     let
       segd1 = segdUS segd
@@ -390,6 +434,7 @@ instance UA a => UA (UArr a) where
       i'    = psum `indexBU` i
     in
     UAUArr segd' (clipU a i' (psum `indexBU` (i + n - 1) - i' + 1))
+  {-# INLINE sliceU #-}
   sliceU (UAUArr segd a) i n = 
     let
       segd1 = segdUS segd
