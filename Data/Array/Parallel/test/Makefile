@@ -10,7 +10,10 @@
 # ---------------------
 
 # Location of inplace GHC
-GHC     = ../../../../../../ghc/compiler/ghc-inplace
+GHC = ../../../../../../ghc/compiler/ghc-inplace
+
+# Location of NDP lib (to trigger rebuilds)
+LIB = ../../../../libHSndp.a
 
 # Haskell compiler
 #
@@ -29,7 +32,7 @@ default:
 
 # Templates
 #
-%.o : %.hs
+%.o : %.hs $(LIB)
 	$(HC) -c $< $(HCFLAGS) $($(join $<,-HCFLAGS))
 %.hi: %.o
 	@:

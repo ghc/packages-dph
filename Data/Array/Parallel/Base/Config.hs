@@ -4,6 +4,6 @@ module Data.Array.Parallel.Base.Config (
   , debugCritical
 ) where
 
-debug = True
-debugCritical = True
+debug = False
+debugCritical = False
 
