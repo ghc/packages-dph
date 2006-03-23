@@ -17,11 +17,14 @@
 --
 
 module Data.Array.Parallel.Unlifted (
-  -- * Classes
+  -- * Array classes
   UA, MUA,
 
-  -- * Types
-  UArr, USegd,
+  -- * Array types
+  UArr, USegd, 
+
+  -- * Strict pairs and sums
+  (:*:)(..), (:+:)(..),
 
   -- * List-like combinators
   mapU,	(+:+), filterU, concatU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
@@ -52,7 +55,7 @@ module Data.Array.Parallel.Unlifted (
   idstr, name, versnum, date, version, copyright, disclaimer
 ) where
 
-import Data.Array.Parallel.Base.Generics
+import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Monadic.UArr (
   UA, MUA, UArr, USegd, fromUSegd, toUSegd)
 import Data.Array.Parallel.Declarative.Loop (

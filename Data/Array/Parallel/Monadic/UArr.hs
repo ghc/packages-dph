@@ -34,10 +34,8 @@ module Data.Array.Parallel.Monadic.UArr (
 -- standard libraries
 import Monad (liftM)
 
--- GHC-specific modules
-import Data.Array.Parallel.Base.Generics
-
 -- friends
+import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU,
   writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, sliceBU, mapBU,
@@ -77,7 +75,7 @@ class UA e where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data UArr e where
-  UAUnit :: !Int                               -> UArr Unit
+  UAUnit :: !Int                               -> UArr ()
   UAProd ::           !(UArr e1) -> !(UArr e2) -> UArr (e1 :*: e2)
   UASum  :: !USel  -> !(UArr e1) -> !(UArr e2) -> UArr (e1 :+: e2)
   UAPrim ::           !(Prim e)                -> UArr e
@@ -100,7 +98,7 @@ class UA e => MUA e where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data MUArr e s where
-  MUAUnit :: !Int                                          -> MUArr Unit s
+  MUAUnit :: !Int                                          -> MUArr () s
   MUAProd ::                !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :*: e2) s
   MUASum  :: !(MUSel s)  -> !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :+: e2) s
   MUAPrim ::                !(MPrim e s)                   -> MUArr e s
@@ -167,13 +165,13 @@ unsafeFreezeMSU (MUAUArr segd a) n =
 
 -- |Array operations on the unit representation.
 --
-instance UA Unit where
+instance UA () where
   lengthU (UAUnit n)     = n
-  indexU  (UAUnit _) _   = Unit
+  indexU  (UAUnit _) _   = ()
   clipU   (UAUnit _) _ n = UAUnit n
   sliceU  (UAUnit _) _ n = UAUnit n
 
-instance MUA Unit where
+instance MUA () where
   newMU   n                    = return $ MUAUnit n
   writeMU (MUAUnit _) _ _      = return ()
   unsafeFreezeMU (MUAUnit _) n = return $ UAUnit n

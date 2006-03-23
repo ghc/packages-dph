@@ -31,7 +31,7 @@ module Data.Array.Parallel.Unlifted.ListLike (
 ) where
 
 -- friends
-import Data.Array.Parallel.Base.Generics
+import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
@@ -323,7 +323,7 @@ enumFromThenToSU :: (Enum e, MUA e)
 		 => UArr e -> UArr e -> UArr e -> UArr (UArr e)
 {-# INLINE enumFromThenToSU #-}
 enumFromThenToSU starts nexts ends = 
-  loopArrS $ loopSU step seg init (segd >: replicateU len Unit)
+  loopArrS $ loopSU step seg init (segd >: replicateU len ())
   where
     lens    = zipWith3U calcLen starts nexts ends
 	      where
@@ -339,7 +339,7 @@ enumFromThenToSU starts nexts ends =
     segdlen = lengthU lens
     --
     step (x, delta) _ = ((x + delta, delta), Just $ toEnum x)
-    seg  _          i = ((start, delta), Nothing::Maybe Unit)
+    seg  _          i = ((start, delta), Nothing::Maybe ())
 			where
 			  start = fromEnum (starts!:(i + 1))
 			  next  = fromEnum (nexts !:(i + 1))

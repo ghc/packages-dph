@@ -30,7 +30,7 @@ module Data.Array.Parallel.Declarative.Loop (
 ) where
 
 -- friends
-import Data.Array.Parallel.Base.Generics
+import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.Prim
 import Data.Array.Parallel.Base.BUArr (
   BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 

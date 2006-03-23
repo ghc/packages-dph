@@ -33,10 +33,9 @@ module Data.Array.Parallel.Distributed.Types (
 
 import Monad                                ( liftM, liftM2, zipWithM )
 import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
-import Data.Array.Parallel.Base.Generics
 import Data.Array.Parallel.Base.Prim
 import Data.Array.Parallel.Base.BUArr
-import Data.Array.Parallel.Base.Hyperstrict ( HS )
+import Data.Array.Parallel.Base.Hyperstrict ( (:*:)(..), (:+:)(..), HS )
 import Data.Array.Parallel.Base.Debug       ( check, checkEq )
 
 -- |Immutable distributed types
@@ -55,8 +54,7 @@ class HS a => DT a where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data Dist a where
-  DUnit_ :: !Int                   -> Dist ()
-  DUnit  :: !Int                   -> Dist Unit
+  DUnit  :: !Int                   -> Dist ()
   DPrim  :: !(Prim a)              -> Dist a
   DProd  :: !(Dist a) -> !(Dist b) -> Dist (a :*: b)
   DDRef  :: !(MDist a s)           -> Dist (DRef s a)
@@ -72,7 +70,6 @@ instance (HS a, DT a) => HS (Dist a)
 -- | Number of elements in the distributed value. This is for debugging only
 -- and not a method of 'DT'.
 lengthDT :: Dist a -> Int
-lengthDT (DUnit_ n)   = n
 lengthDT (DUnit  n)   = n
 lengthDT (DPrim  p)   = lengthBU (unPrim p)
 lengthDT (DProd  x y) = lengthDT x
@@ -90,10 +87,7 @@ instance (Show a, DT a) => Show (Dist a) where
 -- ----------------
 
 instance DT () where
-  indexDT  (DUnit_ n) i = check "Dist.indexDT[()]" n i $ ()
-
-instance DT Unit where
-  indexDT  (DUnit n) i = check "Dist.indexDT[Unit]" n i $ Unit
+  indexDT  (DUnit n) i = check "Dist.indexDT[()]" n i $ ()
 
 instance DT Bool where
   indexDT  = indexBU  . unDPrim
@@ -157,8 +151,7 @@ class DT a => MDT a where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data MDist a s where
-  MDUnit_ :: !Int                         -> MDist ()        s
-  MDUnit  :: !Int                         -> MDist Unit      s
+  MDUnit  :: !Int                         -> MDist ()        s
   MDPrim  :: !(MPrim a s)                 -> MDist a         s
   MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b) s
 
@@ -168,7 +161,6 @@ unMDPrim (MDPrim p) = unMPrim p
 -- | Number of elements in the mutable distributed value. This is for debugging
 -- only and is thus not a method of 'MDT'.
 lengthMDT :: MDist a s -> Int
-lengthMDT (MDUnit_ n)   = n
 lengthMDT (MDUnit  n)   = n
 lengthMDT (MDPrim  p)   = lengthMBU (unMPrim p)
 lengthMDT (MDProd  x y) = lengthMDT x
@@ -181,20 +173,12 @@ checkGangMDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (lengthMDT d) v
 -- ---------------
 
 instance MDT () where
-  newMDT                     = return . MDUnit_ . gangSize
-  readMDT   (MDUnit_ n) i    = check "Dist.readMDT[()]" n i $
-                               return ()
-  writeMDT  (MDUnit_ n) i () = check "Dist.writeMDT[()]" n i $
-                               return ()
-  freezeMDT (MDUnit_ n)      = return $ DUnit_ n
-
-instance MDT Unit where
-  newMDT                      = return . MDUnit . gangSize
-  readMDT   (MDUnit n) i      = check "Dist.readMDT[Unit]" n i $
-                                return Unit
-  writeMDT  (MDUnit n) i Unit = check "Dist.writeMDT[Unit]" n i $
-                                return ()
-  freezeMDT (MDUnit n)        = return $ DUnit n
+  newMDT                    = return . MDUnit . gangSize
+  readMDT   (MDUnit n) i    = check "Dist.readMDT[()]" n i $
+                              return ()
+  writeMDT  (MDUnit n) i () = check "Dist.writeMDT[()]" n i $
+                              return ()
+  freezeMDT (MDUnit n)      = return $ DUnit n
 
 instance MDT Bool where
   newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize

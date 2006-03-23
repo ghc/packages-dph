@@ -13,8 +13,20 @@
 -- ---------------------------------------------------------------------------
 
 module Data.Array.Parallel.Base.Hyperstrict (
+
+  -- * Strict pairs and sums
+  (:*:)(..), (:+:)(..),
+
+  -- * Class of hyperstrict types
   HS
 ) where
+
+-- |Strict pair
+data (:*:) a b = !a :*: !b
+
+-- |Strict sum
+data (:+:) a b = Inl !a | Inr !b
+
 
 -- | The class of hyperstrict types. These are those types for which weak
 -- head-normal form and normal form are the same, i.e., they are guaranteed to
@@ -27,4 +39,7 @@ instance HS Char
 instance HS Int
 instance HS Float
 instance HS Double
+
+instance (HS a, HS b) => HS (a :*: b)
+instance (HS a, HS b) => HS (a :+: b)
 

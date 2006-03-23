@@ -23,7 +23,7 @@ module Data.Array.Parallel.Declarative.Fusion (
 ) where
 
 -- friends
-import Data.Array.Parallel.Base.Generics
+import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Monadic.UArr (
   UArr(UAUnit, UAUArr), (>:), zipU)
 import Data.Array.Parallel.Declarative.Loop (
@@ -41,47 +41,47 @@ import Data.Array.Parallel.Declarative.Loop (
 --   two simplifier phases.
 --
 -- * In the case where the accumulator is not needed, it is better to always
---   explicitly return a value `Unit', rather than just copy the input to the
+--   explicitly return a value `()', rather than just copy the input to the
 --   output, as the former gives GHC better local information.
 -- 
 
 -- |No element function
 --
-noEFL :: acc -> Unit -> (acc, Maybe Unit)
+noEFL :: acc -> () -> (acc, Maybe ())
 {-# INLINE [1] noEFL #-}
 noEFL acc _  = (acc, Nothing)
 
 -- |No segment function
 --
-noSFL :: acc -> Int -> (acc, Maybe Unit)
+noSFL :: acc -> Int -> (acc, Maybe ())
 {-# INLINE [1] noSFL #-}
 noSFL acc _  = (acc, Nothing)
 
 -- |No accumulator
 --
-noAL :: Unit
+noAL :: ()
 {-# INLINE [1] noAL #-}
-noAL = Unit
+noAL = ()
 
 -- |Special forms for simple cases
 --
 
 -- |Element function expressing a mapping only
 --
-mapEFL :: (e -> e') -> (Unit -> e -> (Unit, Maybe e'))
+mapEFL :: (e -> e') -> (() -> e -> ((), Maybe e'))
 {-# INLINE [1] mapEFL #-}
 mapEFL f = \a e -> (noAL, Just $ f e)
 --mapEFL f = \a e -> let e' = f e in e' `seq` (noAL, Just e')
 
 -- |Element function implementing a filter function only
 --
-filterEFL :: (e -> Bool) -> (Unit -> e -> (Unit, Maybe e))
+filterEFL :: (e -> Bool) -> (() -> e -> ((), Maybe e))
 {-# INLINE [1] filterEFL #-}
 filterEFL p = \a e -> if p e then (noAL, Just e) else (noAL, Nothing)
 
 -- |Element function expressing a reduction only
 --
-foldEFL :: (acc -> e -> acc) -> (acc -> e -> (acc, Maybe Unit))
+foldEFL :: (acc -> e -> acc) -> (acc -> e -> (acc, Maybe ()))
 {-# INLINE [1] foldEFL #-}
 foldEFL f = \a e -> (f a e, Nothing)
 --foldEFL f = \a e -> let a' = f a e in a' `seq` (a', Nothing)
@@ -95,7 +95,7 @@ scanEFL f = \a e -> (f a e, Just a)
 
 -- |Segment function transforming the accumulator
 --
-transSFL :: (acc -> acc) -> (acc -> Int -> (acc, Maybe Unit))
+transSFL :: (acc -> acc) -> (acc -> Int -> (acc, Maybe ()))
 {-# INLINE [1] transSFL #-}
 transSFL f = \a _ -> (f a, Nothing)
 
@@ -211,10 +211,10 @@ keepSFL f = \a _ -> (f a, Just a)
 
 {-# RULES  -- -} (for font-locking)
 
--- Ignore `seq's on the `Unit' type.  This is essentially to ensure that no
+-- Ignore `seq's on the `()' type.  This is essentially to ensure that no
 -- superflous demands are introduced by accumulators that are not used.
 --
-"seq/Unit" forall (u::Unit) e.
+"seq/Unit" forall (u::()) e.
   u `seq` e = e
 
  #-}
