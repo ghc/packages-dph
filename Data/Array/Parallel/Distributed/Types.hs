@@ -24,6 +24,11 @@ module Data.Array.Parallel.Distributed.Types (
   -- * Distributed references
   DRef, dref, readDRef, writeDRef,
 
+  -- * Distributed computations
+  DST, localDT, readLocalMDT, writeLocalMDT,
+  runDistST_, runDistST,
+  gangDST, runDST_, runDST,
+
   -- * Assertions
   checkGangDT, checkGangMDT,
 
@@ -38,6 +43,10 @@ import Data.Array.Parallel.Base.BUArr
 import Data.Array.Parallel.Base.Hyperstrict ( (:*:)(..), (:+:)(..), HS )
 import Data.Array.Parallel.Base.Debug       ( check, checkEq )
 
+infixl 9 `indexDT`
+
+here s = "Distributed.Types." ++ s
+
 -- |Immutable distributed types
 -- ----------------------------
 
@@ -46,7 +55,7 @@ import Data.Array.Parallel.Base.Debug       ( check, checkEq )
 -- must be hyperstrict as we do not want to pass thunks into distributed
 -- computations. This may change if distributed computations themselves
 -- becomes instances of 'DT'.
-class HS a => DT a where
+class DT a where
   -- data Dist a
 
   -- | Extract a single element of an immutable distributed value.
@@ -57,9 +66,10 @@ data Dist a where
   DUnit  :: !Int                   -> Dist ()
   DPrim  :: !(Prim a)              -> Dist a
   DProd  :: !(Dist a) -> !(Dist b) -> Dist (a :*: b)
+  -- | Distributed references
   DDRef  :: !(MDist a s)           -> Dist (DRef s a)
---  DST    :: !Gang -> (Int -> ST s a) -> Dist (ST s a)
---  DFn    :: !Gang -> (Int -> a -> b) -> Dist (a -> b)
+  -- | Distributed computations
+  DistST    :: !Gang -> !(DST s a) -> Dist (ST s a)
 
 unDPrim :: Dist a -> BUArr a
 unDPrim (DPrim p) = unPrim p
@@ -87,7 +97,7 @@ instance (Show a, DT a) => Show (Dist a) where
 -- ----------------
 
 instance DT () where
-  indexDT  (DUnit n) i = check "Dist.indexDT[()]" n i $ ()
+  indexDT  (DUnit n) i = check (here "indexDT[()]") n i $ ()
 
 instance DT Bool where
   indexDT  = indexBU  . unDPrim
@@ -113,7 +123,7 @@ instance (DT a, DT b) => DT (a :*: b) where
 -- | Pairing of distributed values.
 -- /The two values must belong to the same 'Gang'./
 zipDT :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
-zipDT x y = checkEq "Dist.zipDT" "Size mismatch" (lengthDT x) (lengthDT y) $
+zipDT x y = checkEq (here "zipDT") "Size mismatch" (lengthDT x) (lengthDT y) $
             DProd x y
 
 -- | Unpairing of distributed values.
@@ -134,7 +144,7 @@ sndDT = snd . unzipDT
 -- | Class of mutable distributed types. Note that all such types must be
 -- hyperstrict as we do not want to return thunks from distributed
 -- computations.
-class DT a => MDT a where
+class (DT a, HS a) => MDT a where
   -- data MDist a s
 
   -- | Create an unitialised distributed value for the given 'Gang'.
@@ -174,9 +184,9 @@ checkGangMDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (lengthMDT d) v
 
 instance MDT () where
   newMDT                    = return . MDUnit . gangSize
-  readMDT   (MDUnit n) i    = check "Dist.readMDT[()]" n i $
+  readMDT   (MDUnit n) i    = check (here "readMDT[()]")  n i $
                               return ()
-  writeMDT  (MDUnit n) i () = check "Dist.writeMDT[()]" n i $
+  writeMDT  (MDUnit n) i () = check (here "writeMDT[()]") n i $
                               return ()
   freezeMDT (MDUnit n)      = return $ DUnit n
 
@@ -263,22 +273,82 @@ instance HS a => HS (DRef s a)
 instance MDT a => DT (DRef s a) where
   indexDT  (DDRef mdt) = DRef mdt
 
-{-
-instance MDT a => DT (ST s a) where
-  lengthDT (DST g st) = gangSize g
-  indexDT  (DST g st) i = st i
+-- | Distributed computations.
+--
+-- Data-parallel computations of type 'DST' are data-parallel computations which
+-- are run on each thread of a gang. At the moment, they can only access the
+-- element of a (possibly mutable) distributed value owned by the current
+-- thread. A 'DST' computation can be turned into a distributed 'ST'
+-- computation by binding it to a specific gang. Note that 'DST s a' is
+-- shapeless (i.e. can be run on any 'Gang') whereas 'Dist (ST s a)', like all
+-- distributed values, is tied to a specific 'Gang'.
+--
+-- /TODO:/ Move this to a separate module once we have ATs.
+--
+-- /TODO:/ Add facilities for implementing parallel scans etc.
+--
+-- /TODO:/ Documentation.
 
-instance (DT a, DT b) => DT (a -> b) where
-  lengthDT (DFn g f)   = gangSize g
-  indexDT  (DFn g f) i = f i
+-- | Data-parallel computations.
+newtype DST s a = DST { unDST :: Int -> ST s a }
 
-distST_ :: Dist (ST s ()) -> ST s ()
-distST_ (DST g st) = gangST g st
+instance Monad (DST s) where
+  return         = DST . const . return 
+  DST p >>= f = DST $ \i -> do
+                                    x <- p i
+                                    unDST (f x) i
 
-distST :: MDT a => Dist (ST s a) -> ST s (Dist a)
-distST (DST g st) = do
-                      r <- newMDT g
-                      distST_ . DST g $ \i -> st i >>= writeMDT r i
-                      freezeMDT r
--}
+-- | Yields the index of the current thread within its gang.
+dindex :: DST s Int
+dindex = DST return
+
+-- | Lifts an 'ST' computation into the 'DST' monad. The lifted computation
+-- should be data parallel.
+liftST :: ST s a -> DST s a
+liftST p = DST $ \i -> p
+
+-- | Yields the 'Dist' element owned by the current thread.
+localDT :: DT a => Dist a -> DST s a
+localDT dt = liftM (indexDT dt) dindex
+
+-- | Yields the 'MDist' element owned by the current thread.
+readLocalMDT :: MDT a => MDist a s -> DST s a
+readLocalMDT mdt = do
+                     i <- dindex
+                     liftST $ readMDT mdt i
+
+-- | Writes the 'MDist' element owned by the current thread.
+writeLocalMDT :: MDT a => MDist a s -> a -> DST s ()
+writeLocalMDT mdt x = do
+                        i <- dindex
+                        liftST $ writeMDT mdt i x
+
+-- | Distributes a data-parallel computation over a 'Gang'.
+gangDST :: Gang -> DST s a -> Dist (ST s a)
+gangDST = DistST
+
+-- | Runs a data-parallel computation on a 'Gang'. 
+runDST_ :: Gang -> DST s () -> ST s ()
+runDST_ g = runDistST_ . gangDST g
+
+-- | Runs a data-parallel computation on a 'Gang', yielding the distributed
+-- result.
+runDST :: MDT a => Gang -> DST s a -> ST s (Dist a)
+runDST g = runDistST . gangDST g
+
+-- | Runs a distributed computation.
+runDistST_ :: Dist (ST s ()) -> ST s ()
+runDistST_ (DistST g p) = gangST g (unDST p)
+
+-- | Runs a distributed computation, yielding the distributed result.
+runDistST :: MDT a => Dist (ST s a) -> ST s (Dist a)
+runDistST (DistST g p) =
+  do
+    mdt <- newMDT g
+    runDistST_ . gangDST g $ writeLocalMDT mdt =<< p
+    freezeMDT mdt
+
+instance DT (ST s a) where
+  indexDT (DistST g p) i = check (here "indexDT[ST s a]") (gangSize g) i $
+                           unDST p i
 

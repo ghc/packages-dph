@@ -62,7 +62,7 @@ execReq i (p, s) = p i >> putMVar s ()
 -- Thread gangs and operations on them
 
 -- | A 'Gang' is a group of threads which execute arbitrary work requests.
-data Gang = Gang Int [MVar Req]
+data Gang = Gang !Int [MVar Req]
 
 -- | The worker thread of a 'Gang'.
 gangWorker :: Int -> MVar Req -> IO ()
