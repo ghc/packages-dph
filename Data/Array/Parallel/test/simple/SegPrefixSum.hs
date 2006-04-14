@@ -1,12 +1,12 @@
 module SegPrefixSum
 where
 
-import PArray
+import Data.Array.Parallel.Unlifted
 
-test :: SPArr UInt Int -> SPArr UInt Int
+test :: UArr (UArr Int) -> UArr (UArr Int)
 test =   fst
        . loopArr
-       . loopSP (\a x -> (a + x::Int, Just a)) 
+       . loopSU (\a x -> (a + x::Int, Just a)) 
 		(\a i -> (a, Nothing :: Maybe ())) 0
 
 

@@ -1,38 +1,38 @@
 module PrefixSum
 where
 
-import PArray
+import Data.Array.Parallel.Unlifted
 
-test :: PArrInt -> Int
-test = loopAcc . loopP (\a x -> (a + x, Just a)) 0
+test :: UArr Int -> UArr Int
+test = loopArr . loopU (\a x -> (a + x, Just a)) 0
 
 
 {- Inner loop:
 
-	$wtrans :: (GHC.Prim.Int#
-		    -> GHC.Prim.Int#
-		       -> GHC.Prim.Int#
-			  -> GHC.Prim.State# GHC.Prim.RealWorld
-			     -> (# GHC.Prim.State# GHC.Prim.RealWorld,
-				   (GHC.Base.Int, GHC.Base.Int) #))
-	Arity 4 Just DmdType LLLL
-	$wtrans
-	  = \ ww2 :: GHC.Prim.Int#
-	      ww3 :: GHC.Prim.Int#
-	      ww4 :: GHC.Prim.Int#
-	      w :: (GHC.Prim.State# GHC.Prim.RealWorld) ->
-	      case GHC.Prim.==# ww2 ww of wild {
-		GHC.Base.True ->
-		  (# w, ((GHC.Base.$wI# ww4), (GHC.Base.$wI# ww3)) #);
-		GHC.Base.False ->
-		  case GHC.Prim.writeIntArray# @ GHC.Prim.RealWorld marr# ww3 ww4 w
-		  of s2#1 { __DEFAULT ->
-		  $wtrans
-		    (GHC.Prim.+# ww2 1)
-		    (GHC.Prim.+# ww3 1)
-		    (GHC.Prim.+# ww4 (GHC.Prim.indexIntArray# ww1 ww2))
-		    s2#1
-		  }
-	      };
+  $wtrans_sV2 :: GHC.Prim.Int#
+		 -> GHC.Prim.Int#
+		 -> GHC.Prim.Int#
+		 -> GHC.Prim.State# s_aIq
+		 -> (# GHC.Prim.State# s_aIq, (GHC.Base.Int, GHC.Base.Int) #)
+  [Arity 4
+   Str: DmdType LLLL]
+  $wtrans_sV2 =
+    \ (ww_sUt :: GHC.Prim.Int#)
+      (ww1_sUx :: GHC.Prim.Int#)
+      (ww2_sUB :: GHC.Prim.Int#)
+      (w_sUD :: GHC.Prim.State# s_aIq) ->
+      case GHC.Prim.==# ww_sUt rb1_aU1 of wild12_aH7 {
+	GHC.Base.False ->
+	  case GHC.Prim.writeIntArray# @ s_aIq marr#_aOv ww1_sUx ww2_sUB w_sUD
+	  of s2#1_aRd { __DEFAULT ->
+	  $wtrans_sV2
+	    (GHC.Prim.+# ww_sUt 1)
+	    (GHC.Prim.+# ww1_sUx 1)
+	    (GHC.Prim.+#
+	       ww2_sUB (GHC.Prim.indexIntArray# rb2_aU2 (GHC.Prim.+# rb_aKE ww_sUt)))
+	    s2#1_aRd
+	  };
+	GHC.Base.True -> (# w_sUD, ((GHC.Base.I# ww2_sUB), (GHC.Base.I# ww1_sUx)) #)
+      };
 
 -}
