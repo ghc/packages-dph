@@ -7,6 +7,7 @@ module Data.Array.Parallel.Base.Prim (
 ) where
 
 import Data.Array.Parallel.Base.BUArr  ( BUArr, MBUArr )
+import Data.Array.Parallel.Base.Hyperstrict ( HS )
 
 data Prim e where
   PrimBool   :: !(BUArr Bool)   -> Prim Bool
@@ -21,6 +22,9 @@ data MPrim e s where
   MPrimInt    :: !(MBUArr s Int)    -> MPrim Int s
   MPrimFloat  :: !(MBUArr s Float)  -> MPrim Float s
   MPrimDouble :: !(MBUArr s Double) -> MPrim Double s
+
+instance HS (Prim e)
+instance HS (MPrim e s)
 
 unPrim :: Prim e -> BUArr e
 unPrim (PrimBool   arr) = arr

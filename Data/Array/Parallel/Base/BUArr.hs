@@ -77,6 +77,9 @@ import GHC.ST	       (ST(..), runST)
 import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
 			bOOL_INDEX, bOOL_BIT, bOOL_NOT_BIT)
 
+-- NDP library
+import Data.Array.Parallel.Base.Hyperstrict
+
 -- config
 import Data.Array.Parallel.Base.Debug (check, checkLen, checkCritical)
 
@@ -92,6 +95,9 @@ infixl 9 `indexBU`, `readMBU`
 data BUArr    e = BUArr  !Int !Int ByteArray#
 data MBUArr s e = MBUArr !Int      (MutableByteArray# s)
 
+instance HS e => HS (BUArr e)
+instance HS e => HS (MBUArr s e)
+
 -- |Number of elements of an immutable unboxed array
 --
 lengthBU :: BUArr e -> Int
@@ -104,7 +110,7 @@ lengthMBU (MBUArr n _) = n
 
 -- |The basic operations on unboxed arrays are overloaded
 --
-class UAE e where
+class HS e => UAE e where
   sizeBU   :: Int -> e -> Int		-- size of an array with n elements
   indexBU  :: BUArr e    -> Int      -> e
   readMBU  :: MBUArr s e -> Int      -> ST s e

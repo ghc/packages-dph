@@ -58,7 +58,7 @@ infixr 9 >:
 -- of an associated type.  All representation-dependent functions are methods
 -- of this class.
 --
-class UA e where
+class HS e => UA e where
 --  data UArr e
 
   -- |Yield the length of an unboxed array (if segmented, number of segments)
@@ -80,6 +80,8 @@ data UArr e where
   UASum  :: !USel  -> !(UArr e1) -> !(UArr e2) -> UArr (e1 :+: e2)
   UAPrim ::           !(Prim e)                -> UArr e
   UAUArr :: !USegd -> !(UArr e)                -> UArr (UArr e)
+
+instance HS e => HS (UArr e)
 
 -- |This type class covers those element types of unboxed arrays that can be
 -- contained in immutable versions of these arrays.
@@ -103,6 +105,8 @@ data MUArr e s where
   MUASum  :: !(MUSel s)  -> !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :+: e2) s
   MUAPrim ::                !(MPrim e s)                   -> MUArr e s
   MUAUArr :: !(MUSegd s) -> !(MUArr e s)                   -> MUArr (UArr e) s
+
+instance HS e => HS (MUArr e s)
 
 -- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
 -- iteratively define a segmented mutable array; i.e., arrays of type `MUArr s
@@ -214,6 +218,8 @@ data USel = USel {
 	      ridxUS :: !(BUArr Int)    -- right indices
 	    }
 
+instance HS USel
+
 -- |Selector for mutable arrays of sums
 --
 data MUSel s = MUSel {
@@ -221,6 +227,8 @@ data MUSel s = MUSel {
 	         lidxMUS :: !(MBUArr s Int),   -- left indices
 	         ridxMUS :: !(MBUArr s Int)    -- right indices
 	       }
+
+instance HS (MUSel s)
 
 -- |Array operations on the sum representation
 --
