@@ -19,7 +19,8 @@ module Data.Array.Parallel.Base.BBArr (
   BBArr, MBBArr,
 
   -- * Operations on primitive boxed arrays
-  lengthBB, lengthMBB, newMBB, indexBB, readMBB, writeMBB, unsafeFreezeMBB,
+  lengthBB, lengthMBB, newMBB, indexBB, readMBB, writeMBB,
+  unsafeFreezeMBB, unsafeFreezeAllMBB,
   sliceBB, sliceMBB, insertMBB,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
@@ -96,6 +97,17 @@ unsafeFreezeMBB (MBBArr (STArray _ m1 marr#)) n =
   checkLen "PAPrim.unsafeFreezeMB: " (m1 + 1) n $ ST $ \s1# ->
   case unsafeFreezeArray# marr# s1# of {(# s2#, arr# #) ->
   (# s2#, BBArr (Array 0 (n - 1) arr#) #)}
+
+--- |Turn a mutable into an immutable array WITHOUT copying its contents, which
+-- implies that the mutable array must not be mutated anymore after this
+-- operation has been executed.
+--
+-- * In contrast to 'unsafeFreezeMBB', this operation always freezes the
+-- entire array.
+--
+unsafeFreezeAllMBB :: MBBArr s e -> ST s (BBArr e)
+unsafeFreezeAllMBB marr = unsafeFreezeMBB marr (lengthMBB marr)
+
 
 -- |Loop-based combinators on boxed arrays
 -- -
