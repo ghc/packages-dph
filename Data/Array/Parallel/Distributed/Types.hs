@@ -69,7 +69,7 @@ data Dist a where
   -- | Distributed references
   DDRef  :: !(MDist a s)           -> Dist (DRef s a)
   -- | Distributed computations
-  DistST    :: !Gang -> !(DST s a) -> Dist (ST s a)
+  DistST :: !Gang -> !(DST s a) -> Dist (ST s a)
 
 unDPrim :: Dist a -> BUArr a
 unDPrim (DPrim p) = unPrim p
@@ -84,6 +84,7 @@ lengthDT (DUnit  n)   = n
 lengthDT (DPrim  p)   = lengthBU (unPrim p)
 lengthDT (DProd  x y) = lengthDT x
 lengthDT (DDRef  md)  = lengthMDT md
+lengthDT (DistST g d) = gangSize g
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangDT :: DT a => String -> Gang -> Dist a -> b -> b
