@@ -15,6 +15,7 @@ module Data.Array.Parallel.Base.Debug (
   , checkCritical
   , checkLen
   , checkEq
+  , uninitialised
 ) where
 
 import Data.Array.Parallel.Base.Config  (debug, debugCritical)
@@ -61,4 +62,7 @@ checkEq loc msg x y v
     err = error $ loc ++ ": " ++ msg
                   ++ " (first = " ++ show x
                   ++ "; second = " ++ show y ++ ")"
+
+uninitialised :: String -> a
+uninitialised loc = error $ loc ++ ": Touched an uninitialised value"
 

@@ -40,8 +40,10 @@ import Monad                                ( liftM, liftM2, zipWithM )
 import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
 import Data.Array.Parallel.Base.Prim
 import Data.Array.Parallel.Base.BUArr
+import Data.Array.Parallel.Base.BBArr
 import Data.Array.Parallel.Base.Hyperstrict ( (:*:)(..), (:+:)(..), HS )
-import Data.Array.Parallel.Base.Debug       ( check, checkEq )
+import Data.Array.Parallel.Monadic.UArr
+import Data.Array.Parallel.Base.Debug       ( check, checkEq, uninitialised )
 
 infixl 9 `indexDT`
 
@@ -66,6 +68,9 @@ data Dist a where
   DUnit  :: !Int                   -> Dist ()
   DPrim  :: !(Prim a)              -> Dist a
   DProd  :: !(Dist a) -> !(Dist b) -> Dist (a :*: b)
+  -- | Distributed arrays
+  DUArr  :: !(BBArr (UArr a))      -> Dist (UArr a)
+  DMUArr :: !(BBArr (MUArr a s))   -> Dist (MUArr a s)
   -- | Distributed references
   DDRef  :: !(MDist a s)           -> Dist (DRef s a)
   -- | Distributed computations
@@ -83,6 +88,8 @@ lengthDT :: Dist a -> Int
 lengthDT (DUnit  n)   = n
 lengthDT (DPrim  p)   = lengthBU (unPrim p)
 lengthDT (DProd  x y) = lengthDT x
+lengthDT (DUArr  arr) = lengthBB arr
+lengthDT (DMUArr arr) = lengthBB arr
 lengthDT (DDRef  md)  = lengthMDT md
 lengthDT (DistST g d) = gangSize g
 
@@ -117,6 +124,12 @@ instance DT Double where
 
 instance (DT a, DT b) => DT (a :*: b) where
   indexDT d i = (fstDT d `indexDT` i) :*: (sndDT d `indexDT` i)
+
+instance UA a => DT (UArr a) where
+  indexDT (DUArr arr) i = indexBB arr i
+
+instance MUA a => DT (MUArr a s) where
+  indexDT (DMUArr arr) i = indexBB arr i
 
 -- | Operations on immutable distributed types
 -- -------------------------------------------
@@ -162,19 +175,29 @@ class (DT a, HS a) => MDT a where
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data MDist a s where
-  MDUnit  :: !Int                         -> MDist ()        s
-  MDPrim  :: !(MPrim a s)                 -> MDist a         s
-  MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b) s
+  MDUnit  :: !Int                         -> MDist ()          s
+  MDPrim  :: !(MPrim a s)                 -> MDist a           s
+  MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b)   s
+  MDUArr  :: !(MBBArr s (UArr a))         -> MDist (UArr a)    s
+  MDMUArr :: !(MBBArr s (MUArr a s'))     -> MDist (MUArr a s') s
 
 unMDPrim :: MDist a s -> MBUArr s a
 unMDPrim (MDPrim p) = unMPrim p
 
+unMDUArr :: MDist (UArr a) s -> MBBArr s (UArr a)
+unMDUArr (MDUArr marr) = marr
+
+unMDMUArr :: MDist (MUArr a s') s -> MBBArr s (MUArr a s')
+unMDMUArr (MDMUArr marr) = marr
+
 -- | Number of elements in the mutable distributed value. This is for debugging
 -- only and is thus not a method of 'MDT'.
 lengthMDT :: MDist a s -> Int
-lengthMDT (MDUnit  n)   = n
-lengthMDT (MDPrim  p)   = lengthMBU (unMPrim p)
-lengthMDT (MDProd  x y) = lengthMDT x
+lengthMDT (MDUnit  n)    = n
+lengthMDT (MDPrim  p)    = lengthMBU (unMPrim p)
+lengthMDT (MDProd  x y)  = lengthMDT x
+lengthMDT (MDUArr  marr) = lengthMBB marr
+lengthMDT (MDMUArr marr) = lengthMBB marr
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangMDT :: MDT a => String -> Gang -> MDist a s -> b -> b
@@ -229,6 +252,20 @@ instance (MDT a, MDT b) => MDT (a :*: b) where
       writeMDT xs i x
       writeMDT ys i y
   freezeMDT (MDProd xs ys)   = liftM2 DProd (freezeMDT xs) (freezeMDT ys)
+
+instance UA a => MDT (UArr a) where
+  newMDT g = liftM MDUArr $ newMBB (gangSize g)
+                                   (uninitialised $ here "newMDT[UArr a]")
+  readMDT  = readMBB  . unMDUArr
+  writeMDT = writeMBB . unMDUArr
+  freezeMDT = liftM DUArr . unsafeFreezeAllMBB . unMDUArr
+
+instance MUA a => MDT (MUArr a s) where
+  newMDT g = liftM MDMUArr $ newMBB (gangSize g)
+                                    (uninitialised $ here "newMDT[MUArr a]")
+  readMDT   = readMBB  . unMDMUArr
+  writeMDT  = writeMBB . unMDMUArr
+  freezeMDT = liftM DMUArr . unsafeFreezeAllMBB . unMDMUArr
 
 -- | Mutable distributed references
 --
