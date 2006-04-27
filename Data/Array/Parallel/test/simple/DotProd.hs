@@ -1,36 +1,46 @@
 module DotProd
 where
 
-import PArray
+import Data.Array.Parallel.Unlifted
 
-test :: PArr UFloat Float -> PArr UFloat Float -> Float
+test :: UArr Float -> UArr Float -> Float
 test v w =   loopAcc
-           . loopP (\a (x, y) -> (a + x * y, Nothing::Maybe ())) 0
-	   $ zipP v w
+           . loopU (\a (x:*:y) -> (a + x * y, Nothing::Maybe ())) 0
+	   $ zipU v w
 
 
 {- Inner loop:
 
-	    $wtrans
-	      = \ ww3 :: GHC.Prim.Int#
-		  w2 :: GHC.Base.Int
-		  ww4 :: GHC.Prim.Float#
-		  w3 :: (GHC.Prim.State# GHC.Prim.RealWorld) ->
-		  case GHC.Prim.==# ww3 wild of wild2 {
-		    GHC.Base.True ->
-		      case w2 of tpl { GHC.Base.I# a1 ->
-		      (# w3, ((GHC.Float.$wF# ww4), tpl) #)
-		      };
-		    GHC.Base.False ->
-		      $wtrans
-			(GHC.Prim.+# ww3 1)
-			w2
-			(GHC.Prim.plusFloat#
-			   ww4
-			   (GHC.Prim.timesFloat#
-			      (GHC.Prim.indexFloatArray# ww1 ww3)
-			      (GHC.Prim.indexFloatArray# ba# ww3)))
-			w3
-		  };
+      poly_$wtrans_s15C :: forall s1_aZb.
+			   GHC.Prim.Int#
+			   -> GHC.Base.Int
+			   -> GHC.Prim.Float#
+			   -> GHC.Prim.State# s1_aZb
+			   -> (# GHC.Prim.State# s1_aZb, (GHC.Float.Float, GHC.Base.Int) #)
+      [Arity 4]
+      poly_$wtrans_s15C =
+	\ (@ s1_X10d)
+	  (ww_X164 :: GHC.Prim.Int#)
+	  (w1_X167 :: GHC.Base.Int)
+	  (ww1_X16b :: GHC.Prim.Float#)
+	  (w2_X16e :: GHC.Prim.State# s1_X10d) ->
+	  case GHC.Prim.==# ww_X164 wild2_B1 of wild4_XVx {
+	    GHC.Base.False ->
+	      poly_$wtrans_s15C
+		@ s1_X10d
+		(GHC.Prim.+# ww_X164 1)
+		w1_X167
+		(GHC.Prim.plusFloat#
+		   ww1_X16b
+		   (GHC.Prim.timesFloat#
+		      (GHC.Prim.indexFloatArray# rb2_aXC (GHC.Prim.+# rb_aXx ww_X164))
+		      (GHC.Prim.indexFloatArray# rb21_X11Y (GHC.Prim.+# rb11_X11T ww_X164))))
+		w2_X16e;
+	    GHC.Base.True ->
+	      case w1_X167 of tpl_aZj { GHC.Base.I# a1_aZk ->
+	      (# w2_X16e, ((GHC.Float.F# ww1_X16b), tpl_aZj) #)
+	      }
+	  };
+    } in 
 
 -}
