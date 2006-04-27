@@ -41,8 +41,8 @@ default:
 #
 benchutils/BenchUtils.hs-HCFLAGS =
 
-BENCHOBJS =benchutils/BenchUtils.o
-BENCHFLAGS=-ibenchutils 
+BENCHOBJS  = benchutils/BenchUtils.o
+BENCHFLAGS = -ibenchutils 
 
 # Unit tests in unit/
 #

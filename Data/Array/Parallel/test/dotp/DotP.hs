@@ -9,24 +9,25 @@ import System
 import Control.Exception (evaluate)
 
 -- Parallel array support
-import PArray
+import Data.Array.Parallel.Unlifted
 import BenchUtils
 
 
 -- Benchmarked code
 -- ----------------
 
-type Vector = PArrDouble
+type Vector = UArr Double
 
+-- !!!FIXME: Fusion doesn't seem to work properly; it's a factor 2 too slow.
 dotp :: Vector -> Vector -> Double
 {-# NOINLINE dotp #-}
-dotp v w = sumP (zipWithP (*) v w)
+dotp v w = sumU (zipWithU (*) v w)
 
-{-
+ {- This corresponds to the fused version.
 dotp v w = loopAcc
-           . loopP (\a (x, y) -> (a + x * y, Nothing::Maybe ())) 0
-	   $ zipP v w
- -}
+           . loopU (\a (x:*:y) -> (a + x * y, Nothing::Maybe ())) 0
+	   $ zipU v w
+  -}
 
 
 -- Benchmark infrastructure
@@ -39,8 +40,8 @@ generateVector n =
   do
     rg <- newStdGen
     let fs  = take n $ randomRs (-100, 100) rg
-	vec = toP fs
-    evaluate $ sumP vec    -- make sure it is brought into NF
+	vec = toU fs
+    evaluate $ sumU vec    -- make sure it is brought into NF
     return vec
 
 -- Execute and time the benchmark
@@ -65,7 +66,7 @@ main =
     putStrLn "Dot Product Benchmark"
     putStrLn "====================="
 
-    doBenchmarks [(dotp_bench, "Dot product", "parr")]
+    doBenchmarks [(dotp_bench, "Dot product", "uarr")]
 		 [100000, 200000..500000]
 		 ("Dot product with 100,000 to 500,000 element vectors\n\
 		  \on " ++ host)
