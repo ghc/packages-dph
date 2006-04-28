@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Unlifted.NeslLike (
   -- * Nesl-like combinators
-  flattenU, (>:), segmentU, toU, toSU, fromU, emptyU, sliceU,
+  flattenSU, (>:), segmentU, toU, toSU, fromU, emptyU, sliceU,
   permuteU, bpermuteU, bpermuteSU, bpermuteDftU, {-crossU, indexOfU -}
 ) where
 
@@ -27,8 +27,8 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, MUA, UArr, lengthU, indexU, sliceU, toUSegd, newMU, writeMU,
-  unsafeFreezeMU, (>:), flattenU, psumUS) 
+  UA, MUA, UArr, SUArr, lengthU, indexU, sliceU, toUSegd, newMU, writeMU,
+  unsafeFreezeMU, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
@@ -43,9 +43,9 @@ import Data.Array.Parallel.Unlifted.ListLike
 
 -- |Segment an array according to the segmentation of the first argument
 --
-segmentU :: (UA e', UA e) => UArr (UArr e') -> UArr e -> UArr (UArr e)
+segmentU :: (UA e', UA e) => SUArr e' -> UArr e -> SUArr e
 {-# INLINE segmentU #-}
-segmentU template arr = fst (flattenU template) >: arr
+segmentU template arr = fst (flattenSU template) >: arr
 
 
 -- |Conversion
@@ -61,7 +61,7 @@ toU l =
 
 -- |Turn a nested list into a segmented parallel array
 --
-toSU :: MUA e => [[e]] -> UArr (UArr e)
+toSU :: MUA e => [[e]] -> SUArr e
 {-# INLINE toSU #-}
 toSU ls = let lens = toU $ map length ls
 	      a    = toU $ concat ls
@@ -115,11 +115,11 @@ bpermuteU a = loopArr . loopU (mapEFL (a !:)) noAL
 
 -- |Segmented back permute
 --
-bpermuteSU :: MUA e => UArr (UArr e) -> UArr (UArr Int) -> UArr (UArr e)
+bpermuteSU :: MUA e => SUArr e -> SUArr Int -> SUArr e
 {-# INLINE bpermuteSU #-}
 bpermuteSU as = loopArrS . loopSU extract nextOff 0
 	        where
-		  (segd, a) = flattenU as
+		  (segd, a) = flattenSU as
 		  psum	    = psumUS segd
 		  --
 	          extract off i = (off, Just $ a!:(off + i))

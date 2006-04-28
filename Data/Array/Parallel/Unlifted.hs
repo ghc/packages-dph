@@ -27,7 +27,7 @@ module Data.Array.Parallel.Unlifted (
   (:*:)(..), (:+:)(..),
 
   -- * List-like combinators
-  mapU,	(+:+), filterU, concatU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
+  mapU,	(+:+), filterU, concatSU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
   foldlSU, {-foldl1U,-} scanlU, {-scanl1U, foldrU, foldr1U, scanrU, scanr1U,-}
   foldU, foldSU, {-fold1U, fold1SU,-} scanU, {-scanSU, scan1U, scan1SU,-}
   takeU, dropU,	splitAtU, {-takeWhileU, dropWhileU, spanU, breakU,-}
@@ -39,7 +39,7 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Nesl-like combinators
   --
-  flattenU, (>:), toUSegd, fromUSegd, segmentU, toU, toSU, fromU, emptyU,
+  flattenSU, (>:), toUSegd, fromUSegd, segmentU, toU, toSU, fromU, emptyU,
   sliceU, permuteU, bpermuteU, bpermuteSU, bpermuteDftU, {-crossU, indexOfU, -}
 
   -- * Loop/replicate combinators

@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Unlifted.ListLike (
   -- * List-like combinators
-  mapU,	(+:+), filterU, concatU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
+  mapU,	(+:+), filterU, concatSU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
   foldlSU, {-foldl1U,-} scanlU, {-scanl1U, foldrU, foldr1U, scanrU, scanr1U,-}
   foldU, foldSU, {-fold1U, fold1SU,-} scanU, {-scanSU, scan1U, scan1SU,-}
   replicateU,
@@ -35,8 +35,8 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, MUA, UArr, lengthU, indexU, toUSegd, sliceU, newMU, writeMU,
-  unsafeFreezeMU, (>:), flattenU, zipU, unzipU)
+  UA, MUA, UArr, SUArr, lengthU, indexU, toUSegd, sliceU, newMU, writeMU,
+  unsafeFreezeMU, (>:), flattenSU, zipU, unzipU)
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
@@ -77,8 +77,8 @@ filterU p  = loopArr . loopU (filterEFL p) noAL
 
 -- |Concatenate the subarrays of an array of arrays
 --
-concatU :: UA e => UArr (UArr e) -> UArr e
-concatU = snd . flattenU
+concatSU :: UA e => SUArr e -> UArr e
+concatSU = snd . flattenSU
 
 -- |Test whether the given array is empty
 --
@@ -106,14 +106,14 @@ foldU = foldlU
 
 -- |Segmented array reduction proceeding from the left
 --
-foldlSU :: (UA a, MUA b) => (b -> a -> b) -> b -> UArr (UArr a) -> UArr b
+foldlSU :: (UA a, MUA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE foldlSU #-}
 foldlSU f z = loopAccS . loopSU (foldEFL f) (keepSFL (const z)) z
 
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit
 --
-foldSU :: MUA a => (a -> a -> a) -> a -> UArr (UArr a) -> UArr a
+foldSU :: MUA a => (a -> a -> a) -> a -> SUArr a -> UArr a
 foldSU = foldlSU
 
 -- |Prefix scan proceedings from left to right
@@ -162,7 +162,7 @@ andU :: UArr Bool -> Bool
 andU = foldU (&&) True
 
 -- |
-andSU :: UArr (UArr Bool) -> UArr Bool
+andSU :: SUArr Bool -> UArr Bool
 andSU = foldSU (&&) True
 
 -- |
@@ -170,7 +170,7 @@ orU :: UArr Bool -> Bool
 orU = foldU (||) False
 
 -- |
-orSU :: UArr (UArr Bool) -> UArr Bool
+orSU :: SUArr Bool -> UArr Bool
 orSU = foldSU (||) False
 
 -- |
@@ -201,7 +201,7 @@ sumU = foldU (+) 0
 
 -- |Compute the segmented sum of an array of numerals
 --
-sumSU :: (Num e, MUA e) => UArr (UArr e) -> UArr e
+sumSU :: (Num e, MUA e) => SUArr e -> UArr e
 {-# INLINE sumSU #-}
 sumSU = foldSU (+) 0
 
@@ -213,7 +213,7 @@ productU = foldU (*) 0
 
 -- |Compute the segmented product of an array of numerals
 --
-productSU :: (Num e, MUA e) => UArr (UArr e) -> UArr e
+productSU :: (Num e, MUA e) => SUArr e -> UArr e
 {-# INLINE productSU #-}
 productSU = foldSU (*) 1
 
@@ -228,7 +228,7 @@ maximumU = foldU max (minBound)
 
 -- |Determine the maximum element in each subarray
 --
-maximumSU :: (Bounded e, Ord e, MUA e) => UArr (UArr e) -> UArr e
+maximumSU :: (Bounded e, Ord e, MUA e) => SUArr e -> UArr e
 --FIXME: provisional until fold1SU implemented
 --maximumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
 {-# INLINE maximumSU #-}
@@ -246,7 +246,7 @@ minimumU = foldU min maxBound
 
 -- |Determine the minimum element in each subarray
 --
-minimumSU :: (Bounded e, Ord e, MUA e) => UArr (UArr e) -> UArr e
+minimumSU :: (Bounded e, Ord e, MUA e) => SUArr e -> UArr e
 --FIXME: provisional until fold1SU implemented
 --minimumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
 {-# INLINE minimumSU #-}
@@ -298,7 +298,7 @@ enumFromToU start = enumFromThenToU start (succ start)
 
 -- |Yield a segmented enumerated array
 --
-enumFromToSU :: (Enum e, MUA e) => UArr e -> UArr e -> UArr (UArr e)
+enumFromToSU :: (Enum e, MUA e) => UArr e -> UArr e -> SUArr e
 {-# INLINE enumFromToSU #-}
 enumFromToSU starts = enumFromThenToSU starts (mapU succ starts)
 
@@ -320,7 +320,7 @@ enumFromThenToU start next end =
 -- |Yield a segmented enumerated array using a specific step
 --
 enumFromThenToSU :: (Enum e, MUA e) 
-		 => UArr e -> UArr e -> UArr e -> UArr (UArr e)
+		 => UArr e -> UArr e -> UArr e -> SUArr e
 {-# INLINE enumFromThenToSU #-}
 enumFromThenToSU starts nexts ends = 
   loopArrS $ loopSU step seg init (segd >: replicateU len ())
