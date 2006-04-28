@@ -20,8 +20,6 @@
 --
 -- Todo ----------------------------------------------------------------------
 --
--- * Merge UA and MUA
--- * replace sliceU with sliceU' (which is not a method)
 -- * add support for multiple nesting levels to SUArr?
 --
 
@@ -80,9 +78,6 @@ class HS e => UA e where
   -- |Restrict access to a subrange of the original array (no copying)
   clipU  :: UArr e -> Int -> Int -> UArr e
 
-  -- |Extract a slice out of an immutable unboxed array
-  sliceU  :: UArr e -> Int -> Int -> UArr e
-
   -- |Allocate a mutable parallel array
   newMU          :: Int                   -> ST s (MUArr e s)
 
@@ -129,7 +124,6 @@ instance UA () where
   lengthU (UAUnit n)     = n
   indexU  (UAUnit _) _   = ()
   clipU   (UAUnit _) _ n = UAUnit n
-  sliceU  (UAUnit _) _ n = UAUnit n
 
   newMU   n                         = return $ MUAUnit n
   writeMU (MUAUnit _) _ _           = return ()
@@ -144,8 +138,6 @@ instance (UA a, UA b) => UA (a :*: b) where
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
   {-# INLINE clipU #-}
   clipU   (UAProd l r) i n = UAProd (clipU l i n) (clipU r i n)
-  {-# INLINE sliceU #-}
-  sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
 
   {-# INLINE newMU #-}
   newMU n = 
@@ -281,8 +273,6 @@ instance UA Bool where
   indexU (UAPrim (PrimBool ua)) i   = ua `indexBU` i
   {-# INLINE clipU #-}
   clipU  (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ clipBU ua i n
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                            = 
@@ -302,8 +292,6 @@ instance UA Char where
   indexU (UAPrim (PrimChar ua)) i   = ua `indexBU` i
   {-# INLINE clipU #-}
   clipU  (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ clipBU ua i n
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                              = 
@@ -323,8 +311,6 @@ instance UA Int where
   indexU (UAPrim (PrimInt ua)) i   = ua `indexBU` i
   {-# INLINE clipU #-}
   clipU  (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ clipBU ua i n
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                            = 
@@ -344,8 +330,6 @@ instance UA Float where
   indexU (UAPrim (PrimFloat ua)) i   = ua `indexBU` i
   {-# INLINE clipU #-}
   clipU  (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ clipBU ua i n
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                             = 
@@ -365,8 +349,6 @@ instance UA Double where
   indexU (UAPrim (PrimDouble ua)) i   = ua `indexBU` i
   {-# INLINE clipU #-}
   clipU  (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ clipBU ua i n
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                              = 
@@ -534,8 +516,9 @@ zipU = UAProd
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
 unzipU (UAProd l r) = (l, r)
 
-sliceU' :: UA a => UArr a -> Int -> Int -> UArr a
-sliceU' arr i n =
+{-# INLINE sliceU #-}
+sliceU :: UA a => UArr a -> Int -> Int -> UArr a
+sliceU arr i n =
   runST (do
     marr <- newMU n
     insertMU marr 0 $ clipU arr i n
