@@ -36,7 +36,7 @@ import Data.Array.Parallel.Base.BUArr (
   BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 
   ST, runST) 
 import Data.Array.Parallel.Monadic.UArr (
-  UA, MUA, UArr(..), MUArr, USegd(..), MUSegd(..),
+  UA, MUA, UArr(..), MUArr, USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
   lengthU, indexU, sliceU, newMU, newMSU, writeMU, nextMSU, unsafeFreezeMU,
   unsafeFreezeMSU)
 
@@ -101,7 +101,7 @@ loopU mf start a =
 
 -- |Segmented replication
 --
-replicateSU :: MUA e => UArr Int -> UArr e -> UArr (UArr e)
+replicateSU :: MUA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE [1] replicateSU #-}
 replicateSU (UAPrim (PrimInt ns)) es = 
   runST (do
@@ -110,7 +110,7 @@ replicateSU (UAPrim (PrimInt ns)) es =
     mpa  <- newMU n
     fillSegs0 mpa
     pa   <- unsafeFreezeMU mpa n
-    return $ UAUArr (USegd ns psum) pa
+    return $ SUArr (USegd ns psum) pa
   )
   where
     m = lengthBU ns
@@ -143,12 +143,12 @@ loopSU :: (UA e, MUA e', MUA ae)
        => (acc -> e   -> (acc, Maybe e'))    -- per element mutator
        -> (acc -> Int -> (acc, Maybe ae))    -- per segment mutator
        -> acc				     -- initial acc value
-       -> UArr (UArr e)			     -- input array
-       -> ((UArr (UArr e'), UArr ae), acc)
+       -> SUArr e			     -- input array
+       -> ((SUArr e', UArr ae), acc)
 -- FIXME: All tuples should be strict!
 -- FIXME: Intro a debug flag that activates segd conistency checks
 {-# INLINE [1] loopSU #-}
-loopSU em sm start (UAUArr segd arr) =
+loopSU em sm start (SUArr segd arr) =
   runST (do
     mpa      <- newMSU nsegd n
     maccs    <- newMU        nsegd
