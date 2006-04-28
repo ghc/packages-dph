@@ -128,7 +128,7 @@ instance (DT a, DT b) => DT (a :*: b) where
 instance UA a => DT (UArr a) where
   indexDT (DUArr arr) i = indexBB arr i
 
-instance MUA a => DT (MUArr a s) where
+instance UA a => DT (MUArr a s) where
   indexDT (DMUArr arr) i = indexBB arr i
 
 -- | Operations on immutable distributed types
@@ -260,7 +260,7 @@ instance UA a => MDT (UArr a) where
   writeMDT = writeMBB . unMDUArr
   freezeMDT = liftM DUArr . unsafeFreezeAllMBB . unMDUArr
 
-instance MUA a => MDT (MUArr a s) where
+instance UA a => MDT (MUArr a s) where
   newMDT g = liftM MDMUArr $ newMBB (gangSize g)
                                     (uninitialised $ here "newMDT[MUArr a]")
   readMDT   = readMBB  . unMDMUArr
