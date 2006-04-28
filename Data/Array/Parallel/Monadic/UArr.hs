@@ -13,10 +13,13 @@
 --
 -- This module defines unlifted arrays generically as a GADT.
 --
--- Clipping is implemented by each `BUArr' having the clipping information.  A
+-- Slicing is implemented by each `BUArr' having the slicing information.  A
 -- possible alternative design would be to maintain this information in
--- `UArr', but not in the representations, but at the root.  Both designs
--- seems to have advantages.
+-- `UArr', but not in the representations, but at the root.  This may seem
+-- attractive at first, but seems to be more disruptive without any real
+-- benefits _ this is essentially, because we then need the slicing
+-- information at each level; ie, also at the leafs where it is sufficient
+-- using the current implementation.
 --
 -- Todo ----------------------------------------------------------------------
 --
@@ -27,7 +30,7 @@ module Data.Array.Parallel.Monadic.UArr (
   UA, UArr(..), MUArr(..), {-USel(..), MUSel(..),-}
 
   -- * Basic operations on parallel arrays
-  lengthU, indexU, clipU, extractU, zipU, unzipU,
+  lengthU, indexU, sliceU, extractU, zipU, unzipU,
   newMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
@@ -38,7 +41,7 @@ import Monad (liftM)
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
-  BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU,
+  BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU,
   writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, extractBU, mapBU,
   scanBU, extractMBU, copyMBU,  
   ST, runST)
@@ -63,13 +66,13 @@ class HS e => UA e where
 --  data MUArr e s
 
   -- |Yield the length of an unboxed array
-  lengthU :: UArr e                            -> Int
+  lengthU        :: UArr e                     -> Int
 
   -- |Extract an element out of an immutable unboxed array
-  indexU  :: UArr e -> Int                     -> e
+  indexU         :: UArr e -> Int              -> e
 
   -- |Restrict access to a subrange of the original array (no copying)
-  clipU  :: UArr e -> Int -> Int               -> UArr e
+  sliceU         :: UArr e -> Int -> Int       -> UArr e
 
   -- |Allocate a mutable unboxed array
   newMU          :: Int                        -> ST s (MUArr e s)
@@ -79,7 +82,7 @@ class HS e => UA e where
 
   -- |Copy the contents of an immutable unboxed array into a mutable one
   -- from the specified position on
-  copyMU       :: MUArr e s -> Int -> UArr e -> ST s ()
+  copyMU         :: MUArr e s -> Int -> UArr e -> ST s ()
 
   -- |Convert a mutable into an immutable unboxed array
   unsafeFreezeMU :: MUArr e s -> Int           -> ST s (UArr e)
@@ -122,7 +125,7 @@ extractU :: UA a => UArr a -> Int -> Int -> UArr a
 extractU arr i n =
   runST (do
     marr <- newMU n
-    copyMU marr 0 $ clipU arr i n
+    copyMU marr 0 $ sliceU arr i n
     unsafeFreezeMU marr n
   )
 
@@ -134,7 +137,7 @@ extractU arr i n =
 instance UA () where
   lengthU (UAUnit n)     = n
   indexU  (UAUnit _) _   = ()
-  clipU   (UAUnit _) _ n = UAUnit n
+  sliceU  (UAUnit _) _ n = UAUnit n
 
   newMU   n                       = return $ MUAUnit n
   writeMU (MUAUnit _) _ _         = return ()
@@ -147,8 +150,8 @@ instance (UA a, UA b) => UA (a :*: b) where
   lengthU (UAProd l _)     = lengthU l
   {-# INLINE indexU #-}
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
-  {-# INLINE clipU #-}
-  clipU   (UAProd l r) i n = UAProd (clipU l i n) (clipU r i n)
+  {-# INLINE sliceU #-}
+  sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
 
   {-# INLINE newMU #-}
   newMU n = 
@@ -201,26 +204,26 @@ instance (UA a, UA b) => UA (a :+: b) where
   {-# INLINE indexU #-}
   indexU  (UASum sel l r) i   = if (selUS sel)`indexBU`i then Inr $ indexU r i 
 					 	         else Inl $ indexU l i
-  {-# INLINE clipU #-}
-  clipU   (UASum sel l r) i n = 
+  {-# INLINE sliceU #-}
+  sliceU  (UASum sel l r) i n = 
     let
-      sel'     = clipBU (selUS sel) i n
+      sel'     = sliceBU (selUS sel) i n
       li       = lidxUS sel`indexBU`i
       ri       = ridxUS sel`indexBU`i
-      lidx     = mapBU (subtract li) $ clipBU (lidxUS sel) i n
-      ridx     = mapBU (subtract ri) $ clipBU (ridxUS sel) i n
+      lidx     = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
+      ridx     = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
       (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
 					     ridx`indexBU`(n - 1))
     in
-    UASum (USel sel' lidx ridx) (clipU l li ln) (clipU r ri rn)
+    UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
   {-# INLINE extractU #-}
   extractU  (UASum sel l r) i n = 
     let
       sel'     = extractBU (selUS sel) i n
       li       = lidxUS sel`indexBU`i
       ri       = ridxUS sel`indexBU`i
-      lidx     = mapBU (subtract li) $ clipBU (lidxUS sel) i n
-      ridx     = mapBU (subtract ri) $ clipBU (ridxUS sel) i n
+      lidx     = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
+      ridx     = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
       (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
 					     ridx`indexBU`(n - 1))
     in
@@ -282,8 +285,8 @@ instance UA Bool where
   lengthU (UAPrim (PrimBool ua))    = lengthBU ua
   {-# INLINE indexU #-}
   indexU (UAPrim (PrimBool ua)) i   = ua `indexBU` i
-  {-# INLINE clipU #-}
-  clipU  (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ clipBU ua i n
+  {-# INLINE sliceU #-}
+  sliceU (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                            = 
@@ -301,8 +304,8 @@ instance UA Char where
   lengthU (UAPrim (PrimChar ua))    = lengthBU ua
   {-# INLINE indexU #-}
   indexU (UAPrim (PrimChar ua)) i   = ua `indexBU` i
-  {-# INLINE clipU #-}
-  clipU  (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ clipBU ua i n
+  {-# INLINE sliceU #-}
+  sliceU (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                              = 
@@ -320,8 +323,8 @@ instance UA Int where
   lengthU (UAPrim (PrimInt ua))    = lengthBU ua
   {-# INLINE indexU #-}
   indexU (UAPrim (PrimInt ua)) i   = ua `indexBU` i
-  {-# INLINE clipU #-}
-  clipU  (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ clipBU ua i n
+  {-# INLINE sliceU #-}
+  sliceU (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                            = 
@@ -339,8 +342,8 @@ instance UA Float where
   lengthU (UAPrim (PrimFloat ua))    = lengthBU ua
   {-# INLINE indexU #-}
   indexU (UAPrim (PrimFloat ua)) i   = ua `indexBU` i
-  {-# INLINE clipU #-}
-  clipU  (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ clipBU ua i n
+  {-# INLINE sliceU #-}
+  sliceU (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                             = 
@@ -358,8 +361,8 @@ instance UA Double where
   lengthU (UAPrim (PrimDouble ua))    = lengthBU ua
   {-# INLINE indexU #-}
   indexU (UAPrim (PrimDouble ua)) i   = ua `indexBU` i
-  {-# INLINE clipU #-}
-  clipU  (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ clipBU ua i n
+  {-# INLINE sliceU #-}
+  sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
 
   {-# INLINE newMU #-}
   newMU          n                              = 

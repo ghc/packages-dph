@@ -35,8 +35,8 @@
 --   library is correct).
 --
 -- * There is no proper block copy support yet.  It would be helpful for
---   extracting and copying.  But do we need slicing if we have clipping?
---   (Clipping instead of slicing may introduce space leaks..)
+--   extracting and copying.  But do we need extracting if we have slicing?
+--   (Slicing instead of extracting may introduce space leaks..)
 --
 -- * If during freezing it becomes clear that the array is much smaller than
 --   originally allocated, it might be worthwhile to copy the data into a new,
@@ -48,7 +48,7 @@ module Data.Array.Parallel.Base.BUArr (
   BUArr, MBUArr,
 
   -- * Class with operations on primitive unboxed arrays
-  UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU, writeMBU,
+  UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU, writeMBU,
   unsafeFreezeMBU, unsafeFreezeAllMBU,
   replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, extractBU,
   mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, extractMBU, copyMBU,
@@ -119,8 +119,8 @@ class HS e => UAE e where
 -- |Produces an array that consists of a subrange of the original one without
 -- copying any elements.
 --
-clipBU :: BUArr e -> Int -> Int -> BUArr e
-clipBU (BUArr start len arr) newStart newLen = 
+sliceBU :: BUArr e -> Int -> Int -> BUArr e
+sliceBU (BUArr start len arr) newStart newLen = 
   let start' = start + newStart
   in
   BUArr start' (len - newStart `min` newLen) arr
