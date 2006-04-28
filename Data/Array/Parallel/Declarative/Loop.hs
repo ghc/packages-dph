@@ -39,7 +39,7 @@ import Data.Array.Parallel.Base.BUArr (
   ST, runST) 
 import Data.Array.Parallel.Monadic.UArr (
   UA, UArr(..), MUArr, 
-  lengthU, indexU, sliceU, newMU, writeMU, unsafeFreezeMU)
+  lengthU, indexU, newMU, writeMU, unsafeFreezeMU)
 import Data.Array.Parallel.Monadic.SUArr (
   USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
   newMSU, nextMSU, unsafeFreezeMSU)

@@ -35,7 +35,7 @@
 --   library is correct).
 --
 -- * There is no proper block copy support yet.  It would be helpful for
---   sliceing and copying.  But do we need slicing if we have clipping?
+--   extracting and copying.  But do we need slicing if we have clipping?
 --   (Clipping instead of slicing may introduce space leaks..)
 --
 -- * If during freezing it becomes clear that the array is much smaller than
@@ -50,8 +50,8 @@ module Data.Array.Parallel.Base.BUArr (
   -- * Class with operations on primitive unboxed arrays
   UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU, writeMBU,
   unsafeFreezeMBU, unsafeFreezeAllMBU,
-  replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, sliceBU,
-  mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, sliceMBU, copyMBU,
+  replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, extractBU,
+  mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, extractMBU, copyMBU,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
@@ -400,9 +400,9 @@ loopSndAcc (arr, (_, acc)) = (arr, acc)
 
 -- |Extract a slice from an array (given by its start index and length)
 --
-sliceBU :: UAE e => BUArr e -> Int -> Int -> BUArr e
-{-# INLINE sliceBU #-}
-sliceBU arr i n = 
+extractBU :: UAE e => BUArr e -> Int -> Int -> BUArr e
+{-# INLINE extractBU #-}
+extractBU arr i n = 
   runST (do
     ma <- newMBU n
     copy0 ma
@@ -416,14 +416,14 @@ sliceBU arr i n =
 		 | otherwise	= do
 				    writeMBU ma off (arr `indexBU` (i + off))
 				    copy (off + 1)
--- NB: If we had a bounded version of loopBU, we could express sliceBU in terms
---     of that loop combinator.  The problem is that this makes fusion more
---     awkward; in particular, when the second loopBU in a "loopBU/loopBU"
---     situation has restricted bounds.  On the other hand sometimes fusing
---     the extraction of a slice with the following computation on that slice
---     is very useful.
+-- NB: If we had a bounded version of loopBU, we could express extractBU in
+--     terms of that loop combinator.  The problem is that this makes fusion
+--     more awkward; in particular, when the second loopBU in a
+--     "loopBU/loopBU" situation has restricted bounds.  On the other hand
+--     sometimes fusing the extraction of a slice with the following
+--     computation on that slice is very useful.
 -- FIXME: If we leave it as it, we should at least use a block copy operation.
---	  (What we really want is to represent sliceBU as a loop when we can
+--	  (What we really want is to represent extractBU as a loop when we can
 --	  fuse it with a following loop on the computed slice and, otherwise,
 --	  when there is no opportunity for fusion, we want to use a block copy
 --	  routine.)
@@ -464,11 +464,11 @@ scanBU = scanlBU
 
 -- |Extract a slice from a mutable array (the slice is immutable)
 --
-sliceMBU :: UAE e => MBUArr s e -> Int -> Int -> ST s (BUArr e)
-{-# INLINE sliceMBU #-}
-sliceMBU arr i n = do
-		     arr' <- unsafeFreezeMBU arr (i + n)
-		     return $ sliceBU arr' i n
+extractMBU :: UAE e => MBUArr s e -> Int -> Int -> ST s (BUArr e)
+{-# INLINE extractMBU #-}
+extractMBU arr i n = do
+		       arr' <- unsafeFreezeMBU arr (i + n)
+		       return $ extractBU arr' i n
 
 -- |Copy a the contents of an immutable array into a mutable array from the
 -- specified position on

@@ -27,7 +27,7 @@ module Data.Array.Parallel.Monadic.UArr (
   UA, UArr(..), MUArr(..), {-USel(..), MUSel(..),-}
 
   -- * Basic operations on parallel arrays
-  lengthU, indexU, clipU, sliceU, zipU, unzipU,
+  lengthU, indexU, clipU, extractU, zipU, unzipU,
   newMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
@@ -39,8 +39,8 @@ import Monad (liftM)
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU,
-  writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, sliceBU, mapBU,
-  scanBU, sliceMBU, copyMBU,  
+  writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, extractBU, mapBU,
+  scanBU, extractMBU, copyMBU,  
   ST, runST)
 import Data.Array.Parallel.Base.Prim (
   Prim(..), MPrim(..),
@@ -117,9 +117,9 @@ zipU = UAProd
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
 unzipU (UAProd l r) = (l, r)
 
-{-# INLINE sliceU #-}
-sliceU :: UA a => UArr a -> Int -> Int -> UArr a
-sliceU arr i n =
+{-# INLINE extractU #-}
+extractU :: UA a => UArr a -> Int -> Int -> UArr a
+extractU arr i n =
   runST (do
     marr <- newMU n
     copyMU marr 0 $ clipU arr i n
@@ -213,10 +213,10 @@ instance (UA a, UA b) => UA (a :+: b) where
 					     ridx`indexBU`(n - 1))
     in
     UASum (USel sel' lidx ridx) (clipU l li ln) (clipU r ri rn)
-  {-# INLINE sliceU #-}
-  sliceU  (UASum sel l r) i n = 
+  {-# INLINE extractU #-}
+  extractU  (UASum sel l r) i n = 
     let
-      sel'     = sliceBU (selUS sel) i n
+      sel'     = extractBU (selUS sel) i n
       li       = lidxUS sel`indexBU`i
       ri       = ridxUS sel`indexBU`i
       lidx     = mapBU (subtract li) $ clipBU (lidxUS sel) i n
@@ -224,7 +224,7 @@ instance (UA a, UA b) => UA (a :+: b) where
       (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
 					     ridx`indexBU`(n - 1))
     in
-    UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
+    UASum (USel sel' lidx ridx) (extractU l li ln) (extractU r ri rn)
 
 instance (MUA a, MUA b) => MUA (a :+: b) where
   {-# INLINE newMU #-}

@@ -35,7 +35,7 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, lengthU, indexU, sliceU, newMU, writeMU, unsafeFreezeMU, zipU,
+  UA, UArr, lengthU, indexU, extractU, newMU, writeMU, unsafeFreezeMU, zipU,
   unzipU) 
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU)
@@ -134,7 +134,7 @@ scanU = scanlU
 --
 takeU :: UA e=> Int -> UArr e -> UArr e
 {-# INLINE takeU #-}
-takeU n a = sliceU a 0 n
+takeU n a = extractU a 0 n
 
 -- |Extract a suffix of an array
 --
@@ -142,7 +142,7 @@ dropU :: UA e => Int -> UArr e -> UArr e
 {-# INLINE dropU #-}
 dropU n a = let len = lengthU a 
 	    in
-	    sliceU a n (len - n)
+	    extractU a n (len - n)
 
 -- |Split an array into two halves at the given index
 --
