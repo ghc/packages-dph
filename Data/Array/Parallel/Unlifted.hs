@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted (
   UArr, USegd, SUArr,
 
   -- * Strict pairs and sums
-  (:*:)(..), (:+:)(..),
+  (:*:)(..), (:+:)(..), fstS, sndS,
 
   -- * List-like combinators
   mapU,	(+:+), filterU, concatSU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,

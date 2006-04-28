@@ -46,7 +46,7 @@ import Data.Array.Parallel.Unlifted.ListLike
 --
 segmentU :: (UA e', UA e) => SUArr e' -> UArr e -> SUArr e
 {-# INLINE segmentU #-}
-segmentU template arr = fst (flattenSU template) >: arr
+segmentU template arr = fstS (flattenSU template) >: arr
 
 
 -- |Conversion
@@ -58,7 +58,7 @@ toU :: UA e => [e] -> UArr e
 {-# INLINE toU #-}
 toU l = 
   loopArr $ 
-    loopU (\(x:xs) (_::()) -> (xs, Just $ x)) l (replicateU (length l) noAL)
+    loopU (\(x:xs) (_::()) -> (xs :*: Just x)) l (replicateU (length l) noAL)
 
 -- |Turn a nested list into a segmented parallel array
 --
@@ -120,13 +120,13 @@ bpermuteSU :: UA e => SUArr e -> SUArr Int -> SUArr e
 {-# INLINE bpermuteSU #-}
 bpermuteSU as = loopArrS . loopSU extract nextOff 0
 	        where
-		  (segd, a) = flattenSU as
-		  psum	    = psumUS segd
+		  (segd :*: a) = flattenSU as
+		  psum	       = psumUS segd
 		  --
-	          extract off i = (off, Just $ a!:(off + i))
+	          extract off i = (off :*: (Just $ a!:(off + i)))
 		  --
-		  nextOff _ segi = (psum `indexBU` (segi + 1), 
-				    Nothing::Maybe ())
+		  nextOff _ segi = (psum `indexBU` (segi + 1) :*: 
+				    (Nothing::Maybe ()))
 
 -- |Default back permute
 --

@@ -17,12 +17,21 @@ module Data.Array.Parallel.Base.Hyperstrict (
   -- * Strict pairs and sums
   (:*:)(..), (:+:)(..),
 
+  -- * Projection functions
+  fstS, sndS,
+
   -- * Class of hyperstrict types
   HS
 ) where
 
+infixl 1 :+:
+infixl 2 :*:
+
 -- |Strict pair
 data (:*:) a b = !a :*: !b
+
+fstS (x :*: _) = x
+sndS (_ :*: y) = y
 
 -- |Strict sum
 data (:+:) a b = Inl !a | Inr !b

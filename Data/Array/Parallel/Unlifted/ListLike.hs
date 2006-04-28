@@ -69,7 +69,8 @@ a1 +:+ a2 = loopArr $ loopU extract 0 (replicateU len noAL)
     len1 = lengthU a1
     len  = len1 + lengthU a2
     --
-    extract i _ = (i + 1, Just $ if i < len1 then a1!:i else a2!:(i - len1))
+    extract i _ = (i + 1 :*: 
+		   (Just $ if i < len1 then a1!:i else a2!:(i - len1)))
 
 -- |Extract all elements from an array that meet the given predicate
 --
@@ -80,7 +81,7 @@ filterU p  = loopArr . loopU (filterEFL p) noAL
 -- |Concatenate the subarrays of an array of arrays
 --
 concatSU :: UA e => SUArr e -> UArr e
-concatSU = snd . flattenSU
+concatSU = sndS . flattenSU
 
 -- |Test whether the given array is empty
 --
@@ -157,7 +158,7 @@ reverseU a = loopArr $ loopU extract (len - 1) (replicateU len noAL)
 	     where
 	       len = lengthU a
 	       --
-	       extract i _ = (i - 1, Just $ a!:i)
+	       extract i _ = (i - 1 :*: (Just $ a!:i))
 
 -- |
 andU :: UArr Bool -> Bool
@@ -281,12 +282,12 @@ zipWith3U f a1 a2 a3 =
 
 -- |
 unzip3U :: (UA e1, UA e2, UA e3) 
-	=> UArr (e1 :*: e2 :*: e3) -> (UArr e1, UArr e2, UArr e3)
+	=> UArr (e1 :*: e2 :*: e3) -> (UArr e1 :*: UArr e2 :*: UArr e3)
 {-# INLINE unzip3U #-}
-unzip3U a = let (a12, a3) = unzipU a
-		(a1 , a2) = unzipU a12
+unzip3U a = let (a12 :*: a3) = unzipU a
+		(a1  :*: a2) = unzipU a12
 	    in
-	    (a1, a2, a3)
+	    (a1 :*: a2 :*: a3)
 
 
 -- |Enumeration functions
@@ -317,7 +318,7 @@ enumFromThenToU start next end =
     delta  = next' - start'
     len    = abs (end' - start' + delta) `div` (abs delta)
     --
-    step x _ = (x + delta, Just $ toEnum x)
+    step x _ = (x + delta :*: (Just $ toEnum x))
 
 -- |Yield a segmented enumerated array using a specific step
 --
@@ -340,13 +341,13 @@ enumFromThenToSU starts nexts ends =
     segd    = toUSegd lens
     segdlen = lengthU lens
     --
-    step (x, delta) _ = ((x + delta, delta), Just $ toEnum x)
-    seg  _          i = ((start, delta), Nothing::Maybe ())
-			where
-			  start = fromEnum (starts!:(i + 1))
-			  next  = fromEnum (nexts !:(i + 1))
-			  delta = if (i + 1) == segdlen 
-				  then 0 
-				  else next - start
+    step (x :*: delta) _ = ((x + delta :*: delta) :*: (Just $ toEnum x))
+    seg  _             i = ((start :*: delta) :*: (Nothing::Maybe ()))
+			   where
+			     start = fromEnum (starts!:(i + 1))
+			     next  = fromEnum (nexts !:(i + 1))
+			     delta = if (i + 1) == segdlen 
+				     then 0 
+				     else next - start
     --
-    init = fst $ seg undefined (-1)
+    init = fstS $ seg undefined (-1)

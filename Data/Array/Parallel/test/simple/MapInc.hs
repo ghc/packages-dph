@@ -4,7 +4,7 @@ where
 import Data.Array.Parallel.Unlifted
 
 test :: UArr Int -> UArr Int
-test = loopArr . loopU (\_ x -> ((), Just $ x + 1 :: Maybe Int)) ()
+test = loopArr . loopU (\_ x -> (() :*: (Just $ x + 1 :: Maybe Int))) ()
 
 
 {- Inner loop:

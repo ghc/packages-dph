@@ -1,7 +1,7 @@
 import Data.Array.Parallel.Base.BUArr (ST, runST)
 import Data.Array.Parallel.Monadic.UArr
 
-replicateU :: MUA e => Int -> e -> UArr e
+replicateU :: UA e => Int -> e -> UArr e
 replicateU n e =
   runST (do
     arr <- newMU n

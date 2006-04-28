@@ -67,18 +67,17 @@ replicateU n e =
 -- |Iteration over over non-nested arrays
 --
 loopU :: (UA e, UA e')
-      => (acc -> e -> (acc, Maybe e'))  -- mapping & folding, once per element
-      -> acc				-- initial acc value
-      -> UArr e			        -- input array
-      -> (UArr e', acc)
--- FIXME: All tuples should be strict!
+      => (acc -> e -> (acc :*: Maybe e'))  -- mapping & folding, once per elem
+      -> acc				   -- initial acc value
+      -> UArr e			           -- input array
+      -> (UArr e' :*: acc)
 {-# INLINE [1] loopU #-}
 loopU mf start a = 
   runST (do
-    mpa         <- newMU len
-    (acc, len') <- trans0 mpa start
-    a'          <- unsafeFreezeMU mpa len'
-    return (a', acc)
+    mpa            <- newMU len
+    (acc :*: len') <- trans0 mpa start
+    a'             <- unsafeFreezeMU mpa len'
+    return (a' :*: acc)
   )
   where
     len = lengthU a
@@ -88,10 +87,10 @@ loopU mf start a =
         trans a_off ma_off acc 
 	  | a_off == len = ma_off `seq`	       -- needed for these arguments...
 			   acc    `seq`	       -- ...to get unboxed
-			   return (acc, ma_off)
+			   return (acc :*: ma_off)
 	  | otherwise    =
 	    do
-	      let (acc', oe) = mf acc (a `indexU` a_off)
+	      let (acc' :*: oe) = mf acc (a `indexU` a_off)
 	      ma_off' <- case oe of
 			   Nothing -> return ma_off
 			   Just e  -> do
@@ -144,22 +143,21 @@ replicateSU (UAPrim (PrimInt ns)) es =
 --   the accumulator array.
 --
 loopSU :: (UA e, UA e', UA ae)
-       => (acc -> e   -> (acc, Maybe e'))    -- per element mutator
-       -> (acc -> Int -> (acc, Maybe ae))    -- per segment mutator
-       -> acc				     -- initial acc value
-       -> SUArr e			     -- input array
-       -> ((SUArr e', UArr ae), acc)
--- FIXME: All tuples should be strict!
+       => (acc -> e   -> (acc :*: Maybe e'))    -- per element mutator
+       -> (acc -> Int -> (acc :*: Maybe ae))    -- per segment mutator
+       -> acc				        -- initial acc value
+       -> SUArr e			       -- input array
+       -> ((SUArr e' :*: UArr ae) :*: acc)
 -- FIXME: Intro a debug flag that activates segd conistency checks
 {-# INLINE [1] loopSU #-}
 loopSU em sm start (SUArr segd arr) =
   runST (do
-    mpa      <- newMSU nsegd n
-    maccs    <- newMU        nsegd
-    (m, acc) <- trans0 mpa maccs
-    arr'     <- unsafeFreezeMSU mpa   nsegd
-    accs     <- unsafeFreezeMU  maccs m
-    return ((arr', accs), acc)
+    mpa         <- newMSU nsegd n
+    maccs       <- newMU        nsegd
+    (m :*: acc) <- trans0 mpa maccs
+    arr'        <- unsafeFreezeMSU mpa   nsegd
+    accs        <- unsafeFreezeMU  maccs m
+    return ((arr' :*: accs) :*: acc)
   )
   where
     segd1 = segdUS segd
@@ -178,21 +176,21 @@ loopSU em sm start (SUArr segd arr) =
 	    maccs_i `seq`
 	    acc     `seq`
 	    do
-	      (maccs_i', acc') <- 
+	      (maccs_i' :*: acc') <- 
 	        if segd_i == -1		-- before first segment starts
-		then return (maccs_i, acc)
+		then return (maccs_i :*: acc)
 		else 
 		  case sm acc segd_i of
-		    (acc', Nothing) -> return (maccs_i, acc')
-		    (acc', Just ae) -> do
-				         writeMU maccs maccs_i ae
-					 return (maccs_i + 1, acc')
+		    (acc' :*: Nothing) -> return (maccs_i :*: acc')
+		    (acc' :*: Just ae) -> do
+				            writeMU maccs maccs_i ae
+					    return (maccs_i + 1 :*: acc')
 	      let segd_i'  = segd_i + 1		-- next segment
 	      maccs_i' `seq` 
 	       acc'    `seq` 
 	       if segd_i' == nsegd	-- no more segments left
 	        then 
-		  return (maccs_i', acc')
+		  return (maccs_i' :*: acc')
 		else do
 		  let seg_cnt' = segd1 `indexBU` segd_i' -- get new seg length
 		  nextMSU mpa segd_i' Nothing            -- init target seg
@@ -201,7 +199,7 @@ loopSU em sm start (SUArr segd arr) =
 	    segd_i  `seq`
 	    maccs_i `seq`
 	    do
-	      let (acc', oe) = em acc (arr `indexU` arr_i)
+	      let (acc' :*: oe) = em acc (arr `indexU` arr_i)
 	      case oe of
 	        Nothing -> return ()
 		Just e  -> nextMSU mpa segd_i (Just e)
@@ -210,10 +208,10 @@ loopSU em sm start (SUArr segd arr) =
 -- |Projection functions that are fusion friendly (as in, we determine when
 -- they are inlined)
 --
-loopArrS :: ((arr, accs), acc) -> arr
+loopArrS :: ((arr :*: accs) :*: acc) -> arr
 {-# INLINE [1] loopArrS #-}
-loopArrS ((arr, _), _) = arr
+loopArrS ((arr :*: _) :*: _) = arr
 --
-loopAccS :: ((arr, accs), acc) -> accs
+loopAccS :: ((arr :*: accs) :*: acc) -> accs
 {-# INLINE [1] loopAccS #-}
-loopAccS ((_, accs), _) = accs
+loopAccS ((_ :*: accs) :*: _) = accs

@@ -4,10 +4,10 @@ where
 import Data.Array.Parallel.Unlifted
 
 test :: SUArr Int -> UArr Int
-test =   snd
+test =   sndS
        . loopArr
-       . loopSU (\a x -> (a + x::Int, Nothing::Maybe ())) 
-		(\a i -> (a, Just a)) 0
+       . loopSU (\a x -> ((a + x::Int) :*: (Nothing::Maybe ())))
+		(\a i -> (a :*: Just a)) 0
 
 {- Inner loop:
 

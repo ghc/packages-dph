@@ -117,8 +117,8 @@ zipU = UAProd
 
 -- |Elementwise unpairing of array elements.
 --
-unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
-unzipU (UAProd l r) = (l, r)
+unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a :*: UArr b)
+unzipU (UAProd l r) = (l :*: r)
 
 {-# INLINE extractU #-}
 extractU :: UA a => UArr a -> Int -> Int -> UArr a
@@ -207,25 +207,25 @@ instance (UA a, UA b) => UA (a :+: b) where
   {-# INLINE sliceU #-}
   sliceU  (UASum sel l r) i n = 
     let
-      sel'     = sliceBU (selUS sel) i n
-      li       = lidxUS sel`indexBU`i
-      ri       = ridxUS sel`indexBU`i
-      lidx     = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
-      ridx     = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
-      (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
-					     ridx`indexBU`(n - 1))
+      sel'        = sliceBU (selUS sel) i n
+      li          = lidxUS sel`indexBU`i
+      ri          = ridxUS sel`indexBU`i
+      lidx        = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
+      ridx        = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
+      (ln :*: rn) = if n == 0 then (0 :*: 0) else (lidx`indexBU`(n - 1) :*: 
+					           ridx`indexBU`(n - 1))
     in
     UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
   {-# INLINE extractU #-}
   extractU  (UASum sel l r) i n = 
     let
-      sel'     = extractBU (selUS sel) i n
-      li       = lidxUS sel`indexBU`i
-      ri       = ridxUS sel`indexBU`i
-      lidx     = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
-      ridx     = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
-      (ln, rn) = if n == 0 then (0, 0) else (lidx`indexBU`(n - 1), 
-					     ridx`indexBU`(n - 1))
+      sel'        = extractBU (selUS sel) i n
+      li          = lidxUS sel`indexBU`i
+      ri          = ridxUS sel`indexBU`i
+      lidx        = mapBU (subtract li) $ sliceBU (lidxUS sel) i n
+      ridx        = mapBU (subtract ri) $ sliceBU (ridxUS sel) i n
+      (ln :*: rn) = if n == 0 then (0 :*: 0) else (lidx`indexBU`(n - 1) :*: 
+					           ridx`indexBU`(n - 1))
     in
     UASum (USel sel' lidx ridx) (extractU l li ln) (extractU r ri rn)
 

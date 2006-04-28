@@ -4,7 +4,7 @@ where
 import Data.Array.Parallel.Unlifted
 
 test :: UArr Int -> UArr Int
-test = loopArr . loopU (\a x -> (a + x, Just a)) 0
+test = loopArr . loopU (\a x -> (a + x :*: Just a)) 0
 
 
 {- Inner loop:

@@ -5,7 +5,7 @@ import Data.Array.Parallel.Unlifted
 
 test :: UArr Float -> UArr Float -> Float
 test v w =   loopAcc
-           . loopU (\a (x:*:y) -> (a + x * y, Nothing::Maybe ())) 0
+           . loopU (\a (x:*:y) -> (a + x * y :*: (Nothing::Maybe ()))) 0
 	   $ zipU v w
 
 

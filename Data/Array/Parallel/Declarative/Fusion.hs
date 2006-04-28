@@ -49,15 +49,15 @@ import Data.Array.Parallel.Declarative.Loop (
 
 -- |No element function
 --
-noEFL :: acc -> () -> (acc, Maybe ())
+noEFL :: acc -> () -> (acc :*: Maybe ())
 {-# INLINE [1] noEFL #-}
-noEFL acc _  = (acc, Nothing)
+noEFL acc _  = (acc :*: Nothing)
 
 -- |No segment function
 --
-noSFL :: acc -> Int -> (acc, Maybe ())
+noSFL :: acc -> Int -> (acc :*: Maybe ())
 {-# INLINE [1] noSFL #-}
-noSFL acc _  = (acc, Nothing)
+noSFL acc _  = (acc :*: Nothing)
 
 -- |No accumulator
 --
@@ -70,43 +70,43 @@ noAL = ()
 
 -- |Element function expressing a mapping only
 --
-mapEFL :: (e -> e') -> (() -> e -> ((), Maybe e'))
+mapEFL :: (e -> e') -> (() -> e -> (() :*: Maybe e'))
 {-# INLINE [1] mapEFL #-}
-mapEFL f = \a e -> (noAL, Just $ f e)
---mapEFL f = \a e -> let e' = f e in e' `seq` (noAL, Just e')
+mapEFL f = \a e -> (noAL :*: (Just $ f e))
+--mapEFL f = \a e -> let e' = f e in e' `seq` (noAL :*: Just e')
 
 -- |Element function implementing a filter function only
 --
-filterEFL :: (e -> Bool) -> (() -> e -> ((), Maybe e))
+filterEFL :: (e -> Bool) -> (() -> e -> (() :*: Maybe e))
 {-# INLINE [1] filterEFL #-}
-filterEFL p = \a e -> if p e then (noAL, Just e) else (noAL, Nothing)
+filterEFL p = \a e -> if p e then (noAL :*: Just e) else (noAL :*: Nothing)
 
 -- |Element function expressing a reduction only
 --
-foldEFL :: (acc -> e -> acc) -> (acc -> e -> (acc, Maybe ()))
+foldEFL :: (acc -> e -> acc) -> (acc -> e -> (acc :*: Maybe ()))
 {-# INLINE [1] foldEFL #-}
-foldEFL f = \a e -> (f a e, Nothing)
---foldEFL f = \a e -> let a' = f a e in a' `seq` (a', Nothing)
+foldEFL f = \a e -> (f a e :*: Nothing)
+--foldEFL f = \a e -> let a' = f a e in a' `seq` (a' :*: Nothing)
 
 -- |Element function expressing a prefix reduction only
 --
-scanEFL :: (acc -> e -> acc) -> (acc -> e -> (acc, Maybe acc))
+scanEFL :: (acc -> e -> acc) -> (acc -> e -> (acc :*: Maybe acc))
 {-# INLINE [1] scanEFL #-}
-scanEFL f = \a e -> (f a e, Just a)
---scanEFL f  = \a e -> let a' = f a e in a' `seq` (a', Just a)
+scanEFL f = \a e -> (f a e :*: Just a)
+--scanEFL f  = \a e -> let a' = f a e in a' `seq` (a' :*: Just a)
 
 -- |Segment function transforming the accumulator
 --
-transSFL :: (acc -> acc) -> (acc -> Int -> (acc, Maybe ()))
+transSFL :: (acc -> acc) -> (acc -> Int -> (acc :*: Maybe ()))
 {-# INLINE [1] transSFL #-}
-transSFL f = \a _ -> (f a, Nothing)
+transSFL f = \a _ -> (f a :*: Nothing)
 
 -- |Segment function transforming the accumulator and collecting accumulator
 -- values
 --
-keepSFL :: (acc -> acc) -> (acc -> Int -> (acc, Maybe acc))
+keepSFL :: (acc -> acc) -> (acc -> Int -> (acc :*: Maybe acc))
 {-# INLINE [1] keepSFL #-}
-keepSFL f = \a _ -> (f a, Just a)
+keepSFL f = \a _ -> (f a :*: Just a)
 
 
 -- Fusion rules
@@ -124,13 +124,14 @@ keepSFL f = \a _ -> (f a, Just a)
 "loopU/loopU" forall em1 em2 start1 start2 arr.
   loopU em2 start2 (loopArr (loopU em1 start1 arr)) =
     let
-      em (acc1, acc2) e = case em1 e acc1 of
-			    (acc1', Nothing) -> ((acc1', acc2), Nothing)
-			    (acc1', Just e') ->
-			      case em2 e' acc2 of
-			        (acc2', res) -> ((acc1', acc2'), res)
+      em (acc1 :*: acc2) e = 
+        case em1 e acc1 of
+	  (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
+	  (acc1' :*: Just e') ->
+	    case em2 e' acc2 of
+	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
     in
-    loopSndAcc (loopU em (start1, start2) arr)
+    loopSndAcc (loopU em (start1 :*: start2) arr)
 
 -- fusion across a zipU
 --
@@ -145,8 +146,8 @@ keepSFL f = \a _ -> (f a, Just a)
     let
       em acc2 (e1 :*: e2) = 
         case em2 acc2 (f1 e1 :*: e2) of
-	  (acc2', Nothing ) -> (acc2', Nothing )
-	  (acc2', Just e'') -> (acc2', Just e'')
+	  (acc2' :*: Nothing ) -> (acc2' :*: Nothing )
+	  (acc2' :*: Just e'') -> (acc2' :*: Just e'')
     in
     loopU em start2 (zipU pa1 pa2)
 
@@ -155,8 +156,8 @@ keepSFL f = \a _ -> (f a, Just a)
     let
       em acc2 (e1 :*: e2) = 
         case em2 acc2 (e1 :*: f1 e2) of
-	  (acc2', Nothing ) -> (acc2', Nothing )
-	  (acc2', Just e'') -> (acc2', Just e'')
+	  (acc2' :*: Nothing ) -> (acc2' :*: Nothing )
+	  (acc2' :*: Just e'') -> (acc2' :*: Just e'')
     in
     loopU em start2 (zipU pa1 pa2)
 -}
@@ -182,13 +183,15 @@ keepSFL f = \a _ -> (f a, Just a)
 "loopSU/loopU[scan]" forall f1 em2 sm2 segd start1 start2 arr.
   loopSU em2 sm2 start2 (segd >: loopArr (loopU (scanEFL f1) start1 arr)) =
     let
-      em (acc1, acc2) e = case em2 acc2 acc1 of
-			    (acc2', res) -> ((f1 acc1 e, acc2'), res)
+      em (acc1 :*: acc2) e = 
+        case em2 acc2 acc1 of
+	  (acc2' :*: res) -> ((f1 acc1 e :*: acc2') :*: res)
       --
-      sm (acc1, acc2) i = case sm2 acc2 i of
-			    (acc2', res) -> ((acc1, acc2'), res)
+      sm (acc1 :*: acc2) i = 
+        case sm2 acc2 i of
+	  (acc2' :*: res) -> ((acc1 :*: acc2') :*: res)
     in
-    loopSndAcc $ loopSU em sm (start1, start2) (segd >: arr)
+    loopSndAcc $ loopSU em sm (start1 :*: start2) (segd >: arr)
 
 --FIXME: there are zip variants, too
 

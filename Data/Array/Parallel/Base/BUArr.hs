@@ -326,17 +326,17 @@ replicateBU n e =
 -- |Loop combinator over unboxed arrays
 --
 loopBU :: (UAE e, UAE e')
-       => (acc -> e -> (acc, Maybe e'))  -- mapping & folding, once per element
-       -> acc				 -- initial acc value
-       -> BUArr e			 -- input array
-       -> (BUArr e', acc)
+       => (acc -> e -> (acc :*: Maybe e'))  -- mapping & folding, once per elem
+       -> acc				    -- initial acc value
+       -> BUArr e			    -- input array
+       -> (BUArr e' :*: acc)
 {-# INLINE loopBU #-}
 loopBU mf start a = 
   runST (do
-    ma          <- newMBU len
-    (acc, len') <- trans0 ma start
-    a'          <- unsafeFreezeMBU ma len'
-    return (a', acc)
+    ma             <- newMBU len
+    (acc :*: len') <- trans0 ma start
+    a'             <- unsafeFreezeMBU ma len'
+    return (a' :*: acc)
   )
   where
     len = lengthBU a
@@ -346,10 +346,10 @@ loopBU mf start a =
         trans a_off ma_off acc 
 	  | a_off == len = ma_off `seq`	       -- needed for these arguments...
 			   acc    `seq`	       -- ...getting unboxed
-			   return (acc, ma_off)
+			   return (acc :*: ma_off)
 	  | otherwise    =
 	    do
-	      let (acc', oe) = mf acc (a `indexBU` a_off)
+	      let (acc' :*: oe) = mf acc (a `indexBU` a_off)
 	      ma_off' <- case oe of
 			   Nothing -> return ma_off
 			   Just e  -> do
@@ -360,15 +360,15 @@ loopBU mf start a =
 -- |Projection functions that are fusion friendly (as in, we determine when
 -- they are inlined)
 --
-loopArr :: (arr, acc) -> arr
+loopArr :: (arr :*: acc) -> arr
 {-# INLINE [1] loopArr #-}
-loopArr (arr, _) = arr
-loopAcc :: (arr, acc) -> acc
+loopArr (arr :*: _) = arr
+loopAcc :: (arr :*: acc) -> acc
 {-# INLINE [1] loopAcc #-}
-loopAcc (_, acc) = acc
-loopSndAcc :: (arr, (acc1, acc2)) -> (arr, acc2)
+loopAcc (_ :*: acc) = acc
+loopSndAcc :: (arr :*: (acc1 :*: acc2)) -> (arr :*: acc2)
 {-# INLINE [1] loopSndAcc #-}
-loopSndAcc (arr, (_, acc)) = (arr, acc)
+loopSndAcc (arr :*: (_ :*: acc)) = (arr :*: acc)
 
 -- Loop fusion for unboxed arrays
 --
@@ -382,13 +382,14 @@ loopSndAcc (arr, (_, acc)) = (arr, acc)
 "loopBU/loopBU" forall mf1 mf2 start1 start2 arr.
   loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) =
     let
-      mf (acc1, acc2) e = case mf1 e acc1 of
-			    (acc1', Nothing) -> ((acc1', acc2), Nothing)
-			    (acc1', Just e') ->
-			      case mf1 e' acc2 of
-			        (acc2', res) -> ((acc1', acc2'), res)
+      mf (acc1 :*: acc2) e = 
+        case mf1 e acc1 of
+          (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
+	  (acc1' :*: Just e') ->
+	    case mf1 e' acc2 of
+	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
     in
-    loopSndAcc (loopBU mf (start1, start2) arr)
+    loopSndAcc (loopBU mf (start1 :*: start2) arr)
 
 "loopArr/loopSndAcc" forall x.
   loopArr (loopSndAcc x) = loopArr x
@@ -431,13 +432,13 @@ extractBU arr i n =
 -- |Map a function over an unboxed array
 --
 mapBU :: (UAE a, UAE b) => (a -> b) -> BUArr a -> BUArr b
-mapBU f = loopArr . loopBU (\_ e -> ((), Just $ f e)) () 
+mapBU f = loopArr . loopBU (\_ e -> (() :*: (Just $ f e))) () 
 
 -- |Reduce an unboxed array
 --
 foldlBU :: UAE b => (a -> b -> a) -> a -> BUArr b -> a
 {-# INLINE foldlBU #-}
-foldlBU f z = loopAcc . loopBU (\a e -> (f a e, Nothing::Maybe ())) z
+foldlBU f z = loopAcc . loopBU (\a e -> (f a e :*: (Nothing::Maybe ()))) z
 
 -- |Reduce an unboxed array using an *associative* combining operator
 --
@@ -454,7 +455,7 @@ sumBU = foldBU (+) 0
 -- |Prefix reduction of an unboxed array
 --
 scanlBU :: (UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> BUArr a
-scanlBU f z = loopArr . loopBU (\a e -> (f a e, Just a)) z
+scanlBU f z = loopArr . loopBU (\a e -> (f a e :*: Just a)) z
 
 -- |Prefix reduction of an unboxed array using an *associative* combining
 -- operator
