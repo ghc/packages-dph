@@ -20,6 +20,10 @@
 --
 -- Todo ----------------------------------------------------------------------
 --
+-- * Merge UA and MUA
+-- * replace sliceU with sliceU' (which is not a method)
+-- * add support for multiple nesting levels to SUArr?
+--
 
 module Data.Array.Parallel.Monadic.UArr (
   -- * Array types and classes containing the admissble elements types
@@ -28,7 +32,7 @@ module Data.Array.Parallel.Monadic.UArr (
 
   -- * Basic operations on parallel arrays
   lengthU, indexU, clipU, sliceU, zipU, unzipU,
-  newMU, writeMU, unsafeFreezeMU,
+  newMU, writeMU, insertMU, unsafeFreezeMU,
 
   -- * Basic operations on segmented parallel arrays
   lengthSU, indexSU, sliceIndexSU, clipIndexSU, clipSU, sliceSU, flattenSU, (>:),
@@ -45,7 +49,7 @@ import Data.Array.Parallel.Base.BUArr (
   BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU,
   writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, sliceBU, mapBU,
   scanBU, sliceMBU, insertMBU,  
-  ST)
+  ST, runST)
 import Data.Array.Parallel.Base.Prim (
   Prim(..), MPrim(..),
   unPrim, unMPrim, mkPrim, mkMPrim)
@@ -100,6 +104,10 @@ class UA e => MUA e where
   -- |Update an element in a mutable parallel array
   writeMU        :: MUArr e s -> Int -> e -> ST s ()
 
+  -- |Insert the contexnts of an immutable parallel array into a mutable one
+  -- from the specified position on
+  insertMU       :: MUArr e s -> Int -> UArr e -> ST s ()
+
   -- |Convert a mutable into an immutable parallel array
   unsafeFreezeMU :: MUArr e s -> Int      -> ST s (UArr e)
 
@@ -125,9 +133,10 @@ instance UA () where
   sliceU  (UAUnit _) _ n = UAUnit n
 
 instance MUA () where
-  newMU   n                    = return $ MUAUnit n
-  writeMU (MUAUnit _) _ _      = return ()
-  unsafeFreezeMU (MUAUnit _) n = return $ UAUnit n
+  newMU   n                         = return $ MUAUnit n
+  writeMU (MUAUnit _) _ _           = return ()
+  insertMU (MUAUnit _) _ (UAUnit _) = return ()
+  unsafeFreezeMU (MUAUnit _) n      = return $ UAUnit n
 
 -- |Array operations on the pair representation.
 --
@@ -152,6 +161,11 @@ instance (MUA a, MUA b) => MUA (a :*: b) where
     do
       writeMU a i x
       writeMU b i y
+  {-# INLINE insertMU #-}
+  insertMU (MUAProd ma mb) i (UAProd a b) =
+    do
+      insertMU ma i a
+      insertMU mb i b
   {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAProd a b) n = 
     do
@@ -279,6 +293,9 @@ instance MUA Bool where
     liftM (MUAPrim . MPrimBool  ) $ newMBU n
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimBool ua)) i e = writeMBU ua i e
+  {-# INLINE insertMU #-}
+  insertMU (MUAPrim (MPrimBool ma)) i (UAPrim (PrimBool ua)) =
+    insertMBU ma i ua
   {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimBool ua)) n   = 
     liftM (UAPrim . PrimBool  ) $ unsafeFreezeMBU ua n
@@ -298,6 +315,9 @@ instance MUA Char where
     liftM (MUAPrim . MPrimChar  ) $ newMBU n
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimChar ua)) i e = writeMBU ua i e
+  {-# INLINE insertMU #-}
+  insertMU (MUAPrim (MPrimChar ma)) i (UAPrim (PrimChar ua)) =
+    insertMBU ma i ua
   {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimChar ua)) n   = 
     liftM (UAPrim . PrimChar  ) $ unsafeFreezeMBU ua n
@@ -317,6 +337,9 @@ instance MUA Int where
     liftM (MUAPrim . MPrimInt   ) $ newMBU n
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimInt  ua)) i e = writeMBU ua i e
+  {-# INLINE insertMU #-}
+  insertMU (MUAPrim (MPrimInt ma)) i (UAPrim (PrimInt ua)) =
+    insertMBU ma i ua
   {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimInt  ua)) n   = 
     liftM (UAPrim . PrimInt   ) $ unsafeFreezeMBU ua n
@@ -336,6 +359,9 @@ instance MUA Float where
     liftM (MUAPrim . MPrimFloat ) $ newMBU n
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimFloat ua)) i e = writeMBU ua i e
+  {-# INLINE insertMU #-}
+  insertMU (MUAPrim (MPrimFloat ma)) i (UAPrim (PrimFloat ua)) =
+    insertMBU ma i ua
   {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimFloat ua)) n   = 
     liftM (UAPrim . PrimFloat ) $ unsafeFreezeMBU ua n
@@ -355,6 +381,9 @@ instance MUA Double where
     liftM (MUAPrim . MPrimDouble) $ newMBU n
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
+  {-# INLINE insertMU #-}
+  insertMU (MUAPrim (MPrimDouble ma)) i (UAPrim (PrimDouble ua)) =
+    insertMBU ma i ua
   {-# INLINE unsafeFreezeMU #-}
   unsafeFreezeMU (MUAPrim (MPrimDouble ua)) n   = 
     liftM (UAPrim . PrimDouble) $ unsafeFreezeMBU ua n
@@ -512,6 +541,14 @@ zipU = UAProd
 --
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
 unzipU (UAProd l r) = (l, r)
+
+sliceU' :: MUA a => UArr a -> Int -> Int -> UArr a
+sliceU' arr i n =
+  runST (do
+    marr <- newMU n
+    insertMU marr 0 $ clipU arr i n
+    unsafeFreezeMU marr n
+  )
 
 -- |Compose a nested array.
 --
