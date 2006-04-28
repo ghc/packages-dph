@@ -66,7 +66,7 @@ infixr 9 >:
 class HS e => UA e where
 --  data UArr e
 
-  -- |Yield the length of an unboxed array (if segmented, number of segments)
+  -- |Yield the length of an unboxed array
   lengthU :: UArr e               -> Int
 
   -- |Extract an element out of an immutable unboxed array
@@ -94,10 +94,10 @@ instance HS e => HS (UArr e)
 class UA e => MUA e where
 --  data MUArr e s
 
-  -- |Allocate a mutable parallel array (which must not be segmented)
+  -- |Allocate a mutable parallel array
   newMU          :: Int                   -> ST s (MUArr e s)
 
-  -- |Update an element in a mutable parallel array (must not be segmented)
+  -- |Update an element in a mutable parallel array
   writeMU        :: MUArr e s -> Int -> e -> ST s ()
 
   -- |Convert a mutable into an immutable parallel array
@@ -432,6 +432,7 @@ clipSU (SUArr segd a) i n =
   SUArr segd' (clipU a i' (psum `indexBU` (i + n - 1) - i' + 1))
 
 -- |Extract a subrange of the segmented array (elements are copied).
+--
 sliceSU :: UA e => SUArr e -> Int -> Int -> SUArr e
 sliceSU (SUArr segd a) i n =
   let
