@@ -35,7 +35,7 @@
 --   library is correct).
 --
 -- * There is no proper block copy support yet.  It would be helpful for
---   sliceing and inserting.  But do we need slicing if we have clipping?
+--   sliceing and copying.  But do we need slicing if we have clipping?
 --   (Clipping instead of slicing may introduce space leaks..)
 --
 -- * If during freezing it becomes clear that the array is much smaller than
@@ -51,7 +51,7 @@ module Data.Array.Parallel.Base.BUArr (
   UAE, lengthBU, lengthMBU, newMBU, indexBU, clipBU, readMBU, writeMBU,
   unsafeFreezeMBU, unsafeFreezeAllMBU,
   replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, sliceBU,
-  mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, sliceMBU, insertMBU,
+  mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, sliceMBU, copyMBU,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
@@ -470,13 +470,13 @@ sliceMBU arr i n = do
 		     arr' <- unsafeFreezeMBU arr (i + n)
 		     return $ sliceBU arr' i n
 
--- |Insert a the contents of an immutable array into a mutable array from the
+-- |Copy a the contents of an immutable array into a mutable array from the
 -- specified position on
 --
-insertMBU :: UAE e => MBUArr s e -> Int -> BUArr e -> ST s ()
+copyMBU :: UAE e => MBUArr s e -> Int -> BUArr e -> ST s ()
 {-# SPECIALIZE 
-      insertMBU :: MBUArr s Int -> Int -> BUArr Int -> ST s () #-}
-insertMBU marr i arr = ins i 0
+      copyMBU :: MBUArr s Int -> Int -> BUArr Int -> ST s () #-}
+copyMBU marr i arr = ins i 0
   where
     n = lengthBU arr
     --

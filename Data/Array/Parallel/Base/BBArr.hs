@@ -21,7 +21,7 @@ module Data.Array.Parallel.Base.BBArr (
   -- * Operations on primitive boxed arrays
   lengthBB, lengthMBB, newMBB, indexBB, readMBB, writeMBB,
   unsafeFreezeMBB, unsafeFreezeAllMBB,
-  sliceBB, sliceMBB, insertMBB,
+  sliceBB, sliceMBB, copyMBB,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   ST, runST
@@ -142,11 +142,11 @@ sliceMBB arr i n =
     arr' <- unsafeFreezeMBB arr (i + n)
     return $ sliceBB arr' i n
 
--- |Insert a the contents of an immutable array into a mutable array from the
+-- |Copy a the contents of an immutable array into a mutable array from the
 -- specified position on
 --
-insertMBB :: MBBArr s e -> Int -> BBArr e -> ST s ()
-insertMBB marr i arr = ins i 0
+copyMBB :: MBBArr s e -> Int -> BBArr e -> ST s ()
+copyMBB marr i arr = ins i 0
   where
     n = lengthBB arr
     --
