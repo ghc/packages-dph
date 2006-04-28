@@ -21,6 +21,7 @@
 -- Todo ----------------------------------------------------------------------
 --
 -- * add support for multiple nesting levels to SUArr?
+-- * move the SUArr stuff into a separate module?
 --
 
 module Data.Array.Parallel.Monadic.UArr (
@@ -70,26 +71,26 @@ class HS e => UA e where
 --  data MUArr e s
 
   -- |Yield the length of an unboxed array
-  lengthU :: UArr e               -> Int
+  lengthU :: UArr e                            -> Int
 
   -- |Extract an element out of an immutable unboxed array
-  indexU  :: UArr e -> Int        -> e
+  indexU  :: UArr e -> Int                     -> e
 
   -- |Restrict access to a subrange of the original array (no copying)
-  clipU  :: UArr e -> Int -> Int -> UArr e
+  clipU  :: UArr e -> Int -> Int               -> UArr e
 
-  -- |Allocate a mutable parallel array
-  newMU          :: Int                   -> ST s (MUArr e s)
+  -- |Allocate a mutable unboxed array
+  newMU          :: Int                        -> ST s (MUArr e s)
 
-  -- |Update an element in a mutable parallel array
-  writeMU        :: MUArr e s -> Int -> e -> ST s ()
+  -- |Update an element in a mutable unboxed array
+  writeMU        :: MUArr e s -> Int -> e      -> ST s ()
 
-  -- |Insert the contexnts of an immutable parallel array into a mutable one
+  -- |Insert the contents of an immutable unboxed array into a mutable one
   -- from the specified position on
   insertMU       :: MUArr e s -> Int -> UArr e -> ST s ()
 
-  -- |Convert a mutable into an immutable parallel array
-  unsafeFreezeMU :: MUArr e s -> Int      -> ST s (UArr e)
+  -- |Convert a mutable into an immutable unboxed array
+  unsafeFreezeMU :: MUArr e s -> Int           -> ST s (UArr e)
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data UArr e where
@@ -97,13 +98,8 @@ data UArr e where
   UAProd ::           !(UArr e1) -> !(UArr e2) -> UArr (e1 :*: e2)
 --  UASum  :: !USel  -> !(UArr e1) -> !(UArr e2) -> UArr (e1 :+: e2)
   UAPrim ::           !(Prim e)                -> UArr e
---  UAUArr :: !USegd -> !(UArr e)                -> UArr (UArr e)
 
 instance HS e => HS (UArr e)
-
--- |This type class covers those element types of unboxed arrays that can be
--- contained in immutable versions of these arrays.
---
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data MUArr e s where
@@ -114,6 +110,29 @@ data MUArr e s where
 --  MUAUArr :: !(MUSegd s) -> !(MUArr e s)                   -> MUArr (UArr e) s
 
 instance HS e => HS (MUArr e s)
+
+-- |Basic operations on unboxed arrays
+-- -----------------------------------
+
+-- |Elementwise pairing of array elements.
+--
+zipU :: (UA a, UA b) => UArr a -> UArr b -> UArr (a :*: b)
+{-# INLINE [1] zipU #-}	-- see `UAFusion'
+zipU = UAProd
+
+-- |Elementwise unpairing of array elements.
+--
+unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
+unzipU (UAProd l r) = (l, r)
+
+{-# INLINE sliceU #-}
+sliceU :: UA a => UArr a -> Int -> Int -> UArr a
+sliceU arr i n =
+  runST (do
+    marr <- newMU n
+    insertMU marr 0 $ clipU arr i n
+    unsafeFreezeMU marr n
+  )
 
 -- |Family of representation types
 -- -------------------------------
@@ -365,8 +384,6 @@ instance UA Double where
 -- |Segmented arrays
 -- -----------------
 
--- TODO: Move this to a separate module?
-
 -- |Segment descriptors are used to represent the structure of nested arrays.
 --
 data USegd = USegd {
@@ -384,15 +401,15 @@ data MUSegd s = MUSegd {
 -- |Segmented arrays (only one level of segmentation)
 -- 
 data SUArr e = SUArr {
-                 segdSU :: !USegd,
-                 dataSU :: !(UArr e)
+                 segdSU :: !USegd,             -- segment descriptor
+                 dataSU :: !(UArr e)           -- flat data array
                }
 
 -- |Mutable segmented arrays (only one level of segmentation)
 --
 data MSUArr e s = MSUArr {
-                    segdMSU :: !(MUSegd s),
-                    dataMSU :: !(MUArr e s)
+                    segdMSU :: !(MUSegd s),    -- segment descriptor
+                    dataMSU :: !(MUArr e s)    -- flat data array
                   }
 
 -- |Operations on segmented arrays
@@ -501,29 +518,8 @@ unsafeFreezeMSU (MSUArr segd a) n =
     a' <- unsafeFreezeMU a n'
     return $ SUArr (USegd segd' psum') a'
 
-
--- |Further basic operations
--- -------------------------
-
--- |Elementwise pairing of array elements.
---
-zipU :: (UA a, UA b) => UArr a -> UArr b -> UArr (a :*: b)
-{-# INLINE [1] zipU #-}	-- see `UAFusion'
-zipU = UAProd
-
--- |Elementwise unpairing of array elements.
---
-unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
-unzipU (UAProd l r) = (l, r)
-
-{-# INLINE sliceU #-}
-sliceU :: UA a => UArr a -> Int -> Int -> UArr a
-sliceU arr i n =
-  runST (do
-    marr <- newMU n
-    insertMU marr 0 $ clipU arr i n
-    unsafeFreezeMU marr n
-  )
+-- |Basic operations on segmented arrays
+-- -------------------------------------
 
 -- |Compose a nested array.
 --
