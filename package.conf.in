@@ -18,6 +18,7 @@ hidden-modules:
 	Data.Array.Parallel.Distributed.Types
 	Data.Array.Parallel.Distributed.Gang
 	Data.Array.Parallel.Monadic.UArr
+	Data.Array.Parallel.Monadic.SUArr
 	Data.Array.Parallel.Declarative.Fusion
 	Data.Array.Parallel.Declarative.Loop
 	Data.Array.Parallel.Unlifted.ListLike

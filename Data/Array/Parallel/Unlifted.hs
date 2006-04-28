@@ -2,7 +2,7 @@
 -- |
 -- Module      : Data.Array.Parallel.Unlifted
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---		 (c) 2006         Manuel M T Chakravarty
+--		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/base/LICENSE
 -- 
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
@@ -17,11 +17,12 @@
 --
 
 module Data.Array.Parallel.Unlifted (
+
   -- * Array classes
   UA,
 
   -- * Array types
-  UArr, USegd, 
+  UArr, USegd, SUArr,
 
   -- * Strict pairs and sums
   (:*:)(..), (:+:)(..),
@@ -53,13 +54,14 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer
+
 ) where
 
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Monadic.UArr (
   UA, UArr)
 import Data.Array.Parallel.Monadic.SUArr (
-  USegd, fromUSegd, toUSegd)
+  USegd, SUArr, fromUSegd, toUSegd)
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU, loopArr, loopArrS, loopAcc,
   loopAccS, loopSndAcc)
@@ -74,13 +76,13 @@ import Data.Array.Parallel.Unlifted.NeslLike
 --
 idstr      = "$Id: FIXME: Have the build-system produce an id$"
 name       = "Unlifted Array Library"
-versnum    = "0.5.0"
-date	   = "20 Mar 2006"
+versnum    = "0.6.0"
+date	   = "28 Apr 2006"
 version    = name ++ ", version " ++ versnum ++ ", " ++ date
-copyright  = "Copyright (c) [2001..2003] \
+copyright  = "Copyright (c) [2001..2006] \
 	     \M M T Chakravarty, G Keller & R Leshchinskiy"
 disclaimer = "This software is distributed under the terms \
-	     \of the X11 license.  NO WARRANTY WHATSOEVER IS PROVIDED. \
+	     \of the BSD3 license.  NO WARRANTY WHATSOEVER IS PROVIDED. \
 	     \See the details in the documentation."
 
 

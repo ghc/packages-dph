@@ -3,7 +3,7 @@ where
 
 import Data.Array.Parallel.Unlifted
 
-test :: UArr (UArr Int) -> UArr Int
+test :: SUArr Int -> UArr Int
 test =   snd
        . loopArr
        . loopSU (\a x -> (a + x::Int, Nothing::Maybe ())) 
