@@ -22,11 +22,13 @@
 --
 
 module Data.Array.Parallel.Declarative.Loop (
+
   -- * Loop/replicate combinators
   replicateU, loopU, replicateSU, loopSU,
 
   -- * Projection combinators for loops
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc
+
 ) where
 
 -- friends
@@ -36,9 +38,11 @@ import Data.Array.Parallel.Base.BUArr (
   BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 
   ST, runST) 
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr(..), MUArr, USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
-  lengthU, indexU, sliceU, newMU, newMSU, writeMU, nextMSU, unsafeFreezeMU,
-  unsafeFreezeMSU)
+  UA, UArr(..), MUArr, 
+  lengthU, indexU, sliceU, newMU, writeMU, unsafeFreezeMU)
+import Data.Array.Parallel.Monadic.SUArr (
+  USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
+  newMSU, nextMSU, unsafeFreezeMSU)
 
 
 -- |Elementary combinators

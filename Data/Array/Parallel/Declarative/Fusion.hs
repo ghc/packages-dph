@@ -25,7 +25,9 @@ module Data.Array.Parallel.Declarative.Fusion (
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Monadic.UArr (
-  UArr(UAUnit), (>:), zipU)
+  UArr(UAUnit), zipU)
+import Data.Array.Parallel.Monadic.SUArr (
+  (>:))
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)

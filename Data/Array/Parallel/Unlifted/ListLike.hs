@@ -35,8 +35,10 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, SUArr, lengthU, indexU, toUSegd, sliceU, newMU, writeMU,
-  unsafeFreezeMU, (>:), flattenSU, zipU, unzipU)
+  UA, UArr, lengthU, indexU, sliceU, newMU, writeMU, unsafeFreezeMU, zipU,
+  unzipU) 
+import Data.Array.Parallel.Monadic.SUArr (
+  SUArr, toUSegd, (>:), flattenSU)
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)

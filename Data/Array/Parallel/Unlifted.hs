@@ -57,7 +57,9 @@ module Data.Array.Parallel.Unlifted (
 
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, USegd, fromUSegd, toUSegd)
+  UA, UArr)
+import Data.Array.Parallel.Monadic.SUArr (
+  USegd, fromUSegd, toUSegd)
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU, loopArr, loopArrS, loopAcc,
   loopAccS, loopSndAcc)
