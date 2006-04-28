@@ -36,7 +36,7 @@ import Data.Array.Parallel.Base.BUArr (
   BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 
   ST, runST) 
 import Data.Array.Parallel.Monadic.UArr (
-  UA, MUA, UArr(..), MUArr, USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
+  UA, UArr(..), MUArr, USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
   lengthU, indexU, sliceU, newMU, newMSU, writeMU, nextMSU, unsafeFreezeMU,
   unsafeFreezeMSU)
 
@@ -46,7 +46,7 @@ import Data.Array.Parallel.Monadic.UArr (
 
 -- |Yield an array where all elements contain the same value
 --
-replicateU :: MUA e => Int -> e -> UArr e
+replicateU :: UA e => Int -> e -> UArr e
 {-# INLINE [1] replicateU #-}
 replicateU n e = 
   runST (do
@@ -62,7 +62,7 @@ replicateU n e =
 
 -- |Iteration over over non-nested arrays
 --
-loopU :: (UA e, MUA e')
+loopU :: (UA e, UA e')
       => (acc -> e -> (acc, Maybe e'))  -- mapping & folding, once per element
       -> acc				-- initial acc value
       -> UArr e			        -- input array
@@ -101,7 +101,7 @@ loopU mf start a =
 
 -- |Segmented replication
 --
-replicateSU :: MUA e => UArr Int -> UArr e -> SUArr e
+replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE [1] replicateSU #-}
 replicateSU (UAPrim (PrimInt ns)) es = 
   runST (do
@@ -139,7 +139,7 @@ replicateSU (UAPrim (PrimInt ns)) es =
 --   and, in addition to updating the accumulator, may produce an entry for
 --   the accumulator array.
 --
-loopSU :: (UA e, MUA e', MUA ae)
+loopSU :: (UA e, UA e', UA ae)
        => (acc -> e   -> (acc, Maybe e'))    -- per element mutator
        -> (acc -> Int -> (acc, Maybe ae))    -- per segment mutator
        -> acc				     -- initial acc value

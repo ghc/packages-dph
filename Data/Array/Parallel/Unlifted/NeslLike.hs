@@ -27,7 +27,7 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, MUA, UArr, SUArr, lengthU, indexU, sliceU, toUSegd, newMU, writeMU,
+  UA, UArr, SUArr, lengthU, indexU, sliceU, toUSegd, newMU, writeMU,
   unsafeFreezeMU, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU,
@@ -53,7 +53,7 @@ segmentU template arr = fst (flattenSU template) >: arr
 
 -- |Turn a list into a parallel array
 --
-toU :: MUA e => [e] -> UArr e
+toU :: UA e => [e] -> UArr e
 {-# INLINE toU #-}
 toU l = 
   loopArr $ 
@@ -61,7 +61,7 @@ toU l =
 
 -- |Turn a nested list into a segmented parallel array
 --
-toSU :: MUA e => [[e]] -> SUArr e
+toSU :: UA e => [[e]] -> SUArr e
 {-# INLINE toSU #-}
 toSU ls = let lens = toU $ map length ls
 	      a    = toU $ concat ls
@@ -76,7 +76,7 @@ fromU a = [a!:i | i <- [0..lengthU a - 1]]
 
 -- |Yield an empty array
 --
-emptyU :: MUA e => UArr e
+emptyU :: UA e => UArr e
 emptyU = runST (do
 	   mpa <- newMU 0
 	   unsafeFreezeMU mpa 0
@@ -90,7 +90,7 @@ emptyU = runST (do
 
 -- |Standard permutation
 --
-permuteU :: MUA e => UArr e -> UArr Int -> UArr e
+permuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE permuteU #-}
 permuteU arr is = 
   runST (do
@@ -109,13 +109,13 @@ permuteU arr is =
 -- |Back permutation operation (ie, the permutation vector determines for each
 -- position in the result array its origin in the input array)
 --
-bpermuteU :: MUA e => UArr e -> UArr Int -> UArr e
+bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE bpermuteU #-}
 bpermuteU a = loopArr . loopU (mapEFL (a !:)) noAL
 
 -- |Segmented back permute
 --
-bpermuteSU :: MUA e => SUArr e -> SUArr Int -> SUArr e
+bpermuteSU :: UA e => SUArr e -> SUArr Int -> SUArr e
 {-# INLINE bpermuteSU #-}
 bpermuteSU as = loopArrS . loopSU extract nextOff 0
 	        where
@@ -135,7 +135,7 @@ bpermuteSU as = loopArrS . loopSU extract nextOff 0
 -- * All positions not covered by the index-value pairs will have the value
 --   determined by the initialiser function for that index position.
 --
-bpermuteDftU :: MUA e
+bpermuteDftU :: UA e
 	     => Int			        -- |length of result array
 	     -> (Int -> e)		        -- |initialiser function
 	     -> UArr (Int :*: e)		-- |index-value pairs

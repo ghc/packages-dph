@@ -35,7 +35,7 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, MUA, UArr, SUArr, lengthU, indexU, toUSegd, sliceU, newMU, writeMU,
+  UA, UArr, SUArr, lengthU, indexU, toUSegd, sliceU, newMU, writeMU,
   unsafeFreezeMU, (>:), flattenSU, zipU, unzipU)
 import Data.Array.Parallel.Declarative.Loop (
   replicateU, loopU, replicateSU, loopSU,
@@ -54,13 +54,13 @@ infix  4 `elemU`, `notElemU`
 
 -- |Map a function over an array
 --
-mapU :: (UA e, MUA e') => (e -> e') -> UArr e -> UArr e'
+mapU :: (UA e, UA e') => (e -> e') -> UArr e -> UArr e'
 {-# INLINE mapU #-}
 mapU f = loopArr . loopU (mapEFL f) noAL
 
 -- |Concatenate two arrays
 --
-(+:+) :: MUA e => UArr e -> UArr e -> UArr e
+(+:+) :: UA e => UArr e -> UArr e -> UArr e
 {-# INLINE (+:+) #-}
 a1 +:+ a2 = loopArr $ loopU extract 0 (replicateU len noAL)
   where
@@ -71,7 +71,7 @@ a1 +:+ a2 = loopArr $ loopU extract 0 (replicateU len noAL)
 
 -- |Extract all elements from an array that meet the given predicate
 --
-filterU :: MUA e => (e -> Bool) -> UArr e -> UArr e 
+filterU :: UA e => (e -> Bool) -> UArr e -> UArr e 
 {-# INLINE filterU #-}
 filterU p  = loopArr . loopU (filterEFL p) noAL
 
@@ -106,26 +106,26 @@ foldU = foldlU
 
 -- |Segmented array reduction proceeding from the left
 --
-foldlSU :: (UA a, MUA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
+foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE foldlSU #-}
 foldlSU f z = loopAccS . loopSU (foldEFL f) (keepSFL (const z)) z
 
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit
 --
-foldSU :: MUA a => (a -> a -> a) -> a -> SUArr a -> UArr a
+foldSU :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
 foldSU = foldlSU
 
 -- |Prefix scan proceedings from left to right
 --
-scanlU :: (UA a, MUA b) => (b -> a -> b) -> b -> UArr a -> UArr b
+scanlU :: (UA a, UA b) => (b -> a -> b) -> b -> UArr a -> UArr b
 {-# INLINE scanlU #-}
 scanlU f z = loopArr . loopU (scanEFL f) z
 
 -- |Prefix scan proceedings from left to right that needs an associative
 -- combination function with its unit
 --
-scanU :: MUA a => (a -> a -> a) -> a -> UArr a -> UArr a
+scanU :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a
 scanU = scanlU
 
 -- |Extract a prefix of an array
@@ -150,7 +150,7 @@ splitAtU n a = (takeU n a, dropU n a)
 
 -- |Reverse the order of elements in an array
 --
-reverseU :: MUA e => UArr e -> UArr e
+reverseU :: UA e => UArr e -> UArr e
 reverseU a = loopArr $ loopU extract (len - 1) (replicateU len noAL)
 	     where
 	       len = lengthU a
@@ -201,7 +201,7 @@ sumU = foldU (+) 0
 
 -- |Compute the segmented sum of an array of numerals
 --
-sumSU :: (Num e, MUA e) => SUArr e -> UArr e
+sumSU :: (Num e, UA e) => SUArr e -> UArr e
 {-# INLINE sumSU #-}
 sumSU = foldSU (+) 0
 
@@ -213,7 +213,7 @@ productU = foldU (*) 0
 
 -- |Compute the segmented product of an array of numerals
 --
-productSU :: (Num e, MUA e) => SUArr e -> UArr e
+productSU :: (Num e, UA e) => SUArr e -> UArr e
 {-# INLINE productSU #-}
 productSU = foldSU (*) 1
 
@@ -228,7 +228,7 @@ maximumU = foldU max (minBound)
 
 -- |Determine the maximum element in each subarray
 --
-maximumSU :: (Bounded e, Ord e, MUA e) => SUArr e -> UArr e
+maximumSU :: (Bounded e, Ord e, UA e) => SUArr e -> UArr e
 --FIXME: provisional until fold1SU implemented
 --maximumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
 {-# INLINE maximumSU #-}
@@ -246,7 +246,7 @@ minimumU = foldU min maxBound
 
 -- |Determine the minimum element in each subarray
 --
-minimumSU :: (Bounded e, Ord e, MUA e) => SUArr e -> UArr e
+minimumSU :: (Bounded e, Ord e, UA e) => SUArr e -> UArr e
 --FIXME: provisional until fold1SU implemented
 --minimumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
 {-# INLINE minimumSU #-}
@@ -262,14 +262,14 @@ zip3U :: (UA e1, UA e2, UA e3)
 zip3U a1 a2 a3 = (a1 `zipU` a2) `zipU` a3
 
 -- |
-zipWithU :: (UA a, UA b, MUA c) 
+zipWithU :: (UA a, UA b, UA c) 
 	 => (a -> b -> c) -> UArr a -> UArr b -> UArr c
 {-# INLINE zipWithU #-}
 zipWithU f a1 a2 = 
   loopArr $ loopU (mapEFL (\(x:*:y) -> f x y)) noAL (zipU a1 a2)
 
 -- |
-zipWith3U :: (UA a, UA b, UA c, MUA d) 
+zipWith3U :: (UA a, UA b, UA c, UA d) 
           => (a -> b -> c -> d) -> UArr a -> UArr b -> UArr c -> UArr d
 {-# INLINE zipWith3U #-}
 zipWith3U f a1 a2 a3 = 
@@ -292,19 +292,19 @@ unzip3U a = let (a12, a3) = unzipU a
 
 -- |Yield an enumerated array
 --
-enumFromToU :: (Enum e, MUA e) => e -> e -> UArr e
+enumFromToU :: (Enum e, UA e) => e -> e -> UArr e
 {-# INLINE enumFromToU #-}
 enumFromToU start = enumFromThenToU start (succ start)
 
 -- |Yield a segmented enumerated array
 --
-enumFromToSU :: (Enum e, MUA e) => UArr e -> UArr e -> SUArr e
+enumFromToSU :: (Enum e, UA e) => UArr e -> UArr e -> SUArr e
 {-# INLINE enumFromToSU #-}
 enumFromToSU starts = enumFromThenToSU starts (mapU succ starts)
 
 -- |Yield an enumerated array using a specific step
 --
-enumFromThenToU :: (Enum e, MUA e) => e -> e -> e -> UArr e
+enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
 {-# INLINE enumFromThenToU #-}
 enumFromThenToU start next end = 
   loopArr $ loopU step start' (replicateU len noAL)
@@ -319,7 +319,7 @@ enumFromThenToU start next end =
 
 -- |Yield a segmented enumerated array using a specific step
 --
-enumFromThenToSU :: (Enum e, MUA e) 
+enumFromThenToSU :: (Enum e, UA e) 
 		 => UArr e -> UArr e -> UArr e -> SUArr e
 {-# INLINE enumFromThenToSU #-}
 enumFromThenToSU starts nexts ends = 

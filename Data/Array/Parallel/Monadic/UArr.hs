@@ -27,7 +27,7 @@
 
 module Data.Array.Parallel.Monadic.UArr (
   -- * Array types and classes containing the admissble elements types
-  UA, MUA, UArr(..), MUArr(..), {-USel(..), MUSel(..),-} USegd(..), MUSegd(..),
+  UA, UArr(..), MUArr(..), {-USel(..), MUSel(..),-} USegd(..), MUSegd(..),
   SUArr(..), MSUArr(..),
 
   -- * Basic operations on parallel arrays
@@ -69,6 +69,7 @@ infixr 9 >:
 --
 class HS e => UA e where
 --  data UArr e
+--  data MUArr e s
 
   -- |Yield the length of an unboxed array
   lengthU :: UArr e               -> Int
@@ -81,6 +82,19 @@ class HS e => UA e where
 
   -- |Extract a slice out of an immutable unboxed array
   sliceU  :: UArr e -> Int -> Int -> UArr e
+
+  -- |Allocate a mutable parallel array
+  newMU          :: Int                   -> ST s (MUArr e s)
+
+  -- |Update an element in a mutable parallel array
+  writeMU        :: MUArr e s -> Int -> e -> ST s ()
+
+  -- |Insert the contexnts of an immutable parallel array into a mutable one
+  -- from the specified position on
+  insertMU       :: MUArr e s -> Int -> UArr e -> ST s ()
+
+  -- |Convert a mutable into an immutable parallel array
+  unsafeFreezeMU :: MUArr e s -> Int      -> ST s (UArr e)
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data UArr e where
@@ -95,21 +109,6 @@ instance HS e => HS (UArr e)
 -- |This type class covers those element types of unboxed arrays that can be
 -- contained in immutable versions of these arrays.
 --
-class UA e => MUA e where
---  data MUArr e s
-
-  -- |Allocate a mutable parallel array
-  newMU          :: Int                   -> ST s (MUArr e s)
-
-  -- |Update an element in a mutable parallel array
-  writeMU        :: MUArr e s -> Int -> e -> ST s ()
-
-  -- |Insert the contexnts of an immutable parallel array into a mutable one
-  -- from the specified position on
-  insertMU       :: MUArr e s -> Int -> UArr e -> ST s ()
-
-  -- |Convert a mutable into an immutable parallel array
-  unsafeFreezeMU :: MUArr e s -> Int      -> ST s (UArr e)
 
 -- GADT TO REPLACE AT FOR THE MOMENT
 data MUArr e s where
@@ -132,7 +131,6 @@ instance UA () where
   clipU   (UAUnit _) _ n = UAUnit n
   sliceU  (UAUnit _) _ n = UAUnit n
 
-instance MUA () where
   newMU   n                         = return $ MUAUnit n
   writeMU (MUAUnit _) _ _           = return ()
   insertMU (MUAUnit _) _ (UAUnit _) = return ()
@@ -149,7 +147,6 @@ instance (UA a, UA b) => UA (a :*: b) where
   {-# INLINE sliceU #-}
   sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
 
-instance (MUA a, MUA b) => MUA (a :*: b) where
   {-# INLINE newMU #-}
   newMU n = 
     do
@@ -287,7 +284,6 @@ instance UA Bool where
   {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ sliceBU ua i n
 
-instance MUA Bool where
   {-# INLINE newMU #-}
   newMU          n                            = 
     liftM (MUAPrim . MPrimBool  ) $ newMBU n
@@ -309,7 +305,6 @@ instance UA Char where
   {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ sliceBU ua i n
 
-instance MUA Char where
   {-# INLINE newMU #-}
   newMU          n                              = 
     liftM (MUAPrim . MPrimChar  ) $ newMBU n
@@ -331,7 +326,6 @@ instance UA Int where
   {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ sliceBU ua i n
 
-instance MUA Int where
   {-# INLINE newMU #-}
   newMU          n                            = 
     liftM (MUAPrim . MPrimInt   ) $ newMBU n
@@ -353,7 +347,6 @@ instance UA Float where
   {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ sliceBU ua i n
 
-instance MUA Float where
   {-# INLINE newMU #-}
   newMU          n                             = 
     liftM (MUAPrim . MPrimFloat ) $ newMBU n
@@ -375,7 +368,6 @@ instance UA Double where
   {-# INLINE sliceU #-}
   sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
 
-instance MUA Double where
   {-# INLINE newMU #-}
   newMU          n                              = 
     liftM (MUAPrim . MPrimDouble) $ newMBU n
@@ -480,7 +472,7 @@ sliceSU (SUArr segd a) i n =
 -- |Allocate a segmented parallel array (providing the number of segments and
 -- number of base elements).
 --
-newMSU :: MUA e => Int -> Int -> ST s (MSUArr e s)
+newMSU :: UA e => Int -> Int -> ST s (MSUArr e s)
 {-# INLINE newMSU #-}
 newMSU nsegd n = do
 		   segd <- newMBU nsegd
@@ -496,7 +488,7 @@ newMSU nsegd n = do
 --
 -- * Every segment must be initialised before it is filled left-to-right
 --
-nextMSU :: MUA e => MSUArr e s -> Int -> Maybe e -> ST s ()
+nextMSU :: UA e => MSUArr e s -> Int -> Maybe e -> ST s ()
 {-# INLINE nextMSU #-}
 nextMSU (MSUArr (MUSegd segd psum) a) i Nothing =
   do                                                -- segment initialisation
@@ -516,7 +508,7 @@ nextMSU (MSUArr (MUSegd segd psum) a) i (Just e) =
 
 -- |Convert a mutable segmented array into an immutable one.
 --
-unsafeFreezeMSU :: MUA e => MSUArr e s -> Int -> ST s (SUArr e)
+unsafeFreezeMSU :: UA e => MSUArr e s -> Int -> ST s (SUArr e)
 {-# INLINE unsafeFreezeMSU #-}
 unsafeFreezeMSU (MSUArr segd a) n = 
   do
@@ -542,7 +534,7 @@ zipU = UAProd
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
 unzipU (UAProd l r) = (l, r)
 
-sliceU' :: MUA a => UArr a -> Int -> Int -> UArr a
+sliceU' :: UA a => UArr a -> Int -> Int -> UArr a
 sliceU' arr i n =
   runST (do
     marr <- newMU n
