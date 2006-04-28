@@ -16,7 +16,7 @@ module Data.Array.Parallel.Distributed.Types (
   DT(..), Dist,
 
   -- * Operations on immutable distributed types
-  zipDT, unzipDT, fstDT, sndDT,
+  zipDT, unzipDT, fstDT, sndDT, lengthsDT,
 
   -- * Mutable distributed types
   MDT(..), MDist,
@@ -69,8 +69,7 @@ data Dist a where
   DPrim  :: !(Prim a)              -> Dist a
   DProd  :: !(Dist a) -> !(Dist b) -> Dist (a :*: b)
   -- | Distributed arrays
-  DUArr  :: !(BBArr (UArr a))      -> Dist (UArr a)
-  DMUArr :: !(BBArr (MUArr a s))   -> Dist (MUArr a s)
+  DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
   -- | Distributed references
   DDRef  :: !(MDist a s)           -> Dist (DRef s a)
   -- | Distributed computations
@@ -88,8 +87,7 @@ lengthDT :: Dist a -> Int
 lengthDT (DUnit  n)   = n
 lengthDT (DPrim  p)   = lengthBU (unPrim p)
 lengthDT (DProd  x y) = lengthDT x
-lengthDT (DUArr  arr) = lengthBB arr
-lengthDT (DMUArr arr) = lengthBB arr
+lengthDT (DUArr  _ a) = lengthBB a
 lengthDT (DDRef  md)  = lengthMDT md
 lengthDT (DistST g d) = gangSize g
 
@@ -126,10 +124,7 @@ instance (DT a, DT b) => DT (a :*: b) where
   indexDT d i = (fstDT d `indexDT` i) :*: (sndDT d `indexDT` i)
 
 instance UA a => DT (UArr a) where
-  indexDT (DUArr arr) i = indexBB arr i
-
-instance UA a => DT (MUArr a s) where
-  indexDT (DMUArr arr) i = indexBB arr i
+  indexDT (DUArr _ a) i = indexBB a i
 
 -- | Operations on immutable distributed types
 -- -------------------------------------------
@@ -151,6 +146,10 @@ fstDT = fst . unzipDT
 -- | Extract the second elements of a distributed pair.
 sndDT :: (DT a, DT b) => Dist (a :*: b) -> Dist b
 sndDT = snd . unzipDT
+
+-- | Yield the distributed length of a distributed array.
+lengthsDT :: UA a => Dist (UArr a) -> Dist Int
+lengthsDT (DUArr l _) = l
 
 -- | Mutable distributed types
 -- ---------------------------
@@ -178,17 +177,13 @@ data MDist a s where
   MDUnit  :: !Int                         -> MDist ()          s
   MDPrim  :: !(MPrim a s)                 -> MDist a           s
   MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b)   s
-  MDUArr  :: !(MBBArr s (UArr a))         -> MDist (UArr a)    s
-  MDMUArr :: !(MBBArr s (MUArr a s'))     -> MDist (MUArr a s') s
+  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)    s
 
 unMDPrim :: MDist a s -> MBUArr s a
 unMDPrim (MDPrim p) = unMPrim p
 
 unMDUArr :: MDist (UArr a) s -> MBBArr s (UArr a)
-unMDUArr (MDUArr marr) = marr
-
-unMDMUArr :: MDist (MUArr a s') s -> MBBArr s (MUArr a s')
-unMDMUArr (MDMUArr marr) = marr
+unMDUArr (MDUArr _ marr) = marr
 
 -- | Number of elements in the mutable distributed value. This is for debugging
 -- only and is thus not a method of 'MDT'.
@@ -196,8 +191,7 @@ lengthMDT :: MDist a s -> Int
 lengthMDT (MDUnit  n)    = n
 lengthMDT (MDPrim  p)    = lengthMBU (unMPrim p)
 lengthMDT (MDProd  x y)  = lengthMDT x
-lengthMDT (MDUArr  marr) = lengthMBB marr
-lengthMDT (MDMUArr marr) = lengthMBB marr
+lengthMDT (MDUArr  _ ma) = lengthMBB ma
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangMDT :: MDT a => String -> Gang -> MDist a s -> b -> b
@@ -254,18 +248,13 @@ instance (MDT a, MDT b) => MDT (a :*: b) where
   freezeMDT (MDProd xs ys)   = liftM2 DProd (freezeMDT xs) (freezeMDT ys)
 
 instance UA a => MDT (UArr a) where
-  newMDT g = liftM MDUArr $ newMBB (gangSize g)
-                                   (uninitialised $ here "newMDT[UArr a]")
+  newMDT g = liftM2 MDUArr (newMDT g)
+                           (newMBB (gangSize g)
+                                   (uninitialised $ here "newMDT[UArr a]"))
   readMDT  = readMBB  . unMDUArr
   writeMDT = writeMBB . unMDUArr
-  freezeMDT = liftM DUArr . unsafeFreezeAllMBB . unMDUArr
-
-instance UA a => MDT (MUArr a s) where
-  newMDT g = liftM MDMUArr $ newMBB (gangSize g)
-                                    (uninitialised $ here "newMDT[MUArr a]")
-  readMDT   = readMBB  . unMDMUArr
-  writeMDT  = writeMBB . unMDMUArr
-  freezeMDT = liftM DMUArr . unsafeFreezeAllMBB . unMDMUArr
+  freezeMDT (MDUArr len a) = liftM2 DUArr (freezeMDT len)
+                                          (unsafeFreezeAllMBB a)
 
 -- | Mutable distributed references
 --
