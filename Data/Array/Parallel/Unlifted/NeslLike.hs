@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Unlifted.NeslLike (
   -- * Nesl-like combinators
-  flattenSU, (>:), segmentU, toU, toSU, fromU, emptyU, extractU,
+  flattenSU, (>:), segmentU, toU, toSU, fromU, emptyU, extractU, sliceU,
   permuteU, permuteMU, bpermuteU, bpermuteSU, bpermuteDftU, {-crossU, indexOfU -}
 ) where
 
@@ -27,7 +27,8 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, ST, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, MUArr, lengthU, indexU, extractU, newMU, writeMU, unsafeFreezeMU) 
+  UA, UArr, MUArr, lengthU, indexU, extractU, sliceU,
+  newMU, writeMU, unsafeFreezeMU) 
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Declarative.Loop (

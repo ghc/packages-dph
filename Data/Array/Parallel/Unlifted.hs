@@ -41,7 +41,8 @@ module Data.Array.Parallel.Unlifted (
   -- * Nesl-like combinators
   --
   flattenSU, (>:), toUSegd, fromUSegd, segmentU, toU, toSU, fromU, emptyU,
-  extractU, permuteU, bpermuteU, bpermuteSU, bpermuteDftU, {-crossU, indexOfU,
+  extractU, sliceU, permuteU, bpermuteU, bpermuteSU, bpermuteDftU,
+  {-crossU, indexOfU,
   -}
 
   -- * Loop/replicate combinators
