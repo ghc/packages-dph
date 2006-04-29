@@ -20,6 +20,9 @@ module Data.Array.Parallel.Base.Hyperstrict (
   -- * Projection functions
   fstS, sndS,
 
+  -- * Currying
+  curryS, uncurryS,
+
   -- * Class of hyperstrict types
   HS
 ) where
@@ -28,10 +31,19 @@ infixl 1 :+:
 infixl 2 :*:
 
 -- |Strict pair
-data (:*:) a b = !a :*: !b
+data (:*:) a b = !a :*: !b deriving(Show)
 
+fstS :: a :*: b -> a
 fstS (x :*: _) = x
+
+sndS :: a :*: b -> b
 sndS (_ :*: y) = y
+
+curryS :: (a :*: b -> c) -> a -> b -> c
+curryS f x y = f (x :*: y) 
+
+uncurryS :: (a -> b -> c) -> a :*: b -> c
+uncurryS f (x :*: y) = f x y
 
 -- |Strict sum
 data (:+:) a b = Inl !a | Inr !b

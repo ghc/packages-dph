@@ -25,9 +25,10 @@ module Data.Array.Parallel.Distributed.Types (
   DRef, dref, readDRef, writeDRef,
 
   -- * Distributed computations
-  DST, localDT, readLocalMDT, writeLocalMDT,
+  DST, myDT, readMyMDT, writeMyMDT,
   runDistST_, runDistST,
   gangDST, runDST_, runDST,
+  liftST,
 
   -- * Assertions
   checkGangDT, checkGangMDT,
@@ -335,18 +336,18 @@ liftST :: ST s a -> DST s a
 liftST p = DST $ \i -> p
 
 -- | Yields the 'Dist' element owned by the current thread.
-localDT :: DT a => Dist a -> DST s a
-localDT dt = liftM (indexDT dt) dindex
+myDT :: DT a => Dist a -> DST s a
+myDT dt = liftM (indexDT dt) dindex
 
 -- | Yields the 'MDist' element owned by the current thread.
-readLocalMDT :: MDT a => MDist a s -> DST s a
-readLocalMDT mdt = do
+readMyMDT :: MDT a => MDist a s -> DST s a
+readMyMDT mdt = do
                      i <- dindex
                      liftST $ readMDT mdt i
 
 -- | Writes the 'MDist' element owned by the current thread.
-writeLocalMDT :: MDT a => MDist a s -> a -> DST s ()
-writeLocalMDT mdt x = do
+writeMyMDT :: MDT a => MDist a s -> a -> DST s ()
+writeMyMDT mdt x = do
                         i <- dindex
                         liftST $ writeMDT mdt i x
 
@@ -372,7 +373,7 @@ runDistST :: MDT a => Dist (ST s a) -> ST s (Dist a)
 runDistST (DistST g p) =
   do
     mdt <- newMDT g
-    runDistST_ . gangDST g $ writeLocalMDT mdt =<< p
+    runDistST_ . gangDST g $ writeMyMDT mdt =<< p
     freezeMDT mdt
 
 instance DT (ST s a) where

@@ -21,7 +21,8 @@
 -- * Generalise thread indices?
 
 module Data.Array.Parallel.Distributed.Gang (
-  Gang, forkGang, gangSize, gangIO, gangST
+  Gang, forkGang, gangSize, gangIO, gangST,
+  sequentialGang, seqGang
 ) where
 
 import GHC.Prim                  ( unsafeCoerce# )
@@ -61,8 +62,12 @@ execReq i (p, s) = p i >> putMVar s ()
 -- ---------------------------------------------------------------------------
 -- Thread gangs and operations on them
 
--- | A 'Gang' is a group of threads which execute arbitrary work requests.
-data Gang = Gang !Int [MVar Req]
+-- | A 'Gang' is a either group of threads which execute arbitrary work
+-- requests. A /sequential/ 'Gang' simulates such a group by executing work
+-- requests sequentially.
+data Gang = Gang !Int          -- | Number of 'Gang' threads.
+                 [MVar Req]    -- | An 'MVar' per thread; empty for sequential
+                               --   'Gang's.
 
 -- | The worker thread of a 'Gang'.
 gangWorker :: Int -> MVar Req -> IO ()
@@ -80,12 +85,21 @@ forkGang n = assert (n > 0) $
                mapM_ forkIO (zipWith gangWorker [0 .. n-1] mvs)
                return $ Gang n mvs
 
+-- | Yield a sequential 'Gang' which simulates the given number of threads.
+sequentialGang :: Int -> Gang
+sequentialGang n = assert (n > 0) $ Gang n []
+
+-- | Yield a sequential 'Gang' which simulates the given one.
+seqGang :: Gang -> Gang
+seqGang = sequentialGang . gangSize
+
 -- | The number of threads in the 'Gang'.
 gangSize :: Gang -> Int
 gangSize (Gang n _) = n
 
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
 gangIO :: Gang -> (Int -> IO ()) -> IO ()
+gangIO (Gang n [])  p = mapM_ p [0 .. n-1]
 gangIO (Gang n mvs) p =
   do
     reqs <- sequence . replicate n $ newReq p
