@@ -132,7 +132,7 @@ sliceBU :: BUArr e -> Int -> Int -> BUArr e
 sliceBU (BUArr start len arr) newStart newLen = 
   let start' = start + newStart
   in
-  BUArr start' (len - newStart `min` newLen) arr
+  BUArr start' ((len - newStart) `min` newLen) arr
 
 -- |Allocate an uninitialised unboxed array
 --
