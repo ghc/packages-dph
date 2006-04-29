@@ -12,6 +12,11 @@
 --
 
 module Data.Array.Parallel.Distributed.Operations (
+  zipD, unzipD, fstD, sndD,
+  mapD, zipWithD, foldD, scanD,
+  splitScalarD, splitLengthD, splitD, joinD,
+  lengthsD, lengthD,
+  permuteD, bpermuteD
 ) where
 
 import Data.Array.Parallel.Distributed.Basics
