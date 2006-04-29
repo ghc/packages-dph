@@ -50,8 +50,9 @@ module Data.Array.Parallel.Base.BUArr (
   -- * Class with operations on primitive unboxed arrays
   UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU, writeMBU,
   unsafeFreezeMBU, unsafeFreezeAllMBU,
-  replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, extractBU,
+  emptyBU, replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, extractBU,
   mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, extractMBU, copyMBU,
+  toBU, fromBU,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
@@ -59,7 +60,7 @@ module Data.Array.Parallel.Base.BUArr (
 ) where
 
 -- standard library
-import Monad (liftM)
+import Monad (liftM, zipWithM)
 
 -- GHC-internal definitions
 import GHC.Prim        (Char#, Int#, Float#, Double#, ByteArray#,
@@ -115,6 +116,14 @@ class HS e => UAE e where
   indexBU  :: BUArr e    -> Int      -> e
   readMBU  :: MBUArr s e -> Int      -> ST s e
   writeMBU :: MBUArr s e -> Int -> e -> ST s ()
+
+-- |Empty array
+--
+emptyBU :: UAE e => BUArr e
+emptyBU = runST (do
+            a <- newMBU 0
+            unsafeFreezeMBU a 0
+          )
 
 -- |Produces an array that consists of a subrange of the original one without
 -- copying any elements.
@@ -494,6 +503,20 @@ instance (Show e, UAE e) => Show (BUArr e) where
 
 -- Auxilliary functions
 -- --------------------
+
+-- |Convert a list to an array
+--
+toBU :: UAE e => [e] -> BUArr e
+toBU xs = runST (do
+            ma <- newMBU (length xs)
+            zipWithM (writeMBU ma) [0..] xs
+            unsafeFreezeAllMBU ma
+          )
+
+-- |Convert an array to a list
+--
+fromBU :: UAE e => BUArr e -> [e]
+fromBU a = map (a `indexBU`) [0 .. lengthBU a - 1]
 
 -- That's missing from Data.Array.Base
 --
