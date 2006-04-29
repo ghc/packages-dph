@@ -495,6 +495,16 @@ copyMBU marr i arr = ins i 0
 			    writeMBU marr i (arr `indexBU` j)
 			    ins (i + 1) (j + 1)
 
+-- Eq instance
+--
+instance (Eq e, UAE e) => Eq (BUArr e) where
+  arr == brr = n == lengthBU brr && eq 0
+    where
+      n = lengthBU arr
+      eq i | i == n    = True
+           | otherwise = (arr `indexBU` i) == (brr `indexBU` i)
+                         && eq (i+1)
+
 -- Show instance
 --
 instance (Show e, UAE e) => Show (BUArr e) where

@@ -31,7 +31,7 @@ infixl 1 :+:
 infixl 2 :*:
 
 -- |Strict pair
-data (:*:) a b = !a :*: !b deriving(Show)
+data (:*:) a b = !a :*: !b deriving(Eq,Show)
 
 fstS :: a :*: b -> a
 fstS (x :*: _) = x
