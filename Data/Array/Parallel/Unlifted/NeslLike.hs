@@ -19,15 +19,15 @@
 module Data.Array.Parallel.Unlifted.NeslLike (
   -- * Nesl-like combinators
   flattenSU, (>:), segmentU, toU, toSU, fromU, emptyU, extractU,
-  permuteU, bpermuteU, bpermuteSU, bpermuteDftU, {-crossU, indexOfU -}
+  permuteU, permuteMU, bpermuteU, bpermuteSU, bpermuteDftU, {-crossU, indexOfU -}
 ) where
 
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
-  indexBU, runST)
+  indexBU, ST, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, lengthU, indexU, extractU, newMU, writeMU, unsafeFreezeMU) 
+  UA, UArr, MUArr, lengthU, indexU, extractU, newMU, writeMU, unsafeFreezeMU) 
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Declarative.Loop (
@@ -89,12 +89,28 @@ emptyU = runST (do
 -- |Permutations
 -- -------------
 
+permuteMU :: UA e => MUArr e s -> UArr e -> UArr Int -> ST s ()
+permuteMU mpa arr is = permute 0
+  where
+    n = lengthU arr
+    permute i
+      | i == n    = return ()
+      | otherwise = writeMU mpa (is!:i) (arr!:i) >> permute (i + 1)
+    
+
 -- |Standard permutation
 --
 permuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE permuteU #-}
-permuteU arr is = 
+permuteU arr is =
   runST (do
+    mpa <- newMU n
+    permuteMU mpa arr is
+    unsafeFreezeMU mpa n
+  )
+  where
+    n = lengthU arr
+{-  runST (do
     mpa <- newMU n
     permute0 mpa
     unsafeFreezeMU mpa n
@@ -106,6 +122,7 @@ permuteU arr is =
         permute i 
 	  | i == n    = return ()
 	  | otherwise = writeMU mpa (is!:i) (arr!:i) >> permute (i + 1)
+-}
 
 -- |Back permutation operation (ie, the permutation vector determines for each
 -- position in the result array its origin in the input array)

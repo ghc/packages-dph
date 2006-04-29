@@ -16,7 +16,7 @@ module Data.Array.Parallel.Distributed.Types (
   DT(..), Dist,
 
   -- * Operations on immutable distributed types
-  zipDT, unzipDT, fstDT, sndDT, lengthsDT,
+  unitDT, zipDT, unzipDT, fstDT, sndDT, lengthsDT,
 
   -- * Mutable distributed types
   MDT(..), MDist,
@@ -34,7 +34,7 @@ module Data.Array.Parallel.Distributed.Types (
   checkGangDT, checkGangMDT,
 
   -- * Debugging functions
-  lengthDT, lengthMDT
+  sizeDT, sizeMDT
 ) where
 
 import Monad                                ( liftM, liftM2, zipWithM )
@@ -42,7 +42,7 @@ import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
 import Data.Array.Parallel.Base.Prim
 import Data.Array.Parallel.Base.BUArr
 import Data.Array.Parallel.Base.BBArr
-import Data.Array.Parallel.Base.Hyperstrict ( (:*:)(..), (:+:)(..), HS )
+import Data.Array.Parallel.Base.Hyperstrict ( HS, (:*:)(..), fstS, sndS )
 import Data.Array.Parallel.Monadic.UArr
 import Data.Array.Parallel.Base.Debug       ( check, checkEq, uninitialised )
 
@@ -84,21 +84,21 @@ instance (HS a, DT a) => HS (Dist a)
 
 -- | Number of elements in the distributed value. This is for debugging only
 -- and not a method of 'DT'.
-lengthDT :: Dist a -> Int
-lengthDT (DUnit  n)   = n
-lengthDT (DPrim  p)   = lengthBU (unPrim p)
-lengthDT (DProd  x y) = lengthDT x
-lengthDT (DUArr  _ a) = lengthBB a
-lengthDT (DDRef  md)  = lengthMDT md
-lengthDT (DistST g d) = gangSize g
+sizeDT :: Dist a -> Int
+sizeDT (DUnit  n)   = n
+sizeDT (DPrim  p)   = lengthBU (unPrim p)
+sizeDT (DProd  x y) = sizeDT x
+sizeDT (DUArr  _ a) = lengthBB a
+sizeDT (DDRef  md)  = sizeMDT md
+sizeDT (DistST g d) = gangSize g
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangDT :: DT a => String -> Gang -> Dist a -> b -> b
-checkGangDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (lengthDT d) v
+checkGangDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeDT d) v
 
 -- Show instance (for debugging only)
 instance (Show a, DT a) => Show (Dist a) where
-  show d = show (map (indexDT d) [0 .. lengthDT d - 1])
+  show d = show (map (indexDT d) [0 .. sizeDT d - 1])
 
 -- | 'DT' instances
 -- ----------------
@@ -130,23 +130,27 @@ instance UA a => DT (UArr a) where
 -- | Operations on immutable distributed types
 -- -------------------------------------------
 
+-- | Yield a distributed unit.
+unitDT :: Gang -> Dist ()
+unitDT = DUnit . gangSize
+
 -- | Pairing of distributed values.
 -- /The two values must belong to the same 'Gang'./
 zipDT :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
-zipDT x y = checkEq (here "zipDT") "Size mismatch" (lengthDT x) (lengthDT y) $
+zipDT x y = checkEq (here "zipDT") "Size mismatch" (sizeDT x) (sizeDT y) $
             DProd x y
 
 -- | Unpairing of distributed values.
-unzipDT :: (DT a, DT b) => Dist (a :*: b) -> (Dist a, Dist b)
-unzipDT (DProd dx dy) = (dx, dy)
+unzipDT :: (DT a, DT b) => Dist (a :*: b) -> Dist a :*: Dist b
+unzipDT (DProd dx dy) = dx :*: dy
 
 -- | Extract the first elements of a distributed pair.
 fstDT :: (DT a, DT b) => Dist (a :*: b) -> Dist a
-fstDT = fst . unzipDT
+fstDT = fstS . unzipDT
 
 -- | Extract the second elements of a distributed pair.
 sndDT :: (DT a, DT b) => Dist (a :*: b) -> Dist b
-sndDT = snd . unzipDT
+sndDT = sndS . unzipDT
 
 -- | Yield the distributed length of a distributed array.
 lengthsDT :: UA a => Dist (UArr a) -> Dist Int
@@ -188,15 +192,15 @@ unMDUArr (MDUArr _ marr) = marr
 
 -- | Number of elements in the mutable distributed value. This is for debugging
 -- only and is thus not a method of 'MDT'.
-lengthMDT :: MDist a s -> Int
-lengthMDT (MDUnit  n)    = n
-lengthMDT (MDPrim  p)    = lengthMBU (unMPrim p)
-lengthMDT (MDProd  x y)  = lengthMDT x
-lengthMDT (MDUArr  _ ma) = lengthMBB ma
+sizeMDT :: MDist a s -> Int
+sizeMDT (MDUnit  n)    = n
+sizeMDT (MDPrim  p)    = lengthMBU (unMPrim p)
+sizeMDT (MDProd  x y)  = sizeMDT x
+sizeMDT (MDUArr  _ ma) = lengthMBB ma
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangMDT :: MDT a => String -> Gang -> MDist a s -> b -> b
-checkGangMDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (lengthMDT d) v
+checkGangMDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMDT d) v
 
 -- | MDT instances
 -- ---------------

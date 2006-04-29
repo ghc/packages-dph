@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.Ops
+-- Module      :  Data.Array.Parallel.Distributed.Basics
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -8,15 +8,15 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Parallel operations on distributed types.
+-- Basic operations on distributed types.
 --
 
 
-module Data.Array.Parallel.Distributed.Ops (
+module Data.Array.Parallel.Distributed.Basics (
   mapDT, mapM_DT, mapM_DT_, zipWithDT, zipWithM_DT, zipWithM_DT_,
-  replicateDT, foldDT, scanDT,
+  foldDT, scanDT,
 
-  splitDT, joinDT
+  lengthDT, splitLengthDT, splitDT, joinDT
 ) where
 
 import Data.Array.Parallel.Distributed.Types
@@ -27,11 +27,7 @@ import Data.Array.Parallel.Base.Hyperstrict
 import Control.Monad.ST                     ( ST, runST )
 import Monad                                ( liftM, zipWithM )
 
-here s = "Distributed.Ops." ++ s
-
--- | Yields a 'Dist' with the same value in every position.
-replicateDT :: MDT a => Gang -> a -> ST s (Dist a)
-replicateDT g x = x `seq` runDST (seqGang g) (return x)
+here s = "Distributed.Basics." ++ s
 
 -- | Map a distributed value on the given 'Gang'.
 mapDT :: (DT a, MDT b) => Gang -> (a -> b) -> Dist a -> ST s (Dist b)
@@ -43,7 +39,7 @@ mapM_DT :: (DT a, MDT b) => Gang -> (a -> ST s b) -> Dist a -> ST s (Dist b)
 mapM_DT g f d = checkGangDT (here "mapST_DT") g d $
                  runDST g (myDT d >>= liftST . f)
 
--- | Man an 'ST' computation which does not produce a result over a
+-- | Map an 'ST' computation which does not produce a result over a
 -- distributed value.
 mapM_DT_ :: DT a => Gang -> (a -> ST s ()) -> Dist a -> ST s ()
 mapM_DT_ g f d = checkGangDT (here "mapST_DT_") g d $
@@ -82,25 +78,29 @@ scanDT g f z d = checkGangDT (here "scanDT") g d $
   in
   liftM (:*: last xs) (toDT g xs)
 
+-- | Yield the overall length of the distributed array
+lengthDT :: UA a => Gang -> Dist (UArr a) -> ST s Int
+lengthDT g = foldDT g (+) . lengthsDT
+
 -- | Split the length of an array over the given number of threads.
-splitLen :: Int   -- | Number of threads
+splitLength :: Int   -- | Number of threads
          -> Int   -- | Array length
          -> [Int]
-splitLen p n =
+splitLength p n =
   let l = n `div` p
       m = n `mod` p
   in
   replicate m (l+1) ++ replicate (p-m) l
 
 -- | Distribute the length of an array over a 'Gang'.
-splitLenDT :: Gang -> Int -> ST s (Dist Int)
-splitLenDT g = toDT g . splitLen (gangSize g)
+splitLengthDT :: Gang -> Int -> ST s (Dist Int)
+splitLengthDT g = toDT g . splitLength (gangSize g)
 
 -- | Distribute an array over a 'Gang'.
 splitDT :: UA a => Gang -> UArr a -> ST s (Dist (UArr a))
 splitDT g arr =
   do
-    dlen       <- splitLenDT g (lengthU arr)
+    dlen       <- splitLengthDT g (lengthU arr)
     (is :*: _) <- scanDT g (+) 0 dlen
     zipWithDT (seqGang g) (sliceU arr) is dlen
 
