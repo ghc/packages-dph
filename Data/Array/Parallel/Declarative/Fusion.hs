@@ -119,16 +119,16 @@ keepSFL f = \a _ -> (f a :*: Just a)
 
 "loopU/replicateU" forall em start n v.
   loopU em start (replicateU n v) = 
-    loopU (\a _ -> em v a) start (replicateU n noAL)
+    loopU (\a _ -> em a v) start (replicateU n noAL)
 
 "loopU/loopU" forall em1 em2 start1 start2 arr.
   loopU em2 start2 (loopArr (loopU em1 start1 arr)) =
     let
       em (acc1 :*: acc2) e = 
-        case em1 e acc1 of
+        case em1 acc1 e of
 	  (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
 	  (acc1' :*: Just e') ->
-	    case em2 e' acc2 of
+	    case em2 acc2 e' of
 	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
     in
     loopSndAcc (loopU em (start1 :*: start2) arr)

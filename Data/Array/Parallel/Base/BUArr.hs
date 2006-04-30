@@ -386,16 +386,16 @@ loopSndAcc (arr :*: (_ :*: acc)) = (arr :*: acc)
 
 "loopBU/replicateBU" forall mf start n v.
   loopBU mf start (replicateBU n v) = 
-    loopBU (\a _ -> mf v a) start (replicateBU n ())
+    loopBU (\a _ -> mf a v) start (replicateBU n ())
 
 "loopBU/loopBU" forall mf1 mf2 start1 start2 arr.
   loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) =
     let
       mf (acc1 :*: acc2) e = 
-        case mf1 e acc1 of
+        case mf1 acc1 e of
           (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
 	  (acc1' :*: Just e') ->
-	    case mf1 e' acc2 of
+	    case mf2 acc2 e' of
 	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
     in
     loopSndAcc (loopBU mf (start1 :*: start2) arr)
