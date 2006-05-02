@@ -27,26 +27,80 @@ module Data.Array.Parallel.Unlifted (
   -- * Strict pairs and sums
   (:*:)(..), (:+:)(..), fstS, sndS,
 
-  -- * List-like combinators
-  mapU,	(+:+), filterU, concatSU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
-  foldlSU, foldl1U, scanlU, scanl1U, {-foldrU, foldr1U, scanrU, scanr1U,-}
-  foldU, foldSU, fold1U, {-fold1SU,-} scanU, {-scanSU,-} scan1U, {-scan1SU,-}
-  takeU, dropU,	splitAtU, {-takeWhileU, dropWhileU, spanU, breakU,-}
+  -- * Basic operations
+  lengthU, nullU, emptyU, unitsU, replicateU, (!:), (+:+),
+
+  -- * Subarrays
+  sliceU, extractU,
+  takeU, dropU, splitAtU,
+  {-takeWhileU, dropWhileU, spanU, breakU,-}
+
+  -- * Permutations
+  permuteU, bpermuteU, bpermuteDftU, reverseU,
+
+  -- * Higher-order operations
+  mapU, zipWithU, zipWith3U,
+  filterU,
+  foldlU, foldl1U,
+  {-foldrU, foldr1U,-}
+  foldU, fold1U,
+  scanlU, scanl1U,
+  {-scanrU, scanr1U,-}
+  scanU, scan1U,
+  loopU,
+
+  -- * Searching
+  elemU, notElemU,
+  {-lookupU, indexOfU,-}
+
+  -- * Logical operations
+  andU, orU, anyU, allU,
+
+  -- * Arithmetic operations
+  sumU, productU, maximumU, minimumU,
+
+  -- * Arrays of pairs
+  zipU, zip3U, unzipU, unzip3U,
+  {-crossU,-}
+
+  -- * Enumerations
+  enumFromToU, enumFromThenToU,
+
+  -- * Conversions to/from lists
+  toU, fromU,
+
+  -- * Segmentation
+  concatSU, flattenSU, (>:), segmentU,
+
+  -- * Basic operations (segmented)
+  replicateSU,
+
+  -- * Permutations (segmented)
+  bpermuteSU,
+
+  -- * Higher-order operations (segmented)
+  {-concatMapU,-}
+  foldlSU, foldSU,
+  {-fold1SU,-}
+  {-scanSU, scan1SU,-}
+  loopSU,
+
+  -- * Logical operations (segmented)
+  andSU, orSU,
+
+  -- * Arithmetic operations (segmented)
+  sumSU, productSU, maximumSU, minimumSU,
+
+  -- * Enumerations (segmented)
+  enumFromToSU, enumFromThenToSU,
+
 --  lines, words, unlines, unwords,  -- is string processing really needed
-  reverseU, andU, andSU, orU, orSU, anyU, allU, elemU, notElemU, {-lookupU,-}
-  sumU, sumSU, productU, productSU, maximumU, maximumSU, minimumU, minimumSU,
-  zipU, zip3U, zipWithU, zipWith3U, unzipU, unzip3U, enumFromToU,
-  enumFromToSU, enumFromThenToU, enumFromThenToSU, 
 
-  -- * Nesl-like combinators
-  --
-  flattenSU, (>:), toUSegd, fromUSegd, segmentU, toU, toSU, fromU, emptyU,
-  extractU, sliceU, permuteU, bpermuteU, bpermuteSU, bpermuteDftU,
-  {-crossU, indexOfU,
-  -}
+  -- * Conversions to/from lists (segmented)
+  toSU,
 
-  -- * Loop/replicate combinators
-  unitsU, replicateU, loopU, replicateSU, loopSU,
+  -- * Operations on segment descriptors
+  toUSegd, fromUSegd,
 
   -- * Projection combinators for loops
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc,

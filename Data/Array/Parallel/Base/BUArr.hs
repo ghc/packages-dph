@@ -47,12 +47,27 @@ module Data.Array.Parallel.Base.BUArr (
   -- * Unboxed primitive arrays (both immutable and mutable)
   BUArr, MBUArr,
 
-  -- * Class with operations on primitive unboxed arrays
-  UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU, writeMBU,
+  -- * Class of elements of such arrays
+  UAE,
+
+  -- * Operations on mutable arrays
+  lengthMBU, newMBU, readMBU, writeMBU, extractMBU, copyMBU,
   unsafeFreezeMBU, unsafeFreezeAllMBU,
-  emptyBU, replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, extractBU,
-  mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, extractMBU, copyMBU,
-  toBU, fromBU, unitsBU,
+
+  -- * Basic operations
+  lengthBU, emptyBU, unitsBU, replicateBU, indexBU, sliceBU, extractBU,
+
+  -- * Higher-order operations
+  mapBU, foldlBU, foldBU, scanlBU, scanBU, loopBU,
+
+  -- * Arithmetic operations
+  sumBU,
+
+  -- * Conversions to/from lists
+  toBU, fromBU,
+
+  -- * Projection combinators for loops
+  loopArr, loopAcc, loopSndAcc,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
