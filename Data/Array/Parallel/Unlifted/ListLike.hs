@@ -19,8 +19,8 @@
 module Data.Array.Parallel.Unlifted.ListLike (
   -- * List-like combinators
   mapU,	(+:+), filterU, concatSU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
-  foldlSU, {-foldl1U,-} scanlU, {-scanl1U, foldrU, foldr1U, scanrU, scanr1U,-}
-  foldU, foldSU, {-fold1U, fold1SU,-} scanU, {-scanSU, scan1U, scan1SU,-}
+  foldlSU, foldl1U, scanlU, scanl1U, {-foldrU, foldr1U, scanrU, scanr1U,-}
+  foldU, foldSU, fold1U, {-fold1SU,-} scanU, {-scanSU,-} scan1U, {-scan1SU,-}
   replicateU,
   takeU, dropU,	splitAtU, {-takeWhileU, dropWhileU, spanU, breakU,-}
 --  lines, words, unlines, unwords,  -- is string processing really needed
@@ -31,12 +31,14 @@ module Data.Array.Parallel.Unlifted.ListLike (
 ) where
 
 -- friends
+import Data.Array.Parallel.Base.Debug (
+  checkNotEmpty)
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, lengthU, indexU, extractU, newMU, writeMU, unsafeFreezeMU, zipU,
-  unzipU) 
+  UA, UArr, lengthU, indexU, sliceU, extractU, newMU, writeMU, unsafeFreezeMU,
+  zipU, unzipU) 
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU)
 import Data.Array.Parallel.Declarative.Loop (
@@ -49,6 +51,8 @@ import Data.Array.Parallel.Declarative.Fusion (
 infixl 9 !:
 infixr 5 +:+
 infix  4 `elemU`, `notElemU`
+
+here s = "Data.Array.Parallel.Unlifted.ListLike." ++ s
 
 
 -- |List-like combinators
@@ -101,11 +105,23 @@ foldlU :: UA a => (b -> a -> b) -> b -> UArr a -> b
 {-# INLINE foldlU #-}
 foldlU f z = loopAcc . loopU (foldEFL f) z
 
+-- |Array reduction proceeding from the left for non-empty arrays
+--
+foldl1U :: UA a => (a -> a -> a) -> UArr a -> a
+foldl1U f arr = checkNotEmpty (here "foldl1U") (lengthU arr) $
+                foldlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
+
 -- |Array reduction that requires an associative combination function with its
 -- unit
 --
 foldU :: UA a => (a -> a -> a) -> a -> UArr a -> a
 foldU = foldlU
+
+-- |Reduction of a non-empty array which requires an associative combination
+-- function
+--
+fold1U :: UA a => (a -> a -> a) -> UArr a -> a
+fold1U = foldl1U
 
 -- |Segmented array reduction proceeding from the left
 --
@@ -125,11 +141,23 @@ scanlU :: (UA a, UA b) => (b -> a -> b) -> b -> UArr a -> UArr b
 {-# INLINE scanlU #-}
 scanlU f z = loopArr . loopU (scanEFL f) z
 
+-- |Prefix scan of a non-empty array proceeding from left to right
+--
+scanl1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
+scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
+                scanlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
+
 -- |Prefix scan proceedings from left to right that needs an associative
 -- combination function with its unit
 --
 scanU :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a
 scanU = scanlU
+
+-- |Prefix scan of a non-empty array proceedings from left to right that needs
+-- an associative combination function
+--
+scan1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
+scan1U = scanl1U
 
 -- |Extract a prefix of an array
 --

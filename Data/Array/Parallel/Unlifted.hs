@@ -29,8 +29,8 @@ module Data.Array.Parallel.Unlifted (
 
   -- * List-like combinators
   mapU,	(+:+), filterU, concatSU, {-concatMapU,-} nullU, lengthU, (!:), foldlU,
-  foldlSU, {-foldl1U,-} scanlU, {-scanl1U, foldrU, foldr1U, scanrU, scanr1U,-}
-  foldU, foldSU, {-fold1U, fold1SU,-} scanU, {-scanSU, scan1U, scan1SU,-}
+  foldlSU, foldl1U, scanlU, scanl1U, {-foldrU, foldr1U, scanrU, scanr1U,-}
+  foldU, foldSU, fold1U, {-fold1SU,-} scanU, {-scanSU,-} scan1U, {-scan1SU,-}
   takeU, dropU,	splitAtU, {-takeWhileU, dropWhileU, spanU, breakU,-}
 --  lines, words, unlines, unwords,  -- is string processing really needed
   reverseU, andU, andSU, orU, orSU, anyU, allU, elemU, notElemU, {-lookupU,-}

@@ -15,6 +15,7 @@ module Data.Array.Parallel.Base.Debug (
   , checkCritical
   , checkLen
   , checkEq
+  , checkNotEmpty
   , uninitialised
 ) where
 
@@ -62,6 +63,13 @@ checkEq loc msg x y v
     err = error $ loc ++ ": " ++ msg
                   ++ " (first = " ++ show x
                   ++ "; second = " ++ show y ++ ")"
+
+checkNotEmpty :: String -> Int -> a -> a
+checkNotEmpty loc n v
+  | debug     = if n /= 0 then v else err
+  | otherwise = v
+  where
+    err = error $ loc ++ ": Empty array"
 
 uninitialised :: String -> a
 uninitialised loc = error $ loc ++ ": Touched an uninitialised value"
