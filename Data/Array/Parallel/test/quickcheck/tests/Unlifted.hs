@@ -66,7 +66,31 @@ $(testcases [t| ( (), Char, Bool, Int ) |]
   prop_reverse :: (Eq a, UA a) => UArr a -> Bool
   prop_reverse arr =
     fromU (reverseU arr) == reverse (fromU arr)
-  
+
+  prop_andU :: UArr Bool -> Bool
+  prop_andU arr =
+    andU arr == and (fromU arr)
+
+  prop_orU :: UArr Bool -> Bool
+  prop_orU arr =
+    orU arr == or (fromU arr)
+
+  prop_anyU :: UA e => (e -> Bool) -> UArr e -> Bool
+  prop_anyU f arr =
+    anyU f arr == any f (fromU arr)
+
+  prop_allU :: UA e => (e -> Bool) -> UArr e -> Bool
+  prop_allU f arr =
+    allU f arr == all f (fromU arr)
+
+  prop_elemU :: (Eq e, UA e) => e -> UArr e -> Bool
+  prop_elemU x arr =
+    elemU x arr == elem x (fromU arr)
+
+  prop_notElemU :: (Eq e, UA e) => e -> UArr e -> Bool
+  prop_notElemU x arr =
+    notElemU x arr == notElem x (fromU arr)
+
   prop_map :: (UA a, Eq b, UA b) => (a -> b) -> UArr a -> Bool
   prop_map f arr =
     fromU (mapU f arr) == map f (fromU arr)
