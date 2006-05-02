@@ -12,27 +12,31 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int ) |]
             , "num"     <@ [t| ( Int                 ) |]
             ]
   [d|
+  -- if this doesn't work nothing else will, so run this first
   prop_fromBU_toBU :: (Eq a, UAE a) => [a] -> Bool
   prop_fromBU_toBU xs = fromBU (toBU xs) == xs
+
+  -- Basic operations
+  -- ----------------
+
+  prop_lengthBU :: UAE a => BUArr a -> Bool
+  prop_lengthBU arr = lengthBU arr == length (fromBU arr)
 
   prop_emptyBU :: (Eq a, UAE a) => a -> Bool
   prop_emptyBU x = fromBU emptyBU == tail [x]
  
-  prop_lengthBU :: UAE a => BUArr a -> Bool
-  prop_lengthBU arr = lengthBU arr == length (fromBU arr)
-  
+  prop_unitsBU :: Len -> Bool
+  prop_unitsBU (Len n) =
+    fromBU (unitsBU n) == replicate n ()
+
+  prop_replicateBU :: (Eq a, UAE a) => Len -> a -> Bool
+  prop_replicateBU (Len n) x =
+    fromBU (replicateBU n x) == replicate n x
+
   prop_indexBU :: (Eq a, UAE a) => BUArr a -> Len -> Property
   prop_indexBU arr (Len i) =
     i < lengthBU arr
     ==> (arr `indexBU` i) == (fromBU arr !! i)
-
-  prop_unitsBU :: Len -> Bool
-  prop_unitsBU (Len n) =
-    fromBU (unitsBU n) == replicate n ()
-  
-  prop_replicateBU :: (Eq a, UAE a) => Len -> a -> Bool
-  prop_replicateBU (Len n) x =
-    fromBU (replicateBU n x) == replicate n x
 
   prop_sliceBU :: (Eq a, UAE a) => BUArr a -> Len -> Len -> Property
   prop_sliceBU arr (Len i) (Len n) =
@@ -43,7 +47,10 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int ) |]
   prop_extractBU arr (Len i) (Len n) =
     i <= lengthBU arr && n <= lengthBU arr - i
     ==> fromBU (extractBU arr i n) == take n (drop i $ fromBU arr)
-  
+
+  -- Higher-order operations
+  -- -----------------------
+
   prop_mapBU :: (Eq b, UAE a, UAE b) => (a -> b) -> BUArr a -> Bool
   prop_mapBU f arr =
     fromBU (mapBU f arr) == map f (fromBU arr)
@@ -54,21 +61,32 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int ) |]
 
   -- missing: foldBU
 
-  prop_sumBU :: (Eq num, UAE num, Num num) => BUArr num -> Bool
-  prop_sumBU arr =
-    sumBU arr == sum (fromBU arr)
   
   prop_scanlBU :: (Eq a, UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
   prop_scanlBU f z arr =
     fromBU (scanlBU f z arr) == init (scanl f z (fromBU arr))
 
   -- missing: scanBU
+  -- missing: loopBU
+
+  -- Arithmetic operations
+  -- ---------------------
+
+  prop_sumBU :: (Eq num, UAE num, Num num) => BUArr num -> Bool
+  prop_sumBU arr =
+    sumBU arr == sum (fromBU arr)
+
+  -- Equality
+  -- --------
 
   prop_eqBU_1 :: (Eq a, UAE a) => BUArr a -> Bool
   prop_eqBU_1 arr = arr == arr
 
   prop_eqBU_2 :: (Eq a, UAE a) => BUArr a -> BUArr a -> Bool
   prop_eqBU_2 arr brr = (arr == brr) == (fromBU arr == fromBU brr)
+
+  -- Fusion
+  -- ------
   
   prop_loopBU_replicateBU
     :: (UAE e, Eq acc, Eq e', UAE e')

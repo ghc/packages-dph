@@ -13,11 +13,12 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
             , "enum"    <@ [t| ( (), Char, Bool, Int ) |]
             ]
   [d|
+  -- if this doesn't work nothing else will, so run this first
   prop_fromU_toU :: (Eq a, UA a) => [a] -> Bool
   prop_fromU_toU xs = fromU (toU xs) == xs
 
-  prop_emptyU :: (Eq a, UA a) => a -> Bool
-  prop_emptyU x = fromU emptyU == tail [x]
+  -- Basic operations
+  -- ----------------
 
   prop_lengthU :: UA a => UArr a -> Bool
   prop_lengthU arr = lengthU arr  == length (fromU arr)
@@ -25,23 +26,29 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
   prop_nullU :: UA a => UArr a -> Bool
   prop_nullU arr = nullU arr == (lengthU arr == 0)
   
+  prop_emptyU :: (Eq a, UA a) => a -> Bool
+  prop_emptyU x = fromU emptyU == tail [x]
+
+  prop_unitsU :: Len -> Bool
+  prop_unitsU (Len n) =
+    fromU (unitsU n) == replicate n ()
+
+  prop_replicateU :: (Eq a, UA a) => Len -> a -> Bool
+  prop_replicateU (Len n) x =
+    fromU (replicateU n x) == replicate n x
+
   prop_indexU :: (Eq a, UA a) => UArr a -> Len -> Property
   prop_indexU arr (Len i) =
     i < lengthU arr
     ==> (arr !: i) == (fromU arr !! i)
-  
+
   prop_appendU :: (Eq a, UA a) => UArr a -> UArr a -> Bool
   prop_appendU arr brr =
     fromU (arr +:+ brr) == fromU arr ++ fromU brr
- 
-  prop_unitsU :: Len -> Bool
-  prop_unitsU (Len n) =
-    fromU (unitsU n) == replicate n ()
- 
-  prop_replicateU :: (Eq a, UA a) => Len -> a -> Bool
-  prop_replicateU (Len n) x =
-    fromU (replicateU n x) == replicate n x
-  
+
+  -- Subarrays
+  -- --------- 
+
   prop_sliceU :: (Eq a, UA a) => UArr a -> Len -> Len -> Property
   prop_sliceU arr (Len i) (Len n) =
     i <= lengthU arr && n <= lengthU arr - i
@@ -67,10 +74,69 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
     n <= lengthU arr
     ==> let (brr, crr) = splitAtU n arr
         in (fromU brr, fromU crr) == splitAt n (fromU arr)
+
+  -- Permutations
+  -- ------------
+
+  -- missing: permuteU
+  -- missing: bpermuteU
+  -- missing: bpermuteDftU
   
   prop_reverseU :: (Eq a, UA a) => UArr a -> Bool
   prop_reverseU arr =
     fromU (reverseU arr) == reverse (fromU arr)
+
+  -- Higher-order operations
+  -- -----------------------
+  
+  prop_mapU :: (UA a, Eq b, UA b) => (a -> b) -> UArr a -> Bool
+  prop_mapU f arr =
+    fromU (mapU f arr) == map f (fromU arr)
+
+  -- missing: zipWithU
+  -- missing: zipWith3U
+  
+  prop_filterU :: (Eq a, UA a) => (a -> Bool) -> UArr a -> Bool
+  prop_filterU f arr =
+    fromU (filterU f arr) == filter f (fromU arr)
+
+  prop_foldlU :: (UA a, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
+  prop_foldlU f z arr =
+    foldlU f z arr == foldl f z (fromU arr)
+
+  prop_foldl1U :: (UA a, Eq a) => (a -> a -> a) -> UArr a -> Property
+  prop_foldl1U f arr =
+    not (nullU arr)
+    ==> foldl1U f arr == foldl1 f (fromU arr)
+
+  -- missing: foldU
+  -- missing: fold1U
+
+  prop_scanlU :: (UA a, UA b, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
+  prop_scanlU f z arr =
+    fromU (scanlU f z arr) == init (scanl f z (fromU arr))
+
+  prop_scanl1U :: (UA a, Eq a) => (a -> a -> a) -> UArr a -> Property
+  prop_scanl1U f arr =
+    not (nullU arr)
+    ==> fromU (scanl1U f arr) == init (scanl1 f (fromU arr))
+
+  -- missing: scanU
+  -- missing: scan1U
+  -- missing: loopU
+
+  -- Searching
+  -- ---------
+  prop_elemU :: (Eq e, UA e) => e -> UArr e -> Bool
+  prop_elemU x arr =
+    elemU x arr == elem x (fromU arr)
+
+  prop_notElemU :: (Eq e, UA e) => e -> UArr e -> Bool
+  prop_notElemU x arr =
+    notElemU x arr == notElem x (fromU arr)
+
+  -- Logic operations
+  -- ----------------
 
   prop_andU :: UArr Bool -> Bool
   prop_andU arr =
@@ -88,13 +154,8 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
   prop_allU f arr =
     allU f arr == all f (fromU arr)
 
-  prop_elemU :: (Eq e, UA e) => e -> UArr e -> Bool
-  prop_elemU x arr =
-    elemU x arr == elem x (fromU arr)
-
-  prop_notElemU :: (Eq e, UA e) => e -> UArr e -> Bool
-  prop_notElemU x arr =
-    notElemU x arr == notElem x (fromU arr)
+  -- Arithmetic operations
+  -- ---------------------
 
   prop_sumU :: (Eq num, UA num, Num num) => UArr num -> Bool
   prop_sumU arr =
@@ -114,7 +175,18 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
     not (nullU arr)
     ==> minimumU arr == minimum (fromU arr)
 
-{- FIXME: what do they do?
+  -- Arrays of pairs
+  -- ---------------
+
+  -- missing: zipU
+  -- missing: zip3U
+  -- missing: unzipU
+  -- missing: unzip3U
+
+  -- Enumerations
+  -- ------------
+
+{- FIXME: what is the semantics?
   prop_enumFromToU :: (UA enum, Enum enum, Eq enum)
                    => enum -> enum -> Bool
   prop_enumFromToU from to =
@@ -126,45 +198,17 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
     fromU (enumFromThenToU from step to) == enumFromThenTo from step to
 -}
 
-  prop_mapU :: (UA a, Eq b, UA b) => (a -> b) -> UArr a -> Bool
-  prop_mapU f arr =
-    fromU (mapU f arr) == map f (fromU arr)
-  
-  prop_filterU :: (Eq a, UA a) => (a -> Bool) -> UArr a -> Bool
-  prop_filterU f arr =
-    fromU (filterU f arr) == filter f (fromU arr)
-
-  prop_foldlU :: (UA a, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
-  prop_foldlU f z arr =
-    foldlU f z arr == foldl f z (fromU arr)
-
-  -- missing: foldU
-  
-  prop_foldl1U :: (UA a, Eq a) => (a -> a -> a) -> UArr a -> Property
-  prop_foldl1U f arr =
-    not (nullU arr)
-    ==> foldl1U f arr == foldl1 f (fromU arr)
-
-  -- missing: fold1U
-
-  prop_scanlU :: (UA a, UA b, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
-  prop_scanlU f z arr =
-    fromU (scanlU f z arr) == init (scanl f z (fromU arr))
-
-  -- missing: scanU
-
-  prop_scanl1U :: (UA a, Eq a) => (a -> a -> a) -> UArr a -> Property
-  prop_scanl1U f arr =
-    not (nullU arr)
-    ==> fromU (scanl1U f arr) == init (scanl1 f (fromU arr))
-
-  -- missing: scan1U
+  -- Equality
+  -- --------
 
   prop_eqU_1 :: (Eq a, UA a) => UArr a -> Bool
   prop_eqU_1 arr = arr == arr
 
   prop_eqU_2 :: (Eq a, UA a) => UArr a -> UArr a -> Bool
   prop_eqU_2 arr brr = (arr == brr) == (fromU arr == fromU brr)
+
+  -- Fusion
+  -- ------
   
   prop_loopU_replicateU :: (UA e, Eq acc, Eq e', UA e')
                => LoopFn acc e e' -> acc -> Len -> e -> Bool
@@ -189,6 +233,8 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
       in
       loopSndAcc (loopU em (start1 :*: start2) arr)
   -}
+
+  -- missing: segmented operations
   |])
 
   
