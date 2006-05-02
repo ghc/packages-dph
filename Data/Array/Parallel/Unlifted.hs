@@ -103,6 +103,6 @@ instance Show USegd where
 
 -- |
 instance (Eq e, UA e) => Eq (UArr e) where
-  a1 == a2 = foldlU cmp True (zipU a1 a2)
+  a1 == a2 = lengthU a1 == lengthU a2 && foldlU cmp True (zipU a1 a2)
 	     where
 	       cmp r (e1 :*: e2) = e1 == e2 && r
