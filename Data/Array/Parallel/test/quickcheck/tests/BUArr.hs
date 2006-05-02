@@ -12,66 +12,68 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int ) |]
             , "num"     <@ [t| ( Int                 ) |]
             ]
   [d|
-  prop_from_to :: (Eq a, UAE a) => [a] -> Bool
-  prop_from_to xs = fromBU (toBU xs) == xs
+  prop_fromBU_toBU :: (Eq a, UAE a) => [a] -> Bool
+  prop_fromBU_toBU xs = fromBU (toBU xs) == xs
 
-  prop_empty :: (Eq a, UAE a) => a -> Bool
-  prop_empty x = fromBU emptyBU == tail [x]
+  prop_emptyBU :: (Eq a, UAE a) => a -> Bool
+  prop_emptyBU x = fromBU emptyBU == tail [x]
  
-  prop_length :: UAE a => BUArr a -> Bool
-  prop_length arr = lengthBU arr == length (fromBU arr)
+  prop_lengthBU :: UAE a => BUArr a -> Bool
+  prop_lengthBU arr = lengthBU arr == length (fromBU arr)
   
-  prop_index :: (Eq a, UAE a) => BUArr a -> Len -> Property
-  prop_index arr (Len i) =
+  prop_indexBU :: (Eq a, UAE a) => BUArr a -> Len -> Property
+  prop_indexBU arr (Len i) =
     i < lengthBU arr
     ==> (arr `indexBU` i) == (fromBU arr !! i)
 
-  prop_units :: Len -> Bool
-  prop_units (Len n) =
+  prop_unitsBU :: Len -> Bool
+  prop_unitsBU (Len n) =
     fromBU (unitsBU n) == replicate n ()
   
-  prop_replicate :: (Eq a, UAE a) => Len -> a -> Bool
-  prop_replicate (Len n) x =
+  prop_replicateBU :: (Eq a, UAE a) => Len -> a -> Bool
+  prop_replicateBU (Len n) x =
     fromBU (replicateBU n x) == replicate n x
 
-  prop_slice :: (Eq a, UAE a) => BUArr a -> Len -> Len -> Property
-  prop_slice arr (Len i) (Len n) =
+  prop_sliceBU :: (Eq a, UAE a) => BUArr a -> Len -> Len -> Property
+  prop_sliceBU arr (Len i) (Len n) =
     i <= lengthBU arr && n <= lengthBU arr - i
     ==> fromBU (sliceBU arr i n) == take n (drop i $ fromBU arr)
   
-  prop_extract :: (Eq a, UAE a) => BUArr a -> Len -> Len -> Property
-  prop_extract arr (Len i) (Len n) =
+  prop_extractBU :: (Eq a, UAE a) => BUArr a -> Len -> Len -> Property
+  prop_extractBU arr (Len i) (Len n) =
     i <= lengthBU arr && n <= lengthBU arr - i
     ==> fromBU (extractBU arr i n) == take n (drop i $ fromBU arr)
   
-  prop_map :: (Eq b, UAE a, UAE b) => (a -> b) -> BUArr a -> Bool
-  prop_map f arr =
+  prop_mapBU :: (Eq b, UAE a, UAE b) => (a -> b) -> BUArr a -> Bool
+  prop_mapBU f arr =
     fromBU (mapBU f arr) == map f (fromBU arr)
   
-  prop_foldl :: (Eq a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
-  prop_foldl f z arr =
+  prop_foldlBU :: (Eq a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
+  prop_foldlBU f z arr =
     foldlBU f z arr == foldl f z (fromBU arr)
 
   -- missing: foldBU
-  prop_sum :: (Eq num, UAE num, Num num) => BUArr num -> Bool
-  prop_sum arr =
+
+  prop_sumBU :: (Eq num, UAE num, Num num) => BUArr num -> Bool
+  prop_sumBU arr =
     sumBU arr == sum (fromBU arr)
   
-  prop_scanl :: (Eq a, UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
-  prop_scanl f z arr =
+  prop_scanlBU :: (Eq a, UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
+  prop_scanlBU f z arr =
     fromBU (scanlBU f z arr) == init (scanl f z (fromBU arr))
 
   -- missing: scanBU
 
-  prop_eq1 :: (Eq a, UAE a) => BUArr a -> Bool
-  prop_eq1 arr = arr == arr
+  prop_eqBU_1 :: (Eq a, UAE a) => BUArr a -> Bool
+  prop_eqBU_1 arr = arr == arr
 
-  prop_eq2 :: (Eq a, UAE a) => BUArr a -> BUArr a -> Bool
-  prop_eq2 arr brr = (arr == brr) == (fromBU arr == fromBU brr)
+  prop_eqBU_2 :: (Eq a, UAE a) => BUArr a -> BUArr a -> Bool
+  prop_eqBU_2 arr brr = (arr == brr) == (fromBU arr == fromBU brr)
   
-  prop_fusion1 :: (UAE e, Eq acc, Eq e', UAE e')
-               => LoopFn acc e e' -> acc -> Len -> e -> Bool
-  prop_fusion1 mf start (Len n) v =
+  prop_loopBU_replicateBU
+    :: (UAE e, Eq acc, Eq e', UAE e')
+    => LoopFn acc e e' -> acc -> Len -> e -> Bool
+  prop_loopBU_replicateBU mf start (Len n) v =
     loopBU mf start (replicateBU n v)
     == loopBU (\a _ -> mf a v) start (unitsBU n)
 

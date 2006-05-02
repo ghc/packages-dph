@@ -13,63 +13,63 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
             , "enum"    <@ [t| ( (), Char, Bool, Int ) |]
             ]
   [d|
-  prop_from_to :: (Eq a, UA a) => [a] -> Bool
-  prop_from_to xs = fromU (toU xs) == xs
+  prop_fromU_toU :: (Eq a, UA a) => [a] -> Bool
+  prop_fromU_toU xs = fromU (toU xs) == xs
 
-  prop_empty :: (Eq a, UA a) => a -> Bool
-  prop_empty x = fromU emptyU == tail [x]
+  prop_emptyU :: (Eq a, UA a) => a -> Bool
+  prop_emptyU x = fromU emptyU == tail [x]
 
-  prop_length :: UA a => UArr a -> Bool
-  prop_length arr = lengthU arr  == length (fromU arr)
+  prop_lengthU :: UA a => UArr a -> Bool
+  prop_lengthU arr = lengthU arr  == length (fromU arr)
   
-  prop_null :: UA a => UArr a -> Bool
-  prop_null arr = nullU arr == (lengthU arr == 0)
+  prop_nullU :: UA a => UArr a -> Bool
+  prop_nullU arr = nullU arr == (lengthU arr == 0)
   
-  prop_index :: (Eq a, UA a) => UArr a -> Len -> Property
-  prop_index arr (Len i) =
+  prop_indexU :: (Eq a, UA a) => UArr a -> Len -> Property
+  prop_indexU arr (Len i) =
     i < lengthU arr
     ==> (arr !: i) == (fromU arr !! i)
   
-  prop_append :: (Eq a, UA a) => UArr a -> UArr a -> Bool
-  prop_append arr brr =
+  prop_appendU :: (Eq a, UA a) => UArr a -> UArr a -> Bool
+  prop_appendU arr brr =
     fromU (arr +:+ brr) == fromU arr ++ fromU brr
  
-  prop_units :: Len -> Bool
-  prop_units (Len n) =
+  prop_unitsU :: Len -> Bool
+  prop_unitsU (Len n) =
     fromU (unitsU n) == replicate n ()
  
-  prop_replicate :: (Eq a, UA a) => Len -> a -> Bool
-  prop_replicate (Len n) x =
+  prop_replicateU :: (Eq a, UA a) => Len -> a -> Bool
+  prop_replicateU (Len n) x =
     fromU (replicateU n x) == replicate n x
   
-  prop_slice :: (Eq a, UA a) => UArr a -> Len -> Len -> Property
-  prop_slice arr (Len i) (Len n) =
+  prop_sliceU :: (Eq a, UA a) => UArr a -> Len -> Len -> Property
+  prop_sliceU arr (Len i) (Len n) =
     i <= lengthU arr && n <= lengthU arr - i
     ==> fromU (sliceU arr i n) == take n (drop i $ fromU arr)
   
-  prop_extract :: (Eq a, UA a) => UArr a -> Len -> Len -> Property
-  prop_extract arr (Len i) (Len n) =
+  prop_extractU :: (Eq a, UA a) => UArr a -> Len -> Len -> Property
+  prop_extractU arr (Len i) (Len n) =
     i <= lengthU arr && n <= lengthU arr - i
     ==> fromU (extractU arr i n) == take n (drop i $ fromU arr)
   
-  prop_take :: (Eq a, UA a) => Len -> UArr a -> Property
-  prop_take (Len n) arr =
+  prop_takeU :: (Eq a, UA a) => Len -> UArr a -> Property
+  prop_takeU (Len n) arr =
     n <= lengthU arr
     ==> fromU (takeU n arr) == take n (fromU arr)
   
-  prop_drop :: (Eq a, UA a) => Len -> UArr a -> Property
-  prop_drop (Len n) arr =
+  prop_dropU :: (Eq a, UA a) => Len -> UArr a -> Property
+  prop_dropU (Len n) arr =
     n <= lengthU arr
     ==> fromU (dropU n arr) == drop n (fromU arr)
   
-  prop_splitAt :: (Eq a, UA a) => Len -> UArr a -> Property
-  prop_splitAt (Len n) arr =
+  prop_splitAtU :: (Eq a, UA a) => Len -> UArr a -> Property
+  prop_splitAtU (Len n) arr =
     n <= lengthU arr
     ==> let (brr, crr) = splitAtU n arr
         in (fromU brr, fromU crr) == splitAt n (fromU arr)
   
-  prop_reverse :: (Eq a, UA a) => UArr a -> Bool
-  prop_reverse arr =
+  prop_reverseU :: (Eq a, UA a) => UArr a -> Bool
+  prop_reverseU arr =
     fromU (reverseU arr) == reverse (fromU arr)
 
   prop_andU :: UArr Bool -> Bool
@@ -126,12 +126,12 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
     fromU (enumFromThenToU from step to) == enumFromThenTo from step to
 -}
 
-  prop_map :: (UA a, Eq b, UA b) => (a -> b) -> UArr a -> Bool
-  prop_map f arr =
+  prop_mapU :: (UA a, Eq b, UA b) => (a -> b) -> UArr a -> Bool
+  prop_mapU f arr =
     fromU (mapU f arr) == map f (fromU arr)
   
-  prop_filter :: (Eq a, UA a) => (a -> Bool) -> UArr a -> Bool
-  prop_filter f arr =
+  prop_filterU :: (Eq a, UA a) => (a -> Bool) -> UArr a -> Bool
+  prop_filterU f arr =
     fromU (filterU f arr) == filter f (fromU arr)
 
   prop_foldlU :: (UA a, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
@@ -160,11 +160,11 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
 
   -- missing: scan1U
 
-  prop_eq1 :: (Eq a, UA a) => UArr a -> Bool
-  prop_eq1 arr = arr == arr
+  prop_eqU_1 :: (Eq a, UA a) => UArr a -> Bool
+  prop_eqU_1 arr = arr == arr
 
-  prop_eq2 :: (Eq a, UA a) => UArr a -> UArr a -> Bool
-  prop_eq2 arr brr = (arr == brr) == (fromU arr == fromU brr)
+  prop_eqU_2 :: (Eq a, UA a) => UArr a -> UArr a -> Bool
+  prop_eqU_2 arr brr = (arr == brr) == (fromU arr == fromU brr)
   
   prop_loopU_replicateU :: (UA e, Eq acc, Eq e', UA e')
                => LoopFn acc e e' -> acc -> Len -> e -> Bool
