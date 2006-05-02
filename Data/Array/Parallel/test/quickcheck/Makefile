@@ -1,9 +1,13 @@
 GHC = ../../../../../../../compiler/stage2/ghc-inplace
-LIB = ../../../../../libHSndp.a
-INC = ../../../../..
+NDPDIR = ../../../../..
+NDPLIB = $(NDPDIR)/libHSndp.a
 
 HC      = $(GHC)
-HCFLAGS = -fglasgow-exts -package QuickCheck -package template-haskell -i../../../../.. -v0
+HCFLAGS = -fglasgow-exts -package QuickCheck -package template-haskell \
+          -i$(NDPDIR) -v0
+OPTFLAGS = -O2 -funbox-strict-fields \
+           -fliberate-case-threshold100 -fno-method-sharing
+
 
 TESTSUITE = Testsuite/Utils.hs \
             Testsuite/Testcase.hs \
@@ -13,33 +17,50 @@ TESTSUITE = Testsuite/Utils.hs \
 TESTSUITE_OBJS = $(TESTSUITE:.hs=.o)
 
 TESTS = $(wildcard tests/*.hs)
-TEST_OBJS = $(TESTS:.hs=.o)
-LOGS = $(patsubst %.hs,%.log,$(notdir $(TESTS)))
+TEST_MODS = $(notdir $(TESTS))
+OPT = $(TEST_MODS:.hs=-opt)
+UNOPT = $(TEST_MODS:.hs=-unopt)
+# we want the tests to be run in the right order
+ALL = $(TEST_MODS:.hs=-all)
 
-.PHONY: default testsuite
+.PHONY: default unopt opt all testsuite
 
-default: $(LOGS)
-	@:
+default: unopt
+
+all: $(ALL)
+
+unopt: $(UNOPT)
+
+opt: $(OPT)
 
 testsuite: $(TESTSUITE_OBJS)
 
 Testsuite.o: $(filter-out Testsuite.o,$(TESTSUITE_OBJS))
 
-%.o : %.hs $(LIB)
-	$(HC) -c $< $(HCFLAGS) $($(join $<,-HCFLAGS))
+%.o : %.hs $(NDPLIB)
+	$(HC) -c $< $(HCFLAGS)
+
+%-opt.o: %.hs $(NDPLIB) testsuite
+	$(HC) -o $@ -c $< $(HCFLAGS) $(OPTFLAGS)
+
 %.hi: %.o
 	@:
 
 $(TEST_OBJS) : testsuite
 
-tst-%: tests/%.o
-	$(HC) -o $@ $(HCFLAGS) $< $(TESTSUITE_OBJS) $(LIB)
-	rm -f $<
+%-all: %-unopt %-opt
+	@:
 
-%.log: tst-%
-	@rm -f $@
-	@echo "======== Testing  $(basename $@) ========"
-	@./$< | tee $@ | { grep -v '\.\.\. pass' || true; }
-	@echo "======== Finished $(basename $@) ========"
-	@rm -f $<
+%-unopt:
+	@echo "======== Testing  $(patsubst %-unopt,%,$@) (interpreted) ========"
+	@$(HC) -e main $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) \
+		| tee $@.log | { grep -v '\.\.\. pass' || true; }
+	@echo "======== Finished $(patsubst %-unopt,%,$@) (interpreted) ========"
+
+%-opt: tests/%-opt.o
+	@$(HC) -o tst $(HCFLAGS) $< $(TESTSUITE_OBJS) $(NDPLIB)
+	@echo "======== Testing  $(patsubst %-opt,%,$@) (optimised) ========"
+	@./tst | tee $@ | { grep -v '\.\.\. pass' || true; }
+	@echo "======== Finished $(patsubst %-opt,%,$@) (optimised) ========"
+	@rm -f tst $<
 
