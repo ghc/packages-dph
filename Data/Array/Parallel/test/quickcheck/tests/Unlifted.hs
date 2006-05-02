@@ -6,8 +6,11 @@ instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
   arbitrary = fmap toU arbitrary
   coarbitrary = coarbitrary . fromU
 
-$(testcases [ ""    <@ [t| ( (), Char, Bool, Int ) |]
-            , "acc" <@ [t| ( (), Int             ) |]
+$(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
+            , "acc"     <@ [t| ( (), Int             ) |]
+            , "num"     <@ [t| ( Int                 ) |]
+            , "ord"     <@ [t| ( (), Char, Bool, Int ) |]
+            , "enum"    <@ [t| ( (), Char, Bool, Int ) |]
             ]
   [d|
   prop_from_to :: (Eq a, UA a) => [a] -> Bool
@@ -93,6 +96,36 @@ $(testcases [ ""    <@ [t| ( (), Char, Bool, Int ) |]
   prop_notElemU x arr =
     notElemU x arr == notElem x (fromU arr)
 
+  prop_sumU :: (Eq num, UA num, Num num) => UArr num -> Bool
+  prop_sumU arr =
+    sumU arr == sum (fromU arr)
+
+  prop_productU :: (Eq num, UA num, Num num) => UArr num -> Bool
+  prop_productU arr =
+    productU arr == product (fromU arr)
+
+  prop_maximumU :: (Ord ord, UA ord) => UArr ord -> Property
+  prop_maximumU arr =
+    not (nullU arr)
+    ==> maximumU arr == maximum (fromU arr)
+
+  prop_minimumU :: (Ord ord, UA ord) => UArr ord -> Property
+  prop_minimumU arr =
+    not (nullU arr)
+    ==> minimumU arr == minimum (fromU arr)
+
+{- FIXME: what do they do?
+  prop_enumFromToU :: (UA enum, Enum enum, Eq enum)
+                   => enum -> enum -> Bool
+  prop_enumFromToU from to =
+    fromU (enumFromToU from to) == enumFromTo from to
+
+  prop_enumFromThenToU :: (UA enum, Enum enum, Eq enum)
+                       => enum -> enum -> enum -> Bool
+  prop_enumFromThenToU from step to =
+    fromU (enumFromThenToU from step to) == enumFromThenTo from step to
+-}
+
   prop_map :: (UA a, Eq b, UA b) => (a -> b) -> UArr a -> Bool
   prop_map f arr =
     fromU (mapU f arr) == map f (fromU arr)
@@ -100,6 +133,32 @@ $(testcases [ ""    <@ [t| ( (), Char, Bool, Int ) |]
   prop_filter :: (Eq a, UA a) => (a -> Bool) -> UArr a -> Bool
   prop_filter f arr =
     fromU (filterU f arr) == filter f (fromU arr)
+
+  prop_foldlU :: (UA a, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
+  prop_foldlU f z arr =
+    foldlU f z arr == foldl f z (fromU arr)
+
+  -- missing: foldU
+  
+  prop_foldl1U :: (UA a, Eq a) => (a -> a -> a) -> UArr a -> Property
+  prop_foldl1U f arr =
+    not (nullU arr)
+    ==> foldl1U f arr == foldl1 f (fromU arr)
+
+  -- missing: fold1U
+
+  prop_scanlU :: (UA a, UA b, Eq b) => (b -> a -> b) -> b -> UArr a -> Bool
+  prop_scanlU f z arr =
+    fromU (scanlU f z arr) == init (scanl f z (fromU arr))
+
+  -- missing: scanU
+
+  prop_scanl1U :: (UA a, Eq a) => (a -> a -> a) -> UArr a -> Property
+  prop_scanl1U f arr =
+    not (nullU arr)
+    ==> fromU (scanl1U f arr) == init (scanl1 f (fromU arr))
+
+  -- missing: scan1U
 
   prop_eq1 :: (Eq a, UA a) => UArr a -> Bool
   prop_eq1 arr = arr == arr

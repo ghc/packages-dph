@@ -7,8 +7,9 @@ instance (UAE a, Arbitrary a) => Arbitrary (BUArr a) where
   arbitrary = fmap toBU arbitrary
   coarbitrary = coarbitrary . fromBU
 
-$(testcases [ ""    <@ [t| ( (), Bool, Char, Int ) |]
-            , "acc" <@ [t| ( (), Int             ) |]
+$(testcases [ ""        <@ [t| ( (), Bool, Char, Int ) |]
+            , "acc"     <@ [t| ( (), Int             ) |]
+            , "num"     <@ [t| ( Int                 ) |]
             ]
   [d|
   prop_from_to :: (Eq a, UAE a) => [a] -> Bool
@@ -52,7 +53,9 @@ $(testcases [ ""    <@ [t| ( (), Bool, Char, Int ) |]
     foldlBU f z arr == foldl f z (fromBU arr)
 
   -- missing: foldBU
-  -- missing: sumBU
+  prop_sum :: (Eq num, UAE num, Num num) => BUArr num -> Bool
+  prop_sum arr =
+    sumBU arr == sum (fromBU arr)
   
   prop_scanl :: (Eq a, UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
   prop_scanl f z arr =
