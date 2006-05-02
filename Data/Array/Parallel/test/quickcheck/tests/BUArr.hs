@@ -11,10 +11,9 @@ $(testcases [t| ( (), Bool, Char, Int ) |]
   [d|
   prop_from_to :: (Eq a, UAE a) => [a] -> Bool
   prop_from_to xs = fromBU (toBU xs) == xs
-{-  
+
   prop_empty :: (Eq a, UAE a) => a -> Bool
-  prop_empty (_ :: a) = fromBU emptyBU == ([] :: [a])
--}
+  prop_empty x = fromBU emptyBU == tail [x]
  
   prop_length :: UAE a => BUArr a -> Bool
   prop_length arr = lengthBU arr == length (fromBU arr)
@@ -42,34 +41,45 @@ $(testcases [t| ( (), Bool, Char, Int ) |]
   prop_map f arr =
     fromBU (mapBU f arr) == map f (fromBU arr)
   
-  {-
-  prop_Foldl (f :: Int -> Int -> Int) z arr =
+  prop_foldl :: (Eq a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
+  prop_foldl f z arr =
     foldlBU f z arr == foldl f z (fromBU arr)
-  prop_Sum (arr :: BUArr Int) =
-    sumBU arr == sum (fromBU arr)
-  prop_Scanl (f :: Int -> Int -> Int) z arr =
+
+  -- missing: foldBU
+  -- missing: sumBU
+  
+  prop_scanl :: (Eq a, UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> Bool
+  prop_scanl f z arr =
     fromBU (scanlBU f z arr) == init (scanl f z (fromBU arr))
-  prop_Eq1 (arr :: BUArr Int)     = arr == arr
-  prop_Eq2 (arr :: BUArr Int) brr = (arr == brr) == (fromBU arr == fromBU brr)
-  -}
+
+  -- missing: scanBU
+
+  prop_eq1 :: (Eq a, UAE a) => BUArr a -> Bool
+  prop_eq1 arr = arr == arr
+
+  prop_eq2 :: (Eq a, UAE a) => BUArr a -> BUArr a -> Bool
+  prop_eq2 arr brr = (arr == brr) == (fromBU arr == fromBU brr)
   
   prop_fusion1 :: (UAE e, Eq acc, Eq e', UAE e')
                => LoopFn acc e e' -> acc -> Len -> e -> Bool
   prop_fusion1 mf start (Len n) v =
     loopBU mf start (replicateBU n v)
     == loopBU (\a _ -> mf a v) start (replicateBU n ())
-  
-  {-
-  prop_fusion2 (mf1 :: LoopFn Int Int Int) (mf2 :: LoopFn Int Int Int)
-               start1 start2 arr =
+
+  {- FIXME: disabled - too many type variables 
+  prop_fusion2 :: (Eq acc2, Eq e3, UAE e1, UAE e2, UAE e3)
+               => LoopFn acc1 e1 e2
+               -> LoopFn acc2 e2 e3
+               -> acc1 -> acc2 -> BUArr e1 -> Bool
+  prop_fusion2 mf1 mf2 start1 start2 arr =
     loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) ==
       let
         mf (acc1 :*: acc2) e = 
           case mf1 acc1 e of
             (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
-  	  (acc1' :*: Just e') ->
-  	    case mf2 acc2 e' of
-  	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
+  	    (acc1' :*: Just e') ->
+  	      case mf2 acc2 e' of
+  	        (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
       in
       loopSndAcc (loopBU mf (start1 :*: start2) arr)
   -}

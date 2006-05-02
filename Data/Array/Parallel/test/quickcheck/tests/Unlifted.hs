@@ -11,10 +11,8 @@ $(testcases [t| ( (), Char, Bool, Int ) |]
   prop_from_to :: (Eq a, UA a) => [a] -> Bool
   prop_from_to xs = fromU (toU xs) == xs
 
-{-  
   prop_empty :: (Eq a, UA a) => a -> Bool
-  prop_empty (_ :: a) = fromU emptyU == ([] :: [a])
--}
+  prop_empty x = fromU emptyU == tail [x]
 
   prop_length :: UA a => UArr a -> Bool
   prop_length arr = lengthU arr  == length (fromU arr)
@@ -72,6 +70,12 @@ $(testcases [t| ( (), Char, Bool, Int ) |]
   prop_filter :: (Eq a, UA a) => (a -> Bool) -> UArr a -> Bool
   prop_filter f arr =
     fromU (filterU f arr) == filter f (fromU arr)
+
+  prop_eq1 :: (Eq a, UA a) => UArr a -> Bool
+  prop_eq1 arr = arr == arr
+
+  prop_eq2 :: (Eq a, UA a) => UArr a -> UArr a -> Bool
+  prop_eq2 arr brr = (arr == brr) == (fromU arr == fromU brr)
   
   prop_loopU_replicateU :: (UA e, Eq acc, Eq e', UA e')
                => LoopFn acc e e' -> acc -> Len -> e -> Bool
@@ -79,7 +83,8 @@ $(testcases [t| ( (), Char, Bool, Int ) |]
       loopU em start (replicateU n v) ==
       loopU (\a _ -> em a v) start (replicateU n noAL)
   
-  {- prop_fusion2 :: (Eq acc1, Eq acc2, Eq e1, Eq e2, Eq e3,
+  {- FIXME: disabled - too many type variables
+  prop_fusion2 :: (Eq acc1, Eq acc2, Eq e1, Eq e2, Eq e3,
                    UA e1, UA e2, UA e3)
                => LoopFn acc1 e1 e2 -> LoopFn acc2 e2 e3
                -> acc1 -> acc2 -> UArr e1 -> Bool
