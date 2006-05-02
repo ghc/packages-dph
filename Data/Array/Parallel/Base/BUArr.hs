@@ -314,6 +314,16 @@ instance UAE Double where
 -- |Loop combinators for unboxed arrays
 -- -
 
+-- |Array of @n@ units
+--
+unitsBU :: Int -> BUArr ()
+{-# INLINE unitsBU #-}
+unitsBU n =
+  runST (do
+    ma <- newMBU n
+    unsafeFreezeMBU ma n
+  )
+
 -- |Replicate combinator for unboxed arrays
 --
 replicateBU :: UAE e => Int -> e -> BUArr e
@@ -384,9 +394,12 @@ loopSndAcc (arr :*: (_ :*: acc)) = (arr :*: acc)
 
 {-# RULES  -- -} (for font-locking)
 
+-- We have to use (unitsBU n) instead of (replicateBU n ()) here, as the latter
+-- would lead to nontermination.
+
 "loopBU/replicateBU" forall mf start n v.
   loopBU mf start (replicateBU n v) = 
-    loopBU (\a _ -> mf a v) start (replicateBU n ())
+    loopBU (\a _ -> mf a v) start (unitsBU n)
 
 "loopBU/loopBU" forall mf1 mf2 start1 start2 arr.
   loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) =

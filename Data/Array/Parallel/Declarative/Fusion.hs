@@ -29,7 +29,7 @@ import Data.Array.Parallel.Monadic.UArr (
 import Data.Array.Parallel.Monadic.SUArr (
   (>:))
 import Data.Array.Parallel.Declarative.Loop (
-  replicateU, loopU, replicateSU, loopSU,
+  unitsU, replicateU, loopU, replicateSU, loopSU,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 
 
@@ -117,9 +117,12 @@ keepSFL f = \a _ -> (f a :*: Just a)
 
 {-# RULES  -- -} (for font-locking)
 
+-- We have to use (unitsU n) instead of (replicateU n ()) here, as the latter
+-- would lead to nontermination.
+
 "loopU/replicateU" forall em start n v.
   loopU em start (replicateU n v) = 
-    loopU (\a _ -> em a v) start (replicateU n noAL)
+    loopU (\a _ -> em a v) start (unitsU n)
 
 "loopU/loopU" forall em1 em2 start1 start2 arr.
   loopU em2 start2 (loopArr (loopU em1 start1 arr)) =

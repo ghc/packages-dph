@@ -24,7 +24,7 @@
 module Data.Array.Parallel.Declarative.Loop (
 
   -- * Loop/replicate combinators
-  replicateU, loopU, replicateSU, loopSU,
+  unitsU, replicateU, loopU, replicateSU, loopSU,
 
   -- * Projection combinators for loops
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc
@@ -47,6 +47,11 @@ import Data.Array.Parallel.Monadic.SUArr (
 
 -- |Elementary combinators
 -- -----------------------
+
+-- |Yield an array of units 
+--
+unitsU :: Int -> UArr ()
+unitsU = UAUnit
 
 -- |Yield an array where all elements contain the same value
 --
