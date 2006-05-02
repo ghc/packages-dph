@@ -197,7 +197,7 @@ instance UAE Bool where
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check "PAPrim.indexBU[Bool]" n i $
-      (indexWordArray# ba# (bOOL_INDEX (s# +# i#)) `and#` bOOL_BIT i#) 
+      (indexWordArray# ba# (bOOL_INDEX (s# +# i#)) `and#` bOOL_BIT (s# +# i#))
       `neWord#` int2Word# 0#
 
   {-# INLINE readMBU #-}
