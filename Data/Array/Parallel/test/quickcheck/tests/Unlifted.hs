@@ -28,7 +28,11 @@ $(testcases [t| ( (), Char, Bool, Int ) |]
   prop_append :: (Eq a, UA a) => UArr a -> UArr a -> Bool
   prop_append arr brr =
     fromU (arr +:+ brr) == fromU arr ++ fromU brr
-  
+ 
+  prop_units :: Len -> Bool
+  prop_units (Len n) =
+    fromU (unitsU n) == replicate n ()
+ 
   prop_replicate :: (Eq a, UA a) => Len -> a -> Bool
   prop_replicate (Len n) x =
     fromU (replicateU n x) == replicate n x
@@ -81,7 +85,7 @@ $(testcases [t| ( (), Char, Bool, Int ) |]
                => LoopFn acc e e' -> acc -> Len -> e -> Bool
   prop_loopU_replicateU em start (Len n) v =
       loopU em start (replicateU n v) ==
-      loopU (\a _ -> em a v) start (replicateU n noAL)
+      loopU (\a _ -> em a v) start (unitsU n)
   
   {- FIXME: disabled - too many type variables
   prop_fusion2 :: (Eq acc1, Eq acc2, Eq e1, Eq e2, Eq e3,

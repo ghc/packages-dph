@@ -22,6 +22,10 @@ $(testcases [t| ( (), Bool, Char, Int ) |]
   prop_index arr (Len i) =
     i < lengthBU arr
     ==> (arr `indexBU` i) == (fromBU arr !! i)
+
+  prop_units :: Len -> Bool
+  prop_units (Len n) =
+    fromBU (unitsBU n) == replicate n ()
   
   prop_replicate :: (Eq a, UAE a) => Len -> a -> Bool
   prop_replicate (Len n) x =
@@ -64,7 +68,7 @@ $(testcases [t| ( (), Bool, Char, Int ) |]
                => LoopFn acc e e' -> acc -> Len -> e -> Bool
   prop_fusion1 mf start (Len n) v =
     loopBU mf start (replicateBU n v)
-    == loopBU (\a _ -> mf a v) start (replicateBU n ())
+    == loopBU (\a _ -> mf a v) start (unitsBU n)
 
   {- FIXME: disabled - too many type variables 
   prop_fusion2 :: (Eq acc2, Eq e3, UAE e1, UAE e2, UAE e3)
