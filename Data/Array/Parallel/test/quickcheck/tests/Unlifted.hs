@@ -2,13 +2,11 @@ import Testsuite
 
 import Data.Array.Parallel.Unlifted
 
-types = ["()", "Char", "Int"]
-
 instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
   arbitrary = fmap toU arbitrary
   coarbitrary = coarbitrary . fromU
 
-$(testcases [t| ( (), Char, Int ) |]
+$(testcases [t| ( (), Char, Bool, Int ) |]
   [d|
   prop_from_to :: (Eq a, UA a) => [a] -> Bool
   prop_from_to xs = fromU (toU xs) == xs
