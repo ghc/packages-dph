@@ -1,8 +1,9 @@
-module Testsuite.Preproc ( testcases )
+module Testsuite.Preproc ( testcases, (<@) )
 where
 
 import Language.Haskell.TH
 import Data.List
+import Data.Maybe (fromJust)
 import Monad (liftM)
 
 data Prop = Prop { propName   :: Name
@@ -15,17 +16,30 @@ data Inst = Inst { instName   :: Name
                  , instExp    :: Exp
                  }
 
-testcases :: Q Type -> Q [Dec] -> Q [Dec]
-testcases qty qdecs = 
+(<@) :: String -> Q Type -> Q (String, Type)
+pfx <@ qty = liftM ((,) pfx) qty
+
+type Domain = [(String, [Type])]
+
+testcases :: [Q (String, Type)] -> Q [Dec] -> Q [Dec]
+testcases qdom qdecs =
   do
-    tys <- liftM types qty
+    dom <- liftM domain $ sequence qdom
     decs <- qdecs
-    let props = embed . generate tys $ properties decs
+    let props = embed . generate dom $ properties decs
         rn    = AppE (VarE (mkName "runTests"))
                      props
         main  = ValD (VarP (mkName "main"))
                      (NormalB rn) []
     return (decs ++ [main])
+
+domain :: [(String, Type)] -> Domain
+domain ps = sortBy cmpPfx
+          . zip (map fst ps)
+          . map types
+          $ map snd ps
+  where
+    cmpPfx (s,_) (s',_) = length s' `compare` length s
 
 types :: Type -> [Type]
 types ty = case unAppT ty of
@@ -34,6 +48,7 @@ types ty = case unAppT ty of
   where
     unAppT (AppT t u) = unAppT t ++ [u]
     unAppT t          = [t]
+
 
 instid :: Inst -> String
 instid inst = name inst ++ env inst
@@ -61,8 +76,8 @@ embed insts = ListE [((VarE $ mkName "mkTest")    `AppE`
                      instExp i
                     | i <- insts ]
 
-generate :: [Type] -> [Prop] -> [Inst]
-generate tys = concatMap gen
+generate :: Domain -> [Prop] -> [Inst]
+generate dom = concatMap gen
   where
     gen prop@(Prop { propName   = name
                    , propTyvars = []
@@ -72,7 +87,7 @@ generate tys = concatMap gen
                    , propTyvars = tvs
                    , propType   = ty }) =
           [Inst name env (VarE name `SigE` subst env ty)
-           | env <- combinations tvs tys]
+           | env <- combinations tvs dom]
 
 subst :: [(Name, Type)] -> Type -> Type
 subst env (VarT nm)  = case lookup nm env of
@@ -80,9 +95,10 @@ subst env (VarT nm)  = case lookup nm env of
 subst env (AppT t u) = AppT (subst env t) (subst env u)
 subst env t          = t
 
-combinations :: [a] -> [b] -> [[(a,b)]]
-combinations []     _  = []
-combinations _      [] = []
-combinations [x]    ys = [[(x,y)] | y <- ys]
-combinations (x:xs) ys = [(x,y) : ps | y <- ys, ps <- combinations xs ys]
+combinations :: [Name] -> [(String, [Type])] -> [[(Name, Type)]]
+combinations []     _   = [[]]
+combinations (n:ns) dom = [(n,t) : ps | t <- ts, ps <- combinations ns dom]
+  where
+    s  = nameBase n
+    ts = snd . fromJust $ find ((`isPrefixOf` s) . fst) dom
 

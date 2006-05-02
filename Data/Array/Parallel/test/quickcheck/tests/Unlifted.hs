@@ -6,7 +6,9 @@ instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
   arbitrary = fmap toU arbitrary
   coarbitrary = coarbitrary . fromU
 
-$(testcases [t| ( (), Char, Bool, Int ) |]
+$(testcases [ ""    <@ [t| ( (), Char, Bool, Int ) |]
+            , "acc" <@ [t| ( (), Int             ) |]
+            ]
   [d|
   prop_from_to :: (Eq a, UA a) => [a] -> Bool
   prop_from_to xs = fromU (toU xs) == xs

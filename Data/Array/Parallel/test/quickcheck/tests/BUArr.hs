@@ -7,7 +7,9 @@ instance (UAE a, Arbitrary a) => Arbitrary (BUArr a) where
   arbitrary = fmap toBU arbitrary
   coarbitrary = coarbitrary . fromBU
 
-$(testcases [t| ( (), Bool, Char, Int ) |]
+$(testcases [ ""    <@ [t| ( (), Bool, Char, Int ) |]
+            , "acc" <@ [t| ( (), Int             ) |]
+            ]
   [d|
   prop_from_to :: (Eq a, UAE a) => [a] -> Bool
   prop_from_to xs = fromBU (toBU xs) == xs
