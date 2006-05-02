@@ -10,10 +10,10 @@ TESTSUITE = Testsuite/Utils.hs \
             Testsuite/Preproc.hs \
             Testsuite.hs
 
-TESTSUITE_OBJS = $(patsubst %.hs,%.o,$(TESTSUITE))
+TESTSUITE_OBJS = $(TESTSUITE:.hs=.o)
 
 TESTS = $(wildcard tests/*.hs)
-TEST_OBJS = $(patsubst %.hs,%.o,$(TESTS))
+TEST_OBJS = $(TESTS:.hs=.o)
 LOGS = $(patsubst %.hs,%.log,$(notdir $(TESTS)))
 
 .PHONY: default testsuite
@@ -22,6 +22,8 @@ default: $(LOGS)
 	@:
 
 testsuite: $(TESTSUITE_OBJS)
+
+Testsuite.o: $(filter-out Testsuite.o,$(TESTSUITE_OBJS))
 
 %.o : %.hs $(LIB)
 	$(HC) -c $< $(HCFLAGS) $($(join $<,-HCFLAGS))
