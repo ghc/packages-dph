@@ -46,7 +46,7 @@ module Data.Array.Parallel.Unlifted (
   -}
 
   -- * Loop/replicate combinators
-  replicateU, loopU, replicateSU, loopSU,
+  unitsU, replicateU, loopU, replicateSU, loopSU,
 
   -- * Projection combinators for loops
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc,
@@ -65,7 +65,7 @@ import Data.Array.Parallel.Monadic.UArr (
 import Data.Array.Parallel.Monadic.SUArr (
   USegd, SUArr, fromUSegd, toUSegd)
 import Data.Array.Parallel.Declarative.Loop (
-  replicateU, loopU, replicateSU, loopSU, loopArr, loopArrS, loopAcc,
+  unitsU, replicateU, loopU, replicateSU, loopSU, loopArr, loopArrS, loopAcc,
   loopAccS, loopSndAcc)
 import Data.Array.Parallel.Declarative.Fusion (
   noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL)

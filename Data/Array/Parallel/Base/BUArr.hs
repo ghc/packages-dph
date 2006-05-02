@@ -52,7 +52,7 @@ module Data.Array.Parallel.Base.BUArr (
   unsafeFreezeMBU, unsafeFreezeAllMBU,
   emptyBU, replicateBU, loopBU, loopArr, loopAcc, loopSndAcc, extractBU,
   mapBU, foldlBU, foldBU, sumBU, scanlBU, scanBU, extractMBU, copyMBU,
-  toBU, fromBU,
+  toBU, fromBU, unitsBU,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
   Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
