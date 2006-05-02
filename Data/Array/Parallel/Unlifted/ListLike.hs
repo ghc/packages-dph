@@ -250,12 +250,9 @@ productSU = foldSU (*) 1
 
 -- |Determine the maximum element in an array
 --
-maximumU :: (Bounded e, Ord e, UA e) => UArr e -> e
---FIXME: provisional until fold1U implemented
---maximumU :: (Ord e, UA e) => UArr e -> e
+maximumU :: (Ord e, UA e) => UArr e -> e
 {-# INLINE maximumU #-}
---maximumU = fold1U max
-maximumU = foldU max (minBound)
+maximumU = fold1U max
 
 -- |Determine the maximum element in each subarray
 --
@@ -268,12 +265,9 @@ maximumSU = foldSU max minBound
 
 -- |Determine the minimum element in an array
 --
-minimumU :: (Bounded e, Ord e, UA e) => UArr e -> e
---FIXME: provisional until fold1U implemented
---minimumU :: (Ord e, UA e) => UArr e -> e
+minimumU :: (Ord e, UA e) => UArr e -> e
 {-# INLINE minimumU #-}
---minimumU = fold1U min
-minimumU = foldU min maxBound
+minimumU = fold1U min
 
 -- |Determine the minimum element in each subarray
 --
