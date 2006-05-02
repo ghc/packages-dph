@@ -212,7 +212,7 @@ sumSU = foldSU (+) 0
 --
 productU :: (Num e, UA e) => UArr e -> e
 {-# INLINE productU #-}
-productU = foldU (*) 0
+productU = foldU (*) 1
 
 -- |Compute the segmented product of an array of numerals
 --
