@@ -2,10 +2,6 @@ import Testsuite
 
 import Data.Array.Parallel.Unlifted
 
-instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
-  arbitrary = fmap toU arbitrary
-  coarbitrary = coarbitrary . fromU
-
 $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
             , "acc"     <@ [t| ( (), Int             ) |]
             , "num"     <@ [t| ( Int                 ) |]
