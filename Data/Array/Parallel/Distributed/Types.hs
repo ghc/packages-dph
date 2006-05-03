@@ -257,7 +257,10 @@ instance UA a => MDT (UArr a) where
                            (newMBB (gangSize g)
                                    (uninitialised $ here "newMDT[UArr a]"))
   readMDT  = readMBB  . unMDUArr
-  writeMDT = writeMBB . unMDUArr
+  writeMDT (MDUArr mlen marr) i a =
+    do
+      writeMDT mlen i (lengthU a)
+      writeMBB marr i a
   freezeMDT (MDUArr len a) = liftM2 DUArr (freezeMDT len)
                                           (unsafeFreezeAllMBB a)
 
