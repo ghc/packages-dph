@@ -16,7 +16,9 @@ module Data.Array.Parallel.Distributed.Operations (
   mapD, zipWithD, foldD, scanD,
   splitScalarD, splitLengthD, splitD, joinD,
   lengthsD, lengthD,
-  permuteD, bpermuteD
+  permuteD, bpermuteD,
+
+  fromD, toD
 ) where
 
 import Data.Array.Parallel.Distributed.Basics
@@ -122,4 +124,16 @@ permuteD g darr dis =
 
 bpermuteD :: UA a => Gang -> UArr a -> Dist (UArr Int) -> Dist (UArr a)
 bpermuteD g = mapD g . bpermuteU
+
+-- | Generate a distributed value from the first @p@ elements of a list.
+-- 
+-- /NOTE:/ Debugging only.
+toD :: MDT a => Gang -> [a] -> Dist a
+toD g xs = runST (toDT g xs)
+
+-- | Yield all elements of a distributed value.
+--
+-- /NOTE:/ Debugging only.
+fromD :: DT a => Gang -> Dist a -> [a]
+fromD = fromDT
 

@@ -6,7 +6,8 @@ exposed:	True
 
 exposed-modules:
 	Data.Array.Parallel,
-	Data.Array.Parallel.Unlifted
+	Data.Array.Parallel.Unlifted,
+        Data.Array.Parallel.Distributed
 
 hidden-modules:
 	Data.Array.Parallel.Base.Config
@@ -16,6 +17,8 @@ hidden-modules:
 	Data.Array.Parallel.Base.BUArr
 	Data.Array.Parallel.Base.BBArr
 	Data.Array.Parallel.Distributed.Types
+        Data.Array.Parallel.Distributed.Basics
+        Data.Array.Parallel.Distributed.Operations
 	Data.Array.Parallel.Distributed.Gang
 	Data.Array.Parallel.Monadic.UArr
 	Data.Array.Parallel.Monadic.SUArr

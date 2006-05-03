@@ -16,7 +16,9 @@ module Data.Array.Parallel.Distributed.Basics (
   mapDT, mapM_DT, mapM_DT_, zipWithDT, zipWithM_DT, zipWithM_DT_,
   foldDT, scanDT,
 
-  lengthDT, splitLengthDT, splitDT, joinDT
+  lengthDT, splitLengthDT, splitDT, joinDT,
+
+  toDT, fromDT
 ) where
 
 import Data.Array.Parallel.Distributed.Types
@@ -115,7 +117,7 @@ joinDT g darr = checkGangDT (here "joinDT") g darr $
 
 -- | Generate a distributed value from the first @p@ elements of a list.
 -- 
--- /NOTE:/ Temporary, will be removed.
+-- /NOTE:/ Debugging only.
 toDT :: MDT a => Gang -> [a] -> ST s (Dist a)
 toDT g xs = do
               mdt <- newMDT g
@@ -124,7 +126,7 @@ toDT g xs = do
 
 -- | Yield all elements of a distributed value.
 --
--- /NOTE:/ Temporary, will be removed.
+-- /NOTE:/ Debugging only.
 fromDT :: DT a => Gang -> Dist a -> [a]
 fromDT g dt = checkGangDT (here "fromDT") g dt $
               map (indexDT dt) [0 .. gangSize g - 1]
