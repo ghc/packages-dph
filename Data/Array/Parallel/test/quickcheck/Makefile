@@ -23,6 +23,8 @@ UNOPT = $(TEST_MODS:.hs=-unopt)
 # we want the tests to be run in the right order
 ALL = $(TEST_MODS:.hs=-all)
 
+TESTMAIN = 'System.Environment.withArgs (words "$(run)") main'
+
 .PHONY: default unopt opt all testsuite
 
 default: unopt
@@ -53,7 +55,7 @@ $(TEST_OBJS) : testsuite
 
 %-unopt:
 	@echo "======== Testing  $(patsubst %-unopt,%,$@) (interpreted) ========"
-	@$(HC) -e main $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) \
+	@$(HC) -e $(TESTMAIN) $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) \
 		| tee $@.log | { grep -v '\.\.\. pass' || true; }
 	@echo "======== Finished $(patsubst %-unopt,%,$@) (interpreted) ========"
 

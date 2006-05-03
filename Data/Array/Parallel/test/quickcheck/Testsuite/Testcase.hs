@@ -5,6 +5,12 @@ module Testsuite.Testcase (
 import Test.QuickCheck
 import Test.QuickCheck.Batch (TestResult(..), run, defOpt)
 
+import Text.Regex
+
+import System.Environment (getArgs)
+
+import Data.Maybe (isJust)
+
 data Test = Test { testName     :: String
                  , testProperty :: Property
                  }
@@ -13,7 +19,10 @@ mkTest :: Testable a => String -> a -> Test
 mkTest name = Test name . property
 
 runTests :: [Test] -> IO ()
-runTests = mapM_ chk
+runTests tests =
+  do
+    args <- getArgs
+    mapM_ chk $ pick args tests
   where
     chk (Test { testName = name, testProperty = prop }) =
       do
@@ -32,4 +41,11 @@ runTests = mapM_ chk
               putStrLn $ "    " ++ show e
     spaces n | n <= 0    = ""
              | otherwise = replicate n ' '
+
+pick :: [String] -> [Test] -> [Test]
+pick [] = id
+pick ss = filter (match (map mkRegex ss))
+  where
+    match :: [Regex] -> Test -> Bool
+    match rs tst = any (\r -> isJust . matchRegex r $ testName tst) rs
 
