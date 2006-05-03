@@ -21,8 +21,12 @@ module Data.Array.Parallel.Distributed (
   -- * Higher-order combinators
   mapD, zipWithD, foldD, scanD,
 
+  -- * Equality
+  eqD, neqD,
+
   -- * Distributed scalars
   splitScalarD,
+  andD, orD, sumD,
 
   -- * Distributed pairs
   zipD, unzipD, fstD, sndD,
@@ -41,11 +45,5 @@ import Data.Array.Parallel.Distributed.Gang (
   Gang, forkGang, gangSize, sequentialGang, seqGang)
 import Data.Array.Parallel.Distributed.Types (
   DT, MDT, Dist)
-import Data.Array.Parallel.Distributed.Operations (
-  zipD, unzipD, fstD, sndD,
-  mapD, zipWithD, foldD, scanD,
-  splitScalarD, splitLengthD, splitD, joinD,
-  lengthsD, lengthD,
-  permuteD, bpermuteD,
-  fromD, toD)
+import Data.Array.Parallel.Distributed.Operations
 

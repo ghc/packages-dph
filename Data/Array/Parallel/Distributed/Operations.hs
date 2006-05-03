@@ -18,6 +18,9 @@ module Data.Array.Parallel.Distributed.Operations (
   lengthsD, lengthD,
   permuteD, bpermuteD,
 
+  andD, orD, sumD,
+  eqD, neqD,
+
   fromD, toD
 ) where
 
@@ -32,6 +35,8 @@ import Data.Array.Parallel.Monadic.UArr
 import Data.Array.Parallel.Base.Hyperstrict
 
 import Control.Monad.ST                         ( runST )
+
+infix 4 `eqD`, `neqD`
 
 -- | Pairing of distributed values
 --
@@ -73,6 +78,33 @@ foldD g f d = runST (foldDT g f d)
 --
 scanD :: MDT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
 scanD g f z d = runST (scanDT g f z d)
+
+-- | Test whether a distributed 'Bool' contains at least one 'True'.
+--
+orD :: Gang -> Dist Bool -> Bool
+orD g = foldD g (||)
+
+-- | Test whether a distributed 'Bool' contains only 'True's.
+--
+andD :: Gang -> Dist Bool -> Bool
+andD g = foldD g (&&)
+
+-- | Sum of a distributed value.
+--
+sumD :: (Num a, MDT a) => Gang -> Dist a -> a
+sumD g = foldD g (+)
+
+-- | Test whether to distributed values are equal. This requires a 'Gang'
+-- and hence can't be defined in terms of 'Eq'.
+--
+eqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
+eqD g dx dy = andD g (zipWithD g (==) dx dy)
+
+-- | Test whether to distributed values are not equal. This requires a 'Gang'
+-- and hence can't be defined in terms of 'Eq'.
+--
+neqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
+neqD g dx dy = orD g (zipWithD g (/=) dx dy)
 
 -- | Distribute a scalar over a 'Gang'.
 --
