@@ -17,8 +17,8 @@ module Data.Array.Parallel.Base.Hyperstrict (
   -- * Strict pairs and sums
   (:*:)(..), (:+:)(..),
 
-  -- * Projection functions
-  fstS, sndS,
+  -- * Injection and projection functions
+  fstS, sndS, pairS, unpairS,
 
   -- * Currying
   curryS, uncurryS,
@@ -38,6 +38,12 @@ fstS (x :*: _) = x
 
 sndS :: a :*: b -> b
 sndS (_ :*: y) = y
+
+pairS :: (a,b) -> a :*: b
+pairS = uncurry (:*:)
+
+unpairS :: a :*: b -> (a,b)
+unpairS (x :*: y) = (x,y)
 
 curryS :: (a :*: b -> c) -> a -> b -> c
 curryS f x y = f (x :*: y) 
