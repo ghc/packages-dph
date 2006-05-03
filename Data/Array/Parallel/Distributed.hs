@@ -1,3 +1,16 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.Array.Parallel.Distributed
+-- Copyright   :  (c) 2006 Roman Leshchinskiy
+-- License     :  see libraries/base/LICENSE
+-- 
+-- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   :  experimental
+-- Portability :  non-portable (GHC Extensions)
+--
+-- Distributed types and operations.
+--
+
 module Data.Array.Parallel.Distributed (
   -- * Gang operations
   Gang, forkGang, gangSize, sequentialGang, seqGang,
