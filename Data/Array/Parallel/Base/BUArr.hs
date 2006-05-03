@@ -95,6 +95,7 @@ import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
 
 -- NDP library
 import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base.Fusion
 
 -- config
 import Data.Array.Parallel.Base.Debug (check, checkLen, checkCritical)
@@ -391,19 +392,6 @@ loopBU mf start a =
 					return $ ma_off + 1
 	      trans (a_off + 1) ma_off' acc'
 
--- |Projection functions that are fusion friendly (as in, we determine when
--- they are inlined)
---
-loopArr :: (arr :*: acc) -> arr
-{-# INLINE [1] loopArr #-}
-loopArr (arr :*: _) = arr
-loopAcc :: (arr :*: acc) -> acc
-{-# INLINE [1] loopAcc #-}
-loopAcc (_ :*: acc) = acc
-loopSndAcc :: (arr :*: (acc1 :*: acc2)) -> (arr :*: acc2)
-{-# INLINE [1] loopSndAcc #-}
-loopSndAcc (arr :*: (_ :*: acc)) = (arr :*: acc)
-
 -- Loop fusion for unboxed arrays
 --
 
@@ -427,9 +415,6 @@ loopSndAcc (arr :*: (_ :*: acc)) = (arr :*: acc)
 	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
     in
     loopSndAcc (loopBU mf (start1 :*: start2) arr)
-
-"loopArr/loopSndAcc" forall x.
-  loopArr (loopSndAcc x) = loopArr x
 
  #-}
 

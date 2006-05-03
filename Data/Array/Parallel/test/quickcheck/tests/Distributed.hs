@@ -158,6 +158,6 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int, UArr (), UArr Int ) |]
   prop_joinD_splitD :: (UA sc, Eq sc) => Gang -> UArr sc -> Bool
   prop_joinD_splitD g arr =
     joinD g (splitD g arr) == arr
-  
+
   |])
 

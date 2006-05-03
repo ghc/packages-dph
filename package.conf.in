@@ -13,6 +13,7 @@ hidden-modules:
 	Data.Array.Parallel.Base.Config
 	Data.Array.Parallel.Base.Debug
 	Data.Array.Parallel.Base.Hyperstrict
+        Data.Array.Parallel.Base.Fusion
 	Data.Array.Parallel.Base.Prim
 	Data.Array.Parallel.Base.BUArr
 	Data.Array.Parallel.Base.BBArr
