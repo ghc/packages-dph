@@ -110,6 +110,14 @@ gangIO (Gang n mvs) p =
 gangST :: Gang -> (Int -> ST s ()) -> ST s ()
 gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
 
+instance Show Gang where
+  showsPrec p (Gang n []) = showString "<<"
+                          . showsPrec p n
+                          . showString " threads (simulated)>>"
+  showsPrec p (Gang n _)  = showString "<<"
+                          . showsPrec p n
+                          . showString " threads>>"
+
 {- Comes from GHC.IOBase now...
 -- | Unsafely embed an 'ST' computation in the 'IO' monad without fixing the
 -- state type. This should go into 'Control.Monad.ST'.
