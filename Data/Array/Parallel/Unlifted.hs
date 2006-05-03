@@ -119,10 +119,10 @@ import Data.Array.Parallel.Monadic.UArr (
 import Data.Array.Parallel.Monadic.SUArr (
   USegd, SUArr, fromUSegd, toUSegd)
 import Data.Array.Parallel.Declarative.Loop (
-  unitsU, replicateU, loopU, replicateSU, loopSU, loopArr, loopArrS, loopAcc,
-  loopAccS, loopSndAcc)
+  unitsU, replicateU, loopU, replicateSU, loopSU)
 import Data.Array.Parallel.Declarative.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL)
+  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
+  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 import Data.Array.Parallel.Unlifted.ListLike
 import Data.Array.Parallel.Unlifted.NeslLike
 

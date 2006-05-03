@@ -32,10 +32,10 @@ import Data.Array.Parallel.Monadic.UArr (
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Declarative.Loop (
-  replicateU, loopU, replicateSU, loopSU,
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
+  replicateU, loopU, replicateSU, loopSU)
 import Data.Array.Parallel.Declarative.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL)
+  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
+  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 import Data.Array.Parallel.Unlifted.ListLike
   ((!:))
 
@@ -59,7 +59,7 @@ toU :: UA e => [e] -> UArr e
 {-# INLINE toU #-}
 toU l = 
   loopArr $ 
-    loopU (\(x:xs) (_::()) -> (xs :*: Just x)) l (replicateU (length l) noAL)
+    loopU (\(x:xs) (_::()) -> (xs :*: Just x)) l (replicateU (length l) ())
 
 -- |Turn a nested list into a segmented parallel array
 --

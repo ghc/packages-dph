@@ -42,10 +42,10 @@ import Data.Array.Parallel.Monadic.UArr (
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU)
 import Data.Array.Parallel.Declarative.Loop (
-  replicateU, loopU, replicateSU, loopSU,
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
+  replicateU, loopU, replicateSU, loopSU)
 import Data.Array.Parallel.Declarative.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL)
+  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
+  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 
 
 infixl 9 !:
@@ -68,7 +68,7 @@ mapU f = loopArr . loopU (mapEFL f) noAL
 --
 (+:+) :: UA e => UArr e -> UArr e -> UArr e
 {-# INLINE (+:+) #-}
-a1 +:+ a2 = loopArr $ loopU extract 0 (replicateU len noAL)
+a1 +:+ a2 = loopArr $ loopU extract 0 (replicateU len ())
   where
     len1 = lengthU a1
     len  = len1 + lengthU a2
@@ -182,7 +182,7 @@ splitAtU n a = (takeU n a, dropU n a)
 -- |Reverse the order of elements in an array
 --
 reverseU :: UA e => UArr e -> UArr e
-reverseU a = loopArr $ loopU extract (len - 1) (replicateU len noAL)
+reverseU a = loopArr $ loopU extract (len - 1) (replicateU len ())
 	     where
 	       len = lengthU a
 	       --
@@ -332,7 +332,7 @@ enumFromToSU starts = enumFromThenToSU starts (mapU succ starts)
 enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
 {-# INLINE enumFromThenToU #-}
 enumFromThenToU start next end = 
-  loopArr $ loopU step start' (replicateU len noAL)
+  loopArr $ loopU step start' (replicateU len ())
   where
     start' = fromEnum start
     next'  = fromEnum next

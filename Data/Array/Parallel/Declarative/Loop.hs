@@ -27,13 +27,15 @@ module Data.Array.Parallel.Declarative.Loop (
   unitsU, replicateU, loopU, replicateSU, loopSU,
 
   -- * Projection combinators for loops
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc
+--  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc
 
 ) where
 
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.Prim
+import Data.Array.Parallel.Base.Fusion (
+  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 import Data.Array.Parallel.Base.BUArr (
   BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 
   ST, runST) 
@@ -210,13 +212,3 @@ loopSU em sm start (SUArr segd arr) =
 		Just e  -> nextMSU mpa segd_i (Just e)
               trans (arr_i + 1) (seg_cnt - 1) segd_i maccs_i acc'
 
--- |Projection functions that are fusion friendly (as in, we determine when
--- they are inlined)
---
-loopArrS :: ((arr :*: accs) :*: acc) -> arr
-{-# INLINE [1] loopArrS #-}
-loopArrS ((arr :*: _) :*: _) = arr
---
-loopAccS :: ((arr :*: accs) :*: acc) -> accs
-{-# INLINE [1] loopAccS #-}
-loopAccS ((_ :*: accs) :*: _) = accs
