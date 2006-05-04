@@ -43,6 +43,10 @@ instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
   arbitrary = fmap toU arbitrary
   coarbitrary = coarbitrary . fromU
 
+instance (UA a, Arbitrary a) => Arbitrary (SUArr a) where
+  arbitrary   = fmap toSU arbitrary
+  coarbitrary = coarbitrary . fromSU
+
 instance Arbitrary Gang where
   arbitrary = sized $ \n -> sequentialGang `fmap` choose (1,n+1)
   coarbitrary = coarbitrary . gangSize
