@@ -62,7 +62,7 @@ fromSU as = let (segd :*: a) = flattenSU as
                 lens         = fromU $ segdUS segd
                 starts       = fromU $ psumUS segd
             in
-            [[a !: i | i <- [start .. start + len]]
+            [[a !: i | i <- [start .. start + len - 1]]
                             | (start, len) <- zip starts lens]
 
 -- |Permutations
