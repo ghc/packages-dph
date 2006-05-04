@@ -34,7 +34,7 @@ module Data.Array.Parallel.Distributed.Types (
   sizeDT, sizeMDT
 ) where
 
-import Monad                                ( liftM, liftM2, zipWithM )
+import Monad                                ( liftM, liftM2 )
 import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
 import Data.Array.Parallel.Arr.Prim
 import Data.Array.Parallel.Arr.BUArr

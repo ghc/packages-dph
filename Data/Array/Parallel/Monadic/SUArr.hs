@@ -27,9 +27,6 @@ module Data.Array.Parallel.Monadic.SUArr (
 
 ) where
 
--- standard libraries
-import Monad (liftM)
-
 -- friends
 import Data.Array.Parallel.Base ((:*:)(..), ST)
 import Data.Array.Parallel.Arr.BUArr (

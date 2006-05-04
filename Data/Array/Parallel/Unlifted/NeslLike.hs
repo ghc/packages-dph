@@ -28,15 +28,14 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Arr.BUArr (
   indexBU)
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, MUArr, lengthU, indexU, extractU, sliceU,
+  UA, UArr, MUArr, lengthU, extractU, sliceU,
   newMU, writeMU, unsafeFreezeMU) 
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Declarative.Loop (
-  unitsU, replicateU, loopU, replicateSU, loopSU)
+  unitsU, loopU, loopSU)
 import Data.Array.Parallel.Declarative.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
+  noAL, mapEFL, loopArr, loopArrS)
 import Data.Array.Parallel.Unlifted.ListLike
   ((!:))
 

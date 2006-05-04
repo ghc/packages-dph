@@ -40,14 +40,10 @@ import Monad (liftM)
 
 -- friends
 import Data.Array.Parallel.Base
-import Data.Array.Parallel.Arr.BUArr (
-  BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU,
-  writeMBU, unsafeFreezeMBU, replicateBU, loopBU, extractBU, mapBU,
-  scanBU, extractMBU, copyMBU)
-import Data.Array.Parallel.Arr.Prim (
-  Prim(..), MPrim(..),
-  unPrim, unMPrim, mkPrim, mkMPrim)
-
+import Data.Array.Parallel.Arr (
+  lengthBU, indexBU, sliceBU,
+  newMBU, writeMBU, copyMBU, unsafeFreezeMBU,
+  Prim(..), MPrim(..))
 
 infixl 9 `indexU`
 

@@ -35,15 +35,15 @@ import Data.Array.Parallel.Base.Debug (
   checkNotEmpty)
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr, lengthU, indexU, sliceU, extractU, newMU, writeMU, unsafeFreezeMU,
+  UA, UArr, lengthU, indexU, sliceU, extractU,
   zipU, unzipU) 
 import Data.Array.Parallel.Monadic.SUArr (
   SUArr, toUSegd, (>:), flattenSU)
 import Data.Array.Parallel.Declarative.Loop (
-  unitsU, replicateU, loopU, replicateSU, loopSU)
+  unitsU, replicateU, loopU, loopSU)
 import Data.Array.Parallel.Declarative.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
+  noAL, mapEFL, filterEFL, foldEFL, scanEFL, keepSFL,
+  loopArr, loopArrS, loopAcc, loopAccS)
 
 
 infixl 9 !:

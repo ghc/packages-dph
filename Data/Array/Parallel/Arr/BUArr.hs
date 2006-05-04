@@ -75,7 +75,7 @@ module Data.Array.Parallel.Arr.BUArr (
 ) where
 
 -- standard library
-import Monad (liftM, zipWithM)
+import Monad (zipWithM)
 
 -- GHC-internal definitions
 import GHC.Prim        (Char#, Int#, Float#, Double#, ByteArray#,

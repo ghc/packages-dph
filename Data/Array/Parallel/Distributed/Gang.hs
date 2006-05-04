@@ -25,7 +25,7 @@ module Data.Array.Parallel.Distributed.Gang (
   sequentialGang, seqGang
 ) where
 
-import GHC.Prim                  ( unsafeCoerce# )
+--import GHC.Prim                  ( unsafeCoerce# )
 import GHC.IOBase
 import GHC.ST
 

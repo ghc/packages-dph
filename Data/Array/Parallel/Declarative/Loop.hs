@@ -35,12 +35,12 @@ module Data.Array.Parallel.Declarative.Loop (
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr.Prim
 import Data.Array.Parallel.Arr.BUArr (
-  BUArr, lengthBU, indexBU, sumBU, scanBU) 
+  lengthBU, indexBU, sumBU, scanBU) 
 import Data.Array.Parallel.Monadic.UArr (
-  UA, UArr(..), MUArr, 
+  UA, UArr(..),
   lengthU, indexU, newMU, writeMU, unsafeFreezeMU)
 import Data.Array.Parallel.Monadic.SUArr (
-  USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
+  USegd(..), SUArr(..),
   newMSU, nextMSU, unsafeFreezeMSU)
 
 

@@ -25,12 +25,10 @@ module Data.Array.Parallel.Declarative.Fusion (
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.Fusion
-import Data.Array.Parallel.Monadic.UArr (
-  UArr(UAUnit), zipU)
 import Data.Array.Parallel.Monadic.SUArr (
   (>:))
 import Data.Array.Parallel.Declarative.Loop (
-  unitsU, replicateU, loopU, replicateSU, loopSU)
+  unitsU, replicateU, loopU, loopSU)
 
 -- Fusion rules
 -- ------------
