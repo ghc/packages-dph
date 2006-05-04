@@ -18,6 +18,7 @@ hidden-modules:
 	Data.Array.Parallel.Arr.Prim
 	Data.Array.Parallel.Arr.BUArr
 	Data.Array.Parallel.Arr.BBArr
+        Data.Array.Parallel.Arr
 	Data.Array.Parallel.Distributed.Types
         Data.Array.Parallel.Distributed.Basics
         Data.Array.Parallel.Distributed.Operations
