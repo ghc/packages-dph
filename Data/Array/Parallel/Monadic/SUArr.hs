@@ -31,11 +31,10 @@ module Data.Array.Parallel.Monadic.SUArr (
 import Monad (liftM)
 
 -- friends
-import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base ((:*:)(..), ST)
 import Data.Array.Parallel.Arr.BUArr (
   BUArr, MBUArr, lengthBU, newMBU, indexBU, sliceBU, readMBU, writeMBU,
-  unsafeFreezeMBU, extractBU, mapBU, scanBU,
-  ST)
+  unsafeFreezeMBU, extractBU, mapBU, scanBU)
 import Data.Array.Parallel.Monadic.UArr (
   UA(..), UArr(..), MUArr, extractU)
 import Data.Array.Parallel.Arr.Prim (

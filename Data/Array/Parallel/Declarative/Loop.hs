@@ -32,13 +32,10 @@ module Data.Array.Parallel.Declarative.Loop (
 ) where
 
 -- friends
-import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr.Prim
-import Data.Array.Parallel.Base.Fusion (
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 import Data.Array.Parallel.Arr.BUArr (
-  BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 
-  ST, runST) 
+  BUArr, lengthBU, indexBU, sumBU, scanBU) 
 import Data.Array.Parallel.Monadic.UArr (
   UA, UArr(..), MUArr, 
   lengthU, indexU, newMU, writeMU, unsafeFreezeMU)

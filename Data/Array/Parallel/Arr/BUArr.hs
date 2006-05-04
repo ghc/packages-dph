@@ -67,11 +67,11 @@ module Data.Array.Parallel.Arr.BUArr (
   toBU, fromBU,
 
   -- * Projection combinators for loops
-  loopArr, loopAcc, loopSndAcc,
+--  loopArr, loopAcc, loopSndAcc,
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
-  Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
-  runST
+--  Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
+--  runST
 ) where
 
 -- standard library
@@ -89,17 +89,11 @@ import GHC.Prim        (Char#, Int#, Float#, Double#, ByteArray#,
 		        readDoubleArray#, writeDoubleArray#) 
 import GHC.Base	       (Char(..), Int(..), (+#), and#, or#, neWord#, int2Word#)
 import GHC.Float       (Float(..), Double(..))
-import GHC.ST	       (ST(..), runST)
 import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
 			bOOL_INDEX, bOOL_BIT, bOOL_NOT_BIT)
 
 -- NDP library
-import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.Fusion
-
--- config
-import Data.Array.Parallel.Base.Debug (check, checkLen, checkCritical)
-
+import Data.Array.Parallel.Base
 
 infixl 9 `indexBU`, `readMBU`
 

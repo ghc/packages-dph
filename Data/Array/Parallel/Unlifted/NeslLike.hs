@@ -23,9 +23,10 @@ module Data.Array.Parallel.Unlifted.NeslLike (
 ) where
 
 -- friends
-import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base (
+  (:*:)(..), fstS, ST, runST)
 import Data.Array.Parallel.Arr.BUArr (
-  indexBU, ST, runST)
+  indexBU)
 import Data.Array.Parallel.Monadic.UArr (
   UA, UArr, MUArr, lengthU, indexU, extractU, sliceU,
   newMU, writeMU, unsafeFreezeMU) 

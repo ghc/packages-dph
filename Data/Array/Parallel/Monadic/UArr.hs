@@ -39,12 +39,11 @@ module Data.Array.Parallel.Monadic.UArr (
 import Monad (liftM)
 
 -- friends
-import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr.BUArr (
   BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU,
-  writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, extractBU, mapBU,
-  scanBU, extractMBU, copyMBU,  
-  ST, runST)
+  writeMBU, unsafeFreezeMBU, replicateBU, loopBU, extractBU, mapBU,
+  scanBU, extractMBU, copyMBU)
 import Data.Array.Parallel.Arr.Prim (
   Prim(..), MPrim(..),
   unPrim, unMPrim, mkPrim, mkMPrim)
