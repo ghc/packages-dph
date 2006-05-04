@@ -24,7 +24,9 @@ hidden-modules:
         Data.Array.Parallel.Distributed.Operations
 	Data.Array.Parallel.Distributed.Gang
 	Data.Array.Parallel.Unlifted.Flat.UArr
+        Data.Array.Parallel.Unlifted.Flat.Loop
 	Data.Array.Parallel.Unlifted.Segmented.SUArr
+        Data.Array.Parallel.Unlifted.Segmented.Loop
 	Data.Array.Parallel.Unlifted.Fusion
 	Data.Array.Parallel.Unlifted.Loop
 	Data.Array.Parallel.Unlifted.ListLike
