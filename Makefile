@@ -5,6 +5,7 @@ ALL_DIRS = \
 	Data/Array \
 	Data/Array/Parallel \
 	Data/Array/Parallel/Base \
+	Data/Array/Parallel/Arr \
 	Data/Array/Parallel/Distributed \
 	Data/Array/Parallel/Monadic \
 	Data/Array/Parallel/Declarative \
