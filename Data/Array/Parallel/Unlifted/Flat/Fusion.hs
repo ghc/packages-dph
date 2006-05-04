@@ -18,8 +18,9 @@
 --  * Add more fusion rules
 --
 
-module Data.Array.Parallel.Unlifted.Flat.Fusion()
-where
+module Data.Array.Parallel.Unlifted.Flat.Fusion(
+  module Data.Array.Parallel.Base.Fusion
+) where
 
 import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.Loop (

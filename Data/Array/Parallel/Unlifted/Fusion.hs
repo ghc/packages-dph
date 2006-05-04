@@ -17,12 +17,10 @@
 --
 
 module Data.Array.Parallel.Unlifted.Fusion (
-  module Data.Array.Parallel.Base.Fusion,
   module Data.Array.Parallel.Unlifted.Flat.Fusion,
   module Data.Array.Parallel.Unlifted.Segmented.Fusion
 ) where
 
-import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.Fusion
 import Data.Array.Parallel.Unlifted.Segmented.Fusion
 

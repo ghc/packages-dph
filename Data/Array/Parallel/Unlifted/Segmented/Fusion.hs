@@ -18,12 +18,12 @@
 --  * Add more fusion rules
 --
 
-module Data.Array.Parallel.Unlifted.Segmented.Fusion()
-where
+module Data.Array.Parallel.Unlifted.Segmented.Fusion(
+  module Data.Array.Parallel.Unlifted.Flat.Fusion
+) where
 
-import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.Loop       (loopU)
-import Data.Array.Parallel.Unlifted.Flat.Fusion     ({-rules only-})
+import Data.Array.Parallel.Unlifted.Flat.Fusion
 import Data.Array.Parallel.Unlifted.Segmented.SUArr ((>:))
 import Data.Array.Parallel.Unlifted.Segmented.Loop  (loopSU)
 

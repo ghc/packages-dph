@@ -26,9 +26,13 @@ hidden-modules:
 	Data.Array.Parallel.Unlifted.Flat.UArr
         Data.Array.Parallel.Unlifted.Flat.Loop
         Data.Array.Parallel.Unlifted.Flat.Fusion
+        Data.Array.Parallel.Unlifted.Flat.ListLike
+        Data.Array.Parallel.Unlifted.Flat.NeslLike
 	Data.Array.Parallel.Unlifted.Segmented.SUArr
         Data.Array.Parallel.Unlifted.Segmented.Loop
         Data.Array.Parallel.Unlifted.Segmented.Fusion
+        Data.Array.Parallel.Unlifted.Segmented.ListLike
+        Data.Array.Parallel.Unlifted.Segmented.NeslLike
 	Data.Array.Parallel.Unlifted.Fusion
 	Data.Array.Parallel.Unlifted.Loop
 	Data.Array.Parallel.Unlifted.ListLike
