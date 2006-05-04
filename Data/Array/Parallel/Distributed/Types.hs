@@ -55,19 +55,19 @@ class DT a where
   -- data MDist a s
 
   -- | Extract a single element of an immutable distributed value.
-  indexDT  :: Dist a -> Int -> a
+  indexDT         :: Dist a -> Int -> a
 
   -- | Create an unitialised distributed value for the given 'Gang'.
-  newMDT    :: Gang -> ST s (MDist a s)
+  newMDT          :: Gang                  -> ST s (MDist a s)
 
   -- | Extract an element from a mutable distributed value.
-  readMDT   :: MDist a s -> Int -> ST s a
+  readMDT         :: MDist a s -> Int      -> ST s a
 
   -- | Write an element of a mutable distributed value.
-  writeMDT  :: MDist a s -> Int -> a -> ST s ()
+  writeMDT        :: MDist a s -> Int -> a -> ST s ()
 
   -- | Unsafely freeze a mutable distributed value.
-  freezeMDT :: MDist a s -> ST s (Dist a)
+  unsafeFreezeMDT :: MDist a s             -> ST s (Dist a)
 
 -- GADTs TO REPLACE ATs FOR THE MOMENT
 data Dist a where
@@ -128,48 +128,48 @@ instance (Show a, DT a) => Show (Dist a) where
 -- ----------------
 
 instance DT () where
-  indexDT  (DUnit n) i      = check (here "indexDT[()]") n i $ ()
-  newMDT                    = return . MDUnit . gangSize
-  readMDT   (MDUnit n) i    = check (here "readMDT[()]")  n i $
-                              return ()
-  writeMDT  (MDUnit n) i () = check (here "writeMDT[()]") n i $
-                              return ()
-  freezeMDT (MDUnit n)      = return $ DUnit n
+  indexDT  (DUnit n) i       = check (here "indexDT[()]") n i $ ()
+  newMDT                     = return . MDUnit . gangSize
+  readMDT   (MDUnit n) i     = check (here "readMDT[()]")  n i $
+                               return ()
+  writeMDT  (MDUnit n) i ()  = check (here "writeMDT[()]") n i $
+                               return ()
+  unsafeFreezeMDT (MDUnit n) = return $ DUnit n
 
 instance DT Bool where
-  indexDT   = indexBU . unDPrim
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexDT         = indexBU . unDPrim
+  newMDT          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT         = readMBU . unMDPrim
+  writeMDT        = writeMBU . unMDPrim
+  unsafeFreezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Char where
-  indexDT   = indexBU . unDPrim
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexDT         = indexBU . unDPrim
+  newMDT          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT         = readMBU . unMDPrim
+  writeMDT        = writeMBU . unMDPrim
+  unsafeFreezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Int where
-  indexDT   = indexBU . unDPrim
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexDT         = indexBU . unDPrim
+  newMDT          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT         = readMBU . unMDPrim
+  writeMDT        = writeMBU . unMDPrim
+  unsafeFreezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Float where
-  indexDT   = indexBU . unDPrim
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexDT         = indexBU . unDPrim
+  newMDT          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT         = readMBU . unMDPrim
+  writeMDT        = writeMBU . unMDPrim
+  unsafeFreezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Double where
-  indexDT   = indexBU  . unDPrim
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexDT         = indexBU  . unDPrim
+  newMDT          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT         = readMBU . unMDPrim
+  writeMDT        = writeMBU . unMDPrim
+  unsafeFreezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance (DT a, DT b) => DT (a :*: b) where
   indexDT d i               = (fstDT d `indexDT` i) :*: (sndDT d `indexDT` i)
@@ -177,7 +177,9 @@ instance (DT a, DT b) => DT (a :*: b) where
   readMDT  (MDProd xs ys) i = liftM2 (:*:) (readMDT xs i) (readMDT ys i)
   writeMDT (MDProd xs ys) i (x :*: y)
                             = writeMDT xs i x >> writeMDT ys i y
-  freezeMDT (MDProd xs ys)  = liftM2 DProd (freezeMDT xs) (freezeMDT ys)
+  unsafeFreezeMDT (MDProd xs ys)
+                            = liftM2 DProd (unsafeFreezeMDT xs)
+                                           (unsafeFreezeMDT ys)
 
 instance UA a => DT (UArr a) where
   indexDT (DUArr _ a) i = indexBB a i
@@ -189,8 +191,8 @@ instance UA a => DT (UArr a) where
     do
       writeMDT mlen i (lengthU a)
       writeMBB marr i a
-  freezeMDT (MDUArr len a) = liftM2 DUArr (freezeMDT len)
-                                          (unsafeFreezeAllMBB a)
+  unsafeFreezeMDT (MDUArr len a) = liftM2 DUArr (unsafeFreezeMDT len)
+                                                (unsafeFreezeAllMBB a)
 
 -- |Basic operations on immutable distributed types
 -- -------------------------------------------
@@ -294,5 +296,5 @@ runDistST (DistST g p) =
   do
     mdt <- newMDT g
     runDistST_ . gangDST g $ writeMyMDT mdt =<< p
-    freezeMDT mdt
+    unsafeFreezeMDT mdt
 

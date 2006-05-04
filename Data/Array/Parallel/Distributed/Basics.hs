@@ -121,7 +121,7 @@ toDT :: DT a => Gang -> [a] -> ST s (Dist a)
 toDT g xs = do
               mdt <- newMDT g
               zipWithM (writeMDT mdt) [0 .. gangSize g - 1] xs
-              freezeMDT mdt
+              unsafeFreezeMDT mdt
 
 -- | Yield all elements of a distributed value.
 --
