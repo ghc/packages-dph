@@ -38,8 +38,6 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Segmented
 	Data.Array.Parallel.Unlifted.Fusion
 	Data.Array.Parallel.Unlifted.Loop
-	Data.Array.Parallel.Unlifted.ListLike
-	Data.Array.Parallel.Unlifted.NeslLike
 
 import-dirs:	IMPORT_DIR
 library-dirs:	LIB_DIR
