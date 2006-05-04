@@ -13,6 +13,10 @@
 --
 -- Loop/replicate combinators for segmented arrays
 --
+-- /WARNING:/ If you import this, you probably also want to
+--            import Data.Array.Parallel.Unlifted.Segmented.Fusion
+--            to get the fusion rules.
+--
 -- Todo ----------------------------------------------------------------------
 --
 

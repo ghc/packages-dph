@@ -13,6 +13,10 @@
 --
 -- Loop/replicate combinators for flat arrays
 --
+-- /WARNING:/ If you import this, you probably also want to
+--            import Data.Array.Parallel.Unlifted.Flat.Fusion
+--            to get the fusion rules.
+--
 -- Todo ----------------------------------------------------------------------
 --
 
