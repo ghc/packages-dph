@@ -31,12 +31,12 @@ import Monad                                ( liftM, zipWithM )
 here s = "Distributed.Basics." ++ s
 
 -- | Map a distributed value on the given 'Gang'.
-mapDT :: (DT a, MDT b) => Gang -> (a -> b) -> Dist a -> ST s (Dist b)
+mapDT :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> ST s (Dist b)
 mapDT g f d = checkGangDT (here "mapDT") g d $
               runDST g (myDT d >>= return . f)
 
 -- | Map an 'ST' computation over a distributed value.
-mapM_DT :: (DT a, MDT b) => Gang -> (a -> ST s b) -> Dist a -> ST s (Dist b)
+mapM_DT :: (DT a, DT b) => Gang -> (a -> ST s b) -> Dist a -> ST s (Dist b)
 mapM_DT g f d = checkGangDT (here "mapST_DT") g d $
                  runDST g (myDT d >>= liftST . f)
 
@@ -47,12 +47,12 @@ mapM_DT_ g f d = checkGangDT (here "mapST_DT_") g d $
                   runDST_ g (myDT d >>= liftST . f)
 
 -- | Zip the distributed values with the given function.
-zipWithDT :: (DT a, DT b, MDT c)
+zipWithDT :: (DT a, DT b, DT c)
           => Gang -> (a -> b -> c) -> Dist a -> Dist b -> ST s (Dist c)
 zipWithDT g f dx dy = mapDT g (uncurryS f) (zipDT dx dy)
 
 -- | Zip two distributed values with an 'ST' computation.
-zipWithM_DT :: (DT a, DT b, MDT c)
+zipWithM_DT :: (DT a, DT b, DT c)
             => Gang -> (a -> b -> ST s c) -> Dist a -> Dist b -> ST s (Dist c)
 zipWithM_DT g f dx dy = mapM_DT g (uncurryS f) (zipDT dx dy)
 
@@ -65,7 +65,7 @@ zipWithM_DT_ g f dx dy = mapM_DT_ g (uncurryS f) (zipDT dx dy)
 -- | Folds a distributed value.
 --
 -- /TODO:/ The current implementation is sequential.
-foldDT :: MDT a => Gang -> (a -> a -> a) -> Dist a -> ST s a
+foldDT :: DT a => Gang -> (a -> a -> a) -> Dist a -> ST s a
 foldDT g f d = checkGangDT (here "foldDT") g d .
                return . foldl1 f $ fromDT g d
 
@@ -73,7 +73,7 @@ foldDT g f d = checkGangDT (here "foldDT") g d .
 -- all elements.
 --
 -- /TODO:/ The current implementation is sequential.
-scanDT :: MDT a => Gang -> (a -> a -> a) -> a -> Dist a -> ST s (Dist a :*: a)
+scanDT :: DT a => Gang -> (a -> a -> a) -> a -> Dist a -> ST s (Dist a :*: a)
 scanDT g f z d = checkGangDT (here "scanDT") g d $
   let xs = scanl f z (fromDT g d)
   in
@@ -117,7 +117,7 @@ joinDT g darr = checkGangDT (here "joinDT") g darr $
 -- | Generate a distributed value from the first @p@ elements of a list.
 -- 
 -- /NOTE:/ Debugging only.
-toDT :: MDT a => Gang -> [a] -> ST s (Dist a)
+toDT :: DT a => Gang -> [a] -> ST s (Dist a)
 toDT g xs = do
               mdt <- newMDT g
               zipWithM (writeMDT mdt) [0 .. gangSize g - 1] xs

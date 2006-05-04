@@ -50,7 +50,7 @@ instance Arbitrary Gang where
 gvector :: Arbitrary a => Gang -> Gen [a]
 gvector = vector . gangSize
 
-gdist :: (Arbitrary a, MDT a) => Gang -> Gen (Dist a)
+gdist :: (Arbitrary a, DT a) => Gang -> Gen (Dist a)
 gdist g = toD g `fmap` gvector g
 
 vtype :: Gen [a] -> a -> Gen [a]

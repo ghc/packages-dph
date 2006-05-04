@@ -61,23 +61,23 @@ sndD = sndDT
 
 -- | Apply a function to each element of a distributed value.
 --
-mapD :: (DT a, MDT b) => Gang -> (a -> b) -> Dist a -> Dist b
+mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
 mapD g f d = runST (mapDT g f d)
 
 -- | Zip two distributed values with a function.
 --
-zipWithD :: (DT a, DT b, MDT c)
+zipWithD :: (DT a, DT b, DT c)
          => Gang -> (a -> b -> c) -> Dist a -> Dist b -> Dist c
 zipWithD g f dx dy = mapD g (uncurryS f) (zipD dx dy)
 
 -- | Fold a distributed value.
 --
-foldD :: MDT a => Gang -> (a -> a -> a) -> Dist a -> a
+foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
 foldD g f d = runST (foldDT g f d)
 
 -- | Scan a distributed value; the 'Dist' is the result of a prescan.
 --
-scanD :: MDT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
+scanD :: DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
 scanD g f z d = runST (scanDT g f z d)
 
 -- | Test whether a distributed 'Bool' contains at least one 'True'.
@@ -92,7 +92,7 @@ andD g = foldD g (&&)
 
 -- | Sum of a distributed value.
 --
-sumD :: (Num a, MDT a) => Gang -> Dist a -> a
+sumD :: (Num a, DT a) => Gang -> Dist a -> a
 sumD g = foldD g (+)
 
 -- | Test whether to distributed values are equal. This requires a 'Gang'
@@ -111,7 +111,7 @@ neqD g dx dy = orD g (zipWithD g (/=) dx dy)
 --
 -- > x /= _|_ ==> mapD g f (splitScalarD g x) == splitScalar g (f x)
 --
-splitScalarD :: MDT a => Gang -> a -> Dist a
+splitScalarD :: DT a => Gang -> a -> Dist a
 splitScalarD g x = x `seq` mapD g (const x) (unitDT g)
 
 -- | Overall length of a distributed array.
@@ -161,7 +161,7 @@ bpermuteD g = mapD g . bpermuteU
 -- | Generate a distributed value from the first @p@ elements of a list.
 -- 
 -- /NOTE:/ Debugging only.
-toD :: MDT a => Gang -> [a] -> Dist a
+toD :: DT a => Gang -> [a] -> Dist a
 toD g xs = runST (toDT g xs)
 
 -- | Yield all elements of a distributed value.

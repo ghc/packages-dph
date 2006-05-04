@@ -6,8 +6,8 @@ import Data.Array.Parallel.Distributed
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Base.Hyperstrict
 
-class    (Eq a, MDT a, Arbitrary a, Show a) => D a
-instance (Eq a, MDT a, Arbitrary a, Show a) => D a
+class    (Eq a, DT a, Arbitrary a, Show a) => D a
+instance (Eq a, DT a, Arbitrary a, Show a) => D a
 
 class    (Eq a, UA a, Arbitrary a, Show a) => U a
 instance (Eq a, UA a, Arbitrary a, Show a) => U a

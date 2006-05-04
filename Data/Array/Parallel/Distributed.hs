@@ -16,7 +16,7 @@ module Data.Array.Parallel.Distributed (
   Gang, forkGang, gangSize, sequentialGang, seqGang,
 
   -- * Distributed types and classes
-  DT, MDT, Dist,
+  DT, Dist,
 
   -- * Higher-order combinators
   mapD, zipWithD, foldD, scanD,
@@ -44,6 +44,6 @@ module Data.Array.Parallel.Distributed (
 import Data.Array.Parallel.Distributed.Gang (
   Gang, forkGang, gangSize, sequentialGang, seqGang)
 import Data.Array.Parallel.Distributed.Types (
-  DT, MDT, Dist)
+  DT, Dist)
 import Data.Array.Parallel.Distributed.Operations
 

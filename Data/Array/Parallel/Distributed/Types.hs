@@ -12,14 +12,11 @@
 --
 
 module Data.Array.Parallel.Distributed.Types (
-  -- * Immutable distributed types
-  DT(..), Dist,
+  -- * Distributed types
+  DT(..), Dist, MDist,
 
   -- * Operations on immutable distributed types
   unitDT, zipDT, unzipDT, fstDT, sndDT, lengthsDT,
-
-  -- * Mutable distributed types
-  MDT(..), MDist,
 
   -- * Distributed computations
   DST, myDT, readMyMDT, writeMyMDT,
@@ -46,21 +43,33 @@ infixl 9 `indexDT`
 
 here s = "Distributed.Types." ++ s
 
--- |Immutable distributed types
+-- |Distributed types
 -- ----------------------------
 
--- | Class of immutable distributed types. Instances of 'DT' can be
--- distributed across all workers of a 'Gang'. At the moment, all such types
+-- | Class of distributable types. Instances of 'DT' can be
+-- distributed across all workers of a 'Gang'. All such types
 -- must be hyperstrict as we do not want to pass thunks into distributed
--- computations. This may change if distributed computations themselves
--- becomes instances of 'DT'.
+-- computations.
 class DT a where
   -- data Dist a
+  -- data MDist a s
 
   -- | Extract a single element of an immutable distributed value.
   indexDT  :: Dist a -> Int -> a
 
--- GADT TO REPLACE AT FOR THE MOMENT
+  -- | Create an unitialised distributed value for the given 'Gang'.
+  newMDT    :: Gang -> ST s (MDist a s)
+
+  -- | Extract an element from a mutable distributed value.
+  readMDT   :: MDist a s -> Int -> ST s a
+
+  -- | Write an element of a mutable distributed value.
+  writeMDT  :: MDist a s -> Int -> a -> ST s ()
+
+  -- | Unsafely freeze a mutable distributed value.
+  freezeMDT :: MDist a s -> ST s (Dist a)
+
+-- GADTs TO REPLACE ATs FOR THE MOMENT
 data Dist a where
   DUnit  :: !Int                   -> Dist ()
   DPrim  :: !(Prim a)              -> Dist a
@@ -70,8 +79,17 @@ data Dist a where
   -- | Distributed computations
   DistST :: !Gang -> !(DST s a) -> Dist (ST s a)
 
+data MDist a s where
+  MDUnit  :: !Int                         -> MDist ()          s
+  MDPrim  :: !(MPrim a s)                 -> MDist a           s
+  MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b)   s
+  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)    s
+
 unDPrim :: Dist a -> BUArr a
 unDPrim (DPrim p) = unPrim p
+
+unMDPrim :: MDist a s -> MBUArr s a
+unMDPrim (MDPrim p) = unMPrim p
 
 -- Distributing hyperstrict types may not change their strictness.
 instance (HS a, DT a) => HS (Dist a)
@@ -89,6 +107,19 @@ sizeDT (DistST g d) = gangSize g
 checkGangDT :: DT a => String -> Gang -> Dist a -> b -> b
 checkGangDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeDT d) v
 
+-- | Number of elements in the mutable distributed value. This is for debugging
+-- only and is thus not a method of 'DT'.
+sizeMDT :: MDist a s -> Int
+sizeMDT (MDUnit  n)    = n
+sizeMDT (MDPrim  p)    = lengthMBU (unMPrim p)
+sizeMDT (MDProd  x y)  = sizeMDT x
+sizeMDT (MDUArr  _ ma) = lengthMBB ma
+
+-- | Check that the sizes of the 'Gang' and of the mutable distributed value
+-- match.
+checkGangMDT :: DT a => String -> Gang -> MDist a s -> b -> b
+checkGangMDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMDT d) v
+
 -- Show instance (for debugging only)
 instance (Show a, DT a) => Show (Dist a) where
   show d = show (map (indexDT d) [0 .. sizeDT d - 1])
@@ -97,30 +128,71 @@ instance (Show a, DT a) => Show (Dist a) where
 -- ----------------
 
 instance DT () where
-  indexDT  (DUnit n) i = check (here "indexDT[()]") n i $ ()
+  indexDT  (DUnit n) i      = check (here "indexDT[()]") n i $ ()
+  newMDT                    = return . MDUnit . gangSize
+  readMDT   (MDUnit n) i    = check (here "readMDT[()]")  n i $
+                              return ()
+  writeMDT  (MDUnit n) i () = check (here "writeMDT[()]") n i $
+                              return ()
+  freezeMDT (MDUnit n)      = return $ DUnit n
 
 instance DT Bool where
-  indexDT  = indexBU  . unDPrim
+  indexDT   = indexBU . unDPrim
+  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT   = readMBU . unMDPrim
+  writeMDT  = writeMBU . unMDPrim
+  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Char where
-  indexDT  = indexBU  . unDPrim
+  indexDT   = indexBU . unDPrim
+  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT   = readMBU . unMDPrim
+  writeMDT  = writeMBU . unMDPrim
+  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Int where
-  indexDT  = indexBU  . unDPrim
+  indexDT   = indexBU . unDPrim
+  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT   = readMBU . unMDPrim
+  writeMDT  = writeMBU . unMDPrim
+  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Float where
-  indexDT  = indexBU  . unDPrim
+  indexDT   = indexBU . unDPrim
+  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT   = readMBU . unMDPrim
+  writeMDT  = writeMBU . unMDPrim
+  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance DT Double where
-  indexDT  = indexBU  . unDPrim
+  indexDT   = indexBU  . unDPrim
+  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
+  readMDT   = readMBU . unMDPrim
+  writeMDT  = writeMBU . unMDPrim
+  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
 
 instance (DT a, DT b) => DT (a :*: b) where
-  indexDT d i = (fstDT d `indexDT` i) :*: (sndDT d `indexDT` i)
+  indexDT d i               = (fstDT d `indexDT` i) :*: (sndDT d `indexDT` i)
+  newMDT g                  = liftM2 MDProd (newMDT g) (newMDT g)
+  readMDT  (MDProd xs ys) i = liftM2 (:*:) (readMDT xs i) (readMDT ys i)
+  writeMDT (MDProd xs ys) i (x :*: y)
+                            = writeMDT xs i x >> writeMDT ys i y
+  freezeMDT (MDProd xs ys)  = liftM2 DProd (freezeMDT xs) (freezeMDT ys)
 
 instance UA a => DT (UArr a) where
   indexDT (DUArr _ a) i = indexBB a i
+  newMDT g = liftM2 MDUArr (newMDT g)
+                           (newMBB (gangSize g)
+                                   (uninitialised $ here "newMDT[UArr a]"))
+  readMDT (MDUArr _ marr) = readMBB marr
+  writeMDT (MDUArr mlen marr) i a =
+    do
+      writeMDT mlen i (lengthU a)
+      writeMBB marr i a
+  freezeMDT (MDUArr len a) = liftM2 DUArr (freezeMDT len)
+                                          (unsafeFreezeAllMBB a)
 
--- | Operations on immutable distributed types
+-- |Basic operations on immutable distributed types
 -- -------------------------------------------
 
 -- | Yield a distributed unit.
@@ -148,114 +220,6 @@ sndDT = sndS . unzipDT
 -- | Yield the distributed length of a distributed array.
 lengthsDT :: UA a => Dist (UArr a) -> Dist Int
 lengthsDT (DUArr l _) = l
-
--- | Mutable distributed types
--- ---------------------------
-
--- | Class of mutable distributed types. Note that all such types must be
--- hyperstrict as we do not want to return thunks from distributed
--- computations.
-class (DT a, HS a) => MDT a where
-  -- data MDist a s
-
-  -- | Create an unitialised distributed value for the given 'Gang'.
-  newMDT    :: Gang -> ST s (MDist a s)
-
-  -- | Extract an element from a mutable distributed value.
-  readMDT   :: MDist a s -> Int -> ST s a
-
-  -- | Write an element of a mutable distributed value.
-  writeMDT  :: MDist a s -> Int -> a -> ST s ()
-
-  -- | Unsafely freeze a mutable distributed value.
-  freezeMDT :: MDist a s -> ST s (Dist a)
-
--- GADT TO REPLACE AT FOR THE MOMENT
-data MDist a s where
-  MDUnit  :: !Int                         -> MDist ()          s
-  MDPrim  :: !(MPrim a s)                 -> MDist a           s
-  MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b)   s
-  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)    s
-
-unMDPrim :: MDist a s -> MBUArr s a
-unMDPrim (MDPrim p) = unMPrim p
-
-unMDUArr :: MDist (UArr a) s -> MBBArr s (UArr a)
-unMDUArr (MDUArr _ marr) = marr
-
--- | Number of elements in the mutable distributed value. This is for debugging
--- only and is thus not a method of 'MDT'.
-sizeMDT :: MDist a s -> Int
-sizeMDT (MDUnit  n)    = n
-sizeMDT (MDPrim  p)    = lengthMBU (unMPrim p)
-sizeMDT (MDProd  x y)  = sizeMDT x
-sizeMDT (MDUArr  _ ma) = lengthMBB ma
-
--- | Check that the sizes of the 'Gang' and of the distributed value match.
-checkGangMDT :: MDT a => String -> Gang -> MDist a s -> b -> b
-checkGangMDT loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMDT d) v
-
--- | MDT instances
--- ---------------
-
-instance MDT () where
-  newMDT                    = return . MDUnit . gangSize
-  readMDT   (MDUnit n) i    = check (here "readMDT[()]")  n i $
-                              return ()
-  writeMDT  (MDUnit n) i () = check (here "writeMDT[()]") n i $
-                              return ()
-  freezeMDT (MDUnit n)      = return $ DUnit n
-
-instance MDT Bool where
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
-
-instance MDT Char where
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
-
-instance MDT Int where
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
-
-instance MDT Float where
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
-
-instance MDT Double where
-  newMDT    = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMDT   = readMBU . unMDPrim
-  writeMDT  = writeMBU . unMDPrim
-  freezeMDT = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
-
-instance (MDT a, MDT b) => MDT (a :*: b) where
-  newMDT g                   = liftM2 MDProd (newMDT g) (newMDT g)
-  readMDT   (MDProd xs ys) i = liftM2 (:*:) (readMDT xs i) (readMDT ys i)
-  writeMDT  (MDProd xs ys) i (x :*: y) =
-    do
-      writeMDT xs i x
-      writeMDT ys i y
-  freezeMDT (MDProd xs ys)   = liftM2 DProd (freezeMDT xs) (freezeMDT ys)
-
-instance UA a => MDT (UArr a) where
-  newMDT g = liftM2 MDUArr (newMDT g)
-                           (newMBB (gangSize g)
-                                   (uninitialised $ here "newMDT[UArr a]"))
-  readMDT  = readMBB  . unMDUArr
-  writeMDT (MDUArr mlen marr) i a =
-    do
-      writeMDT mlen i (lengthU a)
-      writeMBB marr i a
-  freezeMDT (MDUArr len a) = liftM2 DUArr (freezeMDT len)
-                                          (unsafeFreezeAllMBB a)
 
 -- | Distributed computations.
 --
@@ -296,13 +260,13 @@ myDT :: DT a => Dist a -> DST s a
 myDT dt = liftM (indexDT dt) dindex
 
 -- | Yields the 'MDist' element owned by the current thread.
-readMyMDT :: MDT a => MDist a s -> DST s a
+readMyMDT :: DT a => MDist a s -> DST s a
 readMyMDT mdt = do
                      i <- dindex
                      liftST $ readMDT mdt i
 
 -- | Writes the 'MDist' element owned by the current thread.
-writeMyMDT :: MDT a => MDist a s -> a -> DST s ()
+writeMyMDT :: DT a => MDist a s -> a -> DST s ()
 writeMyMDT mdt x = do
                         i <- dindex
                         liftST $ writeMDT mdt i x
@@ -317,7 +281,7 @@ runDST_ g = runDistST_ . gangDST g
 
 -- | Runs a data-parallel computation on a 'Gang', yielding the distributed
 -- result.
-runDST :: MDT a => Gang -> DST s a -> ST s (Dist a)
+runDST :: DT a => Gang -> DST s a -> ST s (Dist a)
 runDST g = runDistST . gangDST g
 
 -- | Runs a distributed computation.
@@ -325,14 +289,10 @@ runDistST_ :: Dist (ST s ()) -> ST s ()
 runDistST_ (DistST g p) = gangST g (unDST p)
 
 -- | Runs a distributed computation, yielding the distributed result.
-runDistST :: MDT a => Dist (ST s a) -> ST s (Dist a)
+runDistST :: DT a => Dist (ST s a) -> ST s (Dist a)
 runDistST (DistST g p) =
   do
     mdt <- newMDT g
     runDistST_ . gangDST g $ writeMyMDT mdt =<< p
     freezeMDT mdt
-
-instance DT (ST s a) where
-  indexDT (DistST g p) i = check (here "indexDT[ST s a]") (gangSize g) i $
-                           unDST p i
 
