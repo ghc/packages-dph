@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-incomplete-patterns #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Parallel.Distributed.Types

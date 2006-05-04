@@ -18,7 +18,6 @@ VERSION = 1.0
 
 SRC_HC_OPTS += -fglasgow-exts -O2 -funbox-strict-fields\
 	       -fliberate-case-threshold100 -fno-method-sharing
-EXTRA_HC_OPTS += -fno-warn-incomplete-patterns
 
 PACKAGE_DEPS = base
 SRC_HADDOCK_OPTS += -t "Haskell Hierarchical Libraries (ndp package)"
