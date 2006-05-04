@@ -22,6 +22,7 @@ module Data.Array.Parallel.Distributed.Basics (
 ) where
 
 import Data.Array.Parallel.Distributed.Types
+import Data.Array.Parallel.Distributed.DistST
 import Data.Array.Parallel.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Flat.UArr
 import Data.Array.Parallel.Base
@@ -33,18 +34,18 @@ here s = "Distributed.Basics." ++ s
 -- | Map a distributed value on the given 'Gang'.
 mapDT :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> ST s (Dist b)
 mapDT g f d = checkGangDT (here "mapDT") g d $
-              runDST g (myDT d >>= return . f)
+              runDistST g (myDT d >>= return . f)
 
 -- | Map an 'ST' computation over a distributed value.
 mapM_DT :: (DT a, DT b) => Gang -> (a -> ST s b) -> Dist a -> ST s (Dist b)
 mapM_DT g f d = checkGangDT (here "mapST_DT") g d $
-                 runDST g (myDT d >>= liftST . f)
+                 runDistST g (myDT d >>= distST . f)
 
 -- | Map an 'ST' computation which does not produce a result over a
 -- distributed value.
 mapM_DT_ :: DT a => Gang -> (a -> ST s ()) -> Dist a -> ST s ()
 mapM_DT_ g f d = checkGangDT (here "mapST_DT_") g d $
-                  runDST_ g (myDT d >>= liftST . f)
+                  runDistST_ g (myDT d >>= distST . f)
 
 -- | Zip the distributed values with the given function.
 zipWithDT :: (DT a, DT b, DT c)

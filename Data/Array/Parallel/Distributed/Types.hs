@@ -18,12 +18,6 @@ module Data.Array.Parallel.Distributed.Types (
   -- * Operations on immutable distributed types
   unitDT, zipDT, unzipDT, fstDT, sndDT, lengthsDT,
 
-  -- * Distributed computations
-  DST, myDT, readMyMDT, writeMyMDT,
-  runDistST_, runDistST,
-  gangDST, runDST_, runDST,
-  liftST,
-
   -- * Assertions
   checkGangDT, checkGangMDT,
 
@@ -32,7 +26,7 @@ module Data.Array.Parallel.Distributed.Types (
 ) where
 
 import Monad                                ( liftM, liftM2 )
-import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
+import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize )
 import Data.Array.Parallel.Arr.Prim
 import Data.Array.Parallel.Arr.BUArr
 import Data.Array.Parallel.Arr.BBArr
@@ -71,19 +65,16 @@ class DT a where
 
 -- GADTs TO REPLACE ATs FOR THE MOMENT
 data Dist a where
-  DUnit  :: !Int                   -> Dist ()
-  DPrim  :: !(Prim a)              -> Dist a
-  DProd  :: !(Dist a) -> !(Dist b) -> Dist (a :*: b)
-  -- | Distributed arrays
+  DUnit  :: !Int                             -> Dist ()
+  DPrim  :: !(Prim a)                        -> Dist a
+  DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
-  -- | Distributed computations
-  DistST :: !Gang -> !(DST s a) -> Dist (ST s a)
 
 data MDist a s where
-  MDUnit  :: !Int                         -> MDist ()          s
-  MDPrim  :: !(MPrim a s)                 -> MDist a           s
-  MDProd  :: !(MDist a s) -> !(MDist b s) -> MDist (a :*: b)   s
-  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)    s
+  MDUnit  :: !Int                                   -> MDist ()        s
+  MDPrim  :: !(MPrim a s)                           -> MDist a         s
+  MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b) s
+  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)  s
 
 unDPrim :: Dist a -> BUArr a
 unDPrim (DPrim p) = unPrim p
@@ -101,7 +92,6 @@ sizeDT (DUnit  n)   = n
 sizeDT (DPrim  p)   = lengthBU (unPrim p)
 sizeDT (DProd  x y) = sizeDT x
 sizeDT (DUArr  _ a) = lengthBB a
-sizeDT (DistST g d) = gangSize g
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangDT :: DT a => String -> Gang -> Dist a -> b -> b
@@ -222,79 +212,4 @@ sndDT = sndS . unzipDT
 -- | Yield the distributed length of a distributed array.
 lengthsDT :: UA a => Dist (UArr a) -> Dist Int
 lengthsDT (DUArr l _) = l
-
--- | Distributed computations.
---
--- Data-parallel computations of type 'DST' are data-parallel computations which
--- are run on each thread of a gang. At the moment, they can only access the
--- element of a (possibly mutable) distributed value owned by the current
--- thread. A 'DST' computation can be turned into a distributed 'ST'
--- computation by binding it to a specific gang. Note that 'DST s a' is
--- shapeless (i.e. can be run on any 'Gang') whereas 'Dist (ST s a)', like all
--- distributed values, is tied to a specific 'Gang'.
---
--- /TODO:/ Move this to a separate module once we have ATs.
---
--- /TODO:/ Add facilities for implementing parallel scans etc.
---
--- /TODO:/ Documentation.
-
--- | Data-parallel computations.
-newtype DST s a = DST { unDST :: Int -> ST s a }
-
-instance Monad (DST s) where
-  return         = DST . const . return 
-  DST p >>= f = DST $ \i -> do
-                                    x <- p i
-                                    unDST (f x) i
-
--- | Yields the index of the current thread within its gang.
-dindex :: DST s Int
-dindex = DST return
-
--- | Lifts an 'ST' computation into the 'DST' monad. The lifted computation
--- should be data parallel.
-liftST :: ST s a -> DST s a
-liftST p = DST $ \i -> p
-
--- | Yields the 'Dist' element owned by the current thread.
-myDT :: DT a => Dist a -> DST s a
-myDT dt = liftM (indexDT dt) dindex
-
--- | Yields the 'MDist' element owned by the current thread.
-readMyMDT :: DT a => MDist a s -> DST s a
-readMyMDT mdt = do
-                     i <- dindex
-                     liftST $ readMDT mdt i
-
--- | Writes the 'MDist' element owned by the current thread.
-writeMyMDT :: DT a => MDist a s -> a -> DST s ()
-writeMyMDT mdt x = do
-                        i <- dindex
-                        liftST $ writeMDT mdt i x
-
--- | Distributes a data-parallel computation over a 'Gang'.
-gangDST :: Gang -> DST s a -> Dist (ST s a)
-gangDST = DistST
-
--- | Runs a data-parallel computation on a 'Gang'. 
-runDST_ :: Gang -> DST s () -> ST s ()
-runDST_ g = runDistST_ . gangDST g
-
--- | Runs a data-parallel computation on a 'Gang', yielding the distributed
--- result.
-runDST :: DT a => Gang -> DST s a -> ST s (Dist a)
-runDST g = runDistST . gangDST g
-
--- | Runs a distributed computation.
-runDistST_ :: Dist (ST s ()) -> ST s ()
-runDistST_ (DistST g p) = gangST g (unDST p)
-
--- | Runs a distributed computation, yielding the distributed result.
-runDistST :: DT a => Dist (ST s a) -> ST s (Dist a)
-runDistST (DistST g p) =
-  do
-    mdt <- newMDT g
-    runDistST_ . gangDST g $ writeMyMDT mdt =<< p
-    unsafeFreezeMDT mdt
 
