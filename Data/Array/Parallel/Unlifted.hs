@@ -149,7 +149,20 @@ instance Show USegd where
 		     . showChar ')'
 
 -- |
+instance (Show e, UA e) => Show (SUArr e) where
+  showsPrec _ = (showString "toSU" .) . showList . fromSU
+
+-- |
 instance (Eq e, UA e) => Eq (UArr e) where
   a1 == a2 = lengthU a1 == lengthU a2 && foldlU cmp True (zipU a1 a2)
 	     where
 	       cmp r (e1 :*: e2) = e1 == e2 && r
+
+-- |
+instance Eq USegd where
+  segd1 == segd2 = fromUSegd segd1 == fromUSegd segd2
+
+-- |
+instance (Eq e, UA e) => Eq (SUArr e) where
+  a1 == a2 = flattenSU a1 == flattenSU a2
+
