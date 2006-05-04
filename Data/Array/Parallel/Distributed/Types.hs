@@ -21,9 +21,6 @@ module Data.Array.Parallel.Distributed.Types (
   -- * Mutable distributed types
   MDT(..), MDist,
 
-  -- * Distributed references
-  DRef, dref, readDRef, writeDRef,
-
   -- * Distributed computations
   DST, myDT, readMyMDT, writeMyMDT,
   runDistST_, runDistST,
@@ -71,8 +68,6 @@ data Dist a where
   DProd  :: !(Dist a) -> !(Dist b) -> Dist (a :*: b)
   -- | Distributed arrays
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
-  -- | Distributed references
-  DDRef  :: !(MDist a s)           -> Dist (DRef s a)
   -- | Distributed computations
   DistST :: !Gang -> !(DST s a) -> Dist (ST s a)
 
@@ -89,7 +84,6 @@ sizeDT (DUnit  n)   = n
 sizeDT (DPrim  p)   = lengthBU (unPrim p)
 sizeDT (DProd  x y) = sizeDT x
 sizeDT (DUArr  _ a) = lengthBB a
-sizeDT (DDRef  md)  = sizeMDT md
 sizeDT (DistST g d) = gangSize g
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
@@ -263,50 +257,6 @@ instance UA a => MDT (UArr a) where
       writeMBB marr i a
   freezeMDT (MDUArr len a) = liftM2 DUArr (freezeMDT len)
                                           (unsafeFreezeAllMBB a)
-
--- | Mutable distributed references
---
--- Distributed references provide a mechanism for safely embedding mutable
--- distributed values into immutable ones. A mutable distributed value of type
--- @'MDist' a s@ can be turned into an immutable distributed reference of type
--- @'Dist' ('DRef' s a)@. A 'DRef' can be used to write and read a single
--- element of a mutable distributed value. The only way to obtain one is to
--- run a distributed computation on a distributed reference.
---
--- Note that 'DRef's are instances of 'DT' but not of 'MDT'. Thus, they can be
--- stored in immutable distributed values but not in mutable ones. This means
--- that a worker can never change /which/ value the 'DRef' points to
--- (although it can modify that value). The reasons for this are fairly
--- obvious - we do not want two workers modifying the same 'DRef' to point
--- to different distributed values as this would, in a way, break the data
--- parallel model.
---
--- Incidentially, this also ensures that we can never return 'DRef's from
--- 'Gang' computations. This is because results of such computations must be
--- instances of 'MDT' as they are written into mutable distributed values by
--- the primitives. This may or may not be useful.
---
--- /TODO:/ Move 'DRef's into a separate module once we have ATs.
-
--- | References to individual elements of a mutable distributed value.
-data DRef s a = DRef !(MDist a s) !Int
-
--- | Yield a distributed reference for a mutable distributed value.
-dref :: MDT a => MDist a s -> Dist (DRef s a)
-dref = DDRef
-
--- | Read a reference.
-readDRef :: MDT a => DRef s a -> ST s a
-readDRef (DRef md i) = readMDT md i
-
--- | Write a reference.
-writeDRef :: MDT a => DRef s a -> a -> ST s ()
-writeDRef (DRef md i) = writeMDT md i
-
-instance HS a => HS (DRef s a)
-
-instance MDT a => DT (DRef s a) where
-  indexDT  (DDRef mdt) = DRef mdt
 
 -- | Distributed computations.
 --
