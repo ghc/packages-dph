@@ -26,12 +26,10 @@ module Data.Array.Parallel.Unlifted.Segmented.Loop (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), runST)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
-  lengthU, indexU,
+  lengthU, (!:), sumU, scanU,
   newMU, writeMU, unsafeFreezeMU)
-import Data.Array.Parallel.Unlifted.Flat.ListLike (
-  sumU, scanU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr(
   SUArr(..), USegd(..),
   newMSU, nextMSU, unsafeFreezeMSU)
@@ -58,7 +56,7 @@ replicateSU ns es =
         fillSegs i j 
 	  | i == m    = return ()
 	  | otherwise = do
-			  j' <- fill j (ns `indexU` i) (es `indexU` i)
+			  j' <- fill j (ns !: i) (es !: i)
 			  fillSegs (i + 1) j'
 	--
 	fill j 0 e = return j
@@ -127,14 +125,14 @@ loopSU em sm start (SUArr segd arr) =
 	        then 
 		  return (maccs_i' :*: acc')
 		else do
-		  let seg_cnt' = segd1 `indexU` segd_i' -- get new seg length
+		  let seg_cnt' = segd1 !: segd_i' -- get new seg length
 		  nextMSU mpa segd_i' Nothing            -- init target seg
 		  trans arr_i seg_cnt' segd_i' maccs_i' acc'
           | otherwise    =      -- continue with current segment
 	    segd_i  `seq`
 	    maccs_i `seq`
 	    do
-	      let (acc' :*: oe) = em acc (arr `indexU` arr_i)
+	      let (acc' :*: oe) = em acc (arr !: arr_i)
 	      case oe of
 	        Nothing -> return ()
 		Just e  -> nextMSU mpa segd_i (Just e)

@@ -29,12 +29,10 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
 
 -- friends
 import Data.Array.Parallel.Base ((:*:)(..), ST)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr(..), MUArr,
-  indexU, sliceU, extractU,
+import Data.Array.Parallel.Unlifted.Flat (
+  UA, UArr, MUArr,
+  lengthU, (!:), sliceU, extractU, mapU, scanU,
   newMU, readMU, writeMU, unsafeFreezeMU)
-import Data.Array.Parallel.Unlifted.Flat.ListLike (
-  lengthU, mapU, scanU)
 
 infixl 9 `indexSU`
 infixr 9 >:
@@ -83,8 +81,8 @@ lengthSU (SUArr segd _) = lengthU (segdUS segd)
 -- (either 'sliceU' or 'extractU').
 -- 
 indexSU :: UA e => (UArr e -> Int -> Int -> UArr e) -> SUArr e -> Int -> UArr e
-indexSU copy (SUArr segd a) i = copy a (psumUS segd `indexU` i)
-                                       (segdUS segd `indexU` i)
+indexSU copy (SUArr segd a) i = copy a (psumUS segd !: i)
+                                       (segdUS segd !: i)
 
 -- |Extract the segment at the given index without copying the elements.
 --
@@ -103,12 +101,12 @@ sliceSU (SUArr segd a) i n =
   let
     segd1 = segdUS segd
     psum  = psumUS segd
-    m     = if i == 0 then 0 else psum `indexU` (i - 1)
+    m     = if i == 0 then 0 else psum !: (i - 1)
     psum' = mapU (subtract m) (sliceU psum i n)
     segd' = USegd (sliceU segd1 i n) psum'
-    i'    = psum `indexU` i
+    i'    = psum !: i
   in
-  SUArr segd' (sliceU a i' (psum `indexU` (i + n - 1) - i' + 1))
+  SUArr segd' (sliceU a i' (psum !: (i + n - 1) - i' + 1))
 
 -- |Extract a subrange of the segmented array (elements are copied).
 --
@@ -117,12 +115,12 @@ extractSU (SUArr segd a) i n =
   let
     segd1 = segdUS segd
     psum  = psumUS segd
-    m     = if i == 0 then 0 else psum `indexU` (i - 1)
+    m     = if i == 0 then 0 else psum !: (i - 1)
     psum' = mapU (subtract m) (extractU psum i n)
     segd' = USegd (extractU segd1 i n) psum'
-    i'    = psum `indexU` i
+    i'    = psum !: i
   in
-  SUArr segd' (extractU a i' (psum `indexU` (i + n - 1) - i' + 1))
+  SUArr segd' (extractU a i' (psum !: (i + n - 1) - i' + 1))
 
 -- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
 -- iteratively define a segmented mutable array; i.e., arrays of type `MSUArr
@@ -173,8 +171,8 @@ unsafeFreezeMSU (MSUArr segd a) n =
   do
     segd' <- unsafeFreezeMU (segdMUS segd) n
     psum' <- unsafeFreezeMU (psumMUS segd) n
-    let n' = if n == 0 then 0 else psum' `indexU` (n - 1) + 
-				   segd' `indexU` (n - 1)
+    let n' = if n == 0 then 0 else psum' !: (n - 1) + 
+				   segd' !: (n - 1)
     a' <- unsafeFreezeMU a n'
     return $ SUArr (USegd segd' psum') a'
 

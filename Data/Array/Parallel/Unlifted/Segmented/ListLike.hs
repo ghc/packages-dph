@@ -25,9 +25,8 @@ module Data.Array.Parallel.Unlifted.Segmented.ListLike (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr)
-import Data.Array.Parallel.Unlifted.Flat.ListLike (
+import Data.Array.Parallel.Unlifted.Flat (
+  UA, UArr,
   (!:), lengthU, mapU, replicateU, zipWith3U, sumU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, toUSegd, flattenSU, (>:))

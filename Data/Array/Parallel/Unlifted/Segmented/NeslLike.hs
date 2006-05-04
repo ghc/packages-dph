@@ -22,12 +22,9 @@ module Data.Array.Parallel.Unlifted.Segmented.NeslLike (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr)
-import Data.Array.Parallel.Unlifted.Flat.ListLike
-  ((!:))
-import Data.Array.Parallel.Unlifted.Flat.NeslLike (
-  toU)
+import Data.Array.Parallel.Unlifted.Flat (
+  UA, UArr,
+  (!:), toU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, toUSegd, (>:), flattenSU, psumUS) 
 import Data.Array.Parallel.Unlifted.Segmented.Loop (

@@ -114,18 +114,11 @@ module Data.Array.Parallel.Unlifted (
 ) where
 
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr)
-import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  USegd, SUArr, fromUSegd, toUSegd)
-import Data.Array.Parallel.Unlifted.Loop (
-  unitsU, replicateU, loopU, replicateSU, loopSU)
-import Data.Array.Parallel.Unlifted.Fusion (
+import Data.Array.Parallel.Base.Fusion (
   noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
-import Data.Array.Parallel.Unlifted.ListLike
-import Data.Array.Parallel.Unlifted.NeslLike
-
+import Data.Array.Parallel.Unlifted.Flat
+import Data.Array.Parallel.Unlifted.Segmented
 
 -- version number is major.minor.patchlvl; don't change the format of the
 -- `versnum' line as it is `grep'ed for by a Makefile
