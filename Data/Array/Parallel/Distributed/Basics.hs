@@ -24,9 +24,8 @@ module Data.Array.Parallel.Distributed.Basics (
 import Data.Array.Parallel.Distributed.Types
 import Data.Array.Parallel.Distributed.Gang
 import Data.Array.Parallel.Monadic.UArr
-import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base
 
-import Control.Monad.ST                     ( ST, runST )
 import Monad                                ( liftM, zipWithM )
 
 here s = "Distributed.Basics." ++ s

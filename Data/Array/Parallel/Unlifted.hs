@@ -24,8 +24,8 @@ module Data.Array.Parallel.Unlifted (
   -- * Array types
   UArr, USegd, SUArr,
 
-  -- * Strict pairs and sums
-  (:*:)(..), (:+:)(..), fstS, sndS,
+  -- * Strict pairs and sums (reexported)
+  (:*:)(..), fstS, sndS,
 
   -- * Basic operations
   lengthU, nullU, emptyU, unitsU, replicateU, (!:), (+:+),

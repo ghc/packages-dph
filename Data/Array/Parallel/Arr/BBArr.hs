@@ -32,12 +32,11 @@ import Monad (liftM)
 
 -- GHC-internal definitions
 import GHC.Prim           (unsafeFreezeArray#)
-import GHC.ST		  (ST(..), runST)
 import GHC.Arr		  (Array(..), STArray(..), bounds, boundsSTArray,
 			   (!), newSTArray, readSTArray, writeSTArray)
 
--- config
-import Data.Array.Parallel.Base.Debug (checkLen)
+-- NDP library
+import Data.Array.Parallel.Base (ST(..), runST, checkLen)
 
 infixl 9 `indexBB`, `readMBB`
 

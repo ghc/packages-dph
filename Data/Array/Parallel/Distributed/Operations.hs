@@ -28,13 +28,14 @@ import Data.Array.Parallel.Distributed.Basics
 import Data.Array.Parallel.Distributed.Types
 import Data.Array.Parallel.Distributed.Gang
 
-import Data.Array.Parallel.Unlifted.NeslLike
+import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.NeslLike (
+  permuteMU)
+import Data.Array.Parallel.Monadic.UArr(
+  newMU, unsafeFreezeMU)
 
-import Data.Array.Parallel.Monadic.UArr
-
-import Data.Array.Parallel.Base.Hyperstrict
-
-import Control.Monad.ST                         ( runST )
+import Data.Array.Parallel.Base (
+  (:*:)(..), uncurryS, runST)
 
 infix 4 `eqD`, `neqD`
 

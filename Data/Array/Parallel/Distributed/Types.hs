@@ -39,9 +39,8 @@ import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
 import Data.Array.Parallel.Arr.Prim
 import Data.Array.Parallel.Arr.BUArr
 import Data.Array.Parallel.Arr.BBArr
-import Data.Array.Parallel.Base.Hyperstrict ( HS, (:*:)(..), fstS, sndS )
 import Data.Array.Parallel.Monadic.UArr
-import Data.Array.Parallel.Base.Debug       ( check, checkEq, uninitialised )
+import Data.Array.Parallel.Base
 
 infixl 9 `indexDT`
 
