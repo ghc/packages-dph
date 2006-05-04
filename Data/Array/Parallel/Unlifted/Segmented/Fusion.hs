@@ -19,11 +19,11 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.Fusion(
-  module Data.Array.Parallel.Unlifted.Flat.Fusion
+  module Data.Array.Parallel.Base.Fusion
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat.Loop       (loopU)
-import Data.Array.Parallel.Unlifted.Flat.Fusion
+import Data.Array.Parallel.Base.Fusion
+import Data.Array.Parallel.Unlifted.Flat (loopU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr ((>:))
 import Data.Array.Parallel.Unlifted.Segmented.Loop  (loopSU)
 
