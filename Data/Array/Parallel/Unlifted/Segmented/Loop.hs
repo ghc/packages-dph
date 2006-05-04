@@ -26,12 +26,12 @@ module Data.Array.Parallel.Unlifted.Segmented.Loop (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), runST)
-import Data.Array.Parallel.Arr (
-  Prim(PrimInt), lengthBU, indexBU, sumBU, scanBU)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr(UAPrim),
+  UA, UArr,
   lengthU, indexU,
   newMU, writeMU, unsafeFreezeMU)
+import Data.Array.Parallel.Unlifted.Flat.ListLike (
+  sumU, scanU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr(
   SUArr(..), USegd(..),
   newMSU, nextMSU, unsafeFreezeMSU)
@@ -41,24 +41,24 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr(
 --
 replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE [1] replicateSU #-}
-replicateSU (UAPrim (PrimInt ns)) es = 
+replicateSU ns es = 
   runST (do
-    let n    = sumBU ns
-        psum = scanBU (+) 0 ns
+    let n    = sumU ns
+        psum = scanU (+) 0 ns
     mpa  <- newMU n
     fillSegs0 mpa
     pa   <- unsafeFreezeMU mpa n
     return $ SUArr (USegd ns psum) pa
   )
   where
-    m = lengthBU ns
+    m = lengthU ns
     --
     fillSegs0 mpa = fillSegs 0 0
       where
         fillSegs i j 
 	  | i == m    = return ()
 	  | otherwise = do
-			  j' <- fill j (ns `indexBU` i) (es `indexU` i)
+			  j' <- fill j (ns `indexU` i) (es `indexU` i)
 			  fillSegs (i + 1) j'
 	--
 	fill j 0 e = return j
@@ -96,7 +96,7 @@ loopSU em sm start (SUArr segd arr) =
   )
   where
     segd1 = segdUS segd
-    nsegd = lengthBU segd1
+    nsegd = lengthU segd1
     n     = lengthU arr
     --
     trans0 mpa maccs = trans 0 0 (-1) 0 start
@@ -127,7 +127,7 @@ loopSU em sm start (SUArr segd arr) =
 	        then 
 		  return (maccs_i' :*: acc')
 		else do
-		  let seg_cnt' = segd1 `indexBU` segd_i' -- get new seg length
+		  let seg_cnt' = segd1 `indexU` segd_i' -- get new seg length
 		  nextMSU mpa segd_i' Nothing            -- init target seg
 		  trans arr_i seg_cnt' segd_i' maccs_i' acc'
           | otherwise    =      -- continue with current segment

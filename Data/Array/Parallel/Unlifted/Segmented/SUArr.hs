@@ -29,14 +29,12 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
 
 -- friends
 import Data.Array.Parallel.Base ((:*:)(..), ST)
-import Data.Array.Parallel.Arr.BUArr (
-  BUArr, MBUArr, lengthBU, newMBU, indexBU, sliceBU, readMBU, writeMBU,
-  unsafeFreezeMBU, extractBU, mapBU, scanBU)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA(..), UArr(..), MUArr, extractU)
-import Data.Array.Parallel.Arr.Prim (
-  Prim(..))
-
+  UA, UArr(..), MUArr,
+  indexU, sliceU, extractU,
+  newMU, readMU, writeMU, unsafeFreezeMU)
+import Data.Array.Parallel.Unlifted.Flat.ListLike (
+  lengthU, mapU, scanU)
 
 infixl 9 `indexSU`
 infixr 9 >:
@@ -48,15 +46,15 @@ infixr 9 >:
 -- |Segment descriptors are used to represent the structure of nested arrays.
 --
 data USegd = USegd {
-	       segdUS :: !(BUArr Int),  -- segment lengths
-	       psumUS :: !(BUArr Int)   -- prefix sum of former
+	       segdUS :: !(UArr Int),  -- segment lengths
+	       psumUS :: !(UArr Int)   -- prefix sum of former
 	     }
 
 -- |Mutable segment descriptor
 --
 data MUSegd s = MUSegd {
-	          segdMUS :: !(MBUArr s Int),  -- segment lengths
-	          psumMUS :: !(MBUArr s Int)   -- prefix sum of former
+	          segdMUS :: !(MUArr Int s),  -- segment lengths
+	          psumMUS :: !(MUArr Int s)   -- prefix sum of former
 	        }
 
 -- |Segmented arrays (only one level of segmentation)
@@ -79,14 +77,14 @@ data MSUArr e s = MSUArr {
 -- |Yield the number of segments.
 -- 
 lengthSU :: UA e => SUArr e -> Int
-lengthSU (SUArr segd _) = lengthBU (segdUS segd)
+lengthSU (SUArr segd _) = lengthU (segdUS segd)
 
 -- |Extract the segment at the given index using the given extraction function
 -- (either 'sliceU' or 'extractU').
 -- 
 indexSU :: UA e => (UArr e -> Int -> Int -> UArr e) -> SUArr e -> Int -> UArr e
-indexSU copy (SUArr segd a) i = copy a (psumUS segd `indexBU` i)
-                                       (segdUS segd `indexBU` i)
+indexSU copy (SUArr segd a) i = copy a (psumUS segd `indexU` i)
+                                       (segdUS segd `indexU` i)
 
 -- |Extract the segment at the given index without copying the elements.
 --
@@ -105,12 +103,12 @@ sliceSU (SUArr segd a) i n =
   let
     segd1 = segdUS segd
     psum  = psumUS segd
-    m     = if i == 0 then 0 else psum `indexBU` (i - 1)
-    psum' = mapBU (subtract m) (sliceBU psum i n)
-    segd' = USegd (sliceBU segd1 i n) psum'
-    i'    = psum `indexBU` i
+    m     = if i == 0 then 0 else psum `indexU` (i - 1)
+    psum' = mapU (subtract m) (sliceU psum i n)
+    segd' = USegd (sliceU segd1 i n) psum'
+    i'    = psum `indexU` i
   in
-  SUArr segd' (sliceU a i' (psum `indexBU` (i + n - 1) - i' + 1))
+  SUArr segd' (sliceU a i' (psum `indexU` (i + n - 1) - i' + 1))
 
 -- |Extract a subrange of the segmented array (elements are copied).
 --
@@ -119,12 +117,12 @@ extractSU (SUArr segd a) i n =
   let
     segd1 = segdUS segd
     psum  = psumUS segd
-    m     = if i == 0 then 0 else psum `indexBU` (i - 1)
-    psum' = mapBU (subtract m) (extractBU psum i n)
-    segd' = USegd (extractBU segd1 i n) psum'
-    i'    = psum `indexBU` i
+    m     = if i == 0 then 0 else psum `indexU` (i - 1)
+    psum' = mapU (subtract m) (extractU psum i n)
+    segd' = USegd (extractU segd1 i n) psum'
+    i'    = psum `indexU` i
   in
-  SUArr segd' (extractU a i' (psum `indexBU` (i + n - 1) - i' + 1))
+  SUArr segd' (extractU a i' (psum `indexU` (i + n - 1) - i' + 1))
 
 -- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
 -- iteratively define a segmented mutable array; i.e., arrays of type `MSUArr
@@ -136,8 +134,8 @@ extractSU (SUArr segd a) i n =
 newMSU :: UA e => Int -> Int -> ST s (MSUArr e s)
 {-# INLINE newMSU #-}
 newMSU nsegd n = do
-		   segd <- newMBU nsegd
-		   psum <- newMBU nsegd
+		   segd <- newMU nsegd
+		   psum <- newMU nsegd
 		   a    <- newMU n
 		   return $ MSUArr (MUSegd segd psum) a
 
@@ -155,17 +153,17 @@ nextMSU (MSUArr (MUSegd segd psum) a) i Nothing =
   do                                                -- segment initialisation
     i' <- if i == 0 then return 0 
 		    else do
-		      off <- psum `readMBU` (i - 1)
-		      n   <- segd `readMBU` (i - 1)
+		      off <- psum `readMU` (i - 1)
+		      n   <- segd `readMU` (i - 1)
 		      return $ off + n
-    writeMBU psum i i'
-    writeMBU segd i 0
+    writeMU psum i i'
+    writeMU segd i 0
 nextMSU (MSUArr (MUSegd segd psum) a) i (Just e) = 
   do
-    i' <- psum `readMBU` i
-    n' <- segd `readMBU` i
+    i' <- psum `readMU` i
+    n' <- segd `readMU` i
     writeMU a (i' + n') e
-    writeMBU segd i (n' + 1)
+    writeMU segd i (n' + 1)
 
 -- |Convert a mutable segmented array into an immutable one.
 --
@@ -173,10 +171,10 @@ unsafeFreezeMSU :: UA e => MSUArr e s -> Int -> ST s (SUArr e)
 {-# INLINE unsafeFreezeMSU #-}
 unsafeFreezeMSU (MSUArr segd a) n = 
   do
-    segd' <- unsafeFreezeMBU (segdMUS segd) n
-    psum' <- unsafeFreezeMBU (psumMUS segd) n
-    let n' = if n == 0 then 0 else psum' `indexBU` (n - 1) + 
-				   segd' `indexBU` (n - 1)
+    segd' <- unsafeFreezeMU (segdMUS segd) n
+    psum' <- unsafeFreezeMU (psumMUS segd) n
+    let n' = if n == 0 then 0 else psum' `indexU` (n - 1) + 
+				   segd' `indexU` (n - 1)
     a' <- unsafeFreezeMU a n'
     return $ SUArr (USegd segd' psum') a'
 
@@ -198,9 +196,10 @@ flattenSU (SUArr segd a) = (segd :*: a)
 -- |Convert a length array into a segment descriptor.
 --
 toUSegd :: UArr Int -> USegd 
-toUSegd (UAPrim (PrimInt lens)) = USegd lens (scanBU (+) 0 lens)
+toUSegd lens = USegd lens (scanU (+) 0 lens)
 
 -- |Extract the length array from a segment descriptor.
 --
 fromUSegd :: USegd -> UArr Int
-fromUSegd (USegd lens _) = UAPrim (PrimInt lens)
+fromUSegd (USegd lens _) = lens
+

@@ -22,8 +22,6 @@ module Data.Array.Parallel.Unlifted.Segmented.NeslLike (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS)
-import Data.Array.Parallel.Arr.BUArr (
-  indexBU)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr)
 import Data.Array.Parallel.Unlifted.Flat.ListLike
@@ -73,6 +71,6 @@ bpermuteSU as = loopArrS . loopSU extract nextOff 0
 		  --
 	          extract off i = (off :*: (Just $ a!:(off + i)))
 		  --
-		  nextOff _ segi = (psum `indexBU` (segi + 1) :*: 
+		  nextOff _ segi = (psum !: (segi + 1) :*: 
 				    (Nothing::Maybe ()))
 
