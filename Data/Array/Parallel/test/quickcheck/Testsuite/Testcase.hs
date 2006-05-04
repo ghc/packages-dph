@@ -11,6 +11,8 @@ import System.Environment (getArgs)
 
 import Data.Maybe (isJust)
 
+import IO
+
 data Test = Test { testName     :: String
                  , testProperty :: Property
                  }
@@ -27,6 +29,7 @@ runTests tests =
     chk (Test { testName = name, testProperty = prop }) =
       do
         putStr $ name ++ spaces (60 - length name) ++ "... "
+        hFlush stdout
         res <- run prop defOpt
         case res of
           TestOk       _ n _ -> putStrLn $ "pass (" ++ show n ++ ")"
@@ -39,6 +42,7 @@ runTests tests =
             do
               putStrLn $ "ABORTED"
               putStrLn $ "    " ++ show e
+        hFlush stdout
     spaces n | n <= 0    = ""
              | otherwise = replicate n ' '
 
