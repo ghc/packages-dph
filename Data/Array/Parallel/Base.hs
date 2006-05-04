@@ -16,14 +16,12 @@
 module Data.Array.Parallel.Base (
   module Data.Array.Parallel.Base.Debug,
   module Data.Array.Parallel.Base.Hyperstrict,
-  module Data.Array.Parallel.Base.Fusion,
 
   ST(..), runST
 ) where
 
 import Data.Array.Parallel.Base.Debug
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.Fusion
 
 import GHC.ST (ST(..), runST)
 

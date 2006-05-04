@@ -94,6 +94,7 @@ import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
 
 -- NDP library
 import Data.Array.Parallel.Base
+import Data.Array.Parallel.Base.Fusion
 
 infixl 9 `indexBU`, `readMBU`
 
