@@ -31,21 +31,21 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
 
   -- * Basic operations on parallel arrays
   lengthU, indexU, sliceU, extractU, zipU, unzipU,
-  newMU, writeMU, copyMU, unsafeFreezeMU,
+  newMU, readMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
 
 -- standard libraries
-import Monad (liftM)
+import Monad (liftM, liftM2)
 
 -- friends
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr (
   lengthBU, indexBU, sliceBU,
-  newMBU, writeMBU, copyMBU, unsafeFreezeMBU,
+  newMBU, readMBU, writeMBU, copyMBU, unsafeFreezeMBU,
   Prim(..), MPrim(..))
 
-infixl 9 `indexU`
+infixl 9 `indexU`, `readMU`
 
 
 -- |Basic operations on representation types
@@ -71,6 +71,9 @@ class HS e => UA e where
 
   -- |Allocate a mutable unboxed array
   newMU          :: Int                        -> ST s (MUArr e s)
+
+  -- |Read an element from a mutable unboxed array
+  readMU         :: MUArr e s -> Int           -> ST s e
 
   -- |Update an element in a mutable unboxed array
   writeMU        :: MUArr e s -> Int -> e      -> ST s ()
@@ -135,6 +138,7 @@ instance UA () where
   sliceU  (UAUnit _) _ n = UAUnit n
 
   newMU   n                       = return $ MUAUnit n
+  readMU (MUAUnit _) _            = return ()
   writeMU (MUAUnit _) _ _         = return ()
   copyMU (MUAUnit _) _ (UAUnit _) = return ()
   unsafeFreezeMU (MUAUnit _) n    = return $ UAUnit n
@@ -154,6 +158,8 @@ instance (UA a, UA b) => UA (a :*: b) where
       a <- newMU n
       b <- newMU n
       return $ MUAProd a b
+  {-# INLINE readMU #-}
+  readMU (MUAProd a b) i = liftM2 (:*:) (a `readMU` i) (b `readMU` i)
   {-# INLINE writeMU #-}
   writeMU (MUAProd a b) i (x :*: y) = 
     do
@@ -286,6 +292,8 @@ instance UA Bool where
   {-# INLINE newMU #-}
   newMU          n                            = 
     liftM (MUAPrim . MPrimBool  ) $ newMBU n
+  {-# INLINE readMU #-}
+  readMU         (MUAPrim (MPrimBool ua)) i   = ua `readMBU` i
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimBool ua)) i e = writeMBU ua i e
   {-# INLINE copyMU #-}
@@ -305,6 +313,8 @@ instance UA Char where
   {-# INLINE newMU #-}
   newMU          n                              = 
     liftM (MUAPrim . MPrimChar  ) $ newMBU n
+  {-# INLINE readMU #-}
+  readMU         (MUAPrim (MPrimChar ua)) i   = ua `readMBU` i
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimChar ua)) i e = writeMBU ua i e
   {-# INLINE copyMU #-}
@@ -324,6 +334,8 @@ instance UA Int where
   {-# INLINE newMU #-}
   newMU          n                            = 
     liftM (MUAPrim . MPrimInt   ) $ newMBU n
+  {-# INLINE readMU #-}
+  readMU         (MUAPrim (MPrimInt ua)) i    = ua `readMBU` i
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimInt  ua)) i e = writeMBU ua i e
   {-# INLINE copyMU #-}
@@ -343,6 +355,8 @@ instance UA Float where
   {-# INLINE newMU #-}
   newMU          n                             = 
     liftM (MUAPrim . MPrimFloat ) $ newMBU n
+  {-# INLINE readMU #-}
+  readMU         (MUAPrim (MPrimFloat ua)) i   = ua `readMBU` i
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimFloat ua)) i e = writeMBU ua i e
   {-# INLINE copyMU #-}
@@ -362,6 +376,8 @@ instance UA Double where
   {-# INLINE newMU #-}
   newMU          n                              = 
     liftM (MUAPrim . MPrimDouble) $ newMBU n
+  {-# INLINE readMU #-}
+  readMU         (MUAPrim (MPrimDouble ua)) i   = ua `readMBU` i
   {-# INLINE writeMU #-}
   writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
   {-# INLINE copyMU #-}
