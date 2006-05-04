@@ -17,16 +17,16 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.NeslLike (
-  flattenSU, (>:), segmentU, toSU, bpermuteSU, {- crossU -}
+  flattenSU, (>:), segmentU, toSU, fromSU, bpermuteSU, {- crossU -}
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
-  (!:), toU)
+  (!:), toU, fromU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr, toUSegd, (>:), flattenSU, psumUS) 
+  SUArr, toUSegd, (>:), flattenSU, psumUS, segdUS)
 import Data.Array.Parallel.Unlifted.Segmented.Loop (
   loopSU)
 import Data.Array.Parallel.Unlifted.Segmented.Fusion (
@@ -53,6 +53,17 @@ toSU ls = let lens = toU $ map length ls
 	      a    = toU $ concat ls
           in
 	  toUSegd lens >: a
+
+-- |Turn a segmented array into a nested list
+--
+fromSU :: UA e => SUArr e -> [[e]]
+{-# INLINE fromSU #-}
+fromSU as = let (segd :*: a) = flattenSU as
+                lens         = fromU $ segdUS segd
+                starts       = fromU $ psumUS segd
+            in
+            [[a !: i | i <- [start .. start + len]]
+                            | (start, len) <- zip starts lens]
 
 -- |Permutations
 -- -------------

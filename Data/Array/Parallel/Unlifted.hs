@@ -97,7 +97,7 @@ module Data.Array.Parallel.Unlifted (
 --  lines, words, unlines, unwords,  -- is string processing really needed
 
   -- * Conversions to/from lists (segmented)
-  toSU,
+  toSU, fromSU,
 
   -- * Operations on segment descriptors
   toUSegd, fromUSegd,
