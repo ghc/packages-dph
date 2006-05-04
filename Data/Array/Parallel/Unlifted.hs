@@ -150,7 +150,7 @@ instance Show USegd where
 
 -- |
 instance (Show e, UA e) => Show (SUArr e) where
-  showsPrec _ = (showString "toSU" .) . showList . fromSU
+  showsPrec _ = (showString "toSU " .) . showList . fromSU
 
 -- |
 instance (Eq e, UA e) => Eq (UArr e) where
