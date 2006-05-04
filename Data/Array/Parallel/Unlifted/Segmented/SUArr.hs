@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Monadic.SUArr
+-- Module      : Data.Array.Parallel.Unlifted.Segmented.SUArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/base/LICENSE
@@ -16,7 +16,7 @@
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Monadic.SUArr (
+module Data.Array.Parallel.Unlifted.Segmented.SUArr (
 
   -- * Array types and classes containing the admissble elements types
   USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
@@ -32,7 +32,7 @@ import Data.Array.Parallel.Base ((:*:)(..), ST)
 import Data.Array.Parallel.Arr.BUArr (
   BUArr, MBUArr, lengthBU, newMBU, indexBU, sliceBU, readMBU, writeMBU,
   unsafeFreezeMBU, extractBU, mapBU, scanBU)
-import Data.Array.Parallel.Monadic.UArr (
+import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA(..), UArr(..), MUArr, extractU)
 import Data.Array.Parallel.Arr.Prim (
   Prim(..))

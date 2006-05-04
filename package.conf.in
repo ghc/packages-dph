@@ -23,10 +23,10 @@ hidden-modules:
         Data.Array.Parallel.Distributed.Basics
         Data.Array.Parallel.Distributed.Operations
 	Data.Array.Parallel.Distributed.Gang
-	Data.Array.Parallel.Monadic.UArr
-	Data.Array.Parallel.Monadic.SUArr
-	Data.Array.Parallel.Declarative.Fusion
-	Data.Array.Parallel.Declarative.Loop
+	Data.Array.Parallel.Unlifted.Flat.UArr
+	Data.Array.Parallel.Unlifted.Segmented.SUArr
+	Data.Array.Parallel.Unlifted.Fusion
+	Data.Array.Parallel.Unlifted.Loop
 	Data.Array.Parallel.Unlifted.ListLike
 	Data.Array.Parallel.Unlifted.NeslLike
 

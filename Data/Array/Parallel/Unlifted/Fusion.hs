@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Declarative.Fusion
+-- Module      : Data.Array.Parallel.Unlifted.Fusion
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty
 -- License     : see libraries/base/LICENSE
@@ -18,16 +18,16 @@
 --  * Add more fusion rules
 --
 
-module Data.Array.Parallel.Declarative.Fusion (
+module Data.Array.Parallel.Unlifted.Fusion (
   module Data.Array.Parallel.Base.Fusion
 ) where
 
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.Fusion
-import Data.Array.Parallel.Monadic.SUArr (
+import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   (>:))
-import Data.Array.Parallel.Declarative.Loop (
+import Data.Array.Parallel.Unlifted.Loop (
   unitsU, replicateU, loopU, loopSU)
 
 -- Fusion rules

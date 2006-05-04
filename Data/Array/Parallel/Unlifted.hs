@@ -114,13 +114,13 @@ module Data.Array.Parallel.Unlifted (
 ) where
 
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Monadic.UArr (
+import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr)
-import Data.Array.Parallel.Monadic.SUArr (
+import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   USegd, SUArr, fromUSegd, toUSegd)
-import Data.Array.Parallel.Declarative.Loop (
+import Data.Array.Parallel.Unlifted.Loop (
   unitsU, replicateU, loopU, replicateSU, loopSU)
-import Data.Array.Parallel.Declarative.Fusion (
+import Data.Array.Parallel.Unlifted.Fusion (
   noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 import Data.Array.Parallel.Unlifted.ListLike

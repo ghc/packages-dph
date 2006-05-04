@@ -31,7 +31,7 @@ import Data.Array.Parallel.Distributed.Gang
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Unlifted.NeslLike (
   permuteMU)
-import Data.Array.Parallel.Monadic.UArr(
+import Data.Array.Parallel.Unlifted.Flat.UArr(
   newMU, unsafeFreezeMU)
 
 import Data.Array.Parallel.Base (

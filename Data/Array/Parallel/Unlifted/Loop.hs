@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Declarative.Loop
+-- Module      : Data.Array.Parallel.Unlifted.Loop
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty
 -- License     : see libraries/base/LICENSE
@@ -21,7 +21,7 @@
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Declarative.Loop (
+module Data.Array.Parallel.Unlifted.Loop (
 
   -- * Loop/replicate combinators
   unitsU, replicateU, loopU, replicateSU, loopSU,
@@ -36,10 +36,10 @@ import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr.Prim
 import Data.Array.Parallel.Arr.BUArr (
   lengthBU, indexBU, sumBU, scanBU) 
-import Data.Array.Parallel.Monadic.UArr (
+import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr(..),
   lengthU, indexU, newMU, writeMU, unsafeFreezeMU)
-import Data.Array.Parallel.Monadic.SUArr (
+import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   USegd(..), SUArr(..),
   newMSU, nextMSU, unsafeFreezeMSU)
 

@@ -27,14 +27,14 @@ import Data.Array.Parallel.Base (
   (:*:)(..), fstS, ST, runST)
 import Data.Array.Parallel.Arr.BUArr (
   indexBU)
-import Data.Array.Parallel.Monadic.UArr (
+import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr, lengthU, extractU, sliceU,
   newMU, writeMU, unsafeFreezeMU) 
-import Data.Array.Parallel.Monadic.SUArr (
+import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, toUSegd, (>:), flattenSU, psumUS) 
-import Data.Array.Parallel.Declarative.Loop (
+import Data.Array.Parallel.Unlifted.Loop (
   unitsU, loopU, loopSU)
-import Data.Array.Parallel.Declarative.Fusion (
+import Data.Array.Parallel.Unlifted.Fusion (
   noAL, mapEFL, loopArr, loopArrS)
 import Data.Array.Parallel.Unlifted.ListLike
   ((!:))

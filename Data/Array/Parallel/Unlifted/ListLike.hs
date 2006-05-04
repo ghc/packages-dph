@@ -34,14 +34,14 @@ module Data.Array.Parallel.Unlifted.ListLike (
 import Data.Array.Parallel.Base.Debug (
   checkNotEmpty)
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Monadic.UArr (
+import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, lengthU, indexU, sliceU, extractU,
   zipU, unzipU) 
-import Data.Array.Parallel.Monadic.SUArr (
+import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, toUSegd, (>:), flattenSU)
-import Data.Array.Parallel.Declarative.Loop (
+import Data.Array.Parallel.Unlifted.Loop (
   unitsU, replicateU, loopU, loopSU)
-import Data.Array.Parallel.Declarative.Fusion (
+import Data.Array.Parallel.Unlifted.Fusion (
   noAL, mapEFL, filterEFL, foldEFL, scanEFL, keepSFL,
   loopArr, loopArrS, loopAcc, loopAccS)
 
