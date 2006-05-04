@@ -1,6 +1,6 @@
 import Testsuite
 
-import Data.Array.Parallel.Base.BUArr
+import Data.Array.Parallel.Arr.BUArr
 import Data.Array.Parallel.Base.Hyperstrict
 
 instance (UAE a, Arbitrary a) => Arbitrary (BUArr a) where

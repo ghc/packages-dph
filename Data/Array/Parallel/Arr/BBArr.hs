@@ -14,7 +14,7 @@
 --
 --  * See some of the comments in UArr.hs
 
-module Data.Array.Parallel.Base.BBArr (
+module Data.Array.Parallel.Arr.BBArr (
   -- * Boxed primitive arrays (both immutable and mutable)
   BBArr, MBBArr,
 

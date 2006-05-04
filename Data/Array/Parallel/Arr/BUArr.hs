@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Base.BUArr
+-- Module      : Data.Array.Parallel.Arr.BUArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty
 -- License     : see libraries/base/LICENSE
@@ -43,7 +43,7 @@
 --   smaller array.
 
 
-module Data.Array.Parallel.Base.BUArr (
+module Data.Array.Parallel.Arr.BUArr (
   -- * Unboxed primitive arrays (both immutable and mutable)
   BUArr, MBUArr,
 

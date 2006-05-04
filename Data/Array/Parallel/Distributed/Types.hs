@@ -36,9 +36,9 @@ module Data.Array.Parallel.Distributed.Types (
 
 import Monad                                ( liftM, liftM2, zipWithM )
 import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize, gangST )
-import Data.Array.Parallel.Base.Prim
-import Data.Array.Parallel.Base.BUArr
-import Data.Array.Parallel.Base.BBArr
+import Data.Array.Parallel.Arr.Prim
+import Data.Array.Parallel.Arr.BUArr
+import Data.Array.Parallel.Arr.BBArr
 import Data.Array.Parallel.Base.Hyperstrict ( HS, (:*:)(..), fstS, sndS )
 import Data.Array.Parallel.Monadic.UArr
 import Data.Array.Parallel.Base.Debug       ( check, checkEq, uninitialised )

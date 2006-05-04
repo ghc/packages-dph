@@ -40,12 +40,12 @@ import Monad (liftM)
 
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.BUArr (
+import Data.Array.Parallel.Arr.BUArr (
   BUArr, MBUArr, UAE, lengthBU, lengthMBU, newMBU, indexBU, sliceBU, readMBU,
   writeMBU, unsafeFreezeMBU, replicateBU, loopBU, loopArr, extractBU, mapBU,
   scanBU, extractMBU, copyMBU,  
   ST, runST)
-import Data.Array.Parallel.Base.Prim (
+import Data.Array.Parallel.Arr.Prim (
   Prim(..), MPrim(..),
   unPrim, unMPrim, mkPrim, mkMPrim)
 

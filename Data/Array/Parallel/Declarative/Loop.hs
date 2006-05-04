@@ -33,10 +33,10 @@ module Data.Array.Parallel.Declarative.Loop (
 
 -- friends
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.Prim
+import Data.Array.Parallel.Arr.Prim
 import Data.Array.Parallel.Base.Fusion (
   loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
-import Data.Array.Parallel.Base.BUArr (
+import Data.Array.Parallel.Arr.BUArr (
   BUArr, lengthBU, indexBU, loopArr, loopAcc, loopSndAcc, sumBU, scanBU, 
   ST, runST) 
 import Data.Array.Parallel.Monadic.UArr (

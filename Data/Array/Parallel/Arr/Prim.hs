@@ -1,12 +1,12 @@
 -- | This is a hack to avoid a lot of tedious typing. It will go away once we
 -- have associated types.
 
-module Data.Array.Parallel.Base.Prim (
+module Data.Array.Parallel.Arr.Prim (
   Prim(..), MPrim(..),
   unPrim, unMPrim, mkPrim, mkMPrim
 ) where
 
-import Data.Array.Parallel.Base.BUArr  ( BUArr, MBUArr )
+import Data.Array.Parallel.Arr.BUArr  ( BUArr, MBUArr )
 import Data.Array.Parallel.Base.Hyperstrict ( HS )
 
 data Prim e where

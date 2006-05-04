@@ -34,7 +34,7 @@ module Data.Array.Parallel.Unlifted.ListLike (
 import Data.Array.Parallel.Base.Debug (
   checkNotEmpty)
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.BUArr (
+import Data.Array.Parallel.Arr.BUArr (
   indexBU, runST)
 import Data.Array.Parallel.Monadic.UArr (
   UA, UArr, lengthU, indexU, sliceU, extractU, newMU, writeMU, unsafeFreezeMU,

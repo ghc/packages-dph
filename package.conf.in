@@ -14,9 +14,9 @@ hidden-modules:
 	Data.Array.Parallel.Base.Debug
 	Data.Array.Parallel.Base.Hyperstrict
         Data.Array.Parallel.Base.Fusion
-	Data.Array.Parallel.Base.Prim
-	Data.Array.Parallel.Base.BUArr
-	Data.Array.Parallel.Base.BBArr
+	Data.Array.Parallel.Arr.Prim
+	Data.Array.Parallel.Arr.BUArr
+	Data.Array.Parallel.Arr.BBArr
 	Data.Array.Parallel.Distributed.Types
         Data.Array.Parallel.Distributed.Basics
         Data.Array.Parallel.Distributed.Operations
