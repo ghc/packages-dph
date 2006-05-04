@@ -51,7 +51,7 @@ gvector :: Arbitrary a => Gang -> Gen [a]
 gvector = vector . gangSize
 
 gdist :: (Arbitrary a, DT a) => Gang -> Gen (Dist a)
-gdist g = toD g `fmap` gvector g
+gdist g = sized $ \n -> resize (n `div` gangSize g + 1) $ toD g `fmap` gvector g
 
 vtype :: Gen [a] -> a -> Gen [a]
 vtype = const
