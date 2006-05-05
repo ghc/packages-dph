@@ -23,11 +23,10 @@ dotp :: Vector -> Vector -> Double
 {-# NOINLINE dotp #-}
 dotp v w = sumU (zipWithU (*) v w)
 
- {- This corresponds to the fused version.
-dotp v w = loopAcc
-           . loopU (\a (x:*:y) -> (a + x * y, Nothing::Maybe ())) 0
-	   $ zipU v w
-  -}
+dotp_fused :: Vector -> Vector -> Double
+dotp_fused v w =   loopAcc
+                 . loopU (\a (x:*:y) -> (a + x * y :*: (Nothing::Maybe ()))) 0
+	         $ zipU v w
 
 
 -- Benchmark infrastructure
@@ -55,7 +54,20 @@ dotp_bench size =
       do
 	let result = dotp vec1 vec2
 	evaluate result			-- make sure the work is done
-	return (show result)
+	return $ show result
+
+-- Execute and time the fused reference
+--
+dotp_fused_bench :: Int -> IO (Integer, String)
+dotp_fused_bench size = 
+  do
+    vec1 <- generateVector size
+    vec2 <- generateVector size
+    timeIt ("Length = " ++ show size) $
+      do
+	let result = dotp_fused vec1 vec2
+	evaluate result			-- make sure the work is done
+	return $ show result
 
 -- Main routine
 --
@@ -65,6 +77,12 @@ main =
     host <- getEnv "HOSTNAME"
     putStrLn "Dot Product Benchmark"
     putStrLn "====================="
+
+    doBenchmarks [(dotp_fused_bench, "Dot product (MANUALLY fused)", "uarr")]
+		 [100000, 200000..500000]
+		 ("Dot product with 100,000 to 500,000 element vectors\n\
+		  \on " ++ host)
+		 "dotp.fused"
 
     doBenchmarks [(dotp_bench, "Dot product", "uarr")]
 		 [100000, 200000..500000]
