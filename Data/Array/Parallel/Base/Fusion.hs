@@ -30,6 +30,12 @@ import Data.Array.Parallel.Base.Hyperstrict
 --
 data NoAL = NoAL
 
+-- |No accumulator
+--
+noAL :: NoAL
+{-# INLINE [1] noAL #-}
+noAL = NoAL
+
 -- |Special forms of loop arguments
 -- --------------------------------
 --
@@ -55,9 +61,6 @@ noEFL acc _  = (acc :*: Nothing)
 noSFL :: acc -> Int -> (acc :*: Maybe ())
 {-# INLINE [1] noSFL #-}
 noSFL acc _  = (acc :*: Nothing)
-
--- |Special forms for simple cases
---
 
 -- |Element function expressing a mapping only
 --
@@ -99,23 +102,25 @@ keepSFL :: (acc -> acc) -> (acc -> Int -> (acc :*: Maybe acc))
 {-# INLINE [1] keepSFL #-}
 keepSFL f = \a _ -> (f a :*: Just a)
 
--- |No accumulator
+-- Fusion-friendly projection functions
+-- ------------------------------------
 --
-noAL :: NoAL
-{-# INLINE [1] noAL #-}
-noAL = NoAL
+-- We determine when they are inlined
 
--- |Projection functions that are fusion friendly (as in, we determine when
--- they are inlined)
+-- |Array result of a loop
 --
 loopArr :: (arr :*: acc) -> arr
 {-# INLINE [1] loopArr #-}
 loopArr (arr :*: _) = arr
 
+-- |Accumulator result of a loop
+--
 loopAcc :: (arr :*: acc) -> acc
 {-# INLINE [1] loopAcc #-}
 loopAcc (_ :*: acc) = acc
 
+-- |Drop the first component of the accumulator
+--
 loopSndAcc :: (arr :*: (acc1 :*: acc2)) -> (arr :*: acc2)
 {-# INLINE [1] loopSndAcc #-}
 loopSndAcc (arr :*: (_ :*: acc)) = (arr :*: acc)
