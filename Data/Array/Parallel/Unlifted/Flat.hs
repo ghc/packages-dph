@@ -70,9 +70,16 @@ module Data.Array.Parallel.Unlifted.Flat (
   newMU, readMU, writeMU, unsafeFreezeMU, permuteMU
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat.UArr
+import Data.Array.Parallel.Unlifted.Flat.UArr (
+  UA, UArr, MUArr,
+  newMU, readMU, writeMU, unsafeFreezeMU)
 import Data.Array.Parallel.Unlifted.Flat.Loop
 import Data.Array.Parallel.Unlifted.Flat.Fusion    ({- rules only -})
-import Data.Array.Parallel.Unlifted.Flat.ListLike
-import Data.Array.Parallel.Unlifted.Flat.NeslLike
+import Data.Array.Parallel.Unlifted.Flat.Basics
+import Data.Array.Parallel.Unlifted.Flat.Subarrays
+import Data.Array.Parallel.Unlifted.Flat.Combinators
+import Data.Array.Parallel.Unlifted.Flat.Sums
+import Data.Array.Parallel.Unlifted.Flat.Permute
+--import Data.Array.Parallel.Unlifted.Flat.ListLike
+--import Data.Array.Parallel.Unlifted.Flat.NeslLike
 

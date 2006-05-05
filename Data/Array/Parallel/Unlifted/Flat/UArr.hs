@@ -31,7 +31,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr, {-USel(..), MUSel(..),-}
 
   -- * Basic operations on parallel arrays
-  lengthU, indexU, sliceU, extractU, unitsU, zipU, unzipU,
+  lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU,
   newMU, readMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
@@ -124,6 +124,7 @@ zipU = UAProd
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a :*: UArr b)
 unzipU (UAProd l r) = (l :*: r)
 
+{-
 {-# INLINE extractU #-}
 extractU :: UA a => UArr a -> Int -> Int -> UArr a
 extractU arr i n =
@@ -132,6 +133,7 @@ extractU arr i n =
     copyMU marr 0 $ sliceU arr i n
     unsafeFreezeMU marr n
   )
+-}
 
 -- |Family of representation types
 -- -------------------------------
