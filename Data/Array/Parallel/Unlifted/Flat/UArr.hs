@@ -28,10 +28,10 @@
 module Data.Array.Parallel.Unlifted.Flat.UArr (
 
   -- * Array types and classes containing the admissble elements types
-  UA, UArr(..), MUArr(..), {-USel(..), MUSel(..),-}
+  UA, UArr, MUArr, {-USel(..), MUSel(..),-}
 
   -- * Basic operations on parallel arrays
-  lengthU, indexU, sliceU, extractU, zipU, unzipU,
+  lengthU, indexU, sliceU, extractU, unitsU, zipU, unzipU,
   newMU, readMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
@@ -107,6 +107,11 @@ instance HS e => HS (MUArr e s)
 
 -- |Basic operations on unboxed arrays
 -- -----------------------------------
+
+-- |Yield an array of units 
+--
+unitsU :: Int -> UArr ()
+unitsU = UAUnit
 
 -- |Elementwise pairing of array elements.
 --

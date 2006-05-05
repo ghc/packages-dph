@@ -27,14 +27,9 @@ module Data.Array.Parallel.Unlifted.Flat.Loop (
 import Data.Array.Parallel.Base (
   (:*:)(..), runST)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr(UAUnit),
-  lengthU, indexU,
+  UA, UArr,
+  lengthU, indexU, unitsU,
   newMU, writeMU, unsafeFreezeMU)
-
--- |Yield an array of units 
---
-unitsU :: Int -> UArr ()
-unitsU = UAUnit
 
 -- |Yield an array where all elements contain the same value
 --
