@@ -23,10 +23,9 @@ module Data.Array.Parallel.Unlifted.Flat.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), runST)
+  (:*:)(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr, lengthU, indexU,
-  newMU, unsafeFreezeMU)
+  UA, UArr, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Loop (
   unitsU, replicateU, loopU)
 import Data.Array.Parallel.Unlifted.Flat.Fusion (
@@ -45,10 +44,7 @@ nullU  = (== 0) . lengthU
 -- |Yield an empty array
 --
 emptyU :: UA e => UArr e
-emptyU = runST (do
-	   mpa <- newMU 0
-	   unsafeFreezeMU mpa 0
-         )
+emptyU = newU 0 (const $ return ())
 
 -- unitsU and replicateU are reexported from Loop
 

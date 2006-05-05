@@ -28,19 +28,14 @@ import Data.Array.Parallel.Base (
   (:*:)(..), runST)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
-  lengthU, indexU, unitsU,
+  lengthU, indexU, unitsU, newU,
   newMU, writeMU, unsafeFreezeMU)
 
 -- |Yield an array where all elements contain the same value
 --
 replicateU :: UA e => Int -> e -> UArr e
 {-# INLINE [1] replicateU #-}
-replicateU n e = 
-  runST (do
-    mpa <- newMU n
-    fill0 mpa
-    unsafeFreezeMU mpa n
-  )
+replicateU n e = newU n fill0
   where
     fill0 mpa = fill 0
       where

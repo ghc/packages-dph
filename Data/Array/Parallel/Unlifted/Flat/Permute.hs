@@ -21,12 +21,11 @@ module Data.Array.Parallel.Unlifted.Flat.Permute (
 ) where
 
 import Data.Array.Parallel.Base (
-  ST, runST)
+  ST)
 import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
-  lengthU,
-  newMU, writeMU, unsafeFreezeMU)
+  lengthU, newU, writeMU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
   (!:))
 import Data.Array.Parallel.Unlifted.Flat.Loop (
@@ -49,27 +48,7 @@ permuteMU mpa arr is = permute 0
 --
 permuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE permuteU #-}
-permuteU arr is =
-  runST (do
-    mpa <- newMU n
-    permuteMU mpa arr is
-    unsafeFreezeMU mpa n
-  )
-  where
-    n = lengthU arr
-{-  runST (do
-    mpa <- newMU n
-    permute0 mpa
-    unsafeFreezeMU mpa n
-  )
-  where
-    n		 = lengthU arr
-    permute0 mpa = permute 0
-      where
-        permute i 
-	  | i == n    = return ()
-	  | otherwise = writeMU mpa (is!:i) (arr!:i) >> permute (i + 1)
--}
+permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 
 -- |Back permutation operation (ie, the permutation vector determines for each
 -- position in the result array its origin in the input array)
@@ -92,13 +71,13 @@ bpermuteDftU :: UA e
 	     -> UArr (Int :*: e)		-- |index-value pairs
 	     -> UArr e
 {-# INLINE bpermuteDftU #-}
-bpermuteDftU n init arr =
-  runST (do
+bpermuteDftU n init arr = newU n $ \mpa -> doInit0 mpa >> permute0 mpa
+{-  runST (do
     mpa <- newMU n
     doInit0  mpa
     permute0 mpa
     unsafeFreezeMU mpa n
-  )
+  ) -}
   where
     doInit0 mpa = doInit 0
       where

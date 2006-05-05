@@ -32,6 +32,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
 
   -- * Basic operations on parallel arrays
   lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU,
+  newU,
   newMU, readMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
@@ -105,12 +106,25 @@ data MUArr e s where
 
 instance HS e => HS (MUArr e s)
 
+-- |Creating unboxed arrays
+-- ------------------------
+
+newU :: UA e => Int -> (forall s. MUArr e s -> ST s ()) -> UArr e
+{-# INLINE newU #-}
+newU n init =
+  runST (do
+           ma <- newMU n
+           init ma
+           unsafeFreezeMU ma n
+  )
+
 -- |Basic operations on unboxed arrays
 -- -----------------------------------
 
 -- |Yield an array of units 
 --
 unitsU :: Int -> UArr ()
+{-# INLINE [1] unitsU #-}
 unitsU = UAUnit
 
 -- |Elementwise pairing of array elements.
@@ -123,17 +137,6 @@ zipU = UAProd
 --
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a :*: UArr b)
 unzipU (UAProd l r) = (l :*: r)
-
-{-
-{-# INLINE extractU #-}
-extractU :: UA a => UArr a -> Int -> Int -> UArr a
-extractU arr i n =
-  runST (do
-    marr <- newMU n
-    copyMU marr 0 $ sliceU arr i n
-    unsafeFreezeMU marr n
-  )
--}
 
 -- |Family of representation types
 -- -------------------------------

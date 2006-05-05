@@ -21,23 +21,15 @@ module Data.Array.Parallel.Unlifted.Flat.Subarrays (
   {- takeWhileU, dropWhileU, spanU, breakU -}
 ) where
 
-import Data.Array.Parallel.Base (
-  runST)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
-  lengthU, sliceU,
-  newMU, copyMU, unsafeFreezeMU)
+  lengthU, sliceU, newU, copyMU)
 
 -- sliceU reexported from UArr
 
 {-# INLINE extractU #-}
 extractU :: UA a => UArr a -> Int -> Int -> UArr a
-extractU arr i n =
-  runST (do
-    marr <- newMU n
-    copyMU marr 0 $ sliceU arr i n
-    unsafeFreezeMU marr n
-  )
+extractU arr i n = newU n $ \marr -> copyMU marr 0 (sliceU arr i n)
 
 -- |Extract a prefix of an array
 --
