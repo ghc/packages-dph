@@ -401,15 +401,7 @@ loopBU mf start a =
 
 "loopBU/loopBU" forall mf1 mf2 start1 start2 arr.
   loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) =
-    let
-      mf (acc1 :*: acc2) e = 
-        case mf1 acc1 e of
-          (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
-	  (acc1' :*: Just e') ->
-	    case mf2 acc2 e' of
-	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
-    in
-    loopSndAcc (loopBU mf (start1 :*: start2) arr)
+    loopSndAcc (loopBU (mf1 `fuseEFL` mf2) (start1 :*: start2) arr)
 
  #-}
 

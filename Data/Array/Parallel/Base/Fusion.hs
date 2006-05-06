@@ -15,7 +15,9 @@
 --
 
 module Data.Array.Parallel.Base.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
+  NoAL, noAL,
+  fuseEFL,
+  noEFL, noSFL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
   loopArr, loopAcc, loopSndAcc, loopArrS, loopAccS,
 
   -- * Strict pairs (reexported)
@@ -23,6 +25,8 @@ module Data.Array.Parallel.Base.Fusion (
 where
 
 import Data.Array.Parallel.Base.Hyperstrict
+
+infixr 9 `fuseEFL`
 
 -- |Data type for accumulators which can be ignored. The rewrite rules rely on
 -- the fact that no bottoms of this type are ever constructed; hence, we can
@@ -35,6 +39,20 @@ data NoAL = NoAL
 noAL :: NoAL
 {-# INLINE [1] noAL #-}
 noAL = NoAL
+
+-- |Fusion of loop functions
+-- -------------------------
+
+-- |Fuse to flat loop functions
+fuseEFL :: (acc1 -> e1 -> acc1 :*: Maybe e2)
+        -> (acc2 -> e2 -> acc2 :*: Maybe e3)
+        -> acc1 :*: acc2 -> e1 -> (acc1 :*: acc2) :*: Maybe e3
+fuseEFL f g (acc1 :*: acc2) e1 =
+  case f acc1 e1 of
+    acc1' :*: Nothing -> (acc1' :*: acc2) :*: Nothing
+    acc1' :*: Just e2 ->
+      case g acc2 e2 of
+        (acc2' :*: res) -> (acc1' :*: acc2') :*: res
 
 -- |Special forms of loop arguments
 -- --------------------------------

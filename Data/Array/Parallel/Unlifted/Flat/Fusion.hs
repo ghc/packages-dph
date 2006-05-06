@@ -43,15 +43,7 @@ import Data.Array.Parallel.Unlifted.Flat.Loop (
 
 "loopU/loopU" forall em1 em2 start1 start2 arr.
   loopU em2 start2 (loopArr (loopU em1 start1 arr)) =
-    let
-      em (acc1 :*: acc2) e = 
-        case em1 acc1 e of
-	  (acc1' :*: Nothing) -> ((acc1' :*: acc2) :*: Nothing)
-	  (acc1' :*: Just e') ->
-	    case em2 acc2 e' of
-	      (acc2' :*: res) -> ((acc1' :*: acc2') :*: res)
-    in
-    loopSndAcc (loopU em (start1 :*: start2) arr)
+    loopSndAcc (loopU (em1 `fuseEFL` em2) (start1 :*: start2) arr)
 
 -- fusion across a zipU
 --
