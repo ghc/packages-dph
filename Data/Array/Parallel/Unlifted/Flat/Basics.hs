@@ -27,9 +27,9 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Loop (
-  unitsU, replicateU, loopU)
+  unitsU, loopU)
 import Data.Array.Parallel.Unlifted.Flat.Fusion (
-  loopArr)
+  noAL, mapEFL, loopArr)
 
 infixl 9 !:
 infixr 5 +:+
@@ -46,7 +46,13 @@ nullU  = (== 0) . lengthU
 emptyU :: UA e => UArr e
 emptyU = newU 0 (const $ return ())
 
--- unitsU and replicateU are reexported from Loop
+-- unitsU is reexported from Loop
+
+-- |Yield an array where all elements contain the same value
+--
+replicateU :: UA e => Int -> e -> UArr e
+{-# INLINE replicateU #-}
+replicateU n e = n `seq` e `seq` (loopArr . loopU (mapEFL $ const e) noAL $ unitsU n)
 
 -- |Array indexing
 --

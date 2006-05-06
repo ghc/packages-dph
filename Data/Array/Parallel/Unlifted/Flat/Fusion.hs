@@ -24,7 +24,7 @@ module Data.Array.Parallel.Unlifted.Flat.Fusion(
 
 import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.Loop (
-  unitsU, replicateU, loopU)
+  loopU)
 
 -- Fusion rules
 -- ------------
@@ -33,13 +33,6 @@ import Data.Array.Parallel.Unlifted.Flat.Loop (
 --
 
 {-# RULES  -- -} (for font-locking)
-
--- We have to use (unitsU n) instead of (replicateU n ()) here, as the latter
--- would lead to nontermination.
-
-"loopU/replicateU" forall em start n v.
-  loopU em start (replicateU n v) = 
-    loopU (\a _ -> em a v) start (unitsU n)
 
 "loopU/loopU" forall em1 em2 start1 start2 arr.
   loopU em2 start2 (loopArr (loopU em1 start1 arr)) =

@@ -21,26 +21,15 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Loop (
-  unitsU, replicateU, loopU
+  unitsU, loopU
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), runST)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
-  lengthU, indexU, unitsU, newU,
+  lengthU, indexU, unitsU,
   newMU, writeMU, unsafeFreezeMU)
-
--- |Yield an array where all elements contain the same value
---
-replicateU :: UA e => Int -> e -> UArr e
-{-# INLINE [1] replicateU #-}
-replicateU n e = newU n fill0
-  where
-    fill0 mpa = fill 0
-      where
-        fill i | i == n    = return ()
-	       | otherwise = writeMU mpa i e >> fill (i + 1)
 
 -- |Iteration over over non-nested arrays
 --
@@ -50,7 +39,13 @@ loopU :: (UA e, UA e')
       -> UArr e			           -- input array
       -> (UArr e' :*: acc)
 {-# INLINE [1] loopU #-}
-loopU mf start a = 
+loopU mf start a =
+  a `seq`            -- GHC can't figure out that loopU is strict in the array
+                     -- on its own which means that loopU isn't considered
+                     -- an interesting continuation. This prevents, e.g.,
+                     -- replicateU in
+                     --   g n = mapU f . replicateU n
+                     -- from being inlined and subsequently fused.
   runST (do
     mpa            <- newMU len
     (acc :*: len') <- trans0 mpa start

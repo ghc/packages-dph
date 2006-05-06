@@ -1,8 +1,7 @@
 module Map_Map_Replicate where
 import Data.Array.Parallel.Unlifted
 
--- > 1 loopU/loopU
--- > 1 loopU/replicateU
+-- > 2 loopU/loopU
 
 map_map_replicate :: (UA a, UA b, UA c)
                   => (b -> c) -> (a -> b) -> Int -> a -> UArr c
