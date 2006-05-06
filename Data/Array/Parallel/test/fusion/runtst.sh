@@ -5,19 +5,30 @@ OPTS="-package ndp\
       -fglasgow-exts -O2 -funbox-strict-fields\
       -fliberate-case-threshold100 -fno-method-sharing"
 
-if [ "x$@" = "x" ]
-then
-  tests=`ls *.hs`
-else
-  tests=$@
-fi
+verbose=no
+tests=
+
+exec 6> /dev/null
+
+for arg
+do
+  case $arg in
+    --verbose|-v) exec 6>&1
+                  ;;
+    *)            tests="$tests $arg"
+                  ;;
+  esac
+done
+
+tests=${tests:=`ls *.hs`}
 
 for file in $tests
 do
+  echo Testing $file >&6
   rules=`sed -n 's/-- >[[:space:]]*\([0-9]\+\)[[:space:]]\+\([^[:space:]]\+\)/\1 \2/p' $file`
   log=`echo $file | sed 's/\.hs$/.log/'`
-  echo "$GHC $OPTS -c $file -ddump-simpl-stats" > $log
-  if $GHC $OPTS -c $file -ddump-simpl-stats >> $log
+  echo "$GHC $OPTS -c $file -ddump-simpl-stats" >&6
+  if $GHC $OPTS -c $file -ddump-simpl-stats > $log
   then
     oldIFS=$IFS
     IFS='
