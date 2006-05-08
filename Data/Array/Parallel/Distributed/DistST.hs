@@ -19,13 +19,13 @@
 --
 
 module Data.Array.Parallel.Distributed.DistST (
-  DistST, runDistST_, runDistST,
+  DistST, stToDistST, distST_, distST, runDistST,
 
-  distST, myDT, readMyMDT, writeMyMDT
+  myD, readMyMD, writeMyMD
 ) where
 
 import Data.Array.Parallel.Base (
-  ST)
+  ST, runST)
 import Data.Array.Parallel.Distributed.Gang
 import Data.Array.Parallel.Distributed.Types (
   DT(..), Dist, MDist)
@@ -47,34 +47,37 @@ myIndex = DistST return
 
 -- | Lifts an 'ST' computation into the 'DistST' monad. The lifted computation
 -- should be data parallel.
-distST :: ST s a -> DistST s a
-distST p = DistST $ \i -> p
+stToDistST :: ST s a -> DistST s a
+stToDistST p = DistST $ \i -> p
 
 -- | Yields the 'Dist' element owned by the current thread.
-myDT :: DT a => Dist a -> DistST s a
-myDT dt = liftM (indexDT dt) myIndex
+myD :: DT a => Dist a -> DistST s a
+myD dt = liftM (indexD dt) myIndex
 
 -- | Yields the 'MDist' element owned by the current thread.
-readMyMDT :: DT a => MDist a s -> DistST s a
-readMyMDT mdt = do
-                     i <- myIndex
-                     distST $ readMDT mdt i
+readMyMD :: DT a => MDist a s -> DistST s a
+readMyMD mdt = do
+                 i <- myIndex
+                 stToDistST $ readMD mdt i
 
 -- | Writes the 'MDist' element owned by the current thread.
-writeMyMDT :: DT a => MDist a s -> a -> DistST s ()
-writeMyMDT mdt x = do
-                     i <- myIndex
-                     distST $ writeMDT mdt i x
+writeMyMD :: DT a => MDist a s -> a -> DistST s ()
+writeMyMD mdt x = do
+                    i <- myIndex
+                    stToDistST $ writeMD mdt i x
 
--- | Runs a data-parallel computation on a 'Gang'. 
-runDistST_ :: Gang -> DistST s () -> ST s ()
-runDistST_ g = gangST g . unDistST
+-- | Execute a data-parallel computation on a 'Gang'.
+distST_ :: Gang -> DistST s () -> ST s ()
+distST_ g = gangST g . unDistST
 
--- | Runs a data-parallel computation, yielding the distributed result.
-runDistST :: DT a => Gang -> DistST s a -> ST s (Dist a)
-runDistST g p =
-  do
-    mdt <- newMDT g
-    runDistST_ g $ writeMyMDT mdt =<< p
-    unsafeFreezeMDT mdt
+-- | Execute a data-parallel computation, yielding the distributed result.
+distST :: DT a => Gang -> DistST s a -> ST s (Dist a)
+distST g p = do
+               md <- newMD g
+               distST_ g $ writeMyMD md =<< p
+               unsafeFreezeMD md
+
+-- | Run a data-parallel computation, yielding the distributed result.
+runDistST :: DT a => Gang -> (forall s. DistST s a) -> Dist a
+runDistST g p = runST (distST g p)
 

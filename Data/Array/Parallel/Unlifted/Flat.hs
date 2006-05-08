@@ -67,12 +67,12 @@ module Data.Array.Parallel.Unlifted.Flat (
   toU, fromU,
 
   -- * Operations on mutable arrays
-  newU, newMU, readMU, writeMU, unsafeFreezeMU, permuteMU
+  newU, newMU, readMU, writeMU, unsafeFreezeMU, copyMU, permuteMU
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
-  newU, newMU, readMU, writeMU, unsafeFreezeMU)
+  newU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU)
 import Data.Array.Parallel.Unlifted.Flat.Loop
 import Data.Array.Parallel.Unlifted.Flat.Fusion    ({- rules only -})
 import Data.Array.Parallel.Unlifted.Flat.Basics

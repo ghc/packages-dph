@@ -22,6 +22,9 @@ hidden-modules:
         Data.Array.Parallel.Distributed.Gang
         Data.Array.Parallel.Distributed.DistST
 	Data.Array.Parallel.Distributed.Types
+        Data.Array.Parallel.Distributed.Combinators
+        Data.Array.Parallel.Distributed.Scalars
+        Data.Array.Parallel.Distributed.Arrays
         Data.Array.Parallel.Distributed.Basics
         Data.Array.Parallel.Distributed.Operations
 	Data.Array.Parallel.Unlifted.Flat.UArr

@@ -25,14 +25,14 @@ module Data.Array.Parallel.Distributed (
   eqD, neqD,
 
   -- * Distributed scalars
-  splitScalarD,
+  scalarD,
   andD, orD, sumD,
 
   -- * Distributed pairs
   zipD, unzipD, fstD, sndD,
 
   -- * Distributed arrays
-  splitLengthD, splitD, joinD, lengthsD, lengthD,
+  lengthD, splitLengthD, splitD, joinLengthD, joinD,
 
   -- * Permutations
   permuteD, bpermuteD,
@@ -45,5 +45,8 @@ import Data.Array.Parallel.Distributed.Gang (
   Gang, forkGang, gangSize, sequentialGang, seqGang)
 import Data.Array.Parallel.Distributed.Types (
   DT, Dist)
-import Data.Array.Parallel.Distributed.Operations
+import Data.Array.Parallel.Distributed.Combinators
+import Data.Array.Parallel.Distributed.Scalars
+import Data.Array.Parallel.Distributed.Arrays
+import Data.Array.Parallel.Distributed.Basics
 

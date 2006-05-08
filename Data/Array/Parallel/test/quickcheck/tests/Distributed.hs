@@ -78,9 +78,9 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int, UArr (), UArr Int ) |]
   -- Distributed scalars
   -- -------------------
 
-  prop_splitScalarD :: D sc => Gang -> sc -> Bool
-  prop_splitScalarD g x =
-    fromD g (splitScalarD g x) == replicate (gangSize g) x
+  prop_scalarD :: D sc => Gang -> sc -> Bool
+  prop_scalarD g x =
+    fromD g (scalarD g x) == replicate (gangSize g) x
 
   prop_andD :: Gang -> Property
   prop_andD g =
@@ -126,14 +126,14 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int, UArr (), UArr Int ) |]
   -- Distributed arrays
   -- ------------------
 
-  prop_splitLengthD_1 :: Gang -> Len -> Bool
-  prop_splitLengthD_1 g (Len n) =
-    sumD g (splitLengthD g n) == n
+  prop_splitLengthD_1 :: U sc => Gang -> UArr sc -> Bool
+  prop_splitLengthD_1 g arr =
+    sumD g (splitLengthD g arr) == lengthU arr
 
   -- check that the distribution is [k+1,k+1,k+1,...,k,k,k,...]
-  prop_splitLengthD_2 :: Gang -> Len -> Bool
-  prop_splitLengthD_2 g (Len n) =
-    chk (fromD g (splitLengthD g n))
+  prop_splitLengthD_2 :: U sc => Gang -> UArr sc -> Bool
+  prop_splitLengthD_2 g arr =
+    chk (fromD g (splitLengthD g arr))
     where
       chk (l:ls) = let ns = dropWhile (==l) ls
                    in
@@ -141,10 +141,10 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int, UArr (), UArr Int ) |]
                    || (all (== head ns) ns
                     && head ns == l - 1)
 
-  prop_lengthsD :: U sc => Gang -> sc -> Property
-  prop_lengthsD g x =
+  prop_lengthD :: U sc => Gang -> sc -> Property
+  prop_lengthD g x =
     forAll (gdist g `gtype` replicateU 0 x) $ \darr ->
-    eqD g (lengthsD darr) (mapD g lengthU darr)
+    eqD g (lengthD darr) (mapD g lengthU darr)
 
   prop_splitD :: (UA sc, Eq sc) => Gang -> UArr sc -> Bool
   prop_splitD g arr =
