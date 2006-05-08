@@ -36,8 +36,11 @@ hidden-modules:
 	Data.Array.Parallel.Unlifted.Segmented.SUArr
         Data.Array.Parallel.Unlifted.Segmented.Loop
         Data.Array.Parallel.Unlifted.Segmented.Fusion
-        Data.Array.Parallel.Unlifted.Segmented.ListLike
-        Data.Array.Parallel.Unlifted.Segmented.NeslLike
+        Data.Array.Parallel.Unlifted.Segmented.Basics
+        Data.Array.Parallel.Unlifted.Segmented.Subarrays
+        Data.Array.Parallel.Unlifted.Segmented.Combinators
+        Data.Array.Parallel.Unlifted.Segmented.Sums
+        Data.Array.Parallel.Unlifted.Segmented.Permute
         Data.Array.Parallel.Unlifted.Segmented
 
 import-dirs:	IMPORT_DIR

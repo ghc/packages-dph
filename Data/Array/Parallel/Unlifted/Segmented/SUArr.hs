@@ -22,19 +22,19 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
   USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
 
   -- * Basic operations on segmented parallel arrays
-  lengthSU, indexSU, sliceIndexSU, extractIndexSU, sliceSU, extractSU,
-  flattenSU, (>:), newMSU, nextMSU, unsafeFreezeMSU, toUSegd, fromUSegd
-
+  lengthSU,
+  flattenSU, (>:),
+  newMSU, nextMSU, unsafeFreezeMSU,
+  toUSegd, fromUSegd
 ) where
 
 -- friends
 import Data.Array.Parallel.Base ((:*:)(..), ST)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr,
-  lengthU, (!:), sliceU, extractU, mapU, scanU,
+  lengthU, (!:), scanU,
   newMU, readMU, writeMU, unsafeFreezeMU)
 
-infixl 9 `indexSU`
 infixr 9 >:
 
 
@@ -76,51 +76,6 @@ data MSUArr e s = MSUArr {
 -- 
 lengthSU :: UA e => SUArr e -> Int
 lengthSU (SUArr segd _) = lengthU (segdUS segd)
-
--- |Extract the segment at the given index using the given extraction function
--- (either 'sliceU' or 'extractU').
--- 
-indexSU :: UA e => (UArr e -> Int -> Int -> UArr e) -> SUArr e -> Int -> UArr e
-indexSU copy (SUArr segd a) i = copy a (psumUS segd !: i)
-                                       (segdUS segd !: i)
-
--- |Extract the segment at the given index without copying the elements.
---
-sliceIndexSU :: UA e => SUArr e -> Int -> UArr e
-sliceIndexSU = indexSU sliceU
-
--- |Extract the segment at the given index (elements are copied).
--- 
-extractIndexSU :: UA e => SUArr e -> Int -> UArr e
-extractIndexSU = indexSU extractU
-
--- |Extract a subrange of the segmented array without copying the elements.
---
-sliceSU :: UA e => SUArr e -> Int -> Int -> SUArr e
-sliceSU (SUArr segd a) i n =
-  let
-    segd1 = segdUS segd
-    psum  = psumUS segd
-    m     = if i == 0 then 0 else psum !: (i - 1)
-    psum' = mapU (subtract m) (sliceU psum i n)
-    segd' = USegd (sliceU segd1 i n) psum'
-    i'    = psum !: i
-  in
-  SUArr segd' (sliceU a i' (psum !: (i + n - 1) - i' + 1))
-
--- |Extract a subrange of the segmented array (elements are copied).
---
-extractSU :: UA e => SUArr e -> Int -> Int -> SUArr e
-extractSU (SUArr segd a) i n =
-  let
-    segd1 = segdUS segd
-    psum  = psumUS segd
-    m     = if i == 0 then 0 else psum !: (i - 1)
-    psum' = mapU (subtract m) (extractU psum i n)
-    segd' = USegd (extractU segd1 i n) psum'
-    i'    = psum !: i
-  in
-  SUArr segd' (extractU a i' (psum !: (i + n - 1) - i' + 1))
 
 -- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
 -- iteratively define a segmented mutable array; i.e., arrays of type `MSUArr

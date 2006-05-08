@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.ListLike
+-- Module      : Data.Array.Parallel.Unlifted.Segmented.Basics
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/base/LICENSE
@@ -11,88 +11,72 @@
 --
 -- Description ---------------------------------------------------------------
 --
---  Unlifted array versions of segmented list-like combinators.
+--  Basics operations on unlifted segmented arrays.
 --
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Unlifted.Segmented.ListLike (
-  concatSU, {-concatMapU,-},
-  foldlSU, foldSU, {-fold1SU,-} {-scanSU,-} {-scan1SU,-}
-  andSU, orSU, sumSU, productSU, maximumSU, minimumSU,
-  enumFromToSU, enumFromThenToSU
+module Data.Array.Parallel.Unlifted.Segmented.Basics (
+  lengthSU,
+  flattenSU, (>:), segmentU, concatSU,
+  sliceIndexSU, extractIndexSU,
+  enumFromToSU, enumFromThenToSU,
+  toSU, fromSU
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
-  (!:), lengthU, mapU, replicateU, zipWith3U, sumU)
+  lengthU, (!:), replicateU,
+  sliceU, extractU,
+  mapU, zipWith3U, sumU,
+  toU, fromU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr, toUSegd, flattenSU, (>:))
+  SUArr(..), lengthSU, (>:), flattenSU, psumUS, segdUS, toUSegd)
 import Data.Array.Parallel.Unlifted.Segmented.Loop (
   loopSU)
 import Data.Array.Parallel.Unlifted.Segmented.Fusion (
-  foldEFL, keepSFL,
-  loopAccS, loopArrS)
+  loopArrS)
 
--- |List-like combinators
--- ----------------------
+-- lengthSU reexported from SUArr
+
+-- |Segmentation
+-- -------------
+
+-- flattenSU and (>:) reexported from SUArr
+
+-- |Segment an array according to the segmentation of the first argument
+--
+segmentU :: (UA e', UA e) => SUArr e' -> UArr e -> SUArr e
+{-# INLINE segmentU #-}
+segmentU template arr = fstS (flattenSU template) >: arr
 
 -- |Concatenate the subarrays of an array of arrays
 --
 concatSU :: UA e => SUArr e -> UArr e
 concatSU = sndS . flattenSU
 
--- |Segmented array reduction proceeding from the left
+-- |Indexing
+-- ---------
+
+-- |Extract the segment at the given index using the given extraction function
+-- (either 'sliceU' or 'extractU').
+-- 
+indexSU :: UA e => (UArr e -> Int -> Int -> UArr e) -> SUArr e -> Int -> UArr e
+indexSU copy (SUArr segd a) i = copy a (psumUS segd !: i)
+                                       (segdUS segd !: i)
+
+-- |Extract the segment at the given index without copying the elements.
 --
-foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
-{-# INLINE foldlSU #-}
-foldlSU f z = loopAccS . loopSU (foldEFL f) (keepSFL (const z)) z
+sliceIndexSU :: UA e => SUArr e -> Int -> UArr e
+sliceIndexSU = indexSU sliceU
 
--- |Segmented array reduction that requires an associative combination
--- function with its unit
---
-foldSU :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
-foldSU = foldlSU
+-- |Extract the segment at the given index (elements are copied).
+-- 
+extractIndexSU :: UA e => SUArr e -> Int -> UArr e
+extractIndexSU = indexSU extractU
 
--- |
-andSU :: SUArr Bool -> UArr Bool
-andSU = foldSU (&&) True
-
--- |
-orSU :: SUArr Bool -> UArr Bool
-orSU = foldSU (||) False
-
--- |Compute the segmented sum of an array of numerals
---
-sumSU :: (Num e, UA e) => SUArr e -> UArr e
-{-# INLINE sumSU #-}
-sumSU = foldSU (+) 0
-
--- |Compute the segmented product of an array of numerals
---
-productSU :: (Num e, UA e) => SUArr e -> UArr e
-{-# INLINE productSU #-}
-productSU = foldSU (*) 1
-
--- |Determine the maximum element in each subarray
---
-maximumSU :: (Bounded e, Ord e, UA e) => SUArr e -> UArr e
---FIXME: provisional until fold1SU implemented
---maximumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
-{-# INLINE maximumSU #-}
---maximumSU = fold1SU max
-maximumSU = foldSU max minBound
-
--- |Determine the minimum element in each subarray
---
-minimumSU :: (Bounded e, Ord e, UA e) => SUArr e -> UArr e
---FIXME: provisional until fold1SU implemented
---minimumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
-{-# INLINE minimumSU #-}
---minimumSU = fold1SU min
-minimumSU = foldSU min maxBound
 
 -- |Enumeration functions
 -- ----------------------
@@ -134,4 +118,27 @@ enumFromThenToSU starts nexts ends =
 				     else next - start
     --
     init = fstS $ seg undefined (-1)
+
+-- |Conversion
+-- -----------
+
+-- |Turn a nested list into a segmented parallel array
+--
+toSU :: UA e => [[e]] -> SUArr e
+{-# INLINE toSU #-}
+toSU ls = let lens = toU $ map length ls
+	      a    = toU $ concat ls
+          in
+	  toUSegd lens >: a
+
+-- |Turn a segmented array into a nested list
+--
+fromSU :: UA e => SUArr e -> [[e]]
+{-# INLINE fromSU #-}
+fromSU as = let (segd :*: a) = flattenSU as
+                lens         = fromU $ segdUS segd
+                starts       = fromU $ psumUS segd
+            in
+            [[a !: i | i <- [start .. start + len - 1]]
+                            | (start, len) <- zip starts lens]
 
