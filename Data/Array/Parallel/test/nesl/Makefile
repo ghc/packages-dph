@@ -30,6 +30,11 @@ HCFLAGS = -package ndp\
 default: 
 	echo "Error: You need to build specific tests"
 
-%: %.hs Bench.hs $(LIB)
-	$(HC) --make -o $@ $< $(HCFLAGS)
+%.o: %.hs $(LIB)
+	$(HC) -c $< $(HCFLAGS) -no-recomp
+%hi: %.o
+	@:
+
+%: %.o Bench.o
+	$(HC) -o $@ $< Bench.o $(HCFLAGS)
 
