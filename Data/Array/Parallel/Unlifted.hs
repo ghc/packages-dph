@@ -109,7 +109,10 @@ module Data.Array.Parallel.Unlifted (
   noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
 
   -- * Library id
-  idstr, name, versnum, date, version, copyright, disclaimer
+  idstr, name, versnum, date, version, copyright, disclaimer,
+
+  -- FIXME
+  lengthU'
 
 ) where
 

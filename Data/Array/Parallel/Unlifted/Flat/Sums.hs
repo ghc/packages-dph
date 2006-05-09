@@ -19,13 +19,16 @@
 module Data.Array.Parallel.Unlifted.Flat.Sums (
   andU, orU, anyU, allU,
   elemU, notElemU,
-  sumU, productU, maximumU, minimumU
+  sumU, productU, maximumU, minimumU,
+
+  -- FIXME
+  lengthU'
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr)
 import Data.Array.Parallel.Unlifted.Flat.Combinators (
-  mapU, foldU, fold1U)
+  mapU, foldU, fold1U, foldlU)
 
 infix  4 `elemU`, `notElemU`
 
@@ -80,4 +83,10 @@ elemU e = anyU (== e)
 --
 notElemU :: (Eq e, UA e) => e -> UArr e -> Bool
 notElemU e = allU (/= e)
+
+-- |FIXME: A fuseable version of 'lengthU', should go away
+--
+lengthU' :: UA e => UArr e -> Int
+{-# INLINE lengthU' #-}
+lengthU' = foldlU (const . (+1)) 0
 

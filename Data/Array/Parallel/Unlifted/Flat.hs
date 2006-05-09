@@ -67,7 +67,10 @@ module Data.Array.Parallel.Unlifted.Flat (
   toU, fromU,
 
   -- * Operations on mutable arrays
-  newU, newMU, readMU, writeMU, unsafeFreezeMU, copyMU, permuteMU
+  newU, newMU, readMU, writeMU, unsafeFreezeMU, copyMU, permuteMU,
+
+  -- FIXME
+  lengthU'
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
