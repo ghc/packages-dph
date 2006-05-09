@@ -5,7 +5,7 @@ import Bench
 -- counting sort from http://www.cs.cmu.edu/~scandal/nesl/algorithms.html
 -- ----------------------------------------------------------------------
 position :: (UA a, Ord a) => a -> UArr a -> Int
-position x = lengthU . filterU (<x)
+position x = lengthU' . filterU (<x)
 
 counting :: (UA a, Ord a) => UArr a -> UArr a
 {-# NOINLINE counting #-}
@@ -17,5 +17,5 @@ counting a =
 
 main = benchmarks "Counting sort"
                   (counting :: UArr Int -> UArr Int)
-                  (-1000,1000)
+                  (minBound,maxBound)
 
