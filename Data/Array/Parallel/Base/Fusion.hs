@@ -63,6 +63,7 @@ type EFL acc e1 e2 = (acc -> e1 -> acc :*: MaybeS e2)
 
 -- |Fuse two loop functions
 fuseEFL :: EFL acc1 e1 e2 -> EFL acc2 e2 e3 -> EFL (acc1 :*: acc2) e1 e3
+{-# INLINE [1] fuseEFL #-}
 fuseEFL f g (acc1 :*: acc2) e1 =
   case f acc1 e1 of
     acc1' :*: NothingS -> (acc1' :*: acc2) :*: NothingS
