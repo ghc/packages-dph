@@ -52,7 +52,7 @@ emptyU = newU 0 (const $ return ())
 --
 replicateU :: UA e => Int -> e -> UArr e
 {-# INLINE replicateU #-}
-replicateU n e = n `seq` e `seq` (loopArr . loopU (mapEFL $ const e) noAL $ unitsU n)
+replicateU n e = loopArr . loopU (mapEFL $ const e) noAL $ unitsU n
 
 -- |Array indexing
 --
