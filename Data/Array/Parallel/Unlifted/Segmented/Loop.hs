@@ -26,6 +26,8 @@ module Data.Array.Parallel.Unlifted.Segmented.Loop (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), runST)
+import Data.Array.Parallel.Base.Fusion (
+  EFL, SFL)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
   lengthU, (!:), sumU, scanU,
@@ -76,10 +78,10 @@ replicateSU ns es =
 --   the accumulator array.
 --
 loopSU :: (UA e, UA e', UA ae)
-       => (acc -> e   -> (acc :*: Maybe e'))    -- per element mutator
-       -> (acc -> Int -> (acc :*: Maybe ae))    -- per segment mutator
+       => EFL acc e e'                          -- per element mutator
+       -> SFL acc ae                            -- per segment mutator
        -> acc				        -- initial acc value
-       -> SUArr e			       -- input array
+       -> SUArr e			        -- input array
        -> ((SUArr e' :*: UArr ae) :*: acc)
 -- FIXME: Intro a debug flag that activates segd conistency checks
 {-# INLINE [1] loopSU #-}

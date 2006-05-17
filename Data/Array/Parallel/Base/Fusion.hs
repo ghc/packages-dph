@@ -16,7 +16,7 @@
 
 module Data.Array.Parallel.Base.Fusion (
   NoAL, noAL,
-  EFL,
+  EFL, SFL,
   fuseEFL,
   noEFL, noSFL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
   loopArr, loopAcc, loopSndAcc, loopArrS, loopAccS,
@@ -41,21 +41,6 @@ noAL :: NoAL
 {-# INLINE [1] noAL #-}
 noAL = NoAL
 
--- |Fusion of loop functions
--- -------------------------
-
--- |Type of loop functions
-type EFL acc e1 e2 = (acc -> e1 -> acc :*: Maybe e2)
-
--- |Fuse to flat loop functions
-fuseEFL :: EFL acc1 e1 e2 -> EFL acc2 e2 e3 -> EFL (acc1 :*: acc2) e1 e3
-fuseEFL f g (acc1 :*: acc2) e1 =
-  case f acc1 e1 of
-    acc1' :*: Nothing -> (acc1' :*: acc2) :*: Nothing
-    acc1' :*: Just e2 ->
-      case g acc2 e2 of
-        (acc2' :*: res) -> (acc1' :*: acc2') :*: res
-
 -- |Special forms of loop arguments
 -- --------------------------------
 --
@@ -66,21 +51,30 @@ fuseEFL f g (acc1 :*: acc2) e1 =
 --   two simplifier phases.
 --
 -- * In the case where the accumulator is not needed, it is better to always
---   explicitly return a value `()', rather than just copy the input to the
+--   explicitly return a value 'NoAL', rather than just copy the input to the
 --   output, as the former gives GHC better local information.
--- 
+--
+
+-- Flat loops
+-- ----------
+
+-- |Type of loop functions
+type EFL acc e1 e2 = (acc -> e1 -> acc :*: Maybe e2)
+
+-- |Fuse two loop functions
+fuseEFL :: EFL acc1 e1 e2 -> EFL acc2 e2 e3 -> EFL (acc1 :*: acc2) e1 e3
+fuseEFL f g (acc1 :*: acc2) e1 =
+  case f acc1 e1 of
+    acc1' :*: Nothing -> (acc1' :*: acc2) :*: Nothing
+    acc1' :*: Just e2 ->
+      case g acc2 e2 of
+        (acc2' :*: res) -> (acc1' :*: acc2') :*: res
 
 -- |No element function
 --
 noEFL :: EFL acc () ()
 {-# INLINE [1] noEFL #-}
 noEFL acc _  = (acc :*: Nothing)
-
--- |No segment function
---
-noSFL :: acc -> Int -> (acc :*: Maybe ())
-{-# INLINE [1] noSFL #-}
-noSFL acc _  = (acc :*: Nothing)
 
 -- |Element function expressing a mapping only
 --
@@ -109,16 +103,29 @@ scanEFL :: (acc -> e -> acc) -> EFL acc e acc
 scanEFL f = \a e -> (f a e :*: Just a)
 --scanEFL f  = \a e -> let a' = f a e in a' `seq` (a' :*: Just a)
 
+-- Segmented loops
+-- ---------------
+
+-- |Type of segment functions
+--
+type SFL acc e = (acc -> Int -> acc :*: Maybe e)
+
+-- |No segment function
+--
+noSFL :: SFL acc ()
+{-# INLINE [1] noSFL #-}
+noSFL acc _  = (acc :*: Nothing)
+
 -- |Segment function transforming the accumulator
 --
-transSFL :: (acc -> acc) -> (acc -> Int -> (acc :*: Maybe ()))
+transSFL :: (acc -> acc) -> SFL acc ()
 {-# INLINE [1] transSFL #-}
 transSFL f = \a _ -> (f a :*: Nothing)
 
 -- |Segment function transforming the accumulator and collecting accumulator
 -- values
 --
-keepSFL :: (acc -> acc) -> (acc -> Int -> (acc :*: Maybe acc))
+keepSFL :: (acc -> acc) -> SFL acc acc
 {-# INLINE [1] keepSFL #-}
 keepSFL f = \a _ -> (f a :*: Just a)
 
