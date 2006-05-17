@@ -65,7 +65,8 @@ import GHC.Arr		  (Array(..), STArray(..), bounds, boundsSTArray,
 			   (!), newSTArray, readSTArray, writeSTArray)
 
 -- NDP library
-import Data.Array.Parallel.Base (ST(..), runST, checkLen)
+import Data.Array.Parallel.Base (
+  HS, ST(..), runST, checkLen)
 
 infixl 9 `indexBB`, `readMBB`
 
@@ -81,6 +82,8 @@ infixl 9 `indexBB`, `readMBB`
 --
 newtype BBArr    e = BBArr  (Array     Int e)
 newtype MBBArr s e = MBBArr (STArray s Int e)
+
+instance HS e => HS (BBArr e)
 
 -- |Length of an immutable boxed array
 --
