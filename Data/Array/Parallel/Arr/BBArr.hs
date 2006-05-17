@@ -1,7 +1,7 @@
--- |GHC-specific low-level support for boxed arrays
+-- |GHC-specific low-level support for strict boxed arrays
 --
 --  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---  Copyright (c) 2006	       Manuel M T Chakravarty
+--  Copyright (c) 2006	       Manuel M T Chakravarty & Roman Leshchinskiy
 --
 --  This file may be used, modified, and distributed under the same conditions
 --  and the same warranty disclaimer as set out in the X11 license.
@@ -10,9 +10,38 @@
 --
 --  Language: Haskell 98 + GHC-internal libraries
 --
+--  This module defines two-phase boxed arrays which are strict in all
+--  elements which have been initialised. It is ok not to initialise some
+--  elements as long as we don't access them. Initialising an element with
+--  bottom diverges.
+--
+--  This means that in
+--
+--  > let arr = runST (newMBB n >>= unsafeFreezeMBB)
+--
+--  @arr@ itself is defined but @arr `indexBB` i@ diverges for all @i@. In
+--
+--  > let brr = runST (do mb <- newMBB n
+--  >                     <initialise all elements except at index 2>
+--  >                     unsafeFreezeMBB mb)
+--
+--  @brr `indexBB` i@ diverges for @i=2@ and converges otherwise.
+--
+--  Thus, our arrays effectively model strict collections of (index,value)
+--  pairs but do not require the indices to be contiguous.
+--
+--  Internally, we do use bottoms for uninitialised elements in the underlying
+--  GHC array; however, @writeMBB@ is strict in the value being written.
+--  Indexing into the array can never yield a thunk if the elements are
+--  hyperstrict but can diverge (which is ok). Hence, we can say that the
+--  arrays are hyperstrict for hyperstrict elements even though the underlying
+--  representation is not.
+--
+--  The reason for this slightly peculiar (but sound, in my opinion) model are
+--  distributed 'MaybeS's.
+--
 --- Todo ----------------------------------------------------------------------
 --
---  * See some of the comments in UArr.hs
 
 module Data.Array.Parallel.Arr.BBArr (
   -- * Boxed primitive arrays (both immutable and mutable)
@@ -63,10 +92,10 @@ lengthBB (BBArr arr) = (+ 1) . snd . bounds $ arr
 lengthMBB :: MBBArr s e -> Int
 lengthMBB (MBBArr marr) = (+ 1) . snd . boundsSTArray $ marr
 
--- |Allocate a boxed array initialised with the given value
+-- |Allocate a boxed array
 --
-newMBB :: Int -> e -> ST s (MBBArr s e)
-newMBB n = liftM MBBArr . newSTArray (0, n - 1)
+newMBB :: Int -> ST s (MBBArr s e)
+newMBB n = liftM MBBArr (newSTArray (0, n - 1) bottomBBArrElem)
 
 -- |Access an element in an immutable, boxed array
 --
@@ -81,7 +110,7 @@ readMBB (MBBArr marr) = readSTArray marr
 -- |Update an element in an mutable, boxed array
 --
 writeMBB :: MBBArr s e -> Int -> e -> ST s ()
-writeMBB (MBBArr marr) = writeSTArray marr
+writeMBB (MBBArr marr) e = e `seq` writeSTArray marr e
 
 -- |Turn a mutable into an immutable array WITHOUT copying its contents, which
 -- implies that the mutable array must not be mutated anymore after this
@@ -117,17 +146,24 @@ extractBB :: BBArr e -> Int -> Int -> BBArr e
 {-# INLINE extractBB #-}
 extractBB arr i n = 
   runST (do
-    ma <- newMBB n bottomBBArrElem
-    copy0 ma
+    ma@(MBBArr sta) <- newMBB n
+    copy0 sta
     unsafeFreezeMBB ma n
   )
   where
     fence = n `min` (lengthBB arr - i)
-    copy0 ma = copy 0
+    copy0 sta = copy 0
       where
         copy off | off == fence = return ()
 		 | otherwise	= do
-				    writeMBB ma off (arr `indexBB` (i + off))
+                                    -- Do not use writeMBB here because it is
+                                    -- strict but we want to be able to copy
+                                    -- arrays with uninitialised elements.
+                                    -- This is ok because we know that
+                                    -- initialised elements in the original
+                                    -- array have already been evaluated by a
+                                    -- writeMBB.
+                                    writeSTArray sta off (arr `indexBB` (i + off))
 				    copy (off + 1)
 
 bottomBBArrElem = 
