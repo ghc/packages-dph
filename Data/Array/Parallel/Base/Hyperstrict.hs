@@ -23,6 +23,9 @@ module Data.Array.Parallel.Base.Hyperstrict (
   -- * Currying
   curryS, uncurryS,
 
+  -- * Strict Maybe
+  MaybeS(..),
+
   -- * Class of hyperstrict types
   HS
 ) where
@@ -54,6 +57,9 @@ uncurryS f (x :*: y) = f x y
 -- |Strict sum
 data (:+:) a b = Inl !a | Inr !b
 
+-- |Strict Maybe
+data MaybeS a = NothingS | JustS !a
+
 
 -- | The class of hyperstrict types. These are those types for which weak
 -- head-normal form and normal form are the same, i.e., they are guaranteed to
@@ -69,4 +75,6 @@ instance HS Double
 
 instance (HS a, HS b) => HS (a :*: b)
 instance (HS a, HS b) => HS (a :+: b)
+instance HS a => HS (MaybeS a)
+
 
