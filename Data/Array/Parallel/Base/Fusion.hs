@@ -72,9 +72,9 @@ fuseEFL f g (acc1 :*: acc2) e1 =
 
 -- |No element function
 --
-noEFL :: EFL acc () ()
+noEFL :: EFL NoAL () ()
 {-# INLINE [1] noEFL #-}
-noEFL acc _  = (acc :*: Nothing)
+noEFL _ _  = (NoAL :*: Nothing)
 
 -- |Element function expressing a mapping only
 --
@@ -112,9 +112,9 @@ type SFL acc e = (acc -> Int -> acc :*: Maybe e)
 
 -- |No segment function
 --
-noSFL :: SFL acc ()
+noSFL :: SFL NoAL ()
 {-# INLINE [1] noSFL #-}
-noSFL acc _  = (acc :*: Nothing)
+noSFL _ _  = (NoAL :*: Nothing)
 
 -- |Segment function transforming the accumulator
 --
