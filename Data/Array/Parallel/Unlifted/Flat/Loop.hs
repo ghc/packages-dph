@@ -26,6 +26,8 @@ module Data.Array.Parallel.Unlifted.Flat.Loop (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), runST)
+import Data.Array.Parallel.Base.Fusion (
+  EFL)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
   lengthU, indexU, unitsU,
@@ -34,7 +36,7 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
 -- |Iteration over over non-nested arrays
 --
 loopU :: (UA e, UA e')
-      => (acc -> e -> (acc :*: Maybe e'))  -- mapping & folding, once per elem
+      => EFL acc e e'                      -- mapping & folding, once per elem
       -> acc				   -- initial acc value
       -> UArr e			           -- input array
       -> (UArr e' :*: acc)

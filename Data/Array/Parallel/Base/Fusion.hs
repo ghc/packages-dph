@@ -16,6 +16,7 @@
 
 module Data.Array.Parallel.Base.Fusion (
   NoAL, noAL,
+  EFL,
   fuseEFL,
   noEFL, noSFL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
   loopArr, loopAcc, loopSndAcc, loopArrS, loopAccS,
@@ -43,10 +44,11 @@ noAL = NoAL
 -- |Fusion of loop functions
 -- -------------------------
 
+-- |Type of loop functions
+type EFL acc e1 e2 = (acc -> e1 -> acc :*: Maybe e2)
+
 -- |Fuse to flat loop functions
-fuseEFL :: (acc1 -> e1 -> acc1 :*: Maybe e2)
-        -> (acc2 -> e2 -> acc2 :*: Maybe e3)
-        -> acc1 :*: acc2 -> e1 -> (acc1 :*: acc2) :*: Maybe e3
+fuseEFL :: EFL acc1 e1 e2 -> EFL acc2 e2 e3 -> EFL (acc1 :*: acc2) e1 e3
 fuseEFL f g (acc1 :*: acc2) e1 =
   case f acc1 e1 of
     acc1' :*: Nothing -> (acc1' :*: acc2) :*: Nothing
@@ -70,7 +72,7 @@ fuseEFL f g (acc1 :*: acc2) e1 =
 
 -- |No element function
 --
-noEFL :: acc -> () -> (acc :*: Maybe ())
+noEFL :: EFL acc () ()
 {-# INLINE [1] noEFL #-}
 noEFL acc _  = (acc :*: Nothing)
 
@@ -82,27 +84,27 @@ noSFL acc _  = (acc :*: Nothing)
 
 -- |Element function expressing a mapping only
 --
-mapEFL :: (e -> e') -> (NoAL -> e -> (NoAL :*: Maybe e'))
+mapEFL :: (e -> e') -> EFL NoAL e e'
 {-# INLINE [1] mapEFL #-}
 mapEFL f = \a e -> (noAL :*: (Just $ f e))
 --mapEFL f = \a e -> let e' = f e in e' `seq` (noAL :*: Just e')
 
 -- |Element function implementing a filter function only
 --
-filterEFL :: (e -> Bool) -> (NoAL -> e -> (NoAL :*: Maybe e))
+filterEFL :: (e -> Bool) -> EFL NoAL e e
 {-# INLINE [1] filterEFL #-}
 filterEFL p = \a e -> if p e then (noAL :*: Just e) else (noAL :*: Nothing)
 
 -- |Element function expressing a reduction only
 --
-foldEFL :: (acc -> e -> acc) -> (acc -> e -> (acc :*: Maybe ()))
+foldEFL :: (acc -> e -> acc) -> EFL acc e ()
 {-# INLINE [1] foldEFL #-}
 foldEFL f = \a e -> (f a e :*: Nothing)
 --foldEFL f = \a e -> let a' = f a e in a' `seq` (a' :*: Nothing)
 
 -- |Element function expressing a prefix reduction only
 --
-scanEFL :: (acc -> e -> acc) -> (acc -> e -> (acc :*: Maybe acc))
+scanEFL :: (acc -> e -> acc) -> EFL acc e acc
 {-# INLINE [1] scanEFL #-}
 scanEFL f = \a e -> (f a e :*: Just a)
 --scanEFL f  = \a e -> let a' = f a e in a' `seq` (a' :*: Just a)

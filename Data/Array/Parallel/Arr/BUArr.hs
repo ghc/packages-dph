@@ -356,7 +356,7 @@ replicateBU n e =
 -- |Loop combinator over unboxed arrays
 --
 loopBU :: (UAE e, UAE e')
-       => (acc -> e -> (acc :*: Maybe e'))  -- mapping & folding, once per elem
+       => EFL acc e e'                      -- mapping & folding, once per elem
        -> acc				    -- initial acc value
        -> BUArr e			    -- input array
        -> (BUArr e' :*: acc)
