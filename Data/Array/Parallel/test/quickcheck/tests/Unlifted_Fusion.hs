@@ -10,7 +10,7 @@ $(testcases [ ""        <@ [t| ( (), Char, Bool, Int ) |]
             ]
   [d|
   prop_loopU_replicateU :: (UA e, Eq acc, Eq e', UA e')
-               => LoopFn acc e e' -> acc -> Len -> e -> Bool
+               => EFL acc e e' -> acc -> Len -> e -> Bool
   prop_loopU_replicateU em start (Len n) v =
       loopU em start (replicateU n v) ==
       loopU (\a _ -> em a v) start (unitsU n)

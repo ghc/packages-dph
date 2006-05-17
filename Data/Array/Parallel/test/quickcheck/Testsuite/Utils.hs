@@ -1,5 +1,5 @@
 module Testsuite.Utils (
-  Len(..), LoopFn,
+  Len(..), EFL,
 
   gvector, gdist, gtype, vtype
 ) where
@@ -10,6 +10,7 @@ import Test.QuickCheck.Batch
 import Text.Show.Functions
 
 import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base.Fusion       (EFL)
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Distributed
 
@@ -19,8 +20,6 @@ import Monad (liftM)
 -- infix 4 ===
 
 newtype Len = Len Int deriving(Eq,Ord,Enum,Show,Num)
-
-type LoopFn acc e e' = acc -> e -> acc :*: Maybe e'
 
 instance Arbitrary Char where
   arbitrary   = fmap chr . sized $ \n -> choose (0,n)
@@ -34,10 +33,10 @@ instance Arbitrary Len where
   arbitrary = sized $ \n -> Len `fmap` choose (0,n)
   coarbitrary (Len n) = coarbitrary n
 
-instance Arbitrary a => Arbitrary (Maybe a) where
-  arbitrary = frequency [(1, return Nothing), (3, liftM Just arbitrary)]
-  coarbitrary Nothing  = variant 0
-  coarbitrary (Just x) = variant 1 . coarbitrary x
+instance Arbitrary a => Arbitrary (MaybeS a) where
+  arbitrary = frequency [(1, return NothingS), (3, liftM JustS arbitrary)]
+  coarbitrary NothingS  = variant 0
+  coarbitrary (JustS x) = variant 1 . coarbitrary x
 
 instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
   arbitrary = fmap toU arbitrary
