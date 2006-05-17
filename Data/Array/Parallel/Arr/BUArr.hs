@@ -339,19 +339,7 @@ unitsBU n =
 --
 replicateBU :: UAE e => Int -> e -> BUArr e
 {-# INLINE replicateBU #-}
-replicateBU n e = 
-  runST (do
-    ma <- newMBU n
-    fill0 ma
-    unsafeFreezeMBU ma n
-  )
-  where
-   fill0 ma = fill 0
-     where
-      fill off | off == n  = return ()
-	       | otherwise = do
-			       writeMBU ma off e
-			       fill (off + 1)
+replicateBU n e = loopArr . loopBU (mapEFL $ const e) noAL $ unitsBU n
 
 -- |Loop combinator over unboxed arrays
 --
@@ -360,7 +348,7 @@ loopBU :: (UAE e, UAE e')
        -> acc				    -- initial acc value
        -> BUArr e			    -- input array
        -> (BUArr e' :*: acc)
-{-# INLINE loopBU #-}
+{-# INLINE [1] loopBU #-}
 loopBU mf start a = 
   runST (do
     ma             <- newMBU len
@@ -391,13 +379,6 @@ loopBU mf start a =
 --
 
 {-# RULES  -- -} (for font-locking)
-
--- We have to use (unitsBU n) instead of (replicateBU n ()) here, as the latter
--- would lead to nontermination.
-
-"loopBU/replicateBU" forall mf start n v.
-  loopBU mf start (replicateBU n v) = 
-    loopBU (\a _ -> mf a v) start (unitsBU n)
 
 "loopBU/loopBU" forall mf1 mf2 start1 start2 arr.
   loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) =
