@@ -178,9 +178,7 @@ instance (DT a, DT b) => DT (a :*: b) where
 
 instance UA a => DT (UArr a) where
   indexD (DUArr _ a) i = indexBB a i
-  newMD g = liftM2 MDUArr (newMD g)
-                           (newMBB (gangSize g)
-                                   (uninitialised $ here "newMD[UArr a]"))
+  newMD g = liftM2 MDUArr (newMD g) (newMBB (gangSize g))
   readMD (MDUArr _ marr) = readMBB marr
   writeMD (MDUArr mlen marr) i a =
     do
