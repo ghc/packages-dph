@@ -74,12 +74,14 @@ data Dist a where
   DPrim  :: !(Prim a)                        -> Dist a
   DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
+  DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
 
 data MDist a s where
   MDUnit  :: !Int                                   -> MDist ()        s
   MDPrim  :: !(MPrim a s)                           -> MDist a         s
   MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b) s
   MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)  s
+  MDMaybe :: !(MDist Bool s) -> !(MDist a s)        -> MDist (MaybeS a) s
 
 unDPrim :: Dist a -> BUArr a
 unDPrim (DPrim p) = unPrim p
@@ -186,6 +188,22 @@ instance UA a => DT (UArr a) where
       writeMBB marr i a
   unsafeFreezeMD (MDUArr len a) = liftM2 DUArr (unsafeFreezeMD len)
                                                 (unsafeFreezeAllMBB a)
+
+instance DT a => DT (MaybeS a) where
+  indexD (DMaybe bs as) i
+    | bs `indexD` i       = JustS $ as `indexD` i
+    | otherwise           = NothingS
+  newMD g = liftM2 MDMaybe (newMD g) (newMD g)
+  readMD (MDMaybe bs as) i =
+    do
+      b <- readMD bs i
+      if b then liftM JustS $ readMD as i
+           else return NothingS
+  writeMD (MDMaybe bs as) i NothingS  = writeMD bs i False
+  writeMD (MDMaybe bs as) i (JustS x) = writeMD bs i True
+                                     >> writeMD as i x
+  unsafeFreezeMD (MDMaybe bs as) = liftM2 DMaybe (unsafeFreezeMD bs)
+                                                 (unsafeFreezeMD as)
 
 -- |Basic operations on immutable distributed types
 -- -------------------------------------------
