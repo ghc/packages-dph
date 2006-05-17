@@ -26,6 +26,8 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), fstS, sndS)
+import Data.Array.Parallel.Base.Fusion (
+  loopArrS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
   lengthU, (!:), replicateU,
@@ -36,8 +38,6 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr(..), lengthSU, (>:), flattenSU, psumUS, segdUS, toUSegd)
 import Data.Array.Parallel.Unlifted.Segmented.Loop (
   loopSU)
-import Data.Array.Parallel.Unlifted.Segmented.Fusion (
-  loopArrS)
 
 -- lengthSU reexported from SUArr
 

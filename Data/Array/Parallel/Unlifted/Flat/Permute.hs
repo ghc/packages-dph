@@ -30,7 +30,6 @@ import Data.Array.Parallel.Unlifted.Flat.Basics (
   (!:))
 import Data.Array.Parallel.Unlifted.Flat.Loop (
   unitsU, loopU)
-import Data.Array.Parallel.Unlifted.Flat.Fusion ({- rules only -})
 
 -- |Permutations
 -- -------------

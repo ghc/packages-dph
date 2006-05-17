@@ -2,7 +2,7 @@
 -- |
 -- Module      : Data.Array.Parallel.Unlifted.Flat.Loop
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---		 (c) 2006         Manuel M T Chakravarty
+--		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/base/LICENSE
 -- 
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
@@ -11,13 +11,11 @@
 --
 -- Description ---------------------------------------------------------------
 --
--- Loop/replicate combinators for flat arrays
---
--- /WARNING:/ If you import this, you probably also want to
---            import Data.Array.Parallel.Unlifted.Flat.Fusion
---            to get the fusion rules.
+-- Loop combinator and fusion rules for flat arrays
 --
 -- Todo ----------------------------------------------------------------------
+--
+--  * Add more fusion rules
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Loop (
@@ -26,8 +24,7 @@ module Data.Array.Parallel.Unlifted.Flat.Loop (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), runST)
-import Data.Array.Parallel.Base.Fusion (
-  EFL)
+import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
   lengthU, indexU, unitsU,
@@ -72,4 +69,48 @@ loopU mf start a =
 				         writeMU ma ma_off e
 					 return $ ma_off + 1
 	      trans (a_off + 1) ma_off' acc'
+
+-- Fusion rules
+-- ------------
+
+-- Rules for unsegmented loops
+--
+
+{-# RULES  -- -} (for font-locking)
+
+"loopU/loopU" forall em1 em2 start1 start2 arr.
+  loopU em2 start2 (loopArr (loopU em1 start1 arr)) =
+    loopSndAcc (loopU (em1 `fuseEFL` em2) (start1 :*: start2) arr)
+
+-- fusion across a zipU
+--
+-- * we can only fuse across a zip if the the fused loop does not drop any
+--   elements; the case of a `mapEFL' guarantees this and is easy to recognise
+--
+-- * note that, due to `mapEFL', we are ignoring the accumulator; so, we can
+--   just forget about the accumulator of the inner loop
+{- FIXME: typing problem
+"loopU/zipU/loopU-left" forall f1 start1 em2 start2 pa1 pa2.
+  loopU em2 start2 (zipU (loopArr (loopU (mapEFL f1) start1 pa1)) pa2) =
+    let
+      em acc2 (e1 :*: e2) = 
+        case em2 acc2 (f1 e1 :*: e2) of
+	  (acc2' :*: Nothing ) -> (acc2' :*: Nothing )
+	  (acc2' :*: Just e'') -> (acc2' :*: Just e'')
+    in
+    loopU em start2 (zipU pa1 pa2)
+
+"loopU/zipU/loopU-right" forall f1 start1 em2 start2 pa1 pa2.
+  loopU em2 start2 (zipU pa2 (loopArr (loopU (mapEFL f1) start1 pa1))) =
+    let
+      em acc2 (e1 :*: e2) = 
+        case em2 acc2 (e1 :*: f1 e2) of
+	  (acc2' :*: Nothing ) -> (acc2' :*: Nothing )
+	  (acc2' :*: Just e'') -> (acc2' :*: Just e'')
+    in
+    loopU em start2 (zipU pa1 pa2)
+-}
+--FIXME: similar zip rules work for scanEFL, too
+
+ #-}
 

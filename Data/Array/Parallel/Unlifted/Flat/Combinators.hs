@@ -25,7 +25,8 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  checkNotEmpty)
+  (:*:)(..), checkNotEmpty)
+import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
   zipU, unzipU)
@@ -35,7 +36,6 @@ import Data.Array.Parallel.Unlifted.Flat.Subarrays (
   sliceU)
 import Data.Array.Parallel.Unlifted.Flat.Loop (
   loopU)
-import Data.Array.Parallel.Unlifted.Flat.Fusion
 
 here s = "Data.Array.Parallel.Unlifted.Flat.Combinators." ++ s
 

@@ -24,12 +24,12 @@ module Data.Array.Parallel.Unlifted.Flat.Basics (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..))
+import Data.Array.Parallel.Base.Fusion (
+  noAL, mapEFL, loopArr)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Loop (
   unitsU, loopU)
-import Data.Array.Parallel.Unlifted.Flat.Fusion (
-  noAL, mapEFL, loopArr)
 
 infixl 9 !:
 infixr 5 +:+

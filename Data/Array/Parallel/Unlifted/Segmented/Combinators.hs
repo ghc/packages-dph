@@ -21,14 +21,14 @@ module Data.Array.Parallel.Unlifted.Segmented.Combinators (
   loopSU
 ) where
 
+import Data.Array.Parallel.Base.Fusion (
+  foldEFL, keepSFL, loopAccS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr)
 import Data.Array.Parallel.Unlifted.Segmented.Loop (
   loopSU)
-import Data.Array.Parallel.Unlifted.Segmented.Fusion (
-  foldEFL, keepSFL, loopAccS)
 
 -- |Segmented array reduction proceeding from the left
 --

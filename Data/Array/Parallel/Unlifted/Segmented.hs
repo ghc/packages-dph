@@ -58,7 +58,6 @@ module Data.Array.Parallel.Unlifted.Segmented (
 
 import Data.Array.Parallel.Unlifted.Segmented.SUArr
 import Data.Array.Parallel.Unlifted.Segmented.Loop
-import Data.Array.Parallel.Unlifted.Segmented.Fusion    ({- rules only -})
 import Data.Array.Parallel.Unlifted.Segmented.Basics
 import Data.Array.Parallel.Unlifted.Segmented.Subarrays
 import Data.Array.Parallel.Unlifted.Segmented.Combinators

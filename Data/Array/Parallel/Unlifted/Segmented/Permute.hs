@@ -22,6 +22,8 @@ module Data.Array.Parallel.Unlifted.Segmented.Permute (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..))
+import Data.Array.Parallel.Base.Fusion (
+  loopArrS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, (!:))
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
@@ -30,8 +32,6 @@ import Data.Array.Parallel.Unlifted.Segmented.Basics (
   flattenSU)
 import Data.Array.Parallel.Unlifted.Segmented.Loop (
   loopSU)
-import Data.Array.Parallel.Unlifted.Segmented.Fusion (
-  loopArrS)
 
 -- |Segmented back permute
 --

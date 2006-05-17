@@ -77,7 +77,6 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
   newU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU)
 import Data.Array.Parallel.Unlifted.Flat.Loop
-import Data.Array.Parallel.Unlifted.Flat.Fusion    ({- rules only -})
 import Data.Array.Parallel.Unlifted.Flat.Basics
 import Data.Array.Parallel.Unlifted.Flat.Subarrays
 import Data.Array.Parallel.Unlifted.Flat.Combinators
