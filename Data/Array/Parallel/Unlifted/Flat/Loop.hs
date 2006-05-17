@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Flat.Loop (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), runST)
+  (:*:)(..), MaybeS(..), runST)
 import Data.Array.Parallel.Base.Fusion (
   EFL)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
@@ -67,9 +67,9 @@ loopU mf start a =
 	    do
 	      let (acc' :*: oe) = mf acc (a `indexU` a_off)
 	      ma_off' <- case oe of
-			   Nothing -> return ma_off
-			   Just e  -> do
-				        writeMU ma ma_off e
-					return $ ma_off + 1
+			   NothingS -> return ma_off
+			   JustS e  -> do
+				         writeMU ma ma_off e
+					 return $ ma_off + 1
 	      trans (a_off + 1) ma_off' acc'
 

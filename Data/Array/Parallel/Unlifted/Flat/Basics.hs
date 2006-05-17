@@ -23,7 +23,7 @@ module Data.Array.Parallel.Unlifted.Flat.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..))
+  (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Loop (
@@ -69,7 +69,7 @@ a1 +:+ a2 = loopArr $ loopU extract 0 (unitsU len)
     len  = len1 + lengthU a2
     --
     extract i _ = (i + 1 :*: 
-		   (Just $ if i < len1 then a1!:i else a2!:(i - len1)))
+		   (JustS $ if i < len1 then a1!:i else a2!:(i - len1)))
 
 -- |Enumeration functions
 -- ----------------------
@@ -96,7 +96,7 @@ enumFromThenToU start next end =
     delta  = next' - start'
     len    = abs (end' - start' + delta) `div` (abs delta)
     --
-    step x _ = (x + delta :*: (Just $ toEnum x))
+    step x _ = (x + delta :*: (JustS $ toEnum x))
 
 
 -- |Conversion
@@ -108,7 +108,7 @@ toU :: UA e => [e] -> UArr e
 {-# INLINE toU #-}
 toU l = 
   loopArr $ 
-    loopU (\(x:xs) (_::()) -> (xs :*: Just x)) l (unitsU (length l))
+    loopU (\(x:xs) (_::()) -> (xs :*: JustS x)) l (unitsU (length l))
 
 -- |Collect the elements of a parallel array in a list
 --

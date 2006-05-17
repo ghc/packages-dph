@@ -29,7 +29,8 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
 ) where
 
 -- friends
-import Data.Array.Parallel.Base ((:*:)(..), ST)
+import Data.Array.Parallel.Base (
+  (:*:)(..), MaybeS(..), ST)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr,
   lengthU, (!:), scanU,
@@ -100,9 +101,9 @@ newMSU nsegd n = do
 --
 -- * Every segment must be initialised before it is filled left-to-right
 --
-nextMSU :: UA e => MSUArr e s -> Int -> Maybe e -> ST s ()
+nextMSU :: UA e => MSUArr e s -> Int -> MaybeS e -> ST s ()
 {-# INLINE nextMSU #-}
-nextMSU (MSUArr (MUSegd segd psum) a) i Nothing =
+nextMSU (MSUArr (MUSegd segd psum) a) i NothingS =
   do                                                -- segment initialisation
     i' <- if i == 0 then return 0 
 		    else do
@@ -111,7 +112,7 @@ nextMSU (MSUArr (MUSegd segd psum) a) i Nothing =
 		      return $ off + n
     writeMU psum i i'
     writeMU segd i 0
-nextMSU (MSUArr (MUSegd segd psum) a) i (Just e) = 
+nextMSU (MSUArr (MUSegd segd psum) a) i (JustS e) = 
   do
     i' <- psum `readMU` i
     n' <- segd `readMU` i

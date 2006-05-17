@@ -369,10 +369,10 @@ loopBU mf start a =
 	    do
 	      let (acc' :*: oe) = mf acc (a `indexBU` a_off)
 	      ma_off' <- case oe of
-			   Nothing -> return ma_off
-			   Just e  -> do
-				        writeMBU ma ma_off e
-					return $ ma_off + 1
+			   NothingS -> return ma_off
+			   JustS e  -> do
+				         writeMBU ma ma_off e
+					 return $ ma_off + 1
 	      trans (a_off + 1) ma_off' acc'
 
 -- Loop fusion for unboxed arrays
@@ -422,13 +422,13 @@ extractBU arr i n =
 -- |Map a function over an unboxed array
 --
 mapBU :: (UAE a, UAE b) => (a -> b) -> BUArr a -> BUArr b
-mapBU f = loopArr . loopBU (\_ e -> (() :*: (Just $ f e))) () 
+mapBU f = loopArr . loopBU (mapEFL f) noAL
 
 -- |Reduce an unboxed array
 --
 foldlBU :: UAE b => (a -> b -> a) -> a -> BUArr b -> a
 {-# INLINE foldlBU #-}
-foldlBU f z = loopAcc . loopBU (\a e -> (f a e :*: (Nothing::Maybe ()))) z
+foldlBU f z = loopAcc . loopBU (foldEFL f) z
 
 -- |Reduce an unboxed array using an *associative* combining operator
 --
@@ -445,7 +445,7 @@ sumBU = foldBU (+) 0
 -- |Prefix reduction of an unboxed array
 --
 scanlBU :: (UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> BUArr a
-scanlBU f z = loopArr . loopBU (\a e -> (f a e :*: Just a)) z
+scanlBU f z = loopArr . loopBU (scanEFL f) z
 
 -- |Prefix reduction of an unboxed array using an *associative* combining
 -- operator

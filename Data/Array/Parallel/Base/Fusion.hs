@@ -59,14 +59,14 @@ noAL = NoAL
 -- ----------
 
 -- |Type of loop functions
-type EFL acc e1 e2 = (acc -> e1 -> acc :*: Maybe e2)
+type EFL acc e1 e2 = (acc -> e1 -> acc :*: MaybeS e2)
 
 -- |Fuse two loop functions
 fuseEFL :: EFL acc1 e1 e2 -> EFL acc2 e2 e3 -> EFL (acc1 :*: acc2) e1 e3
 fuseEFL f g (acc1 :*: acc2) e1 =
   case f acc1 e1 of
-    acc1' :*: Nothing -> (acc1' :*: acc2) :*: Nothing
-    acc1' :*: Just e2 ->
+    acc1' :*: NothingS -> (acc1' :*: acc2) :*: NothingS
+    acc1' :*: JustS e2 ->
       case g acc2 e2 of
         (acc2' :*: res) -> (acc1' :*: acc2') :*: res
 
@@ -74,33 +74,33 @@ fuseEFL f g (acc1 :*: acc2) e1 =
 --
 noEFL :: EFL NoAL () ()
 {-# INLINE [1] noEFL #-}
-noEFL _ _  = (NoAL :*: Nothing)
+noEFL _ _  = (NoAL :*: NothingS)
 
 -- |Element function expressing a mapping only
 --
 mapEFL :: (e -> e') -> EFL NoAL e e'
 {-# INLINE [1] mapEFL #-}
-mapEFL f = \a e -> (noAL :*: (Just $ f e))
+mapEFL f = \a e -> (noAL :*: (JustS $ f e))
 --mapEFL f = \a e -> let e' = f e in e' `seq` (noAL :*: Just e')
 
 -- |Element function implementing a filter function only
 --
 filterEFL :: (e -> Bool) -> EFL NoAL e e
 {-# INLINE [1] filterEFL #-}
-filterEFL p = \a e -> if p e then (noAL :*: Just e) else (noAL :*: Nothing)
+filterEFL p = \a e -> if p e then (noAL :*: JustS e) else (noAL :*: NothingS)
 
 -- |Element function expressing a reduction only
 --
 foldEFL :: (acc -> e -> acc) -> EFL acc e ()
 {-# INLINE [1] foldEFL #-}
-foldEFL f = \a e -> (f a e :*: Nothing)
+foldEFL f = \a e -> (f a e :*: NothingS)
 --foldEFL f = \a e -> let a' = f a e in a' `seq` (a' :*: Nothing)
 
 -- |Element function expressing a prefix reduction only
 --
 scanEFL :: (acc -> e -> acc) -> EFL acc e acc
 {-# INLINE [1] scanEFL #-}
-scanEFL f = \a e -> (f a e :*: Just a)
+scanEFL f = \a e -> (f a e :*: JustS a)
 --scanEFL f  = \a e -> let a' = f a e in a' `seq` (a' :*: Just a)
 
 -- Segmented loops
@@ -108,26 +108,26 @@ scanEFL f = \a e -> (f a e :*: Just a)
 
 -- |Type of segment functions
 --
-type SFL acc e = (acc -> Int -> acc :*: Maybe e)
+type SFL acc e = (acc -> Int -> acc :*: MaybeS e)
 
 -- |No segment function
 --
 noSFL :: SFL NoAL ()
 {-# INLINE [1] noSFL #-}
-noSFL _ _  = (NoAL :*: Nothing)
+noSFL _ _  = (NoAL :*: NothingS)
 
 -- |Segment function transforming the accumulator
 --
 transSFL :: (acc -> acc) -> SFL acc ()
 {-# INLINE [1] transSFL #-}
-transSFL f = \a _ -> (f a :*: Nothing)
+transSFL f = \a _ -> (f a :*: NothingS)
 
 -- |Segment function transforming the accumulator and collecting accumulator
 -- values
 --
 keepSFL :: (acc -> acc) -> SFL acc acc
 {-# INLINE [1] keepSFL #-}
-keepSFL f = \a _ -> (f a :*: Just a)
+keepSFL f = \a _ -> (f a :*: JustS a)
 
 -- Fusion-friendly projection functions
 -- ------------------------------------

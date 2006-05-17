@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Segmented.Loop (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), runST)
+  (:*:)(..), MaybeS(..), runST)
 import Data.Array.Parallel.Base.Fusion (
   EFL, SFL)
 import Data.Array.Parallel.Unlifted.Flat (
@@ -116,10 +116,10 @@ loopSU em sm start (SUArr segd arr) =
 		then return (maccs_i :*: acc)
 		else 
 		  case sm acc segd_i of
-		    (acc' :*: Nothing) -> return (maccs_i :*: acc')
-		    (acc' :*: Just ae) -> do
-				            writeMU maccs maccs_i ae
-					    return (maccs_i + 1 :*: acc')
+		    (acc' :*: NothingS) -> return (maccs_i :*: acc')
+		    (acc' :*: JustS ae) -> do
+				             writeMU maccs maccs_i ae
+					     return (maccs_i + 1 :*: acc')
 	      let segd_i'  = segd_i + 1		-- next segment
 	      maccs_i' `seq` 
 	       acc'    `seq` 
@@ -128,7 +128,7 @@ loopSU em sm start (SUArr segd arr) =
 		  return (maccs_i' :*: acc')
 		else do
 		  let seg_cnt' = segd1 !: segd_i' -- get new seg length
-		  nextMSU mpa segd_i' Nothing            -- init target seg
+		  nextMSU mpa segd_i' NothingS    -- init target seg
 		  trans arr_i seg_cnt' segd_i' maccs_i' acc'
           | otherwise    =      -- continue with current segment
 	    segd_i  `seq`
@@ -136,7 +136,7 @@ loopSU em sm start (SUArr segd arr) =
 	    do
 	      let (acc' :*: oe) = em acc (arr !: arr_i)
 	      case oe of
-	        Nothing -> return ()
-		Just e  -> nextMSU mpa segd_i (Just e)
+	        NothingS -> return ()
+		JustS e  -> nextMSU mpa segd_i (JustS e)
               trans (arr_i + 1) (seg_cnt - 1) segd_i maccs_i acc'
 

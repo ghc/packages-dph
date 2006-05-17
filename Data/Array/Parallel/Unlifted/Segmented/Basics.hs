@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS)
+  (:*:)(..), MaybeS(..), fstS, sndS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
   lengthU, (!:), replicateU,
@@ -108,8 +108,8 @@ enumFromThenToSU starts nexts ends =
     segd    = toUSegd lens
     segdlen = lengthU lens
     --
-    step (x :*: delta) _ = ((x + delta :*: delta) :*: (Just $ toEnum x))
-    seg  _             i = ((start :*: delta) :*: (Nothing::Maybe ()))
+    step (x :*: delta) _ = ((x + delta :*: delta) :*: (JustS $ toEnum x))
+    seg  _             i = ((start :*: delta) :*: (NothingS :: MaybeS ()))
 			   where
 			     start = fromEnum (starts!:(i + 1))
 			     next  = fromEnum (nexts !:(i + 1))

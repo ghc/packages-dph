@@ -21,7 +21,7 @@ module Data.Array.Parallel.Unlifted.Flat.Permute (
 ) where
 
 import Data.Array.Parallel.Base (
-  ST)
+  MaybeS(..), ST)
 import Data.Array.Parallel.Base.Fusion
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
@@ -101,5 +101,5 @@ reverseU a = loopArr $ loopU extract (len - 1) (unitsU len)
 	     where
 	       len = lengthU a
 	       --
-	       extract i _ = (i - 1 :*: (Just $ a!:i))
+	       extract i _ = (i - 1 :*: (JustS $ a!:i))
 

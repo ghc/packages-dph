@@ -21,7 +21,7 @@ module Data.Array.Parallel.Unlifted.Segmented.Permute (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..))
+  (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Unlifted.Flat (
   UA, (!:))
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
@@ -42,8 +42,8 @@ bpermuteSU as = loopArrS . loopSU extract nextOff 0
 		  (segd :*: a) = flattenSU as
 		  psum	       = psumUS segd
 		  --
-	          extract off i = (off :*: (Just $ a!:(off + i)))
+	          extract off i = (off :*: (JustS $ a!:(off + i)))
 		  --
 		  nextOff _ segi = (psum !: (segi + 1) :*: 
-				    (Nothing::Maybe ()))
+				    (NothingS::MaybeS ()))
 
