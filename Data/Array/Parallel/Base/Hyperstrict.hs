@@ -24,7 +24,7 @@ module Data.Array.Parallel.Base.Hyperstrict (
   curryS, uncurryS,
 
   -- * Strict Maybe
-  MaybeS(..),
+  MaybeS(..), maybeS, fromMaybeS,
 
   -- * Class of hyperstrict types
   HS
@@ -60,6 +60,22 @@ data (:+:) a b = Inl !a | Inr !b
 -- |Strict Maybe
 data MaybeS a = NothingS | JustS !a
 
+instance Functor MaybeS where
+  fmap f (JustS x) = JustS (f x)
+  fmap f NothingS  = NothingS
+
+-- MaybeS doesn't seem to be a proper monad. With the obvious definition we'd
+-- get:
+--
+--   return _|_ >>= const Nothing  =  _|_  /=  const Nothing _|_
+
+maybeS :: b -> (a -> b) -> MaybeS a -> b
+maybeS b f (JustS a) = f a
+maybeS b f NothingS  = b
+
+fromMaybeS :: a -> MaybeS a -> a
+fromMaybeS x (JustS y) = y
+fromMaybeS x NothingS  = x
 
 -- | The class of hyperstrict types. These are those types for which weak
 -- head-normal form and normal form are the same, i.e., they are guaranteed to
