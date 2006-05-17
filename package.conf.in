@@ -29,7 +29,6 @@ hidden-modules:
         Data.Array.Parallel.Distributed.Operations
 	Data.Array.Parallel.Unlifted.Flat.UArr
         Data.Array.Parallel.Unlifted.Flat.Loop
-        Data.Array.Parallel.Unlifted.Flat.Fusion
         Data.Array.Parallel.Unlifted.Flat.Basics
         Data.Array.Parallel.Unlifted.Flat.Subarrays
         Data.Array.Parallel.Unlifted.Flat.Combinators
@@ -38,13 +37,13 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Flat
 	Data.Array.Parallel.Unlifted.Segmented.SUArr
         Data.Array.Parallel.Unlifted.Segmented.Loop
-        Data.Array.Parallel.Unlifted.Segmented.Fusion
         Data.Array.Parallel.Unlifted.Segmented.Basics
         Data.Array.Parallel.Unlifted.Segmented.Subarrays
         Data.Array.Parallel.Unlifted.Segmented.Combinators
         Data.Array.Parallel.Unlifted.Segmented.Sums
         Data.Array.Parallel.Unlifted.Segmented.Permute
         Data.Array.Parallel.Unlifted.Segmented
+
 
 import-dirs:	IMPORT_DIR
 library-dirs:	LIB_DIR
