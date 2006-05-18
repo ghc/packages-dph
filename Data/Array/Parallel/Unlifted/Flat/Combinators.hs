@@ -60,6 +60,7 @@ foldlU f z = loopAcc . loopU (foldEFL f) z
 -- |Array reduction proceeding from the left for non-empty arrays
 --
 foldl1U :: UA a => (a -> a -> a) -> UArr a -> a
+{-# INLINE foldl1U #-}
 foldl1U f arr = checkNotEmpty (here "foldl1U") (lengthU arr) $
                 foldlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
 
@@ -67,12 +68,14 @@ foldl1U f arr = checkNotEmpty (here "foldl1U") (lengthU arr) $
 -- unit
 --
 foldU :: UA a => (a -> a -> a) -> a -> UArr a -> a
+{-# INLINE foldU #-}
 foldU = foldlU
 
 -- |Reduction of a non-empty array which requires an associative combination
 -- function
 --
 fold1U :: UA a => (a -> a -> a) -> UArr a -> a
+{-# INLINE fold1U #-}
 fold1U = foldl1U
 
 -- |Prefix scan proceedings from left to right
@@ -84,6 +87,7 @@ scanlU f z = loopArr . loopU (scanEFL f) z
 -- |Prefix scan of a non-empty array proceeding from left to right
 --
 scanl1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
+{-# INLINE scanl1U #-}
 scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
                 scanlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
 
@@ -91,12 +95,14 @@ scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
 -- combination function with its unit
 --
 scanU :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a
+{-# INLINE scanU #-}
 scanU = scanlU
 
 -- |Prefix scan of a non-empty array proceedings from left to right that needs
 -- an associative combination function
 --
 scan1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
+{-# INLINE scan1U #-}
 scan1U = scanl1U
 
 -- zipU is re-exported from UArr
