@@ -32,9 +32,7 @@ module Data.Array.Parallel.Distributed.Types (
 
 import Monad                                ( liftM, liftM2 )
 import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize )
-import Data.Array.Parallel.Arr.Prim
-import Data.Array.Parallel.Arr.BUArr
-import Data.Array.Parallel.Arr.BBArr
+import Data.Array.Parallel.Arr
 import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Base
 
@@ -71,23 +69,23 @@ class DT a where
 -- GADTs TO REPLACE ATs FOR THE MOMENT
 data Dist a where
   DUnit  :: !Int                             -> Dist ()
-  DPrim  :: !(Prim a)                        -> Dist a
+  DPrim  :: !(BUArr a)                       -> Dist a
   DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
   DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
 
 data MDist a s where
   MDUnit  :: !Int                                   -> MDist ()        s
-  MDPrim  :: !(MPrim a s)                           -> MDist a         s
+  MDPrim  :: !(MBUArr s a)                          -> MDist a         s
   MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b) s
   MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)  s
   MDMaybe :: !(MDist Bool s) -> !(MDist a s)        -> MDist (MaybeS a) s
 
-unDPrim :: Dist a -> BUArr a
-unDPrim (DPrim p) = unPrim p
+unDPrim :: UAE a => Dist a -> BUArr a
+unDPrim (DPrim a) = a
 
-unMDPrim :: MDist a s -> MBUArr s a
-unMDPrim (MDPrim p) = unMPrim p
+unMDPrim :: UAE a => MDist a s -> MBUArr s a
+unMDPrim (MDPrim ma) = ma
 
 -- Distributing hyperstrict types may not change their strictness.
 instance (HS a, DT a) => HS (Dist a)
@@ -96,9 +94,10 @@ instance (HS a, DT a) => HS (Dist a)
 -- and not a method of 'DT'.
 sizeD :: Dist a -> Int
 sizeD (DUnit  n)   = n
-sizeD (DPrim  p)   = lengthBU (unPrim p)
+sizeD (DPrim  a)   = lengthBU a
 sizeD (DProd  x y) = sizeD x
 sizeD (DUArr  _ a) = lengthBB a
+sizeD (DMaybe b a) = sizeD b
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
@@ -108,9 +107,10 @@ checkGangD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeD d) v
 -- only and is thus not a method of 'DT'.
 sizeMD :: MDist a s -> Int
 sizeMD (MDUnit  n)    = n
-sizeMD (MDPrim  p)    = lengthMBU (unMPrim p)
+sizeMD (MDPrim  a)    = lengthMBU a
 sizeMD (MDProd  x y)  = sizeMD x
 sizeMD (MDUArr  _ ma) = lengthMBB ma
+sizeMD (MDMaybe b a)  = sizeMD b
 
 -- | Check that the sizes of the 'Gang' and of the mutable distributed value
 -- match.
@@ -133,40 +133,55 @@ instance DT () where
                                return ()
   unsafeFreezeMD (MDUnit n) = return $ DUnit n
 
+primIndexD :: UAE a => Dist a -> Int -> a
+primIndexD = indexBU . unDPrim
+
+primNewMD :: UAE a => Gang -> ST s (MDist a s)
+primNewMD = liftM MDPrim . newMBU . gangSize
+
+primReadMD :: UAE a => MDist a s -> Int -> ST s a
+primReadMD = readMBU . unMDPrim
+
+primWriteMD :: UAE a => MDist a s -> Int -> a -> ST s ()
+primWriteMD = writeMBU . unMDPrim
+
+primUnsafeFreezeMD :: UAE a => MDist a s -> ST s (Dist a)
+primUnsafeFreezeMD = liftM DPrim . unsafeFreezeAllMBU . unMDPrim
+
 instance DT Bool where
-  indexD         = indexBU . unDPrim
-  newMD          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMD         = readMBU . unMDPrim
-  writeMD        = writeMBU . unMDPrim
-  unsafeFreezeMD = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
 
 instance DT Char where
-  indexD         = indexBU . unDPrim
-  newMD          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMD         = readMBU . unMDPrim
-  writeMD        = writeMBU . unMDPrim
-  unsafeFreezeMD = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
 
 instance DT Int where
-  indexD         = indexBU . unDPrim
-  newMD          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMD         = readMBU . unMDPrim
-  writeMD        = writeMBU . unMDPrim
-  unsafeFreezeMD = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
 
 instance DT Float where
-  indexD         = indexBU . unDPrim
-  newMD          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMD         = readMBU . unMDPrim
-  writeMD        = writeMBU . unMDPrim
-  unsafeFreezeMD = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
 
 instance DT Double where
-  indexD         = indexBU  . unDPrim
-  newMD          = liftM (MDPrim . mkMPrim) . newMBU . gangSize
-  readMD         = readMBU . unMDPrim
-  writeMD        = writeMBU . unMDPrim
-  unsafeFreezeMD = liftM (DPrim . mkPrim) . unsafeFreezeAllMBU . unMDPrim
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
 
 instance (DT a, DT b) => DT (a :*: b) where
   indexD d i               = (fstD d `indexD` i) :*: (sndD d `indexD` i)

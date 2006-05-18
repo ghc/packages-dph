@@ -15,11 +15,9 @@
 
 module Data.Array.Parallel.Arr (
   module Data.Array.Parallel.Arr.BBArr,
-  module Data.Array.Parallel.Arr.BUArr,
-  module Data.Array.Parallel.Arr.Prim
+  module Data.Array.Parallel.Arr.BUArr
 ) where
 
 import Data.Array.Parallel.Arr.BBArr
 import Data.Array.Parallel.Arr.BUArr
-import Data.Array.Parallel.Arr.Prim
 

@@ -43,9 +43,9 @@ import Monad (liftM, liftM2)
 -- friends
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr (
+  BUArr, MBUArr, UAE,
   lengthBU, indexBU, sliceBU,
-  newMBU, readMBU, writeMBU, copyMBU, unsafeFreezeMBU,
-  Prim(..), MPrim(..))
+  newMBU, readMBU, writeMBU, copyMBU, unsafeFreezeMBU)
 
 infixl 9 `indexU`, `readMU`
 
@@ -92,7 +92,7 @@ data UArr e where
   UAUnit :: !Int                               -> UArr ()
   UAProd ::           !(UArr e1) -> !(UArr e2) -> UArr (e1 :*: e2)
 --  UASum  :: !USel  -> !(UArr e1) -> !(UArr e2) -> UArr (e1 :+: e2)
-  UAPrim ::           !(Prim e)                -> UArr e
+  UAPrim ::           !(BUArr e)                -> UArr e
 
 instance HS e => HS (UArr e)
 
@@ -101,10 +101,15 @@ data MUArr e s where
   MUAUnit :: !Int                                          -> MUArr () s
   MUAProd ::                !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :*: e2) s
 --  MUASum  :: !(MUSel s)  -> !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :+: e2) s
-  MUAPrim ::                !(MPrim e s)                   -> MUArr e s
---  MUAUArr :: !(MUSegd s) -> !(MUArr e s)                   -> MUArr (UArr e) s
+  MUAPrim ::                !(MBUArr s e)                   -> MUArr e s
 
 instance HS e => HS (MUArr e s)
+
+unUAPrim :: UAE e => UArr e -> BUArr e
+unUAPrim (UAPrim arr) = arr
+
+unMUAPrim :: UAE e => MUArr e s -> MBUArr s e
+unMUAPrim (MUAPrim arr) = arr
 
 -- |Creating unboxed arrays
 -- ------------------------
@@ -293,107 +298,90 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 --     overloading provided by UAE to avoid having to store the UAE dictionary
 --     in `UAPrimU'.
 
-instance UA Bool where
-  lengthU (UAPrim (PrimBool ua))    = lengthBU ua
-  {-# INLINE indexU #-}
-  indexU (UAPrim (PrimBool ua)) i   = ua `indexBU` i
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimBool ua)) i n = UAPrim . PrimBool $ sliceBU ua i n
+primLengthU :: UAE e => UArr e -> Int
+{-# INLINE primLengthU #-}
+primLengthU = lengthBU . unUAPrim
 
-  {-# INLINE newMU #-}
-  newMU          n                            = 
-    liftM (MUAPrim . MPrimBool  ) $ newMBU n
-  {-# INLINE readMU #-}
-  readMU         (MUAPrim (MPrimBool ua)) i   = ua `readMBU` i
-  {-# INLINE writeMU #-}
-  writeMU        (MUAPrim (MPrimBool ua)) i e = writeMBU ua i e
-  {-# INLINE copyMU #-}
-  copyMU (MUAPrim (MPrimBool ma)) i (UAPrim (PrimBool ua)) =
-    copyMBU ma i ua
-  {-# INLINE unsafeFreezeMU #-}
-  unsafeFreezeMU (MUAPrim (MPrimBool ua)) n   = 
-    liftM (UAPrim . PrimBool  ) $ unsafeFreezeMBU ua n
+primIndexU :: UAE e => UArr e -> Int -> e
+{-# INLINE primIndexU #-}
+primIndexU = indexBU . unUAPrim
+
+primSliceU :: UAE e => UArr e -> Int -> Int -> UArr e
+{-# INLINE primSliceU #-}
+primSliceU arr i = UAPrim . sliceBU (unUAPrim arr) i
+
+primNewMU :: UAE e => Int -> ST s (MUArr e s)
+{-# INLINE primNewMU #-}
+primNewMU = liftM MUAPrim . newMBU
+
+primReadMU :: UAE e => MUArr e s -> Int -> ST s e
+{-# INLINE primReadMU #-}
+primReadMU = readMBU . unMUAPrim
+
+primWriteMU :: UAE e => MUArr e s -> Int -> e -> ST s ()
+{-# INLINE primWriteMU #-}
+primWriteMU = writeMBU . unMUAPrim
+
+primCopyMU :: UAE e => MUArr e s -> Int -> UArr e -> ST s ()
+{-# INLINE primCopyMU #-}
+primCopyMU ma i = copyMBU (unMUAPrim ma) i . unUAPrim
+
+primUnsafeFreezeMU :: UAE e => MUArr e s -> Int -> ST s (UArr e)
+{-# INLINE primUnsafeFreezeMU #-}
+primUnsafeFreezeMU ma = liftM UAPrim . unsafeFreezeMBU (unMUAPrim ma)
+
+instance UA Bool where
+  lengthU        = primLengthU
+  indexU         = primIndexU
+  sliceU         = primSliceU
+
+  newMU          = primNewMU
+  readMU         = primReadMU
+  writeMU        = primWriteMU
+  copyMU         = primCopyMU
+  unsafeFreezeMU = primUnsafeFreezeMU
 
 instance UA Char where
-  lengthU (UAPrim (PrimChar ua))    = lengthBU ua
-  {-# INLINE indexU #-}
-  indexU (UAPrim (PrimChar ua)) i   = ua `indexBU` i
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimChar ua)) i n = UAPrim . PrimChar $ sliceBU ua i n
+  lengthU        = primLengthU
+  indexU         = primIndexU
+  sliceU         = primSliceU
 
-  {-# INLINE newMU #-}
-  newMU          n                              = 
-    liftM (MUAPrim . MPrimChar  ) $ newMBU n
-  {-# INLINE readMU #-}
-  readMU         (MUAPrim (MPrimChar ua)) i   = ua `readMBU` i
-  {-# INLINE writeMU #-}
-  writeMU        (MUAPrim (MPrimChar ua)) i e = writeMBU ua i e
-  {-# INLINE copyMU #-}
-  copyMU (MUAPrim (MPrimChar ma)) i (UAPrim (PrimChar ua)) =
-    copyMBU ma i ua
-  {-# INLINE unsafeFreezeMU #-}
-  unsafeFreezeMU (MUAPrim (MPrimChar ua)) n   = 
-    liftM (UAPrim . PrimChar  ) $ unsafeFreezeMBU ua n
+  newMU          = primNewMU
+  readMU         = primReadMU
+  writeMU        = primWriteMU
+  copyMU         = primCopyMU
+  unsafeFreezeMU = primUnsafeFreezeMU
 
 instance UA Int where
-  lengthU (UAPrim (PrimInt ua))    = lengthBU ua
-  {-# INLINE indexU #-}
-  indexU (UAPrim (PrimInt ua)) i   = ua `indexBU` i
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimInt ua)) i n = UAPrim . PrimInt $ sliceBU ua i n
+  lengthU        = primLengthU
+  indexU         = primIndexU
+  sliceU         = primSliceU
 
-  {-# INLINE newMU #-}
-  newMU          n                            = 
-    liftM (MUAPrim . MPrimInt   ) $ newMBU n
-  {-# INLINE readMU #-}
-  readMU         (MUAPrim (MPrimInt ua)) i    = ua `readMBU` i
-  {-# INLINE writeMU #-}
-  writeMU        (MUAPrim (MPrimInt  ua)) i e = writeMBU ua i e
-  {-# INLINE copyMU #-}
-  copyMU (MUAPrim (MPrimInt ma)) i (UAPrim (PrimInt ua)) =
-    copyMBU ma i ua
-  {-# INLINE unsafeFreezeMU #-}
-  unsafeFreezeMU (MUAPrim (MPrimInt  ua)) n   = 
-    liftM (UAPrim . PrimInt   ) $ unsafeFreezeMBU ua n
+  newMU          = primNewMU
+  readMU         = primReadMU
+  writeMU        = primWriteMU
+  copyMU         = primCopyMU
+  unsafeFreezeMU = primUnsafeFreezeMU
 
 instance UA Float where
-  lengthU (UAPrim (PrimFloat ua))    = lengthBU ua
-  {-# INLINE indexU #-}
-  indexU (UAPrim (PrimFloat ua)) i   = ua `indexBU` i
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimFloat ua)) i n = UAPrim . PrimFloat $ sliceBU ua i n
+  lengthU        = primLengthU
+  indexU         = primIndexU
+  sliceU         = primSliceU
 
-  {-# INLINE newMU #-}
-  newMU          n                             = 
-    liftM (MUAPrim . MPrimFloat ) $ newMBU n
-  {-# INLINE readMU #-}
-  readMU         (MUAPrim (MPrimFloat ua)) i   = ua `readMBU` i
-  {-# INLINE writeMU #-}
-  writeMU        (MUAPrim (MPrimFloat ua)) i e = writeMBU ua i e
-  {-# INLINE copyMU #-}
-  copyMU (MUAPrim (MPrimFloat ma)) i (UAPrim (PrimFloat ua)) =
-    copyMBU ma i ua
-  {-# INLINE unsafeFreezeMU #-}
-  unsafeFreezeMU (MUAPrim (MPrimFloat ua)) n   = 
-    liftM (UAPrim . PrimFloat ) $ unsafeFreezeMBU ua n
+  newMU          = primNewMU
+  readMU         = primReadMU
+  writeMU        = primWriteMU
+  copyMU         = primCopyMU
+  unsafeFreezeMU = primUnsafeFreezeMU
 
 instance UA Double where
-  lengthU (UAPrim (PrimDouble ua))    = lengthBU ua
-  {-# INLINE indexU #-}
-  indexU (UAPrim (PrimDouble ua)) i   = ua `indexBU` i
-  {-# INLINE sliceU #-}
-  sliceU (UAPrim (PrimDouble ua)) i n = UAPrim . PrimDouble $ sliceBU ua i n
+  lengthU        = primLengthU
+  indexU         = primIndexU
+  sliceU         = primSliceU
 
-  {-# INLINE newMU #-}
-  newMU          n                              = 
-    liftM (MUAPrim . MPrimDouble) $ newMBU n
-  {-# INLINE readMU #-}
-  readMU         (MUAPrim (MPrimDouble ua)) i   = ua `readMBU` i
-  {-# INLINE writeMU #-}
-  writeMU        (MUAPrim (MPrimDouble ua)) i e = writeMBU ua i e
-  {-# INLINE copyMU #-}
-  copyMU (MUAPrim (MPrimDouble ma)) i (UAPrim (PrimDouble ua)) =
-    copyMBU ma i ua
-  {-# INLINE unsafeFreezeMU #-}
-  unsafeFreezeMU (MUAPrim (MPrimDouble ua)) n   = 
-    liftM (UAPrim . PrimDouble) $ unsafeFreezeMBU ua n
+  newMU          = primNewMU
+  readMU         = primReadMU
+  writeMU        = primWriteMU
+  copyMU         = primCopyMU
+  unsafeFreezeMU = primUnsafeFreezeMU
+
