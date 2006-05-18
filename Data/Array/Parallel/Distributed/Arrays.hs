@@ -53,6 +53,7 @@ splitLengthD g a = newD g (`fill` 0)
 
 -- | Distribute an array over a 'Gang'.
 splitD :: UA a => Gang -> UArr a -> Dist (UArr a)
+{-# INLINE [1] splitD #-}
 splitD g arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     dlen = splitLengthD g arr
@@ -66,12 +67,20 @@ joinLengthD g = sumD g . lengthD
 
 -- | Join a distributed array.
 joinD :: UA a => Gang -> Dist (UArr a) -> UArr a
+{-# INLINE [1] joinD #-}
 joinD g darr = checkGangD (here "joinD") g darr $
                newU n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
     di :*: n = scanD g (+) 0 $ lengthD darr
     --
     copy ma i arr = stToDistST (copyMU ma i arr)
+
+{-# RULES
+
+"splitD/joinD" forall gang darr.
+  splitD gang (joinD gang darr) = darr
+
+  #-}
 
 -- | Permute for distributed arrays.
 permuteD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr Int) -> UArr a

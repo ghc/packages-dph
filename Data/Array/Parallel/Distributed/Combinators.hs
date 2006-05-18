@@ -34,14 +34,23 @@ here s = "Data.Array.Parallel.Distributed.Combinators." ++ s
 
 -- | Map a function over a distributed value.
 mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
+{-# INLINE [1] mapD #-}
 mapD g f d = checkGangD (here "mapD") g d $
              runDistST g (myD d >>= return . f)
+
+{-# RULES
+
+"mapD/mapD" forall gang f g d.
+  mapD gang f (mapD gang g d) = mapD gang (f . g) d
+
+  #-}
 
 -- zipD, unzipD, fstD, sndD reexported from Types
 
 -- | Combine two distributed values with the given function.
 zipWithD :: (DT a, DT b, DT c)
          => Gang -> (a -> b -> c) -> Dist a -> Dist b -> Dist c
+{-# INLINE zipWithD #-}
 zipWithD g f dx dy = mapD g (uncurryS f) (zipD dx dy)
 
 -- | Fold a distributed value.
