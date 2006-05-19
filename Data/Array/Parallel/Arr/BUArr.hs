@@ -98,6 +98,8 @@ import Data.Array.Parallel.Base.Fusion
 
 infixl 9 `indexBU`, `readMBU`
 
+here s = "Arr.BUArr." ++ s
+
 -- |Unboxed arrays
 -- ---------------
 
@@ -140,7 +142,7 @@ emptyBU = runST (do
 -- copying any elements.
 --
 sliceBU :: BUArr e -> Int -> Int -> BUArr e
-sliceBU (BUArr start len arr) newStart newLen = 
+sliceBU (BUArr start len arr) newStart newLen =
   let start' = start + newStart
   in
   BUArr start' ((len - newStart) `min` newLen) arr
@@ -164,7 +166,7 @@ newMBU n :: ST s (MBUArr s e) = ST $ \s1# ->
 unsafeFreezeMBU :: MBUArr s e -> Int -> ST s (BUArr e)
 {-# INLINE unsafeFreezeMBU #-}
 unsafeFreezeMBU (MBUArr m mba#) n = 
-  checkLen "PAPrim.unsafeFreezeMU: " m n $ ST $ \s# ->
+  checkLen (here "unsafeFreezeMBU") m n $ ST $ \s# ->
   (# s#, BUArr 0 n (unsafeCoerce# mba#) #)
 
 -- |Turn a mutable into an immutable array WITHOUT copying its contents, which
@@ -207,20 +209,20 @@ instance UAE Bool where
 
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
-    check "PAPrim.indexBU[Bool]" n i $
+    check (here "indexBU[Bool]") n i $
       (indexWordArray# ba# (bOOL_INDEX (s# +# i#)) `and#` bOOL_BIT (s# +# i#))
       `neWord#` int2Word# 0#
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr n mba#) i@(I# i#) =
-    check "PAPrim.readMBU[Bool]" n i $
+    check (here "readMBU[Bool]") n i $
     ST $ \s# ->
     case readWordArray# mba# (bOOL_INDEX i#) s#   of {(# s2#, r# #) ->
     (# s2#, (r# `and#` bOOL_BIT i#) `neWord#` int2Word# 0# #)}
 
   {-# INLINE writeMBU #-}
   writeMBU (MBUArr n mba#) i@(I# i#) e# = 
-    checkCritical "PAPrim.writeMBU[Bool]" n i $
+    checkCritical (here "writeMBU[Bool]") n i $
     ST $ \s# ->
     case bOOL_INDEX i#                            of {j#            ->
     case readWordArray# mba# j# s#                of {(# s2#, v# #) ->
@@ -234,20 +236,20 @@ instance UAE Char where
 
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
-    check "PAPrim.indexBU[Char]" n i $
+    check (here "indexBU[Char]") n i $
     case indexWideCharArray# ba# (s# +# i#)	    of {r# ->
     (C# r#)}
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr n mba#) i@(I# i#) =
-    check "PAPrim.readMBU[Char]" n i $
+    check (here "readMBU[Char]") n i $
     ST $ \s# ->
     case readWideCharArray# mba# i# s#      of {(# s2#, r# #) ->
     (# s2#, C# r# #)}
 
   {-# INLINE writeMBU #-}
   writeMBU (MBUArr n mba#) i@(I# i#) (C# e#) = 
-    checkCritical "PAPrim.writeMBU[Char]" n i $
+    checkCritical (here "writeMBU[Char]") n i $
     ST $ \s# ->
     case writeWideCharArray# mba# i# e# s#  of {s2#   ->
     (# s2#, () #)}
@@ -257,20 +259,20 @@ instance UAE Int where
 
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
-    check "PAPrim.indexBU[Int]" n i $
+    check (here "indexBU[Int]") n i $
     case indexIntArray# ba# (s# +# i#) 	       of {r# ->
     (I# r#)}
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr n mba#) i@(I# i#) =
-    check "PAPrim.readMBU[Int]" n i $
+    check (here "readMBU[Int]") n i $
     ST $ \s# ->
     case readIntArray# mba# i# s#      of {(# s2#, r# #) ->
     (# s2#, I# r# #)}
 
   {-# INLINE writeMBU #-}
   writeMBU (MBUArr n mba#) i@(I# i#) (I# e#) = 
-    checkCritical "PAPrim.writeMBU[Int]" n i $
+    checkCritical (here "writeMBU[Int]") n i $
     ST $ \s# ->
     case writeIntArray# mba# i# e# s#  of {s2#   ->
     (# s2#, () #)}
@@ -280,20 +282,20 @@ instance UAE Float where
 
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
-    check "PAPrim.indexBU[Float]" n i $
+    check (here "indexBU[Float]") n i $
     case indexFloatArray# ba# (s# +# i#)         of {r# ->
     (F# r#)}
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr n mba#) i@(I# i#) =
-    check "PAPrim.readMBU[Float]" n i $
+    check (here "readMBU[Float]") n i $
     ST $ \s# ->
     case readFloatArray# mba# i# s#      of {(# s2#, r# #) ->
     (# s2#, F# r# #)}
 
   {-# INLINE writeMBU #-}
   writeMBU (MBUArr n mba#) i@(I# i#) (F# e#) = 
-    checkCritical "PAPrim.writeMBU[Float]" n i $
+    checkCritical (here "writeMBU[Float]") n i $
     ST $ \s# ->
     case writeFloatArray# mba# i# e# s#  of {s2#   ->
     (# s2#, () #)}
@@ -303,20 +305,20 @@ instance UAE Double where
 
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
-    check "PAPrim.indexBU[Double]" n i $
+    check (here "indexBU[Double]") n i $
     case indexDoubleArray# ba# (s# +# i#)         of {r# ->
     (D# r#)}
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr n mba#) i@(I# i#) =
-    check "PAPrim.readMBU[Double]" n i $
+    check (here "readMBU[Double]") n i $
     ST $ \s# ->
     case readDoubleArray# mba# i# s#      of {(# s2#, r# #) ->
     (# s2#, D# r# #)}
 
   {-# INLINE writeMBU #-}
   writeMBU (MBUArr n mba#) i@(I# i#) (D# e#) = 
-    checkCritical "PAPrim.writeMBU[Double]" n i $
+    checkCritical (here "writeMBU[Double]") n i $
     ST $ \s# ->
     case writeDoubleArray# mba# i# e# s#  of {s2#   ->
     (# s2#, () #)}
