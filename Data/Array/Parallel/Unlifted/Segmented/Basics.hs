@@ -109,13 +109,12 @@ enumFromThenToSU starts nexts ends =
     segdlen = lengthU lens
     --
     step (x :*: delta) _ = ((x + delta :*: delta) :*: (JustS $ toEnum x))
-    seg  _             i = ((start :*: delta) :*: (NothingS :: MaybeS ()))
-			   where
-			     start = fromEnum (starts!:(i + 1))
-			     next  = fromEnum (nexts !:(i + 1))
-			     delta = if (i + 1) == segdlen 
-				     then 0 
-				     else next - start
+    seg  _  i | i+1 == segdlen = (0 :*: 0) :*: (NothingS :: MaybeS ())
+              | otherwise      = (start :*: delta) :*: (NothingS :: MaybeS ())
+      where
+        start = fromEnum (starts!:(i + 1))
+        next  = fromEnum (nexts !:(i + 1))
+        delta = next - start
     --
     init = fstS $ seg undefined (-1)
 
