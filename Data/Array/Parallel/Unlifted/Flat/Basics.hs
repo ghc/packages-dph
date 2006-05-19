@@ -76,15 +76,26 @@ a1 +:+ a2 = loopArr $ loopU extract 0 (unitsU len)
 
 -- |Yield an enumerated array
 --
--- FIXME: This doesn't really work at the moment (try enumFromToU 0 0)
---        and in fact, I'm not sure what its semantics should be.
+-- FIXME: See comments about enumFromThenToU
 enumFromToU :: (Enum e, UA e) => e -> e -> UArr e
 {-# INLINE enumFromToU #-}
 enumFromToU start = enumFromThenToU start (succ start)
 
 -- |Yield an enumerated array using a specific step
 --
--- FIXME: See comment about enumFromToU.
+-- FIXME: Can this be implemented at all?. Casting to 'Int' certainly doesn't
+-- work for 'Float's; we have
+--
+-- > enumFromTo 0.5 1.4 = [0.5,1.5]
+--
+-- but
+--
+-- > enumFromToU 0.5 1.4 = [0.0,1.0]
+--
+-- More importantly, this won't work for types larger than 'Int'. Short of
+-- introducing an EnumP class, I don't see how this can be implemented
+-- efficiently.
+--
 enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
 {-# INLINE enumFromThenToU #-}
 enumFromThenToU start next end = 
