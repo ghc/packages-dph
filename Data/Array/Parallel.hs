@@ -39,7 +39,24 @@
 
 {- 		Comments about library structure
 
-Data.Array.Parallel.Distributed
+Data.Array.Parallel.Lifted
+	... the final user types ...
+
+Data.Array.Parallel.Unlifted
+  Re-exports Data.Array.Parallel.Unlifted.Parallel
+	     Data.Array.Parallel.Unlifted.Distributed
+	     Data.Array.Parallel.Unlifted.Segmented
+	     Data.Array.Parallel.Unlifted.Flat
+
+Data.Array.Parallel.Unlifted.Parallel
+  Parallel operations over UArrs.  No new data types!
+  These operations each
+	- convert the incoming (UArr t) to a Dist (UArr t)
+	- run the operation in parallel using a gang
+	- convert the result back to a (UArr t')
+  Plus fusion rules, of course!
+
+Data.Array.Parallel.Unlifted.Distributed
   Logically: type Dist a = Array GangMember a
 	That is, one 'a' per gang member
   Mutable version: MDist
@@ -47,17 +64,12 @@ Data.Array.Parallel.Distributed
   Element types: unboxed, and products, (), 
 		 *and* UArr, SUArr, Segd.
  
-Data.Array.Parallel.Unlifted
-  Re-exports Data.Array.Parallel.Unlifted.Segmented
-	     Data.Array.Parallel.Unlifted.Flat
-
 Data.Array.Parallel.Unlifted.Segmented
   Provides SUArr, which are segmented UArrs with exactly one nesting level
   Logically: type SUArr a = UArr (UArr a)
   Element types: unboxed, and products and ().
 
   Again, a mutable version MSUArr is defined internally.
-
 
 Data.Array.Parallel.Unlifted.Flat
   Provides immutable (UArr) arrays of unboxed
@@ -72,6 +84,9 @@ Data.Array.Parallel.Unlifted.Flat
 	.Fusion: fusion rules for loopU
 	.Combinators: instantiate loopU (to get fold, scan, map etc)
   
+  The exported maps and folds over these arrays are 
+  purely sequential
+
 Data.Array.Parallel.Arr.BUArr
   Arrays of *unboxed* values, immutable (BUArr t) and mutable (MBUArr
   t), indexed by Int.  Supports slicing (= sub-segment) operations.
