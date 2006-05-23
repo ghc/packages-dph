@@ -33,7 +33,7 @@
 -- permutations) that are not provided for lists.  The following list
 -- operations are not supported on parallel arrays, as they would require the
 -- availability of infinite parallel arrays: `iterate', `repeat', and `cycle'.
---
+-- 
 
 -- *** !!!FIXME: THIS IS CURRENTLY ONLY A STUB FILE **
 
