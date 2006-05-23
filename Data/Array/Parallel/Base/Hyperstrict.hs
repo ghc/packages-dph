@@ -78,8 +78,9 @@ fromMaybeS x (JustS y) = y
 fromMaybeS x NothingS  = x
 
 -- | The class of hyperstrict types. These are those types for which weak
--- head-normal form and normal form are the same, i.e., they are guaranteed to
--- contain no thunks once they are evaluated to whnf.
+-- head-normal form and normal form are the same.
+-- That is, once they are evaluated to WHNF, they are guaranteed to
+-- contain no thunks 
 class HS a
 
 instance HS ()

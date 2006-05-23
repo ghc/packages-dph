@@ -37,6 +37,69 @@
 
 -- *** !!!FIXME: THIS IS CURRENTLY ONLY A STUB FILE **
 
+{- 		Comments about library structure
+
+Data.Array.Parallel.Distributed
+  Logically: type Dist a = Array GangMember a
+	That is, one 'a' per gang member
+  Mutable version: MDist
+
+  Element types: unboxed, and products, (), 
+		 *and* UArr, SUArr, Segd.
+ 
+Data.Array.Parallel.Unlifted
+  Re-exports Data.Array.Parallel.Unlifted.Segmented
+	     Data.Array.Parallel.Unlifted.Flat
+
+Data.Array.Parallel.Unlifted.Segmented
+  Provides SUArr, which are segmented UArrs with exactly one nesting level
+  Logically: type SUArr a = UArr (UArr a)
+  Element types: unboxed, and products and ().
+
+  Again, a mutable version MSUArr is defined internally.
+
+
+Data.Array.Parallel.Unlifted.Flat
+  Provides immutable (UArr) arrays of unboxed
+  values, and strict products thereof.
+
+  Simply lifts BUArr to work over strict products (incl unit).
+  Internally to Flat, we also define mutable (MUArr) arrays, 
+  but they aren't exported.
+
+	.UArr: representation
+	.Loop: main loop combinator over UArr, loopU
+	.Fusion: fusion rules for loopU
+	.Combinators: instantiate loopU (to get fold, scan, map etc)
+  
+Data.Array.Parallel.Arr.BUArr
+  Arrays of *unboxed* values, immutable (BUArr t) and mutable (MBUArr
+  t), indexed by Int.  Supports slicing (= sub-segment) operations.
+
+  ToDo: combine with UArray and STUArray? (But they are indexed by Ix.)
+
+  ToDo: a common pattern (e.g. when filtering) is that we allocate a
+  big mutable array, *partially* fill it, and then want to shrink to
+  fixed size when freezing it. (This is needed in Don's ByteString
+  library too.)
+
+
+Data.Array.Parallel.Base.Fusion
+  Specialised combining functions that specialise loopU to be map, fold, etc
+  They are also useful for loopBU; hence not in Unlifted.Flat
+  
+Data.Array.Parallel.Arr.BBArr
+  Similar to BUArr, but for strict, boxed values.  
+  Representation: Array, STArray.
+  Main application: array of UArrs in Distibuted.Types
+
+Data.Array.Parallel.Base.Hyperstrict
+  A type is "hyperstrict" (in class HS) if evaluating it to WHNF
+  produces a result that has no thunks.  It has no methods.  It stops
+  you calling a function that would run slowly because of shared 
+  thunks in a parallel setting.
+-}
+
 module Data.Array.Parallel (
   -- [::],		-- Built-in syntax
 ) where

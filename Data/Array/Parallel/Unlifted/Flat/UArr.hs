@@ -27,7 +27,7 @@
 
 module Data.Array.Parallel.Unlifted.Flat.UArr (
 
-  -- * Array types and classes containing the admissble elements types
+  -- * Array types and classes containing the admissable elements types
   UA, UArr, MUArr, {-USel(..), MUSel(..),-}
 
   -- * Basic operations on parallel arrays
