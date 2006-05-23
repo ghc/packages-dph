@@ -68,6 +68,7 @@ execReq i (p, s) = p i >> putMVar s ()
 data Gang = Gang !Int          -- | Number of 'Gang' threads.
                  [MVar Req]    -- | An 'MVar' per thread; empty for sequential
                                --   'Gang's.
+-- To get the gang to do work, write Req-uest values to its MVars
 
 -- | The worker thread of a 'Gang'.
 gangWorker :: Int -> MVar Req -> IO ()

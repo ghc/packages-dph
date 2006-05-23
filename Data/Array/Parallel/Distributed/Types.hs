@@ -55,6 +55,8 @@ class DT a where
   indexD         :: Dist a -> Int -> a
 
   -- | Create an unitialised distributed value for the given 'Gang'.
+  -- The gang is used (only) to know how many elements are needed
+  -- in the distributed value.
   newMD          :: Gang                  -> ST s (MDist a s)
 
   -- | Extract an element from a mutable distributed value.
@@ -72,6 +74,8 @@ data Dist a where
   DPrim  :: !(BUArr a)                       -> Dist a
   DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
+	-- The Dist Int redundantly records the size of the UArrs
+	-- (redundantly because the UArrs also contain their sizes)
   DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
 
 data MDist a s where
