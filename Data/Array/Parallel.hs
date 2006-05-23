@@ -39,6 +39,7 @@
 
 {- 		Comments about library structure
 
+
 Data.Array.Parallel.Lifted
 	... the final user types ...
 
