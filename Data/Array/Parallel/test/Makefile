@@ -20,7 +20,7 @@ LIB = ../../../../libHSndp.a
 HC      = $(GHC)
 HCFLAGS = -package ndp\
           -fglasgow-exts -O2 -funbox-strict-fields\
-	  -fliberate-case-threshold100 -fno-method-sharing
+	  -fliberate-case-threshold100 -fno-method-sharing -threaded
 #	  -fno-cse
 # NB: method sharing and CSE can hinder fusion
 
@@ -91,6 +91,16 @@ dotp/DotP.o: $(BENCHOBJS)
 dotp/dotp: dotp/DotP.o $(BENCHOBJS)
 	$(HC) -o $@ $(HCFLAGS) $^ $(HLDFLAGS)
 
+# Parallel dot product in dotp-par
+DOTP_PAR_HC_FLAGS=$(BENCHFLAGS) -idotp-par
+
+dotp-par/DotP.hs-HCFLAGS = $(DOTP_PAR_HC_FLAGS)
+
+dotp-par/DotP.o: dotp-par/DotPImpl.o $(BENCHOBJS)
+
+dotp-par/dotp: dotp-par/DotP.o dotp-par/DotPImpl.o $(BENCHOBJS)
+	$(HC) -o $@ $(HCFLAGS) $^ $(HLDFLAGS)
+
 # Prime sieve in primes/
 #
 PRIMES_HCFLAGS=$(BENCHFLAGS) -ddump-simpl -ddump-simpl-stats
@@ -137,5 +147,6 @@ clean:
 	  sumsq/*.hi sumsq/*.o sumsq/sumsq\
 	  benchutils/*.hi benchutils/*.o\
 	  dotp/*.hi dotp/*.o dotp/dotp\
+	  dotp-par/*.hi dotp-par/*.o dotp-par/dotp\
 	  primes/*.hi primes/*.o primes/primes\
 	  smvm/*.hi smvm/*.o smvm/smvm
