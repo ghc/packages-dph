@@ -35,8 +35,8 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 -- | Map a function over a distributed value.
 mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
 {-# INLINE [1] mapD #-}
-mapD g f d = checkGangD (here "mapD") g d $
-             runDistST g (myD d >>= return . f)
+mapD g f d = checkGangD (here "mapD") g d
+             (d `seq` runDistST g (myD d >>= return . f))
 
 {-# RULES
 
