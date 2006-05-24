@@ -20,7 +20,8 @@ LIB = ../../../../libHSndp.a
 HC      = $(GHC)
 HCFLAGS = -package ndp\
           -fglasgow-exts -O2 -funbox-strict-fields\
-	  -fliberate-case-threshold100 -fno-method-sharing -threaded
+	  -fliberate-case-threshold100 -fno-method-sharing -threaded\
+          $(FLAGS)
 #	  -fno-cse
 # NB: method sharing and CSE can hinder fusion
 
