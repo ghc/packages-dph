@@ -7,7 +7,8 @@ exposed:	True
 exposed-modules:
 	Data.Array.Parallel,
 	Data.Array.Parallel.Unlifted,
-        Data.Array.Parallel.Distributed
+        Data.Array.Parallel.Unlifted.Distributed
+        Data.Array.Parallel.Unlifted.Parallel
 
 hidden-modules:
 	Data.Array.Parallel.Base.Config
@@ -43,6 +44,8 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Segmented.Sums
         Data.Array.Parallel.Unlifted.Segmented.Permute
         Data.Array.Parallel.Unlifted.Segmented
+        Data.Array.Parallel.Unlifted.Parallel.Combinators
+        Data.Array.Parallel.Unlifted.Parallel.Sums
 
 
 import-dirs:	IMPORT_DIR

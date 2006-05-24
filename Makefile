@@ -9,7 +9,8 @@ ALL_DIRS = \
 	Data/Array/Parallel/Unlifted \
 	Data/Array/Parallel/Unlifted/Flat \
 	Data/Array/Parallel/Unlifted/Segmented \
-	Data/Array/Parallel/Unlifted/Distributed
+	Data/Array/Parallel/Unlifted/Distributed \
+	Data/Array/Parallel/Unlifted/Parallel
 
 PACKAGE = ndp
 VERSION = 1.0
