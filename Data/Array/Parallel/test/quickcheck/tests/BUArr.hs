@@ -90,7 +90,7 @@ $(testcases [ ""        <@ [t| ( (), Bool, Char, Int ) |]
   
   prop_loopBU_replicateBU
     :: (UAE e, Eq acc, Eq e', UAE e')
-    => LoopFn acc e e' -> acc -> Len -> e -> Bool
+    => EFL acc e e' -> acc -> Len -> e -> Bool
   prop_loopBU_replicateBU mf start (Len n) v =
     loopBU mf start (replicateBU n v)
     == loopBU (\a _ -> mf a v) start (unitsBU n)

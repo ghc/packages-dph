@@ -2,7 +2,7 @@
 
 import Testsuite
 
-import Data.Array.Parallel.Distributed
+import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Base.Hyperstrict
 
