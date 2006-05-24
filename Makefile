@@ -7,8 +7,6 @@ ALL_DIRS = \
 	Data/Array/Parallel/Base \
 	Data/Array/Parallel/Arr \
 	Data/Array/Parallel/Distributed \
-	Data/Array/Parallel/Monadic \
-	Data/Array/Parallel/Declarative \
 	Data/Array/Parallel/Unlifted \
 	Data/Array/Parallel/Unlifted/Flat \
 	Data/Array/Parallel/Unlifted/Segmented
