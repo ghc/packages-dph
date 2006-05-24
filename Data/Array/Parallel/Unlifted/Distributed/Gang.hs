@@ -20,7 +20,7 @@
 --
 -- * Generalise thread indices?
 
-module Data.Array.Parallel.Distributed.Gang (
+module Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, forkGang, gangSize, gangIO, gangST,
   sequentialGang, seqGang
 ) where

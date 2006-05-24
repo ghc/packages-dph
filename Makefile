@@ -6,10 +6,10 @@ ALL_DIRS = \
 	Data/Array/Parallel \
 	Data/Array/Parallel/Base \
 	Data/Array/Parallel/Arr \
-	Data/Array/Parallel/Distributed \
 	Data/Array/Parallel/Unlifted \
 	Data/Array/Parallel/Unlifted/Flat \
-	Data/Array/Parallel/Unlifted/Segmented
+	Data/Array/Parallel/Unlifted/Segmented \
+	Data/Array/Parallel/Unlifted/Distributed
 
 PACKAGE = ndp
 VERSION = 1.0

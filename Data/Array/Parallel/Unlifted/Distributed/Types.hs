@@ -1,7 +1,7 @@
 {-# OPTIONS -fno-warn-incomplete-patterns #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.Types
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed.Types
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -12,7 +12,7 @@
 -- Distributed types.
 --
 
-module Data.Array.Parallel.Distributed.Types (
+module Data.Array.Parallel.Unlifted.Distributed.Types (
   -- * Distributed types
   DT, Dist, MDist,
 
@@ -30,15 +30,17 @@ module Data.Array.Parallel.Distributed.Types (
   sizeD, sizeMD
 ) where
 
-import Monad                                ( liftM, liftM2 )
-import Data.Array.Parallel.Distributed.Gang ( Gang, gangSize )
+import Data.Array.Parallel.Unlifted.Distributed.Gang (
+  Gang, gangSize )
 import Data.Array.Parallel.Arr
 import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Base
 
+import Monad (liftM, liftM2)
+
 infixl 9 `indexD`
 
-here s = "Distributed.Types." ++ s
+here s = "Data.Array.Parallel.Unlifted.Distributed.Types." ++ s
 
 -- |Distributed types
 -- ----------------------------

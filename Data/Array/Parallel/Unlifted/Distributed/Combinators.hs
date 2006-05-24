@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.Basics
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed.Basics
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -11,7 +11,7 @@
 -- Standard combinators for distributed types.
 --
 
-module Data.Array.Parallel.Distributed.Combinators (
+module Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, zipD, unzipD, fstD, sndD, zipWithD,
   foldD, scanD,
 
@@ -21,16 +21,16 @@ module Data.Array.Parallel.Distributed.Combinators (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), uncurryS, ST, runST)
-import Data.Array.Parallel.Distributed.Gang (
+import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize)
-import Data.Array.Parallel.Distributed.Types (
+import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, indexD, zipD, unzipD, fstD, sndD,
   newMD, writeMD, unsafeFreezeMD,
   checkGangD)
-import Data.Array.Parallel.Distributed.DistST (
+import Data.Array.Parallel.Unlifted.Distributed.DistST (
   DistST, distST_, distST, runDistST, myD)
 
-here s = "Data.Array.Parallel.Distributed.Combinators." ++ s
+here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 
 -- | Map a function over a distributed value.
 mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b

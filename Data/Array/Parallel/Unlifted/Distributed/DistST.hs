@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.DistST
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed.DistST
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -18,7 +18,7 @@
 -- /TODO:/ Add facilities for implementing parallel scans etc.
 --
 
-module Data.Array.Parallel.Distributed.DistST (
+module Data.Array.Parallel.Unlifted.Distributed.DistST (
   DistST, stToDistST, distST_, distST, runDistST,
 
   myD, readMyMD, writeMyMD
@@ -26,8 +26,8 @@ module Data.Array.Parallel.Distributed.DistST (
 
 import Data.Array.Parallel.Base (
   ST, runST)
-import Data.Array.Parallel.Distributed.Gang
-import Data.Array.Parallel.Distributed.Types (
+import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT(..), Dist, MDist)
 
 import Monad (liftM)

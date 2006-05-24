@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.Scalars
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed.Scalars
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -11,17 +11,17 @@
 -- Distributed scalars.
 --
 
-module Data.Array.Parallel.Distributed.Scalars (
+module Data.Array.Parallel.Unlifted.Distributed.Scalars (
   unitD, scalarD,
 
   orD, andD, sumD
 ) where
 
-import Data.Array.Parallel.Distributed.Gang (
+import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, seqGang)
-import Data.Array.Parallel.Distributed.Types (
+import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, unitD)
-import Data.Array.Parallel.Distributed.Combinators (
+import Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, foldD)
 
 -- unitD reexported from Types

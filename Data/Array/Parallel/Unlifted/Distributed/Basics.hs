@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.Basics
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed.Basics
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -12,23 +12,23 @@
 --
 
 
-module Data.Array.Parallel.Distributed.Basics (
+module Data.Array.Parallel.Unlifted.Distributed.Basics (
   eqD, neqD, toD, fromD
 ) where
 
-import Data.Array.Parallel.Distributed.Gang (
+import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize)
-import Data.Array.Parallel.Distributed.Types (
+import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, indexD, newD, writeMD,
   checkGangD)
-import Data.Array.Parallel.Distributed.Combinators (
+import Data.Array.Parallel.Unlifted.Distributed.Combinators (
   zipWithD)
-import Data.Array.Parallel.Distributed.Scalars (
+import Data.Array.Parallel.Unlifted.Distributed.Scalars (
   andD, orD)
 
 import Monad ( zipWithM_ )
 
-here s = "Distributed.Basics." ++ s
+here s = "Data.Array.Parallel.Unlifted.Distributed.Basics." ++ s
 
 -- | Test whether to distributed values are equal. This requires a 'Gang'
 -- and hence can't be defined in terms of 'Eq'.

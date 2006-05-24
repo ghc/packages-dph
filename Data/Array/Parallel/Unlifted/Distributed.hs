@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -11,7 +11,7 @@
 -- Distributed types and operations.
 --
 
-module Data.Array.Parallel.Distributed (
+module Data.Array.Parallel.Unlifted.Distributed (
   -- * Gang operations
   Gang, forkGang, gangSize, sequentialGang, seqGang,
 
@@ -41,12 +41,12 @@ module Data.Array.Parallel.Distributed (
   fromD, toD
 ) where
 
-import Data.Array.Parallel.Distributed.Gang (
+import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, forkGang, gangSize, sequentialGang, seqGang)
-import Data.Array.Parallel.Distributed.Types (
+import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist)
-import Data.Array.Parallel.Distributed.Combinators
-import Data.Array.Parallel.Distributed.Scalars
-import Data.Array.Parallel.Distributed.Arrays
-import Data.Array.Parallel.Distributed.Basics
+import Data.Array.Parallel.Unlifted.Distributed.Combinators
+import Data.Array.Parallel.Unlifted.Distributed.Scalars
+import Data.Array.Parallel.Unlifted.Distributed.Arrays
+import Data.Array.Parallel.Unlifted.Distributed.Basics
 

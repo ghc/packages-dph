@@ -18,14 +18,14 @@ hidden-modules:
 	Data.Array.Parallel.Arr.BUArr
 	Data.Array.Parallel.Arr.BBArr
         Data.Array.Parallel.Arr
-        Data.Array.Parallel.Distributed.Gang
-        Data.Array.Parallel.Distributed.DistST
-	Data.Array.Parallel.Distributed.Types
-        Data.Array.Parallel.Distributed.Combinators
-        Data.Array.Parallel.Distributed.Scalars
-        Data.Array.Parallel.Distributed.Arrays
-        Data.Array.Parallel.Distributed.Basics
-        Data.Array.Parallel.Distributed.Operations
+        Data.Array.Parallel.Unlifted.Distributed.Gang
+        Data.Array.Parallel.Unlifted.Distributed.DistST
+	Data.Array.Parallel.Unlifted.Distributed.Types
+        Data.Array.Parallel.Unlifted.Distributed.Combinators
+        Data.Array.Parallel.Unlifted.Distributed.Scalars
+        Data.Array.Parallel.Unlifted.Distributed.Arrays
+        Data.Array.Parallel.Unlifted.Distributed.Basics
+        Data.Array.Parallel.Unlifted.Distributed.Operations
 	Data.Array.Parallel.Unlifted.Flat.UArr
         Data.Array.Parallel.Unlifted.Flat.Loop
         Data.Array.Parallel.Unlifted.Flat.Basics

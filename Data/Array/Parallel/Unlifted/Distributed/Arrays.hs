@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.Array.Parallel.Distributed.Arrays
+-- Module      :  Data.Array.Parallel.Unlifted.Distributed.Arrays
 -- Copyright   :  (c) 2006 Roman Leshchinskiy
 -- License     :  see libraries/base/LICENSE
 -- 
@@ -11,7 +11,7 @@
 -- Operations on distributed arrays.
 --
 
-module Data.Array.Parallel.Distributed.Arrays (
+module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLengthD, splitD, joinLengthD, joinD,
 
   permuteD, bpermuteD
@@ -19,24 +19,23 @@ module Data.Array.Parallel.Distributed.Arrays (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS)
-import Data.Array.Parallel.Unlifted (
-  UA, UArr, lengthU, sliceU, bpermuteU)
 import Data.Array.Parallel.Unlifted.Flat (
+  UA, UArr, lengthU, sliceU, bpermuteU,
   newU, copyMU, permuteMU)
-import Data.Array.Parallel.Distributed.Gang (
+import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
-import Data.Array.Parallel.Distributed.DistST (
+import Data.Array.Parallel.Unlifted.Distributed.DistST (
   stToDistST)
-import Data.Array.Parallel.Distributed.Types (
+import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, lengthD, newD, writeMD,
   checkGangD)
-import Data.Array.Parallel.Distributed.Combinators (
+import Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, zipWithD, scanD,
   zipWithDST_)
-import Data.Array.Parallel.Distributed.Scalars (
+import Data.Array.Parallel.Unlifted.Distributed.Scalars (
   sumD)
 
-here s = "Data.Array.Parallel.Distributed.Arrays." ++ s
+here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." ++ s
 
 -- | Distribute the length of an array over a 'Gang'.
 splitLengthD :: UA a => Gang -> UArr a -> Dist Int
