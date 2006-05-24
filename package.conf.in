@@ -19,6 +19,7 @@ hidden-modules:
 	Data.Array.Parallel.Arr.BBArr
         Data.Array.Parallel.Arr
         Data.Array.Parallel.Unlifted.Distributed.Gang
+        Data.Array.Parallel.Unlifted.Distributed.TheGang
         Data.Array.Parallel.Unlifted.Distributed.DistST
 	Data.Array.Parallel.Unlifted.Distributed.Types
         Data.Array.Parallel.Unlifted.Distributed.Combinators
