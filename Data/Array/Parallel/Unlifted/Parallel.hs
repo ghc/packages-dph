@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel (
-  mapUP, foldUP,
+  mapUP, zipWithUP, foldUP,
 
   sumUP
 ) where
