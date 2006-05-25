@@ -32,6 +32,7 @@ module BenchUtils (
 import CPUTime
 import IO
 import Monad
+import System.Time
 
 -- GHC-specific modules
 import Control.Exception  (evaluate)
@@ -69,6 +70,31 @@ type Benchmark = (BenchFun, Comment, Suffix)
 --
 type BenchPoints = [Int]
 
+-- Timing functions
+-- ----------------
+
+data Time = Time { cpuTime   :: Integer
+                 , clockTime :: Integer
+                 }
+
+picoseconds :: ClockTime -> Integer
+picoseconds (TOD sec pico) = pico + sec * 1000000000000
+
+picoToMilli :: Integer -> Integer
+picoToMilli n = n `div` 1000000000
+
+getTime :: IO Time
+getTime =
+  do
+    cpu   <- getCPUTime
+    clock <- getClockTime
+    return $ Time cpu (picoseconds clock)
+
+diffTime :: Time -> Time -> Time
+diffTime t1 t2 = Time (cpuTime t1 - cpuTime t2) (clockTime t1 - clockTime t2)
+
+minTime :: Time -> Time -> Time
+minTime t1 t2 = Time (cpuTime t1 `min` cpuTime t2) (clockTime t1 `min` clockTime t2)
 
 -- Benchmarking functions
 -- ----------------------
@@ -82,19 +108,19 @@ timeIt desc comp =
     putStr $ desc ++ "...1st..."
     hFlush stdout
     performGC
-    startTime <- getCPUTime
+    startTime <- getTime
     result <- comp
-    endTime   <- getCPUTime
-    let timeInMS1 =  (endTime - startTime) `div` 1000000000
+    endTime   <- getTime
+    let time1 = endTime `diffTime` startTime
     putStr "2nd..."
     hFlush stdout
     performGC
-    startTime <- getCPUTime
+    startTime <- getTime
     result <- comp
-    endTime   <- getCPUTime
-    let timeInMS2 =  (endTime - startTime) `div` 1000000000
+    endTime   <- getTime
+    let time2 = endTime `diffTime` startTime
     putStrLn "done."
-    return (timeInMS1 `min` timeInMS2, result)
+    return (picoToMilli $ clockTime (time1 `minTime` time2), result)
 
 -- |Given a benchmark family (ie, list of benchmarks) and a set of benchmark
 -- points, test the family on these points
