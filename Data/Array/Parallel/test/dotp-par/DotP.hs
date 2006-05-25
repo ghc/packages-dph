@@ -9,6 +9,7 @@ import System
 
 -- GHC libraries
 import Control.Exception (evaluate)
+import System.Console.GetOpt
 
 -- Parallel array support
 import Data.Array.Parallel.Unlifted
@@ -52,13 +53,37 @@ dotp_bench size =
 main :: IO ()
 main =
   do
-    setGang 2
-    host <- getEnv "HOSTNAME"
-    putStrLn "Dot Product Benchmark"
-    putStrLn "====================="
+    args <- getArgs
+    case getOpt Permute opts args of
+      (os, [], []) ->
+        let opts = foldr ($) dftOpts os
+        in
+        do
+          optSetGang opts
+          putStrLn "Dot Product Benchmark"
+          putStrLn "====================="
     
-    doBenchmarks [(dotp_bench, "Dot product", "uarr")]
-		 [100000, 200000..1000000]
-		 ("Dot product with 100,000 to 500,000 element vectors\n\
-		  \on " ++ host)
-		 "dotp"
+          doBenchmarks [(dotp_bench, "Dot product", "uarr")]
+                       (optPoints opts)
+                       "Dot product"
+		       "dotp"
+
+data Opts = Opts { optSetGang :: IO ()
+                 , optPoints  :: [Int]
+                 }
+
+dftOpts = Opts { optSetGang = setGang 2
+               , optPoints  = [100000, 200000..1000000]
+               }
+
+opts = [Option ['p'] ["par"]
+           (ReqArg (\s o -> o { optSetGang = setGang (read s) }) "N")
+           "run in parallel with N threads"
+       ,Option ['s'] ["seq"]
+           (ReqArg (\s o -> o { optSetGang = setSequentialGang (read s) }) "N")
+           "run sequentially simulating N threads"
+       ,Option ['l'] ["lengths"]
+           (ReqArg (\s o -> o { optPoints = read s }) "LIST")
+           "run with specified array lengths"
+       ]
+
