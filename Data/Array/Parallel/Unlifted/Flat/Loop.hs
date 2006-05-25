@@ -54,9 +54,9 @@ loopU mf start a =
   where
     len = lengthU a
     --
-    trans0 ma start = trans 0 0 start
+    trans0 ma start = flattrans 0 0 start
       where
-        trans a_off ma_off acc 
+        flattrans a_off ma_off acc 
 	  | a_off == len = ma_off `seq`	       -- needed for these arguments...
 			   acc    `seq`	       -- ...to get unboxed
 			   return (acc :*: ma_off)
@@ -68,7 +68,7 @@ loopU mf start a =
 			   JustS e  -> do
 				         writeMU ma ma_off e
 					 return $ ma_off + 1
-	      trans (a_off + 1) ma_off' acc'
+	      flattrans (a_off + 1) ma_off' acc'
 
 -- Fusion rules
 -- ------------

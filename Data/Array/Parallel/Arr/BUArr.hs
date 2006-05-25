@@ -361,9 +361,9 @@ loopBU mf start a =
   where
     len = lengthBU a
     --
-    trans0 ma start = trans 0 0 start
+    trans0 ma start = butrans 0 0 start
       where
-        trans a_off ma_off acc 
+        butrans a_off ma_off acc 
 	  | a_off == len = ma_off `seq`	       -- needed for these arguments...
 			   acc    `seq`	       -- ...getting unboxed
 			   return (acc :*: ma_off)
@@ -375,7 +375,7 @@ loopBU mf start a =
 			   JustS e  -> do
 				         writeMBU ma ma_off e
 					 return $ ma_off + 1
-	      trans (a_off + 1) ma_off' acc'
+	      butrans (a_off + 1) ma_off' acc'
 
 -- Loop fusion for unboxed arrays
 --

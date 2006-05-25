@@ -98,9 +98,9 @@ loopSU em sm start (SUArr segd arr) =
     nsegd = lengthU segd1
     n     = lengthU arr
     --
-    trans0 mpa maccs = trans 0 0 (-1) 0 start
+    trans0 mpa maccs = segtrans 0 0 (-1) 0 start
       where
-        trans arr_i	-- index into the flat input array
+        segtrans arr_i	-- index into the flat input array
 	      seg_cnt   -- number of elements still to be done in current seg
 	      segd_i	-- currently processed segment (source and dest)
 	      maccs_i   -- next index to write to in the accumulator array
@@ -128,7 +128,7 @@ loopSU em sm start (SUArr segd arr) =
 		else do
 		  let seg_cnt' = segd1 !: segd_i' -- get new seg length
 		  nextMSU mpa segd_i' NothingS    -- init target seg
-		  trans arr_i seg_cnt' segd_i' maccs_i' acc'
+		  segtrans arr_i seg_cnt' segd_i' maccs_i' acc'
           | otherwise    =      -- continue with current segment
 	    segd_i  `seq`
 	    maccs_i `seq`
@@ -137,7 +137,7 @@ loopSU em sm start (SUArr segd arr) =
 	      case oe of
 	        NothingS -> return ()
 		JustS e  -> nextMSU mpa segd_i (JustS e)
-              trans (arr_i + 1) (seg_cnt - 1) segd_i maccs_i acc'
+              segtrans (arr_i + 1) (seg_cnt - 1) segd_i maccs_i acc'
 
 -- Fusion rules
 -- ------------
