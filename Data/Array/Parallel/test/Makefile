@@ -10,7 +10,7 @@
 # ---------------------
 
 # Location of inplace GHC
-GHC = ../../../../../../compiler/ghc-inplace
+GHC = ../../../../../../compiler/stage2/ghc-inplace
 
 # Location of NDP lib (to trigger rebuilds)
 LIB = ../../../../libHSndp.a
