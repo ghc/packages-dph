@@ -28,12 +28,12 @@ module Data.Array.Parallel.Unlifted.Distributed.Gang (
 --import GHC.Prim                  ( unsafeCoerce# )
 import GHC.IOBase
 import GHC.ST
+import GHC.Conc                  ( forkOnIO )
 
-import Control.Concurrent        ( forkIO )
 import Control.Concurrent.MVar   ( MVar, newEmptyMVar, takeMVar, putMVar )
 -- import Control.Monad.ST          ( ST, unsafeIOToST, stToIO )
 import Control.Exception         ( assert )
-import Control.Monad             ( zipWithM )
+import Control.Monad             ( zipWithM, zipWithM_ )
 
 -- ---------------------------------------------------------------------------
 -- Requests and operations on them
@@ -83,7 +83,7 @@ forkGang :: Int -> IO Gang
 forkGang n = assert (n > 0) $
              do
                mvs <- sequence . replicate n $ newEmptyMVar
-               mapM_ forkIO (zipWith gangWorker [0 .. n-1] mvs)
+               zipWithM_ forkOnIO [0..] (zipWith gangWorker [0 .. n-1] mvs)
                return $ Gang n mvs
 
 -- | Yield a sequential 'Gang' which simulates the given number of threads.
