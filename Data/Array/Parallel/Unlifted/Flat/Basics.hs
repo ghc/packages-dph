@@ -22,14 +22,12 @@ module Data.Array.Parallel.Unlifted.Flat.Basics (
   toU, fromU
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..))
-import Data.Array.Parallel.Base.Fusion (
-  noAL, mapEFL, loopArr)
+import Data.Array.Parallel.Stream (
+  replicateS, (+++), enumFromToS, enumFromThenToS, toStream)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr, lengthU, indexU, newU)
-import Data.Array.Parallel.Unlifted.Flat.Loop (
-  unitsU, loopU)
+  UA, UArr, unitsU, lengthU, indexU, newU)
+import Data.Array.Parallel.Unlifted.Flat.Stream (
+  streamU, unstreamU)
 
 infixl 9 !:
 infixr 5 +:+
@@ -52,7 +50,7 @@ emptyU = newU 0 (const $ return ())
 --
 replicateU :: UA e => Int -> e -> UArr e
 {-# INLINE replicateU #-}
-replicateU n e = loopArr . loopU (mapEFL $ const e) noAL $ unitsU n
+replicateU n e = unstreamU (replicateS n e)
 
 -- |Array indexing
 --
@@ -63,52 +61,24 @@ replicateU n e = loopArr . loopU (mapEFL $ const e) noAL $ unitsU n
 --
 (+:+) :: UA e => UArr e -> UArr e -> UArr e
 {-# INLINE (+:+) #-}
-a1 +:+ a2 = loopArr $ loopU extract 0 (unitsU len)
-  where
-    len1 = lengthU a1
-    len  = len1 + lengthU a2
-    --
-    extract i _ = (i + 1 :*: 
-		   (JustS $ if i < len1 then a1!:i else a2!:(i - len1)))
+a1 +:+ a2 = unstreamU (streamU a1 +++ streamU a2)
 
 -- |Enumeration functions
 -- ----------------------
 
 -- |Yield an enumerated array
 --
--- FIXME: See comments about enumFromThenToU
+-- FIXME: See comments about enumFromThenToS
 enumFromToU :: (Enum e, UA e) => e -> e -> UArr e
 {-# INLINE enumFromToU #-}
-enumFromToU start = enumFromThenToU start (succ start)
+enumFromToU start end = unstreamU (enumFromToS start end)
 
 -- |Yield an enumerated array using a specific step
 --
--- FIXME: Can this be implemented at all?. Casting to 'Int' certainly doesn't
--- work for 'Float's; we have
---
--- > enumFromTo 0.5 1.4 = [0.5,1.5]
---
--- but
---
--- > enumFromToU 0.5 1.4 = [0.0,1.0]
---
--- More importantly, this won't work for types larger than 'Int'. Short of
--- introducing an EnumP class, I don't see how this can be implemented
--- efficiently.
---
+-- FIXME: See comments about enumFromThenToS
 enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
 {-# INLINE enumFromThenToU #-}
-enumFromThenToU start next end = 
-  loopArr $ loopU step start' (unitsU len)
-  where
-    start' = fromEnum start
-    next'  = fromEnum next
-    end'   = fromEnum end
-    delta  = next' - start'
-    len    = abs (end' - start' + delta) `div` (abs delta)
-    --
-    step x _ = (x + delta :*: (JustS $ toEnum x))
-
+enumFromThenToU start next end = unstreamU (enumFromThenToS start next end)
 
 -- |Conversion
 -- -----------
@@ -117,9 +87,7 @@ enumFromThenToU start next end =
 --
 toU :: UA e => [e] -> UArr e
 {-# INLINE toU #-}
-toU l = 
-  loopArr $ 
-    loopU (\(x:xs) (_::()) -> (xs :*: JustS x)) l (unitsU (length l))
+toU = unstreamU . toStream
 
 -- |Collect the elements of a parallel array in a list
 --

@@ -17,7 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.Basics (
-  lengthSU,
+  lengthSU, replicateSU,
   flattenSU, (>:), segmentU, concatSU,
   sliceIndexSU, extractIndexSU,
   enumFromToSU, enumFromThenToSU,
@@ -25,19 +25,18 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), fstS, sndS)
-import Data.Array.Parallel.Base.Fusion (
-  loopArrS)
+  (:*:)(..), fstS, sndS)
+import Data.Array.Parallel.Stream (
+  Step(..), Stream(..),
+  replicateEachS, zipS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
-  lengthU, (!:), replicateU,
-  sliceU, extractU,
-  mapU, zipWith3U, sumU,
-  toU, fromU)
+  (!:), sliceU, extractU,
+  mapU, zipU, zipWith3U, sumU,
+  toU, fromU,
+  streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr(..), lengthSU, (>:), flattenSU, psumUS, segdUS, toUSegd)
-import Data.Array.Parallel.Unlifted.Segmented.Loop (
-  loopSU)
 
 -- lengthSU reexported from SUArr
 
@@ -45,6 +44,13 @@ import Data.Array.Parallel.Unlifted.Segmented.Loop (
 -- -------------
 
 -- flattenSU and (>:) reexported from SUArr
+
+replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
+{-# INLINE replicateSU #-}
+replicateSU ns es =
+  toUSegd ns >: unstreamU (replicateEachS (sumU ns)
+                                          (zipS (streamU ns)
+                                                (streamU es)))
 
 -- |Segment an array according to the segmentation of the first argument
 --
@@ -93,7 +99,8 @@ enumFromThenToSU :: (Enum e, UA e)
 		 => UArr e -> UArr e -> UArr e -> SUArr e
 {-# INLINE enumFromThenToSU #-}
 enumFromThenToSU starts nexts ends = 
-  loopArrS $ loopSU step seg init (segd >: replicateU len ())
+  segd >: unstreamU (enumFromThenToEachS len
+                    (streamU (zipU (zipU lens starts) nexts)))
   where
     lens    = zipWith3U calcLen starts nexts ends
 	      where
@@ -106,17 +113,21 @@ enumFromThenToSU starts nexts ends =
 		    delta  = next' - start'
     len     = sumU    lens
     segd    = toUSegd lens
-    segdlen = lengthU lens
-    --
-    step (x :*: delta) _ = ((x + delta :*: delta) :*: (JustS $ toEnum x))
-    seg  _  i | i+1 == segdlen = (0 :*: 0) :*: (NothingS :: MaybeS ())
-              | otherwise      = (start :*: delta) :*: (NothingS :: MaybeS ())
-      where
-        start = fromEnum (starts!:(i + 1))
-        next  = fromEnum (nexts !:(i + 1))
-        delta = next - start
-    --
-    init = fstS $ seg undefined (-1)
+
+enumFromThenToEachS :: Enum a => Int -> Stream (Int :*: a :*: a) -> Stream a
+{-# INLINE [1] enumFromThenToEachS #-}
+enumFromThenToEachS n (Stream next s _) = 
+  Stream next' (0 :*: 0 :*: 0 :*: s) n
+  where
+    next' (0 :*: start :*: delta :*: s) =
+      case next s of
+        Done    -> Done
+        Skip s' -> Skip (0 :*: start :*: delta :*: s')
+        Yield (len :*: i :*: k) s'
+                -> let start' = fromEnum i
+                   in Skip (len :*: start' :*: fromEnum k - start' :*: s')
+    next' (n :*: start :*: delta :*: s) =
+      Yield (toEnum start) (n-1 :*: start+delta :*: delta :*: s)
 
 -- |Conversion
 -- -----------

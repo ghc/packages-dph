@@ -21,6 +21,9 @@ module Data.Array.Parallel.Unlifted.Segmented (
   -- * Array types
   USegd, SUArr,
 
+  -- * Streaming
+  streamSU, unstreamSU,
+
   -- * Segmentation
   concatSU, flattenSU, (>:), segmentU,
 
@@ -38,7 +41,6 @@ module Data.Array.Parallel.Unlifted.Segmented (
   foldlSU, foldSU,
   {-fold1SU,-}
   {-scanSU, scan1SU,-}
-  loopSU,
 
   -- * Logical operations
   andSU, orSU,
@@ -57,7 +59,7 @@ module Data.Array.Parallel.Unlifted.Segmented (
 ) where
 
 import Data.Array.Parallel.Unlifted.Segmented.SUArr
-import Data.Array.Parallel.Unlifted.Segmented.Loop
+import Data.Array.Parallel.Unlifted.Segmented.Stream
 import Data.Array.Parallel.Unlifted.Segmented.Basics
 import Data.Array.Parallel.Unlifted.Segmented.Subarrays
 import Data.Array.Parallel.Unlifted.Segmented.Combinators

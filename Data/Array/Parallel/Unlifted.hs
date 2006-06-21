@@ -47,7 +47,6 @@ module Data.Array.Parallel.Unlifted (
   scanlU, scanl1U,
   {-scanrU, scanr1U,-}
   scanU, scan1U,
-  loopU,
 
   -- * Searching
   elemU, notElemU,
@@ -83,7 +82,6 @@ module Data.Array.Parallel.Unlifted (
   foldlSU, foldSU,
   {-fold1SU,-}
   {-scanSU, scan1SU,-}
-  loopSU,
 
   -- * Logical operations (segmented)
   andSU, orSU,

@@ -21,15 +21,16 @@ module Data.Array.Parallel.Unlifted.Flat.Permute (
 ) where
 
 import Data.Array.Parallel.Base (
-  MaybeS(..), ST)
-import Data.Array.Parallel.Base.Fusion
+  ST, (:*:)(..))
+import Data.Array.Parallel.Stream (
+  mapS, enumFromToS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
   lengthU, newU, writeMU)
+import Data.Array.Parallel.Unlifted.Flat.Stream (
+  streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
   (!:))
-import Data.Array.Parallel.Unlifted.Flat.Loop (
-  unitsU, loopU)
 
 -- |Permutations
 -- -------------
@@ -54,7 +55,7 @@ permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 --
 bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE bpermuteU #-}
-bpermuteU a = loopArr . loopU (mapEFL (a !:)) noAL
+bpermuteU a = unstreamU . mapS (a !:) . streamU
 
 -- |Default back permute
 --
@@ -96,9 +97,5 @@ bpermuteDftU n init arr = newU n $ \mpa -> doInit0 mpa >> permute0 mpa
 -- |Reverse the order of elements in an array
 --
 reverseU :: UA e => UArr e -> UArr e
-reverseU a = loopArr $ loopU extract (len - 1) (unitsU len)
-	     where
-	       len = lengthU a
-	       --
-	       extract i _ = (i - 1 :*: (JustS $ a!:i))
+reverseU a = unstreamU . mapS (a!:) . enumFromToS 0 $ lengthU a - 1
 

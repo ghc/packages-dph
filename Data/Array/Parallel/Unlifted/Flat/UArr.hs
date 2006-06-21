@@ -320,7 +320,11 @@ primReadMU = readMBU . unMUAPrim
 
 primWriteMU :: UAE e => MUArr e s -> Int -> e -> ST s ()
 {-# INLINE primWriteMU #-}
-primWriteMU = writeMBU . unMUAPrim
+-- With the following definition, primWriteMU doesn't always get inlined.
+-- According to spj, this is because it gets specialised and the
+-- specialisation loses the INLINE pragma. He's going to fix that.
+-- primWriteMU = writeMBU . unMUAPrim
+primWriteMU (MUAPrim arr) = writeMBU arr
 
 primCopyMU :: UAE e => MUArr e s -> Int -> UArr e -> ST s ()
 {-# INLINE primCopyMU #-}

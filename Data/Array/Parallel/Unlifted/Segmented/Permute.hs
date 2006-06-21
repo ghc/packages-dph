@@ -30,13 +30,13 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, psumUS)
 import Data.Array.Parallel.Unlifted.Segmented.Basics (
   flattenSU)
-import Data.Array.Parallel.Unlifted.Segmented.Loop (
-  loopSU)
 
 -- |Segmented back permute
 --
 bpermuteSU :: UA e => SUArr e -> SUArr Int -> SUArr e
 {-# INLINE bpermuteSU #-}
+bpermuteSU as = error "Not implemented: bpermuteSU"
+{-
 bpermuteSU as = loopArrS . loopSU extract nextOff 0
 	        where
 		  (segd :*: a) = flattenSU as
@@ -46,4 +46,5 @@ bpermuteSU as = loopArrS . loopSU extract nextOff 0
 		  --
 		  nextOff _ segi = (psum !: (segi + 1) :*: 
 				    (NothingS::MaybeS ()))
+-}
 

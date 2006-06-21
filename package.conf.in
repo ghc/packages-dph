@@ -16,6 +16,12 @@ hidden-modules:
 	Data.Array.Parallel.Base.Hyperstrict
         Data.Array.Parallel.Base.Fusion
         Data.Array.Parallel.Base
+        Data.Array.Parallel.Stream.Flat.Stream
+        Data.Array.Parallel.Stream.Flat.Basics
+        Data.Array.Parallel.Stream.Flat.Combinators
+        Data.Array.Parallel.Stream.Flat
+        Data.Array.Parallel.Stream.Segmented
+        Data.Array.Parallel.Stream
 	Data.Array.Parallel.Arr.BUArr
 	Data.Array.Parallel.Arr.BBArr
         Data.Array.Parallel.Arr
@@ -30,6 +36,7 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Distributed.Operations
 	Data.Array.Parallel.Unlifted.Flat.UArr
         Data.Array.Parallel.Unlifted.Flat.Loop
+        Data.Array.Parallel.Unlifted.Flat.Stream
         Data.Array.Parallel.Unlifted.Flat.Basics
         Data.Array.Parallel.Unlifted.Flat.Subarrays
         Data.Array.Parallel.Unlifted.Flat.Combinators
@@ -37,7 +44,7 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Flat.Permute
         Data.Array.Parallel.Unlifted.Flat
 	Data.Array.Parallel.Unlifted.Segmented.SUArr
-        Data.Array.Parallel.Unlifted.Segmented.Loop
+        Data.Array.Parallel.Unlifted.Segmented.Stream
         Data.Array.Parallel.Unlifted.Segmented.Basics
         Data.Array.Parallel.Unlifted.Segmented.Subarrays
         Data.Array.Parallel.Unlifted.Segmented.Combinators

@@ -24,6 +24,9 @@ module Data.Array.Parallel.Unlifted.Flat (
   -- * Array types
   UArr, MUArr,
 
+  -- * Streaming
+  streamU, unstreamU,
+
   -- * Basic operations
   lengthU, nullU, emptyU, unitsU, replicateU, (!:), (+:+),
 
@@ -44,7 +47,6 @@ module Data.Array.Parallel.Unlifted.Flat (
   scanlU, scanl1U,
   {-scanrU, scanr1U,-}
   scanU, scan1U,
-  loopU,
 
   -- * Searching
   elemU, notElemU,
@@ -70,18 +72,19 @@ module Data.Array.Parallel.Unlifted.Flat (
   newU, newMU, readMU, writeMU, unsafeFreezeMU, copyMU, permuteMU,
 
   -- FIXME
-  lengthU'
+  lengthU', loopU
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
   newU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU)
-import Data.Array.Parallel.Unlifted.Flat.Loop
+import Data.Array.Parallel.Unlifted.Flat.Stream
 import Data.Array.Parallel.Unlifted.Flat.Basics
 import Data.Array.Parallel.Unlifted.Flat.Subarrays
 import Data.Array.Parallel.Unlifted.Flat.Combinators
 import Data.Array.Parallel.Unlifted.Flat.Sums
 import Data.Array.Parallel.Unlifted.Flat.Permute
---import Data.Array.Parallel.Unlifted.Flat.ListLike
---import Data.Array.Parallel.Unlifted.Flat.NeslLike
+
+-- FIXME: this should go away
+import Data.Array.Parallel.Unlifted.Flat.Loop (loopU)
 
