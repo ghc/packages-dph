@@ -55,10 +55,13 @@ module Data.Array.Parallel.Arr.BUArr (
   unsafeFreezeMBU, unsafeFreezeAllMBU,
 
   -- * Basic operations
-  lengthBU, emptyBU, unitsBU, replicateBU, indexBU, sliceBU, extractBU,
+  lengthBU, emptyBU, replicateBU, indexBU, sliceBU, extractBU,
+
+  -- * Streaming
+  streamBU, unstreamBU,
 
   -- * Higher-order operations
-  mapBU, foldlBU, foldBU, scanlBU, scanBU, loopBU,
+  mapBU, foldlBU, foldBU, scanlBU, scanBU,
 
   -- * Arithmetic operations
   sumBU,
@@ -66,16 +69,10 @@ module Data.Array.Parallel.Arr.BUArr (
   -- * Conversions to/from lists
   toBU, fromBU,
 
-  -- * Projection combinators for loops
---  loopArr, loopAcc, loopSndAcc,
-
   -- * Re-exporting some of GHC's internals that higher-level modules need
 --  Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
 --  runST
 ) where
-
--- standard library
-import Monad (zipWithM)
 
 -- GHC-internal definitions
 import GHC.Prim        (Char#, Int#, Float#, Double#, ByteArray#,
@@ -94,7 +91,7 @@ import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
 
 -- NDP library
 import Data.Array.Parallel.Base
-import Data.Array.Parallel.Base.Fusion
+import Data.Array.Parallel.Stream
 
 infixl 9 `indexBU`, `readMBU`
 
@@ -323,73 +320,60 @@ instance UAE Double where
     case writeDoubleArray# mba# i# e# s#  of {s2#   ->
     (# s2#, () #)}
 
+-- |Stream of unboxed arrays
+-- -------------------------
 
--- |Loop combinators for unboxed arrays
--- -
-
--- |Array of @n@ units
+-- | Generate a stream from an array, from left to right
 --
-unitsBU :: Int -> BUArr ()
-{-# INLINE unitsBU #-}
-unitsBU n =
+streamBU :: UAE e => BUArr e -> Stream e
+{-# INLINE [1] streamBU #-}
+streamBU arr = Stream next 0 (lengthBU arr)
+  where
+    n = lengthBU arr
+    --
+    next i | i == n    = Done
+           | otherwise = Yield (arr `indexBU` i) (i+1)
+
+-- | Construct an array from a stream, filling it from left to right
+--
+unstreamBU :: UAE e => Stream e -> BUArr e
+{-# INLINE [1] unstreamBU #-}
+unstreamBU (Stream next s n) =
   runST (do
-    ma <- newMBU n
-    unsafeFreezeMBU ma n
+    marr <- newMBU n
+    n'   <- fill0 marr
+    unsafeFreezeMBU marr n'
   )
+  where
+    fill0 marr = fill s 0
+      where
+        fill s i = i `seq`
+                   case next s of
+                     Done       -> return i
+                     Skip s'    -> fill s' i
+                     Yield x s' -> do
+                                     writeMBU marr i x
+                                     fill s' (i+1)
+
+-- Fusion rules for unboxed arrays
+
+{-# RULES  -- -} (for font-locking)
+
+"streamBU/unstreamBU" forall s.
+  streamBU (unstreamBU s) = s
+
+ #-}
+
+
+-- |Combinators for unboxed arrays
+-- -
 
 -- |Replicate combinator for unboxed arrays
 --
 replicateBU :: UAE e => Int -> e -> BUArr e
 {-# INLINE replicateBU #-}
-replicateBU n e = loopArr . loopBU (mapEFL $ const e) noAL $ unitsBU n
+replicateBU n = unstreamBU . replicateS n
 
--- |Loop combinator over unboxed arrays
---
-loopBU :: (UAE e, UAE e')
-       => EFL acc e e'                      -- mapping & folding, once per elem
-       -> acc				    -- initial acc value
-       -> BUArr e			    -- input array
-       -> (BUArr e' :*: acc)
-{-# INLINE [1] loopBU #-}
-loopBU mf start a = 
-  runST (do
-    ma             <- newMBU len
-    (acc :*: len') <- trans0 ma start
-    a'             <- unsafeFreezeMBU ma len'
-    return (a' :*: acc)
-  )
-  where
-    len = lengthBU a
-    --
-    trans0 ma start = butrans 0 0 start
-      where
-        butrans a_off ma_off acc 
-	  | a_off == len = ma_off `seq`	       -- needed for these arguments...
-			   acc    `seq`	       -- ...getting unboxed
-			   return (acc :*: ma_off)
-	  | otherwise    =
-	    do
-	      let (acc' :*: oe) = mf acc (a `indexBU` a_off)
-	      ma_off' <- case oe of
-			   NothingS -> return ma_off
-			   JustS e  -> do
-				         writeMBU ma ma_off e
-					 return $ ma_off + 1
-	      butrans (a_off + 1) ma_off' acc'
-
--- Loop fusion for unboxed arrays
---
-
-{-# RULES  -- -} (for font-locking)
-
-"loopBU/loopBU" forall mf1 mf2 start1 start2 arr.
-  loopBU mf2 start2 (loopArr (loopBU mf1 start1 arr)) =
-    loopSndAcc (loopBU (mf1 `fuseEFL` mf2) (start1 :*: start2) arr)
-
- #-}
-
--- |Loop-based combinators for unboxed arrays
--- -
 
 -- |Extract a slice from an array (given by its start index and length)
 --
@@ -420,17 +404,20 @@ extractBU arr i n =
 --	  fuse it with a following loop on the computed slice and, otherwise,
 --	  when there is no opportunity for fusion, we want to use a block copy
 --	  routine.)
+-- FIXME: The above comments no longer apply as we've switched to stream-based
+--        fusion. Moreover, slicing gives us bounded iteration for free.
 
 -- |Map a function over an unboxed array
 --
 mapBU :: (UAE a, UAE b) => (a -> b) -> BUArr a -> BUArr b
-mapBU f = loopArr . loopBU (mapEFL f) noAL
+{-# INLINE mapBU #-}
+mapBU f = unstreamBU . mapS f . streamBU
 
 -- |Reduce an unboxed array
 --
 foldlBU :: UAE b => (a -> b -> a) -> a -> BUArr b -> a
 {-# INLINE foldlBU #-}
-foldlBU f z = loopAcc . loopBU (foldEFL f) z
+foldlBU f z = foldS f z . streamBU
 
 -- |Reduce an unboxed array using an *associative* combining operator
 --
@@ -447,7 +434,8 @@ sumBU = foldBU (+) 0
 -- |Prefix reduction of an unboxed array
 --
 scanlBU :: (UAE a, UAE b) => (a -> b -> a) -> a -> BUArr b -> BUArr a
-scanlBU f z = loopArr . loopBU (scanEFL f) z
+{-# INLINE scanBU #-}
+scanlBU f z = unstreamBU . scanS f z . streamBU
 
 -- |Prefix reduction of an unboxed array using an *associative* combining
 -- operator
@@ -500,11 +488,7 @@ instance (Show e, UAE e) => Show (BUArr e) where
 -- |Convert a list to an array
 --
 toBU :: UAE e => [e] -> BUArr e
-toBU xs = runST (do
-            ma <- newMBU (length xs)
-            zipWithM (writeMBU ma) [0..] xs
-            unsafeFreezeAllMBU ma
-          )
+toBU = unstreamBU . toStream
 
 -- |Convert an array to a list
 --
