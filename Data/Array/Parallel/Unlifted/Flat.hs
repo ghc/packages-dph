@@ -72,7 +72,7 @@ module Data.Array.Parallel.Unlifted.Flat (
   newU, newMU, readMU, writeMU, unsafeFreezeMU, copyMU, permuteMU,
 
   -- FIXME
-  lengthU', loopU
+  lengthU'
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
@@ -84,7 +84,4 @@ import Data.Array.Parallel.Unlifted.Flat.Subarrays
 import Data.Array.Parallel.Unlifted.Flat.Combinators
 import Data.Array.Parallel.Unlifted.Flat.Sums
 import Data.Array.Parallel.Unlifted.Flat.Permute
-
--- FIXME: this should go away
-import Data.Array.Parallel.Unlifted.Flat.Loop (loopU)
 

@@ -35,7 +35,6 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Distributed.Basics
         Data.Array.Parallel.Unlifted.Distributed.Operations
 	Data.Array.Parallel.Unlifted.Flat.UArr
-        Data.Array.Parallel.Unlifted.Flat.Loop
         Data.Array.Parallel.Unlifted.Flat.Stream
         Data.Array.Parallel.Unlifted.Flat.Basics
         Data.Array.Parallel.Unlifted.Flat.Subarrays

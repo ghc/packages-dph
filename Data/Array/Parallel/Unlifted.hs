@@ -100,12 +100,6 @@ module Data.Array.Parallel.Unlifted (
   -- * Operations on segment descriptors
   toUSegd, fromUSegd,
 
-  -- * Projection combinators for loops
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc,
-
-  -- * Special forms of loop mutators
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
-
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer,
 
@@ -115,9 +109,6 @@ module Data.Array.Parallel.Unlifted (
 ) where
 
 import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.Fusion (
-  noEFL, noSFL, noAL, mapEFL, filterEFL, foldEFL, scanEFL, transSFL, keepSFL,
-  loopArr, loopArrS, loopAcc, loopAccS, loopSndAcc)
 import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Unlifted.Segmented
 
