@@ -32,9 +32,7 @@ unstreamSU (SStream next s nsegs n) =
         trans s k i =
           case next s of
             Done             -> return ()
-              -- See comments in unstreamU about why return () is necessary
-              -- here.
-            Skip s'          -> return () >> trans s' k i
+            Skip s'          -> trans s' k i
             Yield (Inl l) s' -> do
                                   writeMU segd k l
                                   writeMU psum k i

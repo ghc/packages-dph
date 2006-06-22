@@ -35,10 +35,7 @@ unstreamU (Stream next s n) =
         fill s i = i `seq`      -- the seq seems to be necessary here
                    case next s of
                      Done       -> return i
-                       -- The return () is necessary because GHC won't
-                       -- eta-expand fill otherwise, building a giant
-                       -- ST closure instead of just performing the writes.
-                     Skip s'    -> return () >> fill s' i
+                     Skip s'    -> fill s' i
                      Yield x s' -> do
                                      writeMU marr i x
                                      fill s' (i+1)
