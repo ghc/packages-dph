@@ -1,3 +1,18 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Stream.Flat.Combinators
+-- Copyright   : (c) 2006 Roman Leshchinskiy
+-- License     : see libraries/base/LICENSE
+-- 
+-- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (existentials)
+--
+-- Description ---------------------------------------------------------------
+--
+-- Higher-order combinators for streams
+--
+
 module Data.Array.Parallel.Stream.Flat.Combinators (
   mapS, filterS, foldS, scanS,
   zipWithS, zipWith3S, zipS

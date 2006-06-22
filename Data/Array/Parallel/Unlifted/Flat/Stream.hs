@@ -1,3 +1,18 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Unlifted.Flat.Stream
+-- Copyright   : (c) 2006 Roman Leshchinskiy
+-- License     : see libraries/base/LICENSE
+-- 
+-- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (existentials)
+--
+-- Description ---------------------------------------------------------------
+--
+-- Stream combinators and fusion rules for flat unboxed arrays.
+--
+
 module Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamU
 ) where
