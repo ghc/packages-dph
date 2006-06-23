@@ -24,17 +24,17 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
   -- * Basic operations on segmented parallel arrays
   lengthSU,
   flattenSU, (>:),
-  newMSU, nextMSU, unsafeFreezeMSU,
+  newMSU, unsafeFreezeMSU,
   toUSegd, fromUSegd
 ) where
 
 -- friends
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), ST)
+  (:*:)(..), ST)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr,
   lengthU, (!:), scanU,
-  newMU, readMU, writeMU, unsafeFreezeMU)
+  newMU, unsafeFreezeMU)
 
 infixr 9 >:
 
@@ -92,32 +92,6 @@ newMSU nsegd n = do
 		   psum <- newMU nsegd
 		   a    <- newMU n
 		   return $ MSUArr (MUSegd segd psum) a
-
--- |Iterator support for filling a segmented mutable array left-to-right.
---
--- * If no element is given (ie, third argument is `Nothing'), a segment is
---   initialised.  Segment initialisation relies on previous segments already
---   being completed.
---
--- * Every segment must be initialised before it is filled left-to-right
---
-nextMSU :: UA e => MSUArr e s -> Int -> MaybeS e -> ST s ()
-{-# INLINE nextMSU #-}
-nextMSU (MSUArr (MUSegd segd psum) a) i NothingS =
-  do                                                -- segment initialisation
-    i' <- if i == 0 then return 0 
-		    else do
-		      off <- psum `readMU` (i - 1)
-		      n   <- segd `readMU` (i - 1)
-		      return $ off + n
-    writeMU psum i i'
-    writeMU segd i 0
-nextMSU (MSUArr (MUSegd segd psum) a) i (JustS e) = 
-  do
-    i' <- psum `readMU` i
-    n' <- segd `readMU` i
-    writeMU a (i' + n') e
-    writeMU segd i (n' + 1)
 
 -- |Convert a mutable segmented array into an immutable one.
 --
