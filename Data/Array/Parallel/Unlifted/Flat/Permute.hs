@@ -21,12 +21,12 @@ module Data.Array.Parallel.Unlifted.Flat.Permute (
 ) where
 
 import Data.Array.Parallel.Base (
-  ST, runST, (:*:)(..))
+  ST, (:*:)(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
-  lengthU, newU, newMU, unsafeFreezeMU, writeMU)
+  lengthU, newU, newDynU, writeMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
@@ -84,12 +84,7 @@ updateU arr upd = update (streamU arr) (streamU upd)
 
 update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
 {-# INLINE [1] update #-}
-update (Stream next1 s1 n) (Stream next2 s2 _) =
-      runST (do
-        marr <- newMU n
-        n'   <- fill0 marr
-        unsafeFreezeMU marr n'
-      )
+update (Stream next1 s1 n) (Stream next2 s2 _) = newDynU n fill0
   where
     fill0 marr = do
                    n' <- fill s1 0

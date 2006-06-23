@@ -17,12 +17,10 @@ module Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamU
 ) where
 
-import Data.Array.Parallel.Base (
-  runST)
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UArr, UA, indexU, lengthU, newMU, unsafeFreezeMU, writeMU)
+  UArr, UA, indexU, lengthU, newDynU, writeMU)
 
 -- | Generate a stream from an array, from left to right
 --
@@ -38,12 +36,7 @@ streamU arr = Stream next 0 n
 --
 unstreamU :: UA a => Stream a -> UArr a
 {-# INLINE [1] unstreamU #-}
-unstreamU (Stream next s n) =
-  runST (do
-           marr <- newMU n
-           n'   <- fill0 marr
-           unsafeFreezeMU marr n'
-  )
+unstreamU (Stream next s n) = newDynU n fill0
   where
     fill0 marr = fill s 0
       where

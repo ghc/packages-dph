@@ -32,7 +32,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
 
   -- * Basic operations on parallel arrays
   lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU,
-  newU,
+  newU, newDynU,
   newMU, readMU, writeMU, copyMU, unsafeFreezeMU,
 
 ) where
@@ -116,11 +116,15 @@ unMUAPrim (MUAPrim arr) = arr
 
 newU :: UA e => Int -> (forall s. MUArr e s -> ST s ()) -> UArr e
 {-# INLINE newU #-}
-newU n init =
+newU n init = newDynU n (\ma -> init ma >> return n)
+
+newDynU :: UA e => Int -> (forall s. MUArr e s -> ST s Int) -> UArr e
+{-# INLINE newDynU #-}
+newDynU n init =
   runST (do
            ma <- newMU n
-           init ma
-           unsafeFreezeMU ma n
+           n' <- init ma
+           unsafeFreezeMU ma n'
   )
 
 -- |Basic operations on unboxed arrays
