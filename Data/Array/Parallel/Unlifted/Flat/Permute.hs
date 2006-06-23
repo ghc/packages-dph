@@ -17,20 +17,22 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Permute (
-  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU
+  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU
 ) where
 
 import Data.Array.Parallel.Base (
-  ST, (:*:)(..))
+  ST, runST, (:*:)(..))
 import Data.Array.Parallel.Stream (
-  mapS, enumFromToS)
+  Step(..), Stream(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
-  lengthU, newU, writeMU)
+  lengthU, newU, newMU, unsafeFreezeMU, writeMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
-  streamU, unstreamU)
+  streamU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
-  (!:))
+  (!:), enumFromToU)
+import Data.Array.Parallel.Unlifted.Flat.Combinators (
+  mapU)
 
 -- |Permutations
 -- -------------
@@ -55,7 +57,7 @@ permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 --
 bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE bpermuteU #-}
-bpermuteU a = unstreamU . mapS (a !:) . streamU
+bpermuteU a = mapU (a!:)
 
 -- |Default back permute
 --
@@ -71,31 +73,46 @@ bpermuteDftU :: UA e
 	     -> UArr (Int :*: e)		-- |index-value pairs
 	     -> UArr e
 {-# INLINE bpermuteDftU #-}
-bpermuteDftU n init arr = newU n $ \mpa -> doInit0 mpa >> permute0 mpa
-{-  runST (do
-    mpa <- newMU n
-    doInit0  mpa
-    permute0 mpa
-    unsafeFreezeMU mpa n
-  ) -}
+bpermuteDftU n init = updateU (mapU init . enumFromToU 0 $ n-1)
+
+-- | Yield an array constructed by updating the first array by the
+-- associations from the second array (which contains index/value pairs).
+--
+updateU :: UA e => UArr e -> UArr (Int :*: e) -> UArr e
+{-# INLINE updateU #-}
+updateU arr upd = update (streamU arr) (streamU upd)
+
+update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
+{-# INLINE [1] update #-}
+update (Stream next1 s1 n) (Stream next2 s2 _) =
+      runST (do
+        marr <- newMU n
+        n'   <- fill0 marr
+        unsafeFreezeMU marr n'
+      )
   where
-    doInit0 mpa = doInit 0
+    fill0 marr = do
+                   n' <- fill s1 0
+                   upd s2
+                   return n'
       where
-        doInit i | i == n    = return ()
-		 | otherwise = writeMU mpa i (init i) >> doInit (i + 1)
-    --
-    m		 = lengthU arr
-    permute0 mpa = permute 0
-      where
-        permute i 
-	  | i == m    = return ()
-	  | otherwise = do
-			  let (j :*: e) = arr!:i
-			  writeMU mpa j e
-			  permute (i + 1)
+        fill s1 i = i `seq`
+                    case next1 s1 of
+                      Done        -> return i
+                      Skip s1'    -> fill s1' i
+                      Yield x s1' -> do
+                                       writeMU marr i x
+                                       fill s1' (i+1)
+        upd s2 = case next2 s2 of
+                   Done                -> return ()
+                   Skip s2'            -> upd s2'
+                   Yield (i :*: x) s2' -> do
+                                            writeMU marr i x
+                                            upd s2'
+                                         
 
 -- |Reverse the order of elements in an array
 --
 reverseU :: UA e => UArr e -> UArr e
-reverseU a = unstreamU . mapS (a!:) . enumFromToS 0 $ lengthU a - 1
+reverseU a = mapU (a!:) . enumFromToU 0 $ lengthU a - 1
 
