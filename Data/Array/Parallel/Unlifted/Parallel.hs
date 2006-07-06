@@ -18,7 +18,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   mapUP, filterUP, zipWithUP, foldUP,
 
-  sumUP
+  andUP, sumUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Parallel.Permute
