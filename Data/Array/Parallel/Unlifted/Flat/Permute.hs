@@ -17,7 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Permute (
-  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU
+  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU, updateMU
 ) where
 
 import Data.Array.Parallel.Base (
@@ -28,7 +28,7 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
   lengthU, newU, newDynU, writeMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
-  streamU)
+  streamU, unstreamMU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
   (!:), enumFromToU)
 import Data.Array.Parallel.Unlifted.Flat.Combinators (
@@ -75,6 +75,21 @@ bpermuteDftU :: UA e
 {-# INLINE bpermuteDftU #-}
 bpermuteDftU n init = updateU (mapU init . enumFromToU 0 $ n-1)
 
+updateMU :: UA e => MUArr e s -> UArr (Int :*: e) -> ST s ()
+{-# INLINE updateMU #-}
+updateMU marr upd = updateM marr (streamU upd)
+
+updateM :: UA e => MUArr e s -> Stream (Int :*: e) -> ST s ()
+{-# INLINE [1] updateM #-}
+updateM marr (Stream next s _) = upd s
+  where
+    upd s = case next s of
+              Done               -> return ()
+              Skip s'            -> upd s'
+              Yield (i :*: x) s' -> do
+                                      writeMU marr i x
+                                      upd s' 
+
 -- | Yield an array constructed by updating the first array by the
 -- associations from the second array (which contains index/value pairs).
 --
@@ -84,27 +99,12 @@ updateU arr upd = update (streamU arr) (streamU upd)
 
 update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
 {-# INLINE [1] update #-}
-update (Stream next1 s1 n) (Stream next2 s2 _) = newDynU n fill0
-  where
-    fill0 marr = do
-                   n' <- fill s1 0
-                   upd s2
-                   return n'
-      where
-        fill s1 i = i `seq`
-                    case next1 s1 of
-                      Done        -> return i
-                      Skip s1'    -> fill s1' i
-                      Yield x s1' -> do
-                                       writeMU marr i x
-                                       fill s1' (i+1)
-        upd s2 = case next2 s2 of
-                   Done                -> return ()
-                   Skip s2'            -> upd s2'
-                   Yield (i :*: x) s2' -> do
-                                            writeMU marr i x
-                                            upd s2'
-                                         
+update s1@(Stream _ _ n) s2 = newDynU n (\marr ->
+  do
+    i <- unstreamMU marr s1
+    updateM marr s2
+    return i
+  )
 
 -- |Reverse the order of elements in an array
 --
