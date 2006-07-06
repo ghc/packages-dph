@@ -14,11 +14,14 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel (
+  bpermuteUP, updateUP,
+
   mapUP, filterUP, zipWithUP, foldUP,
 
   sumUP
 ) where
 
+import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Sums
 
