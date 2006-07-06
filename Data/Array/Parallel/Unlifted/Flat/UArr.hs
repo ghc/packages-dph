@@ -33,7 +33,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
   -- * Basic operations on parallel arrays
   lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU,
   newU, newDynU,
-  newMU, readMU, writeMU, copyMU, unsafeFreezeMU,
+  lengthMU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU, unsafeFreezeAllMU
 
 ) where
 
@@ -45,7 +45,7 @@ import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr (
   BUArr, MBUArr, UAE,
   lengthBU, indexBU, sliceBU,
-  newMBU, readMBU, writeMBU, copyMBU, unsafeFreezeMBU)
+  lengthMBU, newMBU, readMBU, writeMBU, copyMBU, unsafeFreezeMBU)
 
 infixl 9 `indexU`, `readMU`
 
@@ -70,6 +70,9 @@ class HS e => UA e where
 
   -- |Restrict access to a subrange of the original array (no copying)
   sliceU         :: UArr e -> Int -> Int       -> UArr e
+
+  -- |Yield the length of a mutable unboxed array
+  lengthMU       :: MUArr e s                  -> Int
 
   -- |Allocate a mutable unboxed array
   newMU          :: Int                        -> ST s (MUArr e s)
@@ -110,6 +113,9 @@ unUAPrim (UAPrim arr) = arr
 
 unMUAPrim :: UAE e => MUArr e s -> MBUArr s e
 unMUAPrim (MUAPrim arr) = arr
+
+unsafeFreezeAllMU :: UA e => MUArr e s -> ST s (UArr e)
+unsafeFreezeAllMU marr = unsafeFreezeMU marr (lengthMU marr)
 
 -- |Creating unboxed arrays
 -- ------------------------
@@ -157,6 +163,7 @@ instance UA () where
   indexU  (UAUnit _) _   = ()
   sliceU  (UAUnit _) _ n = UAUnit n
 
+  lengthMU (MUAUnit n)            = n
   newMU   n                       = return $ MUAUnit n
   readMU (MUAUnit _) _            = return ()
   writeMU (MUAUnit _) _ _         = return ()
@@ -171,6 +178,9 @@ instance (UA a, UA b) => UA (a :*: b) where
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
   {-# INLINE sliceU #-}
   sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
+
+  {-# INLINE lengthMU #-}
+  lengthMU (MUAProd l r)   = lengthMU l
 
   {-# INLINE newMU #-}
   newMU n = 
@@ -314,6 +324,10 @@ primSliceU :: UAE e => UArr e -> Int -> Int -> UArr e
 {-# INLINE primSliceU #-}
 primSliceU arr i = UAPrim . sliceBU (unUAPrim arr) i
 
+primLengthMU :: UAE e => MUArr e s -> Int
+{-# INLINE primLengthMU #-}
+primLengthMU = lengthMBU . unMUAPrim
+
 primNewMU :: UAE e => Int -> ST s (MUArr e s)
 {-# INLINE primNewMU #-}
 primNewMU = liftM MUAPrim . newMBU
@@ -339,6 +353,7 @@ instance UA Bool where
   indexU         = primIndexU
   sliceU         = primSliceU
 
+  lengthMU       = primLengthMU
   newMU          = primNewMU
   readMU         = primReadMU
   writeMU        = primWriteMU
@@ -350,6 +365,7 @@ instance UA Char where
   indexU         = primIndexU
   sliceU         = primSliceU
 
+  lengthMU       = primLengthMU
   newMU          = primNewMU
   readMU         = primReadMU
   writeMU        = primWriteMU
@@ -361,6 +377,7 @@ instance UA Int where
   indexU         = primIndexU
   sliceU         = primSliceU
 
+  lengthMU       = primLengthMU
   newMU          = primNewMU
   readMU         = primReadMU
   writeMU        = primWriteMU
@@ -372,6 +389,7 @@ instance UA Float where
   indexU         = primIndexU
   sliceU         = primSliceU
 
+  lengthMU       = primLengthMU
   newMU          = primNewMU
   readMU         = primReadMU
   writeMU        = primWriteMU
@@ -383,6 +401,7 @@ instance UA Double where
   indexU         = primIndexU
   sliceU         = primSliceU
 
+  lengthMU       = primLengthMU
   newMU          = primNewMU
   readMU         = primReadMU
   writeMU        = primWriteMU

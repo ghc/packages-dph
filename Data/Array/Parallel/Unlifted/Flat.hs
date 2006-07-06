@@ -69,7 +69,8 @@ module Data.Array.Parallel.Unlifted.Flat (
   toU, fromU,
 
   -- * Operations on mutable arrays
-  newU, newMU, readMU, writeMU, unsafeFreezeMU, copyMU, permuteMU,
+  newU, lengthMU, newMU, readMU, writeMU, unsafeFreezeMU, unsafeFreezeAllMU,
+  copyMU, permuteMU,
 
   -- FIXME
   lengthU'
@@ -77,7 +78,8 @@ module Data.Array.Parallel.Unlifted.Flat (
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
-  newU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU)
+  newU, lengthMU, newMU, readMU, writeMU, copyMU,
+  unsafeFreezeMU, unsafeFreezeAllMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream
 import Data.Array.Parallel.Unlifted.Flat.Basics
 import Data.Array.Parallel.Unlifted.Flat.Subarrays
