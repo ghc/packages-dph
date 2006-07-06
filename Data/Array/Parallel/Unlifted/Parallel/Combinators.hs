@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, zipWithUP, foldUP
+  mapUP, filterUP, zipWithUP, foldUP
 ) where
 
 import Data.Array.Parallel.Base
@@ -26,6 +26,12 @@ mapUP :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b
 mapUP f = joinD  theGang
         . mapD   theGang (mapU f)
         . splitD theGang
+
+filterUP :: UA a => (a -> Bool) -> UArr a -> UArr a
+{-# INLINE filterUP #-}
+filterUP f = joinD  theGang
+           . mapD   theGang (filterU f)
+           . splitD theGang
 
 zipWithUP :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
 {-# INLINE zipWithUP #-}
