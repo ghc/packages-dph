@@ -131,20 +131,6 @@ disclaimer = "This software is distributed under the terms \
 -- ---------------------------------------------
 
 -- |
-instance (Show e, UA e) => Show (UArr e) where
-  showsPrec _  = (showString "toU " .) . showList . fromU
-
--- |
-instance Show USegd where
-  showsPrec _ segd =   showString "toUSegd (toU "
-		     . showList (fromU (fromUSegd segd))
-		     . showChar ')'
-
--- |
-instance (Show e, UA e) => Show (SUArr e) where
-  showsPrec _ = (showString "toSU " .) . showList . fromSU
-
--- |
 instance (Eq e, UA e) => Eq (UArr e) where
   a1 == a2 = lengthU a1 == lengthU a2 && foldlU cmp True (zipU a1 a2)
 	     where

@@ -65,5 +65,5 @@ import Data.Array.Parallel.Unlifted.Segmented.Subarrays
 import Data.Array.Parallel.Unlifted.Segmented.Combinators
 import Data.Array.Parallel.Unlifted.Segmented.Sums
 import Data.Array.Parallel.Unlifted.Segmented.Permute
-
+import Data.Array.Parallel.Unlifted.Segmented.Text ()
 

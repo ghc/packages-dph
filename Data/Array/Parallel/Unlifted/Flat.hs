@@ -84,4 +84,6 @@ import Data.Array.Parallel.Unlifted.Flat.Subarrays
 import Data.Array.Parallel.Unlifted.Flat.Combinators
 import Data.Array.Parallel.Unlifted.Flat.Sums
 import Data.Array.Parallel.Unlifted.Flat.Permute
+import Data.Array.Parallel.Unlifted.Flat.Text ()
+
 
