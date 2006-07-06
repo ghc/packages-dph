@@ -79,20 +79,25 @@ scanD g f z d = checkGangD (here "scanD") g d $
                                 writeMD md i x
                                 scan md (i+1) (f x $ d `indexD` i)
 
+-- NOTE: The following combinators must be strict in the Dists because if they
+-- are not, the Dist might be evaluated (in parallel) when it is requested in
+-- the current computation which, again, is parallel. This would break our
+-- model andlead to a deadlock. Hence the bangs.
+
 mapDST_ :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
-mapDST_ g p d = checkGangD (here "mapDST_") g d $
-                distST_ g (myD d >>= p)
+mapDST_ g p !d = checkGangD (here "mapDST_") g d $
+                 distST_ g (myD d >>= p)
 
 mapDST :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
-mapDST g p d = checkGangD (here "mapDST_") g d $
-               distST g (myD d >>= p)
+mapDST g p !d = checkGangD (here "mapDST_") g d $
+                distST g (myD d >>= p)
 
 zipWithDST_ :: (DT a, DT b)
             => Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
-zipWithDST_ g p dx dy = mapDST_ g (uncurryS p) (zipD dx dy)
+zipWithDST_ g p !dx !dy = mapDST_ g (uncurryS p) (zipD dx dy)
 
 zipWithDST :: (DT a, DT b, DT c)
            => Gang
            -> (a -> b -> DistST s c) -> Dist a -> Dist b -> ST s (Dist c)
-zipWithDST g p dx dy = mapDST g (uncurryS p) (zipD dx dy)
+zipWithDST g p !dx !dy = mapDST g (uncurryS p) (zipD dx dy)
 
