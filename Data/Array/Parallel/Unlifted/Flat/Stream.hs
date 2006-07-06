@@ -14,13 +14,15 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Stream (
-  streamU, unstreamU
+  streamU, unstreamU, unstreamMU
 ) where
 
+import Data.Array.Parallel.Base (
+  ST)
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UArr, UA, indexU, lengthU, newDynU, writeMU)
+  UArr, MUArr, UA, indexU, lengthU, newDynU, writeMU)
 
 -- | Generate a stream from an array, from left to right
 --
@@ -29,6 +31,7 @@ streamU :: UA a => UArr a -> Stream a
 streamU arr = Stream next 0 n
   where
     n = lengthU arr
+    {-# INLINE next #-}
     next i | i == n    = Done
            | otherwise = Yield (arr `indexU` i) (i+1)
 
@@ -36,17 +39,23 @@ streamU arr = Stream next 0 n
 --
 unstreamU :: UA a => Stream a -> UArr a
 {-# INLINE [1] unstreamU #-}
-unstreamU (Stream next s n) = newDynU n fill0
+unstreamU st@(Stream next s n) = newDynU n (\marr -> unstreamMU marr st)
+
+-- | Fill a mutable array from a stream from left to right and yield
+-- the number of elements written.
+--
+unstreamMU :: UA a => MUArr a s -> Stream a -> ST s Int
+{-# INLINE unstreamMU #-}
+unstreamMU marr (Stream next s n) = fill s 0
   where
-    fill0 marr = fill s 0
-      where
-        fill s i = i `seq`      -- the seq seems to be necessary here
-                   case next s of
-                     Done       -> return i
-                     Skip s'    -> fill s' i
-                     Yield x s' -> do
-                                     writeMU marr i x
-                                     fill s' (i+1)
+    fill s i = i `seq`
+               case next s of
+                 Done       -> return i
+                 Skip s'    -> fill s' i
+                 Yield x s' -> do
+                                 writeMU marr i x
+                                 fill s' (i+1)
+
 -- | Fusion rules
 -- --------------
 

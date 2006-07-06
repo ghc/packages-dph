@@ -70,7 +70,7 @@ module Data.Array.Parallel.Unlifted.Flat (
 
   -- * Operations on mutable arrays
   newU, lengthMU, newMU, readMU, writeMU, unsafeFreezeMU, unsafeFreezeAllMU,
-  copyMU, permuteMU,
+  copyMU, permuteMU, unstreamMU,
 
   -- FIXME
   lengthU'
