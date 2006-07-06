@@ -14,14 +14,14 @@
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLengthD, splitD, joinLengthD, joinD,
 
-  permuteD, bpermuteD
+  permuteD, bpermuteD, updateD
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS)
+  (:*:)(..), fstS, ST, runST)
 import Data.Array.Parallel.Unlifted.Flat (
-  UA, UArr, lengthU, sliceU, bpermuteU,
-  newU, copyMU, permuteMU)
+  UA, UArr, MUArr, lengthU, sliceU, bpermuteU,
+  newU, newMU, copyMU, permuteMU, updateMU, unsafeFreezeAllMU)
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
@@ -31,7 +31,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Types (
   checkGangD)
 import Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, zipWithD, scanD,
-  zipWithDST_)
+  zipWithDST_, mapDST_)
 import Data.Array.Parallel.Unlifted.Distributed.Scalars (
   sumD)
 
@@ -74,6 +74,19 @@ joinD g darr = checkGangD (here "joinD") g darr $
     --
     copy ma i arr = stToDistST (copyMU ma i arr)
 
+-- | Join a distributed array, yielding a mutable global array
+joinDM :: UA a => Gang -> Dist (UArr a) -> ST s (MUArr a s)
+{-# INLINE joinDM #-}
+joinDM g darr = checkGangD (here "joinDM") g darr $
+                do
+                  marr <- newMU n
+                  zipWithDST_ g (copy marr) di darr
+                  return marr
+  where
+    di :*: n = scanD g (+) 0 $ lengthD darr
+    --
+    copy ma i arr = stToDistST (copyMU ma i arr)
+
 {-# RULES
 
 "splitD/joinD" forall gang darr.
@@ -92,4 +105,14 @@ permuteD g darr dis = newU n (\ma -> zipWithDST_ g (permute ma) darr dis)
 
 bpermuteD :: UA a => Gang -> UArr a -> Dist (UArr Int) -> Dist (UArr a)
 bpermuteD g = mapD g . bpermuteU
+
+updateD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
+updateD g darr upd = runST (
+  do
+    marr <- joinDM g darr
+    mapDST_ g (update marr) upd
+    unsafeFreezeAllMU marr
+  )
+  where
+    update marr arr = stToDistST (updateMU marr arr)
 

@@ -38,7 +38,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   lengthD, splitLengthD, splitD, joinLengthD, joinD,
 
   -- * Permutations
-  permuteD, bpermuteD,
+  permuteD, bpermuteD, updateD,
 
   -- * Debugging
   fromD, toD
