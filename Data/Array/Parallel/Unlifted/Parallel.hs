@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel (
-  bpermuteUP, updateUP,
+  bpermuteUP,
 
   mapUP, filterUP, zipWithUP, foldUP,
 
