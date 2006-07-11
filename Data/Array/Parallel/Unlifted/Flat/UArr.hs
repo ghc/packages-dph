@@ -145,7 +145,7 @@ unitsU = UAUnit
 -- |Elementwise pairing of array elements.
 --
 zipU :: (UA a, UA b) => UArr a -> UArr b -> UArr (a :*: b)
-{-# INLINE [1] zipU #-}	-- see `UAFusion'
+{-# INLINE [1] zipU #-}
 zipU = UAProd
 
 -- |Elementwise unpairing of array elements.
