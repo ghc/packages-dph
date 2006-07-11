@@ -8,7 +8,7 @@ starCheck ds =
   let gs  = bpermuteU ds ds
       st  = zipWithU (==) ds gs
       st' = updateU st . filterU (not . sndS)
-                       $ zipWithU (\d g -> g :*: (g == d)) ds gs
+                       $ zipU gs st
   in
   bpermuteU st' gs
 

@@ -9,7 +9,7 @@ starCheck ds =
   let gs  = bpermuteUP ds ds
       st  = zipWithUP (==) ds gs
       st' = updateU st . filterUP (not . sndS)
-                        $ zipWithUP (\d g -> g :*: (g == d)) ds gs
+                       $ zipU gs st
   in
   bpermuteUP st' gs
 
