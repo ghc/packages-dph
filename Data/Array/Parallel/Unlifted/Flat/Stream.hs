@@ -18,11 +18,11 @@ module Data.Array.Parallel.Unlifted.Flat.Stream (
 ) where
 
 import Data.Array.Parallel.Base (
-  ST)
+  (:*:)(..), ST)
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..))
+  Step(..), Stream(..), zipWithS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UArr, MUArr, UA, indexU, lengthU, newDynU, writeMU)
+  UArr, MUArr, UA, indexU, lengthU, zipU, newDynU, writeMU)
 
 -- | Generate a stream from an array, from left to right
 --
@@ -59,10 +59,24 @@ unstreamMU marr (Stream next s n) = fill s 0
 -- | Fusion rules
 -- --------------
 
+-- The main fusion rule
+
 {-# RULES  -- -} (for font-locking)
 
 "streamU/unstreamU" forall s.
   streamU (unstreamU s) = s
  
+  #-}
+
+-- Zip fusion
+--
+-- NB: We do not separate rules for zip3U etc. because these are implemented
+-- in terms of zipU
+
+{-# RULES  -- -} (for font-locking)
+
+"streamU/zipU" forall a1 a2.
+  streamU (zipU a1 a2) = zipWithS (:*:) (streamU a1) (streamU a2)
+
   #-}
 
