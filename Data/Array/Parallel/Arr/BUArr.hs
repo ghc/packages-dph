@@ -2,7 +2,7 @@
 -- |
 -- Module      : Data.Array.Parallel.Arr.BUArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---		 (c) 2006         Manuel M T Chakravarty
+--		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/base/LICENSE
 -- 
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
@@ -75,19 +75,21 @@ module Data.Array.Parallel.Arr.BUArr (
 ) where
 
 -- GHC-internal definitions
-import GHC.Prim        (Char#, Int#, Float#, Double#, ByteArray#,
-		        MutableByteArray#, (*#), newByteArray#,
-		        unsafeFreezeArray#, unsafeCoerce#,
-		        indexWideCharArray#, readWideCharArray#,
-		        writeWideCharArray#, indexIntArray#, readIntArray#, 
-		        writeIntArray#, indexWordArray#, readWordArray#, 
-		        writeWordArray#, indexFloatArray#, readFloatArray#, 
-		        writeFloatArray#, indexDoubleArray#,
-		        readDoubleArray#, writeDoubleArray#) 
-import GHC.Base	       (Char(..), Int(..), (+#), and#, or#, neWord#, int2Word#)
-import GHC.Float       (Float(..), Double(..))
-import Data.Array.Base (bOOL_SCALE, wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE,
-			bOOL_INDEX, bOOL_BIT, bOOL_NOT_BIT)
+import GHC.Prim (
+  Char#, Int#, Float#, Double#,
+  ByteArray#, MutableByteArray#,
+  (*#), newByteArray#, unsafeFreezeArray#, unsafeCoerce#,
+  indexWideCharArray#, readWideCharArray#, writeWideCharArray#,
+  indexIntArray#, readIntArray#, writeIntArray#,
+  indexWord8Array#, readWord8Array#, writeWord8Array#,
+  indexFloatArray#, readFloatArray#, writeFloatArray#,
+  indexDoubleArray#, readDoubleArray#, writeDoubleArray#) 
+import GHC.Base	(
+  Char(..), Int(..), (+#), and#, or#, neWord#, int2Word#)
+import GHC.Float (
+  Float(..), Double(..))
+import Data.Array.Base (
+  wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE)
 
 -- NDP library
 import Data.Array.Parallel.Base
@@ -202,6 +204,31 @@ instance UAE () where
     (# s#, () #)
 
 instance UAE Bool where
+  sizeBU (I# n#) _ = I# n#
+
+  {-# INLINE indexBU #-}
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
+    check (here "indexBU[Bool]") n i $
+      (indexWord8Array# ba# i# `neWord#` int2Word# 0#)
+
+  {-# INLINE readMBU #-}
+  readMBU (MBUArr n mba#) i@(I# i#) =
+    check (here "readMBU[Bool]") n i $
+    ST $ \s# ->
+    case readWord8Array# mba# i# s#   of {(# s2#, r# #) ->
+    (# s2#, r# `neWord#` int2Word# 0# #)}
+
+  {-# INLINE writeMBU #-}
+  writeMBU (MBUArr n mba#) i@(I# i#) e# = 
+    checkCritical (here "writeMBU[Bool]") n i $
+    ST $ \s# ->
+    case writeWord8Array# mba# i# b# s# of {s2# ->
+    (# s2#, () #)}
+    where
+      b# = int2Word# (if e# then 1# else 0#)
+
+{-
+instance UAE Bool where
   sizeBU (I# n#) _ = I# (bOOL_SCALE n#)
 
   {-# INLINE indexBU #-}
@@ -227,6 +254,7 @@ instance UAE Bool where
                else v# `and#` bOOL_NOT_BIT i#     of {v'#           ->
     case writeWordArray# mba# j# v'# s2#          of {s3#           ->
     (# s3#, () #)}}}}
+-}
 
 instance UAE Char where
   sizeBU (I# n#) _ = I# (cHAR_SCALE n#)
