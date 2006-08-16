@@ -209,7 +209,7 @@ instance UAE Bool where
   {-# INLINE indexBU #-}
   indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
     check (here "indexBU[Bool]") n i $
-      (indexWord8Array# ba# i# `neWord#` int2Word# 0#)
+      (indexWord8Array# ba# (s# +# i#) `neWord#` int2Word# 0#)
 
   {-# INLINE readMBU #-}
   readMBU (MBUArr n mba#) i@(I# i#) =
