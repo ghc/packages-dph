@@ -112,6 +112,9 @@ bpermuteD :: UA a => Gang -> UArr a -> Dist (UArr Int) -> Dist (UArr a)
 {-# INLINE bpermuteD #-}
 bpermuteD g !as = mapD g (bpermuteU as)
 
+-- NB: This does not (and cannot) try to prevent two threads from writing to
+-- the same position. We probably want to consider this an (unchecked) user
+-- error.
 updateD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
 updateD g darr upd = runST (
   do
