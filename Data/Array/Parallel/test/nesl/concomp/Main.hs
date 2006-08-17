@@ -14,6 +14,8 @@ import System.Environment  (getArgs)
 import Control.Exception   (evaluate)
 import System.Mem          (performGC)
 
+import Bench
+
 type Alg = UArr (Int :*: Int) -> Int -> Int :*: UArr Int
 
 algs = [("awshu",  AwShU.aw_connected_components)
@@ -22,16 +24,16 @@ algs = [("awshu",  AwShU.aw_connected_components)
        ,("hybup",  HybUP.hybrid_connected_components)
        ]
 
-data Opts = Opts { optAlg     :: String
-                 , optRuns    :: Int
-                 , optVerbose :: Bool
-                 , optSetGang :: IO ()
+data Opts = Opts { optAlg       :: String
+                 , optRuns      :: Int
+                 , optVerbosity :: Int
+                 , optSetGang   :: IO ()
                  }
 
-dftOpts = Opts { optAlg     = "<none>"
-               , optRuns    = 1
-               , optVerbose = False
-               , optSetGang = setSequentialGang 1
+dftOpts = Opts { optAlg       = "<none>"
+               , optRuns      = 1
+               , optVerbosity = dftVerbosity
+               , optSetGang   = setSequentialGang 1
                }
 
 opts = [Option ['a'] ["alg"]
@@ -50,8 +52,11 @@ opts = [Option ['a'] ["alg"]
                            in o { optSetGang = setSequentialGang n}) "N")
           "simulate N threads (default 1)"
        ,Option ['v'] ["verbose"]
-          (NoArg (\o -> o { optVerbose = True }))
-          "verbose output"
+          (OptArg (\r o -> let n = case r of
+                                     Nothing -> dftVerbosity
+                                     Just s  -> read s
+                           in o { optVerbosity = n }) "N")
+          "verbosity level"
        ]
           
 
@@ -64,7 +69,7 @@ measure alg es n =
     let r :*: cs = alg es n
     evaluate cs
     end <- getTime
-    return (end `minusTime` start,r)
+    return (end `minusT` start,r)
     
 
 main =
@@ -84,7 +89,7 @@ main =
                mapM_ (hPutStrLn stderr) ss
                exitFailure
 
-
+{-
 procFiles :: Opts -> Alg -> [String] -> IO ()
 procFiles os alg [] = do
                         s <- getContents
@@ -103,8 +108,36 @@ process os alg fname s =
                     ]
     hFlush stdout
     (t,r) <- measure alg (edges g) (nodeCount g)
-    putStrLn $ concat [ show (picoToMilli $ clockTime t) ++ "ms"
+    putStrLn $ concat [ show (milliseconds $ clockTime t) ++ "ms"
                       , " (d=" ++ show r ++ ")"
                       ]
     hFlush stdout
+-}
+
+procFiles :: Opts -> Alg -> [String] -> IO ()
+procFiles os alg fs =
+  do
+    benchmark (dftBenchOpts { runsB      = optRuns os
+                            , verbosityB = optVerbosity os })
+              (uncurry alg)
+              (map loadGraph $ files fs)
+              showRes
+    return ()
+  where
+    files [] = [""]
+    files fs = fs
+
+    showRes (r :*: _) = "d=" ++ show r
+    
+                                
+
+loadGraph :: String -> IO (Point (UArr (Int :*: Int), Int))
+loadGraph fname =
+  do
+    s <- if null fname then getContents else readFile fname
+    let g = read s
+    evaluate (edges g)
+    return $ mkPoint (  "n=" ++ show (nodeCount g) ++ ", "
+                     ++ "e=" ++ show (edgeCount g))
+              (edges g, nodeCount g)
 

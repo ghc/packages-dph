@@ -8,58 +8,63 @@ data Time = Time { cpuTime   :: Integer
                  , clockTime :: Integer
                  }
 
-data Timing = Timing { bestTiming    :: Time
-                     , averageTiming :: Time
-                     , worstTiming   :: Time
-                     }
+picoseconds :: Integer -> Integer
+picoseconds = id
 
-picoseconds :: ClockTime -> Integer
-picoseconds (TOD sec pico) = pico + sec * 1000000000000
+milliseconds :: Integer -> Integer
+milliseconds n = n `div` 1000000000
 
-picoToMilli :: Integer -> Integer
-picoToMilli n = n `div` 1000000000
+seconds :: Integer -> Integer
+seconds n = n `div` 1000000000000
 
 getTime :: IO Time
 getTime =
   do
-    cpu   <- getCPUTime
-    clock <- getClockTime
-    return $ Time cpu (picoseconds clock)
+    cpu          <- getCPUTime
+    TOD sec pico <- getClockTime
+    return $ Time cpu (pico + sec * 1000000000000)
 
-zipTime :: (Integer -> Integer -> Integer) -> Time -> Time -> Time
-zipTime f (Time cpu1 clock1) (Time cpu2 clock2) =
+timeIO :: IO a -> IO (a, Time)
+timeIO p = do
+             start <- getTime
+             x <- p
+             end <- getTime
+             return (x, end `minusT` start)
+
+timeIO_ :: IO () -> IO Time
+timeIO_ = fmap snd . timeIO
+
+zipT :: (Integer -> Integer -> Integer) -> Time -> Time -> Time
+zipT f (Time cpu1 clock1) (Time cpu2 clock2) =
   Time (f cpu1 cpu2) (f clock1 clock2)
 
-minusTime :: Time -> Time -> Time
-minusTime = zipTime (-)
+minusT :: Time -> Time -> Time
+minusT = zipT (-)
 
-plusTime :: Time -> Time -> Time
-plusTime = zipTime (+)
+plusT :: Time -> Time -> Time
+plusT = zipT (+)
 
-divTime :: Time -> Integer -> Time
-divTime (Time cpu clock) n = Time (cpu `div` n) (clock `div` n)
+divT :: Time -> Integer -> Time
+divT (Time cpu clock) n = Time (cpu `div` n) (clock `div` n)
 
-minTime :: Time -> Time -> Time
-minTime = zipTime min
+minT :: Time -> Time -> Time
+minT = zipT min
 
-maxTime :: Time -> Time -> Time
-maxTime = zipTime max
+maxT :: Time -> Time -> Time
+maxT = zipT max
 
-avgTime :: Time -> Time -> Time
-avgTime t1 t2 = (t1 `plusTime` t2) `divTime` 2
+avgT :: Time -> Time -> Time
+avgT t1 t2 = (t1 `plusT` t2) `divT` 2
 
-sumTime :: [Time] -> Time
-sumTime = foldr1 plusTime
+sumT :: [Time] -> Time
+sumT = foldr1 plusT
 
-minimumTime :: [Time] -> Time
-minimumTime = foldr1 minTime
+minimumT :: [Time] -> Time
+minimumT = foldr1 minT
 
-maximumTime :: [Time] -> Time
-maximumTime = foldr1 maxTime
+maximumT :: [Time] -> Time
+maximumT = foldr1 maxT
 
-averageTime :: [Time] -> Time
-averageTime ts = sumTime ts `divTime` toInteger (length ts)
-
-timing :: [Time] -> Timing
-timing ts = Timing (minimumTime ts) (averageTime ts) (maximumTime ts)
+averageT :: [Time] -> Time
+averageT ts = sumT ts `divT` toInteger (length ts)
 
