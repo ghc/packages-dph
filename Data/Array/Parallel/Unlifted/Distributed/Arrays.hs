@@ -12,7 +12,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
-  lengthD, splitLengthD, splitD, joinLengthD, joinD,
+  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
 
   permuteD, bpermuteD, updateD
 ) where
@@ -39,9 +39,12 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." ++ s
 
 -- | Distribute the length of an array over a 'Gang'.
 splitLengthD :: UA a => Gang -> UArr a -> Dist Int
-splitLengthD g a = newD g (`fill` 0)
+splitLengthD g = splitLenD g . lengthU
+
+-- | Distribute the given array length over a 'Gang'.
+splitLenD :: Gang -> Int -> Dist Int
+splitLenD g n = newD g (`fill` 0)
   where
-    n = lengthU a
     p = gangSize g
     l = n `div` p
     m = n `mod` p

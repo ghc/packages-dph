@@ -35,7 +35,8 @@ module Data.Array.Parallel.Unlifted.Distributed (
   zipD, unzipD, fstD, sndD,
 
   -- * Distributed arrays
-  lengthD, splitLengthD, splitD, joinLengthD, joinD,
+  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
+  Distribution, balanced, unbalanced,
 
   -- * Permutations
   permuteD, bpermuteD, updateD,
