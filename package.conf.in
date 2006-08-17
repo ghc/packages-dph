@@ -38,6 +38,7 @@ hidden-modules:
 	Data.Array.Parallel.Unlifted.Flat.UArr
         Data.Array.Parallel.Unlifted.Flat.Stream
         Data.Array.Parallel.Unlifted.Flat.Basics
+        Data.Array.Parallel.Unlifted.Flat.Enum
         Data.Array.Parallel.Unlifted.Flat.Subarrays
         Data.Array.Parallel.Unlifted.Flat.Combinators
         Data.Array.Parallel.Unlifted.Flat.Sums
