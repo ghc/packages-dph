@@ -63,7 +63,7 @@ module Data.Array.Parallel.Unlifted (
   {-crossU,-}
 
   -- * Enumerations
-  enumFromToU, enumFromThenToU,
+  enumFromToU, enumFromThenToU, enumFromStepLenU,
 
   -- * Conversions to/from lists
   toU, fromU,

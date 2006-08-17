@@ -17,11 +17,11 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Enum (
-  enumFromToU, enumFromThenToU
+  enumFromToU, enumFromThenToU, enumFromStepLenU
 ) where
 
 import Data.Array.Parallel.Stream (
-  enumFromToS, enumFromThenToS)
+  enumFromToS, enumFromThenToS, enumFromStepLenS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
@@ -40,4 +40,8 @@ enumFromToU start end = unstreamU (enumFromToS start end)
 enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
 {-# INLINE enumFromThenToU #-}
 enumFromThenToU start next end = unstreamU (enumFromThenToS start next end)
+
+enumFromStepLenU :: Int -> Int -> Int -> UArr Int
+{-# INLINE enumFromStepLenU #-}
+enumFromStepLenU s d n = unstreamU (enumFromStepLenS s d n)
 
