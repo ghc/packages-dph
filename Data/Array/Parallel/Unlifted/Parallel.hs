@@ -16,6 +16,8 @@
 module Data.Array.Parallel.Unlifted.Parallel (
   bpermuteUP,
 
+  enumFromStepLenUP,
+
   mapUP, filterUP, zipWithUP, foldUP,
 
   andUP, sumUP
@@ -24,4 +26,5 @@ module Data.Array.Parallel.Unlifted.Parallel (
 import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Parallel.Enum
 
