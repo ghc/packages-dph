@@ -16,7 +16,7 @@
 module Data.Array.Parallel.Unlifted.Parallel (
   bpermuteUP,
 
-  enumFromStepLenUP,
+  enumFromToUP, enumFromThenToUP, enumFromStepLenUP,
 
   mapUP, filterUP, zipWithUP, foldUP,
 

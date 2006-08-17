@@ -14,16 +14,33 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel.Enum (
-  enumFromStepLenUP
+  enumFromToUP, enumFromThenToUP, enumFromStepLenUP
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS)
 import Data.Array.Parallel.Unlifted.Flat (
-  UArr, enumFromStepLenU)
+  UArr, UA, enumFromStepLenU)
 import Data.Array.Parallel.Unlifted.Distributed (
   mapD, scanD, zipD, splitLenD, joinD,
   theGang)
+import Data.Array.Parallel.Unlifted.Parallel.Combinators (
+  mapUP)
+
+enumFromToUP :: (UA a, Enum a) => a -> a -> UArr a
+{-# INLINE enumFromToUP #-}
+enumFromToUP start end = enumFromThenToUP start (succ start) end
+
+enumFromThenToUP :: (UA a, Enum a) => a -> a -> a -> UArr a
+{-# INLINE enumFromThenToUP #-}
+enumFromThenToUP start next end =
+  mapUP toEnum (enumFromStepLenUP start' delta len)
+  where
+    start' = fromEnum start
+    next'  = fromEnum next
+    end'   = fromEnum end
+    delta  = next' - start'
+    len    = abs (end' - start' + delta) `div` abs delta
 
 enumFromStepLenUP :: Int -> Int -> Int -> UArr Int
 {-# INLINE enumFromStepLenUP #-}
