@@ -18,12 +18,11 @@
 
 module Data.Array.Parallel.Unlifted.Flat.Basics (
   lengthU, nullU, emptyU, unitsU, replicateU, (!:), (+:+),
-  enumFromToU, enumFromThenToU,
   toU, fromU
 ) where
 
 import Data.Array.Parallel.Stream (
-  replicateS, (+++), enumFromToS, enumFromThenToS, toStream)
+  replicateS, (+++), toStream)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
@@ -62,23 +61,6 @@ replicateU n e = unstreamU (replicateS n e)
 (+:+) :: UA e => UArr e -> UArr e -> UArr e
 {-# INLINE (+:+) #-}
 a1 +:+ a2 = unstreamU (streamU a1 +++ streamU a2)
-
--- |Enumeration functions
--- ----------------------
-
--- |Yield an enumerated array
---
--- FIXME: See comments about enumFromThenToS
-enumFromToU :: (Enum e, UA e) => e -> e -> UArr e
-{-# INLINE enumFromToU #-}
-enumFromToU start end = unstreamU (enumFromToS start end)
-
--- |Yield an enumerated array using a specific step
---
--- FIXME: See comments about enumFromThenToS
-enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
-{-# INLINE enumFromThenToU #-}
-enumFromThenToU start next end = unstreamU (enumFromThenToS start next end)
 
 -- |Conversion
 -- -----------

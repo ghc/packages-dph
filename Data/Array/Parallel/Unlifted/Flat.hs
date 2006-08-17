@@ -82,6 +82,7 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
   unsafeFreezeMU, unsafeFreezeAllMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream
 import Data.Array.Parallel.Unlifted.Flat.Basics
+import Data.Array.Parallel.Unlifted.Flat.Enum
 import Data.Array.Parallel.Unlifted.Flat.Subarrays
 import Data.Array.Parallel.Unlifted.Flat.Combinators
 import Data.Array.Parallel.Unlifted.Flat.Sums

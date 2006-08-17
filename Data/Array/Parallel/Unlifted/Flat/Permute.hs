@@ -30,7 +30,9 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
 import Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamMU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
-  (!:), enumFromToU)
+  (!:))
+import Data.Array.Parallel.Unlifted.Flat.Enum (
+  enumFromToU)
 import Data.Array.Parallel.Unlifted.Flat.Combinators (
   mapU)
 
