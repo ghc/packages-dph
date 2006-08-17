@@ -12,7 +12,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
-  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
+  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD,
 
   permuteD, bpermuteD, updateD
 ) where
