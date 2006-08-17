@@ -14,10 +14,15 @@
 --
 
 module Data.Array.Parallel.Stream.Flat.Enum (
-  enumFromToS, enumFromThenToS
+  enumFromToS, enumFromThenToS,
+  enumFromStepLenS
 ) where
 
+import Data.Array.Parallel.Base (
+  (:*:)(..))
 import Data.Array.Parallel.Stream.Flat.Stream
+import Data.Array.Parallel.Stream.Flat.Combinators (
+  mapS)
 
 -- | Yield an enumerated stream
 --
@@ -46,15 +51,20 @@ enumFromToS start end = enumFromThenToS start (succ start) end
 -- won't really work for parallel arrays.
 --
 enumFromThenToS :: Enum a => a -> a -> a -> Stream a
-{-# INLINE [1] enumFromThenToS #-}
-enumFromThenToS start next end = Stream step start' len
+{-# INLINE enumFromThenToS #-}
+enumFromThenToS start next end =
+  mapS toEnum (enumFromStepLenS start' delta len)
   where
     start' = fromEnum start
     next'  = fromEnum next
     end'   = fromEnum end
     delta  = next' - start'
     len    = abs (end' - start' + delta) `div` abs delta
-    --
-    step x | x > end'  = Done
-           | otherwise = Yield (toEnum x) (x + delta)
+
+enumFromStepLenS :: Int -> Int -> Int -> Stream Int
+{-# INLINE [1] enumFromStepLenS #-}
+enumFromStepLenS s d n = Stream step (s :*: n) n
+  where
+    step (s :*: 0) = Done
+    step (s :*: n) = Yield s ((s+d) :*: (n-1))
 

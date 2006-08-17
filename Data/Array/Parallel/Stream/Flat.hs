@@ -17,7 +17,7 @@ module Data.Array.Parallel.Stream.Flat (
   Step(..), Stream(..),
 
   emptyS, replicateS, replicateEachS, (+++),
-  enumFromToS, enumFromThenToS,
+  enumFromToS, enumFromThenToS, enumFromStepLenS,
   toStream, fromStream,
 
   mapS, filterS, foldS, scanS,
@@ -27,4 +27,5 @@ module Data.Array.Parallel.Stream.Flat (
 import Data.Array.Parallel.Stream.Flat.Stream
 import Data.Array.Parallel.Stream.Flat.Basics
 import Data.Array.Parallel.Stream.Flat.Combinators
+import Data.Array.Parallel.Stream.Flat.Enum
 
