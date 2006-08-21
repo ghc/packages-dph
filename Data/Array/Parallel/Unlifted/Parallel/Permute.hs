@@ -23,9 +23,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 
 bpermuteUP :: UA a => UArr a -> UArr Int -> UArr a
 {-# INLINE bpermuteUP #-}
-bpermuteUP as = joinD     theGang
-              . bpermuteD theGang as
-              . splitD    theGang
+bpermuteUP as = splitJoinD theGang (bpermuteD theGang as)
 
 {-
   I'm really not sure if we can support this. There are two problems. First,

@@ -22,7 +22,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Flat (
   UArr, UA, enumFromStepLenU)
 import Data.Array.Parallel.Unlifted.Distributed (
-  mapD, scanD, zipD, splitLenD, joinD,
+  mapD, scanD, zipD, splitLenD, joinD, balanced,
   theGang)
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP)
@@ -45,7 +45,7 @@ enumFromThenToUP start next end =
 enumFromStepLenUP :: Int -> Int -> Int -> UArr Int
 {-# INLINE enumFromStepLenUP #-}
 enumFromStepLenUP start delta len =
-  joinD theGang . mapD theGang gen $ zipD is dlen
+  joinD theGang balanced . mapD theGang gen $ zipD is dlen
   where
     dlen = splitLenD theGang len
     is   = fstS (scanD theGang (+) 0 dlen)

@@ -23,29 +23,24 @@ import Data.Array.Parallel.Unlifted.Distributed
 
 mapUP :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b
 {-# INLINE mapUP #-}
-mapUP f = joinD  theGang
-        . mapD   theGang (mapU f)
-        . splitD theGang
+mapUP f = splitJoinD theGang (mapD theGang (mapU f))
 
 filterUP :: UA a => (a -> Bool) -> UArr a -> UArr a
 {-# INLINE filterUP #-}
-filterUP f = joinD  theGang
+filterUP f = joinD  theGang unbalanced
            . mapD   theGang (filterU f)
-           . splitD theGang
+           . splitD theGang unbalanced
 
 zipWithUP :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
 {-# INLINE zipWithUP #-}
-zipWithUP f a b = joinD  theGang
-                . mapD   theGang (mapU (uncurryS f))
-                . splitD theGang
-                $ zipU a b
+zipWithUP f a b = mapUP (uncurryS f) (zipU a b)
 
 foldUP :: (UA a, DT a) => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE foldUP #-}
 foldUP f z = maybeS z (f z)
            . foldD  theGang combine
            . mapD   theGang (foldlU g NothingS)
-           . splitD theGang
+           . splitD theGang unbalanced
   where
     -- NB: we have to use MaybeS as the accumulator instead of special-casing
     -- empty arrays because the latter breaks fusion

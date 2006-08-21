@@ -43,6 +43,12 @@ mapD g f d = checkGangD (here "mapD") g d
 "mapD/mapD" forall gang f g d.
   mapD gang f (mapD gang g d) = mapD gang (f . g) d
 
+"zipD/mapD[1]" forall gang f xs ys.
+  zipD (mapD gang f xs) ys = mapD gang (\(xs:*:ys) -> f xs :*: ys) (zipD xs ys)
+
+"zipD/mapD[2]" forall gang f xs ys.
+  zipD xs (mapD gang f ys) = mapD gang (\(xs:*:ys) -> xs :*: f ys) (zipD xs ys)
+
   #-}
 
 -- zipD, unzipD, fstD, sndD reexported from Types

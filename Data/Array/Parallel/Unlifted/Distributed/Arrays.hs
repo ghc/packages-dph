@@ -12,15 +12,17 @@
 --
 
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
-  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD,
+  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
 
-  permuteD, bpermuteD, updateD
+  permuteD, bpermuteD, updateD,
+
+  Distribution, balanced, unbalanced
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, ST, runST)
 import Data.Array.Parallel.Unlifted.Flat (
-  UA, UArr, MUArr, lengthU, sliceU, bpermuteU,
+  UA, UArr, MUArr, lengthU, sliceU, bpermuteU, zipU,
   newU, newMU, copyMU, permuteMU, updateMU, unsafeFreezeAllMU)
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
@@ -36,6 +38,16 @@ import Data.Array.Parallel.Unlifted.Distributed.Scalars (
   sumD)
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." ++ s
+
+data Distribution
+
+balanced :: Distribution
+{-# NOINLINE balanced #-}
+balanced = error $ here "balanced: touched"
+
+unbalanced :: Distribution
+{-# NOINLINE unbalanced #-}
+unbalanced = error $ here "unbalanced: touched"
 
 -- | Distribute the length of an array over a 'Gang'.
 splitLengthD :: UA a => Gang -> UArr a -> Dist Int
@@ -54,9 +66,9 @@ splitLenD g n = newD g (`fill` 0)
               | otherwise = return ()
 
 -- | Distribute an array over a 'Gang'.
-splitD :: UA a => Gang -> UArr a -> Dist (UArr a)
+splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
 {-# INLINE [1] splitD #-}
-splitD g arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitD g _ arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     dlen = splitLengthD g arr
     is   = fstS $ scanD g (+) 0 dlen
@@ -68,14 +80,19 @@ joinLengthD :: UA a => Gang -> Dist (UArr a) -> Int
 joinLengthD g = sumD g . lengthD
 
 -- | Join a distributed array.
-joinD :: UA a => Gang -> Dist (UArr a) -> UArr a
+joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
 {-# INLINE [1] joinD #-}
-joinD g darr = checkGangD (here "joinD") g darr $
-               newU n (\ma -> zipWithDST_ g (copy ma) di darr)
+joinD g _ darr = checkGangD (here "joinD") g darr $
+                 newU n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
     di :*: n = scanD g (+) 0 $ lengthD darr
     --
     copy ma i arr = stToDistST (copyMU ma i arr)
+
+splitJoinD :: (UA a, UA b)
+           => Gang -> (Dist (UArr a) -> Dist (UArr b)) -> UArr a -> UArr b
+{-# INLINE [1] splitJoinD #-}
+splitJoinD g f xs = joinD g unbalanced (f (splitD g unbalanced xs))
 
 -- | Join a distributed array, yielding a mutable global array
 joinDM :: UA a => Gang -> Dist (UArr a) -> ST s (MUArr a s)
@@ -92,8 +109,30 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 
 {-# RULES
 
-"splitD/joinD" forall gang darr.
-  splitD gang (joinD gang darr) = darr
+"splitD[unbalanced]/joinD" forall g b da.
+  splitD g unbalanced (joinD g b da) = da
+
+"splitD[balanced]/joinD" forall g da.
+  splitD g balanced (joinD g balanced da) = da
+
+"splitD/splitJoinD" forall g b f xs.
+  splitD g b (splitJoinD g f xs) = f (splitD g b xs)
+
+"splitJoinD/joinD" forall g b f da.
+  splitJoinD g f (joinD g b da) = joinD g b (f da)
+
+"splitJoinD/splitJoinD" forall g f1 f2 xs.
+  splitJoinD g f1 (splitJoinD g f2 xs) = splitJoinD g (f1 . f2) xs
+
+"splitD/zipU" forall g b xs ys.
+  splitD g b (zipU xs ys) = zipWithD g zipU (splitD g balanced xs)
+                                            (splitD g balanced ys)
+
+"splitJoinD/zipU" forall g f xs ys.
+  splitJoinD g f (zipU xs ys)
+    = joinD g balanced
+        (f (zipWithD g zipU (splitD g balanced xs)
+                            (splitD g balanced ys)))
 
   #-}
 
