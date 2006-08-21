@@ -109,6 +109,7 @@ permuteD g darr dis = newU n (\ma -> zipWithDST_ g (permute ma) darr dis)
 -- NOTE: The bang is necessary because the array must be fully evaluated
 -- before we pass it to the parallel computation.
 bpermuteD :: UA a => Gang -> UArr a -> Dist (UArr Int) -> Dist (UArr a)
+{-# INLINE bpermuteD #-}
 bpermuteD g !as = mapD g (bpermuteU as)
 
 updateD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
