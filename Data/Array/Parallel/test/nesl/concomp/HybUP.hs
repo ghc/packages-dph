@@ -12,7 +12,7 @@ pack_index :: UArr Bool -> UArr Int
 {-# INLINE pack_index #-}
 pack_index bs = mapUP fstS
               . filterUP sndS
-              $ zipU (enumFromToU 0 (lengthU bs - 1))
+              $ zipU (enumFromToUP 0 (lengthU bs - 1))
                      bs
 
 shortcut_all :: UArr Int -> UArr Int
@@ -28,7 +28,7 @@ compress_graph p e =
                     . filterUP (\(i :*: j) -> i /= j)
                     $ e'
 
-      roots         = zipWithUP (==) p (enumFromToU 0 (lengthU p - 1))
+      roots         = zipWithUP (==) p (enumFromToUP 0 (lengthU p - 1))
       labels        = enumerate roots
       e1'' :*: e2'' = unzipU e''
       e'''          = zipU (bpermuteUP labels e1'') (bpermuteUP labels e2'')
@@ -40,7 +40,7 @@ hybrid_connected_components :: UArr (Int :*: Int) -> Int -> Int :*: UArr Int
 hybrid_connected_components e n
   | nullU e   = 0 :*: enumFromToU 0 (n-1)
   | otherwise = let p        = shortcut_all
-                             $ updateU (enumFromToU 0 (n-1)) e
+                             $ updateU (enumFromToUP 0 (n-1)) e
                     e' :*: i = compress_graph p e
                     k :*: r  = hybrid_connected_components e' (lengthU i)
                     ins      = updateU p
