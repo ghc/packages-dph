@@ -148,9 +148,9 @@ sliceBU (BUArr start len arr) newStart newLen =
 
 -- |Allocate an uninitialised unboxed array
 --
-newMBU :: UAE e => Int -> ST s (MBUArr s e)
+newMBU :: forall s e. UAE e => Int -> ST s (MBUArr s e)
 {-# INLINE newMBU #-}
-newMBU n :: ST s (MBUArr s e) = ST $ \s1# ->
+newMBU n = ST $ \s1# ->
   case sizeBU n (undefined::e) of {I# len#          ->
   case newByteArray# len# s1#   of {(# s2#, marr# #) ->
   (# s2#, MBUArr n marr# #) }}
