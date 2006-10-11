@@ -36,11 +36,7 @@ import Data.Array.Parallel.Unlifted.Segmented.Stream (
 --
 foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE foldlSU #-}
-foldlSU f z = unstreamU . foldlSS f z . streamSU
-
-foldlSS :: (b -> a -> b) -> b -> SStream a -> Stream b
-{-# INLINE [1] foldlSS #-}
-foldlSS f z = mapS sndS . foldValuesSS (flip f) z
+foldlSU f z = unstreamU . foldValuesSS f z . streamSU
 
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit

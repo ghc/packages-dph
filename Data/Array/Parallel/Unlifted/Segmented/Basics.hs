@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS)
+  (:*:)(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   replicateEachS, zipS)
@@ -36,7 +36,7 @@ import Data.Array.Parallel.Unlifted.Flat (
   toU, fromU,
   streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr(..), lengthSU, (>:), flattenSU, psumUS, segdUS, toUSegd)
+  SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU, toUSegd)
 
 -- lengthSU reexported from SUArr
 
@@ -56,12 +56,12 @@ replicateSU ns es =
 --
 segmentU :: (UA e', UA e) => SUArr e' -> UArr e -> SUArr e
 {-# INLINE segmentU #-}
-segmentU template arr = fstS (flattenSU template) >: arr
+segmentU template arr = segdSU template >: arr
 
 -- |Concatenate the subarrays of an array of arrays
 --
 concatSU :: UA e => SUArr e -> UArr e
-concatSU = sndS . flattenSU
+concatSU = flattenSU
 
 -- |Indexing
 -- ---------
@@ -70,8 +70,8 @@ concatSU = sndS . flattenSU
 -- (either 'sliceU' or 'extractU').
 -- 
 indexSU :: UA e => (UArr e -> Int -> Int -> UArr e) -> SUArr e -> Int -> UArr e
-indexSU copy (SUArr segd a) i = copy a (psumUS segd !: i)
-                                       (segdUS segd !: i)
+indexSU copy sa i = copy (concatSU sa) (lengthsSU sa !: i)
+                                       (indicesSU sa !: i)
 
 -- |Extract the segment at the given index without copying the elements.
 --
@@ -145,9 +145,9 @@ toSU ls = let lens = toU $ map length ls
 --
 fromSU :: UA e => SUArr e -> [[e]]
 {-# INLINE fromSU #-}
-fromSU as = let (segd :*: a) = flattenSU as
-                lens         = fromU $ segdUS segd
-                starts       = fromU $ psumUS segd
+fromSU sa = let a       = concatSU sa
+                lens    = fromU $ lengthsSU sa
+                starts  = fromU $ indicesSU sa
             in
             [[a !: i | i <- [start .. start + len - 1]]
                             | (start, len) <- zip starts lens]

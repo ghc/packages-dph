@@ -23,12 +23,12 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Flat (
   UA)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  USegd, SUArr, fromUSegd, toUSegd)
+  USegd, SUArr, lengthsUSegd, toUSegd)
 import Data.Array.Parallel.Unlifted.Segmented.Basics (
   fromSU, toSU)
 
 instance Show USegd where
-  showsPrec k = showsApp k "toUSegd" . fromUSegd
+  showsPrec k = showsApp k "toUSegd" . lengthsUSegd
 
 instance Read USegd where
   readPrec = fmap toUSegd (readApp "toUSegd")

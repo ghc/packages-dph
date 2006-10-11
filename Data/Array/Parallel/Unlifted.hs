@@ -97,9 +97,6 @@ module Data.Array.Parallel.Unlifted (
   -- * Conversions to/from lists (segmented)
   toSU, fromSU,
 
-  -- * Operations on segment descriptors
-  toUSegd, fromUSegd,
-
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer,
 
@@ -135,10 +132,6 @@ instance (Eq e, UA e) => Eq (UArr e) where
   a1 == a2 = lengthU a1 == lengthU a2 && foldlU cmp True (zipU a1 a2)
 	     where
 	       cmp r (e1 :*: e2) = e1 == e2 && r
-
--- |
-instance Eq USegd where
-  segd1 == segd2 = fromUSegd segd1 == fromUSegd segd2
 
 -- |
 instance (Eq e, UA e) => Eq (SUArr e) where

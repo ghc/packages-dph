@@ -53,9 +53,6 @@ module Data.Array.Parallel.Unlifted.Segmented (
 
   -- * Conversions to/from lists
   toSU, fromSU,
-
-  -- * Operations on segment descriptors
-  toUSegd, fromUSegd,
 ) where
 
 import Data.Array.Parallel.Unlifted.Segmented.SUArr

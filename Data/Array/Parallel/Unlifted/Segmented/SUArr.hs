@@ -19,14 +19,17 @@
 module Data.Array.Parallel.Unlifted.Segmented.SUArr (
 
   -- * Array types and classes containing the admissble elements types
-  USegd(..), MUSegd(..), SUArr(..), MSUArr(..),
+  USegd, MUSegd, SUArr, MSUArr,
+
+  -- * Basic operations on segment descriptors
+  lengthUSegd, lengthsUSegd, indicesUSegd, toUSegd,
+  sliceUSegd, extractUSegd,
+  newMUSegd, unsafeFreezeMUSegd,
 
   -- * Basic operations on segmented parallel arrays
-  lengthSU,
+  lengthSU, lengthsSU, indicesSU, segdSU,
   flattenSU, (>:),
-  newMUSegd, unsafeFreezeMUSegd,
   newMSU, unsafeFreezeMSU,
-  toUSegd, fromUSegd
 ) where
 
 -- friends
@@ -34,7 +37,8 @@ import Data.Array.Parallel.Base (
   (:*:)(..), ST)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr,
-  lengthU, (!:), scanU,
+  lengthU, (!:), scanlU, fstU, sndU, zipU, streamU, unstreamU,
+  sliceU, extractU, mapU,
   newMU, unsafeFreezeMU)
 
 import Monad (
@@ -48,52 +52,129 @@ infixr 9 >:
 
 -- |Segment descriptors are used to represent the structure of nested arrays.
 --
-data USegd = USegd {
-	       segdUS :: !(UArr Int),  -- segment lengths
-	       psumUS :: !(UArr Int)   -- prefix sum of former
-	     }
-
--- |Mutable segment descriptor
---
-data MUSegd s = MUSegd {
-	          segdMUS :: !(MUArr Int s),  -- segment lengths
-	          psumMUS :: !(MUArr Int s)   -- prefix sum of former
-	        }
+type USegd  = UArr  (Int :*: Int)
+type MUSegd = MUArr (Int :*: Int)
 
 -- |Segmented arrays (only one level of segmentation)
 -- 
-data SUArr e = SUArr {
-                 segdSU :: !USegd,             -- segment descriptor
-                 dataSU :: !(UArr e)           -- flat data array
-               }
 
--- |Mutable segmented arrays (only one level of segmentation)
---
-data MSUArr e s = MSUArr {
-                    segdMSU :: !(MUSegd s),    -- segment descriptor
-                    dataMSU :: !(MUArr e s)    -- flat data array
-                  }
+-- NOTE: We do *not* make this strict in the arrays. This allows GHC to
+--       eliminate construction/deconstruction of segmented arrays.
 
--- |Operations on segmented arrays
--- -------------------------------
+-- TODO: Is this ok?
+data SUArr  e   = SUArr  USegd      (UArr  e)
+data MSUArr e s = MSUArr (MUSegd s) (MUArr e s)
 
--- |Yield the number of segments.
--- 
-lengthSU :: UA e => SUArr e -> Int
-lengthSU (SUArr segd _) = lengthU (segdUS segd)
+-- |Operations on segment descriptors
+-- ----------------------------------
 
 -- |Allocate a mutable segment descriptor for the given number of segments
 --
 newMUSegd :: Int -> ST s (MUSegd s)
 {-# INLINE newMUSegd #-}
-newMUSegd n = liftM2 MUSegd (newMU n) (newMU n)
+newMUSegd = newMU
 
 -- |Convert a mutable segment descriptor to an immutable one
 --
 unsafeFreezeMUSegd :: MUSegd s -> Int -> ST s USegd
 {-# INLINE unsafeFreezeMUSegd #-}
-unsafeFreezeMUSegd (MUSegd segd psum) n = liftM2 USegd (unsafeFreezeMU segd n)
-                                                       (unsafeFreezeMU psum n)
+unsafeFreezeMUSegd = unsafeFreezeMU
+
+-- |Yield the overall number of segments
+--
+lengthUSegd :: USegd -> Int
+{-# INLINE lengthUSegd #-}
+lengthUSegd = lengthU
+
+-- |Yield the segment lengths of a segment descriptor
+--
+lengthsUSegd :: USegd -> UArr Int
+{-# INLINE lengthsUSegd #-}
+lengthsUSegd = fstU
+
+-- |Yield the segment indices of a segment descriptor
+--
+indicesUSegd :: USegd -> UArr Int
+{-# INLINE indicesUSegd #-}
+indicesUSegd = sndU
+
+-- |Convert a length array into a segment descriptor.
+--
+toUSegd :: UArr Int -> USegd
+{-# INLINE [1] toUSegd #-}
+toUSegd lens = zipU lens (scanlU (+) 0 lens)
+
+-- |Convert a length array to a segment descriptor - fusible version.
+--
+toUSegd' :: UArr Int -> USegd
+{-# INLINE toUSegd' #-}
+toUSegd' = scanlU (\(_ :*: i) n -> n :*: (i+n)) (0 :*: 0)
+
+{-# RULES
+
+"toUSegd/unstreamU" forall s.
+  toUSegd (unstreamU s) = toUSegd' (unstreamU s)
+"streamU/toUSegd" forall a.
+  streamU (toUSegd a) = streamU (toUSegd' a)
+ #-}
+
+sliceUSegd :: USegd -> Int -> Int -> USegd
+sliceUSegd segd i n = zipU lens idxs'
+  where
+    lens  = sliceU (lengthsUSegd segd) i n
+    idxs  = sliceU (indicesUSegd segd) i n
+    idxs' = mapU (subtract k) idxs
+    k     = idxs !: 0
+
+extractUSegd :: USegd -> Int -> Int -> USegd
+extractUSegd segd i n = zipU lens idxs'
+  where
+    lens  = extractU (lengthsUSegd segd) i n
+    idxs  = sliceU   (indicesUSegd segd) i n
+    idxs' = mapU (subtract k) idxs
+    k     = idxs !: 0
+
+-- |Operations on segmented arrays
+-- -------------------------------
+
+-- |Yield the segment descriptor
+--
+segdSU :: UA e => SUArr e -> USegd
+{-# INLINE segdSU #-}
+segdSU (SUArr segd _) = segd
+
+-- |Yield the flat data array
+--
+flattenSU :: UA e => SUArr e -> UArr e
+{-# INLINE flattenSU #-}
+flattenSU (SUArr _ a) = a
+
+-- |Yield the number of segments.
+-- 
+lengthSU :: UA e => SUArr e -> Int
+{-# INLINE lengthSU #-}
+lengthSU = lengthU . segdSU
+
+-- |Yield the lengths of the segments.
+--
+lengthsSU :: UA e => SUArr e -> UArr Int
+{-# INLINE lengthsSU #-}
+lengthsSU = lengthsUSegd . segdSU
+
+-- |Yield the starting indices of the segments.
+--
+indicesSU :: UA e => SUArr e -> UArr Int
+{-# INLINE indicesSU #-}
+indicesSU = indicesUSegd . segdSU
+
+-- |Compose a nested array.
+--
+(>:) :: UA a => USegd -> UArr a -> SUArr a
+{-# INLINE (>:) #-}
+(>:) = SUArr
+
+-- |Operations on mutable segmented arrays
+-- ---------------------------------------
 
 -- |Allocate a segmented parallel array (providing the number of segments and
 -- number of base elements).
@@ -109,33 +190,9 @@ unsafeFreezeMSU :: UA e => MSUArr e s -> Int -> ST s (SUArr e)
 unsafeFreezeMSU (MSUArr msegd ma) n = 
   do
     segd <- unsafeFreezeMUSegd msegd n
-    let n' = if n == 0 then 0 else psumUS segd !: (n - 1) + 
-				   segdUS segd !: (n - 1)
+    let n' = if n == 0 then 0 else indicesUSegd segd !: (n - 1) + 
+				   lengthsUSegd segd !: (n - 1)
     a <- unsafeFreezeMU ma n'
     return $ SUArr segd a
 
-
--- |Basic operations on segmented arrays
--- -------------------------------------
-
--- |Compose a nested array.
---
-(>:) :: UA a => USegd -> UArr a -> SUArr a
-{-# INLINE [1] (>:) #-}  -- see `UAFusion'
-(>:) = SUArr
-
--- |Decompose a nested array.
---
-flattenSU :: UA a => SUArr a -> (USegd :*: UArr a)
-flattenSU (SUArr segd a) = (segd :*: a)
-
--- |Convert a length array into a segment descriptor.
---
-toUSegd :: UArr Int -> USegd 
-toUSegd lens = USegd lens (scanU (+) 0 lens)
-
--- |Extract the length array from a segment descriptor.
---
-fromUSegd :: USegd -> UArr Int
-fromUSegd (USegd lens _) = lens
 

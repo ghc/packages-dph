@@ -20,14 +20,10 @@ module Data.Array.Parallel.Unlifted.Segmented.Permute (
   bpermuteSU
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Unlifted.Flat (
-  UA, (!:))
+  UA)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr, psumUS)
-import Data.Array.Parallel.Unlifted.Segmented.Basics (
-  flattenSU)
+  SUArr)
 
 -- |Segmented back permute
 --

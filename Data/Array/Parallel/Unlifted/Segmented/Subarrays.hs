@@ -21,35 +21,32 @@ module Data.Array.Parallel.Unlifted.Segmented.Subarrays (
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat (
-  UA, (!:), sliceU, extractU, mapU)
+  UA, (!:), sliceU, extractU, lengthU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr(..), USegd(..))
+  SUArr, sliceUSegd, extractUSegd, (>:), segdSU, lengthSU, indicesSU)
+import Data.Array.Parallel.Unlifted.Segmented.Basics (
+  concatSU)
 
 -- |Extract a subrange of the segmented array without copying the elements.
 --
 sliceSU :: UA e => SUArr e -> Int -> Int -> SUArr e
-sliceSU (SUArr segd a) i n =
+sliceSU sa i n =
   let
-    segd1 = segdUS segd
-    psum  = psumUS segd
-    m     = if i == 0 then 0 else psum !: (i - 1)
-    psum' = mapU (subtract m) (sliceU psum i n)
-    segd' = USegd (sliceU segd1 i n) psum'
-    i'    = psum !: i
+    a     = concatSU sa
+    i'    = indicesSU sa !: i
+    j     = if i+n == lengthSU sa then lengthU a else indicesSU sa !: (i+n)
   in
-  SUArr segd' (sliceU a i' (psum !: (i + n - 1) - i' + 1))
-
+  sliceUSegd (segdSU sa) i n >: sliceU a i' j
+    
 -- |Extract a subrange of the segmented array (elements are copied).
 --
 extractSU :: UA e => SUArr e -> Int -> Int -> SUArr e
-extractSU (SUArr segd a) i n =
+extractSU sa i n =
   let
-    segd1 = segdUS segd
-    psum  = psumUS segd
-    m     = if i == 0 then 0 else psum !: (i - 1)
-    psum' = mapU (subtract m) (extractU psum i n)
-    segd' = USegd (extractU segd1 i n) psum'
-    i'    = psum !: i
+    a     = concatSU sa
+    i'    = indicesSU sa !: i
+    j     = if i+n == lengthSU sa then lengthU a else indicesSU sa !: (i+n)
   in
-  SUArr segd' (extractU a i' (psum !: (i + n - 1) - i' + 1))
+  extractUSegd (segdSU sa) i n >: extractU a i' j
+
 
