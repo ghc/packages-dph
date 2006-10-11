@@ -17,7 +17,6 @@ module Data.Array.Parallel.Unlifted.Parallel.Permute (
   bpermuteUP
 ) where
 
-import Data.Array.Parallel.Base
 import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Unlifted.Distributed
 
