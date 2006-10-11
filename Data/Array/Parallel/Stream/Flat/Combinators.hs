@@ -75,16 +75,25 @@ scanS f z (Stream next s n) = Stream next' (z :*: s) n
 zipWithS :: (a -> b -> c) -> Stream a -> Stream b -> Stream c
 {-# INLINE [1] zipWithS #-}
 zipWithS f (Stream next1 s m) (Stream next2 t n) =
-  Stream next (s :*: t) m
+  Stream next (NothingS :*: s :*: t) m
   where
-    next (s :*: t) =
+    {-# INLINE next #-}
+    next (NothingS :*: s :*: t) =
+      t `seq`
       case next1 s of
-        Done        -> Done
-        Skip s' -> Skip (s' :*: t)
-        Yield x s'  -> case next2 t of
-                         Done -> Done
-                         Skip t' -> Skip (s :*: t')
-                         Yield y t'  -> Yield (f x y) (s' :*: t')
+        Done       -> Done
+        Skip    s' -> Skip (NothingS :*: s' :*: t)
+        Yield x s' -> -- Skip (JustS x  :*: s' :*: t)
+                      case next2 t of
+                        Done       -> Done
+                        Skip    t' -> Skip (JustS x :*: s' :*: t')
+                        Yield y t' -> Yield (f x y) (NothingS :*: s' :*: t')
+    next (JustS x :*: s :*: t) =
+      s `seq`
+      case next2 t of
+        Done       -> Done
+        Skip t'    -> Skip (JustS x :*: s :*: t')
+        Yield y t' -> Yield (f x y) (NothingS :*: s :*: t')
 
 zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
 {-# INLINE [1] zipWith3S #-}
