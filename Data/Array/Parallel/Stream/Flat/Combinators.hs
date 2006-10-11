@@ -14,12 +14,12 @@
 --
 
 module Data.Array.Parallel.Stream.Flat.Combinators (
-  mapS, filterS, foldS, scanS,
+  mapS, filterS, foldS, fold1MaybeS, scanS,
   zipWithS, zipWith3S, zipS
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..))
+  (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
 -- | Mapping
@@ -54,9 +54,22 @@ foldS :: (b -> a -> b) -> b -> Stream a -> b
 foldS f z (Stream next s _) = fold z s
   where
     fold z s = case next s of
-                 Done        -> z
-                 Skip s' -> fold z s'
-                 Yield x s'  -> fold (f z x) s'
+                 Done       -> z
+                 Skip    s' -> fold z s'
+                 Yield x s' -> fold (f z x) s'
+
+fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
+{-# INLINE [1] fold1MaybeS #-}
+fold1MaybeS f (Stream next s _) = fold0 s
+  where
+    fold0 s   = case next s of
+                  Done       -> NothingS
+                  Skip    s' -> fold0 s'
+                  Yield x s' -> fold1 x s'
+    fold1 z s = case next s of
+                  Done       -> JustS z
+                  Skip    s' -> fold1 z s'
+                  Yield x s' -> fold1 (f z x) s'
 
 -- | Scanning
 --

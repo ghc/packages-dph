@@ -20,7 +20,7 @@ module Data.Array.Parallel.Stream.Flat (
   enumFromToS, enumFromThenToS, enumFromStepLenS,
   toStream, fromStream,
 
-  mapS, filterS, foldS, scanS,
+  mapS, filterS, foldS, fold1MaybeS, scanS,
   zipWithS, zipWith3S, zipS
 ) where
 
