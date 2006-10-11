@@ -18,11 +18,11 @@ module Data.Array.Parallel.Unlifted.Flat.Stream (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), ST)
+  (:*:)(..), fstS, sndS, ST)
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..), zipWithS)
+  Step(..), Stream(..), mapS, zipWithS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UArr, MUArr, UA, indexU, lengthU, zipU, newDynU, writeMU)
+  UArr, MUArr, UA, indexU, lengthU, zipU, fstU, sndU, newDynU, writeMU)
 
 -- | Generate a stream from an array, from left to right
 --
@@ -77,6 +77,11 @@ unstreamMU marr (Stream next s n) = fill s 0
 
 "streamU/zipU" forall a1 a2.
   streamU (zipU a1 a2) = zipWithS (:*:) (streamU a1) (streamU a2)
+
+"fstU/unstreamU" forall s.
+  fstU (unstreamU s) = unstreamU (mapS fstS s)
+"sndU/unstreamU" forall s.
+  sndU (unstreamU s) = unstreamU (mapS sndS s)
 
   #-}
 
