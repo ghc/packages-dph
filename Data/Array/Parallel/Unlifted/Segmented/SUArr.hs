@@ -24,6 +24,7 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
   -- * Basic operations on segmented parallel arrays
   lengthSU,
   flattenSU, (>:),
+  newMUSegd, unsafeFreezeMUSegd,
   newMSU, unsafeFreezeMSU,
   toUSegd, fromUSegd
 ) where
@@ -35,6 +36,9 @@ import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr,
   lengthU, (!:), scanU,
   newMU, unsafeFreezeMU)
+
+import Monad (
+  liftM2)
 
 infixr 9 >:
 
@@ -78,33 +82,37 @@ data MSUArr e s = MSUArr {
 lengthSU :: UA e => SUArr e -> Int
 lengthSU (SUArr segd _) = lengthU (segdUS segd)
 
--- |The functions `newMSU', `nextMSU', and `unsafeFreezeMSU' are to 
--- iteratively define a segmented mutable array; i.e., arrays of type `MSUArr
--- s e`.
+-- |Allocate a mutable segment descriptor for the given number of segments
+--
+newMUSegd :: Int -> ST s (MUSegd s)
+{-# INLINE newMUSegd #-}
+newMUSegd n = liftM2 MUSegd (newMU n) (newMU n)
+
+-- |Convert a mutable segment descriptor to an immutable one
+--
+unsafeFreezeMUSegd :: MUSegd s -> Int -> ST s USegd
+{-# INLINE unsafeFreezeMUSegd #-}
+unsafeFreezeMUSegd (MUSegd segd psum) n = liftM2 USegd (unsafeFreezeMU segd n)
+                                                       (unsafeFreezeMU psum n)
 
 -- |Allocate a segmented parallel array (providing the number of segments and
 -- number of base elements).
 --
 newMSU :: UA e => Int -> Int -> ST s (MSUArr e s)
 {-# INLINE newMSU #-}
-newMSU nsegd n = do
-		   segd <- newMU nsegd
-		   psum <- newMU nsegd
-		   a    <- newMU n
-		   return $ MSUArr (MUSegd segd psum) a
+newMSU nsegd n = liftM2 MSUArr (newMUSegd nsegd) (newMU n)
 
 -- |Convert a mutable segmented array into an immutable one.
 --
 unsafeFreezeMSU :: UA e => MSUArr e s -> Int -> ST s (SUArr e)
 {-# INLINE unsafeFreezeMSU #-}
-unsafeFreezeMSU (MSUArr segd a) n = 
+unsafeFreezeMSU (MSUArr msegd ma) n = 
   do
-    segd' <- unsafeFreezeMU (segdMUS segd) n
-    psum' <- unsafeFreezeMU (psumMUS segd) n
-    let n' = if n == 0 then 0 else psum' !: (n - 1) + 
-				   segd' !: (n - 1)
-    a' <- unsafeFreezeMU a n'
-    return $ SUArr (USegd segd' psum') a'
+    segd <- unsafeFreezeMUSegd msegd n
+    let n' = if n == 0 then 0 else psumUS segd !: (n - 1) + 
+				   segdUS segd !: (n - 1)
+    a <- unsafeFreezeMU ma n'
+    return $ SUArr segd a
 
 
 -- |Basic operations on segmented arrays
