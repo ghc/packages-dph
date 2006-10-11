@@ -19,55 +19,35 @@ module Data.Array.Parallel.Stream.Segmented (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), (:+:)(..))
+  (:*:)(..))
 import Data.Array.Parallel.Stream.Flat (
   Step(..), Stream(..))
 
--- | The type of segmented streams. The start of each segment is marked with
--- @'Inl' n@, where @n@ is the length of the segment.
---
-data SStream a = forall s.
-                 SStream !(s -> Step s (Int :+: a)) !s !Int !Int
+data SStream a = SStream { segd   :: Stream Int
+                         , values :: Stream a
+                         }
 
--- | Create a segmented stream from a stream of segment lengths and a stream
--- of values.
---
 segmentS :: Stream Int -> Stream a -> SStream a
-{-# INLINE [1] segmentS #-}
-segmentS (Stream nextseg s nsegs)
-         (Stream nextval t nvals) =
-  SStream next (0 :*: s :*: t) nsegs nvals
-  where
-    next (0 :*: s :*: t) =
-      case nextseg s of
-        Done       -> Done
-        Skip    s' -> Skip  (0 :*: s' :*: t)
-        Yield n s' -> Yield (Inl n) (n :*: s' :*: t)
-    next (n :*: s :*: t) =
-      case nextval t of
-        Done       -> Done
-        Skip    t' -> Skip (n :*: s :*: t')
-        Yield x t' -> Yield (Inr x) (n-1 :*: s :*: t')
-
--- | Fold each segment of a segmented stream, producing a flat stream of
--- segment lengths and results.
---
-foldValuesSS :: (a -> r -> r) -> r -> SStream a -> Stream (Int :*: r)
+{-# INLINE segmentS #-}
+segmentS = SStream
+        
+foldValuesSS :: (a -> b -> a) -> a -> SStream b -> Stream a
 {-# INLINE [1] foldValuesSS #-}
-foldValuesSS f z (SStream next s nsegs _) =
-  Stream next' (init s) nsegs
+foldValuesSS f z (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
+  Stream next (0 :*: z :*: ss :*: vs) ns
   where
-    init s = case next s of
-               Done             -> (False :*: 0 :*: z :*: s)
-               Skip          s' -> init s'
-               Yield (Inr _) s' -> init s'
-               Yield (Inl n) s' -> (True :*: n :*: z :*: s')
-
-    next' (False :*: m :*: r :*: s) = Done
-    next' (True :*: m :*: r :*: s) =
-      case next s of
-        Done             -> Yield (m :*: r) (False :*: m :*: z :*: s)
-        Skip s'          -> Skip            (True  :*: m :*: r :*: s')
-        Yield (Inl n) s' -> Yield (m :*: r) (True  :*: n :*: z :*: s')
-        Yield (Inr x) s' -> Skip            (True  :*: m :*: f x r :*: s')
+    {-# INLINE next #-}
+    next (0 :*: x :*: ss :*: vs) =
+      case nexts ss of
+        Done        -> Done
+        Skip    ss' -> Skip (0 :*: x :*: ss' :*: vs)
+        Yield n ss' | n == 0    -> Yield z (0 :*: z :*: ss' :*: vs)
+                    | otherwise -> Skip (n :*: z :*: ss' :*: vs)
+    next (n :*: x :*: ss :*: vs) =
+      case nextv vs of
+        Done         -> error
+                          "Stream.Segmented.foldSS: invalid segment descriptor"
+        Skip    vs' -> Skip (n :*: x :*: ss :*: vs')
+        Yield y vs' | n == 1    -> Yield (f x y) (0 :*: z :*: ss :*: vs')
+                    | otherwise -> Skip ((n-1) :*: f x y :*: ss :*: vs')
 
