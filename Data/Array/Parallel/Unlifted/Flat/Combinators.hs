@@ -18,16 +18,17 @@
 
 module Data.Array.Parallel.Unlifted.Flat.Combinators (
   mapU, filterU,
-  foldlU, foldl1U, {-foldrU, foldr1U,-} foldU, fold1U,
+  foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
+  foldU,  fold1U,  fold1MaybeU,
   scanlU, scanl1U, {-scanrU, scanr1U,-} scanU, scan1U,
   zipU, zip3U, unzipU, unzip3U,
   zipWithU, zipWith3U
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), checkNotEmpty)
+  (:*:)(..), MaybeS(..), checkNotEmpty)
 import Data.Array.Parallel.Stream (
-  mapS, filterS, foldS, scanS, zipWithS, zipWith3S)
+  mapS, filterS, foldS, fold1MaybeS, scanS, zipWithS, zipWith3S)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
   zipU, unzipU)
@@ -67,12 +68,20 @@ foldl1U :: UA a => (a -> a -> a) -> UArr a -> a
 foldl1U f arr = checkNotEmpty (here "foldl1U") (lengthU arr) $
                 foldlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
 
+foldl1MaybeU :: UA a => (a -> a -> a) -> UArr a -> MaybeS a
+{-# INLINE foldl1MaybeU #-}
+foldl1MaybeU f = fold1MaybeS f . streamU
+
 -- |Array reduction that requires an associative combination function with its
 -- unit
 --
 foldU :: UA a => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE foldU #-}
 foldU = foldlU
+
+fold1MaybeU :: UA a => (a -> a -> a) -> UArr a -> MaybeS a
+{-# INLINE fold1MaybeU #-}
+fold1MaybeU = foldl1MaybeU
 
 -- |Reduction of a non-empty array which requires an associative combination
 -- function

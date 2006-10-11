@@ -41,9 +41,9 @@ module Data.Array.Parallel.Unlifted.Flat (
   -- * Higher-order operations
   mapU, zipWithU, zipWith3U,
   filterU,
-  foldlU, foldl1U,
+  foldlU, foldl1U, foldl1MaybeU,
   {-foldrU, foldr1U,-}
-  foldU, fold1U,
+  foldU, fold1U, fold1MaybeU,
   scanlU, scanl1U,
   {-scanrU, scanr1U,-}
   scanU, scan1U,
