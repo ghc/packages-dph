@@ -39,14 +39,9 @@ foldUP :: (UA a, DT a) => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE foldUP #-}
 foldUP f z = maybeS z (f z)
            . foldD  theGang combine
-           . mapD   theGang (foldlU g NothingS)
+           . mapD   theGang (foldl1MaybeU f)
            . splitD theGang unbalanced
   where
-    -- NB: we have to use MaybeS as the accumulator instead of special-casing
-    -- empty arrays because the latter breaks fusion
-    g NothingS  y = JustS y
-    g (JustS x) y = JustS (f x y)
-
     combine (JustS x) (JustS y) = JustS (f x y)
     combine _         _         = NothingS
 
