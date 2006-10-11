@@ -43,5 +43,7 @@ foldUP f z = maybeS z (f z)
            . splitD theGang unbalanced
   where
     combine (JustS x) (JustS y) = JustS (f x y)
-    combine _         _         = NothingS
+    combine (JustS x) NothingS  = JustS x
+    combine NothingS  (JustS y) = JustS y
+    combine NothingS  NothingS  = NothingS
 
