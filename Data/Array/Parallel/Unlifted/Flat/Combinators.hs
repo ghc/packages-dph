@@ -21,7 +21,7 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
   foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
   foldU,  fold1U,  fold1MaybeU,
   scanlU, scanl1U, {-scanrU, scanr1U,-} scanU, scan1U,
-  zipU, zip3U, unzipU, unzip3U,
+  zipU, zip3U, unzipU, unzip3U, fstU, sndU,
   zipWithU, zipWith3U
 ) where
 
@@ -31,7 +31,7 @@ import Data.Array.Parallel.Stream (
   mapS, filterS, foldS, fold1MaybeS, scanS, zipWithS, zipWith3S)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
-  zipU, unzipU)
+  zipU, unzipU, fstU, sndU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
@@ -152,4 +152,6 @@ unzip3U a = let (a12 :*: a3) = unzipU a
 		(a1  :*: a2) = unzipU a12
 	    in
 	    (a1 :*: a2 :*: a3)
+
+-- fstU and sndU reexported from UArr
 

@@ -31,7 +31,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr, {-USel(..), MUSel(..),-}
 
   -- * Basic operations on parallel arrays
-  lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU,
+  lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU, fstU, sndU,
   newU, newDynU,
   lengthMU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU, unsafeFreezeAllMU
 
@@ -151,7 +151,20 @@ zipU = UAProd
 -- |Elementwise unpairing of array elements.
 --
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a :*: UArr b)
+{-# INLINE [1] unzipU #-}
 unzipU (UAProd l r) = (l :*: r)
+
+-- |Yield the first components of an array of pairs.
+--
+fstU :: (UA a, UA b) => UArr (a :*: b) -> UArr a
+{-# INLINE [1] fstU #-}
+fstU (UAProd l r) = l
+
+-- |Yield the second components of an array of pairs.
+--
+sndU :: (UA a, UA b) => UArr (a :*: b) -> UArr b
+{-# INLINE [1] sndU #-}
+sndU (UAProd l r) = r
 
 -- |Family of representation types
 -- -------------------------------

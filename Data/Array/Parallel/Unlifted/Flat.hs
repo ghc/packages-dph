@@ -59,7 +59,7 @@ module Data.Array.Parallel.Unlifted.Flat (
   sumU, productU, maximumU, minimumU,
 
   -- * Arrays of pairs
-  zipU, zip3U, unzipU, unzip3U,
+  zipU, zip3U, unzipU, unzip3U, fstU, sndU,
   {-crossU,-}
 
   -- * Enumerations
