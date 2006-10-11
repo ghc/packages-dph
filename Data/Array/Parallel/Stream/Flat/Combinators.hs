@@ -28,7 +28,11 @@ mapS :: (a -> b) -> Stream a -> Stream b
 {-# INLINE [1] mapS #-}
 mapS f (Stream next s n) = Stream next' s n
   where
-    next' = fmap f . next
+    {-# INLINE next' #-}
+    next' s = case next s of
+                Done       -> Done
+                Skip    s' -> Skip s'
+                Yield x s' -> Yield (f x) s'
 
 -- | Filtering
 --
@@ -36,6 +40,7 @@ filterS :: (a -> Bool) -> Stream a -> Stream a
 {-# INLINE [1] filterS #-}
 filterS f (Stream next s n) = Stream next' s n
   where
+    {-# INLINE next' #-}
     next' s = case next s of
                 Done                    -> Done
                 Skip s'             -> Skip s'
@@ -59,6 +64,7 @@ scanS :: (b -> a -> b) -> b -> Stream a -> Stream b
 {-# INLINE [1] scanS #-}
 scanS f z (Stream next s n) = Stream next' (z :*: s) n
   where
+    {-# INLINE next' #-}
     next' (z :*: s) = case next s of
                         Done -> Done
                         Skip s' -> Skip (z :*: s')
@@ -85,6 +91,7 @@ zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
 zipWith3S f (Stream next1 s1 n) (Stream next2 s2 _) (Stream next3 s3 _) =
   Stream next (s1 :*: s2 :*: s3) n
   where
+    {-# INLINE next #-}
     next (s1 :*: s2 :*: s3) =
       case next1 s1 of
         Done         -> Done

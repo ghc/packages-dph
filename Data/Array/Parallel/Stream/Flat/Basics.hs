@@ -33,6 +33,7 @@ replicateS :: Int -> a -> Stream a
 {-# INLINE [1] replicateS #-}
 replicateS n x = Stream next 0 n
   where
+    {-# INLINE next #-}
     next i | i == n    = Done
            | otherwise = Yield x (i+1)
 
@@ -62,6 +63,7 @@ replicateEachS n (Stream next s _) =
 {-# INLINE [1] (+++) #-}
 Stream next1 s m +++ Stream next2 t n = Stream next (True :*: s :*: t) (m+n)
   where
+    {-# INLINE next #-}
     next (True :*: s :*: t) =
       case next1 s of
         Done       -> Skip (False :*: s :*: t)
@@ -82,6 +84,7 @@ toStream :: [a] -> Stream a
 {-# INLINE [1] toStream #-}
 toStream xs = Stream gen xs (length xs)
   where
+    {-# INLINE gen #-}
     gen []     = Done
     gen (x:xs) = Yield x xs
 
