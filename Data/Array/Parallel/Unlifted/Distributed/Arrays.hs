@@ -68,7 +68,7 @@ splitLenD g n = newD g (`fill` 0)
 -- | Distribute an array over a 'Gang'.
 splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
 {-# INLINE [1] splitD #-}
-splitD g _ arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitD g _ !arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     dlen = splitLengthD g arr
     is   = fstS $ scanD g (+) 0 dlen
@@ -82,7 +82,7 @@ joinLengthD g = sumD g . lengthD
 -- | Join a distributed array.
 joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
 {-# INLINE [1] joinD #-}
-joinD g _ darr = checkGangD (here "joinD") g darr $
+joinD g _ !darr = checkGangD (here "joinD") g darr $
                  newU n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
     di :*: n = scanD g (+) 0 $ lengthD darr
@@ -92,7 +92,7 @@ joinD g _ darr = checkGangD (here "joinD") g darr $
 splitJoinD :: (UA a, UA b)
            => Gang -> (Dist (UArr a) -> Dist (UArr b)) -> UArr a -> UArr b
 {-# INLINE [1] splitJoinD #-}
-splitJoinD g f xs = joinD g unbalanced (f (splitD g unbalanced xs))
+splitJoinD g f !xs = joinD g unbalanced (f (splitD g unbalanced xs))
 
 -- | Join a distributed array, yielding a mutable global array
 joinDM :: UA a => Gang -> Dist (UArr a) -> ST s (MUArr a s)

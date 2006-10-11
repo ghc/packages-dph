@@ -28,7 +28,7 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
 --
 streamU :: UA a => UArr a -> Stream a
 {-# INLINE [1] streamU #-}
-streamU arr = Stream next 0 n
+streamU !arr = Stream next 0 n
   where
     n = lengthU arr
     {-# INLINE next #-}
