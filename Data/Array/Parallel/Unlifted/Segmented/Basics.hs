@@ -36,7 +36,8 @@ import Data.Array.Parallel.Unlifted.Flat (
   toU, fromU,
   streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU, toUSegd)
+  SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
+  lengthsToUSegd)
 
 -- lengthSU reexported from SUArr
 
@@ -48,9 +49,9 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr (
 replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE replicateSU #-}
 replicateSU ns es =
-  toUSegd ns >: unstreamU (replicateEachS (sumU ns)
-                                          (zipS (streamU ns)
-                                                (streamU es)))
+  lengthsToUSegd ns >: unstreamU (replicateEachS (sumU ns)
+                                                 (zipS (streamU ns)
+                                                       (streamU es)))
 
 -- |Segment an array according to the segmentation of the first argument
 --
@@ -111,8 +112,8 @@ enumFromThenToSU starts nexts ends =
 		    next'  = fromEnum next
 		    end'   = fromEnum end
 		    delta  = next' - start'
-    len     = sumU    lens
-    segd    = toUSegd lens
+    len     = sumU lens
+    segd    = lengthsToUSegd lens
 
 enumFromThenToEachS :: Enum a => Int -> Stream (Int :*: a :*: a) -> Stream a
 {-# INLINE [1] enumFromThenToEachS #-}
@@ -139,7 +140,7 @@ toSU :: UA e => [[e]] -> SUArr e
 toSU ls = let lens = toU $ map length ls
 	      a    = toU $ concat ls
           in
-	  toUSegd lens >: a
+	  lengthsToUSegd lens >: a
 
 -- |Turn a segmented array into a nested list
 --

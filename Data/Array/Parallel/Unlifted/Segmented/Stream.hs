@@ -23,7 +23,7 @@ import Data.Array.Parallel.Unlifted.Flat (
   UA, streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, USegd,
-  lengthsUSegd, toUSegd,
+  lengthsUSegd, lengthsToUSegd,
   segdSU, flattenSU, (>:))
 
 streamSegd :: USegd -> Stream Int
@@ -32,7 +32,7 @@ streamSegd = streamU . lengthsUSegd
 
 unstreamSegd :: Stream Int -> USegd
 {-# INLINE unstreamSegd #-}
-unstreamSegd = toUSegd . unstreamU
+unstreamSegd = lengthsToUSegd . unstreamU
 
 streamSU :: UA a => SUArr a -> SStream a
 {-# INLINE streamSU #-}

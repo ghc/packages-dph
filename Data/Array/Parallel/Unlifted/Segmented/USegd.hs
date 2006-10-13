@@ -22,7 +22,8 @@ module Data.Array.Parallel.Unlifted.Segmented.USegd (
   USegd, MUSegd,
 
   -- * Operations on segment descriptors
-  lengthUSegd, lengthsUSegd, indicesUSegd, toUSegd,
+  lengthUSegd, lengthsUSegd, indicesUSegd, fromUSegd,
+  lengthsToUSegd, toUSegd,
   sliceUSegd, extractUSegd,
   newMUSegd, unsafeFreezeMUSegd,
 ) where
@@ -80,11 +81,23 @@ indicesUSegd :: USegd -> UArr Int
 {-# INLINE indicesUSegd #-}
 indicesUSegd = sndU . unUSegd
 
+-- |Convert a segment descriptor to an array of length/index pairs.
+--
+fromUSegd :: USegd -> UArr (Int :*: Int)
+{-# INLINE fromUSegd #-}
+fromUSegd = unUSegd
+
+-- |Convert an array of length/index pairs to a segment descriptor.
+--
+toUSegd :: UArr (Int :*: Int) -> USegd
+{-# INLINE toUSegd #-}
+toUSegd = USegd
+
 -- |Convert a length array into a segment descriptor.
 --
-toUSegd :: UArr Int -> USegd
-{-# INLINE toUSegd #-}
-toUSegd = USegd . segdFromLengthsU
+lengthsToUSegd :: UArr Int -> USegd
+{-# INLINE lengthsToUSegd #-}
+lengthsToUSegd = USegd . segdFromLengthsU
 
 -- |Convert a length array to an array of length/index pairs.
 --
