@@ -19,7 +19,7 @@
 module Data.Array.Parallel.Unlifted.Segmented (
 
   -- * Array types
-  USegd, SUArr,
+  SUArr,
 
   -- * Streaming
   streamSU, unstreamSU,
@@ -53,6 +53,13 @@ module Data.Array.Parallel.Unlifted.Segmented (
 
   -- * Conversions to/from lists
   toSU, fromSU,
+
+  -- * Segment descriptors
+  USegd, MUSegd,
+
+  -- * Operations on segment descriptors
+  lengthUSegd, lengthsUSegd, indicesUSegd,
+  lengthsToUSegd, toUSegd, fromUSegd
 ) where
 
 import Data.Array.Parallel.Unlifted.Segmented.SUArr
