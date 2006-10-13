@@ -75,17 +75,17 @@ data Dist a where
   DUnit  :: !Int                             -> Dist ()
   DPrim  :: !(BUArr a)                       -> Dist a
   DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
+  DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
 	-- The Dist Int redundantly records the size of the UArrs
 	-- (redundantly because the UArrs also contain their sizes)
-  DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
 
 data MDist a s where
   MDUnit  :: !Int                                   -> MDist ()        s
   MDPrim  :: !(MBUArr s a)                          -> MDist a         s
   MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b) s
-  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)  s
   MDMaybe :: !(MDist Bool s) -> !(MDist a s)        -> MDist (MaybeS a) s
+  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)  s
 
 unDPrim :: UAE a => Dist a -> BUArr a
 unDPrim (DPrim a) = a
