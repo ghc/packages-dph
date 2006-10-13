@@ -199,17 +199,6 @@ instance (DT a, DT b) => DT (a :*: b) where
                             = liftM2 DProd (unsafeFreezeMD xs)
                                            (unsafeFreezeMD ys)
 
-instance UA a => DT (UArr a) where
-  indexD (DUArr _ a) i = indexBB a i
-  newMD g = liftM2 MDUArr (newMD g) (newMBB (gangSize g))
-  readMD (MDUArr _ marr) = readMBB marr
-  writeMD (MDUArr mlen marr) i a =
-    do
-      writeMD mlen i (lengthU a)
-      writeMBB marr i a
-  unsafeFreezeMD (MDUArr len a) = liftM2 DUArr (unsafeFreezeMD len)
-                                                (unsafeFreezeAllMBB a)
-
 instance DT a => DT (MaybeS a) where
   indexD (DMaybe bs as) i
     | bs `indexD` i       = JustS $ as `indexD` i
@@ -225,6 +214,17 @@ instance DT a => DT (MaybeS a) where
                                      >> writeMD as i x
   unsafeFreezeMD (MDMaybe bs as) = liftM2 DMaybe (unsafeFreezeMD bs)
                                                  (unsafeFreezeMD as)
+
+instance UA a => DT (UArr a) where
+  indexD (DUArr _ a) i = indexBB a i
+  newMD g = liftM2 MDUArr (newMD g) (newMBB (gangSize g))
+  readMD (MDUArr _ marr) = readMBB marr
+  writeMD (MDUArr mlen marr) i a =
+    do
+      writeMD mlen i (lengthU a)
+      writeMBB marr i a
+  unsafeFreezeMD (MDUArr len a) = liftM2 DUArr (unsafeFreezeMD len)
+                                                (unsafeFreezeAllMBB a)
 
 -- |Basic operations on immutable distributed types
 -- -------------------------------------------
