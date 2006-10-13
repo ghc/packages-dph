@@ -21,6 +21,7 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
   foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
   foldU,  fold1U,  fold1MaybeU,
   scanlU, scanl1U, {-scanrU, scanr1U,-} scanU, scan1U,
+  mapAccumLU,
   zipU, zip3U, unzipU, unzip3U, fstU, sndU,
   zipWithU, zipWith3U
 ) where
@@ -28,7 +29,8 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), checkNotEmpty)
 import Data.Array.Parallel.Stream (
-  mapS, filterS, foldS, fold1MaybeS, scanS, zipWithS, zipWith3S)
+  mapS, filterS, foldS, fold1MaybeS, scanS, mapAccumS,
+  zipWithS, zipWith3S)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
   zipU, unzipU, fstU, sndU)
@@ -118,6 +120,14 @@ scanU = scanlU
 scan1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
 {-# INLINE scan1U #-}
 scan1U = scanl1U
+
+-- |Accumulating map from left to right. Does not return the accumulator.
+--
+-- FIXME: Naming inconsistent with lists.
+--
+mapAccumLU :: (UA a, UA b) => (c -> a -> c :*: b) -> c -> UArr a -> UArr b
+{-# INLINE mapAccumLU #-}
+mapAccumLU f z = unstreamU . mapAccumS f z . streamU
 
 -- zipU is re-exported from UArr
 

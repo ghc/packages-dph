@@ -47,6 +47,7 @@ module Data.Array.Parallel.Unlifted.Flat (
   scanlU, scanl1U,
   {-scanrU, scanr1U,-}
   scanU, scan1U,
+  mapAccumLU,
 
   -- * Searching
   elemU, notElemU,
