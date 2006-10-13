@@ -35,7 +35,7 @@ import Data.Array.Parallel.Base (
   ST)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr,
-  lengthU, (!:),
+  (!:),
   newMU, unsafeFreezeMU)
 import Data.Array.Parallel.Unlifted.Segmented.USegd
 
@@ -77,7 +77,7 @@ flattenSU (SUArr _ a) = a
 -- 
 lengthSU :: UA e => SUArr e -> Int
 {-# INLINE lengthSU #-}
-lengthSU = lengthU . segdSU
+lengthSU = lengthUSegd . segdSU
 
 -- |Yield the lengths of the segments.
 --
