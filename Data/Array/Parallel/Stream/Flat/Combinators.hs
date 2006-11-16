@@ -110,13 +110,13 @@ zipWithS f (Stream next1 s m) (Stream next2 t n) =
         Yield x s' -> -- Skip (JustS x  :*: s' :*: t)
                       case next2 t of
                         Done       -> Done
-                        Skip    t' -> Skip (JustS x :*: s' :*: t')
+                        Skip    t' -> Skip (JustS (Box x) :*: s' :*: t')
                         Yield y t' -> Yield (f x y) (NothingS :*: s' :*: t')
-    next (JustS x :*: s :*: t) =
+    next (JustS (Box x) :*: s :*: t) =
       s `seq`
       case next2 t of
         Done       -> Done
-        Skip t'    -> Skip (JustS x :*: s :*: t')
+        Skip t'    -> Skip (JustS (Box x) :*: s :*: t')
         Yield y t' -> Yield (f x y) (NothingS :*: s :*: t')
 
 zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
