@@ -18,7 +18,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
 
   -- * Operations on immutable distributed types
   indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,
-  newD,
+  newD, segdSD, concatSD,
 
   -- * Operations on mutable distributed types
   newMD, readMD, writeMD, unsafeFreezeMD,
@@ -34,6 +34,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize )
 import Data.Array.Parallel.Arr
 import Data.Array.Parallel.Unlifted.Flat
+import Data.Array.Parallel.Unlifted.Segmented
 import Data.Array.Parallel.Base
 
 import Monad (liftM, liftM2)
@@ -76,16 +77,32 @@ data Dist a where
   DPrim  :: !(BUArr a)                       -> Dist a
   DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
   DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
-  DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
+
 	-- The Dist Int redundantly records the size of the UArrs
 	-- (redundantly because the UArrs also contain their sizes)
+  DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
+
+  DUSegd :: -- | Local segment descriptors
+            !(Dist (UArr (Int :*: Int)))
+            -- | Indicates whether the first local segment is
+            -- split across two processors.
+            -- -> !(Dist Bool)                
+                                             -> Dist USegd
+
+  DSUArr :: !(Dist USegd) -> !(Dist (UArr a)) -> Dist (SUArr a)
 
 data MDist a s where
-  MDUnit  :: !Int                                   -> MDist ()        s
-  MDPrim  :: !(MBUArr s a)                          -> MDist a         s
-  MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b) s
+  MDUnit  :: !Int                                   -> MDist ()         s
+  MDPrim  :: !(MBUArr s a)                          -> MDist a          s
+  MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b)  s
   MDMaybe :: !(MDist Bool s) -> !(MDist a s)        -> MDist (MaybeS a) s
-  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)  s
+  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)   s
+
+  MDUSegd :: !(MDist (UArr (Int :*: Int)) s)
+          -- -> !(MDist Bool s)                        
+                                                    -> MDist USegd      s
+
+  MDSUArr :: !(MDist USegd s) -> !(MDist (UArr a) s) -> MDist (SUArr a) s
 
 unDPrim :: UAE a => Dist a -> BUArr a
 unDPrim (DPrim a) = a
@@ -226,6 +243,25 @@ instance UA a => DT (UArr a) where
   unsafeFreezeMD (MDUArr len a) = liftM2 DUArr (unsafeFreezeMD len)
                                                 (unsafeFreezeAllMBB a)
 
+instance DT USegd where
+  indexD (DUSegd d) = toUSegd . indexD d
+  newMD g = liftM MDUSegd (newMD g)
+  readMD (MDUSegd d) = liftM toUSegd . readMD d
+  writeMD (MDUSegd d) i segd = writeMD d i (fromUSegd segd)
+  unsafeFreezeMD (MDUSegd d) = liftM DUSegd (unsafeFreezeMD d)
+
+instance UA a => DT (SUArr a) where
+  indexD (DSUArr dsegd da) i = indexD dsegd i >: indexD da i
+  newMD g = liftM2 MDSUArr (newMD g) (newMD g)
+  readMD (MDSUArr msegd ma) i = liftM2 (>:) (readMD msegd i)
+                                            (readMD ma    i)
+  writeMD (MDSUArr msegd ma) i sarr =
+    do
+      writeMD msegd i (segdSU sarr)
+      writeMD ma    i (concatSU sarr)
+  unsafeFreezeMD (MDSUArr msegd ma) = liftM2 DSUArr (unsafeFreezeMD msegd)
+                                                    (unsafeFreezeMD ma)
+
 -- |Basic operations on immutable distributed types
 -- -------------------------------------------
 
@@ -245,8 +281,8 @@ unitD = DUnit . gangSize
 -- /The two values must belong to the same 'Gang'./
 zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
 {-# INLINE [1] zipD #-}
-zipD !x !y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
-            DProd x y
+zipD x y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
+           DProd x y
 
 -- | Unpairing of distributed values.
 unzipD :: (DT a, DT b) => Dist (a :*: b) -> Dist a :*: Dist b
@@ -263,4 +299,13 @@ sndD = sndS . unzipD
 -- | Yield the distributed length of a distributed array.
 lengthD :: UA a => Dist (UArr a) -> Dist Int
 lengthD (DUArr l _) = l
+
+-- | Yield the distributed segment descriptor of a distributed segmented
+-- array.
+segdSD :: UA a => Dist (SUArr a) -> Dist USegd
+segdSD (DSUArr dsegd _) = dsegd
+
+-- | Flatten a distributed segmented array.
+concatSD :: UA a => Dist (SUArr a) -> Dist (UArr a)
+concatSD (DSUArr _ darr) = darr
 

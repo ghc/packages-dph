@@ -39,7 +39,10 @@ module Data.Array.Parallel.Unlifted.Distributed (
   Distribution, balanced, unbalanced,
 
   -- * Permutations
-  permuteD, bpermuteD, updateD,
+  permuteD, bpermuteD, updateD, bpermuteSD',
+
+  -- * Distributed segmented arrays
+  splitSD, joinSD, splitJoinSD,
 
   -- * Debugging
   fromD, toD

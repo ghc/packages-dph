@@ -13,8 +13,9 @@
 
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
+  splitSD, joinSD, splitJoinSD,
 
-  permuteD, bpermuteD, updateD,
+  permuteD, bpermuteD, updateD, bpermuteSD',
 
   Distribution, balanced, unbalanced
 ) where
@@ -22,15 +23,21 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, ST, runST)
 import Data.Array.Parallel.Unlifted.Flat (
-  UA, UArr, MUArr, lengthU, sliceU, bpermuteU, zipU,
-  newU, newMU, copyMU, permuteMU, updateMU, unsafeFreezeAllMU)
+  UA, UArr, MUArr, lengthU, sliceU, bpermuteU, zipU, (!:),
+  newU, newMU, copyMU, permuteMU, updateMU, unsafeFreezeAllMU,
+  fromU)
+import Data.Array.Parallel.Unlifted.Segmented (
+  USegd, SUArr, lengthsUSegd, lengthsToUSegd,
+  (>:), concatSU, segdSU, bpermuteSU')
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
   stToDistST)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, lengthD, newD, writeMD,
+  DT, Dist, indexD, lengthD, newD, writeMD, zipD, unzipD,
+  segdSD, concatSD,
   checkGangD)
+import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, zipWithD, scanD,
   zipWithDST_, mapDST_)
@@ -64,6 +71,14 @@ splitLenD g n = newD g (`fill` 0)
     fill md i | i < m     = writeMD md i (l+1) >> fill md (i+1)
               | i < p     = writeMD md i l     >> fill md (i+1)
               | otherwise = return ()
+
+-- | Distribute an array over a 'Gang' such that each threads gets the given
+-- number of elements.
+splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
+{-# INLINE splitAsD #-}
+splitAsD g dlen arr = zipWithD (seqGang g) (sliceU arr) is dlen
+  where
+    is = fstS $ scanD g (+) 0 dlen
 
 -- | Distribute an array over a 'Gang'.
 splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
@@ -163,4 +178,71 @@ updateD g darr upd = runST (
   )
   where
     update marr arr = stToDistST (updateMU marr arr)
+
+splitSegdLengthsD :: Gang -> Int -> UArr Int -> Dist (Int :*: Int)
+splitSegdLengthsD g n lens = newD g (\md -> fill md 0 0 0 0)
+  where
+    m = lengthU lens
+    p = gangSize g
+    dlens = splitLenD g n
+   
+    fill md i j k l | i == p                  = return ()
+                    | l < (dlens `indexD` i)
+                      && j < m                = fill md i (j + 1)
+                                                          (k + 1)
+                                                          (l + lens !: j)
+                    | otherwise               = do
+                                                  writeMD md i (k :*: l)
+                                                  fill md (i + 1) j 0 0
+
+splitSegdD' :: Gang -> Int -> USegd -> Dist (USegd :*: Int)
+splitSegdD' g n segd = zipD (mapD g lengthsToUSegd
+                             $ splitAsD g segdlens lens) adlens
+  where
+    lens                = lengthsUSegd segd
+    segdlens :*: adlens = unzipD (splitSegdLengthsD g n lens)
+
+joinSegD :: Gang -> Dist USegd -> USegd
+joinSegD g = lengthsToUSegd
+           . joinD g unbalanced
+           . mapD (seqGang g) lengthsUSegd
+
+splitSD :: UA a => Gang -> Distribution -> SUArr a -> Dist (SUArr a)
+{-# INLINE [1] splitSD #-}
+splitSD g _ !sarr = zipWithD g (>:) dsegd (splitAsD g dlen flat)
+  where
+    flat = concatSU sarr
+    dsegd :*: dlen = unzipD (splitSegdD' g (lengthU flat) (segdSU sarr))
+
+joinSD :: UA a => Gang -> Distribution -> Dist (SUArr a) -> SUArr a
+{-# INLINE [1] joinSD #-}
+joinSD g _ !darr = joinSegD g (segdSD darr)
+                >: joinD g unbalanced (concatSD darr)
+
+splitJoinSD :: (UA a, UA b)
+           => Gang -> (Dist (SUArr a) -> Dist (SUArr b)) -> SUArr a -> SUArr b
+{-# INLINE [1] splitJoinSD #-}
+splitJoinSD g f !xs = joinSD g unbalanced (f (splitSD g unbalanced xs))
+
+{-# RULES
+
+"splitSD[unbalanced]/joinSD" forall g b da.
+  splitSD g unbalanced (joinSD g b da) = da
+
+"splitSD[balanced]/joinSD" forall g da.
+  splitSD g balanced (joinSD g balanced da) = da
+
+"splitSD/splitJoinSD" forall g b f xs.
+  splitSD g b (splitJoinSD g f xs) = f (splitSD g b xs)
+
+"splitJoinSD/joinSD" forall g b f da.
+  splitJoinSD g f (joinSD g b da) = joinSD g b (f da)
+
+"splitJoinSD/splitJoinSD" forall g f1 f2 xs.
+  splitJoinSD g f1 (splitJoinSD g f2 xs) = splitJoinSD g (f1 . f2) xs
+  #-}
+
+bpermuteSD' :: UA a => Gang -> UArr a -> Dist (SUArr Int) -> Dist (SUArr a)
+{-# INLINE bpermuteSD' #-}
+bpermuteSD' g as = mapD g (bpermuteSU' as)
 
