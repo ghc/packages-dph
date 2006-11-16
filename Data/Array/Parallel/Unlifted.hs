@@ -73,12 +73,16 @@ module Data.Array.Parallel.Unlifted (
   concatSU, flattenSU, (>:), segmentU,
 
   -- * Basic operations (segmented)
-  replicateSU,
+  lengthSU, replicateSU,
+
+  -- * Zipping (segmented)
+  fstSU, sndSU, zipSU,
 
   -- * Permutations (segmented)
-  bpermuteSU,
+  bpermuteSU, bpermuteSU',
 
   -- * Higher-order operations (segmented)
+  mapSU, zipWithSU,
   {-concatMapU,-}
   foldlSU, foldSU,
   {-fold1SU,-}
@@ -97,6 +101,9 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Conversions to/from lists (segmented)
   toSU, fromSU,
+
+  -- * Segment descriptors
+  lengthsToUSegd,
 
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer,

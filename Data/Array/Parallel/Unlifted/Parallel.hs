@@ -20,11 +20,15 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   mapUP, filterUP, zipWithUP, foldUP,
 
-  andUP, sumUP
+  andUP, sumUP,
+
+  zipWithSUP, foldSUP, sumSUP, bpermuteSUP'
 ) where
 
 import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Enum
+import Data.Array.Parallel.Unlifted.Parallel.Segmented
+
 

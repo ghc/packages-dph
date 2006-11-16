@@ -33,7 +33,11 @@ filterUP f = joinD  theGang unbalanced
 
 zipWithUP :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
 {-# INLINE zipWithUP #-}
-zipWithUP f a b = mapUP (uncurryS f) (zipU a b)
+zipWithUP f a b = joinD    theGang balanced
+                $ zipWithD theGang (zipWithU f)
+                    (splitD theGang balanced a)
+                    (splitD theGang balanced b)
+--zipWithUP f a b = mapUP (uncurryS f) (zipU a b)
 
 foldUP :: (UA a, DT a) => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE foldUP #-}
