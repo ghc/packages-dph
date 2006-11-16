@@ -36,7 +36,7 @@ unstreamSegd = lengthsToUSegd . unstreamU
 
 streamSU :: UA a => SUArr a -> SStream a
 {-# INLINE streamSU #-}
-streamSU sa = segmentS (streamSegd (segdSU sa))
+streamSU !sa = segmentS (streamSegd (segdSU sa))
                        (streamU (flattenSU sa))
 
 unstreamSU :: UA a => SStream a -> SUArr a

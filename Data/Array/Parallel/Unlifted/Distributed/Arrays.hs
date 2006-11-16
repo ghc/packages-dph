@@ -76,7 +76,7 @@ splitLenD g n = newD g (`fill` 0)
 -- number of elements.
 splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
 {-# INLINE splitAsD #-}
-splitAsD g dlen arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitAsD g dlen !arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     is = fstS $ scanD g (+) 0 dlen
 
@@ -180,7 +180,7 @@ updateD g darr upd = runST (
     update marr arr = stToDistST (updateMU marr arr)
 
 splitSegdLengthsD :: Gang -> Int -> UArr Int -> Dist (Int :*: Int)
-splitSegdLengthsD g n lens = newD g (\md -> fill md 0 0 0 0)
+splitSegdLengthsD g n !lens = newD g (\md -> fill md 0 0 0 0)
   where
     m = lengthU lens
     p = gangSize g
@@ -196,7 +196,7 @@ splitSegdLengthsD g n lens = newD g (\md -> fill md 0 0 0 0)
                                                   fill md (i + 1) j 0 0
 
 splitSegdD' :: Gang -> Int -> USegd -> Dist (USegd :*: Int)
-splitSegdD' g n segd = zipD (mapD g lengthsToUSegd
+splitSegdD' g n !segd = zipD (mapD g lengthsToUSegd
                              $ splitAsD g segdlens lens) adlens
   where
     lens                = lengthsUSegd segd
