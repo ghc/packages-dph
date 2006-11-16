@@ -17,6 +17,7 @@ module Data.Array.Parallel.Base (
   module Data.Array.Parallel.Base.Debug,
   module Data.Array.Parallel.Base.Hyperstrict,
   module Data.Array.Parallel.Base.Text,
+  module Data.Array.Parallel.Base.Rebox,
 
   ST(..), runST
 ) where
@@ -24,6 +25,7 @@ module Data.Array.Parallel.Base (
 import Data.Array.Parallel.Base.Debug
 import Data.Array.Parallel.Base.Hyperstrict
 import Data.Array.Parallel.Base.Text
+import Data.Array.Parallel.Base.Rebox
 
 import GHC.ST (ST(..), runST)
 
