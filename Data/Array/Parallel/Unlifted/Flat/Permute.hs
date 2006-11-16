@@ -59,7 +59,7 @@ permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 --
 bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE bpermuteU #-}
-bpermuteU a = mapU (a!:)
+bpermuteU !a = mapU (a!:)
 
 -- |Default back permute
 --
