@@ -18,7 +18,7 @@ module Data.Array.Parallel.Unlifted.Flat.Stream (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, ST)
+  (:*:)(..), fstS, sndS, ST, Rebox(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..), mapS, zipWithS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
@@ -48,13 +48,13 @@ unstreamMU :: UA a => MUArr a s -> Stream a -> ST s Int
 {-# INLINE unstreamMU #-}
 unstreamMU marr (Stream next s n) = fill s 0
   where
-    fill s i = i `seq`
+    fill s i = s `seq` i `seq`
                case next s of
                  Done       -> return i
-                 Skip s'    -> fill s' i
+                 Skip s'    -> fill (rebox s') i
                  Yield x s' -> do
                                  writeMU marr i x
-                                 fill s' (i+1)
+                                 fill (rebox s') (i+1)
 
 -- | Fusion rules
 -- --------------
