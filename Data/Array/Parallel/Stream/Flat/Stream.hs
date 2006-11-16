@@ -17,6 +17,9 @@ module Data.Array.Parallel.Stream.Flat.Stream (
   Step(..), Stream(..)
 ) where
 
+import Data.Array.Parallel.Base (
+  Rebox)
+
 data Step s a = Done
               | Skip     !s
               | Yield !a !s
@@ -26,5 +29,5 @@ instance Functor (Step s) where
   fmap f (Skip s)    = Skip s
   fmap f (Yield x s) = Yield (f x) s
 
-data Stream a = forall s. Stream (s -> Step s a) !s Int
+data Stream a = forall s. Rebox s => Stream (s -> Step s a) !s Int
 

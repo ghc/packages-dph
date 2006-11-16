@@ -19,7 +19,7 @@ module Data.Array.Parallel.Stream.Flat.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..) )
+  (:*:)(..), MaybeS(..), Box(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
 -- | Empty stream
@@ -53,9 +53,9 @@ replicateEachS n (Stream next s _) =
       case next s of
         Done -> Done
         Skip s' -> Skip (0 :*: NothingS :*: s')
-        Yield (k :*: x) s' -> Skip (k :*: JustS x :*: s')
-    next' (k :*: JustS x :*: s) =
-      Yield x (k-1 :*: JustS x :*: s)
+        Yield (k :*: x) s' -> Skip (k :*: JustS (Box x) :*: s')
+    next' (k :*: JustS (Box x) :*: s) =
+      Yield x (k-1 :*: JustS (Box x) :*: s)
 
 -- | Concatenation
 --
@@ -82,11 +82,11 @@ Stream next1 s m +++ Stream next2 t n = Stream next (True :*: s :*: t) (m+n)
 --
 toStream :: [a] -> Stream a
 {-# INLINE [1] toStream #-}
-toStream xs = Stream gen xs (length xs)
+toStream xs = Stream gen (Box xs) (length xs)
   where
     {-# INLINE gen #-}
-    gen []     = Done
-    gen (x:xs) = Yield x xs
+    gen (Box [])     = Done
+    gen (Box (x:xs)) = Yield x (Box xs)
 
 -- | Generate a list from a 'Stream'
 --

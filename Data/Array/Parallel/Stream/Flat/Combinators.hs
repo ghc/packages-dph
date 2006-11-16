@@ -19,7 +19,7 @@ module Data.Array.Parallel.Stream.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..))
+  (:*:)(..), MaybeS(..), Rebox(..), Box(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
 -- | Mapping
@@ -55,8 +55,8 @@ foldS f z (Stream next s _) = fold z s
   where
     fold z s = case next s of
                  Done       -> z
-                 Skip    s' -> fold z s'
-                 Yield x s' -> fold (f z x) s'
+                 Skip    s' -> fold z (rebox s')
+                 Yield x s' -> fold (f z x) (rebox s')
 
 fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
 {-# INLINE [1] fold1MaybeS #-}
@@ -64,35 +64,35 @@ fold1MaybeS f (Stream next s _) = fold0 s
   where
     fold0 s   = case next s of
                   Done       -> NothingS
-                  Skip    s' -> fold0 s'
-                  Yield x s' -> fold1 x s'
+                  Skip    s' -> fold0 (rebox s')
+                  Yield x s' -> fold1 x (rebox s')
     fold1 z s = case next s of
                   Done       -> JustS z
-                  Skip    s' -> fold1 z s'
-                  Yield x s' -> fold1 (f z x) s'
+                  Skip    s' -> fold1 z (rebox s')
+                  Yield x s' -> fold1 (f z x) (rebox s')
 
 -- | Scanning
 --
 scanS :: (b -> a -> b) -> b -> Stream a -> Stream b
 {-# INLINE [1] scanS #-}
-scanS f z (Stream next s n) = Stream next' (z :*: s) n
+scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
   where
     {-# INLINE next' #-}
-    next' (z :*: s) = case next s of
+    next' (Box z :*: s) = case next s of
                         Done -> Done
-                        Skip s' -> Skip (z :*: s')
-                        Yield x s'  -> Yield z (f z x :*: s')
+                        Skip s' -> Skip (Box z :*: s')
+                        Yield x s'  -> Yield z (Box (f z x) :*: s')
 
 mapAccumS :: (acc -> a -> acc :*: b) -> acc -> Stream a -> Stream b
 {-# INLINE [1] mapAccumS #-}
-mapAccumS f acc (Stream step s n) = Stream step' (s :*: acc) n
+mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
   where
-    step' (s :*: acc) = case step s of
+    step' (s :*: Box acc) = case step s of
                           Done -> Done
-                          Skip s' -> Skip (s' :*: acc)
+                          Skip s' -> Skip (s' :*: Box acc)
                           Yield x s' -> let acc' :*: y = f acc x
                                         in
-                                        Yield y (s' :*: acc')
+                                        Yield y (s' :*: Box acc')
 
 -- | Zipping
 --
