@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Segmented (
   streamSU, unstreamSU,
 
   -- * Segmentation
-  concatSU, flattenSU, (>:), segmentU,
+  concatSU, flattenSU, (>:), segmentU, segdSU,
 
   -- * Basic operations
   lengthSU, replicateSU, sliceIndexSU, extractIndexSU,
@@ -33,10 +33,14 @@ module Data.Array.Parallel.Unlifted.Segmented (
   -- * Subarrays
   sliceSU, extractSU,
 
+  -- * Zipping
+  fstSU, sndSU, zipSU,
+
   -- * Permutations
-  bpermuteSU,
+  bpermuteSU, bpermuteSU',
 
   -- * Higher-order operations
+  mapSU, zipWithSU,
   {-concatMapU,-}
   foldlSU, foldSU,
   {-fold1SU,-}

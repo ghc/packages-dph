@@ -17,6 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.Combinators (
+  mapSU, zipWithSU,
   foldlSU, foldSU, {-fold1SU,-} {-scanSU,-} {-scan1SU,-}
 ) where
 
@@ -25,12 +26,25 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Stream (
   Stream, SStream, mapS, foldValuesSS)
 import Data.Array.Parallel.Unlifted.Flat (
-  UA, UArr,
+  UA, UArr, mapU, zipWithU,
   unstreamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr)
+  SUArr, segdSU, (>:))
+import Data.Array.Parallel.Unlifted.Segmented.Basics (
+  concatSU)
 import Data.Array.Parallel.Unlifted.Segmented.Stream (
   streamSU)
+
+import Debug.Trace
+
+mapSU :: (UA a, UA b) => (a -> b) -> SUArr a -> SUArr b
+{-# INLINE mapSU #-}
+mapSU f sa = segdSU sa >: mapU f (concatSU sa)
+
+zipWithSU :: (UA a, UA b, UA c)
+          => (a -> b -> c) -> SUArr a -> SUArr b -> SUArr c
+{-# INLINE zipWithSU #-}
+zipWithSU f sa sb = segdSU sa >: zipWithU f (concatSU sa) (concatSU sb)
 
 -- |Segmented array reduction proceeding from the left
 --

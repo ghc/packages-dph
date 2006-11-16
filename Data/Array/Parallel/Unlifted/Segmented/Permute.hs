@@ -17,13 +17,19 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.Permute (
-  bpermuteSU
+  bpermuteSU, bpermuteSU'
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat (
-  UA)
+  UA, UArr, bpermuteU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr)
+  SUArr, segdSU, (>:))
+import Data.Array.Parallel.Unlifted.Segmented.Basics (
+  concatSU)
+
+bpermuteSU' :: UA e => UArr e -> SUArr Int -> SUArr e
+{-# INLINE bpermuteSU' #-}
+bpermuteSU' es is = segdSU is >: bpermuteU es (concatSU is)
 
 -- |Segmented back permute
 --

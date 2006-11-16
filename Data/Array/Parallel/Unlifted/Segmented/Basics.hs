@@ -20,6 +20,7 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
   lengthSU, replicateSU,
   flattenSU, (>:), segmentU, concatSU,
   sliceIndexSU, extractIndexSU,
+  fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
   toSU, fromSU
 ) where
@@ -32,7 +33,7 @@ import Data.Array.Parallel.Stream (
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
   (!:), sliceU, extractU,
-  mapU, zipU, zipWith3U, sumU,
+  mapU, fstU, sndU, zipU, zipWith3U, sumU,
   toU, fromU,
   streamU, unstreamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
@@ -84,6 +85,20 @@ sliceIndexSU = indexSU sliceU
 extractIndexSU :: UA e => SUArr e -> Int -> UArr e
 extractIndexSU = indexSU extractU
 
+-- |Zipping
+-- --------
+
+fstSU :: (UA a, UA b) => SUArr (a :*: b) -> SUArr a
+{-# INLINE fstSU #-}
+fstSU sa = segdSU sa >: fstU (concatSU sa)
+
+sndSU :: (UA a, UA b) => SUArr (a :*: b) -> SUArr b
+{-# INLINE sndSU #-}
+sndSU sa = segdSU sa >: sndU (concatSU sa)
+
+zipSU :: (UA a, UA b) => SUArr a -> SUArr b -> SUArr (a :*: b)
+{-# INLINE zipSU #-}
+zipSU sa sb = segdSU sa >: zipU (concatSU sa) (concatSU sb)
 
 -- |Enumeration functions
 -- ----------------------
