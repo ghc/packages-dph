@@ -60,6 +60,7 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Parallel.Sums
         Data.Array.Parallel.Unlifted.Parallel.Permute
         Data.Array.Parallel.Unlifted.Parallel.Enum
+        Data.Array.Parallel.Unlifted.Parallel.Segmented
 
 
 import-dirs:	IMPORT_DIR
