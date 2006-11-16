@@ -96,10 +96,25 @@ mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
 
 -- | Zipping
 --
+-- FIXME: The definition below duplicates work if the second stream produces
+-- Skips. Unfortunately, GHC tends to introduce join points which break
+-- SpecConstr with the correct definition.
 zipWithS :: (a -> b -> c) -> Stream a -> Stream b -> Stream c
 {-# INLINE [1] zipWithS #-}
 zipWithS f (Stream next1 s m) (Stream next2 t n) =
-  Stream next (NothingS :*: s :*: t) m
+  Stream next (s :*: t) m
+  where
+    {-# INLINE next #-}
+    next (s :*: t) =
+      case next1 s of
+        Done -> Done
+        Skip s' -> Skip (s' :*: t)
+        Yield x s' -> case next2 t of
+                        Done -> Done
+                        Skip t' -> Skip (s :*: t')
+                        Yield y t' -> Yield (f x y) (s' :*: t')
+
+{-  Stream next (NothingS :*: s :*: t) m
   where
     {-# INLINE next #-}
     next (NothingS :*: s :*: t) =
@@ -118,6 +133,7 @@ zipWithS f (Stream next1 s m) (Stream next2 t n) =
         Done       -> Done
         Skip t'    -> Skip (JustS (Box x) :*: s :*: t')
         Yield y t' -> Yield (f x y) (NothingS :*: s :*: t')
+-}
 
 zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
 {-# INLINE [1] zipWith3S #-}
