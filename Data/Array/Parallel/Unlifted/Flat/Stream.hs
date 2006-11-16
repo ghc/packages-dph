@@ -52,18 +52,9 @@ unstreamMU marr (Stream next s n) = fill s 0
                case next s of
                  Done       -> return i
                  Skip s'    -> fill (rebox s') i
-
-                 -- The following INLINE is necessary to work around the join
-                 -- point problem. In complex pipelines, where a Yield is
-                 -- produced if one of several conditions applies, GHC will
-                 -- create a join point for the alternative. The join point 
-                 -- *must* be inlined; otherwise, SpecConstr won't work. The
-                 -- INLINE ensures this (hopefully).
-                 Yield x s' -> let {-# INLINE p #-}
-                                   p = do
-                                     writeMU marr i x
-                                     fill (rebox s') (i+1)
-                               in p
+                 Yield x s' -> do
+                                 writeMU marr i x
+                                 fill (rebox s') (i+1)
 
 -- | Fusion rules
 -- --------------
