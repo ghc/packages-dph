@@ -19,7 +19,7 @@ VERSION = 1.0
 
 SRC_HC_OPTS += -fglasgow-exts -fbang-patterns -O2 -funbox-strict-fields\
 	       -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing\
-               -threaded
+               -threaded -fno-cse
 
 PACKAGE_DEPS = base
 SRC_HADDOCK_OPTS += -t "Haskell Hierarchical Libraries (ndp package)"
