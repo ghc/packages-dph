@@ -10,7 +10,7 @@
 # ---------------------
 
 # Location of inplace GHC
-GHC = ../../../../../../compiler/stage2/ghc-inplace
+GHC = ../../../../../../compiler/ghc-inplace
 
 # Location of NDP lib (to trigger rebuilds)
 LIB = ../../../../libHSndp.a
@@ -19,7 +19,7 @@ LIB = ../../../../libHSndp.a
 #
 HC      = $(GHC)
 HCFLAGS = -package ndp\
-          -fglasgow-exts -O2 -funbox-strict-fields\
+          -fglasgow-exts -O2 -funbox-strict-fields -fno-cse -fdicts-cheap\
 	  -fliberate-case-threshold100 -fno-method-sharing -threaded\
           $(FLAGS)
 #	  -fno-cse
