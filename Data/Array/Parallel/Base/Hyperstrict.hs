@@ -26,6 +26,9 @@ module Data.Array.Parallel.Base.Hyperstrict (
   -- * Strict Maybe
   MaybeS(..), maybeS, fromMaybeS,
 
+  -- * Lazy wrapper
+  Lazy(..),
+
   -- * Class of hyperstrict types
   HS
 ) where
@@ -76,6 +79,11 @@ maybeS b f NothingS  = b
 fromMaybeS :: a -> MaybeS a -> a
 fromMaybeS x (JustS y) = y
 fromMaybeS x NothingS  = x
+
+data Lazy a = Lazy a deriving(Eq, Ord, Show, Read)
+
+instance Functor Lazy where
+  fmap f (Lazy x) = Lazy (f x)
 
 -- | The class of hyperstrict types. These are those types for which weak
 -- head-normal form and normal form are the same.

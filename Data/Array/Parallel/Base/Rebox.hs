@@ -46,3 +46,7 @@ instance Rebox (Box a) where
   {-# INLINE [0] rebox #-}
   rebox (Box a) = Box a
 
+instance Rebox (Lazy a) where
+  {-# INLINE [0] rebox #-}
+  rebox (Lazy a) = Lazy a
+
