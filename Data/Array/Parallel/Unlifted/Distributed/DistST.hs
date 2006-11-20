@@ -30,7 +30,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT(..), Dist, MDist)
 
-import Monad (liftM)
+import Control.Monad (liftM)
 
 -- | Data-parallel computations.
 newtype DistST s a = DistST { unDistST :: Int -> ST s a }

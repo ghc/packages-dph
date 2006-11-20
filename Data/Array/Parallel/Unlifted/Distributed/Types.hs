@@ -37,7 +37,7 @@ import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Unlifted.Segmented
 import Data.Array.Parallel.Base
 
-import Monad (liftM, liftM2)
+import Control.Monad (liftM, liftM2)
 
 infixl 9 `indexD`
 

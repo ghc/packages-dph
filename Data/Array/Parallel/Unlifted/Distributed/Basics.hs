@@ -26,7 +26,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Combinators (
 import Data.Array.Parallel.Unlifted.Distributed.Scalars (
   andD, orD)
 
-import Monad ( zipWithM_ )
+import Control.Monad ( zipWithM_ )
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Basics." ++ s
 

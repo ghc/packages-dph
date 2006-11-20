@@ -39,7 +39,7 @@ import Data.Array.Parallel.Unlifted.Flat (
   newMU, unsafeFreezeMU)
 import Data.Array.Parallel.Unlifted.Segmented.USegd
 
-import Monad (
+import Control.Monad (
   liftM2)
 
 infixr 9 >:

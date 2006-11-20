@@ -57,7 +57,7 @@ module Data.Array.Parallel.Arr.BBArr (
 ) where
 
 -- standard library
-import Monad (liftM)
+import Control.Monad (liftM)
 
 -- GHC-internal definitions
 import GHC.Prim           (unsafeFreezeArray#)

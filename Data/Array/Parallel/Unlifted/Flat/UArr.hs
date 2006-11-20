@@ -41,7 +41,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
 ) where
 
 -- standard libraries
-import Monad (liftM, liftM2)
+import Control.Monad (liftM, liftM2)
 
 -- friends
 import Data.Array.Parallel.Base
