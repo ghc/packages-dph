@@ -33,7 +33,10 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
   -- * Basic operations on parallel arrays
   lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU, fstU, sndU,
   newU, newDynU,
-  lengthMU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU, unsafeFreezeAllMU
+  lengthMU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU, unsafeFreezeAllMU,
+
+  -- * I/O
+  UIO(..)
 
 ) where
 

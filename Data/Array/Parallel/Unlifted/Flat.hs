@@ -72,6 +72,9 @@ module Data.Array.Parallel.Unlifted.Flat (
   -- * Random arrays
   randomU, randomRU,
 
+  -- * I/O
+  UIO(..),
+
   -- * Operations on mutable arrays
   newU, lengthMU, newMU, readMU, writeMU, unsafeFreezeMU, unsafeFreezeAllMU,
   copyMU, permuteMU, updateMU, unstreamMU,
@@ -81,7 +84,7 @@ module Data.Array.Parallel.Unlifted.Flat (
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr, MUArr,
+  UA, UArr, MUArr, UIO(..),
   newU, lengthMU, newMU, readMU, writeMU, copyMU,
   unsafeFreezeMU, unsafeFreezeAllMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream
