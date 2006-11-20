@@ -21,11 +21,14 @@ module Data.Array.Parallel.Stream.Flat (
   toStream, fromStream,
 
   mapS, filterS, foldS, fold1MaybeS, scanS, mapAccumS,
-  zipWithS, zipWith3S, zipS
+  zipWithS, zipWith3S, zipS,
+
+  randomS, randomRS
 ) where
 
 import Data.Array.Parallel.Stream.Flat.Stream
 import Data.Array.Parallel.Stream.Flat.Basics
 import Data.Array.Parallel.Stream.Flat.Combinators
 import Data.Array.Parallel.Stream.Flat.Enum
+import Data.Array.Parallel.Stream.Flat.Random
 
