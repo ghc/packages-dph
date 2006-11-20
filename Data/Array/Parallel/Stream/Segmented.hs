@@ -19,7 +19,7 @@ module Data.Array.Parallel.Stream.Segmented (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), Box(..))
+  (:*:)(..), Box(..), MaybeS(..))
 import Data.Array.Parallel.Stream.Flat (
   Step(..), Stream(..))
 
@@ -34,22 +34,23 @@ segmentS = SStream
 foldValuesSS :: (a -> b -> a) -> a -> SStream b -> Stream a
 {-# INLINE [1] foldValuesSS #-}
 foldValuesSS f z (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
-  Stream next (0 :*: Box z :*: ss :*: vs) ns
+  Stream next (NothingS :*: Box z :*: ss :*: vs) ns
   where
     {-# INLINE next #-}
-    next (0 :*: Box x :*: ss :*: vs) =
+    next (NothingS :*: Box x :*: ss :*: vs) =
       case nexts ss of
         Done        -> Done
-        Skip    ss' -> Skip (0 :*: Box x :*: ss' :*: vs)
-        Yield n ss' | n == 0    -> Yield z (0 :*: Box z :*: ss' :*: vs)
-                    | otherwise -> Skip (n :*: Box z :*: ss' :*: vs)
-    next (n :*: Box x :*: ss :*: vs) =
+        Skip    ss' -> Skip (NothingS :*: Box x :*: ss' :*: vs)
+        Yield n ss' -> Skip (JustS n  :*: Box z :*: ss' :*: vs)
+
+    next (JustS 0 :*: Box x :*: ss :*: vs) =
+      Yield x (NothingS :*: Box z :*: ss :*: vs)
+    next (JustS n :*: Box x :*: ss :*: vs) =
       case nextv vs of
-        Done         -> Done
-                        -- FIXME
-                        -- error
-                        --  "Stream.Segmented.foldSS: invalid segment descriptor"
-        Skip    vs' -> Skip (n :*: Box x :*: ss :*: vs')
-        Yield y vs' | n == 1    -> Yield (f x y) (0 :*: Box z :*: ss :*: vs')
-                    | otherwise -> Skip ((n-1) :*: Box (f x y) :*: ss :*: vs')
+        Done        -> Done
+                       -- FIXME
+                       -- error
+                       --  "Stream.Segmented.foldSS: invalid segment descriptor"
+        Skip    vs' -> Skip (JustS n :*: Box x :*: ss :*: vs')
+        Yield y vs' -> Skip (JustS (n-1) :*: Box (f x y) :*: ss :*: vs')
 
