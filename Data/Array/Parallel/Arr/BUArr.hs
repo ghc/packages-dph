@@ -69,6 +69,9 @@ module Data.Array.Parallel.Arr.BUArr (
   -- * Conversions to/from lists
   toBU, fromBU,
 
+  -- * I/O
+  hPutBU, hGetBU
+
   -- * Re-exporting some of GHC's internals that higher-level modules need
 --  Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
 --  runST
@@ -77,8 +80,8 @@ module Data.Array.Parallel.Arr.BUArr (
 -- GHC-internal definitions
 import GHC.Prim (
   Char#, Int#, Float#, Double#,
-  ByteArray#, MutableByteArray#,
-  (*#), newByteArray#, unsafeFreezeArray#, unsafeCoerce#,
+  ByteArray#, MutableByteArray#, RealWorld,
+  (*#), newByteArray#, unsafeFreezeArray#, unsafeThawArray#, unsafeCoerce#,
   indexWideCharArray#, readWideCharArray#, writeWideCharArray#,
   indexIntArray#, readIntArray#, writeIntArray#,
   indexWord8Array#, readWord8Array#, writeWord8Array#,
@@ -90,6 +93,13 @@ import GHC.Float (
   Float(..), Double(..))
 import Data.Array.Base (
   wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE)
+
+import System.IO
+import Foreign
+import Foreign.C   (CSize)
+
+import GHC.Handle
+import GHC.IOBase
 
 -- NDP library
 import Data.Array.Parallel.Base
@@ -527,4 +537,68 @@ fromBU a = map (a `indexBU`) [0 .. lengthBU a - 1]
 --
 cHAR_SCALE :: Int# -> Int#
 cHAR_SCALE n# = 4# *# n#
+
+
+-- IO
+-- --
+
+hGetBU :: forall e. UAE e => Handle -> IO (BUArr e)
+hGetBU h =
+  alloca $ \iptr ->
+  do
+    hGetBuf h iptr (sizeOf (undefined :: Int))
+    n <- peek iptr
+    marr@(MBUArr _ marr#) <- stToIO (newMBU n)
+    let bytes = sizeBU n (undefined :: e)
+    wantReadableHandle "hGetBU" h $
+        \handle@Handle__{ haFD=fd, haBuffer=ref, haIsStream=is_stream } -> do
+      buf@Buffer { bufBuf = raw, bufWPtr = w, bufRPtr = r } <- readIORef ref
+      let copied    = bytes `min` (w - r)
+          remaining = bytes - copied
+          newr      = r + copied
+          newbuf | newr == w = buf{ bufRPtr = 0, bufWPtr = 0 }
+                 | otherwise = buf{ bufRPtr = newr }
+      memcpy_ba_baoff marr# raw r (fromIntegral copied)
+      writeIORef ref newbuf
+      readChunkBU fd is_stream marr# copied remaining
+      stToIO (unsafeFreezeAllMBU marr)
+
+readChunkBU :: FD -> Bool -> MutableByteArray# RealWorld -> Int -> Int -> IO ()
+readChunkBU fd is_stream marr# off bytes = loop off bytes
+  where
+    loop off bytes | bytes <= 0 = return ()
+    loop off bytes = do
+      r' <- readRawBuffer "readChunkBU" (fromIntegral fd) is_stream marr#
+                                        (fromIntegral off) (fromIntegral bytes)
+      let r = fromIntegral r'
+      if r == 0
+        then error "readChunkBU: can't read"
+        else loop (off + r) (bytes - r)
+
+hPutBU :: forall e. UAE e => Handle -> BUArr e -> IO ()
+hPutBU h arr@(BUArr i n arr#) =
+  alloca $ \iptr ->
+  do
+    poke iptr n
+    hPutBuf h iptr (sizeOf n)
+    wantWritableHandle "hPutBU" h $
+        \handle@Handle__{ haFD=fd, haBuffer=ref, haIsStream=stream } -> do
+      old_buf     <- readIORef ref
+      flushed_buf <- flushWriteBuffer fd stream old_buf
+      let this_buf = Buffer { bufBuf   = unsafeCoerce# arr#
+                            , bufState = WriteBuffer
+                            , bufRPtr  = off
+                            , bufWPtr  = off + size
+                            , bufSize  = size
+                            }
+      flushWriteBuffer fd stream this_buf
+      return ()
+  where
+    off  = sizeBU i (undefined :: e)
+    size = sizeBU n (undefined :: e)
+
+--foreign import ccall unsafe "__hscore_memcpy_dst_off"
+--   memcpy_baoff_ba :: RawBuffer -> Int -> RawBuffer -> CSize -> IO (Ptr ())
+foreign import ccall unsafe "__hscore_memcpy_src_off"
+   memcpy_ba_baoff :: RawBuffer -> RawBuffer -> Int -> CSize -> IO (Ptr ())
 
