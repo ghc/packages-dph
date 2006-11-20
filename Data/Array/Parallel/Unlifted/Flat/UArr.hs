@@ -44,8 +44,10 @@ import Monad (liftM, liftM2)
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Arr (
   BUArr, MBUArr, UAE,
-  lengthBU, indexBU, sliceBU,
+  lengthBU, indexBU, sliceBU, hGetBU, hPutBU,
   lengthMBU, newMBU, readMBU, writeMBU, copyMBU, unsafeFreezeMBU)
+
+import System.IO
 
 infixl 9 `indexU`, `readMU`
 
@@ -420,4 +422,28 @@ instance UA Double where
   writeMU        = primWriteMU
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
+
+-- * I/O
+-- -----
+
+class UA a => UIO a where
+  hPutU :: Handle -> UArr a -> IO ()
+  hGetU :: Handle -> IO (UArr a)
+
+instance UIO Int where
+  hPutU h (UAPrim mbu) = hPutBU h mbu
+  hGetU h              = do mbu <- hGetBU h
+                            return (UAPrim mbu)
+
+instance UIO Double where
+  hPutU h (UAPrim mbu) = hPutBU h mbu
+  hGetU h              = do mbu <- hGetBU h
+                            return (UAPrim mbu)
+
+instance (UIO a, UIO b) => UIO (a :*: b) where
+  hPutU h (UAProd xs ys) = do hPutU h xs
+                              hPutU h ys
+  hGetU h                = do xs <- hGetU h
+                              ys <- hGetU h
+                              return (UAProd xs ys)
 
