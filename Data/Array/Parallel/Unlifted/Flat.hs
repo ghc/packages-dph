@@ -69,6 +69,9 @@ module Data.Array.Parallel.Unlifted.Flat (
   -- * Conversions to/from lists
   toU, fromU,
 
+  -- * Random arrays
+  randomU, randomRU,
+
   -- * Operations on mutable arrays
   newU, lengthMU, newMU, readMU, writeMU, unsafeFreezeMU, unsafeFreezeAllMU,
   copyMU, permuteMU, updateMU, unstreamMU,
@@ -89,5 +92,5 @@ import Data.Array.Parallel.Unlifted.Flat.Combinators
 import Data.Array.Parallel.Unlifted.Flat.Sums
 import Data.Array.Parallel.Unlifted.Flat.Permute
 import Data.Array.Parallel.Unlifted.Flat.Text ()
-
+import Data.Array.Parallel.Unlifted.Flat.Random
 

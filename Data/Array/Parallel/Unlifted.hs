@@ -69,6 +69,9 @@ module Data.Array.Parallel.Unlifted (
   -- * Conversions to/from lists
   toU, fromU,
 
+  -- * Unlifted arrays
+  randomU, randomRU,
+
   -- * Segmentation
   concatSU, flattenSU, (>:), segmentU,
 
