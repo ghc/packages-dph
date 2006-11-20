@@ -51,7 +51,9 @@ unstreamMU marr (Stream next s n) = fill s 0
     fill s i = s `seq` i `seq`
                case next s of
                  Done       -> return i
-                 Skip s'    -> fill (rebox s') i
+                 Skip s'    -> let {-# INLINE p #-}
+                                   p = fill (rebox s') i
+                               in p
                  Yield x s' -> do
                                  writeMU marr i x
                                  fill (rebox s') (i+1)
