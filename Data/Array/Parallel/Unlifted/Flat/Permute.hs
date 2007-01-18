@@ -93,7 +93,7 @@ updateM marr (Stream next s _) = upd s
                                       upd s' 
 
 -- | Yield an array constructed by updating the first array by the
--- associations from the second array (which contains index/value pairs).
+-- associations from the second array (which contains index\/value pairs).
 --
 updateU :: UA e => UArr e -> UArr (Int :*: e) -> UArr e
 {-# INLINE updateU #-}

@@ -10,7 +10,7 @@
 --
 -- Description ---------------------------------------------------------------
 --
---  Read/Show instances for flat unlifted arrays.
+--  Read\/Show instances for flat unlifted arrays.
 --
 -- Todo ----------------------------------------------------------------------
 --

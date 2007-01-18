@@ -66,13 +66,13 @@ module Data.Array.Parallel.Unlifted.Flat (
   -- * Enumerations
   enumFromToU, enumFromThenToU, enumFromStepLenU,
 
-  -- * Conversions to/from lists
+  -- * Conversions to\/from lists
   toU, fromU,
 
   -- * Random arrays
   randomU, randomRU,
 
-  -- * I/O
+  -- * I\/O
   UIO(..),
 
   -- * Operations on mutable arrays

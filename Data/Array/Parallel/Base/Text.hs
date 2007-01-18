@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- Utilities for defining Read/Show instances.
+-- Utilities for defining Read\/Show instances.
 --
 -- ---------------------------------------------------------------------------
 

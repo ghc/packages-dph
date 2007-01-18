@@ -55,7 +55,7 @@ module Data.Array.Parallel.Unlifted.Segmented (
   -- * Enumerations
   enumFromToSU, enumFromThenToSU,
 
-  -- * Conversions to/from lists
+  -- * Conversions to\/from lists
   toSU, fromSU,
 
   -- * Segment descriptors

@@ -35,7 +35,7 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
   newU, newDynU,
   lengthMU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU, unsafeFreezeAllMU,
 
-  -- * I/O
+  -- * I\/O
   UIO(..)
 
 ) where
@@ -426,7 +426,7 @@ instance UA Double where
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
 
--- * I/O
+-- * I\/O
 -- -----
 
 class UA a => UIO a where

@@ -10,7 +10,7 @@
 --
 -- Description ---------------------------------------------------------------
 --
---  Read/Show instances for segmented unlifted arrays.
+--  Read\/Show instances for segmented unlifted arrays.
 --
 -- Todo ----------------------------------------------------------------------
 --

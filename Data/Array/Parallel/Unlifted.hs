@@ -66,13 +66,13 @@ module Data.Array.Parallel.Unlifted (
   -- * Enumerations
   enumFromToU, enumFromThenToU, enumFromStepLenU,
 
-  -- * Conversions to/from lists
+  -- * Conversions to\/from lists
   toU, fromU,
 
   -- * Unlifted arrays
   randomU, randomRU,
 
-  -- * I/O
+  -- * I\/O
   UIO(..),
 
   -- * Segmentation
@@ -105,7 +105,7 @@ module Data.Array.Parallel.Unlifted (
 
 --  lines, words, unlines, unwords,  -- is string processing really needed
 
-  -- * Conversions to/from lists (segmented)
+  -- * Conversions to\/from lists (segmented)
   toSU, fromSU,
 
   -- * Segment descriptors

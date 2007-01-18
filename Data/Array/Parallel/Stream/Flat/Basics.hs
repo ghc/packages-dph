@@ -75,7 +75,7 @@ Stream next1 s m +++ Stream next2 t n = Stream next (True :*: s :*: t) (m+n)
         Skip t'    -> Skip (False :*: s :*: t')
         Yield x t' -> Yield x (False :*: s :*: t')
 
--- | Conversion to/from lists
+-- | Conversion to\/from lists
 -- --------------------------
 
 -- | Convert a list to a 'Stream'

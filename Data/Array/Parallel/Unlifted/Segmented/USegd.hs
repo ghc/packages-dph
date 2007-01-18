@@ -81,13 +81,13 @@ indicesUSegd :: USegd -> UArr Int
 {-# INLINE indicesUSegd #-}
 indicesUSegd = sndU . unUSegd
 
--- |Convert a segment descriptor to an array of length/index pairs.
+-- |Convert a segment descriptor to an array of length\/index pairs.
 --
 fromUSegd :: USegd -> UArr (Int :*: Int)
 {-# INLINE fromUSegd #-}
 fromUSegd = unUSegd
 
--- |Convert an array of length/index pairs to a segment descriptor.
+-- |Convert an array of length\/index pairs to a segment descriptor.
 --
 toUSegd :: UArr (Int :*: Int) -> USegd
 {-# INLINE toUSegd #-}
@@ -99,13 +99,13 @@ lengthsToUSegd :: UArr Int -> USegd
 {-# INLINE lengthsToUSegd #-}
 lengthsToUSegd = USegd . segdFromLengthsU
 
--- |Convert a length array to an array of length/index pairs.
+-- |Convert a length array to an array of length\/index pairs.
 --
 segdFromLengthsU :: UArr Int -> UArr (Int :*: Int)
 {-# INLINE [1] segdFromLengthsU #-}
 segdFromLengthsU lens = zipU lens (scanlU (+) 0 lens)
 
--- |Convert a length array to an array of length/index pairs - fusible
+-- |Convert a length array to an array of length\/index pairs - fusible
 -- version.
 --
 segdFromLengthsU' :: UArr Int -> UArr (Int :*: Int)

@@ -66,10 +66,10 @@ module Data.Array.Parallel.Arr.BUArr (
   -- * Arithmetic operations
   sumBU,
 
-  -- * Conversions to/from lists
+  -- * Conversions to\/from lists
   toBU, fromBU,
 
-  -- * I/O
+  -- * I\/O
   hPutBU, hGetBU
 
   -- * Re-exporting some of GHC's internals that higher-level modules need
