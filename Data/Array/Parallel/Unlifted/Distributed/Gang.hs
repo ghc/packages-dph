@@ -65,9 +65,9 @@ execReq i (p, s) = p i >> putMVar s ()
 -- | A 'Gang' is a either group of threads which execute arbitrary work
 -- requests. A /sequential/ 'Gang' simulates such a group by executing work
 -- requests sequentially.
-data Gang = Gang !Int          -- | Number of 'Gang' threads.
-                 [MVar Req]    -- | An 'MVar' per thread; empty for sequential
-                               --   'Gang's.
+data Gang = Gang !Int [MVar Req] -- ^ The number of 'Gang' threads, and an 
+                                 -- 'MVar' per thread; empty for sequential 
+                                 -- 'Gang's.
 -- To get the gang to do work, write Req-uest values to its MVars
 
 -- | The worker thread of a 'Gang'.
