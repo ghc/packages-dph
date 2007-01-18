@@ -82,12 +82,14 @@ data Dist a where
 	-- (redundantly because the UArrs also contain their sizes)
   DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
 
-  DUSegd :: -- | Local segment descriptors
+  -- NOTE: comments here were de-haddockized by Waern, because 
+  -- GADTS currently can't be documented
+  DUSegd :: -- Local segment descriptors
             !(Dist (UArr (Int :*: Int)))
-            -- | Indicates whether the first local segment is
+            -- Indicates whether the first local segment is
             -- split across two processors.
             -- -> !(Dist Bool)                
-                                             -> Dist USegd
+            -> Dist USegd
 
   DSUArr :: !(Dist USegd) -> !(Dist (UArr a)) -> Dist (SUArr a)
 
