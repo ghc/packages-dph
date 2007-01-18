@@ -35,7 +35,7 @@
 -- availability of infinite parallel arrays: `iterate', `repeat', and `cycle'.
 -- 
 
--- *** !!!FIXME: THIS IS CURRENTLY ONLY A STUB FILE **
+--  ++++ !!!FIXME: THIS IS CURRENTLY ONLY A STUB FILE ++++
 
 {- 		Comments about library structure
 
