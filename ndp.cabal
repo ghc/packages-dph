@@ -11,6 +11,59 @@ exposed-modules:
 	Data.Array.Parallel.Unlifted
         Data.Array.Parallel.Unlifted.Distributed
         Data.Array.Parallel.Unlifted.Parallel
+other-modules:
+	Data.Array.Parallel.Base.Config
+	Data.Array.Parallel.Base.Debug
+	Data.Array.Parallel.Base.Hyperstrict
+        Data.Array.Parallel.Base.Text
+        Data.Array.Parallel.Base.Rebox
+        Data.Array.Parallel.Base
+        Data.Array.Parallel.Stream.Flat.Stream
+        Data.Array.Parallel.Stream.Flat.Basics
+        Data.Array.Parallel.Stream.Flat.Combinators
+        Data.Array.Parallel.Stream.Flat.Enum
+        Data.Array.Parallel.Stream.Flat.Random
+        Data.Array.Parallel.Stream.Flat
+        Data.Array.Parallel.Stream.Segmented
+        Data.Array.Parallel.Stream
+	Data.Array.Parallel.Arr.BUArr
+	Data.Array.Parallel.Arr.BBArr
+        Data.Array.Parallel.Arr
+        Data.Array.Parallel.Unlifted.Distributed.Gang
+        Data.Array.Parallel.Unlifted.Distributed.TheGang
+        Data.Array.Parallel.Unlifted.Distributed.DistST
+	Data.Array.Parallel.Unlifted.Distributed.Types
+        Data.Array.Parallel.Unlifted.Distributed.Combinators
+        Data.Array.Parallel.Unlifted.Distributed.Scalars
+        Data.Array.Parallel.Unlifted.Distributed.Arrays
+        Data.Array.Parallel.Unlifted.Distributed.Basics
+        Data.Array.Parallel.Unlifted.Distributed.Operations
+	Data.Array.Parallel.Unlifted.Flat.UArr
+        Data.Array.Parallel.Unlifted.Flat.Stream
+        Data.Array.Parallel.Unlifted.Flat.Basics
+        Data.Array.Parallel.Unlifted.Flat.Enum
+        Data.Array.Parallel.Unlifted.Flat.Subarrays
+        Data.Array.Parallel.Unlifted.Flat.Combinators
+        Data.Array.Parallel.Unlifted.Flat.Sums
+        Data.Array.Parallel.Unlifted.Flat.Permute
+        Data.Array.Parallel.Unlifted.Flat.Text
+        Data.Array.Parallel.Unlifted.Flat.Random
+        Data.Array.Parallel.Unlifted.Flat
+        Data.Array.Parallel.Unlifted.Segmented.USegd
+	Data.Array.Parallel.Unlifted.Segmented.SUArr
+        Data.Array.Parallel.Unlifted.Segmented.Stream
+        Data.Array.Parallel.Unlifted.Segmented.Basics
+        Data.Array.Parallel.Unlifted.Segmented.Subarrays
+        Data.Array.Parallel.Unlifted.Segmented.Combinators
+        Data.Array.Parallel.Unlifted.Segmented.Sums
+        Data.Array.Parallel.Unlifted.Segmented.Permute
+        Data.Array.Parallel.Unlifted.Segmented.Text
+        Data.Array.Parallel.Unlifted.Segmented
+        Data.Array.Parallel.Unlifted.Parallel.Combinators
+        Data.Array.Parallel.Unlifted.Parallel.Sums
+        Data.Array.Parallel.Unlifted.Parallel.Permute
+        Data.Array.Parallel.Unlifted.Parallel.Enum
+        Data.Array.Parallel.Unlifted.Parallel.Segmented
 ghc-options: -fglasgow-exts -fbang-patterns -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing
              -threaded -fno-cse -haddock
