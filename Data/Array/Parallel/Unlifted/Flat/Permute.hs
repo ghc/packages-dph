@@ -70,9 +70,9 @@ bpermuteU !a = mapU (a!:)
 --   determined by the initialiser function for that index position.
 --
 bpermuteDftU :: UA e
-	     => Int			        -- |length of result array
-	     -> (Int -> e)		        -- |initialiser function
-	     -> UArr (Int :*: e)		-- |index-value pairs
+	     => Int			        -- ^ length of result array
+	     -> (Int -> e)		        -- ^ initialiser function
+	     -> UArr (Int :*: e)		-- ^ index-value pairs
 	     -> UArr e
 {-# INLINE bpermuteDftU #-}
 bpermuteDftU n init = updateU (mapU init . enumFromToU 0 $ n-1)
