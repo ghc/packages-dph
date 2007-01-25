@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Stream.Flat.Basics (
-  emptyS, consS, replicateS, replicateEachS, (+++),
+  emptyS, consS, replicateS, replicateEachS, (+++), indexedS,
   toStream, fromStream
 ) where
 
@@ -87,6 +87,21 @@ Stream next1 s m +++ Stream next2 t n = Stream next (True :*: s :*: t) (m+n)
         Done       -> Done
         Skip t'    -> Skip (False :*: s :*: t')
         Yield x t' -> Yield x (False :*: s :*: t')
+
+-- | Indexing
+-- ----------
+
+-- | Associate each element in the 'Stream' with its index
+--
+indexedS :: Stream a -> Stream (Int :*: a)
+{-# INLINE [1] indexedS #-}
+indexedS (Stream next s n) = Stream next' (0 :*: s) n
+  where
+    {-# INLINE next' #-}
+    next' (i :*: s) = case next s of
+                        Yield x s' -> Yield (i :*: x) ((i+1) :*: s')
+                        Skip    s' -> Skip            (i     :*: s')
+                        Done       -> Done
 
 -- | Conversion to\/from lists
 -- --------------------------

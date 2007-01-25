@@ -18,11 +18,14 @@
 
 module Data.Array.Parallel.Unlifted.Flat.Basics (
   lengthU, nullU, emptyU, consU, unitsU, replicateU, (!:), (+:+),
+  indexedU,
   toU, fromU
 ) where
 
+import Data.Array.Parallel.Base (
+  (:*:)(..))
 import Data.Array.Parallel.Stream (
-  consS, replicateS, (+++), toStream)
+  consS, replicateS, (+++), indexedS, toStream)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
@@ -67,6 +70,15 @@ replicateU n e = unstreamU (replicateS n e)
 (+:+) :: UA e => UArr e -> UArr e -> UArr e
 {-# INLINE (+:+) #-}
 a1 +:+ a2 = unstreamU (streamU a1 +++ streamU a2)
+
+-- |Indexing
+-- ---------
+
+-- |Associate each element of the array with its index
+--
+indexedU :: UA e => UArr e -> UArr (Int :*: e)
+{-# INLINE indexedU #-}
+indexedU = unstreamU . indexedS . streamU
 
 -- |Conversion
 -- -----------
