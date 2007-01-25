@@ -58,7 +58,9 @@ module Data.Array.Parallel.Unlifted (
   andU, orU, anyU, allU,
 
   -- * Arithmetic operations
-  sumU, productU, maximumU, minimumU,
+  sumU, productU,
+  maximumU, minimumU,
+  maximumByU, minimumByU,
 
   -- * Arrays of pairs
   zipU, zip3U, unzipU, unzip3U, fstU, sndU,

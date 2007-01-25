@@ -19,7 +19,8 @@
 module Data.Array.Parallel.Unlifted.Flat.Sums (
   andU, orU, anyU, allU,
   elemU, notElemU,
-  sumU, productU, maximumU, minimumU,
+  sumU, productU,
+  maximumU, minimumU, maximumByU, minimumByU,
 
   -- FIXME
   lengthU'
@@ -68,11 +69,31 @@ maximumU :: (Ord e, UA e) => UArr e -> e
 {-# INLINE maximumU #-}
 maximumU = fold1U max
 
+-- |Determine the maximum element in an array with the given ordering
+--
+maximumByU :: UA e => (e -> e -> Ordering) -> UArr e -> e
+{-# INLINE maximumByU #-}
+maximumByU = fold1U . maxBy
+  where
+    maxBy compare x y = case x `compare` y of
+                          LT -> y
+                          _  -> x
+
 -- |Determine the minimum element in an array
 --
 minimumU :: (Ord e, UA e) => UArr e -> e
 {-# INLINE minimumU #-}
 minimumU = fold1U min
+
+-- |Determine the minimum element in an array with the given ordering
+--
+minimumByU :: UA e => (e -> e -> Ordering) -> UArr e -> e
+{-# INLINE minimumByU #-}
+minimumByU = fold1U . minBy
+  where
+    minBy compare x y = case x `compare` y of
+                          GT -> y
+                          _  -> x
 
 -- |Determine whether the given element is in an array
 --
