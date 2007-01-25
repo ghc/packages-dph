@@ -17,12 +17,12 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Basics (
-  lengthU, nullU, emptyU, unitsU, replicateU, (!:), (+:+),
+  lengthU, nullU, emptyU, consU, unitsU, replicateU, (!:), (+:+),
   toU, fromU
 ) where
 
 import Data.Array.Parallel.Stream (
-  replicateS, (+++), toStream)
+  consS, replicateS, (+++), toStream)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
@@ -42,6 +42,12 @@ nullU  = (== 0) . lengthU
 --
 emptyU :: UA e => UArr e
 emptyU = newU 0 (const $ return ())
+
+-- |Prepend an element to an array
+--
+consU :: UA e => e -> UArr e -> UArr e
+{-# INLINE consU #-}
+consU x = unstreamU . consS x . streamU
 
 -- unitsU is reexported from Loop
 
