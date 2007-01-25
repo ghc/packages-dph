@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Stream.Flat.Basics (
-  emptyS, replicateS, replicateEachS, (+++),
+  emptyS, consS, replicateS, replicateEachS, (+++),
   toStream, fromStream
 ) where
 
@@ -26,6 +26,19 @@ import Data.Array.Parallel.Stream.Flat.Stream
 --
 emptyS :: Stream a
 emptyS = Stream (const Done) () 0
+
+-- | Construction
+--
+consS :: a -> Stream a -> Stream a
+{-# INLINE [1] consS #-}
+consS x (Stream next s n) = Stream next' (JustS (Box x) :*: s) (n+1)
+  where
+    {-# INLINE next' #-}
+    next' (JustS (Box x) :*: s) = Yield x (NothingS :*: s)
+    next' (NothingS      :*: s) = case next s of
+                                    Yield y s' -> Yield y (NothingS :*: s')
+                                    Skip    s' -> Skip    (NothingS :*: s')
+                                    Done       -> Done
 
 -- | Replication
 --
