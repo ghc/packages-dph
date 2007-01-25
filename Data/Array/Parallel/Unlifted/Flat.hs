@@ -61,6 +61,8 @@ module Data.Array.Parallel.Unlifted.Flat (
   sumU, productU,
   maximumU, minimumU,
   maximumByU, minimumByU,
+  maximumIndexU, minimumIndexU,
+  maximumIndexByU, minimumIndexByU,
 
   -- * Arrays of pairs
   zipU, zip3U, unzipU, unzip3U, fstU, sndU,

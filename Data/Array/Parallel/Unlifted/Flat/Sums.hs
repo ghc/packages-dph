@@ -21,13 +21,19 @@ module Data.Array.Parallel.Unlifted.Flat.Sums (
   elemU, notElemU,
   sumU, productU,
   maximumU, minimumU, maximumByU, minimumByU,
+  maximumIndexU, minimumIndexU,
+  maximumIndexByU, minimumIndexByU,
 
   -- FIXME
   lengthU'
 ) where
 
+import Data.Array.Parallel.Base (
+  (:*:)(..), fstS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr)
+import Data.Array.Parallel.Unlifted.Flat.Basics ( 
+  indexedU)
 import Data.Array.Parallel.Unlifted.Flat.Combinators (
   mapU, foldU, fold1U, foldlU)
 
@@ -69,7 +75,7 @@ maximumU :: (Ord e, UA e) => UArr e -> e
 {-# INLINE maximumU #-}
 maximumU = fold1U max
 
--- |Determine the maximum element in an array with the given ordering
+-- |Determine the maximum element in an array under the given ordering
 --
 maximumByU :: UA e => (e -> e -> Ordering) -> UArr e -> e
 {-# INLINE maximumByU #-}
@@ -79,13 +85,28 @@ maximumByU = fold1U . maxBy
                           LT -> y
                           _  -> x
 
+-- |Determine the index of the maximum element in an array
+--
+maximumIndexU :: (Ord e, UA e) => UArr e -> Int
+{-# INLINE maximumIndexU #-}
+maximumIndexU = maximumIndexByU compare
+
+-- |Determine the index of the maximum element in an array under the given
+-- ordering
+--
+maximumIndexByU :: UA e => (e -> e -> Ordering) -> UArr e -> Int
+{-# INLINE maximumIndexByU #-}
+maximumIndexByU cmp = fstS . maximumByU cmp' . indexedU
+  where
+    cmp' (_ :*: x) (_ :*: y) = cmp x y
+
 -- |Determine the minimum element in an array
 --
 minimumU :: (Ord e, UA e) => UArr e -> e
 {-# INLINE minimumU #-}
 minimumU = fold1U min
 
--- |Determine the minimum element in an array with the given ordering
+-- |Determine the minimum element in an array under the given ordering
 --
 minimumByU :: UA e => (e -> e -> Ordering) -> UArr e -> e
 {-# INLINE minimumByU #-}
@@ -94,6 +115,21 @@ minimumByU = fold1U . minBy
     minBy compare x y = case x `compare` y of
                           GT -> y
                           _  -> x
+
+-- |Determine the index of the minimum element in an array
+--
+minimumIndexU :: (Ord e, UA e) => UArr e -> Int
+{-# INLINE minimumIndexU #-}
+minimumIndexU = minimumIndexByU compare
+
+-- |Determine the index of the minimum element in an array under the given
+-- ordering
+--
+minimumIndexByU :: UA e => (e -> e -> Ordering) -> UArr e -> Int
+{-# INLINE minimumIndexByU #-}
+minimumIndexByU cmp = fstS . minimumByU cmp' . indexedU
+  where
+    cmp' (_ :*: x) (_ :*: y) = cmp x y
 
 -- |Determine whether the given element is in an array
 --
