@@ -41,10 +41,12 @@ infix  4 `elemU`, `notElemU`
 
 -- |
 andU :: UArr Bool -> Bool
+{-# INLINE andU #-}
 andU = foldU (&&) True
 
 -- |
 orU :: UArr Bool -> Bool
+{-# INLINE orU #-}
 orU = foldU (||) False
 
 -- |
