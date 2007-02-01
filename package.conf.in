@@ -46,6 +46,7 @@ hidden-modules:
         Data.Array.Parallel.Unlifted.Flat.Combinators
         Data.Array.Parallel.Unlifted.Flat.Sums
         Data.Array.Parallel.Unlifted.Flat.Permute
+        Data.Array.Parallel.Unlifted.Flat.Search
         Data.Array.Parallel.Unlifted.Flat.Text
         Data.Array.Parallel.Unlifted.Flat.Random
         Data.Array.Parallel.Unlifted.Flat

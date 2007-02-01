@@ -71,6 +71,9 @@ module Data.Array.Parallel.Unlifted (
   -- * Enumerations
   enumFromToU, enumFromThenToU, enumFromStepLenU,
 
+  -- * Searching
+  findU, findIndexU,
+
   -- * Conversions to\/from lists
   toU, fromU,
 
