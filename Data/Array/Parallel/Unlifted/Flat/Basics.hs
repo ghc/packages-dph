@@ -17,7 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Basics (
-  lengthU, nullU, emptyU, consU, unitsU, replicateU, (!:), (+:+),
+  lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, (!:), (+:+),
   indexedU,
   toU, fromU
 ) where
@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Flat.Basics (
 import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
-  consS, replicateS, (+++), indexedS, toStream)
+  consS, singletonS, replicateS, (+++), indexedS, toStream)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
@@ -45,6 +45,12 @@ nullU  = (== 0) . lengthU
 --
 emptyU :: UA e => UArr e
 emptyU = newU 0 (const $ return ())
+
+-- |Yield a singleton array
+--
+singletonU :: UA e => e -> UArr e
+{-# INLINE singletonU #-}
+singletonU = unstreamU . singletonS
 
 -- |Prepend an element to an array
 --

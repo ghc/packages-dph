@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Stream.Flat.Basics (
-  emptyS, consS, replicateS, replicateEachS, (+++), indexedS,
+  emptyS, singletonS, consS, replicateS, replicateEachS, (+++), indexedS,
   toStream, fromStream
 ) where
 
@@ -26,6 +26,16 @@ import Data.Array.Parallel.Stream.Flat.Stream
 --
 emptyS :: Stream a
 emptyS = Stream (const Done) () 0
+
+-- | Singleton stream
+--
+singletonS :: a -> Stream a
+{-# INLINE [1] singletonS #-}
+singletonS x = Stream next (JustS (Box x)) 1
+  where
+    {-# INLINE next #-}
+    next (JustS (Box x)) = Yield x NothingS
+    next NothingS        = Done
 
 -- | Construction
 --
