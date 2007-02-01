@@ -72,8 +72,8 @@ concatSU = flattenSU
 -- (either 'sliceU' or 'extractU').
 -- 
 indexSU :: UA e => (UArr e -> Int -> Int -> UArr e) -> SUArr e -> Int -> UArr e
-indexSU copy sa i = copy (concatSU sa) (lengthsSU sa !: i)
-                                       (indicesSU sa !: i)
+indexSU copy sa i = copy (concatSU sa) (indicesSU sa !: i)
+                                       (lengthsSU sa !: i)
 
 -- |Extract the segment at the given index without copying the elements.
 --
