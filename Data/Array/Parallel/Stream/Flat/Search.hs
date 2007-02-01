@@ -17,26 +17,25 @@ module Data.Array.Parallel.Stream.Flat.Search (
   findS, findIndexS
 ) where
 
-import Data.Array.Parallel.Base
 import Data.Array.Parallel.Stream.Flat.Stream
 
-findS :: (a -> Bool) -> Stream a -> MaybeS a
+findS :: (a -> Bool) -> Stream a -> Maybe a
 {-# INLINE [1] findS #-}
 findS p (Stream next s _) = go s
   where
     go s = case next s of
-             Yield x s' | p x       -> JustS x
+             Yield x s' | p x       -> Just x
                         | otherwise -> go s'
              Skip    s'             -> go s'
-             Done                   -> NothingS
+             Done                   -> Nothing
 
-findIndexS :: (a -> Bool) -> Stream a -> MaybeS Int
+findIndexS :: (a -> Bool) -> Stream a -> Maybe Int
 {-# INLINE [1] findIndexS #-}
 findIndexS p (Stream next s _) = go 0 s
   where
     go i s = case next s of
-               Yield x s' | p x       -> JustS i
+               Yield x s' | p x       -> Just i
                           | otherwise -> go (i+1) s'
                Skip    s'             -> go i     s'
-               Done                   -> NothingS
+               Done                   -> Nothing
 
