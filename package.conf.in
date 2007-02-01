@@ -21,6 +21,7 @@ hidden-modules:
         Data.Array.Parallel.Stream.Flat.Basics
         Data.Array.Parallel.Stream.Flat.Combinators
         Data.Array.Parallel.Stream.Flat.Enum
+        Data.Array.Parallel.Stream.Flat.Search
         Data.Array.Parallel.Stream.Flat.Random
         Data.Array.Parallel.Stream.Flat
         Data.Array.Parallel.Stream.Segmented
