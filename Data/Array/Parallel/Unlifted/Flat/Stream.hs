@@ -48,15 +48,14 @@ unstreamMU :: UA a => MUArr a s -> Stream a -> ST s Int
 {-# INLINE unstreamMU #-}
 unstreamMU marr (Stream next s n) = fill s 0
   where
-    fill s i = s `seq` i `seq`
+    fill s i = i `seq`
                case next s of
                  Done       -> return i
-                 Skip s'    -> let {-# INLINE p #-}
-                                   p = fill (rebox s') i
-                               in p
-                 Yield x s' -> do
+                 Skip s'    -> s' `dseq` fill s' i
+                 Yield x s' -> s' `dseq`
+                               do
                                  writeMU marr i x
-                                 fill (rebox s') (i+1)
+                                 fill s' (i+1)
 
 -- | Fusion rules
 -- --------------

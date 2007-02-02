@@ -55,8 +55,8 @@ foldS f z (Stream next s _) = fold z s
   where
     fold z s = case next s of
                  Done       -> z
-                 Skip    s' -> fold z (rebox s')
-                 Yield x s' -> fold (f z x) (rebox s')
+                 Skip    s' -> s' `dseq` fold z s'
+                 Yield x s' -> s' `dseq` fold (f z x) s'
 
 fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
 {-# INLINE [1] fold1MaybeS #-}
@@ -64,12 +64,12 @@ fold1MaybeS f (Stream next s _) = fold0 s
   where
     fold0 s   = case next s of
                   Done       -> NothingS
-                  Skip    s' -> fold0 (rebox s')
-                  Yield x s' -> fold1 x (rebox s')
+                  Skip    s' -> s' `dseq` fold0 s'
+                  Yield x s' -> s' `dseq` fold1 x s'
     fold1 z s = case next s of
                   Done       -> JustS z
-                  Skip    s' -> fold1 z (rebox s')
-                  Yield x s' -> fold1 (f z x) (rebox s')
+                  Skip    s' -> s' `dseq` fold1 z s'
+                  Yield x s' -> s' `dseq` fold1 (f z x) s'
 
 -- | Scanning
 --
