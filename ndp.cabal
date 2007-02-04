@@ -47,6 +47,7 @@ other-modules:
         Data.Array.Parallel.Unlifted.Flat.Permute
         Data.Array.Parallel.Unlifted.Flat.Text
         Data.Array.Parallel.Unlifted.Flat.Random
+        Data.Array.Parallel.Unlifted.Flat.Search
         Data.Array.Parallel.Unlifted.Flat
         Data.Array.Parallel.Unlifted.Segmented.USegd
 	Data.Array.Parallel.Unlifted.Segmented.SUArr
