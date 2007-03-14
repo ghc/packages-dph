@@ -21,12 +21,13 @@ module Data.Array.Parallel.Unlifted.Flat.Permute (
 ) where
 
 import Data.Array.Parallel.Base (
-  ST, (:*:)(..))
+  ST, runST, (:*:)(..), Rebox(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..))
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr,
-  lengthU, newU, newDynU, writeMU)
+  lengthU, newU, newDynU, newMU, unsafeFreezeAllMU, writeMU,
+  sliceU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamMU)
 import Data.Array.Parallel.Unlifted.Flat.Basics (
@@ -111,5 +112,29 @@ update s1@(Stream _ _ n) s2 = newDynU n (\marr ->
 -- |Reverse the order of elements in an array
 --
 reverseU :: UA e => UArr e -> UArr e
-reverseU a = mapU (a!:) . enumFromToU 0 $ lengthU a - 1
+{-# INLINE reverseU #-}
+--reverseU a = mapU (a!:) . enumFromToU 0 $ lengthU a - 1
+reverseU = rev . streamU
+
+rev :: UA e => Stream e -> UArr e
+{-# INLINE [1] rev #-}
+rev (Stream next s n) =
+  runST (do
+    marr <- newMU n
+    i <- fill marr
+    a <- unsafeFreezeAllMU marr
+    return $ sliceU a i (n-i)
+  )
+  where
+    fill marr = fill0 s n
+      where
+        fill0 s !i = case next s of
+                       Done       -> return i
+                       Skip    s' -> s' `dseq` fill0 s' i
+                       Yield x s' -> s' `dseq`
+                                     let i' = i-1
+                                     in
+                                     do
+                                       writeMU marr i' x
+                                       fill0 s' i'
 
