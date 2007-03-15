@@ -1,5 +1,6 @@
 TOP=..
 include $(TOP)/mk/boilerplate.mk
+include ndp.mk
 
 ALL_DIRS = \
 	Data/Array \
@@ -17,11 +18,11 @@ ALL_DIRS = \
 PACKAGE = ndp
 VERSION = 1.0
 
-SRC_HC_OPTS += -fglasgow-exts -fbang-patterns -O2 -funbox-strict-fields\
-	       -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing\
-               -threaded -fno-cse
-
 PACKAGE_DEPS = base
-SRC_HADDOCK_OPTS += -t "Haskell Hierarchical Libraries (ndp package)"
 
 include $(TOP)/mk/target.mk
+
+SRC_HC_OPTS += $(NDPFLAGS)
+
+SRC_HADDOCK_OPTS += -t "Haskell Hierarchical Libraries (ndp package)"
+
