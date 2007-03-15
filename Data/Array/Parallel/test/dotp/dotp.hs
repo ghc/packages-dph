@@ -1,21 +1,13 @@
-module Main 
-where
-
 import qualified DotPSeq
 import qualified DotPPar
 
--- standard library
-import Random
-import System
-
--- GHC libraries
 import Control.Exception (evaluate)
 import System.Console.GetOpt
+import System.Random
 
--- Parallel array support
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Unlifted.Distributed
---import BenchUtils
+
 import Bench.Benchmark
 import Bench.Options
 
@@ -32,7 +24,6 @@ generateVector n =
     rg <- newStdGen
     let fs  = take n $ randomRs (-100, 100) rg
 	vec = toU fs
---    evaluate $ sumU vec    -- make sure it is brought into NF
     evaluate vec
     return vec
 
