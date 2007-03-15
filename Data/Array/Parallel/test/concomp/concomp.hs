@@ -8,10 +8,7 @@ import qualified HybUP
 
 import System.Console.GetOpt
 import System.IO
-import System.Exit
-import System.Environment  (getArgs)
 import Control.Exception   (evaluate)
-import System.Mem          (performGC)
 
 import Bench.Benchmark
 import Bench.Options
