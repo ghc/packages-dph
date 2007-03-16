@@ -6,18 +6,12 @@
 
 #include <HsFFI.h>
 
-/*
-#define cols 40000
-#define rows 20000
-#define ratio 0.1
-*/
-
 HsInt cols;
 HsInt rows;
 double ratio;
 
-HsInt *lengths; /*[rows];*/
-HsInt *indices; /*[cols];*/
+HsInt *lengths;
+HsInt *indices;
 
 enum { FLOAT, DOUBLE } type;
 
@@ -122,13 +116,11 @@ int main( int argc, char *argv[] )
 {
   HsInt k, n;
 
-  int user_cols, user_rows;
-
   int file;
 
   HsDouble sum1,sum2;
 
-  if( argc < 4 )
+  if( argc < 6 )
   {
     fprintf( stderr, "Invalid arguments\n" );
     return 1;
@@ -143,22 +135,16 @@ int main( int argc, char *argv[] )
     fprintf( stderr, "Invalid type\n" );
     return 1;
   }
+
+  cols = atoi( argv[2] );
+  rows = atoi( argv[3] );
+  ratio = atof( argv[4] );
    
-
-  if( sscanf( argv[2], "%dx%d-%lf", &user_cols, &user_rows, &ratio ) != 3 )
-  {
-    fprintf( stderr, "Invalid specifier\n" );
-    return 1;
-  }
-
-  cols = user_cols;
-  rows = user_rows;
-
   lengths = (HsInt *)malloc( rows * sizeof(HsInt) );
   indices = (HsInt *)malloc( cols * sizeof(HsInt) );
  
 
-  file = open( argv[3], O_CREAT | O_WRONLY | O_TRUNC );
+  file = creat( argv[5], 0666 );
 
   k = rows;
   n = gen_lengths();
