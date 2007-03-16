@@ -2,17 +2,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include <HsFFI.h>
 
-#define cols 100
-#define rows 100
+/*
+#define cols 40000
+#define rows 20000
 #define ratio 0.1
+*/
 
-HsInt lengths[rows];
-HsInt indices[cols];
+HsInt cols;
+HsInt rows;
+double ratio;
 
-double gen_doubles( int file, HsInt n )
+HsInt *lengths; /*[rows];*/
+HsInt *indices; /*[cols];*/
+
+enum { FLOAT, DOUBLE } type;
+
+HsDouble gen_doubles( int file, HsInt n )
 {
   HsDouble d;
   HsDouble sum = 0;
@@ -34,6 +43,30 @@ double gen_doubles( int file, HsInt n )
   }
   return sum;
 }
+
+HsFloat gen_floats( int file, HsInt n )
+{
+  HsFloat d;
+  HsFloat sum = 0;
+
+  int a, b;
+
+  while( n != 0 )
+  {
+    a = random() % 1000;
+    b = random() % 1000;
+    if (a == 0 || b == 0)
+      d = 0.1;
+    else
+      d = ((HsFloat)a) / ((HsFloat)b);
+
+    write( file, &d, sizeof(HsFloat) );
+    sum += d;
+    --n;
+  }
+  return sum;
+}
+
 
 HsInt gen_lengths()
 {
@@ -88,11 +121,44 @@ void gen_indices( int file )
 int main( int argc, char *argv[] )
 {
   HsInt k, n;
+
+  int user_cols, user_rows;
+
   int file;
 
   HsDouble sum1,sum2;
 
-  file = open( argv[1], O_CREAT | O_WRONLY | O_TRUNC );
+  if( argc < 4 )
+  {
+    fprintf( stderr, "Invalid arguments\n" );
+    return 1;
+  }
+
+  if( !strcmp( argv[1], "float" ) )
+    type = FLOAT;
+  else if( !strcmp( argv[1], "double" ) )
+    type = DOUBLE;
+  else
+  {
+    fprintf( stderr, "Invalid type\n" );
+    return 1;
+  }
+   
+
+  if( sscanf( argv[2], "%dx%d-%lf", &user_cols, &user_rows, &ratio ) != 3 )
+  {
+    fprintf( stderr, "Invalid specifier\n" );
+    return 1;
+  }
+
+  cols = user_cols;
+  rows = user_rows;
+
+  lengths = (HsInt *)malloc( rows * sizeof(HsInt) );
+  indices = (HsInt *)malloc( cols * sizeof(HsInt) );
+ 
+
+  file = open( argv[3], O_CREAT | O_WRONLY | O_TRUNC );
 
   k = rows;
   n = gen_lengths();
@@ -101,12 +167,20 @@ int main( int argc, char *argv[] )
   write( file, &n, sizeof(n) );
   gen_indices( file );
   write( file, &n, sizeof(n) );
-  sum1 = gen_doubles(file, n);
+  if( type == DOUBLE )
+    sum1 = gen_doubles(file, n);
+  else
+    sum1 = (HsDouble)gen_floats(file, n);
   k = cols;
   write( file, &k, sizeof(k) );
-  sum2 = gen_doubles(file, cols);
+  if( type == DOUBLE )
+    sum2 = gen_doubles(file, cols);
+  else
+    sum2 = (HsDouble)gen_floats(file, n);
   close(file);
 
+  printf( "columns = %d; rows = %d; elements = %d (%d)\n", cols, rows, n,
+           (int)(type == FLOAT ? sizeof(HsFloat) : sizeof(HsDouble)) );
   printf( "%Lf %Lf\n", (long double)sum1, (long double)sum2 );
   return 0;
 }
