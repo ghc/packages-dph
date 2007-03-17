@@ -15,7 +15,7 @@ Writing NDP programs
 
 Import Data.Array.Parallel.Unlifted (sequential combinators) and/or
 Data.Array.Parallel.Unlifted.Parallel (parallel combinators). The subdirectory
-Data/Array/Parallel/test contains several examples.
+examples contains several NDP programs.
 
 Before invoking any parallel combinators you must initialise the gang threads,
 usually by calling

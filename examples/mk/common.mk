@@ -1,4 +1,4 @@
-NDPDIR = $(TESTDIR)/../../../..
+NDPDIR = $(TESTDIR)/..
 BENCHDIR = $(TESTDIR)/lib
 
 NDPLIB = $(NDPDIR)/libHSndp.a
