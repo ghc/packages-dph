@@ -47,3 +47,11 @@ are provided but you must really know what you are doing to get efficient
 code. A lot of combinators (especially for segmented arrays) are still
 missing.
 
+Haddock documentation
+---------------------
+
+Haddock doesn't support various language features used by the library at the
+moment and can't be used to generate documentation. In principle, haddock.ghc
+from http://darcs.haskell.org/SoC/haddock.ghc should be able to process the
+library but it doesn't work for me at the moment.
+
