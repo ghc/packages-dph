@@ -16,7 +16,7 @@ ALL_DIRS = \
 	Data/Array/Parallel/Unlifted/Parallel
 
 PACKAGE = ndp
-VERSION = 1.0
+VERSION = 0.1
 
 PACKAGE_DEPS = base
 
