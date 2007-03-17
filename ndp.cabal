@@ -1,7 +1,8 @@
 name:           ndp
-version:        1.0
+version:        0.1
 license:        BSD3
-author:         Manuel Chakravarty
+author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
+maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
 homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
 category:       Data Structures
 build-depends:  base
@@ -66,4 +67,5 @@ other-modules:
         Data.Array.Parallel.Unlifted.Parallel.Segmented
 ghc-options: -fglasgow-exts -fbang-patterns -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing
-             -threaded -fno-cse -haddock
+             -fmax-simplifier-iterations6 -threaded -haddock
+
