@@ -3,6 +3,13 @@ NDP library
 
 Home: http://www.cse.unsw.edu.au/~chak/project/dph/
 
+Which compiler to use
+---------------------
+
+The NDP library works ONLY with GHC. You really want to use HEAD, which
+includes many improvements to the simplifier which are crucial for good
+performance.
+
 Writing NDP programs
 --------------------
 
