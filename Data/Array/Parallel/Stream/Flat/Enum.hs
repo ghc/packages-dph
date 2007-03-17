@@ -2,7 +2,7 @@
 -- |
 -- Module      : Data.Array.Parallel.Stream.Flat.Enum
 -- Copyright   : (c) 2006 Roman Leshchinskiy
--- License     : see libraries/base/LICENSE
+-- License     : see libraries/ndp/LICENSE
 -- 
 -- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
 -- Stability   : internal

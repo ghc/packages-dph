@@ -1,10 +1,13 @@
--- |GHC-specific low-level support for strict boxed arrays
---
---  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---  Copyright (c) 2006	       Manuel M T Chakravarty & Roman Leshchinskiy
---
---  This file may be used, modified, and distributed under the same conditions
---  and the same warranty disclaimer as set out in the X11 license.
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Stream
+-- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
+--               (c) [2006..2007] Manuel M T Chakravarty & Roman Leshchinskiy
+-- License     : see libraries/ndp/LICENSE
+-- 
+-- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable
 --
 --- Description ---------------------------------------------------------------
 --

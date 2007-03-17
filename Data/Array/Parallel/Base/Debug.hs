@@ -1,14 +1,17 @@
--- |Debugging infrastructure for the parallel arrays library
---
---  Copyright (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---  Copyright (c) 2006	       Manuel M T Chakravarty
---
---  This file may be used, modified, and distributed under the same conditions
---  and the same warranty disclaimer as set out in the X11 license.
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Stream
+-- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
+--               (c) [2006..2007] Roman Leshchinskiy
+-- License     : see libraries/ndp/LICENSE
+-- 
+-- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : portable
 --
 --- Description ---------------------------------------------------------------
 --
---  Language: Haskell 98
+-- Debugging infrastructure for the parallel arrays library
 
 module Data.Array.Parallel.Base.Debug (
     check

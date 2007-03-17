@@ -2,7 +2,7 @@
 -- |
 -- Module      : Data.Array.Parallel.Unlifted.Flat.Text
 -- Copyright   : (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
--- License     : see libraries/base/LICENSE
+-- License     : see libraries/ndp/LICENSE
 -- 
 -- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
 -- Stability   : internal

@@ -1,3 +1,18 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Unlifted.Parallel.Segmented
+-- Copyright   : (c) [2006,2007]        Roman Leshchinskiy
+-- License     : see libraries/ndp/LICENSE
+-- 
+-- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (existentials)
+--
+-- Description ---------------------------------------------------------------
+--
+-- Parallel combinators for segmented unboxed arrays
+--
+
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP'
 ) where

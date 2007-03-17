@@ -1,3 +1,19 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      : Data.Array.Parallel.Base.Rebox
+-- Copyright   : (c) [2006,2007] Roman Leshchinskiy
+-- License     : see libraries/ndp/LICENSE
+-- 
+-- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
+-- Stability   : internal
+-- Portability : non-portable (existentials)
+--
+-- Description ---------------------------------------------------------------
+--
+-- Reboxing support for SpecConstr; should go away eventually.
+--
+
+
 module Data.Array.Parallel.Base.Rebox (
   Rebox(..), Box(..)
 ) where

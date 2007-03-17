@@ -3,10 +3,10 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Parallel
--- Copyright   :  (c) 2006 Manuel M T Chakravarty
--- License     :  see libraries/base/LICENSE
+-- Copyright   :  (c) [2006..2007] Manuel M T Chakravarty & Roman Leshchinskiy
+-- License     :  see libraries/ndp/LICENSE
 -- 
--- Maintainer  :  Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
