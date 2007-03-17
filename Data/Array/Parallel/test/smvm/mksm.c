@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <HsFFI.h>
 
@@ -112,43 +113,57 @@ void gen_indices( int file )
   }
 }
 
+int usage()
+{
+  puts( "mksm [float|double] COLS ROWS RATIO FILE" );
+  exit(1);
+}
+
 int main( int argc, char *argv[] )
 {
-  HsInt k, n;
+  HsInt n;
 
   int file;
+  int arg;
 
   HsDouble sum1,sum2;
 
-  if( argc < 6 )
-  {
-    fprintf( stderr, "Invalid arguments\n" );
-    return 1;
-  }
+  if( argc == 1 || argc < 5 )
+    usage();
 
-  if( !strcmp( argv[1], "float" ) )
-    type = FLOAT;
-  else if( !strcmp( argv[1], "double" ) )
+  if( isdigit( argv[1][0] ) )
+  {
+    arg = 1;
     type = DOUBLE;
+  }
   else
   {
-    fprintf( stderr, "Invalid type\n" );
-    return 1;
+    arg = 2;
+    if( !strcmp( argv[1], "float" ) )
+      type = FLOAT;
+    else if( !strcmp( argv[1], "double" ) )
+      type = DOUBLE;
+    else
+    {
+      fputs( "Invalid type\n", stderr );
+      usage();
+    }
   }
 
-  cols = atoi( argv[2] );
-  rows = atoi( argv[3] );
-  ratio = atof( argv[4] );
+  cols = atoi( argv[arg++] );
+  rows = atoi( argv[arg++] );
+  ratio = atof( argv[arg++] );
    
   lengths = (HsInt *)malloc( rows * sizeof(HsInt) );
   indices = (HsInt *)malloc( cols * sizeof(HsInt) );
  
+  if( arg >= argc )
+    usage();
 
-  file = creat( argv[5], 0666 );
+  file = creat( argv[arg], 0666 );
 
-  k = rows;
   n = gen_lengths();
-  write( file, &k, sizeof(k) );
+  write( file, &rows, sizeof(rows) );
   write( file, lengths, sizeof(HsInt) * rows );
   write( file, &n, sizeof(n) );
   gen_indices( file );
@@ -157,8 +172,7 @@ int main( int argc, char *argv[] )
     sum1 = gen_doubles(file, n);
   else
     sum1 = (HsDouble)gen_floats(file, n);
-  k = cols;
-  write( file, &k, sizeof(k) );
+  write( file, &cols, sizeof(cols) );
   if( type == DOUBLE )
     sum2 = gen_doubles(file, cols);
   else
