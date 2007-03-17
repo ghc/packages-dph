@@ -1,0 +1,13 @@
+Sieve of Eratosthenes
+=====================
+
+primes --help displays the available options.
+
+The following algorithms are supported:
+
+  h98   - implementation based on standard Haskell arrays
+  seq   - sequential implementation with UArrs
+
+No parallel implementation is available yet as the library is missing
+functionality.
+
