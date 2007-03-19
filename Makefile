@@ -15,6 +15,8 @@ ALL_DIRS = \
 	Data/Array/Parallel/Unlifted/Distributed \
 	Data/Array/Parallel/Unlifted/Parallel
 
+EXCLUDED_SRCS += Setup.hs
+
 PACKAGE = ndp
 VERSION = 0.1
 
