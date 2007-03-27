@@ -70,6 +70,15 @@ instance (Rebox a, Rebox b) => Rebox (a :*: b) where
   {-# INLINE [0] dseq #-}
   dseq (x :*: y) z = dseq x (dseq y z)
 
+instance (Rebox a, Rebox b) => Rebox (EitherS a b) where
+  {-# INLINE [0] rebox #-}
+  rebox (LeftS  x) = LeftS  (rebox x)
+  rebox (RightS y) = RightS (rebox y)
+
+  {-# INLINE [0] dseq #-}
+  dseq (LeftS  x) z = dseq x z
+  dseq (RightS y) z = dseq y z
+
 instance Rebox a => Rebox (MaybeS a) where
   {-# INLINE [0] rebox #-}
   rebox NothingS  = NothingS
