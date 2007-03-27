@@ -17,6 +17,7 @@ algs = [("pipe1", Algo (uncurry pipe1) (uarr >< uarr))
        ,("pipe2", Algo pipe2           uarr)
        ,("pipe3", Algo pipe3           uarr)
        ,("pipe4", Algo pipe4           suarr)
+       ,("pipe5", Algo pipe5           uarr)
        ]
 
 uarr :: (UA a, Random a) => Gen (UArr a)

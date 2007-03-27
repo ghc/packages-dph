@@ -18,3 +18,7 @@ pipe4 :: SUArr Int -> Int
 pipe4 = maximumU . sumSU
 {-# NOINLINE pipe4 #-}
 
+pipe5 :: UArr Int -> UArr Int
+{-# NOINLINE pipe5 #-}
+pipe5 xs = sumSU (replicateSU (replicateU (lengthU xs) 5) xs)
+
