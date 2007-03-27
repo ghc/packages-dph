@@ -19,7 +19,7 @@ module Data.Array.Parallel.Stream.Flat.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), Box(..))
+  (:*:)(..), MaybeS(..), EitherS(..), Box(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
 -- | Empty stream
@@ -84,19 +84,20 @@ replicateEachS n (Stream next s _) =
 --
 (+++) :: Stream a -> Stream a -> Stream a
 {-# INLINE [1] (+++) #-}
-Stream next1 s m +++ Stream next2 t n = Stream next (True :*: s :*: t) (m+n)
+Stream next1 s1 n1 +++ Stream next2 s2 n2 = Stream next (LeftS s1) (n1 + n2)
   where
     {-# INLINE next #-}
-    next (True :*: s :*: t) =
-      case next1 s of
-        Done       -> Skip (False :*: s :*: t)
-        Skip s'    -> Skip (True :*: s' :*: t)
-        Yield x s' -> Yield x (True :*: s' :*: t)
-    next (False :*: s :*: t) =
-      case next2 t of
-        Done       -> Done
-        Skip t'    -> Skip (False :*: s :*: t')
-        Yield x t' -> Yield x (False :*: s :*: t')
+    next (LeftS s1) =
+      case next1 s1 of
+        Done        -> Skip    (RightS s2)
+        Skip    s1' -> Skip    (LeftS  s1')
+        Yield x s1' -> Yield x (LeftS  s1')
+
+    next (RightS s2) =
+      case next2 s2 of
+        Done        -> Done
+        Skip    s2' -> Skip    (RightS s2')
+        Yield x s2' -> Yield x (RightS s2')
 
 -- | Indexing
 -- ----------
