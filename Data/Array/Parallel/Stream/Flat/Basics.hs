@@ -15,6 +15,7 @@
 
 module Data.Array.Parallel.Stream.Flat.Basics (
   emptyS, singletonS, consS, replicateS, replicateEachS, (+++), indexedS,
+  tailS,
   toStream, fromStream
 ) where
 
@@ -113,6 +114,25 @@ indexedS (Stream next s n) = Stream next' (0 :*: s) n
                         Yield x s' -> Yield (i :*: x) ((i+1) :*: s')
                         Skip    s' -> Skip            (i     :*: s')
                         Done       -> Done
+
+-- | Substreams
+-- ------------
+
+-- | Yield the tail of a stream
+--
+tailS :: Stream a -> Stream a
+{-# INLINE [1] tailS #-}
+tailS (Stream next s n) = Stream next' (False :*: s) (n-1)
+  where
+    {-# INLINE next' #-}
+    next' (False :*: s) = case next s of
+                            Yield x s' -> Skip (True  :*: s')
+                            Skip    s' -> Skip (False :*: s')
+                            Done       -> error "Stream.tailS: empty stream"
+    next' (True  :*: s) = case next s of
+                            Yield x s' -> Yield x (True :*: s')
+                            Skip    s' -> Skip    (True :*: s')
+                            Done       -> Done
 
 -- | Conversion to\/from lists
 -- --------------------------
