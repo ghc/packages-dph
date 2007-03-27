@@ -29,7 +29,7 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), checkNotEmpty)
 import Data.Array.Parallel.Stream (
-  mapS, filterS, foldS, fold1MaybeS, scanS, mapAccumS,
+  mapS, filterS, foldS, fold1MaybeS, scan1S, scanS, mapAccumS,
   zipWithS, zipWith3S)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
@@ -100,12 +100,10 @@ scanlU f z = unstreamU . scanS f z . streamU
 
 -- |Prefix scan of a non-empty array proceeding from left to right
 --
--- FIXME: Rewrite for 'Stream's.
---
 scanl1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
 {-# INLINE scanl1U #-}
 scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
-                scanlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
+                unstreamU (scan1S f (streamU arr))
 
 -- |Prefix scan proceedings from left to right that needs an associative
 -- combination function with its unit
