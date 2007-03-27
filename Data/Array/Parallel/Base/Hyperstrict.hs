@@ -15,7 +15,7 @@
 module Data.Array.Parallel.Base.Hyperstrict (
 
   -- * Strict pairs and sums
-  (:*:)(..), (:+:)(..),
+  (:*:)(..), EitherS(..),
 
   -- * Injection and projection functions
   fstS, sndS, pairS, unpairS,
@@ -33,7 +33,6 @@ module Data.Array.Parallel.Base.Hyperstrict (
   HS
 ) where
 
-infixl 1 :+:
 infixl 2 :*:
 
 -- |Strict pair
@@ -58,7 +57,7 @@ uncurryS :: (a -> b -> c) -> a :*: b -> c
 uncurryS f (x :*: y) = f x y
 
 -- |Strict sum
-data (:+:) a b = Inl !a | Inr !b
+data EitherS a b = LeftS !a | RightS !b
 
 -- |Strict Maybe
 data MaybeS a = NothingS | JustS !a
@@ -99,7 +98,7 @@ instance HS Float
 instance HS Double
 
 instance (HS a, HS b) => HS (a :*: b)
-instance (HS a, HS b) => HS (a :+: b)
+instance (HS a, HS b) => HS (EitherS a b)
 instance HS a => HS (MaybeS a)
 
 
