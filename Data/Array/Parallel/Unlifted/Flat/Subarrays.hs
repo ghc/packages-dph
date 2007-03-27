@@ -17,19 +17,30 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Subarrays (
-  sliceU, extractU, takeU, dropU, splitAtU,
+  sliceU, extractU, tailU, takeU, dropU, splitAtU,
   {- takeWhileU, dropWhileU, spanU, breakU -}
 ) where
+
+import Data.Array.Parallel.Stream (
+  tailS)
 
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr,
   lengthU, sliceU, newU, copyMU)
+import Data.Array.Parallel.Unlifted.Flat.Stream (
+  streamU, unstreamU)
 
 -- sliceU reexported from UArr
 
 {-# INLINE extractU #-}
 extractU :: UA a => UArr a -> Int -> Int -> UArr a
 extractU arr i n = newU n $ \marr -> copyMU marr 0 (sliceU arr i n)
+
+-- |Yield the tail of an array
+--
+tailU :: UA e => UArr e -> UArr e
+{-# INLINE tailU #-}
+tailU = unstreamU . tailS . streamU
 
 -- |Extract a prefix of an array
 --

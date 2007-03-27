@@ -33,6 +33,7 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Subarrays
   sliceU, extractU,
+  tailU,
   takeU, dropU, splitAtU,
   {-takeWhileU, dropWhileU, spanU, breakU,-}
 
