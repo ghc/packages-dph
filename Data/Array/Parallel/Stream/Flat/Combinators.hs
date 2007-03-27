@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Stream.Flat.Combinators (
-  mapS, filterS, foldS, fold1MaybeS, scanS, mapAccumS,
+  mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
   zipWithS, zipWith3S, zipS
 ) where
 
@@ -82,6 +82,25 @@ scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
                         Done -> Done
                         Skip s' -> Skip (Box z :*: s')
                         Yield x s'  -> Yield z (Box (f z x) :*: s')
+
+scan1S :: (a -> a -> a) -> Stream a -> Stream a
+{-# INLINE [1] scan1S #-}
+scan1S f (Stream next s n) = Stream next' (NothingS :*: s) n
+  where
+    {-# INLINE next' #-}
+    next' (NothingS :*: s) =
+      case next s of
+        Yield x s' -> Yield x (JustS (Box x) :*: s')
+        Skip    s' -> Skip    (NothingS :*: s')
+        Done       -> Done
+
+    next' (JustS (Box z) :*: s) =
+      case next s of
+        Yield x s' -> let y = f z x
+                      in
+                      Yield y (JustS (Box y) :*: s')
+        Skip    s' -> Skip (JustS (Box z) :*: s)
+        Done       -> Done
 
 mapAccumS :: (acc -> a -> acc :*: b) -> acc -> Stream a -> Stream b
 {-# INLINE [1] mapAccumS #-}
