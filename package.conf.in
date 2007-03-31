@@ -5,10 +5,11 @@ maintainer:	ndp@cse.unsw.edu.au
 exposed:	True
 
 exposed-modules:
-	Data.Array.Parallel,
-	Data.Array.Parallel.Unlifted,
+	Data.Array.Parallel
+	Data.Array.Parallel.Unlifted
         Data.Array.Parallel.Unlifted.Distributed
         Data.Array.Parallel.Unlifted.Parallel
+        Data.Array.Parallel.Base.Closure
 
 hidden-modules:
 	Data.Array.Parallel.Base.Config

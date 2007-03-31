@@ -12,6 +12,7 @@ exposed-modules:
 	Data.Array.Parallel.Unlifted
         Data.Array.Parallel.Unlifted.Distributed
         Data.Array.Parallel.Unlifted.Parallel
+        Data.Array.Parallel.Base.Closure
 other-modules:
 	Data.Array.Parallel.Base.Config
 	Data.Array.Parallel.Base.Debug
