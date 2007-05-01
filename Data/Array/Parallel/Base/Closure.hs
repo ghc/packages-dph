@@ -4,7 +4,7 @@ module Data.Array.Parallel.Base.Closure (
 
   (:<->:)(..),
   to, from,
-  identity, convArrow
+  identityIso, arrowIso
 ) where
 
 infixr 0 :->
@@ -32,8 +32,8 @@ from :: a :<->: b -> b -> a
 {-# INLINE from #-}
 from (_ :<->: f) = f
 
-identity :: a :<->: a
-identity = id :<->: id
+identityIso :: a :<->: a
+identityIso = id :<->: id
 
 toClosure :: a :<->: a' -> b :<->: b' -> (a -> b) -> (a' :-> b')
 {-# INLINE toClosure #-}
@@ -43,7 +43,7 @@ fromClosure :: a :<->: a' -> b :<->: b' -> (a' :-> b') -> (a -> b)
 {-# INLINE fromClosure #-}
 fromClosure isoa isob (f :$ e) = from isob . f e . to isoa
 
-convArrow :: a :<->: a' -> b :<->: b' -> (a -> b) :<->: (a' :-> b')
-{-# INLINE convArrow #-}
-convArrow isoa isob = toClosure isoa isob :<->: fromClosure isoa isob
+arrowIso :: a :<->: a' -> b :<->: b' -> (a -> b) :<->: (a' :-> b')
+{-# INLINE arrowIso #-}
+arrowIso isoa isob = toClosure isoa isob :<->: fromClosure isoa isob
 
