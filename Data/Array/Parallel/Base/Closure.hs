@@ -43,7 +43,9 @@ fromClosure :: a :<->: a' -> b :<->: b' -> (a' :-> b') -> (a -> b)
 {-# INLINE fromClosure #-}
 fromClosure isoa isob (f :$ e) = from isob . f e . to isoa
 
-arrowIso :: a :<->: a' -> b :<->: b' -> (a -> b) :<->: (a' :-> b')
+arrowIso :: forall a a'. a :<->: a'
+         -> forall b b'. b :<->: b'
+         -> (a -> b) :<->: (a' :-> b')
 {-# INLINE arrowIso #-}
 arrowIso isoa isob = toClosure isoa isob :<->: fromClosure isoa isob
 
