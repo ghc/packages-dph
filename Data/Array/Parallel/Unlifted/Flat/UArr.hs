@@ -64,8 +64,8 @@ infixl 9 `indexU`, `readMU`
 -- of this class.
 --
 class HS e => UA e where
---  data UArr e
---  data MUArr e s
+  data UArr  e
+  data MUArr e :: * -> * 
 
   -- |Yield the length of an unboxed array
   lengthU        :: UArr e                     -> Int
@@ -95,29 +95,15 @@ class HS e => UA e where
   -- |Convert a mutable into an immutable unboxed array
   unsafeFreezeMU :: MUArr e s -> Int           -> ST s (UArr e)
 
--- GADT TO REPLACE AT FOR THE MOMENT
-data UArr e where
-  UAUnit :: !Int                               -> UArr ()
-  UAProd ::           !(UArr e1) -> !(UArr e2) -> UArr (e1 :*: e2)
---  UASum  :: !USel  -> !(UArr e1) -> !(UArr e2) -> UArr (e1 :+: e2)
-  UAPrim ::           !(BUArr e)                -> UArr e
-
 instance HS e => HS (UArr e)
-
--- GADT TO REPLACE AT FOR THE MOMENT
-data MUArr e s where
-  MUAUnit :: !Int                                          -> MUArr () s
-  MUAProd ::                !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :*: e2) s
---  MUASum  :: !(MUSel s)  -> !(MUArr e1 s) -> !(MUArr e2 s) -> MUArr (e1 :+: e2) s
-  MUAPrim ::                !(MBUArr s e)                   -> MUArr e s
-
 instance HS e => HS (MUArr e s)
 
-unUAPrim :: UAE e => UArr e -> BUArr e
-unUAPrim (UAPrim arr) = arr
+class UAE e => UPrim e where
+  mkUAPrim :: BUArr e -> UArr  e
+  unUAPrim :: UArr  e -> BUArr e
 
-unMUAPrim :: UAE e => MUArr e s -> MBUArr s e
-unMUAPrim (MUAPrim arr) = arr
+  mkMUAPrim :: MBUArr s e -> MUArr  e s
+  unMUAPrim :: MUArr  e s -> MBUArr s e
 
 unsafeFreezeAllMU :: UA e => MUArr e s -> ST s (UArr e)
 unsafeFreezeAllMU marr = unsafeFreezeMU marr (lengthMU marr)
@@ -177,6 +163,9 @@ sndU (UAProd l r) = r
 -- |Array operations on the unit representation.
 --
 instance UA () where
+  data UArr  ()   = UAUnit  !Int
+  data MUArr () s = MUAUnit !Int
+
   lengthU (UAUnit n)     = n
   indexU  (UAUnit _) _   = ()
   sliceU  (UAUnit _) _ n = UAUnit n
@@ -191,6 +180,9 @@ instance UA () where
 -- |Array operations on the pair representation.
 --
 instance (UA a, UA b) => UA (a :*: b) where
+  data UArr  (a :*: b)   = UAProd  !(UArr a)    !(UArr b)
+  data MUArr (a :*: b) s = MUAProd !(MUArr a s) !(MUArr b s)
+
   lengthU (UAProd l _)     = lengthU l
   {-# INLINE indexU #-}
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
@@ -330,43 +322,53 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 --     overloading provided by UAE to avoid having to store the UAE dictionary
 --     in `UAPrimU'.
 
-primLengthU :: UAE e => UArr e -> Int
+primLengthU :: UPrim e => UArr e -> Int
 {-# INLINE primLengthU #-}
 primLengthU = lengthBU . unUAPrim
 
-primIndexU :: UAE e => UArr e -> Int -> e
+primIndexU :: UPrim e => UArr e -> Int -> e
 {-# INLINE primIndexU #-}
 primIndexU = indexBU . unUAPrim
 
-primSliceU :: UAE e => UArr e -> Int -> Int -> UArr e
+primSliceU :: UPrim e => UArr e -> Int -> Int -> UArr e
 {-# INLINE primSliceU #-}
-primSliceU arr i = UAPrim . sliceBU (unUAPrim arr) i
+primSliceU arr i = mkUAPrim . sliceBU (unUAPrim arr) i
 
-primLengthMU :: UAE e => MUArr e s -> Int
+primLengthMU :: UPrim e => MUArr e s -> Int
 {-# INLINE primLengthMU #-}
 primLengthMU = lengthMBU . unMUAPrim
 
-primNewMU :: UAE e => Int -> ST s (MUArr e s)
+primNewMU :: UPrim e => Int -> ST s (MUArr e s)
 {-# INLINE primNewMU #-}
-primNewMU = liftM MUAPrim . newMBU
+primNewMU = liftM mkMUAPrim . newMBU
 
-primReadMU :: UAE e => MUArr e s -> Int -> ST s e
+primReadMU :: UPrim e => MUArr e s -> Int -> ST s e
 {-# INLINE primReadMU #-}
 primReadMU = readMBU . unMUAPrim
 
-primWriteMU :: UAE e => MUArr e s -> Int -> e -> ST s ()
+primWriteMU :: UPrim e => MUArr e s -> Int -> e -> ST s ()
 {-# INLINE primWriteMU #-}
 primWriteMU = writeMBU . unMUAPrim
 
-primCopyMU :: UAE e => MUArr e s -> Int -> UArr e -> ST s ()
+primCopyMU :: UPrim e => MUArr e s -> Int -> UArr e -> ST s ()
 {-# INLINE primCopyMU #-}
 primCopyMU ma i = copyMBU (unMUAPrim ma) i . unUAPrim
 
-primUnsafeFreezeMU :: UAE e => MUArr e s -> Int -> ST s (UArr e)
+primUnsafeFreezeMU :: UPrim e => MUArr e s -> Int -> ST s (UArr e)
 {-# INLINE primUnsafeFreezeMU #-}
-primUnsafeFreezeMU ma = liftM UAPrim . unsafeFreezeMBU (unMUAPrim ma)
+primUnsafeFreezeMU ma = liftM mkUAPrim . unsafeFreezeMBU (unMUAPrim ma)
+
+instance UPrim Bool where
+  mkUAPrim                = UABool
+  unUAPrim  (UABool  arr) = arr
+
+  mkMUAPrim               = MUABool
+  unMUAPrim (MUABool arr) = arr
 
 instance UA Bool where
+  data UArr  Bool   = UABool  !(BUArr Bool)
+  data MUArr Bool s = MUABool !(MBUArr s Bool)
+
   lengthU        = primLengthU
   indexU         = primIndexU
   sliceU         = primSliceU
@@ -377,8 +379,18 @@ instance UA Bool where
   writeMU        = primWriteMU
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
+
+instance UPrim Char where
+  mkUAPrim                 = UAChar
+  unUAPrim  (UAChar   arr) = arr
+
+  mkMUAPrim                = MUAChar
+  unMUAPrim (MUAChar arr)  = arr
 
 instance UA Char where
+  data UArr  Char   = UAChar  !(BUArr Char)
+  data MUArr Char s = MUAChar !(MBUArr s Char)
+
   lengthU        = primLengthU
   indexU         = primIndexU
   sliceU         = primSliceU
@@ -389,8 +401,18 @@ instance UA Char where
   writeMU        = primWriteMU
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
+
+instance UPrim Int where
+  mkUAPrim               = UAInt
+  unUAPrim  (UAInt  arr) = arr
+
+  mkMUAPrim              = MUAInt
+  unMUAPrim (MUAInt arr) = arr
 
 instance UA Int where
+  data UArr  Int   = UAInt  !(BUArr Int)
+  data MUArr Int s = MUAInt !(MBUArr s Int)
+
   lengthU        = primLengthU
   indexU         = primIndexU
   sliceU         = primSliceU
@@ -401,8 +423,18 @@ instance UA Int where
   writeMU        = primWriteMU
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
+
+instance UPrim Float where
+  mkUAPrim                 = UAFloat
+  unUAPrim  (UAFloat  arr) = arr
+
+  mkMUAPrim                = MUAFloat
+  unMUAPrim (MUAFloat arr) = arr
 
 instance UA Float where
+  data UArr  Float   = UAFloat  !(BUArr Float)
+  data MUArr Float s = MUAFloat !(MBUArr s Float)
+
   lengthU        = primLengthU
   indexU         = primIndexU
   sliceU         = primSliceU
@@ -414,7 +446,17 @@ instance UA Float where
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
 
+instance UPrim Double where
+  mkUAPrim                  = UADouble
+  unUAPrim  (UADouble  arr) = arr
+
+  mkMUAPrim                 = MUADouble
+  unMUAPrim (MUADouble arr) = arr
+
 instance UA Double where
+  data UArr  Double   = UADouble  !(BUArr Double)
+  data MUArr Double s = MUADouble !(MBUArr s Double)
+
   lengthU        = primLengthU
   indexU         = primIndexU
   sliceU         = primSliceU
@@ -433,15 +475,19 @@ class UA a => UIO a where
   hPutU :: Handle -> UArr a -> IO ()
   hGetU :: Handle -> IO (UArr a)
 
+primPutU :: UPrim a => Handle -> UArr a -> IO ()
+primPutU h = hPutBU h . unUAPrim
+
+primGetU :: UPrim a => Handle -> IO (UArr a)
+primGetU = liftM mkUAPrim . hGetBU
+
 instance UIO Int where
-  hPutU h (UAPrim mbu) = hPutBU h mbu
-  hGetU h              = do mbu <- hGetBU h
-                            return (UAPrim mbu)
+  hPutU = primPutU
+  hGetU = primGetU
 
 instance UIO Double where
-  hPutU h (UAPrim mbu) = hPutBU h mbu
-  hGetU h              = do mbu <- hGetBU h
-                            return (UAPrim mbu)
+  hPutU = primPutU
+  hGetU = primGetU
 
 instance (UIO a, UIO b) => UIO (a :*: b) where
   hPutU h (UAProd xs ys) = do hPutU h xs
