@@ -18,17 +18,17 @@
 
 module Data.Array.Parallel.Unlifted.Segmented.Basics (
   lengthSU, replicateSU,
-  flattenSU, (>:), segmentU, concatSU,
+  flattenSU, (>:), segmentU, segmentArrU, concatSU,
   sliceIndexSU, extractIndexSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
-  toSU, fromSU
+  toSU, fromSU,(+:+^)
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..),
+  Step(..), Stream(..),SStream(..),(+++),
   replicateEachS, zipS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
@@ -36,6 +36,9 @@ import Data.Array.Parallel.Unlifted.Flat (
   mapU, fstU, sndU, zipU, zipWith3U, sumU,
   toU, fromU,
   streamU, unstreamU)
+
+import Data.Array.Parallel.Unlifted.Segmented.Stream (streamSU,unstreamSU)
+
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd)
@@ -59,6 +62,13 @@ replicateSU ns es =
 segmentU :: (UA e', UA e) => SUArr e' -> UArr e -> SUArr e
 {-# INLINE segmentU #-}
 segmentU template arr = segdSU template >: arr
+
+
+-- |Segment an array according to the segmentation of the first argument
+--
+segmentArrU :: (UA e) => UArr Int -> UArr e -> SUArr e
+{-# INLINE segmentArrU #-}
+segmentArrU lengths arr = (lengthsToUSegd lengths) >: arr
 
 -- |Concatenate the subarrays of an array of arrays
 --
@@ -144,6 +154,15 @@ enumFromThenToEachS n (Stream next s _) =
                    in Skip (len :*: start' :*: fromEnum k - start' :*: s')
     next' (n :*: start :*: delta :*: s) =
       Yield (toEnum start) (n-1 :*: start+delta :*: delta :*: s)
+
+-- |Concatenate two arrays
+--
+(+:+^) :: UA e => SUArr e -> SUArr e -> SUArr e
+{-# INLINE (+:+^) #-}
+a1 +:+^ a2 = unstreamSU $ SStream (segs1 +++ segs2) (vals1 +++ vals2)
+  where
+    (SStream segs1 vals1) = streamSU a1  
+    (SStream segs2 vals2) = streamSU a2
 
 -- |Conversion
 -- -----------

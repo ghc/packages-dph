@@ -81,6 +81,8 @@ replicateEachS n (Stream next s _) =
     next' (k :*: JustS (Box x) :*: s) =
       Yield x (k-1 :*: JustS (Box x) :*: s)
 
+     
+
 -- | Concatenation
 --
 (+++) :: Stream a -> Stream a -> Stream a

@@ -19,21 +19,25 @@
 module Data.Array.Parallel.Unlifted.Segmented.Combinators (
   mapSU, zipWithSU,
   foldlSU, foldSU, {-fold1SU,-} {-scanSU,-} {-scan1SU,-}
+  combineSU, filterSU
 ) where
 
 import Data.Array.Parallel.Base (
   sndS)
 import Data.Array.Parallel.Stream (
-  Stream, SStream, mapS, foldValuesSS)
+  Stream, SStream, mapS, foldValuesSS, combineSS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, mapU, zipWithU,
-  unstreamU)
+  unstreamU, streamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr, segdSU, (>:))
+  SUArr, segdSU, flattenSU, (>:))
 import Data.Array.Parallel.Unlifted.Segmented.Basics (
-  concatSU)
+  concatSU, segmentArrU,segmentU)
 import Data.Array.Parallel.Unlifted.Segmented.Stream (
   streamSU)
+import Data.Array.Parallel.Unlifted.Flat.Combinators (
+  filterU)
+
 
 import Debug.Trace
 
@@ -57,4 +61,24 @@ foldlSU f z = unstreamU . foldValuesSS f z . streamSU
 --
 foldSU :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
 foldSU = foldlSU
+
+
+-- |Merge two segmented arrays according to flag array
+--
+combineSU:: UA a => UArr Bool -> SUArr a -> SUArr a -> UArr a
+{-# INLINE combineSU #-}
+combineSU fs xs1 xs2 =
+  unstreamU $ combineSS (streamU fs) (streamSU xs1) (streamSU xs2)
+
+-- |Filter segmented array
+--
+filterSU:: (UA e) => (e -> Bool) -> SUArr e -> SUArr e
+{-# INLINE filterSU #-}
+filterSU p xssArr = segmentArrU newLengths flatData
+  where
+    flatData   = filterU p $ flattenSU xssArr
+    segdFlags  = segmentU xssArr $ mapU (\x -> if p x then 1 else 0) $ flattenSU xssArr
+    newLengths = foldSU (+) 0 segdFlags 
+
+
 

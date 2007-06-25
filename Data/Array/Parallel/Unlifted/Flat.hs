@@ -39,10 +39,11 @@ module Data.Array.Parallel.Unlifted.Flat (
 
   -- * Permutations
   permuteU, bpermuteU, bpermuteDftU, reverseU, updateU,
+  combineU,
 
   -- * Higher-order operations
   mapU, zipWithU, zipWith3U,
-  filterU,
+  filterU, filterFlagsU, 
   foldlU, foldl1U, foldl1MaybeU,
   {-foldrU, foldr1U,-}
   foldU, fold1U, fold1MaybeU,

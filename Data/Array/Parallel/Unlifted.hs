@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted (
   UArr, USegd, SUArr,
 
   -- * Strict pairs and sums (reexported)
-  (:*:)(..), fstS, sndS,
+  (:*:)(..), fstS, sndS, uncurryS, curryS,
 
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, (!:), (+:+),
@@ -40,9 +40,10 @@ module Data.Array.Parallel.Unlifted (
   -- * Permutations
   permuteU, bpermuteU, bpermuteDftU, reverseU, updateU,
 
+
   -- * Higher-order operations
   mapU, zipWithU, zipWith3U,
-  filterU,
+  filterU, filterFlagsU, 
   foldlU, foldl1U,
   {-foldrU, foldr1U,-}
   foldU, fold1U,
@@ -50,6 +51,10 @@ module Data.Array.Parallel.Unlifted (
   {-scanrU, scanr1U,-}
   scanU, scan1U,
   mapAccumLU,
+
+  -- Segmented filter and combines
+  filterSU,
+  combineU, combineSU,
 
   -- * Searching
   elemU, notElemU,
@@ -85,10 +90,13 @@ module Data.Array.Parallel.Unlifted (
   UIO(..),
 
   -- * Segmentation
-  concatSU, flattenSU, (>:), segmentU,
+  concatSU, flattenSU, (>:), segmentU, segmentArrU,
 
   -- * Basic operations (segmented)
-  lengthSU, replicateSU,
+  lengthSU, replicateSU, (+:+^),
+
+  -- * Basic operations lifted
+  lengthsSU,
 
   -- * Zipping (segmented)
   fstSU, sndSU, zipSU,

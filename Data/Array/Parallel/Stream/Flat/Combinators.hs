@@ -15,7 +15,7 @@
 
 module Data.Array.Parallel.Stream.Flat.Combinators (
   mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
-  zipWithS, zipWith3S, zipS
+  zipWithS, zipWith3S, zipS, combineS
 ) where
 
 import Data.Array.Parallel.Base (
@@ -46,6 +46,8 @@ filterS f (Stream next s n) = Stream next' s n
                 Skip s'             -> Skip s'
                 Yield x  s' | f x       -> Yield x s'
                             | otherwise -> Skip s'
+
+
 
 -- | Folding
 -- 
@@ -113,6 +115,27 @@ mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
                                         in
                                         Yield y (s' :*: Box acc')
 
+
+combineS:: Stream Bool -> Stream a -> Stream a -> Stream a
+{-# INLINE [1] combineS #-}
+combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
+  Stream next (s :*: t1 :*: t2) m
+  where
+    {-# INLINE next #-}
+    next (s :*: t1 :*: t2) = 
+      case next1 s of
+        Done -> Done
+        Skip s'    -> Skip (s' :*: t1 :*: t2) 
+        Yield c s' -> if c 
+                        then case nextS1 t1 of
+                               Done        -> error "combineS: stream 1 terminated unexpectedly" 
+                               Skip t1'    -> Skip (s :*: t1' :*: t2)
+                               Yield x t1' -> Yield x (s' :*: t1' :*: t2)
+                        else case nextS2 t2 of
+                               Done        -> error "combineS: stream 1 terminated unexpectedly" 
+                               Skip t2'    -> Skip (s :*: t1 :*: t2')
+                               Yield x t2' -> Yield x (s' :*: t1 :*: t2')
+               
 -- | Zipping
 --
 -- FIXME: The definition below duplicates work if the second stream produces

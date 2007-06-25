@@ -25,10 +25,13 @@ module Data.Array.Parallel.Unlifted.Segmented (
   streamSU, unstreamSU,
 
   -- * Segmentation
-  concatSU, flattenSU, (>:), segmentU, segdSU,
+  concatSU, flattenSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations
-  lengthSU, replicateSU, sliceIndexSU, extractIndexSU,
+  lengthSU, replicateSU, sliceIndexSU, extractIndexSU, (+:+^),
+
+  -- * Basic operations lifted
+  lengthsSU,
 
   -- * Subarrays
   sliceSU, extractSU,
@@ -46,6 +49,10 @@ module Data.Array.Parallel.Unlifted.Segmented (
   {-fold1SU,-}
   {-scanSU, scan1SU,-}
 
+  -- filter and combines
+  filterSU,
+
+  combineSU,
   -- * Logical operations
   andSU, orSU,
 
