@@ -32,11 +32,11 @@ emptyS = Stream (const Done) () 0
 --
 singletonS :: a -> Stream a
 {-# INLINE [1] singletonS #-}
-singletonS x = Stream next (JustS (Box x)) 1
+singletonS x = Stream next True 1
   where
     {-# INLINE next #-}
-    next (JustS (Box x)) = Yield x NothingS
-    next NothingS        = Done
+    next True  = Yield x False
+    next False = Done
 
 -- | Construction
 --
