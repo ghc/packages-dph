@@ -7,6 +7,7 @@ where
 
 import Data.Array.Parallel.Unlifted
 
+{-
 qsortTest = 
 --  (qsortList ([1..200000])) !!199999
   lengthSU $ qsortLifted $ toSU ([[1..200000]]::[[Double]])
@@ -20,7 +21,11 @@ qsort xsarr
     pivot = xsarr !: (xsLen `div` 2)
     smallerEq = filterU (<= pivot) xsarr
     greater   = filterU (> pivot) xsarr
+-}
 
+qsort :: UArr Double -> Int
+{-# NOINLINE qsort #-}
+qsort = lengthSU . qsortLifted . singletonSU
 
 qsortLifted:: SUArr Double -> SUArr Double
 qsortLifted xssArr = splitApplySU flags qsortLifted' id xssArr
