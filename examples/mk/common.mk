@@ -1,7 +1,8 @@
 NDPDIR = $(TESTDIR)/..
+NDPVERSION = 0.1
 BENCHDIR = $(TESTDIR)/lib
 
-NDPLIB = $(NDPDIR)/libHSndp.a
+NDPLIB = $(NDPDIR)/dist/build/libHSndp-$(NDPVERSION).a
 BENCHLIB = $(BENCHDIR)/libNDPBench.a
 HC = $(NDPDIR)/../../compiler/ghc-inplace
 
