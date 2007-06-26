@@ -23,7 +23,7 @@ module Data.Array.Parallel.Unlifted.Segmented.USegd (
 
   -- * Operations on segment descriptors
   lengthUSegd, lengthsUSegd, indicesUSegd, fromUSegd,
-  lengthsToUSegd, toUSegd,
+  singletonUSegd, lengthsToUSegd, toUSegd,
   sliceUSegd, extractUSegd,
   newMUSegd, unsafeFreezeMUSegd,
 ) where
@@ -32,7 +32,8 @@ import Data.Array.Parallel.Base (
   (:*:)(..), ST)
 import Data.Array.Parallel.Unlifted.Flat (
   UArr, MUArr,
-  lengthU, (!:), sliceU, extractU, mapU, scanlU, mapAccumLU,
+  lengthU, singletonU, (!:), sliceU, extractU, mapU,
+  scanlU, mapAccumLU,
   fstU, sndU, zipU,
   streamU, unstreamU,
   newMU, unsafeFreezeMU)
@@ -92,6 +93,12 @@ fromUSegd = unUSegd
 toUSegd :: UArr (Int :*: Int) -> USegd
 {-# INLINE toUSegd #-}
 toUSegd = USegd
+
+-- |Yield a singleton segment descriptor
+--
+singletonUSegd :: Int -> USegd
+{-# INLINE singletonUSegd #-}
+singletonUSegd n = toUSegd $ singletonU (n :*: 0)
 
 -- |Convert a length array into a segment descriptor.
 --

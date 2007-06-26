@@ -28,7 +28,7 @@ module Data.Array.Parallel.Unlifted.Segmented (
   concatSU, flattenSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations
-  lengthSU, replicateSU, sliceIndexSU, extractIndexSU, (+:+^),
+  lengthSU, singletonSU, replicateSU, sliceIndexSU, extractIndexSU, (+:+^),
 
   -- * Basic operations lifted
   lengthsSU,

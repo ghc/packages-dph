@@ -17,7 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.Basics (
-  lengthSU, replicateSU,
+  lengthSU, singletonSU, replicateSU,
   flattenSU, (>:), segmentU, segmentArrU, concatSU,
   sliceIndexSU, extractIndexSU,
   fstSU, sndSU, zipSU,
@@ -32,16 +32,15 @@ import Data.Array.Parallel.Stream (
   replicateEachS, zipS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
-  (!:), sliceU, extractU,
+  lengthU, (!:), sliceU, extractU,
   mapU, fstU, sndU, zipU, zipWith3U, sumU,
   toU, fromU,
   streamU, unstreamU)
 
 import Data.Array.Parallel.Unlifted.Segmented.Stream (streamSU,unstreamSU)
-
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
-  lengthsToUSegd)
+  lengthsToUSegd, singletonUSegd)
 
 -- lengthSU reexported from SUArr
 
@@ -49,6 +48,10 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr (
 -- -------------
 
 -- flattenSU and (>:) reexported from SUArr
+
+singletonSU :: UA e => UArr e -> SUArr e
+{-# INLINE singletonSU #-}
+singletonSU es = singletonUSegd (lengthU es) >: es
 
 replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE replicateSU #-}
