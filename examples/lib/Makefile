@@ -1,7 +1,7 @@
 TESTDIR=..
 include $(TESTDIR)/mk/common.mk
 
-HCFLAGS = -O
+HCFLAGS = -O -package ndp
 
 .PHONY: clean all
 
