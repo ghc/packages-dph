@@ -2,7 +2,7 @@
 --
 -- TODO:
 --   why is combineSS slower?
-module QSortSeq
+module QSortSeq (qsort, qsortList)
 where
 
 import Data.Array.Parallel.Unlifted
