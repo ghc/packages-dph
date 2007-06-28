@@ -22,7 +22,7 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, MSUArr,
 
   -- * Basic operations on segmented parallel arrays
-  lengthSU, lengthsSU, lengthsSU,indicesSU, segdSU,
+  lengthSU, lengthsSU,indicesSU, segdSU,
   flattenSU, (>:),
   newMSU, unsafeFreezeMSU,
 
