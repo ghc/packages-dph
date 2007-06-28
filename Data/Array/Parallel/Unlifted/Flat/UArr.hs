@@ -163,8 +163,8 @@ sndU (UAProd l r) = r
 -- |Array operations on the unit representation.
 --
 instance UA () where
-  data UArr  ()   = UAUnit  !Int
-  data MUArr () s = MUAUnit !Int
+  newtype UArr  ()   = UAUnit  Int
+  newtype MUArr () s = MUAUnit Int
 
   lengthU (UAUnit n)     = n
   indexU  (UAUnit _) _   = ()
@@ -366,8 +366,8 @@ instance UPrim Bool where
   unMUAPrim (MUABool arr) = arr
 
 instance UA Bool where
-  data UArr  Bool   = UABool  !(BUArr Bool)
-  data MUArr Bool s = MUABool !(MBUArr s Bool)
+  newtype UArr  Bool   = UABool  (BUArr Bool)
+  newtype MUArr Bool s = MUABool (MBUArr s Bool)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -388,8 +388,8 @@ instance UPrim Char where
   unMUAPrim (MUAChar arr)  = arr
 
 instance UA Char where
-  data UArr  Char   = UAChar  !(BUArr Char)
-  data MUArr Char s = MUAChar !(MBUArr s Char)
+  newtype UArr  Char   = UAChar  !(BUArr Char)
+  newtype MUArr Char s = MUAChar !(MBUArr s Char)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -410,8 +410,8 @@ instance UPrim Int where
   unMUAPrim (MUAInt arr) = arr
 
 instance UA Int where
-  data UArr  Int   = UAInt  !(BUArr Int)
-  data MUArr Int s = MUAInt !(MBUArr s Int)
+  newtype UArr  Int   = UAInt  !(BUArr Int)
+  newtype MUArr Int s = MUAInt !(MBUArr s Int)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -432,8 +432,8 @@ instance UPrim Float where
   unMUAPrim (MUAFloat arr) = arr
 
 instance UA Float where
-  data UArr  Float   = UAFloat  !(BUArr Float)
-  data MUArr Float s = MUAFloat !(MBUArr s Float)
+  newtype UArr  Float   = UAFloat  !(BUArr Float)
+  newtype MUArr Float s = MUAFloat !(MBUArr s Float)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -454,8 +454,8 @@ instance UPrim Double where
   unMUAPrim (MUADouble arr) = arr
 
 instance UA Double where
-  data UArr  Double   = UADouble  !(BUArr Double)
-  data MUArr Double s = MUADouble !(MBUArr s Double)
+  newtype UArr  Double   = UADouble  !(BUArr Double)
+  newtype MUArr Double s = MUADouble !(MBUArr s Double)
 
   lengthU        = primLengthU
   indexU         = primIndexU
