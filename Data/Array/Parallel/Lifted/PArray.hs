@@ -9,7 +9,7 @@ data family PArray a
 -- |Dictionaries
 --
 data PA a = PA {
-              lengthP    :: PArray a -> Int
-            , replicateP :: Int -> a -> PArray a
+              lengthPA    :: PArray a -> Int
+            , replicatePA :: Int -> a -> PArray a
             }
 
