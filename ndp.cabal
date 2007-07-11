@@ -70,6 +70,7 @@ other-modules:
         Data.Array.Parallel.Unlifted.Parallel.Segmented
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Closure
+        Data.Array.Parallel.Lifted.Tuple
 ghc-options: -fglasgow-exts -fbang-patterns -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing
              -fmax-simplifier-iterations6 -threaded -haddock -ftype-families
