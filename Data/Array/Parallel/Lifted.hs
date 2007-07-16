@@ -6,4 +6,5 @@ module Data.Array.Parallel.Lifted (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
+import Data.Array.Parallel.Lifted.Tuple
 

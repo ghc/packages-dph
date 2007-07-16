@@ -53,7 +53,7 @@ AClo _ f es $:^ as = f es as
 
 instance (PA a, PA b) => PA (a :-> b) where
   {-# INLINE lengthPA #-}
-  lengthPA      (AClo _ _ es) = lengthPA es
+  lengthPA      (AClo _ _ es)  = lengthPA es
   {-# INLINE replicatePA #-}
-  replicatePA n (Clo  f f' e) = AClo f f' (replicatePA n e)
+  replicatePA n# (Clo  f f' e) = AClo f f' (replicatePA n# e)
 

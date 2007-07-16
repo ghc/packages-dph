@@ -3,7 +3,9 @@ where
 
 import Data.Array.Parallel.Lifted.PArray
 
-data instance PArray () = PUnit !Int ()
+import GHC.Exts    (Int#)
+
+data instance PArray () = PUnit Int# ()
 
 instance PA () where
   {-# INLINE lengthPA #-}
@@ -76,7 +78,7 @@ data STup4 a b c d = STup4 !a !b !c !d
 data STup5 a b c d e = STup5 !a !b !c !d !e
 -}
 
-data instance PArray (a,b) = PTup2 !Int (PArray a) (PArray b)
+data instance PArray (a,b) = PTup2 Int# (PArray a) (PArray b)
 
 instance (PA a, PA b) => PA (a,b) where
   {-# INLINE lengthPA #-}
@@ -87,7 +89,7 @@ instance (PA a, PA b) => PA (a,b) where
     where
       (a,b) = p
 
-data instance PArray (a,b,c) = PTup3 !Int (PArray a)
+data instance PArray (a,b,c) = PTup3 Int# (PArray a)
                                           (PArray b)
                                           (PArray c)
 
