@@ -1,4 +1,4 @@
-module Data.Array.Parallel.Lifted.Tuple
+module Data.Array.Parallel.Lifted.Instances
 where
 
 import Data.Array.Parallel.Lifted.PArray
