@@ -2,8 +2,17 @@ module Data.Array.Parallel.Lifted.Instances
 where
 
 import Data.Array.Parallel.Lifted.PArray
+import Data.Array.Parallel.Unlifted ( UArr, replicateU )
 
-import GHC.Exts    (Int#)
+import GHC.Exts    (Int#, Int(..))
+
+data instance PArray Int = PInt Int# !(UArr Int)
+
+instance PA Int where
+  {-# INLINE lengthPA #-}
+  lengthPA (PInt n _) = n
+  {-# INLINE replicatePA #-}
+  replicatePA n i = PInt n (replicateU (I# n) i)
 
 data instance PArray () = PUnit Int# ()
 
