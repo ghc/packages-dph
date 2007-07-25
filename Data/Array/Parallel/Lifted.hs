@@ -1,5 +1,5 @@
 module Data.Array.Parallel.Lifted (
-  PArray(..), PA(..),
+  module Data.Array.Parallel.Lifted.PArray,
 
   (:->), ($:), ($:^)
 ) where
