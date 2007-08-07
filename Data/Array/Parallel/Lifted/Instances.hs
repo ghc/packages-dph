@@ -1,6 +1,6 @@
 module Data.Array.Parallel.Lifted.Instances (
   dPA_Int,
-  dPA_Unit, dPA_2, dPA_3
+  dPA_0, dPA_2, dPA_3
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -27,20 +27,20 @@ replicatePA_Int n i = PInt n (replicateU (I# n) i)
 
 data instance PArray () = PUnit Int# ()
 
-dPA_Unit :: PA ()
-{-# INLINE dPA_Unit #-}
-dPA_Unit = PA {
-             lengthPA    = lengthPA_Unit
-           , replicatePA = replicatePA_Unit
+dPA_0 :: PA ()
+{-# INLINE dPA_0 #-}
+dPA_0 = PA {
+             lengthPA    = lengthPA_0
+           , replicatePA = replicatePA_0
            }
 
-lengthPA_Unit :: PArray () -> Int#
-{-# INLINE lengthPA_Unit #-}
-lengthPA_Unit (PUnit n# _) = n#
+lengthPA_0 :: PArray () -> Int#
+{-# INLINE lengthPA_0 #-}
+lengthPA_0 (PUnit n# _) = n#
 
-replicatePA_Unit :: Int# -> () -> PArray ()
-{-# INLINE replicatePA_Unit #-}
-replicatePA_Unit = PUnit
+replicatePA_0 :: Int# -> () -> PArray ()
+{-# INLINE replicatePA_0 #-}
+replicatePA_0 = PUnit
 
 -- Tuples
 --
