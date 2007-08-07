@@ -1,5 +1,7 @@
-module Data.Array.Parallel.Lifted.Instances
-where
+module Data.Array.Parallel.Lifted.Instances (
+  dPA_Int,
+  dPA_Unit, dPA_2, dPA_3
+) where
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Unlifted ( UArr, replicateU )
@@ -8,19 +10,37 @@ import GHC.Exts    (Int#, Int(..))
 
 data instance PArray Int = PInt Int# !(UArr Int)
 
-instance PA Int where
-  {-# INLINE lengthPA #-}
-  lengthPA (PInt n _) = n
-  {-# INLINE replicatePA #-}
-  replicatePA n i = PInt n (replicateU (I# n) i)
+dPA_Int :: PA Int
+{-# INLINE dPA_Int #-}
+dPA_Int = PA {
+            lengthPA    = lengthPA_Int
+          , replicatePA = replicatePA_Int
+          }
+
+lengthPA_Int :: PArray Int -> Int#
+{-# INLINE lengthPA_Int #-}
+lengthPA_Int (PInt n _) = n
+
+replicatePA_Int :: Int# -> Int -> PArray Int
+{-# INLINE replicatePA_Int #-}
+replicatePA_Int n i = PInt n (replicateU (I# n) i)
 
 data instance PArray () = PUnit Int# ()
 
-instance PA () where
-  {-# INLINE lengthPA #-}
-  lengthPA    (PUnit n _) = n
-  {-# INLINE replicatePA #-}
-  replicatePA n x         = PUnit n x
+dPA_Unit :: PA ()
+{-# INLINE dPA_Unit #-}
+dPA_Unit = PA {
+             lengthPA    = lengthPA_Unit
+           , replicatePA = replicatePA_Unit
+           }
+
+lengthPA_Unit :: PArray () -> Int#
+{-# INLINE lengthPA_Unit #-}
+lengthPA_Unit (PUnit n# _) = n#
+
+replicatePA_Unit :: Int# -> () -> PArray ()
+{-# INLINE replicatePA_Unit #-}
+replicatePA_Unit = PUnit
 
 -- Tuples
 --
@@ -89,26 +109,45 @@ data STup5 a b c d e = STup5 !a !b !c !d !e
 
 data instance PArray (a,b) = PTup2 Int# (PArray a) (PArray b)
 
-instance (PA a, PA b) => PA (a,b) where
-  {-# INLINE lengthPA #-}
-  lengthPA (PTup2 n _ _) = n
-  {-# INLINE replicatePA #-}
-  replicatePA n p = PTup2 n (p `seq` replicatePA n a)
-                            (p `seq` replicatePA n b)
-    where
-      (a,b) = p
+dPA_2 :: PA a -> PA b -> PA (a,b)
+{-# INLINE dPA_2 #-}
+dPA_2 pa pb = PA {
+                lengthPA    = lengthPA_2
+              , replicatePA = replicatePA_2 pa pb
+              }
+
+lengthPA_2 :: PArray (a,b) -> Int#
+{-# INLINE lengthPA_2 #-}
+lengthPA_2 (PTup2 n# _ _) = n#
+
+replicatePA_2 :: PA a -> PA b -> Int# -> (a,b) -> PArray (a,b)
+{-# INLINE replicatePA_2 #-}
+replicatePA_2 pa pb n# p = PTup2 n# (p `seq` replicatePA pa n# a)
+                                    (p `seq` replicatePA pb n# b) 
+  where (a,b) = p
 
 data instance PArray (a,b,c) = PTup3 Int# (PArray a)
                                           (PArray b)
                                           (PArray c)
 
-instance (PA a, PA b, PA c) => PA (a,b,c) where
-  {-# INLINE lengthPA #-}
-  lengthPA (PTup3 n _ _ _) = n
-  {-# INLINE replicatePA #-}
-  replicatePA n p = PTup3 n (p `seq` replicatePA n a)
-                            (p `seq` replicatePA n b)
-                            (p `seq` replicatePA n c)
-    where
-      (a,b,c) = p
+dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
+{-# INLINE dPA_3 #-}
+dPA_3 pa pb pc
+  = PA {
+      lengthPA    = lengthPA_3
+    , replicatePA = replicatePA_3 pa pb pc
+    }
+
+lengthPA_3 :: PArray (a,b,c) -> Int#
+{-# INLINE lengthPA_3 #-}
+lengthPA_3 (PTup3 n# _ _ _) = n#
+
+replicatePA_3 :: PA a -> PA b -> PA c
+              -> Int# -> (a,b,c) -> PArray (a,b,c)
+{-# INLINE replicatePA_3 #-}
+replicatePA_3 pa pb pc n# p
+  = PTup3 n# (p `seq` replicatePA pa n# a)
+             (p `seq` replicatePA pb n# b) 
+             (p `seq` replicatePA pc n# c)
+  where (a,b,c) = p
 
