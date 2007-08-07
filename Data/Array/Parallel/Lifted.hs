@@ -1,9 +1,8 @@
 module Data.Array.Parallel.Lifted (
   module Data.Array.Parallel.Lifted.PArray,
+  module Data.Array.Parallel.Lifted.Instances,
 
-  (:->), ($:), ($:^),
-
-  dPA_Int
+  (:->), ($:), ($:^)
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
