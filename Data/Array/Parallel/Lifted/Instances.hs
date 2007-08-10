@@ -1,5 +1,5 @@
 module Data.Array.Parallel.Lifted.Instances (
-  dPA_Int,
+  dPA_Int, intPayload,
   dPA_0, dPA_2, dPA_3
 ) where
 
@@ -9,6 +9,10 @@ import Data.Array.Parallel.Unlifted ( UArr, replicateU )
 import GHC.Exts    (Int#, Int(..))
 
 data instance PArray Int = PInt Int# !(UArr Int)
+
+intPayload :: PArray Int -> UArr Int
+{-# INLINE intPayload #-}
+intPayload (PInt _ is) = is
 
 dPA_Int :: PA Int
 {-# INLINE dPA_Int #-}
