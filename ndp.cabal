@@ -5,7 +5,7 @@ author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
 maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
 homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
 category:       Data Structures
-build-depends:  base, random
+build-depends:  base, array, random
 synopsis:       Data structures for Nested Data-Parallel Haskell.
 exposed-modules:
 	Data.Array.Parallel
