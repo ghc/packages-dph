@@ -19,6 +19,7 @@ data PA a = PA {
               lengthPA    :: PArray a -> Int#
             , replicatePA :: Int# -> a -> PArray a
             , toPRepr     :: a -> PRepr a
+            , fromPRepr   :: PRepr a -> a
             }
 
 emptyPA :: PA a -> PArray a

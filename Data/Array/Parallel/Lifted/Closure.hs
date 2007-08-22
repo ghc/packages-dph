@@ -62,6 +62,7 @@ dPA_Clo _ _ = PA {
                 lengthPA    = lengthPA_Clo
               , replicatePA = replicatePA_Clo
               , toPRepr     = id
+              , fromPRepr   = id
               }
 
 {-# INLINE lengthPA_Clo #-}

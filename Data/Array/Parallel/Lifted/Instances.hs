@@ -22,6 +22,7 @@ dPA_Int = PA {
             lengthPA    = lengthPA_Int
           , replicatePA = replicatePA_Int
           , toPRepr     = id
+          , fromPRepr   = id
           }
 
 lengthPA_Int :: PArray Int -> Int#
@@ -42,6 +43,7 @@ dPA_0 = PA {
              lengthPA    = lengthPA_0
            , replicatePA = replicatePA_0
            , toPRepr     = id
+           , fromPRepr   = id
            }
 
 lengthPA_0 :: PArray () -> Int#
@@ -127,6 +129,7 @@ dPA_2 pa pb = PA {
                 lengthPA    = lengthPA_2
               , replicatePA = replicatePA_2 pa pb
               , toPRepr     = toPRepr_2 pa pb
+              , fromPRepr   = fromPRepr_2
               }
 
 lengthPA_2 :: PArray (a,b) -> Int#
@@ -143,6 +146,12 @@ toPRepr_2 :: PA a -> PA b -> (a, b) -> PRepr (a, b)
 {-# INLINE toPRepr_2 #-}
 toPRepr_2 pa pb (a, b) = Embed pa a :*: Embed pb b
 
+-- FIXME: fromPRepr_2 :: PRepr (a, b) -> (a, b)
+-- doesn't work atm
+fromPRepr_2 :: Embed a :*: Embed b -> (a, b)
+{-# INLINE fromPRepr_2 #-}
+fromPRepr_2 (Embed _ a :*: Embed _ b) = (a, b)
+
 data instance PArray (a,b,c) = PTup3 Int# (PArray a)
                                           (PArray b)
                                           (PArray c)
@@ -156,6 +165,7 @@ dPA_3 pa pb pc
       lengthPA    = lengthPA_3
     , replicatePA = replicatePA_3 pa pb pc
     , toPRepr     = toPRepr_3 pa pb pc
+    , fromPRepr   = fromPRepr_3
     }
 
 lengthPA_3 :: PArray (a,b,c) -> Int#
@@ -174,4 +184,9 @@ replicatePA_3 pa pb pc n# p
 toPRepr_3 :: PA a -> PA b -> PA c -> (a, b, c) -> PRepr (a, b, c)
 {-# INLINE toPRepr_3 #-}
 toPRepr_3 pa pb pc (a, b, c) = Embed pa a :*: Embed pb b :*: Embed pc c
+
+-- FIXME
+fromPRepr_3 :: Embed a :*: Embed b :*: Embed c -> (a, b, c)
+{-# INLINE fromPRepr_3 #-}
+fromPRepr_3 (Embed _ a :*: Embed _ b :*: Embed _ c) = (a, b, c)
 
