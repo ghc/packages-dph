@@ -26,6 +26,3 @@ emptyPA pa = replicatePA pa 0# (error "PArray.emptyPA: empty")
 --
 data Embed a = Embed (PA a) a
 
-embedPA :: PA a -> a -> Embed a
-embedPA = Embed
-
