@@ -1,5 +1,6 @@
 module Data.Array.Parallel.Lifted.PArray (
-  PArray, PRepr, PA(..), emptyPA, Embed
+  PArray, PRepr, PA(..), emptyPA,
+  (:*:)(..), (:+:)(..), Embed(..)
 ) where
 
 import GHC.Exts (Int#)
@@ -22,7 +23,11 @@ data PA a = PA {
 emptyPA :: PA a -> PArray a
 emptyPA pa = replicatePA pa 0# (error "PArray.emptyPA: empty")
 
--- |Embedding arbitrary types in generic representation
---
+infixl 2 :*:
+infixl 1 :+:
+
+data a :*: b = a :*: b
+data a :+: b = Inl a | Inr b
+
 data Embed a = Embed (PA a) a
 
