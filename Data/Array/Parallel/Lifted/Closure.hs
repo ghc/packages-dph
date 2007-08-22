@@ -54,11 +54,14 @@ mkClosureP = AClo
 {-# INLINE ($:^) #-}
 AClo _ _ f es $:^ as = f es as
 
+type instance PRepr (a :-> b) = a :-> b
+
 dPA_Clo :: PA a -> PA b -> PA (a :-> b)
 {-# INLINE dPA_Clo #-}
 dPA_Clo _ _ = PA {
                 lengthPA    = lengthPA_Clo
               , replicatePA = replicatePA_Clo
+              , toPRepr     = id
               }
 
 {-# INLINE lengthPA_Clo #-}

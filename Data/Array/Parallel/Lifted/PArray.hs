@@ -18,6 +18,7 @@ type family PRepr a
 data PA a = PA {
               lengthPA    :: PArray a -> Int#
             , replicatePA :: Int# -> a -> PArray a
+            , toPRepr     :: a -> PRepr a
             }
 
 emptyPA :: PA a -> PArray a

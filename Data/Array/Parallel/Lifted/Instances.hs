@@ -14,11 +14,14 @@ intPayload :: PArray Int -> UArr Int
 {-# INLINE intPayload #-}
 intPayload (PInt _ is) = is
 
+type instance PRepr Int = Int
+
 dPA_Int :: PA Int
 {-# INLINE dPA_Int #-}
 dPA_Int = PA {
             lengthPA    = lengthPA_Int
           , replicatePA = replicatePA_Int
+          , toPRepr     = id
           }
 
 lengthPA_Int :: PArray Int -> Int#
@@ -31,11 +34,14 @@ replicatePA_Int n i = PInt n (replicateU (I# n) i)
 
 data instance PArray () = PUnit Int# ()
 
+type instance PRepr () = ()
+
 dPA_0 :: PA ()
 {-# INLINE dPA_0 #-}
 dPA_0 = PA {
              lengthPA    = lengthPA_0
            , replicatePA = replicatePA_0
+           , toPRepr     = id
            }
 
 lengthPA_0 :: PArray () -> Int#
@@ -113,11 +119,14 @@ data STup5 a b c d e = STup5 !a !b !c !d !e
 
 data instance PArray (a,b) = PTup2 Int# (PArray a) (PArray b)
 
+type instance PRepr (a,b) = Embed a :*: Embed b
+
 dPA_2 :: PA a -> PA b -> PA (a,b)
 {-# INLINE dPA_2 #-}
 dPA_2 pa pb = PA {
                 lengthPA    = lengthPA_2
               , replicatePA = replicatePA_2 pa pb
+              , toPRepr     = toPRepr_2 pa pb
               }
 
 lengthPA_2 :: PArray (a,b) -> Int#
@@ -130,9 +139,15 @@ replicatePA_2 pa pb n# p = PTup2 n# (p `seq` replicatePA pa n# a)
                                     (p `seq` replicatePA pb n# b) 
   where (a,b) = p
 
+toPRepr_2 :: PA a -> PA b -> (a, b) -> PRepr (a, b)
+{-# INLINE toPRepr_2 #-}
+toPRepr_2 pa pb (a, b) = Embed pa a :*: Embed pb b
+
 data instance PArray (a,b,c) = PTup3 Int# (PArray a)
                                           (PArray b)
                                           (PArray c)
+
+type instance PRepr (a,b,c) = Embed a :*: Embed b :*: Embed c
 
 dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
 {-# INLINE dPA_3 #-}
@@ -140,6 +155,7 @@ dPA_3 pa pb pc
   = PA {
       lengthPA    = lengthPA_3
     , replicatePA = replicatePA_3 pa pb pc
+    , toPRepr     = toPRepr_3 pa pb pc
     }
 
 lengthPA_3 :: PArray (a,b,c) -> Int#
@@ -154,4 +170,8 @@ replicatePA_3 pa pb pc n# p
              (p `seq` replicatePA pb n# b) 
              (p `seq` replicatePA pc n# c)
   where (a,b,c) = p
+
+toPRepr_3 :: PA a -> PA b -> PA c -> (a, b, c) -> PRepr (a, b, c)
+{-# INLINE toPRepr_3 #-}
+toPRepr_3 pa pb pc (a, b, c) = Embed pa a :*: Embed pb b :*: Embed pc c
 
