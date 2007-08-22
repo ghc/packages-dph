@@ -1,5 +1,5 @@
 module Data.Array.Parallel.Lifted.PArray (
-  PArray, Repr, PA(..), emptyPA, Embed, embedPA
+  PArray, PRepr, PA(..), emptyPA, Embed
 ) where
 
 import GHC.Exts (Int#)
@@ -10,7 +10,7 @@ data family PArray a
 
 -- |Representation types
 --
-type family Repr a
+type family PRepr a
 
 -- |Dictionaries
 --
