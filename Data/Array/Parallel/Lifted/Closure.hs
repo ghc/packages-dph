@@ -1,7 +1,7 @@
 module Data.Array.Parallel.Lifted.Closure (
   (:->)(..), PArray(..),
   mkClosure, mkClosureP, ($:), ($:^),
-  dPA_Clo
+  dPA_Clo, dPR_Clo
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -59,15 +59,29 @@ type instance PRepr (a :-> b) = a :-> b
 dPA_Clo :: PA a -> PA b -> PA (a :-> b)
 {-# INLINE dPA_Clo #-}
 dPA_Clo _ _ = PA {
-                lengthPA    = lengthPA_Clo
-              , replicatePA = replicatePA_Clo
+                lengthPA    = lengthPR_Clo
+              , replicatePA = replicatePR_Clo
               , toPRepr     = id
               , fromPRepr   = id
+              , dictPRepr   = dPR_Clo
               }
 
-{-# INLINE lengthPA_Clo #-}
-lengthPA_Clo (AClo pa f f' es) = lengthPA pa es
+dPR_Clo :: PR (a :-> b)
+{-# INLINE dPR_Clo #-}
+dPR_Clo = PR {
+            lengthPR    = lengthPR_Clo
+          , emptyPR     = emptyPR_Clo
+          , replicatePR = replicatePR_Clo
+          }
 
-{-# INLINE replicatePA_Clo #-}
-replicatePA_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA pa n# e)
+{-# INLINE lengthPR_Clo #-}
+lengthPR_Clo (AClo pa f f' es) = lengthPA pa es
+
+{-# INLINE emptyPR_Clo #-}
+emptyPR_Clo = AClo dPA_Unit (\e  a  -> error "empty array closure")
+                            (\es as -> error "empty array closure")
+                            (emptyPA dPA_Unit)
+
+{-# INLINE replicatePR_Clo #-}
+replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA pa n# e)
 

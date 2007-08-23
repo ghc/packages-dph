@@ -1,14 +1,14 @@
 module Data.Array.Parallel.Lifted.Instances (
-  dPA_Int, intPayload,
-  dPA_0, dPA_2, dPA_3
+  dPA_Int, dPR_Int, intPayload,
+  dPA_2, dPA_3
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Unlifted ( UArr, replicateU )
+import Data.Array.Parallel.Unlifted ( UArr, replicateU, emptyU )
 
 import GHC.Exts    (Int#, Int(..))
 
-data instance PArray Int = PInt Int# !(UArr Int)
+data instance PArray Int = PInt Int# (UArr Int)
 
 intPayload :: PArray Int -> UArr Int
 {-# INLINE intPayload #-}
@@ -19,40 +19,29 @@ type instance PRepr Int = Int
 dPA_Int :: PA Int
 {-# INLINE dPA_Int #-}
 dPA_Int = PA {
-            lengthPA    = lengthPA_Int
-          , replicatePA = replicatePA_Int
+            lengthPA    = lengthPR_Int
+          , replicatePA = replicatePR_Int
           , toPRepr     = id
           , fromPRepr   = id
+          , dictPRepr   = dPR_Int
           }
 
-lengthPA_Int :: PArray Int -> Int#
-{-# INLINE lengthPA_Int #-}
-lengthPA_Int (PInt n _) = n
+dPR_Int :: PR Int
+{-# INLINE dPR_Int #-}
+dPR_Int = PR {
+            lengthPR    = lengthPR_Int
+          , emptyPR     = emptyPR_Int
+          , replicatePR = replicatePR_Int
+          }
 
-replicatePA_Int :: Int# -> Int -> PArray Int
-{-# INLINE replicatePA_Int #-}
-replicatePA_Int n i = PInt n (replicateU (I# n) i)
+{-# INLINE lengthPR_Int #-}
+lengthPR_Int (PInt n# _) = n#
 
-data instance PArray () = PUnit Int# ()
+{-# INLINE emptyPR_Int #-}
+emptyPR_Int = PInt 0# emptyU
 
-type instance PRepr () = ()
-
-dPA_0 :: PA ()
-{-# INLINE dPA_0 #-}
-dPA_0 = PA {
-             lengthPA    = lengthPA_0
-           , replicatePA = replicatePA_0
-           , toPRepr     = id
-           , fromPRepr   = id
-           }
-
-lengthPA_0 :: PArray () -> Int#
-{-# INLINE lengthPA_0 #-}
-lengthPA_0 (PUnit n# _) = n#
-
-replicatePA_0 :: Int# -> () -> PArray ()
-{-# INLINE replicatePA_0 #-}
-replicatePA_0 = PUnit
+{-# INLINE replicatePR_Int #-}
+replicatePR_Int n# i = PInt n# (replicateU (I# n#) i)
 
 -- Tuples
 --
@@ -126,31 +115,43 @@ type instance PRepr (a,b) = Embed a :*: Embed b
 dPA_2 :: PA a -> PA b -> PA (a,b)
 {-# INLINE dPA_2 #-}
 dPA_2 pa pb = PA {
-                lengthPA    = lengthPA_2
-              , replicatePA = replicatePA_2 pa pb
-              , toPRepr     = toPRepr_2 pa pb
+                lengthPA    = lengthPA_2 pr
+              , replicatePA = replicatePA_2 pr
+              , toPRepr     = toPRepr_2
               , fromPRepr   = fromPRepr_2
+              , dictPRepr   = dPR_Cross (dPR_Embed pa) (dPR_Embed pb)
               }
+  where
+    pr = dPR_Cross (dPR_Embed pa) (dPR_Embed pb)
 
-lengthPA_2 :: PArray (a,b) -> Int#
-{-# INLINE lengthPA_2 #-}
-lengthPA_2 (PTup2 n# _ _) = n#
-
-replicatePA_2 :: PA a -> PA b -> Int# -> (a,b) -> PArray (a,b)
-{-# INLINE replicatePA_2 #-}
-replicatePA_2 pa pb n# p = PTup2 n# (p `seq` replicatePA pa n# a)
-                                    (p `seq` replicatePA pb n# b) 
-  where (a,b) = p
-
-toPRepr_2 :: PA a -> PA b -> (a, b) -> PRepr (a, b)
+toPRepr_2 :: (a, b) -> PRepr (a, b)
 {-# INLINE toPRepr_2 #-}
-toPRepr_2 pa pb (a, b) = Embed pa a :*: Embed pb b
+toPRepr_2 (a, b) = Embed a :*: Embed b
 
 -- FIXME: fromPRepr_2 :: PRepr (a, b) -> (a, b)
 -- doesn't work atm
 fromPRepr_2 :: Embed a :*: Embed b -> (a, b)
 {-# INLINE fromPRepr_2 #-}
-fromPRepr_2 (Embed _ a :*: Embed _ b) = (a, b)
+fromPRepr_2 (Embed a :*: Embed b) = (a, b)
+
+toPReprArr_2 :: PArray (a, b) -> PArray (PRepr (a, b))
+{-# INLINE toPReprArr_2 #-}
+toPReprArr_2 (PTup2 n# as bs) = PCross n# (PEmbed as) (PEmbed bs)
+
+fromPReprArr_2 :: PArray (Embed a :*: Embed b) -> PArray (a, b)
+{-# INLINE fromPReprArr_2 #-}
+fromPReprArr_2 (PCross n# (PEmbed as) (PEmbed bs)) = PTup2 n# as bs
+
+lengthPA_2 :: PR (Embed a :*: Embed b) -> PArray (a, b) -> Int#
+{-# INLINE lengthPA_2 #-}
+lengthPA_2 pr xs = lengthPR pr (toPReprArr_2 xs)
+
+replicatePA_2 :: PR (Embed a :*: Embed b) -> Int# -> (a, b) -> PArray (a, b)
+{-# INLINE replicatePA_2 #-}
+replicatePA_2 pr n# p = fromPReprArr_2 (replicatePR pr n# repr)
+  where
+    repr | (a, b) <- p = Embed a :*: Embed b
+
 
 data instance PArray (a,b,c) = PTup3 Int# (PArray a)
                                           (PArray b)
@@ -162,31 +163,57 @@ dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
 {-# INLINE dPA_3 #-}
 dPA_3 pa pb pc
   = PA {
-      lengthPA    = lengthPA_3
-    , replicatePA = replicatePA_3 pa pb pc
-    , toPRepr     = toPRepr_3 pa pb pc
+      lengthPA    = lengthPA_3 pr
+    , replicatePA = replicatePA_3 pr
+    , toPRepr     = toPRepr_3
     , fromPRepr   = fromPRepr_3
+    , dictPRepr   = dPR_Cross
+                   (dPR_Cross (dPR_Embed pa)
+                              (dPR_Embed pb))
+                              (dPR_Embed pc)
     }
+  where
+    pr = dPR_Cross
+        (dPR_Cross (dPR_Embed pa)
+                   (dPR_Embed pb))
+                   (dPR_Embed pc)
 
-lengthPA_3 :: PArray (a,b,c) -> Int#
-{-# INLINE lengthPA_3 #-}
-lengthPA_3 (PTup3 n# _ _ _) = n#
 
-replicatePA_3 :: PA a -> PA b -> PA c
-              -> Int# -> (a,b,c) -> PArray (a,b,c)
-{-# INLINE replicatePA_3 #-}
-replicatePA_3 pa pb pc n# p
-  = PTup3 n# (p `seq` replicatePA pa n# a)
-             (p `seq` replicatePA pb n# b) 
-             (p `seq` replicatePA pc n# c)
-  where (a,b,c) = p
-
-toPRepr_3 :: PA a -> PA b -> PA c -> (a, b, c) -> PRepr (a, b, c)
+toPRepr_3 :: (a, b, c) -> PRepr (a, b, c)
 {-# INLINE toPRepr_3 #-}
-toPRepr_3 pa pb pc (a, b, c) = Embed pa a :*: Embed pb b :*: Embed pc c
+toPRepr_3 (a, b, c) = Embed a :*: Embed b :*: Embed c
 
 -- FIXME
 fromPRepr_3 :: Embed a :*: Embed b :*: Embed c -> (a, b, c)
 {-# INLINE fromPRepr_3 #-}
-fromPRepr_3 (Embed _ a :*: Embed _ b :*: Embed _ c) = (a, b, c)
+fromPRepr_3 (Embed a :*: Embed b :*: Embed c) = (a, b, c)
+
+toPReprArr_3 :: PArray (a, b, c) -> PArray (PRepr (a, b, c))
+{-# INLINE toPReprArr_3 #-}
+toPReprArr_3 (PTup3 n# as bs cs)
+  = PCross n#
+   (PCross n# (PEmbed as)
+              (PEmbed bs))
+              (PEmbed cs)
+
+fromPReprArr_3 :: PArray (Embed a :*: Embed b :*: Embed c)
+               -> PArray (a, b, c)
+{-# INLINE fromPReprArr_3 #-}
+fromPReprArr_3 (PCross n#
+               (PCross _ (PEmbed as)
+                         (PEmbed bs))
+                         (PEmbed cs)) = PTup3 n# as bs cs
+            
+lengthPA_3 :: PR (Embed a :*: Embed b :*: Embed c)
+           -> PArray (a, b, c) -> Int#
+{-# INLINE lengthPA_3 #-}
+lengthPA_3 pr xs = lengthPR pr (toPReprArr_3 xs)
+
+replicatePA_3 :: PR (Embed a :*: Embed b :*: Embed c)
+              -> Int# -> (a, b, c) -> PArray (a, b, c)
+{-# INLINE replicatePA_3 #-}
+replicatePA_3 pr n# p = fromPReprArr_3 (replicatePR pr n# repr)
+  where
+    repr | (a, b, c) <- p = Embed a :*: Embed b :*: Embed c
+
 
