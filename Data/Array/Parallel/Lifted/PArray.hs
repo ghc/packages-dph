@@ -2,7 +2,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  emptyPA,
+  lengthPA, replicatePA, emptyPA,
 
   PRepr, PR(..)
 ) where
@@ -22,22 +22,31 @@ type family PRepr a
 --
 
 data PA a = PA {
-              lengthPA    :: PArray a -> Int#
-            , replicatePA :: Int# -> a -> PArray a
-            , toPRepr     :: a -> PRepr a
-            , fromPRepr   :: PRepr a -> a
-            , dictPRepr   :: PR (PRepr a)
+              toPRepr      :: a                -> PRepr a
+            , fromPRepr    :: PRepr a          -> a
+            , toArrPRepr   :: PArray a         -> PArray (PRepr a)
+            , fromArrPRepr :: PArray (PRepr a) -> PArray a
+            , dictPRepr    :: PR (PRepr a)
             }
 
+lengthPA :: PA a -> PArray a -> Int#
+{-# INLINE lengthPA #-}
+lengthPA pa x = lengthPR (dictPRepr pa) (toArrPRepr pa x)
+
+replicatePA :: PA a -> Int# -> a -> PArray a
+{-# INLINE replicatePA #-}
+replicatePA pa n# = fromArrPRepr pa
+                  . replicatePR (dictPRepr pa) n#
+                  . toPRepr pa
+
 emptyPA :: PA a -> PArray a
-emptyPA pa = replicatePA pa 0# (error "PArray.emptyPA: empty")
+{-# INLINE emptyPA #-}
+emptyPA pa = fromArrPRepr pa
+           $ emptyPR (dictPRepr pa)
 
 data PR a = PR {
               lengthPR    :: PArray a -> Int#
             , emptyPR     :: PArray a
             , replicatePR :: Int# -> a -> PArray a
             }
-
-
-
 

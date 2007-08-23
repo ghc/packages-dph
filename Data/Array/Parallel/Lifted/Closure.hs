@@ -61,11 +61,11 @@ type instance PRepr (a :-> b) = a :-> b
 dPA_Clo :: PA a -> PA b -> PA (a :-> b)
 {-# INLINE dPA_Clo #-}
 dPA_Clo _ _ = PA {
-                lengthPA    = lengthPR_Clo
-              , replicatePA = replicatePR_Clo
-              , toPRepr     = id
-              , fromPRepr   = id
-              , dictPRepr   = dPR_Clo
+                toPRepr      = id
+              , fromPRepr    = id
+              , toArrPRepr   = id
+              , fromArrPRepr = id
+              , dictPRepr    = dPR_Clo
               }
 
 dPR_Clo :: PR (a :-> b)
