@@ -121,72 +121,28 @@ dPA_Unit = PA {
            , dictPRepr    = dPR_Unit
            }
 
-type instance PRepr (a,b) = (Embed a, Embed b)
+type instance PRepr (a,b) = (a,b)
 
 dPA_2 :: PA a -> PA b -> PA (a,b)
 {-# INLINE dPA_2 #-}
 dPA_2 pa pb = PA {
-                toPRepr      = toPRepr_2
-              , fromPRepr    = fromPRepr_2
-              , toArrPRepr   = toArrPRepr_2
-              , fromArrPRepr = fromArrPRepr_2
-              , dictPRepr    = pr
+                toPRepr      = id
+              , fromPRepr    = id
+              , toArrPRepr   = id
+              , fromArrPRepr = id
+              , dictPRepr    = dPR_2 (mkPR pa) (mkPR pb)
               }
-  where
-    pr = dPR_2 (dPR_Embed pa) (dPR_Embed pb)
 
-toPRepr_2 :: (a, b) -> PRepr (a, b)
-{-# INLINE toPRepr_2 #-}
-toPRepr_2 (a, b) = (Embed a, Embed b)
-
--- FIXME: fromPRepr_2 :: PRepr (a, b) -> (a, b)
--- doesn't work atm
-fromPRepr_2 :: (Embed a, Embed b) -> (a, b)
-{-# INLINE fromPRepr_2 #-}
-fromPRepr_2 (Embed a, Embed b) = (a, b)
-
-toArrPRepr_2 :: PArray (a, b) -> PArray (PRepr (a, b))
-{-# INLINE toArrPRepr_2 #-}
-toArrPRepr_2 (P_2 n# as bs) = P_2 n# (PEmbed as) (PEmbed bs)
-
-fromArrPRepr_2 :: PArray (Embed a, Embed b) -> PArray (a, b)
-{-# INLINE fromArrPRepr_2 #-}
-fromArrPRepr_2 (P_2 n# (PEmbed as) (PEmbed bs)) = P_2 n# as bs
-
-type instance PRepr (a,b,c) = (Embed a, Embed b, Embed c)
+type instance PRepr (a,b,c) = (a,b,c)
 
 dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
 {-# INLINE dPA_3 #-}
 dPA_3 pa pb pc
   = PA {
-      toPRepr      = toPRepr_3
-    , fromPRepr    = fromPRepr_3
-    , toArrPRepr   = toArrPRepr_3
-    , fromArrPRepr = fromArrPRepr_3
-    , dictPRepr    = pr
+      toPRepr      = id
+    , fromPRepr    = id
+    , toArrPRepr   = id
+    , fromArrPRepr = id
+    , dictPRepr    = dPR_3 (mkPR pa) (mkPR pb) (mkPR pc)
     }
-  where
-    pr = dPR_3 (dPR_Embed pa)
-               (dPR_Embed pb)
-               (dPR_Embed pc)
-
-
-toPRepr_3 :: (a, b, c) -> PRepr (a, b, c)
-{-# INLINE toPRepr_3 #-}
-toPRepr_3 (a, b, c) = (Embed a, Embed b, Embed c)
-
--- FIXME
-fromPRepr_3 :: (Embed a, Embed b, Embed c) -> (a, b, c)
-{-# INLINE fromPRepr_3 #-}
-fromPRepr_3 (Embed a, Embed b, Embed c) = (a, b, c)
-
-toArrPRepr_3 :: PArray (a, b, c) -> PArray (PRepr (a, b, c))
-{-# INLINE toArrPRepr_3 #-}
-toArrPRepr_3 (P_3 n# as bs cs)
-  = P_3 n# (PEmbed as) (PEmbed bs) (PEmbed cs)
-
-fromArrPRepr_3 :: PArray (Embed a, Embed b, Embed c)
-               -> PArray (a, b, c)
-{-# INLINE fromArrPRepr_3 #-}
-fromArrPRepr_3 (P_3 n# (PEmbed as) (PEmbed bs) (PEmbed cs)) = P_3 n# as bs cs
 

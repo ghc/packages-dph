@@ -1,12 +1,11 @@
 module Data.Array.Parallel.Lifted.Repr (
   PArray(..),
-  Sum2(..), Sum3(..),
-  Embed(..),
+  Id(..),
+  Sum2(..), Sum3(..), 
 
-  dPR_Unit,
+  dPR_Unit, dPR_Id,
   dPR_2, dPR_3,
-  dPR_Sum2, dPR_Sum3,
-  dPR_Embed
+  dPR_Sum2, dPR_Sum3
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -33,6 +32,28 @@ emptyPR_Unit = PUnit 0# ()
 
 {-# INLINE replicatePR_Unit #-}
 replicatePR_Unit n# u = PUnit n# u
+
+
+data Id a = Id a
+
+data instance PArray (Id a) = PId Int# (PArray a)
+
+dPR_Id :: PR a -> PR (Id a)
+{-# INLINE dPR_Id #-}
+dPR_Id pr = PR {
+              lengthPR    = lengthPR_Id
+            , emptyPR     = emptyPR_Id pr
+            , replicatePR = replicatePR_Id pr
+            }
+
+{-# INLINE lengthPR_Id #-}
+lengthPR_Id (PId n# _) = n#
+
+{-# INLINE emptyPR_Id #-}
+emptyPR_Id pr = PId 0# (emptyPR pr)
+
+{-# INLINE replicatePR_Id #-}
+replicatePR_Id pr n# x = PId n# (case x of Id y -> replicatePR pr n# y)
 
 
 data instance PArray (a,b)
@@ -153,25 +174,4 @@ replicatePR_Sum3 pra prb prc n# p
                         _        -> emptyPR prb)
              (case p of Alt3_3 x -> replicatePR prc n# x
                         _        -> emptyPR prc)
-
-data Embed a = Embed a
-
-data instance PArray (Embed a) = PEmbed (PArray a)
-
-dPR_Embed :: PA a -> PR (Embed a)
-{-# INLINE dPR_Embed #-}
-dPR_Embed pa = PR {
-                 lengthPR    = lengthPR_Embed pa
-               , emptyPR     = emptyPR_Embed pa
-               , replicatePR = replicatePR_Embed pa
-               }
-
-{-# INLINE lengthPR_Embed #-}
-lengthPR_Embed pa (PEmbed xs) = lengthPA pa xs
-
-{-# INLINE emptyPR_Embed #-}
-emptyPR_Embed pa = PEmbed (emptyPA pa)
-
-{-# INLINE replicatePR_Embed #-}
-replicatePR_Embed pa n# (Embed x) = PEmbed (replicatePA pa n# x)
 

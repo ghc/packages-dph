@@ -4,7 +4,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PA(..),
   lengthPA, replicatePA, emptyPA,
 
-  PRepr, PR(..)
+  PRepr, PR(..), mkPR
 ) where
 
 import Data.Array.Parallel.Unlifted ( UArr, emptyU, replicateU )
@@ -49,4 +49,12 @@ data PR a = PR {
             , emptyPR     :: PArray a
             , replicatePR :: Int# -> a -> PArray a
             }
+
+mkPR :: PA a -> PR a
+{-# INLINE mkPR #-}
+mkPR pa = PR {
+            lengthPR    = lengthPA pa
+          , emptyPR     = emptyPA pa
+          , replicatePR = replicatePA pa
+          }
 
