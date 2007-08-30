@@ -9,6 +9,7 @@ module Data.Array.Parallel.Lifted.Repr (
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
+import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Unlifted
 
 import GHC.Exts  (Int#, Int(..))
@@ -115,13 +116,13 @@ data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
 
 data instance PArray (Sum2 a b)
-  = PSum2 Int# (UArr Int) (PArray a)
-                          (PArray b)
+  = PSum2 Int# PArray_Int# PArray_Int# (PArray a)
+                                      (PArray b)
 
 data instance PArray (Sum3 a b c)
-  = PSum3 Int# (UArr Int) (PArray a)
-                          (PArray b)
-                          (PArray c)
+  = PSum3 Int# PArray_Int# PArray_Int# (PArray a)
+                                       (PArray b)
+                                       (PArray c)
 
 dPR_Sum2 :: PR a -> PR b -> PR (Sum2 a b)
 {-# INLINE dPR_Sum2 #-}
@@ -132,15 +133,17 @@ dPR_Sum2 pra prb = PR {
                    }
 
 {-# INLINE lengthPR_Sum2 #-}
-lengthPR_Sum2 (PSum2 n# sel _ _) = n#
+lengthPR_Sum2 (PSum2 n# _ _ _ _) = n#
 
 {-# INLINE emptyPR_Sum2 #-}
-emptyPR_Sum2 pra prb = PSum2 0# emptyU (emptyPR pra) (emptyPR prb)
+emptyPR_Sum2 pra prb
+  = PSum2 0# emptyPA_Int# emptyPA_Int# (emptyPR pra) (emptyPR prb)
 
 {-# INLINE replicatePR_Sum2 #-}
 replicatePR_Sum2 pra prb n# p
-  = PSum2 n# (replicateU (I# n#) (case p of Alt2_1 _ -> 0
-                                            Alt2_2 _ -> 1))
+  = PSum2 n# (replicatePA_Int# n# (case p of Alt2_1 _ -> 1#
+                                             Alt2_2 _ -> 2#))
+             (upToP_Int# n#)
              (case p of Alt2_1 x -> replicatePR pra n# x
                         _        -> emptyPR pra)
              (case p of Alt2_2 y -> replicatePR prb n# y
@@ -156,18 +159,20 @@ dPR_Sum3 pra prb prc
    }
 
 {-# INLINE lengthPR_Sum3 #-}
-lengthPR_Sum3 (PSum3 n# sel _ _ _) = n#
+lengthPR_Sum3 (PSum3 n# _ _ _ _ _) = n#
 
 {-# INLINE emptyPR_Sum3 #-}
-emptyPR_Sum3 pra prb prc = PSum3 0# emptyU (emptyPR pra)
-                                           (emptyPR prb)
-                                           (emptyPR prc)
+emptyPR_Sum3 pra prb prc
+  = PSum3 0# emptyPA_Int# emptyPA_Int# (emptyPR pra)
+                                       (emptyPR prb)
+                                       (emptyPR prc)
 
 {-# INLINE replicatePR_Sum3 #-}
 replicatePR_Sum3 pra prb prc n# p
-  = PSum3 n# (replicateU (I# n#) (case p of Alt3_1 _ -> 0
-                                            Alt3_2 _ -> 1
-                                            Alt3_3 _ -> 2))
+  = PSum3 n# (replicatePA_Int# n# (case p of Alt3_1 _ -> 1#
+                                             Alt3_2 _ -> 2#
+                                             Alt3_3 _ -> 3#))
+             (upToP_Int# n#)
              (case p of Alt3_1 x -> replicatePR pra n# x
                         _        -> emptyPR pra)
              (case p of Alt3_2 x -> replicatePR prb n# x
