@@ -1,19 +1,16 @@
 module Data.Array.Parallel.Lifted.Instances (
-  dPA_Int, dPR_Int, intPayload,
+  dPA_Int, dPR_Int,
   dPA_Unit, dPA_2, dPA_3
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Repr
+import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Unlifted ( UArr, replicateU, emptyU )
 
 import GHC.Exts    (Int#, Int(..))
 
-data instance PArray Int = PInt Int# (UArr Int)
-
-intPayload :: PArray Int -> UArr Int
-{-# INLINE intPayload #-}
-intPayload (PInt _ is) = is
+data instance PArray Int = PInt Int# PArray_Int#
 
 type instance PRepr Int = Int
 
@@ -39,10 +36,10 @@ dPR_Int = PR {
 lengthPR_Int (PInt n# _) = n#
 
 {-# INLINE emptyPR_Int #-}
-emptyPR_Int = PInt 0# emptyU
+emptyPR_Int = PInt 0# emptyPA_Int#
 
 {-# INLINE replicatePR_Int #-}
-replicatePR_Int n# i = PInt n# (replicateU (I# n#) i)
+replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 
 -- Tuples
 --

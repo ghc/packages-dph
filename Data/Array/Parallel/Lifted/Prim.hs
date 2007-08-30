@@ -3,6 +3,10 @@ module Data.Array.Parallel.Lifted.Prim (
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#
 ) where
 
+import Data.Array.Parallel.Unlifted
+
+import GHC.Exts (Int#, Int(..))
+
 newtype PArray_Int# = PInt# (UArr Int)
 
 lengthPA_Int# :: PArray_Int# -> Int#
