@@ -1,9 +1,9 @@
 module Data.Array.Parallel.Lifted.Repr (
   PArray(..),
-  Id(..),
+  Wrap(..),
   Sum2(..), Sum3(..), 
 
-  dPR_Unit, dPR_Id,
+  dPR_Unit, dPR_Wrap,
   dPR_2, dPR_3,
   dPR_Sum2, dPR_Sum3
 ) where
@@ -35,26 +35,26 @@ emptyPR_Unit = PUnit 0# ()
 replicatePR_Unit n# u = PUnit n# u
 
 
-data Id a = Id a
+data Wrap a = Wrap a
 
-data instance PArray (Id a) = PId Int# (PArray a)
+data instance PArray (Wrap a) = PWrap Int# (PArray a)
 
-dPR_Id :: PR a -> PR (Id a)
-{-# INLINE dPR_Id #-}
-dPR_Id pr = PR {
-              lengthPR    = lengthPR_Id
-            , emptyPR     = emptyPR_Id pr
-            , replicatePR = replicatePR_Id pr
+dPR_Wrap :: PR a -> PR (Wrap a)
+{-# INLINE dPR_Wrap #-}
+dPR_Wrap pr = PR {
+              lengthPR    = lengthPR_Wrap
+            , emptyPR     = emptyPR_Wrap pr
+            , replicatePR = replicatePR_Wrap pr
             }
 
-{-# INLINE lengthPR_Id #-}
-lengthPR_Id (PId n# _) = n#
+{-# INLINE lengthPR_Wrap #-}
+lengthPR_Wrap (PWrap n# _) = n#
 
-{-# INLINE emptyPR_Id #-}
-emptyPR_Id pr = PId 0# (emptyPR pr)
+{-# INLINE emptyPR_Wrap #-}
+emptyPR_Wrap pr = PWrap 0# (emptyPR pr)
 
-{-# INLINE replicatePR_Id #-}
-replicatePR_Id pr n# x = PId n# (case x of Id y -> replicatePR pr n# y)
+{-# INLINE replicatePR_Wrap #-}
+replicatePR_Wrap pr n# x = PWrap n# (case x of Wrap y -> replicatePR pr n# y)
 
 
 data instance PArray (a,b)
