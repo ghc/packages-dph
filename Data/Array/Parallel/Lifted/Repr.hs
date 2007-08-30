@@ -143,7 +143,7 @@ emptyPR_Sum2 pra prb
 replicatePR_Sum2 pra prb n# p
   = PSum2 n# (replicatePA_Int# n# (case p of Alt2_1 _ -> 1#
                                              Alt2_2 _ -> 2#))
-             (upToP_Int# n#)
+             (upToPA_Int# n#)
              (case p of Alt2_1 x -> replicatePR pra n# x
                         _        -> emptyPR pra)
              (case p of Alt2_2 y -> replicatePR prb n# y
@@ -172,7 +172,7 @@ replicatePR_Sum3 pra prb prc n# p
   = PSum3 n# (replicatePA_Int# n# (case p of Alt3_1 _ -> 1#
                                              Alt3_2 _ -> 2#
                                              Alt3_3 _ -> 3#))
-             (upToP_Int# n#)
+             (upToPA_Int# n#)
              (case p of Alt3_1 x -> replicatePR pra n# x
                         _        -> emptyPR pra)
              (case p of Alt3_2 x -> replicatePR prb n# x
