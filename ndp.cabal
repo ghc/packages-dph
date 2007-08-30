@@ -73,7 +73,6 @@ other-modules:
         Data.Array.Parallel.Lifted.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Instances
-        Data.Array.Parallel.Lifted.Utils
 extensions: TypeFamilies, BangPatterns
 ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing
