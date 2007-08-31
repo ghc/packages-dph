@@ -92,7 +92,7 @@ lengthPR_Wrap (PWrap n# _) = n#
 emptyPR_Wrap pr = PWrap 0# (emptyPR pr)
 
 {-# INLINE replicatePR_Wrap #-}
-replicatePR_Wrap pr n# x = PWrap n# (case x of Wrap y -> replicatePR pr n# y)
+replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
 
 
 data instance PArray (a,b)
@@ -120,11 +120,9 @@ lengthPR_2 (P_2 n# _ _) = n#
 emptyPR_2 pra prb = P_2 0# (emptyPR pra) (emptyPR prb)
 
 {-# INLINE replicatePR_2 #-}
-replicatePR_2 pra prb n# p
-  = P_2 n# (p `seq` replicatePR pra n# a)
-           (p `seq` replicatePR prb n# b)
-  where
-    (a,b) = p
+replicatePR_2 pra prb n# ~(a,b)
+  = P_2 n# (replicatePR pra n# a)
+           (replicatePR prb n# b)
 
 dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
 {-# INLINE dPR_3 #-}
@@ -142,13 +140,10 @@ lengthPR_3 (P_3 n# _ _ _) = n#
 emptyPR_3 pra prb prc = P_3 0# (emptyPR pra) (emptyPR prb) (emptyPR prc)
 
 {-# INLINE replicatePR_3 #-}
-replicatePR_3 pra prb prc n# p
-  = P_3 n# (p `seq` replicatePR pra n# a)
-           (p `seq` replicatePR prb n# b)
-           (p `seq` replicatePR prc n# c)
-  where
-    (a,b,c) = p
-
+replicatePR_3 pra prb prc n# ~(a,b,c)
+  = P_3 n# (replicatePR pra n# a)
+           (replicatePR prb n# b)
+           (replicatePR prc n# c)
 
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
