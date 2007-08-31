@@ -127,10 +127,10 @@ writeMBB (MBBArr marr) e = e `seq` writeSTArray marr e
 --
 unsafeFreezeMBB :: MBBArr s e -> Int -> ST s (BBArr e)
 {-# INLINE unsafeFreezeMBB #-}
-unsafeFreezeMBB (MBBArr (STArray _ m1 marr#)) n = 
+unsafeFreezeMBB (MBBArr (STArray _ m1 _ marr#)) n = 
   checkLen "PAPrim.unsafeFreezeMB: " (m1 + 1) n $ ST $ \s1# ->
   case unsafeFreezeArray# marr# s1# of {(# s2#, arr# #) ->
-  (# s2#, BBArr (Array 0 (n - 1) arr#) #)}
+  (# s2#, BBArr (Array 0 (n - 1) n arr#) #)}
 
 --- |Turn a mutable into an immutable array WITHOUT copying its contents, which
 -- implies that the mutable array must not be mutated anymore after this
