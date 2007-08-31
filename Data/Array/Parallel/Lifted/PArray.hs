@@ -7,8 +7,8 @@ module Data.Array.Parallel.Lifted.PArray (
   PRepr, PR(..), mkPR
 ) where
 
-import Data.Array.Parallel.Unlifted ( UArr, emptyU, replicateU )
-import GHC.Exts (Int#, Int(..))
+import Data.Array.Parallel.Unlifted ( UArr )
+import GHC.Exts (Int#)
 
 -- |Lifted parallel arrays
 --
