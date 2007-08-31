@@ -1,9 +1,11 @@
 module Data.Array.Parallel.Lifted.Repr (
   PArray(..),
+  Void, void,
   Wrap(..),
   Sum2(..), Sum3(..), 
 
-  dPR_Unit, dPR_Wrap,
+  dPA_Void,
+  dPR_Void, dPR_Unit, dPR_Wrap,
   dPR_2, dPR_3,
   dPR_Sum2, dPR_Sum3
 ) where
@@ -13,6 +15,42 @@ import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Unlifted
 
 import GHC.Exts  (Int#, Int(..))
+
+data Void
+
+void :: Void
+void = error "Data.Array.Parallel.void"
+
+data instance PArray Void = PVoid Int#
+
+dPR_Void :: PR Void
+{-# INLINE dPR_Void #-}
+dPR_Void = PR {
+             lengthPR    = lengthPR_Void
+           , emptyPR     = emptyPR_Void
+           , replicatePR = replicatePR_Void
+           }
+
+{-# INLINE lengthPR_Void #-}
+lengthPR_Void (PVoid n#) = n#
+
+{-# INLINE emptyPR_Void #-}
+emptyPR_Void = PVoid 0#
+
+{-# INLINE replicatePR_Void #-}
+replicatePR_Void n# _ = PVoid n#
+
+type instance PRepr Void = Void
+
+dPA_Void :: PA Void
+{-# INLINE dPA_Void #-}
+dPA_Void = PA {
+             toPRepr      = id
+           , fromPRepr    = id
+           , toArrPRepr   = id
+           , fromArrPRepr = id
+           , dictPRepr    = dPR_Void
+           }
 
 data instance PArray () = PUnit Int# ()
 
