@@ -1,7 +1,7 @@
 module Data.Array.Parallel.Lifted.Prim (
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#,
-  upToPA_Int#
+  upToPA_Int#, selectPA_Int#
 ) where
 
 import Data.Array.Parallel.Unlifted
@@ -21,4 +21,9 @@ replicatePA_Int# n# i# = PInt# (replicateU (I# n#) (I# i#))
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = PInt# (enumFromToU 0 ((I# n#) -1))
+
+selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
+selectPA_Int# (PInt# ns) i# = PBool# (mapU (\n -> n == I# i#) ns)
+
+newtype PArray_Bool# = PBool# (UArr Bool)
 
