@@ -2,7 +2,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  lengthPA, replicatePA, emptyPA,
+  lengthPA, replicatePA, emptyPA, packPA,
 
   PRepr, PR(..), mkPR
 ) where
@@ -45,16 +45,16 @@ emptyPA :: PA a -> PArray a
 emptyPA pa = fromArrPRepr pa
            $ emptyPR (dictPRepr pa)
 
-packPA :: PA a -> PArray a -> PArray_Bool# -> PArray a
+packPA :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
 {-# INLINE packPA #-}
-packPA pa arr = fromArrPRepr pa
-              . packPR (dictPRepr pa) (toArrPRepr pa arr)
+packPA pa arr n# = fromArrPRepr pa
+                 . packPR (dictPRepr pa) (toArrPRepr pa arr) n#
 
 data PR a = PR {
               lengthPR    :: PArray a -> Int#
             , emptyPR     :: PArray a
             , replicatePR :: Int# -> a -> PArray a
-            , packPR      :: PArray a -> PArray_Bool# -> PArray a
+            , packPR      :: PArray a -> Int# -> PArray_Bool# -> PArray a
             }
 
 mkPR :: PA a -> PR a

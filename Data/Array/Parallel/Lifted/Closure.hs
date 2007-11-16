@@ -74,6 +74,7 @@ dPR_Clo = PR {
             lengthPR    = lengthPR_Clo
           , emptyPR     = emptyPR_Clo
           , replicatePR = replicatePR_Clo
+          , packPR      = packPR_Clo
           }
 
 {-# INLINE lengthPR_Clo #-}
@@ -86,4 +87,7 @@ emptyPR_Clo = AClo dPA_Unit (\e  a  -> error "empty array closure")
 
 {-# INLINE replicatePR_Clo #-}
 replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA pa n# e)
+
+{-# INLINE packPR_Clo #-}
+packPR_Clo (AClo pa f f' es) n# sel# = AClo pa f f' (packPA pa es n# sel#)
 

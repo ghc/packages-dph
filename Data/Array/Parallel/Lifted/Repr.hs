@@ -29,6 +29,7 @@ dPR_Void = PR {
              lengthPR    = lengthPR_Void
            , emptyPR     = emptyPR_Void
            , replicatePR = replicatePR_Void
+           , packPR      = packPR_Void
            }
 
 {-# INLINE lengthPR_Void #-}
@@ -39,6 +40,9 @@ emptyPR_Void = PVoid 0#
 
 {-# INLINE replicatePR_Void #-}
 replicatePR_Void n# _ = PVoid n#
+
+{-# INLINE packPR_Void #-}
+packPR_Void (PVoid _) n# _ = PVoid n#
 
 type instance PRepr Void = Void
 
@@ -60,6 +64,7 @@ dPR_Unit = PR {
              lengthPR    = lengthPR_Unit
            , emptyPR     = emptyPR_Unit
            , replicatePR = replicatePR_Unit
+           , packPR      = packPR_Unit
            }
          
 
@@ -72,6 +77,8 @@ emptyPR_Unit = PUnit 0# ()
 {-# INLINE replicatePR_Unit #-}
 replicatePR_Unit n# u = PUnit n# u
 
+{-# INLINE packPR_Unit #-}
+packPR_Unit (PUnit _ u) n# _ = PUnit n# u
 
 data Wrap a = Wrap a
 
@@ -83,6 +90,7 @@ dPR_Wrap pr = PR {
               lengthPR    = lengthPR_Wrap
             , emptyPR     = emptyPR_Wrap pr
             , replicatePR = replicatePR_Wrap pr
+            , packPR      = packPR_Wrap pr
             }
 
 {-# INLINE lengthPR_Wrap #-}
@@ -93,6 +101,9 @@ emptyPR_Wrap pr = PWrap 0# (emptyPR pr)
 
 {-# INLINE replicatePR_Wrap #-}
 replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
+
+{-# INLINE packPR_Wrap #-}
+packPR_Wrap pr (PWrap _ xs) n# sel# = PWrap n# (packPR pr xs n# sel#)
 
 
 data instance PArray (a,b)
@@ -111,6 +122,7 @@ dPR_2 pra prb
       lengthPR    = lengthPR_2
     , emptyPR     = emptyPR_2 pra prb
     , replicatePR = replicatePR_2 pra prb
+    , packPR      = packPR_2 pra prb
     }
 
 {-# INLINE lengthPR_2 #-}
@@ -124,6 +136,10 @@ replicatePR_2 pra prb n# ~(a,b)
   = P_2 n# (replicatePR pra n# a)
            (replicatePR prb n# b)
 
+{-# INLINE packPR_2 #-}
+packPR_2 pra prb (P_2 _ as bs) n# sel# = P_2 n# (packPR pra as n# sel#)
+                                                (packPR prb bs n# sel#)
+
 dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
 {-# INLINE dPR_3 #-}
 dPR_3 pra prb prc
@@ -131,6 +147,7 @@ dPR_3 pra prb prc
       lengthPR    = lengthPR_3
     , emptyPR     = emptyPR_3 pra prb prc
     , replicatePR = replicatePR_3 pra prb prc
+    , packPR      = packPR_3 pra prb prc
     }
 
 {-# INLINE lengthPR_3 #-}
@@ -144,6 +161,12 @@ replicatePR_3 pra prb prc n# ~(a,b,c)
   = P_3 n# (replicatePR pra n# a)
            (replicatePR prb n# b)
            (replicatePR prc n# c)
+
+{-# INLINE packPR_3 #-}
+packPR_3 pra prb prc (P_3 _ as bs cs) n# sel#
+  = P_3 n# (packPR pra as n# sel#)
+           (packPR prb bs n# sel#)
+           (packPR prc cs n# sel#)
 
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c

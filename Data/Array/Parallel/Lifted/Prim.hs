@@ -3,7 +3,8 @@ module Data.Array.Parallel.Lifted.Prim (
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#,
   upToPA_Int#, selectPA_Int#,
 
-  PArray_Bool#
+  PArray_Bool#,
+  lengthPA_Bool#
 ) where
 
 import Data.Array.Parallel.Unlifted
@@ -28,4 +29,7 @@ selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# (PInt# ns) i# = PBool# (mapU (\n -> n == I# i#) ns)
 
 newtype PArray_Bool# = PBool# (UArr Bool)
+
+lengthPA_Bool# :: PArray_Bool# -> Int#
+lengthPA_Bool# (PBool# arr) = case lengthU arr of { I# n# -> n# }
 
