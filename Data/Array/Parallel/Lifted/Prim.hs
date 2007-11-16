@@ -1,7 +1,9 @@
 module Data.Array.Parallel.Lifted.Prim (
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#,
-  upToPA_Int#, selectPA_Int#
+  upToPA_Int#, selectPA_Int#,
+
+  PArray_Bool#
 ) where
 
 import Data.Array.Parallel.Unlifted
