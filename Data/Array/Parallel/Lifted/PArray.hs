@@ -2,13 +2,13 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  lengthPA, replicatePA, emptyPA, packPA,
+  lengthPA, replicatePA, emptyPA, packPA, combine2PA,
 
   PRepr, PR(..), mkPR, mkReprPA
 ) where
 
 import Data.Array.Parallel.Unlifted ( UArr )
-import Data.Array.Parallel.Lifted.Prim ( PArray_Bool# )
+import Data.Array.Parallel.Lifted.Prim ( PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#)
 
 -- |Lifted parallel arrays
@@ -50,11 +50,20 @@ packPA :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
 packPA pa arr n# = fromArrPRepr pa
                  . packPR (dictPRepr pa) (toArrPRepr pa arr) n#
 
+combine2PA :: PA a -> Int# -> PArray_Int# -> PArray_Int#
+           -> PArray a -> PArray a -> PArray a
+{-# INLINE combine2PA #-}
+combine2PA pa n# sel# is# as bs
+  = fromArrPRepr pa
+  $ combine2PR (dictPRepr pa) n# sel# is# (toArrPRepr pa as) (toArrPRepr pa bs)
+
 data PR a = PR {
               lengthPR    :: PArray a -> Int#
             , emptyPR     :: PArray a
             , replicatePR :: Int# -> a -> PArray a
             , packPR      :: PArray a -> Int# -> PArray_Bool# -> PArray a
+            , combine2PR  :: Int# -> PArray_Int# -> PArray_Int#
+                             -> PArray a -> PArray a -> PArray a
             }
 
 mkPR :: PA a -> PR a
@@ -64,6 +73,7 @@ mkPR pa = PR {
           , emptyPR     = emptyPA pa
           , replicatePR = replicatePA pa
           , packPR      = packPA pa
+          , combine2PR  = combine2PA pa
           }
 
 mkReprPA :: (a ~ PRepr a) => PR a -> PA a

@@ -30,6 +30,7 @@ dPR_Void = PR {
            , emptyPR     = emptyPR_Void
            , replicatePR = replicatePR_Void
            , packPR      = packPR_Void
+           , combine2PR  = combine2PR_Void
            }
 
 {-# INLINE lengthPR_Void #-}
@@ -43,6 +44,9 @@ replicatePR_Void n# _ = PVoid n#
 
 {-# INLINE packPR_Void #-}
 packPR_Void (PVoid _) n# _ = PVoid n#
+
+{-# INLINE combine2PR_Void #-}
+combine2PR_Void n# _ _ (PVoid _) (PVoid _) = PVoid n#
 
 type instance PRepr Void = Void
 
@@ -65,6 +69,7 @@ dPR_Unit = PR {
            , emptyPR     = emptyPR_Unit
            , replicatePR = replicatePR_Unit
            , packPR      = packPR_Unit
+           , combine2PR  = combine2PR_Unit
            }
          
 
@@ -79,6 +84,10 @@ replicatePR_Unit n# u = PUnit n# u
 
 {-# INLINE packPR_Unit #-}
 packPR_Unit (PUnit _ u) n# _ = PUnit n# u
+
+{-# INLINE combine2PR_Unit #-}
+combine2PR_Unit n# _ _ (PUnit _ u1) (PUnit _ u2)
+  = PUnit n# (u1 `seq` u2)
 
 data Wrap a = Wrap a
 
@@ -123,6 +132,7 @@ dPR_2 pra prb
     , emptyPR     = emptyPR_2 pra prb
     , replicatePR = replicatePR_2 pra prb
     , packPR      = packPR_2 pra prb
+    , combine2PR  = combine2PR_2 pra prb
     }
 
 {-# INLINE lengthPR_2 #-}
@@ -140,6 +150,11 @@ replicatePR_2 pra prb n# ~(a,b)
 packPR_2 pra prb (P_2 _ as bs) n# sel# = P_2 n# (packPR pra as n# sel#)
                                                 (packPR prb bs n# sel#)
 
+{-# INLINE combine2PR_2 #-}
+combine2PR_2 pra prb n# sel# is# (P_2 _ as1 bs1) (P_2 _ as2 bs2)
+  = P_2 n# (combine2PR pra n# sel# is# as1 as2)
+           (combine2PR prb n# sel# is# bs1 bs2)
+
 dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
 {-# INLINE dPR_3 #-}
 dPR_3 pra prb prc
@@ -148,6 +163,7 @@ dPR_3 pra prb prc
     , emptyPR     = emptyPR_3 pra prb prc
     , replicatePR = replicatePR_3 pra prb prc
     , packPR      = packPR_3 pra prb prc
+    , combine2PR  = combine2PR_3 pra prb prc
     }
 
 {-# INLINE lengthPR_3 #-}
@@ -167,6 +183,13 @@ packPR_3 pra prb prc (P_3 _ as bs cs) n# sel#
   = P_3 n# (packPR pra as n# sel#)
            (packPR prb bs n# sel#)
            (packPR prc cs n# sel#)
+
+{-# INLINE combine2PR_3 #-}
+combine2PR_3 pra prb prc n# sel# is# (P_3 _ as1 bs1 cs1)
+                                     (P_3 _ as2 bs2 cs2)
+  = P_3 n# (combine2PR pra n# sel# is# as1 as2)
+           (combine2PR prb n# sel# is# bs1 bs2)
+           (combine2PR prc n# sel# is# cs1 cs2)
 
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
