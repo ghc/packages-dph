@@ -4,7 +4,8 @@ module Data.Array.Parallel.Lifted.Prim (
   upToPA_Int#, selectPA_Int#,
 
   PArray_Bool#,
-  lengthPA_Bool#
+  lengthPA_Bool#,
+  truesPA_Bool#
 ) where
 
 import Data.Array.Parallel.Unlifted
@@ -32,4 +33,9 @@ newtype PArray_Bool# = PBool# (UArr Bool)
 
 lengthPA_Bool# :: PArray_Bool# -> Int#
 lengthPA_Bool# (PBool# arr) = case lengthU arr of { I# n# -> n# }
+
+truesPA_Bool# :: PArray_Bool# -> Int#
+truesPA_Bool# (PBool# arr)
+  = case sumU (mapU (\b -> if b then 1 else 0) arr) of
+      I# n# -> n#
 
