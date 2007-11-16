@@ -5,7 +5,6 @@ module Data.Array.Parallel.Lifted.Closure (
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances  (dPA_Unit)
 
 infixr 0 :->
