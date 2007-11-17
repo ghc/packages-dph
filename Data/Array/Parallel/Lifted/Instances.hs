@@ -1,5 +1,6 @@
 module Data.Array.Parallel.Lifted.Instances (
   dPA_Int, dPR_Int,
+  dPA_Bool,
   dPA_Unit, dPA_2, dPA_3
 ) where
 
@@ -40,6 +41,26 @@ emptyPR_Int = PInt 0# emptyPA_Int#
 
 {-# INLINE replicatePR_Int #-}
 replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
+
+data instance PArray Bool = PBool Int# PArray_Int#
+
+type instance PRepr Bool = Int
+
+dPA_Bool :: PA Bool
+{-# INLINE dPA_Bool #-}
+dPA_Bool = PA {
+             toPRepr      = fromEnum
+           , fromPRepr    = toEnum
+           , toArrPRepr   = fromPBool
+           , fromArrPRepr = toPBool
+           , dictPRepr    = dPR_Int
+           }
+
+{-# INLINE fromPBool #-}
+fromPBool (PBool n# is#) = PInt n# is#
+
+{-# INLINE toPBool #-}
+toPBool (PInt n# is#) = PBool n# is#
 
 -- Tuples
 --
