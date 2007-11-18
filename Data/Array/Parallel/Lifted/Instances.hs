@@ -1,7 +1,8 @@
 module Data.Array.Parallel.Lifted.Instances (
   dPA_Int, dPR_Int,
   dPA_Bool,
-  dPA_Unit, dPA_2, dPA_3
+  dPA_Unit, dPA_2, dPA_3,
+  dPA_PArray
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -163,4 +164,25 @@ dPA_3 pa pb pc
     , fromArrPRepr = id
     , dictPRepr    = dPR_3 (mkPR pa) (mkPR pb) (mkPR pc)
     }
+
+type instance PRepr (PArray a) = PArray (PRepr a)
+
+dPA_PArray :: PA a -> PA (PArray a)
+{-# INLINE dPA_PArray #-}
+dPA_PArray pa
+  = PA {
+      toPRepr      = toArrPRepr pa
+    , fromPRepr    = fromArrPRepr pa
+    , toArrPRepr   = toNestedPRepr pa
+    , fromArrPRepr = fromNestedPRepr pa
+    , dictPRepr    = dPR_PArray (dictPRepr pa)
+    }
+
+{-# INLINE toNestedPRepr #-}
+toNestedPRepr pa (PNested n# lens is xs)
+  = PNested n# lens is (toArrPRepr pa xs)
+
+{-# INLINE fromNestedPRepr #-}
+fromNestedPRepr pa (PNested n# lens is xs)
+  = PNested n# lens is (fromArrPRepr pa xs)
 
