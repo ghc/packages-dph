@@ -7,7 +7,9 @@ module Data.Array.Parallel.Lifted.Repr (
   dPA_Void,
   dPR_Void, dPR_Unit, dPR_Wrap,
   dPR_2, dPR_3,
-  dPR_Sum2, dPR_Sum3
+  dPR_Sum2, dPR_Sum3,
+
+  dPR_PArray
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -258,4 +260,20 @@ replicatePR_Sum3 pra prb prc n# p
                         _        -> emptyPR prb)
              (case p of Alt3_3 x -> replicatePR prc n# x
                         _        -> emptyPR prc)
+
+data instance PArray (PArray a)
+  = PNested Int# (UArr Int) (UArr Int) (PArray a)
+
+dPR_PArray :: PR a -> PR (PArray a)
+{-# INLINE dPR_PArray #-}
+dPR_PArray pr = PR {
+                  lengthPR = lengthPR_PArray
+                , emptyPR  = emptyPR_PArray pr
+                }
+
+{-# INLINE lengthPR_PArray #-}
+lengthPR_PArray (PNested n# _ _ _) = n#
+
+{-# INLINE emptyPR_PArray #-}
+emptyPR_PArray pr = PNested 0# emptyU emptyU (emptyPR pr)
 
