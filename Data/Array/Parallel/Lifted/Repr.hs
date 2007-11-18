@@ -286,7 +286,7 @@ replicatePR_Sum3 pra prb prc n# p
                         _        -> emptyPR prc)
 
 data instance PArray (PArray a)
-  = PNested Int# (UArr Int) (UArr Int) (PArray a)
+  = PNested Int# PArray_Int# PArray_Int# (PArray a)
 
 dPR_PArray :: PR a -> PR (PArray a)
 {-# INLINE dPR_PArray #-}
@@ -299,5 +299,5 @@ dPR_PArray pr = PR {
 lengthPR_PArray (PNested n# _ _ _) = n#
 
 {-# INLINE emptyPR_PArray #-}
-emptyPR_PArray pr = PNested 0# emptyU emptyU (emptyPR pr)
+emptyPR_PArray pr = PNested 0# emptyPA_Int# emptyPA_Int# (emptyPR pr)
 
