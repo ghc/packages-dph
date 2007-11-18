@@ -118,11 +118,11 @@ replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
 {-# INLINE packPR_Wrap #-}
 packPR_Wrap pr (PWrap _ xs) n# sel# = PWrap n# (packPR pr xs n# sel#)
 
-data Enumeration a = Enumeration Int#
+data Enumeration = Enumeration Int#
 
-data instance PArray (Enumeration a) = PEnum Int# PArray_Int# PArray_Int#
+data instance PArray Enumeration = PEnum Int# PArray_Int# PArray_Int#
 
-dPR_Enumeration :: PR (Enumeration a)
+dPR_Enumeration :: PR Enumeration
 {-# INLINE dPR_Enumeration #-}
 dPR_Enumeration = PR {
                     lengthPR    = lengthPR_Enumeration
