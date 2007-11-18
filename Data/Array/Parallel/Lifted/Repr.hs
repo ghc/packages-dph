@@ -2,10 +2,12 @@ module Data.Array.Parallel.Lifted.Repr (
   PArray(..),
   Void, void,
   Wrap(..),
+  Enumeration(..),
   Sum2(..), Sum3(..), 
 
   dPA_Void,
   dPR_Void, dPR_Unit, dPR_Wrap,
+  dPR_Enumeration,
   dPR_2, dPR_3,
   dPR_Sum2, dPR_Sum3,
 
@@ -116,6 +118,28 @@ replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
 {-# INLINE packPR_Wrap #-}
 packPR_Wrap pr (PWrap _ xs) n# sel# = PWrap n# (packPR pr xs n# sel#)
 
+data Enumeration a = Enumeration Int#
+
+data instance PArray (Enumeration a) = PEnum Int# PArray_Int# PArray_Int#
+
+dPR_Enumeration :: PR (Enumeration a)
+{-# INLINE dPR_Enumeration #-}
+dPR_Enumeration = PR {
+                    lengthPR    = lengthPR_Enumeration
+                  , emptyPR     = emptyPR_Enumeration
+                  , replicatePR = replicatePR_Enumeration
+                  }
+
+{-# INLINE lengthPR_Enumeration #-}
+lengthPR_Enumeration (PEnum n# _ _) = n#
+
+{-# INLINE emptyPR_Enumeration #-}
+emptyPR_Enumeration = PEnum 0# emptyPA_Int# emptyPA_Int#
+
+{-# INLINE replicatePR_Enumeration #-}
+replicatePR_Enumeration n# enum
+  = PEnum n# (replicatePA_Int# n# (case enum of { Enumeration i# -> i# }))
+             (upToPA_Int# n#)
 
 data instance PArray (a,b)
   = P_2 Int# (PArray a)
