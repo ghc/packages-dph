@@ -43,25 +43,33 @@ emptyPR_Int = PInt 0# emptyPA_Int#
 {-# INLINE replicatePR_Int #-}
 replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 
-data instance PArray Bool = PBool Int# PArray_Int#
+data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
 
-type instance PRepr Bool = Int
+type instance PRepr Bool = Enumeration
 
 dPA_Bool :: PA Bool
 {-# INLINE dPA_Bool #-}
 dPA_Bool = PA {
-             toPRepr      = fromEnum
-           , fromPRepr    = toEnum
-           , toArrPRepr   = fromPBool
-           , fromArrPRepr = toPBool
-           , dictPRepr    = dPR_Int
+             toPRepr      = toPRepr_Bool
+           , fromPRepr    = fromPRepr_Bool
+           , toArrPRepr   = toArrPRepr_Bool
+           , fromArrPRepr = fromArrPRepr_Bool
+           , dictPRepr    = dPR_Enumeration
            }
 
-{-# INLINE fromPBool #-}
-fromPBool (PBool n# is#) = PInt n# is#
+{-# INLINE toPRepr_Bool #-}
+toPRepr_Bool False = Enumeration 0#
+toPRepr_Bool True  = Enumeration 1#
 
-{-# INLINE toPBool #-}
-toPBool (PInt n# is#) = PBool n# is#
+{-# INLINE fromPRepr_Bool #-}
+fromPRepr_Bool (Enumeration 0#) = False
+fromPRepr_Bool _                = True
+
+{-# INLINE toArrPRepr_Bool #-}
+toArrPRepr_Bool (PBool n# sel# is#) = PEnum n# sel# is#
+
+{-# INLINE fromArrPRepr_Bool #-}
+fromArrPRepr_Bool (PEnum n# sel# is#) = PBool n# sel# is#
 
 -- Tuples
 --
