@@ -33,6 +33,7 @@ dPR_Void = PR {
              lengthPR    = lengthPR_Void
            , emptyPR     = emptyPR_Void
            , replicatePR = replicatePR_Void
+           , indexPR     = indexPR_Void
            , packPR      = packPR_Void
            , combine2PR  = combine2PR_Void
            }
@@ -45,6 +46,10 @@ emptyPR_Void = PVoid 0#
 
 {-# INLINE replicatePR_Void #-}
 replicatePR_Void n# _ = PVoid n#
+
+indexPR_Void :: PArray Void -> Int# -> Void
+{-# INLINE indexPR_Void #-}
+indexPR_Void (PVoid n#) i# = void
 
 {-# INLINE packPR_Void #-}
 packPR_Void (PVoid _) n# _ = PVoid n#
@@ -72,6 +77,7 @@ dPR_Unit = PR {
              lengthPR    = lengthPR_Unit
            , emptyPR     = emptyPR_Unit
            , replicatePR = replicatePR_Unit
+           , indexPR     = indexPR_Unit
            , packPR      = packPR_Unit
            , combine2PR  = combine2PR_Unit
            }
@@ -85,6 +91,10 @@ emptyPR_Unit = PUnit 0# ()
 
 {-# INLINE replicatePR_Unit #-}
 replicatePR_Unit n# u = PUnit n# u
+
+indexPR_Unit :: PArray () -> Int# -> ()
+{-# INLINE indexPR_Unit #-}
+indexPR_Unit (PUnit n# u) i# = u
 
 {-# INLINE packPR_Unit #-}
 packPR_Unit (PUnit _ u) n# _ = PUnit n# u
@@ -103,6 +113,7 @@ dPR_Wrap pr = PR {
               lengthPR    = lengthPR_Wrap
             , emptyPR     = emptyPR_Wrap pr
             , replicatePR = replicatePR_Wrap pr
+            , indexPR     = indexPR_Wrap pr
             , packPR      = packPR_Wrap pr
             }
 
@@ -114,6 +125,9 @@ emptyPR_Wrap pr = PWrap 0# (emptyPR pr)
 
 {-# INLINE replicatePR_Wrap #-}
 replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
+
+{-# INLINE indexPR_Wrap #-}
+indexPR_Wrap pr (PWrap n# xs) i# = Wrap (indexPR pr xs i#)
 
 {-# INLINE packPR_Wrap #-}
 packPR_Wrap pr (PWrap _ xs) n# sel# = PWrap n# (packPR pr xs n# sel#)
@@ -157,6 +171,7 @@ dPR_2 pra prb
       lengthPR    = lengthPR_2
     , emptyPR     = emptyPR_2 pra prb
     , replicatePR = replicatePR_2 pra prb
+    , indexPR     = indexPR_2 pra prb
     , packPR      = packPR_2 pra prb
     , combine2PR  = combine2PR_2 pra prb
     }
@@ -171,6 +186,9 @@ emptyPR_2 pra prb = P_2 0# (emptyPR pra) (emptyPR prb)
 replicatePR_2 pra prb n# ~(a,b)
   = P_2 n# (replicatePR pra n# a)
            (replicatePR prb n# b)
+
+{-# INLINE indexPR_2 #-}
+indexPR_2 pra prb (P_2 _ as bs) i# = (indexPR pra as i#, indexPR prb bs i#)
 
 {-# INLINE packPR_2 #-}
 packPR_2 pra prb (P_2 _ as bs) n# sel# = P_2 n# (packPR pra as n# sel#)
@@ -188,6 +206,7 @@ dPR_3 pra prb prc
       lengthPR    = lengthPR_3
     , emptyPR     = emptyPR_3 pra prb prc
     , replicatePR = replicatePR_3 pra prb prc
+    , indexPR     = indexPR_3 pra prb prc
     , packPR      = packPR_3 pra prb prc
     , combine2PR  = combine2PR_3 pra prb prc
     }
@@ -203,6 +222,10 @@ replicatePR_3 pra prb prc n# ~(a,b,c)
   = P_3 n# (replicatePR pra n# a)
            (replicatePR prb n# b)
            (replicatePR prc n# c)
+
+{-# INLINE indexPR_3 #-}
+indexPR_3 pra prb prc (P_3 n# as bs cs) i#
+  = (indexPR pra as i#, indexPR prb bs i#, indexPR prc cs i#)
 
 {-# INLINE packPR_3 #-}
 packPR_3 pra prb prc (P_3 _ as bs cs) n# sel#
@@ -235,6 +258,7 @@ dPR_Sum2 pra prb = PR {
                      lengthPR    = lengthPR_Sum2
                    , emptyPR     = emptyPR_Sum2 pra prb
                    , replicatePR = replicatePR_Sum2 pra prb
+                   , indexPR     = indexPR_Sum2 pra prb
                    }
 
 {-# INLINE lengthPR_Sum2 #-}
@@ -254,6 +278,12 @@ replicatePR_Sum2 pra prb n# p
              (case p of Alt2_2 y -> replicatePR prb n# y
                         _        -> emptyPR prb)
 
+{-# INLINE indexPR_Sum2 #-}
+indexPR_Sum2 pra prb (PSum2 n# sel# is# as bs) i#
+  = case indexPA_Int# sel# i# of
+      0# -> Alt2_1 (indexPR pra as (indexPA_Int# is# i#))
+      _  -> Alt2_2 (indexPR prb bs (indexPA_Int# is# i#))
+
 dPR_Sum3 :: PR a -> PR b -> PR c -> PR (Sum3 a b c)
 {-# INLINE dPR_Sum3 #-}
 dPR_Sum3 pra prb prc
@@ -261,6 +291,7 @@ dPR_Sum3 pra prb prc
      lengthPR    = lengthPR_Sum3
    , emptyPR     = emptyPR_Sum3 pra prb prc
    , replicatePR = replicatePR_Sum3 pra prb prc
+   , indexPR     = indexPR_Sum3 pra prb prc
    }
 
 {-# INLINE lengthPR_Sum3 #-}
@@ -284,6 +315,13 @@ replicatePR_Sum3 pra prb prc n# p
                         _        -> emptyPR prb)
              (case p of Alt3_3 x -> replicatePR prc n# x
                         _        -> emptyPR prc)
+
+{-# INLINE indexPR_Sum3 #-}
+indexPR_Sum3 pra prb prc (PSum3 n# sel# is# as bs cs) i#
+  = case indexPA_Int# sel# i# of
+      0# -> Alt3_1 (indexPR pra as (indexPA_Int# is# i#))
+      1# -> Alt3_2 (indexPR prb bs (indexPA_Int# is# i#))
+      _  -> Alt3_3 (indexPR prc cs (indexPA_Int# is# i#))
 
 data instance PArray (PArray a)
   = PNested Int# PArray_Int# PArray_Int# (PArray a)
