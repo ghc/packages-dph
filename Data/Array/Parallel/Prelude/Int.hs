@@ -1,3 +1,4 @@
+{-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Int (
   plus, plusV,
   minus, minusV,
@@ -31,7 +32,7 @@ sumPA :: PArray Int :-> Int
 {-# INLINE sumPA #-}
 sumPA = closure1 (unsafe_fold_Int (+) 0) (\_ -> error "Int.sumV lifted")
 
-sumP :: PArr Int -> Int
+sumP :: [:Int:] -> Int
 {-# NOINLINE sumP #-}
 sumP _ = error "PArr.sumP"
 
@@ -39,7 +40,7 @@ upToPA :: Int :-> PArray Int
 {-# INLINE upToPA #-}
 upToPA = closure1 upto_Int (\_ -> error "Int.upToPA lifted")
 
-upToP :: Int -> PArr Int
+upToP :: Int -> [:Int:]
 {-# NOINLINE upToP #-}
 upToP _ = error "PArr.upToP"
 
