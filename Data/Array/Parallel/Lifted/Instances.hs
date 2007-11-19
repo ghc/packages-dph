@@ -44,6 +44,35 @@ emptyPR_Int = PInt 0# emptyPA_Int#
 {-# INLINE replicatePR_Int #-}
 replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 
+type instance PRepr Bool = Sum2 Void Void
+data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
+                                  (PArray Void) (PArray Void)
+
+dPA_Bool :: PA Bool
+{-# INLINE dPA_Bool #-}
+dPA_Bool = PA {
+             toPRepr      = toPRepr_Bool
+           , fromPRepr    = fromPRepr_Bool
+           , toArrPRepr   = toArrPRepr_Bool
+           , fromArrPRepr = fromArrPRepr_Bool
+           , dictPRepr    = dPR_Sum2 dPR_Void dPR_Void
+           }
+
+{-# INLINE toPRepr_Bool #-}
+toPRepr_Bool False = Alt2_1 void
+toPRepr_Bool True  = Alt2_2 void
+
+{-# INLINE fromPRepr_Bool #-}
+fromPRepr_Bool (Alt2_1 _) = False
+fromPRepr_Bool (Alt2_2 _) = True
+
+{-# INLINE toArrPRepr_Bool #-}
+toArrPRepr_Bool (PBool n# sel# is# fs ts) = PSum2 n# sel# is# fs ts
+
+{-# INLINE fromArrPRepr_Bool #-}
+fromArrPRepr_Bool (PSum2 n# sel# is# fs ts) = PBool n# sel# is# fs ts
+
+{-
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
 
 type instance PRepr Bool = Enumeration
@@ -71,6 +100,7 @@ toArrPRepr_Bool (PBool n# sel# is#) = PEnum n# sel# is#
 
 {-# INLINE fromArrPRepr_Bool #-}
 fromArrPRepr_Bool (PEnum n# sel# is#) = PBool n# sel# is#
+-}
 
 -- Tuples
 --
