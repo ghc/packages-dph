@@ -14,6 +14,7 @@ exposed-modules:
         Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.Base.Closure
+        Data.Array.Parallel.Prelude
 other-modules:
 	Data.Array.Parallel.Base.Config
 	Data.Array.Parallel.Base.Debug
@@ -74,6 +75,9 @@ other-modules:
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Instances
         Data.Array.Parallel.Lifted.Combinators
+        Data.Array.Parallel.Lifted.Temporary
+        Data.Array.Parallel.Prelude.PArr
+        Data.Array.Parallel.Prelude.Int
 extensions: TypeFamilies, BangPatterns
 ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing
