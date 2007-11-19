@@ -1,4 +1,5 @@
 module Data.Array.Parallel.Lifted.Instances (
+  PArray(..),
   dPA_Int, dPR_Int,
   dPA_Bool,
   dPA_Unit, dPA_2, dPA_3,

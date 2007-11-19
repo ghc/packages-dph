@@ -1,5 +1,5 @@
 module Data.Array.Parallel.Lifted.Prim (
-  PArray_Int#,
+  PArray_Int#(..),
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#,
   upToPA_Int#, selectPA_Int#,
 
