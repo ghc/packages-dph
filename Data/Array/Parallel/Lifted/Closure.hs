@@ -1,9 +1,7 @@
 module Data.Array.Parallel.Lifted.Closure (
   (:->)(..), PArray(..),
   mkClosure, mkClosureP, ($:), ($:^),
-  dPA_Clo, dPR_Clo,
-
-  closure1, closure2
+  dPA_Clo, dPR_Clo
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -91,18 +89,4 @@ replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA pa n# e)
 
 {-# INLINE packPR_Clo #-}
 packPR_Clo (AClo pa f f' es) n# sel# = AClo pa f f' (packPA pa es n# sel#)
-
-closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
-{-# INLINE closure1 #-}
-closure1 fv fl = Clo dPA_Unit (\_ -> fv) (\_ -> fl) ()
-
-closure2 :: PA a
-         -> (a -> b -> c)
-         -> (PArray a -> PArray b -> PArray c)
-         -> (a :-> b :-> c)
-{-# INLINE closure2 #-}
-closure2 pa fv fl = Clo dPA_Unit fv_1 fl_1 ()
-  where
-    fv_1 _ x  = Clo  pa fv fl x
-    fl_1 _ xs = AClo pa fv fl xs
 
