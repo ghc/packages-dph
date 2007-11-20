@@ -6,7 +6,7 @@ module Data.Array.Parallel.Prelude.Base.Int (
   upToP, upToPA
 ) where
 
-import Data.Array.Parallel.Prelude.PArr
+import Data.Array.Parallel.Prelude.Base.PArr
 
 import Data.Array.Parallel.Lifted.Temporary
 import Data.Array.Parallel.Lifted.Combinators
