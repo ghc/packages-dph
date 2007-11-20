@@ -1,5 +1,5 @@
 {-# LANGUAGE PArr #-}
-module Data.Array.Parallel.Prelude.Int (
+module Data.Array.Parallel.Prelude.Base.Int (
   plus, plusV,
   minus, minusV,
   sumP, sumPA,

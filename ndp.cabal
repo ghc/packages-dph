@@ -76,8 +76,11 @@ other-modules:
         Data.Array.Parallel.Lifted.Instances
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Lifted.Temporary
+        Data.Array.Parallel.Prelude.Base.Int
+        Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.PArr
         Data.Array.Parallel.Prelude.Int
+        Data.Array.Parallel.Prelude.Bool
 extensions: TypeFamilies, BangPatterns
 ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing

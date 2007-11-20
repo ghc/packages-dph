@@ -2,13 +2,13 @@
 
 module Data.Array.Parallel.Prelude (
     module Data.Array.Parallel.Prelude.PArr
-  , module Data.Array.Parallel.Prelude.Int
+  , module Data.Array.Parallel.Prelude.Base.Int
   
   , PArray, fromPArrayP, fromPArrayPA
 ) where
 
 import Data.Array.Parallel.Prelude.PArr
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Base.Int
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
