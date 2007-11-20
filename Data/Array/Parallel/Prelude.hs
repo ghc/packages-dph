@@ -1,9 +1,15 @@
 module Data.Array.Parallel.Prelude (
     module Data.Array.Parallel.Prelude.Base.PArr
   -- , module Data.Array.Parallel.Prelude.Base.Int
+
+  , module Data.Array.Parallel.Prelude.Bool
+  , module Data.Array.Parallel.Prelude.Eq
   
   , PArray, fromPArrayP, fromPArrayPA
 ) where
+
+import Data.Array.Parallel.Prelude.Bool
+import Data.Array.Parallel.Prelude.Eq
 
 import Data.Array.Parallel.Prelude.Base.PArr
 import Data.Array.Parallel.Prelude.Base.Int

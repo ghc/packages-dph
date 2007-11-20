@@ -1,5 +1,6 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.Int (
+  -- eq, eqV, neq, neqV,
   plus, plusV,
   minus, minusV,
   sumP, sumPA,
@@ -13,6 +14,22 @@ import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
+
+{-
+eqV :: Int :-> Int :-> Bool
+{-# INLINE eqV #-}
+eqV = closure2 dPA_Int (==) (unsafe_zipWith_Int (==))
+
+eq :: Int -> Int -> Bool
+eq = (==)
+
+neqV :: Int :-> Int :-> Bool
+{-# INLINE neqV #-}
+neqV = closure2 dPA_Int (/=) (unsafe_zipWith_Int (/=))
+
+neq :: Int -> Int -> Bool
+neq = (==)
+-}
 
 plusV :: Int :-> Int :-> Int
 {-# INLINE plusV #-}

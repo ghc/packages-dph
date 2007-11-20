@@ -80,6 +80,7 @@ other-modules:
         Data.Array.Parallel.Prelude.Base.PArr
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
+        Data.Array.Parallel.Prelude.Eq
 extensions: TypeFamilies, BangPatterns
 ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing
