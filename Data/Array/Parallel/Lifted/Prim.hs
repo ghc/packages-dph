@@ -3,6 +3,9 @@ module Data.Array.Parallel.Lifted.Prim (
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#, indexPA_Int#,
   upToPA_Int#, selectPA_Int#,
 
+  PArray_Double#(..),
+  lengthPA_Double#, emptyPA_Double#, replicatePA_Double#, indexPA_Double#,
+
   PArray_Bool#,
   lengthPA_Bool#,
   truesPA_Bool#
@@ -10,7 +13,8 @@ module Data.Array.Parallel.Lifted.Prim (
 
 import Data.Array.Parallel.Unlifted
 
-import GHC.Exts (Int#, Int(..))
+import GHC.Exts ( Int#, Int(..),
+                  Double#, Double(..) )
 
 newtype PArray_Int# = PInt# (UArr Int)
 
@@ -28,6 +32,7 @@ replicatePA_Int# n# i# = PInt# (replicateU (I# n#) (I# i#))
 
 indexPA_Int# :: PArray_Int# -> Int# -> Int#
 indexPA_Int# (PInt# ns) i# = case ns !: I# i# of { I# n# -> n# }
+{-# INLINE indexPA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = PInt# (enumFromToU 0 ((I# n#) -1))
@@ -36,6 +41,24 @@ upToPA_Int# n# = PInt# (enumFromToU 0 ((I# n#) -1))
 selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# (PInt# ns) i# = PBool# (mapU (\n -> n == I# i#) ns)
 {-# INLINE selectPA_Int# #-}
+
+newtype PArray_Double# = PDouble# (UArr Double)
+
+lengthPA_Double# :: PArray_Double# -> Int#
+lengthPA_Double# (PDouble# arr) = case lengthU arr of { I# n# -> n# }
+{-# INLINE lengthPA_Double# #-}
+
+emptyPA_Double# :: PArray_Double#
+emptyPA_Double# = PDouble# emptyU
+{-# INLINE emptyPA_Double# #-}
+
+replicatePA_Double# :: Int# -> Double# -> PArray_Double#
+replicatePA_Double# n# d# = PDouble# (replicateU (I# n#) (D# d#))
+{-# INLINE replicatePA_Double# #-}
+
+indexPA_Double# :: PArray_Double# -> Int# -> Double#
+indexPA_Double# (PDouble# ds) i# = case ds !: I# i# of { D# d# -> d# }
+{-# INLINE indexPA_Double# #-}
 
 newtype PArray_Bool# = PBool# (UArr Bool)
 

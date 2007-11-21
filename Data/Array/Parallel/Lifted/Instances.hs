@@ -1,6 +1,7 @@
 module Data.Array.Parallel.Lifted.Instances (
   PArray(..),
   dPA_Int, dPR_Int,
+  dPA_Double, dPR_Double,
   dPA_Bool,
   dPA_Unit, dPA_2, dPA_3,
   dPA_PArray
@@ -11,7 +12,8 @@ import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Unlifted ( UArr, replicateU, emptyU )
 
-import GHC.Exts    (Int#, Int(..))
+import GHC.Exts    ( Int#, Int(..),
+                     Double#, Double(..) )
 
 data instance PArray Int = PInt Int# PArray_Int#
 
@@ -43,6 +45,38 @@ emptyPR_Int = PInt 0# emptyPA_Int#
 
 {-# INLINE replicatePR_Int #-}
 replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
+
+data instance PArray Double = PDouble Int# PArray_Double#
+
+type instance PRepr Double = Double
+
+dPA_Double :: PA Double
+{-# INLINE dPA_Double #-}
+dPA_Double = PA {
+            toPRepr      = id
+          , fromPRepr    = id
+          , toArrPRepr   = id
+          , fromArrPRepr = id
+          , dictPRepr    = dPR_Double
+          }
+
+dPR_Double :: PR Double
+{-# INLINE dPR_Double #-}
+dPR_Double = PR {
+            lengthPR    = lengthPR_Double
+          , emptyPR     = emptyPR_Double
+          , replicatePR = replicatePR_Double
+          }
+
+{-# INLINE lengthPR_Double #-}
+lengthPR_Double (PDouble n# _) = n#
+
+{-# INLINE emptyPR_Double #-}
+emptyPR_Double = PDouble 0# emptyPA_Double#
+
+{-# INLINE replicatePR_Double #-}
+replicatePR_Double n# d = PDouble n# (case d of D# d# -> replicatePA_Double# n# d#)
+
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
