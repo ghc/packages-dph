@@ -3,6 +3,7 @@ module Data.Array.Parallel.Prelude.Base.Int (
   -- eq, eqV, neq, neqV,
   plus, plusV,
   minus, minusV,
+  mult, multV,
   sumP, sumPA,
   upToP, upToPA
 ) where
@@ -44,6 +45,13 @@ minusV = closure2 dPA_Int (-) (unsafe_zipWith_Int (-))
 
 minus :: Int -> Int -> Int
 minus = (-)
+
+multV :: Int :-> Int :-> Int
+{-# INLINE multV #-}
+multV = closure2 dPA_Int (*) (unsafe_zipWith_Int (*))
+
+mult :: Int -> Int -> Int
+mult = (*)
 
 sumPA :: PArray Int :-> Int
 {-# INLINE sumPA #-}
