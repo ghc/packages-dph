@@ -15,6 +15,8 @@ exposed-modules:
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.Base.Closure
         Data.Array.Parallel.Prelude
+        Data.Array.Parallel.Prelude.Int
+        Data.Array.Parallel.Prelude.Double
 other-modules:
 	Data.Array.Parallel.Base.Config
 	Data.Array.Parallel.Base.Debug
@@ -77,6 +79,7 @@ other-modules:
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Lifted.Temporary
         Data.Array.Parallel.Prelude.Base.Int
+        Data.Array.Parallel.Prelude.Base.Double
         Data.Array.Parallel.Prelude.Base.PArr
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
