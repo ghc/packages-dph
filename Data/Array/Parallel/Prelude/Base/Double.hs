@@ -4,7 +4,7 @@ module Data.Array.Parallel.Prelude.Base.Double (
   plus, plusV,
   minus, minusV,
   mult, multV,
-  sumP, sumPA,
+  sumP, sumPA
 ) where
 
 import Data.Array.Parallel.Prelude.Base.PArr

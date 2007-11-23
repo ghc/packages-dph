@@ -1,7 +1,7 @@
 module Data.Array.Parallel.Lifted.Instances (
   PArray(..),
   dPA_Int, dPR_Int,
-  dPA_Double, dPR_Double,
+  dPA_Double, dPR_Double, fromUArrPA_Double, toUArrPA_Double,
   dPA_Bool,
   dPA_Unit, dPA_2, dPA_3,
   dPA_PArray
@@ -10,7 +10,7 @@ module Data.Array.Parallel.Lifted.Instances (
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Prim
-import Data.Array.Parallel.Unlifted ( UArr, replicateU, emptyU )
+import Data.Array.Parallel.Unlifted ( UArr, lengthU )
 
 import GHC.Exts    ( Int#, Int(..),
                      Double#, Double(..) )
@@ -49,6 +49,12 @@ replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 data instance PArray Double = PDouble Int# PArray_Double#
 
 type instance PRepr Double = Double
+
+fromUArrPA_Double :: UArr Double -> PArray Double
+fromUArrPA_Double xs = PDouble (case lengthU xs of I# n# -> n#) (PDouble# xs)
+
+toUArrPA_Double :: PArray Double -> UArr Double
+toUArrPA_Double (PDouble _ (PDouble# xs)) = xs
 
 dPA_Double :: PA Double
 {-# INLINE dPA_Double #-}
