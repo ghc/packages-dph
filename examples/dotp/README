@@ -7,7 +7,5 @@ The following algorithms are supported:
 
   seq   - sequential implementation
   par   - parallel implementation
+  vect  - vectorised implementation
  
-No parallel implementation is available yet as the library is missing
-functionality.
-
