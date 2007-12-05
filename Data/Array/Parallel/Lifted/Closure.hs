@@ -70,10 +70,12 @@ dPA_Clo _ _ = PA {
 dPR_Clo :: PR (a :-> b)
 {-# INLINE dPR_Clo #-}
 dPR_Clo = PR {
-            lengthPR    = lengthPR_Clo
-          , emptyPR     = emptyPR_Clo
-          , replicatePR = replicatePR_Clo
-          , packPR      = packPR_Clo
+            lengthPR     = lengthPR_Clo
+          , emptyPR      = emptyPR_Clo
+          , replicatePR  = replicatePR_Clo
+          , replicatelPR = replicatelPR_Clo
+          , indexPR      = indexPR_Clo
+          , packPR       = packPR_Clo
           }
 
 {-# INLINE lengthPR_Clo #-}
@@ -86,6 +88,10 @@ emptyPR_Clo = AClo dPA_Unit (\e  a  -> error "empty array closure")
 
 {-# INLINE replicatePR_Clo #-}
 replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA# pa n# e)
+
+{-# INLINE replicatelPR_Clo #-}
+replicatelPR_Clo n# ns (AClo pa f f' es)
+  = AClo pa f f' (replicatelPA# pa n# ns es)
 
 {-# INLINE indexPR_Clo #-}
 indexPR_Clo (AClo pa f f' es) i# = Clo pa f f' (indexPA# pa es i#)

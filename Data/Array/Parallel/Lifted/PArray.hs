@@ -2,7 +2,8 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  lengthPA#, replicatePA#, emptyPA, indexPA#, packPA#, combine2PA#,
+  lengthPA#, replicatePA#, replicatelPA#, emptyPA, indexPA#,
+  packPA#, combine2PA#,
 
   PRepr, PR(..), mkPR, mkReprPA
 ) where
@@ -40,6 +41,12 @@ replicatePA# pa n# = fromArrPRepr pa
                    . replicatePR (dictPRepr pa) n#
                    . toPRepr pa
 
+replicatelPA# :: PA a -> Int# -> PArray_Int# -> PArray a -> PArray a
+{-# INLINE replicatelPA# #-}
+replicatelPA# pa n# ns = fromArrPRepr pa
+                       . replicatelPR (dictPRepr pa) n# ns
+                       . toArrPRepr pa
+
 emptyPA :: PA a -> PArray a
 {-# INLINE emptyPA #-}
 emptyPA pa = fromArrPRepr pa
@@ -63,24 +70,26 @@ combine2PA# pa n# sel# is# as bs
   $ combine2PR (dictPRepr pa) n# sel# is# (toArrPRepr pa as) (toArrPRepr pa bs)
 
 data PR a = PR {
-              lengthPR    :: PArray a -> Int#
-            , emptyPR     :: PArray a
-            , replicatePR :: Int# -> a -> PArray a
-            , indexPR     :: PArray a -> Int# -> a
-            , packPR      :: PArray a -> Int# -> PArray_Bool# -> PArray a
-            , combine2PR  :: Int# -> PArray_Int# -> PArray_Int#
-                             -> PArray a -> PArray a -> PArray a
+              lengthPR     :: PArray a -> Int#
+            , emptyPR      :: PArray a
+            , replicatePR  :: Int# -> a -> PArray a
+            , replicatelPR :: Int# -> PArray_Int# -> PArray a -> PArray a
+            , indexPR      :: PArray a -> Int# -> a
+            , packPR       :: PArray a -> Int# -> PArray_Bool# -> PArray a
+            , combine2PR   :: Int# -> PArray_Int# -> PArray_Int#
+                              -> PArray a -> PArray a -> PArray a
             }
 
 mkPR :: PA a -> PR a
 {-# INLINE mkPR #-}
 mkPR pa = PR {
-            lengthPR    = lengthPA# pa
-          , emptyPR     = emptyPA pa
-          , replicatePR = replicatePA# pa
-          , indexPR     = indexPA# pa
-          , packPR      = packPA# pa
-          , combine2PR  = combine2PA# pa
+            lengthPR     = lengthPA# pa
+          , emptyPR      = emptyPA pa
+          , replicatePR  = replicatePA# pa
+          , replicatelPR = replicatelPA# pa
+          , indexPR      = indexPA# pa
+          , packPR       = packPA# pa
+          , combine2PR   = combine2PA# pa
           }
 
 mkReprPA :: (a ~ PRepr a) => PR a -> PA a

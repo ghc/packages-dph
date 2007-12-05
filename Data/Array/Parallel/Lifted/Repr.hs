@@ -30,12 +30,13 @@ data instance PArray Void = PVoid Int#
 dPR_Void :: PR Void
 {-# INLINE dPR_Void #-}
 dPR_Void = PR {
-             lengthPR    = lengthPR_Void
-           , emptyPR     = emptyPR_Void
-           , replicatePR = replicatePR_Void
-           , indexPR     = indexPR_Void
-           , packPR      = packPR_Void
-           , combine2PR  = combine2PR_Void
+             lengthPR     = lengthPR_Void
+           , emptyPR      = emptyPR_Void
+           , replicatePR  = replicatePR_Void
+           , replicatelPR = replicatelPR_Void
+           , indexPR      = indexPR_Void
+           , packPR       = packPR_Void
+           , combine2PR   = combine2PR_Void
            }
 
 {-# INLINE lengthPR_Void #-}
@@ -46,6 +47,9 @@ emptyPR_Void = PVoid 0#
 
 {-# INLINE replicatePR_Void #-}
 replicatePR_Void n# _ = PVoid n#
+
+{-# INLINE replicatelPR_Void #-}
+replicatelPR_Void n# _ _ = PVoid n#
 
 indexPR_Void :: PArray Void -> Int# -> Void
 {-# INLINE indexPR_Void #-}
@@ -74,12 +78,13 @@ data instance PArray () = PUnit Int# ()
 dPR_Unit :: PR ()
 {-# INLINE dPR_Unit #-}
 dPR_Unit = PR {
-             lengthPR    = lengthPR_Unit
-           , emptyPR     = emptyPR_Unit
-           , replicatePR = replicatePR_Unit
-           , indexPR     = indexPR_Unit
-           , packPR      = packPR_Unit
-           , combine2PR  = combine2PR_Unit
+             lengthPR     = lengthPR_Unit
+           , emptyPR      = emptyPR_Unit
+           , replicatePR  = replicatePR_Unit
+           , replicatelPR = replicatelPR_Unit
+           , indexPR      = indexPR_Unit
+           , packPR       = packPR_Unit
+           , combine2PR   = combine2PR_Unit
            }
          
 
@@ -91,6 +96,9 @@ emptyPR_Unit = PUnit 0# ()
 
 {-# INLINE replicatePR_Unit #-}
 replicatePR_Unit n# u = PUnit n# u
+
+{-# INLINE replicatelPR_Unit #-}
+replicatelPR_Unit n# _ (PUnit _ u) = PUnit n# u
 
 indexPR_Unit :: PArray () -> Int# -> ()
 {-# INLINE indexPR_Unit #-}
@@ -110,11 +118,12 @@ data instance PArray (Wrap a) = PWrap Int# (PArray a)
 dPR_Wrap :: PR a -> PR (Wrap a)
 {-# INLINE dPR_Wrap #-}
 dPR_Wrap pr = PR {
-              lengthPR    = lengthPR_Wrap
-            , emptyPR     = emptyPR_Wrap pr
-            , replicatePR = replicatePR_Wrap pr
-            , indexPR     = indexPR_Wrap pr
-            , packPR      = packPR_Wrap pr
+              lengthPR     = lengthPR_Wrap
+            , emptyPR      = emptyPR_Wrap pr
+            , replicatePR  = replicatePR_Wrap pr
+            , replicatelPR = replicatelPR_Wrap pr
+            , indexPR      = indexPR_Wrap pr
+            , packPR       = packPR_Wrap pr
             }
 
 {-# INLINE lengthPR_Wrap #-}
@@ -125,6 +134,9 @@ emptyPR_Wrap pr = PWrap 0# (emptyPR pr)
 
 {-# INLINE replicatePR_Wrap #-}
 replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
+
+{-# INLINE replicatelPR_Wrap #-}
+replicatelPR_Wrap pr n# ns (PWrap _ xs) = PWrap n# (replicatelPR pr n# ns xs)
 
 {-# INLINE indexPR_Wrap #-}
 indexPR_Wrap pr (PWrap n# xs) i# = Wrap (indexPR pr xs i#)
@@ -168,12 +180,13 @@ dPR_2 :: PR a -> PR b -> PR (a,b)
 {-# INLINE dPR_2 #-}
 dPR_2 pra prb
   = PR {
-      lengthPR    = lengthPR_2
-    , emptyPR     = emptyPR_2 pra prb
-    , replicatePR = replicatePR_2 pra prb
-    , indexPR     = indexPR_2 pra prb
-    , packPR      = packPR_2 pra prb
-    , combine2PR  = combine2PR_2 pra prb
+      lengthPR     = lengthPR_2
+    , emptyPR      = emptyPR_2 pra prb
+    , replicatePR  = replicatePR_2 pra prb
+    , replicatelPR = replicatelPR_2 pra prb
+    , indexPR      = indexPR_2 pra prb
+    , packPR       = packPR_2 pra prb
+    , combine2PR   = combine2PR_2 pra prb
     }
 
 {-# INLINE lengthPR_2 #-}
@@ -186,6 +199,11 @@ emptyPR_2 pra prb = P_2 0# (emptyPR pra) (emptyPR prb)
 replicatePR_2 pra prb n# ~(a,b)
   = P_2 n# (replicatePR pra n# a)
            (replicatePR prb n# b)
+
+{-# INLINE replicatelPR_2 #-}
+replicatelPR_2 pra prb n# ns (P_2 _ as bs)
+  = P_2 n# (replicatelPR pra n# ns as)
+           (replicatelPR prb n# ns bs) 
 
 {-# INLINE indexPR_2 #-}
 indexPR_2 pra prb (P_2 _ as bs) i# = (indexPR pra as i#, indexPR prb bs i#)
@@ -207,12 +225,13 @@ dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
 {-# INLINE dPR_3 #-}
 dPR_3 pra prb prc
   = PR {
-      lengthPR    = lengthPR_3
-    , emptyPR     = emptyPR_3 pra prb prc
-    , replicatePR = replicatePR_3 pra prb prc
-    , indexPR     = indexPR_3 pra prb prc
-    , packPR      = packPR_3 pra prb prc
-    , combine2PR  = combine2PR_3 pra prb prc
+      lengthPR     = lengthPR_3
+    , emptyPR      = emptyPR_3 pra prb prc
+    , replicatePR  = replicatePR_3 pra prb prc
+    , replicatelPR = replicatelPR_3 pra prb prc
+    , indexPR      = indexPR_3 pra prb prc
+    , packPR       = packPR_3 pra prb prc
+    , combine2PR   = combine2PR_3 pra prb prc
     }
 
 {-# INLINE lengthPR_3 #-}
@@ -226,6 +245,12 @@ replicatePR_3 pra prb prc n# ~(a,b,c)
   = P_3 n# (replicatePR pra n# a)
            (replicatePR prb n# b)
            (replicatePR prc n# c)
+
+{-# INLINE replicatelPR_3 #-}
+replicatelPR_3 pra prb prc n# ns (P_3 _ as bs cs)
+  = P_3 n# (replicatelPR pra n# ns as)
+           (replicatelPR prb n# ns bs)
+           (replicatelPR prc n# ns cs)
 
 {-# INLINE indexPR_3 #-}
 indexPR_3 pra prb prc (P_3 n# as bs cs) i#

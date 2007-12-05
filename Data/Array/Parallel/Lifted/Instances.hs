@@ -32,9 +32,10 @@ dPA_Int = PA {
 dPR_Int :: PR Int
 {-# INLINE dPR_Int #-}
 dPR_Int = PR {
-            lengthPR    = lengthPR_Int
-          , emptyPR     = emptyPR_Int
-          , replicatePR = replicatePR_Int
+            lengthPR     = lengthPR_Int
+          , emptyPR      = emptyPR_Int
+          , replicatePR  = replicatePR_Int
+          , replicatelPR = replicatelPR_Int
           }
 
 {-# INLINE lengthPR_Int #-}
@@ -45,6 +46,9 @@ emptyPR_Int = PInt 0# emptyPA_Int#
 
 {-# INLINE replicatePR_Int #-}
 replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
+
+{-# INLINE replicatelPR_Int #-}
+replicatelPR_Int n# ns (PInt _ is) = PInt n# (replicatelPA_Int# n# ns is)
 
 data instance PArray Double = PDouble Int# PArray_Double#
 
@@ -69,9 +73,10 @@ dPA_Double = PA {
 dPR_Double :: PR Double
 {-# INLINE dPR_Double #-}
 dPR_Double = PR {
-            lengthPR    = lengthPR_Double
-          , emptyPR     = emptyPR_Double
-          , replicatePR = replicatePR_Double
+            lengthPR     = lengthPR_Double
+          , emptyPR      = emptyPR_Double
+          , replicatePR  = replicatePR_Double
+          , replicatelPR = replicatelPR_Double
           }
 
 {-# INLINE lengthPR_Double #-}
@@ -81,7 +86,12 @@ lengthPR_Double (PDouble n# _) = n#
 emptyPR_Double = PDouble 0# emptyPA_Double#
 
 {-# INLINE replicatePR_Double #-}
-replicatePR_Double n# d = PDouble n# (case d of D# d# -> replicatePA_Double# n# d#)
+replicatePR_Double n# d
+  = PDouble n# (case d of D# d# -> replicatePA_Double# n# d#)
+
+{-# INLINE replicatelPR_Double #-}
+replicatelPR_Double n# ns (PDouble _ ds)
+  = PDouble n# (replicatelPA_Double# n# ns ds)
 
 
 type instance PRepr Bool = Sum2 Void Void
