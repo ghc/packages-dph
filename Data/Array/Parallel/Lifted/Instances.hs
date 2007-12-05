@@ -1,7 +1,12 @@
 module Data.Array.Parallel.Lifted.Instances (
   PArray(..),
+
   dPA_Int, dPR_Int,
+  unsafe_zipWithPA_Int, unsafe_foldPA_Int, upToPA_Int,
+
   dPA_Double, dPR_Double, fromUArrPA_Double, toUArrPA_Double,
+  unsafe_zipWithPA_Double, unsafe_foldPA_Double,
+
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
   dPA_Unit, dPA_2, dPA_3,
   dPA_PArray
@@ -50,6 +55,21 @@ replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 {-# INLINE replicatelPR_Int #-}
 replicatelPR_Int n# ns (PInt _ is) = PInt n# (replicatelPA_Int# n# ns is)
 
+unsafe_zipWithPA_Int :: (Int -> Int -> Int)
+                     -> PArray Int -> PArray Int -> PArray Int
+{-# INLINE unsafe_zipWithPA_Int #-}
+unsafe_zipWithPA_Int f (PInt m# ms) (PInt n# ns)
+  = PInt m# (unsafe_zipWithPA_Int# f ms ns)
+
+unsafe_foldPA_Int :: (Int -> Int -> Int) -> Int -> PArray Int -> Int
+{-# INLINE unsafe_foldPA_Int #-}
+unsafe_foldPA_Int f z (PInt n# ns) = unsafe_foldPA_Int# f z ns
+
+upToPA_Int :: Int -> PArray Int
+{-# INLINE upToPA_Int #-}
+upToPA_Int (I# n#) = PInt n# (upToPA_Int# n#)
+
+
 data instance PArray Double = PDouble Int# PArray_Double#
 
 type instance PRepr Double = Double
@@ -93,6 +113,16 @@ replicatePR_Double n# d
 replicatelPR_Double n# ns (PDouble _ ds)
   = PDouble n# (replicatelPA_Double# n# ns ds)
 
+unsafe_zipWithPA_Double :: (Double -> Double -> Double)
+                        -> PArray Double -> PArray Double -> PArray Double
+{-# INLINE unsafe_zipWithPA_Double #-}
+unsafe_zipWithPA_Double f (PDouble m# ms) (PDouble n# ns)
+  = PDouble m# (unsafe_zipWithPA_Double# f ms ns)
+
+unsafe_foldPA_Double :: (Double -> Double -> Double)
+                     -> Double -> PArray Double -> Double
+{-# INLINE unsafe_foldPA_Double #-}
+unsafe_foldPA_Double f z (PDouble n# ns) = unsafe_foldPA_Double# f z ns
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#

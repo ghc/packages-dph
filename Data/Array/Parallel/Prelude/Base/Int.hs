@@ -10,7 +10,6 @@ module Data.Array.Parallel.Prelude.Base.Int (
 
 import Data.Array.Parallel.Prelude.Base.PArr
 
-import Data.Array.Parallel.Lifted.Temporary
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Closure
@@ -34,28 +33,28 @@ neq = (==)
 
 plusV :: Int :-> Int :-> Int
 {-# INLINE plusV #-}
-plusV = closure2 dPA_Int (+) (unsafe_zipWith_Int (+))
+plusV = closure2 dPA_Int (+) (unsafe_zipWithPA_Int (+))
 
 plus :: Int -> Int -> Int
 plus = (+)
 
 minusV :: Int :-> Int :-> Int
 {-# INLINE minusV #-}
-minusV = closure2 dPA_Int (-) (unsafe_zipWith_Int (-))
+minusV = closure2 dPA_Int (-) (unsafe_zipWithPA_Int (-))
 
 minus :: Int -> Int -> Int
 minus = (-)
 
 multV :: Int :-> Int :-> Int
 {-# INLINE multV #-}
-multV = closure2 dPA_Int (*) (unsafe_zipWith_Int (*))
+multV = closure2 dPA_Int (*) (unsafe_zipWithPA_Int (*))
 
 mult :: Int -> Int -> Int
 mult = (*)
 
 sumPA :: PArray Int :-> Int
 {-# INLINE sumPA #-}
-sumPA = closure1 (unsafe_fold_Int (+) 0) (\_ -> error "Int.sumV lifted")
+sumPA = closure1 (unsafe_foldPA_Int (+) 0) (\_ -> error "Int.sumV lifted")
 
 sumP :: [:Int:] -> Int
 {-# NOINLINE sumP #-}
@@ -63,7 +62,7 @@ sumP _ = error "PArr.sumP"
 
 upToPA :: Int :-> PArray Int
 {-# INLINE upToPA #-}
-upToPA = closure1 upto_Int (\_ -> error "Int.upToPA lifted")
+upToPA = closure1 upToPA_Int (\_ -> error "Int.upToPA lifted")
 
 upToP :: Int -> [:Int:]
 {-# NOINLINE upToP #-}

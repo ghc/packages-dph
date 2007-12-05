@@ -77,7 +77,6 @@ other-modules:
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Instances
         Data.Array.Parallel.Lifted.Combinators
-        Data.Array.Parallel.Lifted.Temporary
         Data.Array.Parallel.Prelude.Base.Int
         Data.Array.Parallel.Prelude.Base.Double
         Data.Array.Parallel.Prelude.Base.PArr

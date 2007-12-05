@@ -9,7 +9,6 @@ module Data.Array.Parallel.Prelude.Base.Double (
 
 import Data.Array.Parallel.Prelude.Base.PArr
 
-import Data.Array.Parallel.Lifted.Temporary
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Closure
@@ -33,28 +32,28 @@ neq = (==)
 
 plusV :: Double :-> Double :-> Double
 {-# INLINE plusV #-}
-plusV = closure2 dPA_Double (+) (unsafe_zipWith_Double (+))
+plusV = closure2 dPA_Double (+) (unsafe_zipWithPA_Double (+))
 
 plus :: Double -> Double -> Double
 plus = (+)
 
 minusV :: Double :-> Double :-> Double
 {-# INLINE minusV #-}
-minusV = closure2 dPA_Double (-) (unsafe_zipWith_Double (-))
+minusV = closure2 dPA_Double (-) (unsafe_zipWithPA_Double (-))
 
 minus :: Double -> Double -> Double
 minus = (-)
 
 multV :: Double :-> Double :-> Double
 {-# INLINE multV #-}
-multV = closure2 dPA_Double (*) (unsafe_zipWith_Double (*))
+multV = closure2 dPA_Double (*) (unsafe_zipWithPA_Double (*))
 
 mult :: Double -> Double -> Double
 mult = (*)
 
 sumPA :: PArray Double :-> Double
 {-# INLINE sumPA #-}
-sumPA = closure1 (unsafe_fold_Double (+) 0) (\_ -> error "Double.sumPA lifted")
+sumPA = closure1 (unsafe_foldPA_Double (+) 0) (\_ -> error "Double.sumPA lifted")
 
 sumP :: [:Double:] -> Double
 {-# NOINLINE sumP #-}
