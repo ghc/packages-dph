@@ -41,6 +41,7 @@ dPR_Int = PR {
           , emptyPR      = emptyPR_Int
           , replicatePR  = replicatePR_Int
           , replicatelPR = replicatelPR_Int
+          , bpermutePR   = bpermutePR_Int
           }
 
 {-# INLINE lengthPR_Int #-}
@@ -54,6 +55,9 @@ replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 
 {-# INLINE replicatelPR_Int #-}
 replicatelPR_Int n# ns (PInt _ is) = PInt n# (replicatelPA_Int# n# ns is)
+
+{-# INLINE bpermutePR_Int #-}
+bpermutePR_Int (PInt _ ns) is = PInt (lengthPA_Int# is) (bpermutePA_Int# ns is)
 
 unsafe_zipWithPA_Int :: (Int -> Int -> Int)
                      -> PArray Int -> PArray Int -> PArray Int
@@ -97,6 +101,7 @@ dPR_Double = PR {
           , emptyPR      = emptyPR_Double
           , replicatePR  = replicatePR_Double
           , replicatelPR = replicatelPR_Double
+          , bpermutePR   = bpermutePR_Double
           }
 
 {-# INLINE lengthPR_Double #-}
@@ -112,6 +117,10 @@ replicatePR_Double n# d
 {-# INLINE replicatelPR_Double #-}
 replicatelPR_Double n# ns (PDouble _ ds)
   = PDouble n# (replicatelPA_Double# n# ns ds)
+
+{-# INLINE bpermutePR_Double #-}
+bpermutePR_Double (PDouble _ ds) is
+  = PDouble (lengthPA_Int# is) (bpermutePA_Double# ds is)
 
 unsafe_zipWithPA_Double :: (Double -> Double -> Double)
                         -> PArray Double -> PArray Double -> PArray Double

@@ -35,6 +35,7 @@ dPR_Void = PR {
            , replicatePR  = replicatePR_Void
            , replicatelPR = replicatelPR_Void
            , indexPR      = indexPR_Void
+           , bpermutePR   = bpermutePR_Void
            , packPR       = packPR_Void
            , combine2PR   = combine2PR_Void
            }
@@ -54,6 +55,9 @@ replicatelPR_Void n# _ _ = PVoid n#
 indexPR_Void :: PArray Void -> Int# -> Void
 {-# INLINE indexPR_Void #-}
 indexPR_Void (PVoid n#) i# = void
+
+{-# INLINE bpermutePR_Void #-}
+bpermutePR_Void (PVoid _) is = PVoid (lengthPA_Int# is)
 
 {-# INLINE packPR_Void #-}
 packPR_Void (PVoid _) n# _ = PVoid n#
@@ -83,6 +87,7 @@ dPR_Unit = PR {
            , replicatePR  = replicatePR_Unit
            , replicatelPR = replicatelPR_Unit
            , indexPR      = indexPR_Unit
+           , bpermutePR   = bpermutePR_Unit
            , packPR       = packPR_Unit
            , combine2PR   = combine2PR_Unit
            }
@@ -104,6 +109,9 @@ indexPR_Unit :: PArray () -> Int# -> ()
 {-# INLINE indexPR_Unit #-}
 indexPR_Unit (PUnit n# u) i# = u
 
+{-# INLINE bpermutePR_Unit #-}
+bpermutePR_Unit (PUnit _ u) is = PUnit (lengthPA_Int# is) u
+
 {-# INLINE packPR_Unit #-}
 packPR_Unit (PUnit _ u) n# _ = PUnit n# u
 
@@ -123,6 +131,7 @@ dPR_Wrap pr = PR {
             , replicatePR  = replicatePR_Wrap pr
             , replicatelPR = replicatelPR_Wrap pr
             , indexPR      = indexPR_Wrap pr
+            , bpermutePR   = bpermutePR_Wrap pr
             , packPR       = packPR_Wrap pr
             }
 
@@ -140,6 +149,10 @@ replicatelPR_Wrap pr n# ns (PWrap _ xs) = PWrap n# (replicatelPR pr n# ns xs)
 
 {-# INLINE indexPR_Wrap #-}
 indexPR_Wrap pr (PWrap n# xs) i# = Wrap (indexPR pr xs i#)
+
+{-# INLINE bpermutePR_Wrap #-}
+bpermutePR_Wrap pr (PWrap n# xs) is = PWrap (lengthPA_Int# is)
+                                            (bpermutePR pr xs is)
 
 {-# INLINE packPR_Wrap #-}
 packPR_Wrap pr (PWrap _ xs) n# sel# = PWrap n# (packPR pr xs n# sel#)
@@ -185,6 +198,7 @@ dPR_2 pra prb
     , replicatePR  = replicatePR_2 pra prb
     , replicatelPR = replicatelPR_2 pra prb
     , indexPR      = indexPR_2 pra prb
+    , bpermutePR   = bpermutePR_2 pra prb
     , packPR       = packPR_2 pra prb
     , combine2PR   = combine2PR_2 pra prb
     }
@@ -208,6 +222,11 @@ replicatelPR_2 pra prb n# ns (P_2 _ as bs)
 {-# INLINE indexPR_2 #-}
 indexPR_2 pra prb (P_2 _ as bs) i# = (indexPR pra as i#, indexPR prb bs i#)
 
+{-# INLINE bpermutePR_2 #-}
+bpermutePR_2 pra prb (P_2 _ as bs) is
+  = P_2 (lengthPA_Int# is) (bpermutePR pra as is)
+                           (bpermutePR prb bs is)
+
 {-# INLINE packPR_2 #-}
 packPR_2 pra prb (P_2 _ as bs) n# sel# = P_2 n# (packPR pra as n# sel#)
                                                 (packPR prb bs n# sel#)
@@ -230,6 +249,7 @@ dPR_3 pra prb prc
     , replicatePR  = replicatePR_3 pra prb prc
     , replicatelPR = replicatelPR_3 pra prb prc
     , indexPR      = indexPR_3 pra prb prc
+    , bpermutePR   = bpermutePR_3 pra prb prc
     , packPR       = packPR_3 pra prb prc
     , combine2PR   = combine2PR_3 pra prb prc
     }
@@ -256,6 +276,11 @@ replicatelPR_3 pra prb prc n# ns (P_3 _ as bs cs)
 indexPR_3 pra prb prc (P_3 n# as bs cs) i#
   = (indexPR pra as i#, indexPR prb bs i#, indexPR prc cs i#)
 
+{-# INLINE bpermutePR_3 #-}
+bpermutePR_3 pra prb prc (P_3 _ as bs cs) is
+  = P_3 (lengthPA_Int# is) (bpermutePR pra as is)
+                           (bpermutePR prb bs is)
+                           (bpermutePR prc cs is)
 {-# INLINE packPR_3 #-}
 packPR_3 pra prb prc (P_3 _ as bs cs) n# sel#
   = P_3 n# (packPR pra as n# sel#)

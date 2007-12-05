@@ -2,7 +2,8 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  lengthPA#, replicatePA#, replicatelPA#, emptyPA, indexPA#,
+  lengthPA#, replicatePA#, replicatelPA#, emptyPA,
+  indexPA#, bpermutePA#,
   packPA#, combine2PA#,
 
   PRepr, PR(..), mkPR, mkReprPA
@@ -57,6 +58,11 @@ indexPA# :: PA a -> PArray a -> Int# -> a
 indexPA# pa xs i# = fromPRepr pa
                   $ indexPR (dictPRepr pa) (toArrPRepr pa xs) i#
 
+bpermutePA# :: PA a -> PArray a -> PArray_Int# -> PArray a
+{-# INLINE bpermutePA# #-}
+bpermutePA# pa xs is = fromArrPRepr pa
+                     $ bpermutePR (dictPRepr pa) (toArrPRepr pa xs) is
+
 packPA# :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
 {-# INLINE packPA# #-}
 packPA# pa arr n# = fromArrPRepr pa
@@ -75,6 +81,7 @@ data PR a = PR {
             , replicatePR  :: Int# -> a -> PArray a
             , replicatelPR :: Int# -> PArray_Int# -> PArray a -> PArray a
             , indexPR      :: PArray a -> Int# -> a
+            , bpermutePR   :: PArray a -> PArray_Int# -> PArray a
             , packPR       :: PArray a -> Int# -> PArray_Bool# -> PArray a
             , combine2PR   :: Int# -> PArray_Int# -> PArray_Int#
                               -> PArray a -> PArray a -> PArray a
@@ -88,6 +95,7 @@ mkPR pa = PR {
           , replicatePR  = replicatePA# pa
           , replicatelPR = replicatelPA# pa
           , indexPR      = indexPA# pa
+          , bpermutePR   = bpermutePA# pa
           , packPR       = packPA# pa
           , combine2PR   = combine2PA# pa
           }

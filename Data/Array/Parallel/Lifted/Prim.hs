@@ -1,12 +1,12 @@
 module Data.Array.Parallel.Lifted.Prim (
   PArray_Int#(..),
   lengthPA_Int#, emptyPA_Int#, replicatePA_Int#, replicatelPA_Int#,
-  indexPA_Int#, upToPA_Int#, selectPA_Int#, sumPA_Int#,
+  indexPA_Int#, bpermutePA_Int#, upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
 
   PArray_Double#(..),
   lengthPA_Double#, emptyPA_Double#, replicatePA_Double#, replicatelPA_Double#,
-  indexPA_Double#,
+  indexPA_Double#, bpermutePA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#,
 
   PArray_Bool#(..),
@@ -41,6 +41,10 @@ replicatelPA_Int# n# (PInt# ns) (PInt# is)
 indexPA_Int# :: PArray_Int# -> Int# -> Int#
 indexPA_Int# (PInt# ns) i# = case ns !: I# i# of { I# n# -> n# }
 {-# INLINE indexPA_Int# #-}
+
+bpermutePA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int#
+bpermutePA_Int# (PInt# ns) (PInt# is) = PInt# (bpermuteU ns is)
+{-# INLINE bpermutePA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = PInt# (enumFromToU 0 ((I# n#) -1))
@@ -88,6 +92,10 @@ replicatelPA_Double# n# (PInt# ns) (PDouble# ds)
 indexPA_Double# :: PArray_Double# -> Int# -> Double#
 indexPA_Double# (PDouble# ds) i# = case ds !: I# i# of { D# d# -> d# }
 {-# INLINE indexPA_Double# #-}
+
+bpermutePA_Double# :: PArray_Double# -> PArray_Int# -> PArray_Double#
+bpermutePA_Double# (PDouble# ds) (PInt# is) = PDouble# (bpermuteU ds is)
+{-# INLINE bpermutePA_Double# #-}
 
 unsafe_zipWithPA_Double# :: (Double -> Double -> Double)
                          -> PArray_Double# -> PArray_Double# -> PArray_Double#

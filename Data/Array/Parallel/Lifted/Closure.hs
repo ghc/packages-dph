@@ -75,6 +75,7 @@ dPR_Clo = PR {
           , replicatePR  = replicatePR_Clo
           , replicatelPR = replicatelPR_Clo
           , indexPR      = indexPR_Clo
+          , bpermutePR   = bpermutePR_Clo
           , packPR       = packPR_Clo
           }
 
@@ -95,6 +96,9 @@ replicatelPR_Clo n# ns (AClo pa f f' es)
 
 {-# INLINE indexPR_Clo #-}
 indexPR_Clo (AClo pa f f' es) i# = Clo pa f f' (indexPA# pa es i#)
+
+{-# INLINE bpermutePR_Clo #-}
+bpermutePR_Clo (AClo pa f f' es) is = AClo pa f f' (bpermutePA# pa es is)
 
 {-# INLINE packPR_Clo #-}
 packPR_Clo (AClo pa f f' es) n# sel# = AClo pa f f' (packPA# pa es n# sel#)
