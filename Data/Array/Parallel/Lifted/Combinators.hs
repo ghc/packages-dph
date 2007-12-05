@@ -1,12 +1,14 @@
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
-  mapPA, zipWithPA
+  replicatePA, mapPA, zipWithPA, packPA, filterPA, indexPA, crossMapPA
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
+
+import GHC.Exts (Int(..))
 
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
 {-# INLINE closure1 #-}
@@ -38,6 +40,18 @@ closure3 pa pb fv fl = Clo dPA_Unit fv_1 fl_1 ()
     fv_3 (x,y) z = fv x y z
     fl_3 (P_2 _ xs ys) zs = fl xs ys zs
 
+replicatePA_v :: PA a -> Int -> a -> PArray a
+{-# INLINE replicatePA_v #-}
+replicatePA_v pa (I# n#) x = replicatePA# pa n# x
+
+replicatePA_l :: PA a -> PArray Int -> PArray a -> PArray (PArray a)
+{-# INLINE replicatePA_l #-}
+replicatePA_l pa ns xs = error "replicatePA_l"
+
+replicatePA :: PA a -> (Int :-> a :-> PArray a)
+{-# INLINE replicatePA #-}
+replicatePA pa = closure2 dPA_Int (replicatePA_v pa) (replicatePA_l pa)
+
 mapPA_v :: PA a -> PA b -> (a :-> b) -> PArray a -> PArray b
 {-# INLINE mapPA_v #-}
 mapPA_v pa pb f as = replicatePA# (dPA_Clo pa pb) (lengthPA# pa as) f
@@ -51,6 +65,38 @@ mapPA_l pa pb fs as = error "mapPA_l"
 mapPA :: PA a -> PA b -> ((a :-> b) :-> PArray a :-> PArray b)
 {-# INLINE mapPA #-}
 mapPA pa pb = closure2 (dPA_Clo pa pb) (mapPA_v pa pb) (mapPA_l pa pb)
+
+crossMapPA_v :: PA a -> PA b -> PArray a -> (a :-> PArray b) -> PArray (a,b)
+{-# INLINE crossMapPA_v #-}
+crossMapPA_v pa pb xs f
+  = zipPA# pa pb xs
+  . concatPA#
+  $ mapPA_v pa (dPA_PArray pb) f xs
+
+crossMapPA_l :: PA a -> PA b
+             -> PArray (PArray a)
+             -> PArray (a :-> PArray b)
+             -> PArray (PArray (a,b))
+{-# INLINE crossMapPA_l #-}
+crossMapPA_l pa pb xss fs = error "crossMapPA_l"
+
+crossMapPA :: PA a -> PA b -> (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
+{-# INLINE crossMapPA #-}
+crossMapPA pa pb = closure2 (dPA_PArray pa) (crossMapPA_v pa pb)
+                                            (crossMapPA_l pa pb)
+
+zipPA_v :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
+{-# INLINE zipPA_v #-}
+zipPA_v pa pb xs ys = zipPA# pa pb xs ys
+
+zipPA_l :: PA a -> PA b
+        -> PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a,b))
+{-# INLINE zipPA_l #-}
+zipPA_l pa pb xss yss = error "zipPA_l"
+
+zipPA :: PA a -> PA b -> (PArray a :-> PArray b :-> PArray (a,b))
+{-# INLINE zipPA #-}
+zipPA pa pb = closure2 (dPA_PArray pa) (zipPA_v pa pb) (zipPA_l pa pb)
 
 zipWithPA_v :: PA a -> PA b -> PA c
             -> (a :-> b :-> c) -> PArray a -> PArray b -> PArray c
@@ -72,4 +118,42 @@ zipWithPA :: PA a -> PA b -> PA c
 zipWithPA pa pb pc = closure3 (dPA_Clo pa (dPA_Clo pb pc)) (dPA_PArray pa)
                               (zipWithPA_v pa pb pc)
                               (zipWithPA_l pa pb pc)
+
+packPA_v :: PA a -> PArray a -> PArray Bool -> PArray a
+{-# INLINE packPA_v #-}
+packPA_v pa xs bs = packPA# pa xs (truesPA# bs) (toPrimArrPA_Bool bs)
+
+packPA_l :: PA a
+         -> PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
+{-# INLINE packPA_l #-}
+packPA_l pa xss bss = error "packPA_l"
+
+packPA :: PA a -> (PArray a :-> PArray Bool :-> PArray a)
+{-# INLINE packPA #-}
+packPA pa = closure2 (dPA_PArray pa) (packPA_v pa) (packPA_l pa)
+
+filterPA_v :: PA a -> (a :-> Bool) -> PArray a -> PArray a
+{-# INLINE filterPA_v #-}
+filterPA_v pa p xs = packPA_v pa xs (mapPA_v pa dPA_Bool p xs)
+
+filterPA_l :: PA a
+           -> PArray (a :-> Bool) -> PArray (PArray a) -> PArray (PArray a)
+{-# INLINE filterPA_l #-}
+filterPA_l pa ps xss = error "filterPA_l"
+
+filterPA :: PA a -> ((a :-> Bool) :-> PArray a :-> PArray a)
+{-# INLINE filterPA #-}
+filterPA pa = closure2 (dPA_Clo pa dPA_Bool) (filterPA_v pa) (filterPA_l pa)
+
+indexPA_v :: PA a -> PArray a -> Int -> a
+{-# INLINE indexPA_v #-}
+indexPA_v pa xs (I# i#) = indexPA# pa xs i#
+
+indexPA_l :: PA a -> PArray (PArray a) -> PArray Int -> PArray a
+{-# INLINE indexPA_l #-}
+indexPA_l pa xss is = error "indexPA_l"
+
+indexPA :: PA a -> (PArray a :-> Int :-> a)
+{-# INLINE indexPA #-}
+indexPA pa = closure2 (dPA_PArray pa) (indexPA_v pa) (indexPA_l pa)
 

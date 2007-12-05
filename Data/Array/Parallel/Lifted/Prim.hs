@@ -6,7 +6,7 @@ module Data.Array.Parallel.Lifted.Prim (
   PArray_Double#(..),
   lengthPA_Double#, emptyPA_Double#, replicatePA_Double#, indexPA_Double#,
 
-  PArray_Bool#,
+  PArray_Bool#(..),
   lengthPA_Bool#,
   truesPA_Bool#
 ) where

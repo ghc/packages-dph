@@ -8,10 +8,10 @@ module Data.Array.Parallel.Lifted.Repr (
   dPA_Void,
   dPR_Void, dPR_Unit, dPR_Wrap,
   dPR_Enumeration,
-  dPR_2, dPR_3,
+  dPR_2, dPR_3, zipPA#,
   dPR_Sum2, dPR_Sum3,
 
-  dPR_PArray
+  dPR_PArray, concatPA#
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -199,6 +199,10 @@ combine2PR_2 pra prb n# sel# is# (P_2 _ as1 bs1) (P_2 _ as2 bs2)
   = P_2 n# (combine2PR pra n# sel# is# as1 as2)
            (combine2PR prb n# sel# is# bs1 bs2)
 
+zipPA# :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
+{-# INLINE zipPA# #-}
+zipPA# pa pb xs ys = P_2 (lengthPA# pa xs) xs ys
+
 dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
 {-# INLINE dPR_3 #-}
 dPR_3 pra prb prc
@@ -338,4 +342,8 @@ lengthPR_PArray (PNested n# _ _ _) = n#
 
 {-# INLINE emptyPR_PArray #-}
 emptyPR_PArray pr = PNested 0# emptyPA_Int# emptyPA_Int# (emptyPR pr)
+
+concatPA# :: PArray (PArray a) -> PArray a
+{-# INLINE concatPA# #-}
+concatPA# (PNested _ _ _ xs) = xs
 

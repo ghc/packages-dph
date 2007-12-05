@@ -2,7 +2,7 @@ module Data.Array.Parallel.Lifted.Instances (
   PArray(..),
   dPA_Int, dPR_Int,
   dPA_Double, dPR_Double, fromUArrPA_Double, toUArrPA_Double,
-  dPA_Bool,
+  dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
   dPA_Unit, dPA_2, dPA_3,
   dPA_PArray
 ) where
@@ -10,7 +10,7 @@ module Data.Array.Parallel.Lifted.Instances (
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Prim
-import Data.Array.Parallel.Unlifted ( UArr, lengthU )
+import Data.Array.Parallel.Unlifted ( UArr, lengthU, mapU )
 
 import GHC.Exts    ( Int#, Int(..),
                      Double#, Double(..) )
@@ -111,6 +111,18 @@ toArrPRepr_Bool (PBool n# sel# is# fs ts) = PSum2 n# sel# is# fs ts
 
 {-# INLINE fromArrPRepr_Bool #-}
 fromArrPRepr_Bool (PSum2 n# sel# is# fs ts) = PBool n# sel# is# fs ts
+
+toUArrPA_Bool :: PArray Bool -> UArr Bool
+{-# INLINE toUArrPA_Bool #-}
+toUArrPA_Bool (PBool _ (PInt# ns#) _ _ _) = mapU (/= 0) ns#
+
+toPrimArrPA_Bool :: PArray Bool -> PArray_Bool#
+{-# INLINE toPrimArrPA_Bool #-}
+toPrimArrPA_Bool bs = PBool# (toUArrPA_Bool bs)
+
+truesPA# :: PArray Bool -> Int#
+{-# INLINE truesPA# #-}
+truesPA# (PBool _ _ _ fs ts) = lengthPA# dPA_Void ts
 
 {-
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
