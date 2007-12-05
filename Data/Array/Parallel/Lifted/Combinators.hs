@@ -6,6 +6,7 @@ module Data.Array.Parallel.Lifted.Combinators (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
+import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
@@ -47,7 +48,9 @@ replicatePA_v pa (I# n#) x = replicatePA# pa n# x
 
 replicatePA_l :: PA a -> PArray Int -> PArray a -> PArray (PArray a)
 {-# INLINE replicatePA_l #-}
-replicatePA_l pa ns xs = error "replicatePA_l"
+replicatePA_l pa (PInt n# ns) xs
+  = PNested n# ns (unsafe_scanPA_Int# (+) 0 ns)
+                  (replicatelPA# pa (sumPA_Int# ns) ns xs)
 
 replicatePA :: PA a -> (Int :-> a :-> PArray a)
 {-# INLINE replicatePA #-}
