@@ -2,7 +2,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  lengthPA, replicatePA, emptyPA, indexPA, packPA, combine2PA,
+  lengthPA#, replicatePA#, emptyPA, indexPA#, packPA#, combine2PA#,
 
   PRepr, PR(..), mkPR, mkReprPA
 ) where
@@ -30,35 +30,35 @@ data PA a = PA {
             , dictPRepr    :: PR (PRepr a)
             }
 
-lengthPA :: PA a -> PArray a -> Int#
-{-# INLINE lengthPA #-}
-lengthPA pa x = lengthPR (dictPRepr pa) (toArrPRepr pa x)
+lengthPA# :: PA a -> PArray a -> Int#
+{-# INLINE lengthPA# #-}
+lengthPA# pa x = lengthPR (dictPRepr pa) (toArrPRepr pa x)
 
-replicatePA :: PA a -> Int# -> a -> PArray a
-{-# INLINE replicatePA #-}
-replicatePA pa n# = fromArrPRepr pa
-                  . replicatePR (dictPRepr pa) n#
-                  . toPRepr pa
+replicatePA# :: PA a -> Int# -> a -> PArray a
+{-# INLINE replicatePA# #-}
+replicatePA# pa n# = fromArrPRepr pa
+                   . replicatePR (dictPRepr pa) n#
+                   . toPRepr pa
 
 emptyPA :: PA a -> PArray a
 {-# INLINE emptyPA #-}
 emptyPA pa = fromArrPRepr pa
            $ emptyPR (dictPRepr pa)
 
-indexPA :: PA a -> PArray a -> Int# -> a
-{-# INLINE indexPA #-}
-indexPA pa xs i# = fromPRepr pa
-                 $ indexPR (dictPRepr pa) (toArrPRepr pa xs) i#
+indexPA# :: PA a -> PArray a -> Int# -> a
+{-# INLINE indexPA# #-}
+indexPA# pa xs i# = fromPRepr pa
+                  $ indexPR (dictPRepr pa) (toArrPRepr pa xs) i#
 
-packPA :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
-{-# INLINE packPA #-}
-packPA pa arr n# = fromArrPRepr pa
-                 . packPR (dictPRepr pa) (toArrPRepr pa arr) n#
+packPA# :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
+{-# INLINE packPA# #-}
+packPA# pa arr n# = fromArrPRepr pa
+                  . packPR (dictPRepr pa) (toArrPRepr pa arr) n#
 
-combine2PA :: PA a -> Int# -> PArray_Int# -> PArray_Int#
-           -> PArray a -> PArray a -> PArray a
-{-# INLINE combine2PA #-}
-combine2PA pa n# sel# is# as bs
+combine2PA# :: PA a -> Int# -> PArray_Int# -> PArray_Int#
+            -> PArray a -> PArray a -> PArray a
+{-# INLINE combine2PA# #-}
+combine2PA# pa n# sel# is# as bs
   = fromArrPRepr pa
   $ combine2PR (dictPRepr pa) n# sel# is# (toArrPRepr pa as) (toArrPRepr pa bs)
 
@@ -75,12 +75,12 @@ data PR a = PR {
 mkPR :: PA a -> PR a
 {-# INLINE mkPR #-}
 mkPR pa = PR {
-            lengthPR    = lengthPA pa
+            lengthPR    = lengthPA# pa
           , emptyPR     = emptyPA pa
-          , replicatePR = replicatePA pa
-          , indexPR     = indexPA pa
-          , packPR      = packPA pa
-          , combine2PR  = combine2PA pa
+          , replicatePR = replicatePA# pa
+          , indexPR     = indexPA# pa
+          , packPR      = packPA# pa
+          , combine2PR  = combine2PA# pa
           }
 
 mkReprPA :: (a ~ PRepr a) => PR a -> PA a

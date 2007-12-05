@@ -33,14 +33,14 @@ closure3 pa pb fv fl = Clo dPA_Unit fv_1 fl_1 ()
     fl_1 _  xs = AClo pa fv_2 fl_2 xs
 
     fv_2 x  y  = Clo  (dPA_2 pa pb) fv_3 fl_3 (x,y)
-    fl_2 xs ys = AClo (dPA_2 pa pb) fv_3 fl_3 (P_2 (lengthPA pa xs) xs ys)
+    fl_2 xs ys = AClo (dPA_2 pa pb) fv_3 fl_3 (P_2 (lengthPA# pa xs) xs ys)
 
     fv_3 (x,y) z = fv x y z
     fl_3 (P_2 _ xs ys) zs = fl xs ys zs
 
 mapPA_v :: PA a -> PA b -> (a :-> b) -> PArray a -> PArray b
 {-# INLINE mapPA_v #-}
-mapPA_v pa pb f as = replicatePA (dPA_Clo pa pb) (lengthPA pa as) f
+mapPA_v pa pb f as = replicatePA# (dPA_Clo pa pb) (lengthPA# pa as) f
                      $:^ as
 
 mapPA_l :: PA a -> PA b
@@ -55,9 +55,9 @@ mapPA pa pb = closure2 (dPA_Clo pa pb) (mapPA_v pa pb) (mapPA_l pa pb)
 zipWithPA_v :: PA a -> PA b -> PA c
             -> (a :-> b :-> c) -> PArray a -> PArray b -> PArray c
 {-# INLINE zipWithPA_v #-}
-zipWithPA_v pa pb pc f as bs = replicatePA (dPA_Clo pa (dPA_Clo pb pc))
-                                           (lengthPA pa as)
-                                           f
+zipWithPA_v pa pb pc f as bs = replicatePA# (dPA_Clo pa (dPA_Clo pb pc))
+                                            (lengthPA# pa as)
+                                            f
                                 $:^ as $:^ bs
 
 zipWithPA_l :: PA a -> PA b -> PA c
