@@ -1,6 +1,7 @@
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
-  replicatePA, mapPA, zipWithPA, packPA, filterPA, indexPA, crossMapPA
+  replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA,
+  packPA, filterPA, indexPA
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -51,6 +52,18 @@ replicatePA_l pa ns xs = error "replicatePA_l"
 replicatePA :: PA a -> (Int :-> a :-> PArray a)
 {-# INLINE replicatePA #-}
 replicatePA pa = closure2 dPA_Int (replicatePA_v pa) (replicatePA_l pa)
+
+singletonPA_v :: PA a -> a -> PArray a
+{-# INLINE singletonPA_v #-}
+singletonPA_v pa x = replicatePA_v pa 1 x
+
+singletonPA_l :: PA a -> PArray a -> PArray (PArray a)
+{-# INLINE singletonPA_l #-}
+singletonPA_l pa xs = error "singletonPA_l"
+
+singletonPA :: PA a -> (a :-> PArray a)
+{-# INLINE singletonPA #-}
+singletonPA pa = closure1 (singletonPA_v pa) (singletonPA_l pa)
 
 mapPA_v :: PA a -> PA b -> (a :-> b) -> PArray a -> PArray b
 {-# INLINE mapPA_v #-}
