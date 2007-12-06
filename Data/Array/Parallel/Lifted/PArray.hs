@@ -11,7 +11,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PrimPA(..)
 ) where
 
-import Data.Array.Parallel.Unlifted ( UArr )
+import Data.Array.Parallel.Unlifted ( UArr, UA )
 import Data.Array.Parallel.Lifted.Prim ( PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#)
 
@@ -120,7 +120,9 @@ mkReprPA pr = PA {
               , dictPRepr    = pr
               }
 
-class PrimPA a where
+class UA a => PrimPA a where
   fromUArrPA :: UArr a -> PArray a
   toUArrPA   :: PArray a -> UArr a
+  primPA     :: PA a
+
 

@@ -96,7 +96,7 @@ module Data.Array.Parallel.Unlifted (
   lengthSU, singletonSU, replicateSU, (+:+^),
 
   -- * Basic operations lifted
-  lengthsSU,
+  lengthsSU, indicesSU,
 
   -- * Zipping (segmented)
   fstSU, sndSU, zipSU,

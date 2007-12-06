@@ -9,13 +9,14 @@ module Data.Array.Parallel.Lifted.Instances (
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
   dPA_Unit, dPA_2, dPA_3,
-  dPA_PArray
+  dPA_PArray,
+  fromSUArrPA, fromSUArrPA_2
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Prim
-import Data.Array.Parallel.Unlifted ( UArr, lengthU, mapU )
+import Data.Array.Parallel.Unlifted
 
 import GHC.Exts    ( Int#, Int(..), (*#),
                      Double#, Double(..) )
@@ -27,6 +28,7 @@ type instance PRepr Int = Int
 instance PrimPA Int where
   fromUArrPA xs = PInt (case lengthU xs of I# n# -> n#) (PInt# xs)
   toUArrPA (PInt _ (PInt# xs)) = xs
+  primPA = dPA_Int
 
 dPA_Int :: PA Int
 {-# INLINE dPA_Int #-}
@@ -93,6 +95,7 @@ type instance PRepr Double = Double
 instance PrimPA Double where
   fromUArrPA xs = PDouble (case lengthU xs of I# n# -> n#) (PDouble# xs)
   toUArrPA (PDouble _ (PDouble# xs)) = xs
+  primPA = dPA_Double
 
 dPA_Double :: PA Double
 {-# INLINE dPA_Double #-}
@@ -315,6 +318,12 @@ dPA_2 pa pb = PA {
               , dictPRepr    = dPR_2 (mkPR pa) (mkPR pb)
               }
 
+fromUArrPA_2 :: (PrimPA a, PrimPA b) => UArr (a :*: b) -> PArray (a, b)
+{-# INLINE fromUArrPA_2 #-}
+fromUArrPA_2 ps = zipPA# primPA primPA (fromUArrPA xs) (fromUArrPA ys)
+  where
+    xs :*: ys = unzipU ps
+
 type instance PRepr (a,b,c) = (a,b,c)
 
 dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
@@ -348,4 +357,19 @@ toNestedPRepr pa (PNested n# lens is xs)
 {-# INLINE fromNestedPRepr #-}
 fromNestedPRepr pa (PNested n# lens is xs)
   = PNested n# lens is (fromArrPRepr pa xs)
+
+fromSUArrPA :: PrimPA a => SUArr a -> PArray (PArray a)
+{-# INLINE fromSUArrPA #-}
+fromSUArrPA xss = PNested (case lengthSU xss of I# i# -> i#)
+                          (PInt# (lengthsSU xss))
+                          (PInt# (indicesSU xss))
+                          (fromUArrPA (concatSU xss))
+
+fromSUArrPA_2 :: (PrimPA a, PrimPA b)
+              => SUArr (a :*: b) -> PArray (PArray (a, b))
+{-# INLINE fromSUArrPA_2 #-}
+fromSUArrPA_2 pss = PNested (case lengthSU pss of I# i# -> i#)
+                            (PInt# (lengthsSU pss))
+                            (PInt# (indicesSU pss))
+                            (fromUArrPA_2 (concatSU pss))
 
