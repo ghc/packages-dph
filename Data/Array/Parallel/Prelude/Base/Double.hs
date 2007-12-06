@@ -53,7 +53,7 @@ mult = (*)
 
 sumPA :: PArray Double :-> Double
 {-# INLINE sumPA #-}
-sumPA = closure1 (unsafe_foldPA_Double (+) 0) (\_ -> error "Double.sumPA lifted")
+sumPA = closure1 (unsafe_foldPA_Double (+) 0) sumPAs_Double
 
 sumP :: [:Double:] -> Double
 {-# NOINLINE sumP #-}

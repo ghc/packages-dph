@@ -4,6 +4,7 @@ module Data.Array.Parallel.Lifted.Prim (
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
+  sumPAs_Double#,
 
   PArray_Double#(..),
   lengthPA_Double#, emptyPA_Double#,
@@ -118,6 +119,11 @@ unsafe_foldPA_Double# :: (Double -> Double -> Double)
                     -> Double -> PArray_Double# -> Double
 unsafe_foldPA_Double# f z (PDouble# ns) = foldU f z ns
 {-# INLINE unsafe_foldPA_Double# #-}
+
+sumPAs_Double# :: PArray_Int# -> PArray_Int# -> PArray_Double#
+               -> PArray_Double#
+sumPAs_Double# (PInt# lens) (PInt# idxs) (PDouble# ds)
+  = PDouble# (sumSU (toUSegd (zipU lens idxs) >: ds))
 
 newtype PArray_Bool# = PBool# (UArr Bool)
 

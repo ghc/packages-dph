@@ -5,7 +5,7 @@ module Data.Array.Parallel.Lifted.Instances (
   unsafe_zipWithPA_Int, unsafe_foldPA_Int, upToPA_Int,
 
   dPA_Double, dPR_Double, fromUArrPA_Double, toUArrPA_Double,
-  unsafe_zipWithPA_Double, unsafe_foldPA_Double,
+  unsafe_zipWithPA_Double, unsafe_foldPA_Double, sumPAs_Double,
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
   dPA_Unit, dPA_2, dPA_3,
@@ -148,6 +148,11 @@ unsafe_foldPA_Double :: (Double -> Double -> Double)
                      -> Double -> PArray Double -> Double
 {-# INLINE unsafe_foldPA_Double #-}
 unsafe_foldPA_Double f z (PDouble n# ns) = unsafe_foldPA_Double# f z ns
+
+sumPAs_Double :: PArray (PArray Double) -> PArray Double
+{-# INLINE sumPAs_Double #-}
+sumPAs_Double (PNested n# lens idxs ds)
+  = PDouble n# (case ds of PDouble _ ds# -> sumPAs_Double# lens idxs ds#)
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
