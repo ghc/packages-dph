@@ -17,15 +17,19 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Enum (
-  enumFromToU, enumFromThenToU, enumFromStepLenU
+  enumFromToU, enumFromThenToU, enumFromStepLenU, enumFromToEachU
 ) where
 
+import Data.Array.Parallel.Base (
+  (:*:))
 import Data.Array.Parallel.Stream (
-  enumFromToS, enumFromThenToS, enumFromStepLenS)
+  enumFromToS, enumFromThenToS, enumFromStepLenS, enumFromToEachS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
-  unstreamU)
+  unstreamU, streamU)
+import Data.Array.Parallel.Unlifted.Flat.Sums (
+  sumU)
 
 -- |Yield an enumerated array
 --
@@ -44,4 +48,8 @@ enumFromThenToU start next end = unstreamU (enumFromThenToS start next end)
 enumFromStepLenU :: Int -> Int -> Int -> UArr Int
 {-# INLINE enumFromStepLenU #-}
 enumFromStepLenU s d n = unstreamU (enumFromStepLenS s d n)
+
+enumFromToEachU :: Int -> UArr (Int :*: Int) -> UArr Int
+{-# INLINE enumFromToEachU #-}
+enumFromToEachU n = unstreamU . enumFromToEachS n . streamU
 

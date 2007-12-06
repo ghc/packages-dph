@@ -408,10 +408,11 @@ data instance PArray (PArray a)
 dPR_PArray :: PR a -> PR (PArray a)
 {-# INLINE dPR_PArray #-}
 dPR_PArray pr = PR {
-                  lengthPR    = lengthPR_PArray
-                , emptyPR     = emptyPR_PArray pr
-                , replicatePR = replicatePR_PArray pr
-                , repeatPR    = repeatPR_PArray pr
+                  lengthPR     = lengthPR_PArray
+                , emptyPR      = emptyPR_PArray pr
+                , replicatePR  = replicatePR_PArray pr
+                , replicatelPR = replicatelPR_PArray pr
+                , repeatPR     = repeatPR_PArray pr
                 }
 
 {-# INLINE lengthPR_PArray #-}
@@ -436,6 +437,20 @@ repeatPR_PArray pr n# (PNested m# lens _ xs)
                        (repeatPR pr n# xs)
   where
     lens' = repeatPA_Int# n# lens
+
+{-# INLINE replicatelPR_PArray #-}
+replicatelPR_PArray pr n# (PInt# ns) (PNested _ (PInt# lens) (PInt# idxs) xs)
+  = PNested n# (PInt# new_lens) (PInt# new_idxs)
+               (bpermutePR pr xs (PInt# indices))
+  where
+    new_lens = concatSU (replicateSU ns lens)
+    new_idxs = scanU (+) 0 new_lens
+    starts = concatSU (replicateSU ns idxs)
+    ends   = concatSU . replicateSU ns
+           $ zipWithU (\i l -> i+l-1) idxs lens
+
+    indices = enumFromToEachU (sumU (zipWithU (*) ns lens))
+            $ zipU starts ends
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE concatPA# #-}

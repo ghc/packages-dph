@@ -15,11 +15,13 @@
 
 module Data.Array.Parallel.Stream.Flat.Enum (
   enumFromToS, enumFromThenToS,
-  enumFromStepLenS
+  enumFromStepLenS,
+
+  enumFromToEachS
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..))
+  (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 import Data.Array.Parallel.Stream.Flat.Combinators (
   mapS)
@@ -67,4 +69,23 @@ enumFromStepLenS s d n = Stream step (s :*: n) n
   where
     step (s :*: 0) = Done
     step (s :*: n) = Yield s ((s+d) :*: (n-1))
+
+-- enumFromToEachS [k1 :*: m1, ..., kn :*: mn] = [k1,...,m1,...,kn,...,mn]
+--
+-- FIXME: monomorphic for now because we need Rebox a otherwise!
+--
+enumFromToEachS :: Int -> Stream (Int :*: Int) -> Stream Int
+{-# INLINE [1] enumFromToEachS #-}
+enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
+  where
+    {-# INLINE next' #-}
+    next' (NothingS :*: s)
+      = case next s of
+          Yield (k :*: m) s' -> Skip (JustS (k :*: m) :*: s')
+          Skip            s' -> Skip (NothingS        :*: s')
+          Done               -> Done
+
+    next' (JustS (k :*: m) :*: s)
+      | k > m     = Skip    (NothingS             :*: s)
+      | otherwise = Yield k (JustS (succ k :*: m) :*: s)
 

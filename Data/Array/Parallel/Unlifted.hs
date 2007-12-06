@@ -75,7 +75,7 @@ module Data.Array.Parallel.Unlifted (
   {-crossU,-}
 
   -- * Enumerations
-  enumFromToU, enumFromThenToU, enumFromStepLenU,
+  enumFromToU, enumFromThenToU, enumFromStepLenU, enumFromToEachU,
 
   -- * Searching
   findU, findIndexU,

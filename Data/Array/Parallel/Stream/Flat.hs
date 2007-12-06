@@ -18,7 +18,7 @@ module Data.Array.Parallel.Stream.Flat (
 
   emptyS, singletonS, consS, replicateS, replicateEachS, (+++),
   indexedS, tailS,
-  enumFromToS, enumFromThenToS, enumFromStepLenS,
+  enumFromToS, enumFromThenToS, enumFromStepLenS, enumFromToEachS,
   toStream, fromStream,
 
   mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
