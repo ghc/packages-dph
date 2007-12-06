@@ -111,7 +111,14 @@ crossMapPA_l :: PA a -> PA b
              -> PArray (a :-> PArray b)
              -> PArray (PArray (a,b))
 {-# INLINE crossMapPA_l #-}
-crossMapPA_l pa pb xss fs = error "crossMapPA_l"
+crossMapPA_l pa pb ass@(PNested _ _ _ as) fs
+  = case concatPA_l pb bsss of
+      PNested n# lens1 idxs1 bs -> PNested n# lens1 idxs1 (zipPA# pa pb as' bs)
+  where
+    bsss@(PNested _ _ _ (PNested _ lens2 _ bs2))
+      = mapPA_l pa (dPA_PArray pb) fs ass
+
+    as' = replicatelPA# pa (lengthPA# pb bs2) lens2 as
 
 crossMapPA :: PA a -> PA b -> (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
 {-# INLINE crossMapPA #-}
