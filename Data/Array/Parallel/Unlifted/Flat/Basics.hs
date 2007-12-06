@@ -86,7 +86,7 @@ repeatU :: UA e => Int -> UArr e -> UArr e
 repeatU n !xs = unstreamU (rep n xs)
 
 rep :: UA e => Int -> UArr e -> Stream e
-{-# INLINE rep #-}
+{-# INLINE [1] rep #-}
 rep k xs = Stream next (0 :*: k) (k*n)
   where
     n = lengthU xs

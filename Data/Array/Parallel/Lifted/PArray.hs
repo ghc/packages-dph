@@ -2,7 +2,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
   PA(..),
-  lengthPA#, replicatePA#, replicatelPA#, emptyPA,
+  lengthPA#, replicatePA#, replicatelPA#, repeatPA#, emptyPA,
   indexPA#, bpermutePA#,
   packPA#, combine2PA#,
 
@@ -48,6 +48,12 @@ replicatelPA# pa n# ns = fromArrPRepr pa
                        . replicatelPR (dictPRepr pa) n# ns
                        . toArrPRepr pa
 
+repeatPA# :: PA a -> Int# -> PArray a -> PArray a
+{-# INLINE repeatPA# #-}
+repeatPA# pa n# = fromArrPRepr pa
+                . repeatPR (dictPRepr pa) n#
+                . toArrPRepr pa
+
 emptyPA :: PA a -> PArray a
 {-# INLINE emptyPA #-}
 emptyPA pa = fromArrPRepr pa
@@ -80,6 +86,7 @@ data PR a = PR {
             , emptyPR      :: PArray a
             , replicatePR  :: Int# -> a -> PArray a
             , replicatelPR :: Int# -> PArray_Int# -> PArray a -> PArray a
+            , repeatPR     :: Int# -> PArray a -> PArray a
             , indexPR      :: PArray a -> Int# -> a
             , bpermutePR   :: PArray a -> PArray_Int# -> PArray a
             , packPR       :: PArray a -> Int# -> PArray_Bool# -> PArray a
@@ -94,6 +101,7 @@ mkPR pa = PR {
           , emptyPR      = emptyPA pa
           , replicatePR  = replicatePA# pa
           , replicatelPR = replicatelPA# pa
+          , repeatPR     = repeatPA# pa
           , indexPR      = indexPA# pa
           , bpermutePR   = bpermutePA# pa
           , packPR       = packPA# pa

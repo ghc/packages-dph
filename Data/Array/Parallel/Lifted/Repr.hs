@@ -18,7 +18,7 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Unlifted
 
-import GHC.Exts  (Int#, Int(..))
+import GHC.Exts  (Int#, Int(..), (*#))
 
 data Void
 
@@ -34,6 +34,7 @@ dPR_Void = PR {
            , emptyPR      = emptyPR_Void
            , replicatePR  = replicatePR_Void
            , replicatelPR = replicatelPR_Void
+           , repeatPR     = repeatPR_Void
            , indexPR      = indexPR_Void
            , bpermutePR   = bpermutePR_Void
            , packPR       = packPR_Void
@@ -51,6 +52,9 @@ replicatePR_Void n# _ = PVoid n#
 
 {-# INLINE replicatelPR_Void #-}
 replicatelPR_Void n# _ _ = PVoid n#
+
+{-# INLINE repeatPR_Void #-}
+repeatPR_Void n# (PVoid m#) = PVoid (n# *# m#)
 
 indexPR_Void :: PArray Void -> Int# -> Void
 {-# INLINE indexPR_Void #-}
@@ -86,6 +90,7 @@ dPR_Unit = PR {
            , emptyPR      = emptyPR_Unit
            , replicatePR  = replicatePR_Unit
            , replicatelPR = replicatelPR_Unit
+           , repeatPR     = repeatPR_Unit
            , indexPR      = indexPR_Unit
            , bpermutePR   = bpermutePR_Unit
            , packPR       = packPR_Unit
@@ -104,6 +109,9 @@ replicatePR_Unit n# u = PUnit n# u
 
 {-# INLINE replicatelPR_Unit #-}
 replicatelPR_Unit n# _ (PUnit _ u) = PUnit n# u
+
+{-# INLINE repeatPR_Unit #-}
+repeatPR_Unit n# (PUnit m# u) = PUnit (n# *# m#) u
 
 indexPR_Unit :: PArray () -> Int# -> ()
 {-# INLINE indexPR_Unit #-}
@@ -130,6 +138,7 @@ dPR_Wrap pr = PR {
             , emptyPR      = emptyPR_Wrap pr
             , replicatePR  = replicatePR_Wrap pr
             , replicatelPR = replicatelPR_Wrap pr
+            , repeatPR     = repeatPR_Wrap pr
             , indexPR      = indexPR_Wrap pr
             , bpermutePR   = bpermutePR_Wrap pr
             , packPR       = packPR_Wrap pr
@@ -146,6 +155,9 @@ replicatePR_Wrap pr n# ~(Wrap x) = PWrap n# (replicatePR pr n# x)
 
 {-# INLINE replicatelPR_Wrap #-}
 replicatelPR_Wrap pr n# ns (PWrap _ xs) = PWrap n# (replicatelPR pr n# ns xs)
+
+{-# INLINE repeatPR_Wrap #-}
+repeatPR_Wrap pr n# (PWrap m# xs) = PWrap (n# *# m#) (repeatPR pr n# xs)
 
 {-# INLINE indexPR_Wrap #-}
 indexPR_Wrap pr (PWrap n# xs) i# = Wrap (indexPR pr xs i#)
@@ -197,6 +209,7 @@ dPR_2 pra prb
     , emptyPR      = emptyPR_2 pra prb
     , replicatePR  = replicatePR_2 pra prb
     , replicatelPR = replicatelPR_2 pra prb
+    , repeatPR     = repeatPR_2 pra prb
     , indexPR      = indexPR_2 pra prb
     , bpermutePR   = bpermutePR_2 pra prb
     , packPR       = packPR_2 pra prb
@@ -218,6 +231,11 @@ replicatePR_2 pra prb n# ~(a,b)
 replicatelPR_2 pra prb n# ns (P_2 _ as bs)
   = P_2 n# (replicatelPR pra n# ns as)
            (replicatelPR prb n# ns bs) 
+
+{-# INLINE repeatPR_2 #-}
+repeatPR_2 pra prb n# (P_2 m# as bs)
+  = P_2 (n# *# m#) (repeatPR pra n# as)
+                   (repeatPR prb n# bs)
 
 {-# INLINE indexPR_2 #-}
 indexPR_2 pra prb (P_2 _ as bs) i# = (indexPR pra as i#, indexPR prb bs i#)
@@ -248,6 +266,7 @@ dPR_3 pra prb prc
     , emptyPR      = emptyPR_3 pra prb prc
     , replicatePR  = replicatePR_3 pra prb prc
     , replicatelPR = replicatelPR_3 pra prb prc
+    , repeatPR     = repeatPR_3 pra prb prc
     , indexPR      = indexPR_3 pra prb prc
     , bpermutePR   = bpermutePR_3 pra prb prc
     , packPR       = packPR_3 pra prb prc
@@ -271,6 +290,12 @@ replicatelPR_3 pra prb prc n# ns (P_3 _ as bs cs)
   = P_3 n# (replicatelPR pra n# ns as)
            (replicatelPR prb n# ns bs)
            (replicatelPR prc n# ns cs)
+
+{-# INLINE repeatPR_3 #-}
+repeatPR_3 pra prb prc n# (P_3 m# as bs cs)
+  = P_3 (n# *# m#) (repeatPR pra n# as)
+                   (repeatPR prb n# bs)
+                   (repeatPR prc n# cs)
 
 {-# INLINE indexPR_3 #-}
 indexPR_3 pra prb prc (P_3 n# as bs cs) i#
@@ -383,8 +408,9 @@ data instance PArray (PArray a)
 dPR_PArray :: PR a -> PR (PArray a)
 {-# INLINE dPR_PArray #-}
 dPR_PArray pr = PR {
-                  lengthPR = lengthPR_PArray
-                , emptyPR  = emptyPR_PArray pr
+                  lengthPR    = lengthPR_PArray
+                , emptyPR     = emptyPR_PArray pr
+                , replicatePR = replicatePR_PArray pr
                 }
 
 {-# INLINE lengthPR_PArray #-}
@@ -392,6 +418,14 @@ lengthPR_PArray (PNested n# _ _ _) = n#
 
 {-# INLINE emptyPR_PArray #-}
 emptyPR_PArray pr = PNested 0# emptyPA_Int# emptyPA_Int# (emptyPR pr)
+
+{-# INLINE replicatePR_PArray #-}
+replicatePR_PArray pr n# xs
+  = PNested n# lens
+               (unsafe_scanPA_Int# (+) 0 lens)
+               (repeatPR pr n# xs)
+  where
+    lens = replicatePA_Int# n# (lengthPR pr xs)
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE concatPA# #-}

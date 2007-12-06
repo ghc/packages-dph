@@ -1,11 +1,13 @@
 module Data.Array.Parallel.Lifted.Prim (
   PArray_Int#(..),
-  lengthPA_Int#, emptyPA_Int#, replicatePA_Int#, replicatelPA_Int#,
+  lengthPA_Int#, emptyPA_Int#,
+  replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
 
   PArray_Double#(..),
-  lengthPA_Double#, emptyPA_Double#, replicatePA_Double#, replicatelPA_Double#,
+  lengthPA_Double#, emptyPA_Double#,
+  replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#,
 
@@ -38,6 +40,10 @@ replicatelPA_Int# n# (PInt# ns) (PInt# is)
   = PInt# (concatSU (replicateSU ns is))
 {-# INLINE replicatelPA_Int# #-}
 
+repeatPA_Int# :: Int# -> PArray_Int# -> PArray_Int#
+repeatPA_Int# n# (PInt# is) = PInt# (repeatU (I# n#) is)
+{-# INLINE repeatPA_Int# #-}
+
 indexPA_Int# :: PArray_Int# -> Int# -> Int#
 indexPA_Int# (PInt# ns) i# = case ns !: I# i# of { I# n# -> n# }
 {-# INLINE indexPA_Int# #-}
@@ -69,6 +75,7 @@ unsafe_foldPA_Int# f z (PInt# ns) = foldU f z ns
 
 unsafe_scanPA_Int# :: (Int -> Int -> Int) -> Int -> PArray_Int# -> PArray_Int#
 unsafe_scanPA_Int# f z (PInt# ns) = PInt# (scanU f z ns)
+{-# INLINE unsafe_scanPA_Int# #-}
 
 newtype PArray_Double# = PDouble# (UArr Double)
 
@@ -88,6 +95,10 @@ replicatelPA_Double# :: Int# -> PArray_Int# -> PArray_Double# -> PArray_Double#
 replicatelPA_Double# n# (PInt# ns) (PDouble# ds)
   = PDouble# (concatSU (replicateSU ns ds))
 {-# INLINE replicatelPA_Double# #-}
+
+repeatPA_Double# :: Int# -> PArray_Double# -> PArray_Double#
+repeatPA_Double# n# (PDouble# ds) = PDouble# (repeatU (I# n#) ds)
+{-# INLINE repeatPA_Double# #-}
 
 indexPA_Double# :: PArray_Double# -> Int# -> Double#
 indexPA_Double# (PDouble# ds) i# = case ds !: I# i# of { D# d# -> d# }
