@@ -411,6 +411,7 @@ dPR_PArray pr = PR {
                   lengthPR    = lengthPR_PArray
                 , emptyPR     = emptyPR_PArray pr
                 , replicatePR = replicatePR_PArray pr
+                , repeatPR    = repeatPR_PArray pr
                 }
 
 {-# INLINE lengthPR_PArray #-}
@@ -426,6 +427,15 @@ replicatePR_PArray pr n# xs
                (repeatPR pr n# xs)
   where
     lens = replicatePA_Int# n# (lengthPR pr xs)
+
+-- FIXME: compute indices more efficiently?
+{-# INLINE repeatPR_PArray #-}
+repeatPR_PArray pr n# (PNested m# lens _ xs)
+  = PNested (m# *# n#) lens'
+                       (unsafe_scanPA_Int# (+) 0 lens')
+                       (repeatPR pr n# xs)
+  where
+    lens' = repeatPA_Int# n# lens
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE concatPA# #-}
