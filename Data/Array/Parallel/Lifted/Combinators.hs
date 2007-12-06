@@ -62,7 +62,9 @@ singletonPA_v pa x = replicatePA_v pa 1 x
 
 singletonPA_l :: PA a -> PArray a -> PArray (PArray a)
 {-# INLINE singletonPA_l #-}
-singletonPA_l pa xs = error "singletonPA_l"
+singletonPA_l pa xs
+  = case lengthPA# pa xs of
+      n# -> PNested n# (replicatePA_Int# n# 1#) (upToPA_Int# n#) xs
 
 singletonPA :: PA a -> (a :-> PArray a)
 {-# INLINE singletonPA #-}
@@ -76,7 +78,9 @@ mapPA_v pa pb f as = replicatePA# (dPA_Clo pa pb) (lengthPA# pa as) f
 mapPA_l :: PA a -> PA b
         -> PArray (a :-> b) -> PArray (PArray a) -> PArray (PArray b)
 {-# INLINE mapPA_l #-}
-mapPA_l pa pb fs as = error "mapPA_l"
+mapPA_l pa pb fs (PNested n# lens idxs xs)
+  = PNested n# lens idxs
+            (replicatelPA# (dPA_Clo pa pb) (lengthPA# pa xs) lens fs $:^ xs)
 
 mapPA :: PA a -> PA b -> ((a :-> b) :-> PArray a :-> PArray b)
 {-# INLINE mapPA #-}
