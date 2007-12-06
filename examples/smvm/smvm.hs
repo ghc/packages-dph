@@ -1,7 +1,9 @@
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Prelude
 import qualified SMVMPar
 import qualified SMVMSeq
+import qualified SMVMVect
 --import Timing
 
 import System.Console.GetOpt
@@ -22,7 +24,10 @@ type Alg = SUArr (Int :*: Double) -> UArr Double -> UArr Double
 
 algs = [("smvmp",  SMVMPar.smvm)
        ,("smvms",  SMVMSeq.smvm)
+       ,("smvmv",  smvm_vect)
        ]
+
+smvm_vect m v = toUArrPA (SMVMVect.smvm (fromSUArrPA_2 m) (fromUArrPA v))
 
 main = ndpMain "Sparse matrix/vector multiplication"
                "[OPTION] ... FILE ..."
