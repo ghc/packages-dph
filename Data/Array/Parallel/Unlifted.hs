@@ -29,7 +29,7 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, (!:), (+:+),
-  indexedU,
+  indexedU, repeatU,
 
   -- * Subarrays
   sliceU, extractU,

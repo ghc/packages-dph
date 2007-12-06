@@ -17,7 +17,8 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Basics (
-  lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, (!:), (+:+),
+  lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU,
+  (!:), (+:+), repeatU,
   indexedU,
   toU, fromU
 ) where
@@ -25,6 +26,7 @@ module Data.Array.Parallel.Unlifted.Flat.Basics (
 import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
+  Step(..), Stream(..),
   consS, singletonS, replicateS, (+++), indexedS, toStream)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
@@ -76,6 +78,22 @@ replicateU n e = unstreamU (replicateS n e)
 (+:+) :: UA e => UArr e -> UArr e -> UArr e
 {-# INLINE (+:+) #-}
 a1 +:+ a2 = unstreamU (streamU a1 +++ streamU a2)
+
+-- |Repeat an array @n@ times
+--
+repeatU :: UA e => Int -> UArr e -> UArr e
+{-# INLINE repeatU #-}
+repeatU n !xs = unstreamU (rep n xs)
+
+rep :: UA e => Int -> UArr e -> Stream e
+{-# INLINE rep #-}
+rep k xs = Stream next (0 :*: k) (k*n)
+  where
+    n = lengthU xs
+
+    {-# INLINE next #-}
+    next (i :*: k) | i == n = if k == 0 then Done else Skip (0 :*: k-1)
+    next (i :*: k)          = Yield (xs !: i) (i+1 :*: k)
 
 -- |Indexing
 -- ---------
