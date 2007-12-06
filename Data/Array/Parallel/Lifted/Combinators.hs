@@ -1,7 +1,7 @@
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
-  replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA,
-  packPA, filterPA, indexPA
+  lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA,
+  packPA, filterPA, indexPA, concatPA
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -41,6 +41,18 @@ closure3 pa pb fv fl = Clo dPA_Unit fv_1 fl_1 ()
 
     fv_3 (x,y) z = fv x y z
     fl_3 (P_2 _ xs ys) zs = fl xs ys zs
+
+lengthPA_v :: PA a -> PArray a -> Int
+{-# INLINE lengthPA_v #-}
+lengthPA_v pa xs = I# (lengthPA# pa xs)
+
+lengthPA_l :: PA a -> PArray (PArray a) -> PArray Int
+{-# INLINE lengthPA_l #-}
+lengthPA_l pa (PNested n# lens _ _) = PInt n# lens
+
+lengthPA :: PA a -> (PArray a :-> Int)
+{-# INLINE lengthPA #-}
+lengthPA pa = closure1 (lengthPA_v pa) (lengthPA_l pa)
 
 replicatePA_v :: PA a -> Int -> a -> PArray a
 {-# INLINE replicatePA_v #-}
@@ -178,4 +190,20 @@ indexPA_l pa (PNested _ lens idxs xs) (PInt _ is)
 indexPA :: PA a -> (PArray a :-> Int :-> a)
 {-# INLINE indexPA #-}
 indexPA pa = closure2 (dPA_PArray pa) (indexPA_v pa) (indexPA_l pa)
+
+concatPA_v :: PA a -> PArray (PArray a) -> PArray a
+{-# INLINE concatPA_v #-}
+concatPA_v pa (PNested _ _ _ xs) = xs
+
+concatPA_l :: PA a -> PArray (PArray (PArray a)) -> PArray (PArray a)
+{-# INLINE concatPA_l #-}
+concatPA_l pa (PNested m# lens1 idxs1 (PNested n# lens2 idxs2 xs))
+  = PNested m# lens idxs xs
+  where
+    lens = sumPAs_Int# lens1 idxs1 lens2
+    idxs = bpermutePA_Int# idxs2 idxs1
+
+concatPA :: PA a -> (PArray (PArray a) :-> PArray a)
+{-# INLINE concatPA #-}
+concatPA pa = closure1 (concatPA_v pa) (concatPA_l pa)
 

@@ -4,13 +4,14 @@ module Data.Array.Parallel.Lifted.Prim (
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
-  sumPAs_Double#,
+  sumPAs_Int#, 
 
   PArray_Double#(..),
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#,
+  sumPAs_Double#,
 
   PArray_Bool#(..),
   lengthPA_Bool#,
@@ -64,6 +65,10 @@ selectPA_Int# (PInt# ns) i# = PBool# (mapU (\n -> n == I# i#) ns)
 sumPA_Int# :: PArray_Int# -> Int#
 sumPA_Int# (PInt# ns) = case sumU ns of I# n# -> n#
 {-# INLINE sumPA_Int# #-}
+
+sumPAs_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
+sumPAs_Int# (PInt# lens) (PInt# idxs) (PInt# ds)
+  = PInt# (sumSU (toUSegd (zipU lens idxs) >: ds))
 
 unsafe_zipWithPA_Int# :: (Int -> Int -> Int)
                       -> PArray_Int# -> PArray_Int# -> PArray_Int#
@@ -124,6 +129,7 @@ sumPAs_Double# :: PArray_Int# -> PArray_Int# -> PArray_Double#
                -> PArray_Double#
 sumPAs_Double# (PInt# lens) (PInt# idxs) (PDouble# ds)
   = PDouble# (sumSU (toUSegd (zipU lens idxs) >: ds))
+{-# INLINE sumPAs_Double# #-}
 
 newtype PArray_Bool# = PBool# (UArr Bool)
 
