@@ -6,7 +6,9 @@ module Data.Array.Parallel.Lifted.PArray (
   indexPA#, bpermutePA#,
   packPA#, combine2PA#,
 
-  PRepr, PR(..), mkPR, mkReprPA
+  PRepr, PR(..), mkPR, mkReprPA,
+
+  PrimPA(..)
 ) where
 
 import Data.Array.Parallel.Unlifted ( UArr )
@@ -117,4 +119,8 @@ mkReprPA pr = PA {
               , fromArrPRepr = id
               , dictPRepr    = pr
               }
+
+class PrimPA a where
+  fromUArrPA :: UArr a -> PArray a
+  toUArrPA   :: PArray a -> UArr a
 

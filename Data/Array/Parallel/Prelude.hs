@@ -4,7 +4,7 @@ module Data.Array.Parallel.Prelude (
   , module Data.Array.Parallel.Prelude.Bool
   , module Data.Array.Parallel.Prelude.Eq
   
-  , PArray, fromPArrayP, fromPArrayPA, PrimPA(..)
+  , PArray, PrimPA(..)
 ) where
 
 import Data.Array.Parallel.Prelude.Bool

@@ -2,15 +2,13 @@
 module Data.Array.Parallel.Prelude.Base.PArr (
   mapP, zipWithP, (!:),
   fromPArrayP, fromPArrayPA,
-
-  PrimPA(..)
+  toPArrayP, toPArrayPA,
+  fromNestedPArrayP, fromNestedPArrayPA
 ) where
 
 import GHC.PArr
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
-import Data.Array.Parallel.Lifted.Instances
-import Data.Array.Parallel.Unlifted (UArr)
 
 fromPArrayP :: PArray a -> [:a:]
 {-# NOINLINE fromPArrayP #-}
@@ -20,11 +18,19 @@ fromPArrayPA :: PA a -> PArray a :-> PArray a
 {-# INLINE fromPArrayPA #-}
 fromPArrayPA pa = closure1 (\x -> x) (\xs -> xs)
 
-class PrimPA a where
-  fromUArrPA :: UArr a -> PArray a
-  toUArrPA   :: PArray a -> UArr a
+toPArrayP :: [:a:] -> PArray a
+{-# NOINLINE toPArrayP #-}
+toPArrayP _ = error "toPArray"
 
-instance PrimPA Double where
-  fromUArrPA = fromUArrPA_Double
-  toUArrPA   = toUArrPA_Double
+toPArrayPA :: PA a -> PArray a :-> PArray a
+{-# INLINE toPArrayPA #-}
+toPArrayPA pa = closure1 (\x -> x) (\xs -> xs)
+
+fromNestedPArrayP :: PArray (PArray a) -> [:[:a:]:]
+{-# NOINLINE fromNestedPArrayP #-}
+fromNestedPArrayP _ = error "fromNestedPArrayP"
+
+fromNestedPArrayPA :: PA a -> (PArray (PArray a) :-> PArray (PArray a))
+{-# INLINE fromNestedPArrayPA #-}
+fromNestedPArrayPA pa = closure1 (\xs -> xs) (\xss -> xss)
 

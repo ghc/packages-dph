@@ -4,7 +4,7 @@ module Data.Array.Parallel.Lifted.Instances (
   dPA_Int, dPR_Int,
   unsafe_zipWithPA_Int, unsafe_foldPA_Int, upToPA_Int,
 
-  dPA_Double, dPR_Double, fromUArrPA_Double, toUArrPA_Double,
+  dPA_Double, dPR_Double,
   unsafe_zipWithPA_Double, unsafe_foldPA_Double, sumPAs_Double,
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
@@ -23,6 +23,10 @@ import GHC.Exts    ( Int#, Int(..), (*#),
 data instance PArray Int = PInt Int# PArray_Int#
 
 type instance PRepr Int = Int
+
+instance PrimPA Int where
+  fromUArrPA xs = PInt (case lengthU xs of I# n# -> n#) (PInt# xs)
+  toUArrPA (PInt _ (PInt# xs)) = xs
 
 dPA_Int :: PA Int
 {-# INLINE dPA_Int #-}
@@ -86,11 +90,9 @@ data instance PArray Double = PDouble Int# PArray_Double#
 
 type instance PRepr Double = Double
 
-fromUArrPA_Double :: UArr Double -> PArray Double
-fromUArrPA_Double xs = PDouble (case lengthU xs of I# n# -> n#) (PDouble# xs)
-
-toUArrPA_Double :: PArray Double -> UArr Double
-toUArrPA_Double (PDouble _ (PDouble# xs)) = xs
+instance PrimPA Double where
+  fromUArrPA xs = PDouble (case lengthU xs of I# n# -> n#) (PDouble# xs)
+  toUArrPA (PDouble _ (PDouble# xs)) = xs
 
 dPA_Double :: PA Double
 {-# INLINE dPA_Double #-}
