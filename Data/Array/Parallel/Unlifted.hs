@@ -126,7 +126,7 @@ module Data.Array.Parallel.Unlifted (
   toSU, fromSU,
 
   -- * Segment descriptors
-  lengthsToUSegd,
+  lengthsToUSegd, toUSegd,
 
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer,
