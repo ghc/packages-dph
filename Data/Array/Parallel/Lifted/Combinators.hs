@@ -88,10 +88,11 @@ mapPA pa pb = closure2 (dPA_Clo pa pb) (mapPA_v pa pb) (mapPA_l pa pb)
 
 crossMapPA_v :: PA a -> PA b -> PArray a -> (a :-> PArray b) -> PArray (a,b)
 {-# INLINE crossMapPA_v #-}
-crossMapPA_v pa pb xs f
-  = zipPA# pa pb xs
-  . concatPA#
-  $ mapPA_v pa (dPA_PArray pb) f xs
+crossMapPA_v pa pb as f
+  = case lengthPA# pb bs of
+      n# -> zipPA# pa pb (replicatelPA# pa n# lens as) bs
+  where
+    PNested _ lens _ bs = mapPA_v pa (dPA_PArray pb) f as
 
 crossMapPA_l :: PA a -> PA b
              -> PArray (PArray a)
