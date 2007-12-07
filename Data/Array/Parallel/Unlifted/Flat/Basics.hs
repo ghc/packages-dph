@@ -92,8 +92,9 @@ rep k xs = Stream next (0 :*: k) (k*n)
     n = lengthU xs
 
     {-# INLINE next #-}
-    next (i :*: k) | i == n = if k == 0 then Done else Skip (0 :*: k-1)
-    next (i :*: k)          = Yield (xs !: i) (i+1 :*: k)
+    next (i :*: 0) = Done
+    next (i :*: k) | i == n    = Skip (0 :*: k-1)
+                   | otherwise = Yield (xs !: i) (i+1 :*: k)
 
 -- |Indexing
 -- ---------
