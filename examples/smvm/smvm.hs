@@ -58,6 +58,10 @@ procFiles opts alg fs =
     showRes arr = "sum=" ++ show (sumU arr)
 
 loadSM :: String -> IO (Point (SUArr (Int :*: Double), UArr Double))
+loadSM s@('(' : _) =
+  case reads s of
+    [((lm,lv), "")] -> return $ mkPoint "input" (toSU lm, toU lv)
+    _         -> failWith ["Invalid data " ++ s]
 loadSM fname =
   do
     h <- openBinaryFile fname ReadMode
