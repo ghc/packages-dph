@@ -108,7 +108,7 @@ module Data.Array.Parallel.Unlifted (
   mapSU, zipWithSU,
   {-concatMapU,-}
   foldlSU, foldSU,
-  {-fold1SU,-}
+  fold1SU,
   {-scanSU, scan1SU,-}
 
   -- * Logical operations (segmented)

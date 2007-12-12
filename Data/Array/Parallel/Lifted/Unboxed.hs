@@ -10,8 +10,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#,
-  unsafe_zipWithPA_Double#, unsafe_foldPA_Double#,
-  sumPAs_Double#,
+  unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
+  unsafe_foldPAs_Double#,
 
   PArray_Bool#(..),
   lengthPA_Bool#,
@@ -125,12 +125,18 @@ unsafe_foldPA_Double# :: (Double -> Double -> Double)
 unsafe_foldPA_Double# f z (PDouble# ns) = foldU f z ns
 {-# INLINE unsafe_foldPA_Double# #-}
 
-sumPAs_Double# :: PArray_Int# -> PArray_Int# -> PArray_Double#
-               -> PArray_Double#
-sumPAs_Double# (PInt# lens) (PInt# idxs) (PDouble# ds)
-  = PDouble# (sumSU (toUSegd (zipU lens idxs) >: ds))
-{-# INLINE sumPAs_Double# #-}
+unsafe_fold1PA_Double#
+  :: (Double -> Double -> Double) -> PArray_Double# -> Double
+unsafe_fold1PA_Double# f (PDouble# ns) = fold1U f ns
+{-# INLINE unsafe_fold1PA_Double# #-}
 
+unsafe_foldPAs_Double# :: (Double -> Double -> Double) -> Double
+                       -> PArray_Int# -> PArray_Int# -> PArray_Double#
+                       -> PArray_Double#
+unsafe_foldPAs_Double# f z (PInt# lens) (PInt# idxs) (PDouble# ds)
+  = PDouble# (foldSU f z (toUSegd (zipU lens idxs) >: ds))
+{-# INLINE unsafe_foldPAs_Double# #-}
+               
 newtype PArray_Bool# = PBool# (UArr Bool)
 
 lengthPA_Bool# :: PArray_Bool# -> Int#

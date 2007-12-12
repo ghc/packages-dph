@@ -73,6 +73,7 @@ other-modules:
         Data.Array.Parallel.Unlifted.Parallel.Segmented
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Unboxed
+        Data.Array.Parallel.Lifted.Prim
         Data.Array.Parallel.Lifted.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Instances
@@ -82,7 +83,6 @@ other-modules:
         Data.Array.Parallel.Prelude.Base.PArr
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
-        Data.Array.Parallel.Prelude.Eq
 extensions: TypeFamilies, BangPatterns
 ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
              -fliberate-case-threshold100 -fdicts-cheap -fno-method-sharing

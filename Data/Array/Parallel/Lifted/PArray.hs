@@ -8,12 +8,12 @@ module Data.Array.Parallel.Lifted.PArray (
 
   PRepr, PR(..), mkPR, mkReprPA,
 
-  PrimPA(..)
+  PrimPA(..), prim_lengthPA, fromUArrPA'
 ) where
 
-import Data.Array.Parallel.Unlifted ( UArr, UA )
+import Data.Array.Parallel.Unlifted ( UArr, UA, lengthU )
 import Data.Array.Parallel.Lifted.Unboxed ( PArray_Int#, PArray_Bool# )
-import GHC.Exts (Int#)
+import GHC.Exts (Int#, Int(..))
 
 -- |Lifted parallel arrays
 --
@@ -121,7 +121,15 @@ mkReprPA pr = PA {
               }
 
 class UA a => PrimPA a where
-  fromUArrPA :: UArr a -> PArray a
+  fromUArrPA :: Int -> UArr a -> PArray a
   toUArrPA   :: PArray a -> UArr a
   primPA     :: PA a
+
+prim_lengthPA :: PrimPA a => PArray a -> Int
+{-# INLINE prim_lengthPA #-}
+prim_lengthPA xs = I# (lengthPA# primPA xs)
+
+fromUArrPA' :: PrimPA a => UArr a -> PArray a
+{-# INLINE fromUArrPA' #-}
+fromUArrPA' xs = fromUArrPA (lengthU xs) xs
 

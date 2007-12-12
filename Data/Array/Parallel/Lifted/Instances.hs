@@ -1,17 +1,13 @@
 module Data.Array.Parallel.Lifted.Instances (
   PArray(..),
 
-  dPA_Int, dPR_Int,
-  unsafe_zipWithPA_Int, unsafe_foldPA_Int, upToPA_Int,
+  dPA_Int, dPR_Int, upToPA_Int,
 
   dPA_Double, dPR_Double,
-  unsafe_zipWithPA_Double, unsafe_foldPA_Double, sumPAs_Double,
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
-  unsafe_zipWithPA_prim_Bool,
   dPA_Unit, dPA_2, dPA_3,
-  dPA_PArray,
-  fromSUArrPA, fromSUArrPA_2
+  dPA_PArray, fromSUArrPA, fromSUArrPA_2
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -19,7 +15,7 @@ import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted
 
-import GHC.Exts    ( Int#, Int(..), (*#),
+import GHC.Exts    ( Int#, Int(..), (*#), (-#),
                      Double#, Double(..) )
 
 data instance PArray Int = PInt Int# PArray_Int#
@@ -27,8 +23,8 @@ data instance PArray Int = PInt Int# PArray_Int#
 type instance PRepr Int = Int
 
 instance PrimPA Int where
-  fromUArrPA xs = PInt (case lengthU xs of I# n# -> n#) (PInt# xs)
-  toUArrPA (PInt _ (PInt# xs)) = xs
+  fromUArrPA (I# n#) xs          = PInt n# (PInt# xs)
+  toUArrPA   (PInt _ (PInt# xs)) = xs
   primPA = dPA_Int
 
 dPA_Int :: PA Int
@@ -74,28 +70,17 @@ indexPR_Int (PInt _ ns) i# = I# (indexPA_Int# ns i#)
 {-# INLINE bpermutePR_Int #-}
 bpermutePR_Int (PInt _ ns) is = PInt (lengthPA_Int# is) (bpermutePA_Int# ns is)
 
-unsafe_zipWithPA_Int :: (Int -> Int -> Int)
-                     -> PArray Int -> PArray Int -> PArray Int
-{-# INLINE unsafe_zipWithPA_Int #-}
-unsafe_zipWithPA_Int f (PInt m# ms) (PInt n# ns)
-  = PInt m# (unsafe_zipWithPA_Int# f ms ns)
-
-unsafe_foldPA_Int :: (Int -> Int -> Int) -> Int -> PArray Int -> Int
-{-# INLINE unsafe_foldPA_Int #-}
-unsafe_foldPA_Int f z (PInt n# ns) = unsafe_foldPA_Int# f z ns
-
 upToPA_Int :: Int -> PArray Int
 {-# INLINE upToPA_Int #-}
 upToPA_Int (I# n#) = PInt n# (upToPA_Int# n#)
-
 
 data instance PArray Double = PDouble Int# PArray_Double#
 
 type instance PRepr Double = Double
 
 instance PrimPA Double where
-  fromUArrPA xs = PDouble (case lengthU xs of I# n# -> n#) (PDouble# xs)
-  toUArrPA (PDouble _ (PDouble# xs)) = xs
+  fromUArrPA (I# n#) xs                = PDouble n# (PDouble# xs)
+  toUArrPA   (PDouble _ (PDouble# xs)) = xs
   primPA = dPA_Double
 
 dPA_Double :: PA Double
@@ -144,22 +129,6 @@ indexPR_Double (PDouble _ ds) i# = D# (indexPA_Double# ds i#)
 bpermutePR_Double (PDouble _ ds) is
   = PDouble (lengthPA_Int# is) (bpermutePA_Double# ds is)
 
-unsafe_zipWithPA_Double :: (Double -> Double -> Double)
-                        -> PArray Double -> PArray Double -> PArray Double
-{-# INLINE unsafe_zipWithPA_Double #-}
-unsafe_zipWithPA_Double f (PDouble m# ms) (PDouble n# ns)
-  = PDouble m# (unsafe_zipWithPA_Double# f ms ns)
-
-unsafe_foldPA_Double :: (Double -> Double -> Double)
-                     -> Double -> PArray Double -> Double
-{-# INLINE unsafe_foldPA_Double #-}
-unsafe_foldPA_Double f z (PDouble n# ns) = unsafe_foldPA_Double# f z ns
-
-sumPAs_Double :: PArray (PArray Double) -> PArray Double
-{-# INLINE sumPAs_Double #-}
-sumPAs_Double (PNested n# lens idxs ds)
-  = PDouble n# (case ds of PDouble _ ds# -> sumPAs_Double# lens idxs ds#)
-
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
                                   (PArray Void) (PArray Void)
@@ -196,27 +165,33 @@ toPrimArrPA_Bool :: PArray Bool -> PArray_Bool#
 {-# INLINE toPrimArrPA_Bool #-}
 toPrimArrPA_Bool bs = PBool# (toUArrPA_Bool bs)
 
-unsafe_zipWithPA_prim_Bool
-  :: PrimPA a => (a -> a -> Bool) -> PArray a -> PArray a -> PArray Bool
-unsafe_zipWithPA_prim_Bool f xs ys
-  = PBool (case lengthU uxs of I# n# -> n#)
-          (PInt# bs)
-          (PInt# (zipWith3U if_ bs (scanU (+) 0 ts) (scanU (+) 0 fs)))
-          (PVoid (case sumU fs of I# n# -> n#))
-          (PVoid (case sumU ts of I# n# -> n#))
-  where
-    uxs = toUArrPA xs
-    uys = toUArrPA ys
+instance PrimPA Bool where
+  {-# INLINE fromUArrPA #-}
+  fromUArrPA (I# n#) bs
+    = PBool n#
+            (PInt# ts)
+            (PInt# is)
+            (PVoid (n# -# m#))
+            (PVoid m#)
+    where
+      ts = mapU (\b -> if b then 1 else 0) bs
 
-    rs = zipWithU p uxs uys
+      is = zipWith3U if_ ts (scanU (+) 0 ts) (scanU (+) 0 $ mapU not_ ts)
 
-    bs :*: fs :*: ts = unzip3U rs
+      m# = case sumU ts of I# m# -> m#
 
-    p d d' | f d d'    = 1 :*: 0 :*: 1
-           | otherwise = 0 :*: 1 :*: 0
+      {-# INLINE if_ #-}
+      if_ 0 x y = y
+      if_ _ x y = x
 
-    if_ 0  x y = y
-    if_ _  x y = x
+      {-# INLINE not_ #-}
+      not_ 0 = 1
+      not_ _ = 0
+
+  {-# INLINE toUArrPA #-}
+  toUArrPA (PBool _ (PInt# ts) _ _ _) = mapU (/= 0) ts
+
+  primPA = dPA_Bool
 
 truesPA# :: PArray Bool -> Int#
 {-# INLINE truesPA# #-}
@@ -341,12 +316,6 @@ dPA_2 pa pb = PA {
               , dictPRepr    = dPR_2 (mkPR pa) (mkPR pb)
               }
 
-fromUArrPA_2 :: (PrimPA a, PrimPA b) => UArr (a :*: b) -> PArray (a, b)
-{-# INLINE fromUArrPA_2 #-}
-fromUArrPA_2 ps = zipPA# primPA primPA (fromUArrPA xs) (fromUArrPA ys)
-  where
-    xs :*: ys = unzipU ps
-
 type instance PRepr (a,b,c) = (a,b,c)
 
 dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
@@ -380,19 +349,4 @@ toNestedPRepr pa (PNested n# lens is xs)
 {-# INLINE fromNestedPRepr #-}
 fromNestedPRepr pa (PNested n# lens is xs)
   = PNested n# lens is (fromArrPRepr pa xs)
-
-fromSUArrPA :: PrimPA a => SUArr a -> PArray (PArray a)
-{-# INLINE fromSUArrPA #-}
-fromSUArrPA xss = PNested (case lengthSU xss of I# i# -> i#)
-                          (PInt# (lengthsSU xss))
-                          (PInt# (indicesSU xss))
-                          (fromUArrPA (concatSU xss))
-
-fromSUArrPA_2 :: (PrimPA a, PrimPA b)
-              => SUArr (a :*: b) -> PArray (PArray (a, b))
-{-# INLINE fromSUArrPA_2 #-}
-fromSUArrPA_2 pss = PNested (case lengthSU pss of I# i# -> i#)
-                            (PInt# (lengthsSU pss))
-                            (PInt# (indicesSU pss))
-                            (fromUArrPA_2 (concatSU pss))
 

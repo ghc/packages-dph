@@ -8,10 +8,11 @@ module Data.Array.Parallel.Lifted.Repr (
   dPA_Void,
   dPR_Void, dPR_Unit, dPR_Wrap,
   dPR_Enumeration,
-  dPR_2, dPR_3, zipPA#,
+  dPR_2, dPR_3, zipPA#, fromUArrPA_2, fromUArrPA_2',
   dPR_Sum2, dPR_Sum3,
 
-  dPR_PArray, concatPA#
+  dPR_PArray, concatPA#, toSUArrPA, fromSUArrPA, fromSUArrPA_2,
+  fromSUArrPA', fromSUArrPA_2'
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -200,6 +201,16 @@ data instance PArray (a,b,c)
   = P_3 Int# (PArray a)
              (PArray b)
              (PArray c)
+
+fromUArrPA_2 :: (PrimPA a, PrimPA b) => Int -> UArr (a :*: b) -> PArray (a,b)
+{-# INLINE fromUArrPA_2 #-}
+fromUArrPA_2 (I# n#) ps = P_2 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys)
+  where
+    xs :*: ys = unzipU ps
+
+fromUArrPA_2' :: (PrimPA a, PrimPA b) => UArr (a :*: b) -> PArray (a, b)
+{-# INLINE fromUArrPA_2' #-}
+fromUArrPA_2' ps = fromUArrPA_2 (lengthU ps) ps
 
 dPR_2 :: PR a -> PR b -> PR (a,b)
 {-# INLINE dPR_2 #-}
@@ -455,4 +466,37 @@ replicatelPR_PArray pr n# (PInt# ns) (PNested _ (PInt# lens) (PInt# idxs) xs)
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE concatPA# #-}
 concatPA# (PNested _ _ _ xs) = xs
+
+fromSUArrPA :: PrimPA a => Int -> Int -> SUArr a -> PArray (PArray a)
+{-# INLINE fromSUArrPA #-}
+fromSUArrPA (I# m#) n xss = PNested m#
+                              (PInt# (lengthsSU xss))
+                              (PInt# (indicesSU xss))
+                              (fromUArrPA n (concatSU xss))
+
+toSUArrPA :: PrimPA a => PArray (PArray a) -> SUArr a
+{-# INLINE toSUArrPA #-}
+toSUArrPA (PNested _ (PInt# lens) (PInt# idxs) xs)
+  = toUSegd (zipU lens idxs) >: toUArrPA xs
+
+fromSUArrPA_2 :: (PrimPA a, PrimPA b)
+              => Int -> Int -> SUArr (a :*: b) -> PArray (PArray (a, b))
+{-# INLINE fromSUArrPA_2 #-}
+fromSUArrPA_2 (I# m#) n pss = PNested m#
+                                (PInt# (lengthsSU pss))
+                                (PInt# (indicesSU pss))
+                                (fromUArrPA_2 n (concatSU pss))
+
+fromSUArrPA' :: PrimPA a => SUArr a -> PArray (PArray a)
+{-# INLINE fromSUArrPA' #-}
+fromSUArrPA' xss = fromSUArrPA (lengthSU xss)
+                               (lengthU (concatSU xss))
+                               xss
+
+fromSUArrPA_2' :: (PrimPA a, PrimPA b)
+                => SUArr (a :*: b) -> PArray (PArray (a, b))
+{-# INLINE fromSUArrPA_2' #-}
+fromSUArrPA_2' pss = fromSUArrPA_2 (lengthSU pss)
+                                   (lengthU (concatSU pss))
+                                   pss
 

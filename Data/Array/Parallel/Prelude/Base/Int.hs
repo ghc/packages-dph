@@ -12,6 +12,7 @@ import Data.Array.Parallel.Prelude.Base.PArr
 
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
+import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
 
@@ -33,28 +34,28 @@ neq = (==)
 
 plusV :: Int :-> Int :-> Int
 {-# INLINE plusV #-}
-plusV = closure2 dPA_Int (+) (unsafe_zipWithPA_Int (+))
+plusV = closure2 dPA_Int (+) (unsafe_zipWith (+))
 
 plus :: Int -> Int -> Int
 plus = (+)
 
 minusV :: Int :-> Int :-> Int
 {-# INLINE minusV #-}
-minusV = closure2 dPA_Int (-) (unsafe_zipWithPA_Int (-))
+minusV = closure2 dPA_Int (-) (unsafe_zipWith (-))
 
 minus :: Int -> Int -> Int
 minus = (-)
 
 multV :: Int :-> Int :-> Int
 {-# INLINE multV #-}
-multV = closure2 dPA_Int (*) (unsafe_zipWithPA_Int (*))
+multV = closure2 dPA_Int (*) (unsafe_zipWith (*))
 
 mult :: Int -> Int -> Int
 mult = (*)
 
 sumPA :: PArray Int :-> Int
 {-# INLINE sumPA #-}
-sumPA = closure1 (unsafe_foldPA_Int (+) 0) (\_ -> error "Int.sumV lifted")
+sumPA = closure1 (unsafe_fold (+) 0) (\_ -> error "Int.sumV lifted")
 
 sumP :: [:Int:] -> Int
 {-# NOINLINE sumP #-}
