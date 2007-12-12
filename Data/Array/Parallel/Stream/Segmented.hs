@@ -15,7 +15,7 @@
 
 module Data.Array.Parallel.Stream.Segmented (
   SStream(..),
-  segmentS, foldValuesSS,
+  segmentS, foldValuesSS, fold1ValuesSS,
   combineSS
 ) where
 
@@ -55,6 +55,32 @@ foldValuesSS f z  (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
         Skip    vs' -> Skip (JustS n :*: Box x :*: ss :*: vs')
         Yield y vs' -> Skip (JustS (n-1) :*: Box (f x y) :*: ss :*: vs')
 
+fold1ValuesSS :: (a -> a -> a) -> SStream a -> Stream a
+{-# INLINE [1] fold1ValuesSS #-}
+fold1ValuesSS f (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
+  Stream next (NothingS :*: NothingS :*: ss :*: vs) ns
+  where
+    {-# INLINE next #-}
+    next (NothingS :*: _ :*: ss :*: vs) =
+      case nexts ss of
+        Done        -> Done
+        Skip    ss' -> Skip (NothingS :*: NothingS :*: ss' :*: vs)
+        Yield n ss' -> Skip (JustS n  :*: NothingS :*: ss' :*: vs)
+
+    next (JustS n :*: NothingS :*: ss :*: vs) =
+      case nextv vs of
+        Done        -> Done -- FIXME: error
+        Skip    vs' -> Skip (JustS n     :*: NothingS      :*: ss :*: vs')
+        Yield x vs' -> Skip (JustS (n-1) :*: JustS (Box x) :*: ss :*: vs')
+
+    next (JustS 0 :*: JustS (Box x) :*: ss :*: vs) =
+      Yield x (NothingS :*: NothingS :*: ss :*: vs)
+
+    next (JustS n :*: JustS (Box x) :*: ss :*: vs) =
+      case nextv vs of
+        Done        -> Done  -- FIXME: error
+        Skip    vs' -> Skip (JustS n     :*: JustS (Box x)        :*: ss :*: vs')
+        Yield y vs' -> Skip (JustS (n-1) :*: JustS (Box (f x  y)) :*: ss :*: vs')
 
 
 combineSS:: (Stream Bool) -> SStream a -> SStream a -> Stream a
