@@ -8,6 +8,7 @@ module Data.Array.Parallel.Lifted.Instances (
   unsafe_zipWithPA_Double, unsafe_foldPA_Double, sumPAs_Double,
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
+  unsafe_zipWithPA_prim_Bool,
   dPA_Unit, dPA_2, dPA_3,
   dPA_PArray,
   fromSUArrPA, fromSUArrPA_2
@@ -194,6 +195,28 @@ toUArrPA_Bool (PBool _ (PInt# ns#) _ _ _) = mapU (/= 0) ns#
 toPrimArrPA_Bool :: PArray Bool -> PArray_Bool#
 {-# INLINE toPrimArrPA_Bool #-}
 toPrimArrPA_Bool bs = PBool# (toUArrPA_Bool bs)
+
+unsafe_zipWithPA_prim_Bool
+  :: PrimPA a => (a -> a -> Bool) -> PArray a -> PArray a -> PArray Bool
+unsafe_zipWithPA_prim_Bool f xs ys
+  = PBool (case lengthU uxs of I# n# -> n#)
+          (PInt# bs)
+          (PInt# (zipWith3U if_ bs (scanU (+) 0 ts) (scanU (+) 0 fs)))
+          (PVoid (case sumU fs of I# n# -> n#))
+          (PVoid (case sumU ts of I# n# -> n#))
+  where
+    uxs = toUArrPA xs
+    uys = toUArrPA ys
+
+    rs = zipWithU p uxs uys
+
+    bs :*: fs :*: ts = unzip3U rs
+
+    p d d' | f d d'    = 1 :*: 0 :*: 1
+           | otherwise = 0 :*: 1 :*: 0
+
+    if_ 0  x y = y
+    if_ _  x y = x
 
 truesPA# :: PArray Bool -> Int#
 {-# INLINE truesPA# #-}

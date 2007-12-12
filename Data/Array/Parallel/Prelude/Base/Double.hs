@@ -1,6 +1,6 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.Double (
-  -- eq, eqV, neq, neqV,
+  eq, eqV, neq, neqV, le, leV, lt, ltV, ge, geV, gt, gtV,
   plus, plusV,
   minus, minusV,
   mult, multV,
@@ -14,21 +14,27 @@ import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
 
-{-
-eqV :: Double :-> Double :-> Bool
+eqV, neqV, leV, ltV, geV, gtV :: Double :-> Double :-> Bool
 {-# INLINE eqV #-}
-eqV = closure2 dPA_Double (==) (unsafe_zipWith_Double (==))
-
-eq :: Double -> Double -> Bool
-eq = (==)
-
-neqV :: Double :-> Double :-> Bool
 {-# INLINE neqV #-}
-neqV = closure2 dPA_Double (/=) (unsafe_zipWith_Double (/=))
+{-# INLINE leV #-}
+{-# INLINE ltV #-}
+{-# INLINE geV #-}
+{-# INLINE gtV #-}
+eqV = closure2 dPA_Double (==) (unsafe_zipWithPA_prim_Bool (==))
+neqV = closure2 dPA_Double (/=) (unsafe_zipWithPA_prim_Bool (/=))
+leV = closure2 dPA_Double (<=) (unsafe_zipWithPA_prim_Bool (<=))
+ltV = closure2 dPA_Double (<) (unsafe_zipWithPA_prim_Bool (<))
+geV = closure2 dPA_Double (>=) (unsafe_zipWithPA_prim_Bool (>=))
+gtV = closure2 dPA_Double (>) (unsafe_zipWithPA_prim_Bool (>))
 
-neq :: Double -> Double -> Bool
-neq = (==)
--}
+eq, neq, le, lt, ge, gt :: Double -> Double -> Bool
+eq = (==)
+neq = (/=)
+le = (<=)
+lt = (<)
+ge = (>=)
+gt = (>)
 
 plusV :: Double :-> Double :-> Double
 {-# INLINE plusV #-}
