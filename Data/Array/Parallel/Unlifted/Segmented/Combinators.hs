@@ -18,14 +18,14 @@
 
 module Data.Array.Parallel.Unlifted.Segmented.Combinators (
   mapSU, zipWithSU,
-  foldlSU, foldSU, {-fold1SU,-} {-scanSU,-} {-scan1SU,-}
+  foldlSU, foldSU, foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
   combineSU, filterSU
 ) where
 
 import Data.Array.Parallel.Base (
   sndS)
 import Data.Array.Parallel.Stream (
-  Stream, SStream, mapS, foldValuesSS, combineSS)
+  Stream, SStream, mapS, foldValuesSS, fold1ValuesSS, combineSS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, mapU, zipWithU,
   unstreamU, streamU)
@@ -61,6 +61,18 @@ foldlSU f z = unstreamU . foldValuesSS f z . streamSU
 --
 foldSU :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
 foldSU = foldlSU
+
+-- |Segmented array reduction from left to right with non-empty subarrays only
+--
+foldl1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
+{-# INLINE foldl1SU #-}
+foldl1SU f = unstreamU . fold1ValuesSS f . streamSU
+
+-- |Segmented array reduction with non-empty subarrays and an associative
+-- combination function
+--
+fold1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
+fold1SU = foldl1SU
 
 
 -- |Merge two segmented arrays according to flag array

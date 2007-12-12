@@ -25,7 +25,7 @@ import Data.Array.Parallel.Unlifted.Flat (
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr)
 import Data.Array.Parallel.Unlifted.Segmented.Combinators (
-  foldSU)
+  foldSU, fold1SU)
 
 -- |
 andSU :: SUArr Bool -> UArr Bool
@@ -49,19 +49,13 @@ productSU = foldSU (*) 1
 
 -- |Determine the maximum element in each subarray
 --
-maximumSU :: (Bounded e, Ord e, UA e) => SUArr e -> UArr e
---FIXME: provisional until fold1SU implemented
---maximumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
+maximumSU :: (Ord e, UA e) => SUArr e -> UArr e
 {-# INLINE maximumSU #-}
---maximumSU = fold1SU max
-maximumSU = foldSU max minBound
+maximumSU = fold1SU max
 
 -- |Determine the minimum element in each subarray
 --
-minimumSU :: (Bounded e, Ord e, UA e) => SUArr e -> UArr e
---FIXME: provisional until fold1SU implemented
---minimumSU :: (Ord e, MUA e) => UArr (UArr e) -> UArr e
+minimumSU :: (Ord e, UA e) => SUArr e -> UArr e
 {-# INLINE minimumSU #-}
---minimumSU = fold1SU min
-minimumSU = foldSU min maxBound
+minimumSU = fold1SU min
 
