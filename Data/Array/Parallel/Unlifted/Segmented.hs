@@ -46,7 +46,7 @@ module Data.Array.Parallel.Unlifted.Segmented (
   mapSU, zipWithSU,
   {-concatMapU,-}
   foldlSU, foldSU,
-  {-fold1SU,-}
+  fold1SU,
   {-scanSU, scan1SU,-}
 
   -- filter and combines
