@@ -2,13 +2,11 @@ module Data.Array.Parallel.Prelude (
     module Data.Array.Parallel.Prelude.Base.PArr
 
   , module Data.Array.Parallel.Prelude.Bool
-  , module Data.Array.Parallel.Prelude.Eq
   
   , PArray, PrimPA(..), fromSUArrPA, fromSUArrPA_2
 ) where
 
 import Data.Array.Parallel.Prelude.Bool
-import Data.Array.Parallel.Prelude.Eq
 
 import Data.Array.Parallel.Prelude.Base.PArr
 import Data.Array.Parallel.Prelude.Base.Int
