@@ -19,7 +19,7 @@
 module Data.Array.Parallel.Unlifted.Segmented.Basics (
   lengthSU, singletonSU, replicateSU,
   flattenSU, (>:), segmentU, segmentArrU, concatSU,
-  sliceIndexSU, extractIndexSU,
+  sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
   toSU, fromSU,(+:+^)
@@ -32,7 +32,7 @@ import Data.Array.Parallel.Stream (
   replicateEachS, zipS)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr,
-  lengthU, (!:), sliceU, extractU,
+  lengthU, (!:), sliceU, extractU, replicateU, enumFromToEachU,
   mapU, fstU, sndU, zipU, zipWith3U, sumU,
   toU, fromU,
   streamU, unstreamU)
@@ -97,6 +97,19 @@ sliceIndexSU = indexSU sliceU
 -- 
 extractIndexSU :: UA e => SUArr e -> Int -> UArr e
 extractIndexSU = indexSU extractU
+
+-- |Associate each data element with its index
+--
+indexedSU :: UA e => SUArr e -> SUArr (Int :*: e)
+{-# INLINE indexedSU #-}
+indexedSU xss = segdSU xss >: zipU is xs
+  where
+    xs = concatSU xss
+
+    is = enumFromToEachU (lengthU xs)
+       . zipU (replicateU (lengthSU xss) 0)
+       . mapU (subtract 1)
+       $ lengthsSU xss
 
 -- |Zipping
 -- --------

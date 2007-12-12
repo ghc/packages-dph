@@ -29,6 +29,7 @@ module Data.Array.Parallel.Unlifted.Segmented (
 
   -- * Basic operations
   lengthSU, singletonSU, replicateSU, sliceIndexSU, extractIndexSU, (+:+^),
+  indexedSU,
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,
