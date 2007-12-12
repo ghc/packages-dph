@@ -6,7 +6,7 @@ module Data.Array.Parallel.Lifted.Combinators (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.Prim
+import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 

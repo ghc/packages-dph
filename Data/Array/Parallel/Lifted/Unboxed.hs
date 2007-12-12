@@ -1,4 +1,4 @@
-module Data.Array.Parallel.Lifted.Prim (
+module Data.Array.Parallel.Lifted.Unboxed (
   PArray_Int#(..),
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,

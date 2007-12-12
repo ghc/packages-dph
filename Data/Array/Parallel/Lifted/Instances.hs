@@ -16,7 +16,7 @@ module Data.Array.Parallel.Lifted.Instances (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Repr
-import Data.Array.Parallel.Lifted.Prim
+import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted
 
 import GHC.Exts    ( Int#, Int(..), (*#),

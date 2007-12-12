@@ -15,7 +15,7 @@ module Data.Array.Parallel.Lifted.Repr (
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Prim
+import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted
 
 import GHC.Exts  (Int#, Int(..), (*#))

@@ -12,7 +12,7 @@ module Data.Array.Parallel.Lifted.PArray (
 ) where
 
 import Data.Array.Parallel.Unlifted ( UArr, UA )
-import Data.Array.Parallel.Lifted.Prim ( PArray_Int#, PArray_Bool# )
+import Data.Array.Parallel.Lifted.Unboxed ( PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#)
 
 -- |Lifted parallel arrays
@@ -124,5 +124,4 @@ class UA a => PrimPA a where
   fromUArrPA :: UArr a -> PArray a
   toUArrPA   :: PArray a -> UArr a
   primPA     :: PA a
-
 
