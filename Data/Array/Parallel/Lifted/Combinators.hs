@@ -134,7 +134,8 @@ zipPA_v pa pb xs ys = zipPA# pa pb xs ys
 zipPA_l :: PA a -> PA b
         -> PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a,b))
 {-# INLINE zipPA_l #-}
-zipPA_l pa pb xss yss = error "zipPA_l"
+zipPA_l pa pb (PNested n# lens idxs xs) (PNested _ _ _ ys)
+  = PNested n# lens idxs (zipPA_v pa pb xs ys)
 
 zipPA :: PA a -> PA b -> (PArray a :-> PArray b :-> PArray (a,b))
 {-# INLINE zipPA #-}
@@ -152,7 +153,10 @@ zipWithPA_l :: PA a -> PA b -> PA c
             -> PArray (a :-> b :-> c) -> PArray (PArray a) -> PArray (PArray b)
             -> PArray (PArray c)
 {-# INLINE zipWithPA_l #-}
-zipWithPA_l pa pb pc f as bs = error "zipWithPA_l"
+zipWithPA_l pa pb pc fs (PNested n# lens idxs as) (PNested _ _ _ bs)
+  = PNested n# lens idxs
+            (replicatelPA# (dPA_Clo pa (dPA_Clo pb pc))
+                           (lengthPA# pa as) lens fs $:^ as $:^ bs)
 
 zipWithPA :: PA a -> PA b -> PA c
           -> ((a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c)
@@ -168,7 +172,14 @@ packPA_v pa xs bs = packPA# pa xs (truesPA# bs) (toPrimArrPA_Bool bs)
 packPA_l :: PA a
          -> PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE packPA_l #-}
-packPA_l pa xss bss = error "packPA_l"
+packPA_l pa (PNested _ _ _ xs) (PNested n# (PInt# lens) (PInt# idxs) bs)
+  = PNested n# (PInt# lens') (PInt# idxs') (packPA_v pa xs bs)
+  where
+    lens' = foldSU (+) 0
+          $ toUSegd (zipU lens idxs) >: mapU (\b -> if b then 1 else 0)
+                                             (toUArrPA bs)
+
+    idxs' = scanU (+) 0 lens'
 
 packPA :: PA a -> (PArray a :-> PArray Bool :-> PArray a)
 {-# INLINE packPA #-}
@@ -181,7 +192,7 @@ filterPA_v pa p xs = packPA_v pa xs (mapPA_v pa dPA_Bool p xs)
 filterPA_l :: PA a
            -> PArray (a :-> Bool) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE filterPA_l #-}
-filterPA_l pa ps xss = error "filterPA_l"
+filterPA_l pa ps xss = packPA_l pa xss (mapPA_l pa dPA_Bool ps xss)
 
 filterPA :: PA a -> ((a :-> Bool) :-> PArray a :-> PArray a)
 {-# INLINE filterPA #-}
