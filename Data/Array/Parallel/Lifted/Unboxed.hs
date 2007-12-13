@@ -79,6 +79,7 @@ sumPA_Int# (PInt# ns) = case sumU ns of I# n# -> n#
 sumPAs_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
 sumPAs_Int# (PInt# lens) (PInt# idxs) (PInt# ds)
   = PInt# (sumSU (toUSegd (zipU lens idxs) >: ds))
+{-# INLINE sumPAs_Int# #-}
 
 unsafe_zipWithPA_Int# :: (Int -> Int -> Int)
                       -> PArray_Int# -> PArray_Int# -> PArray_Int#
