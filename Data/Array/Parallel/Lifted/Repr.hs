@@ -11,8 +11,8 @@ module Data.Array.Parallel.Lifted.Repr (
   dPR_2, dPR_3, zipPA#, fromUArrPA_2, fromUArrPA_2',
   dPR_Sum2, dPR_Sum3,
 
-  dPR_PArray, concatPA#, toSUArrPA, fromSUArrPA, fromSUArrPA_2,
-  fromSUArrPA', fromSUArrPA_2'
+  dPR_PArray, nested_lengthPA, concatPA#,
+  toSUArrPA, fromSUArrPA, fromSUArrPA_2, fromSUArrPA', fromSUArrPA_2'
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -428,6 +428,9 @@ dPR_PArray pr = PR {
 
 {-# INLINE lengthPR_PArray #-}
 lengthPR_PArray (PNested n# _ _ _) = n#
+
+{-# INLINE nested_lengthPA #-}
+nested_lengthPA xss = I# (lengthPR_PArray xss)
 
 {-# INLINE emptyPR_PArray #-}
 emptyPR_PArray pr = PNested 0# emptyPA_Int# emptyPA_Int# (emptyPR pr)
