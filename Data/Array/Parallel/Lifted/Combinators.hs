@@ -1,7 +1,7 @@
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA,
-  packPA, filterPA, indexPA, concatPA
+  packPA, filterPA, indexPA, concatPA, appPA
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -10,7 +10,9 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import GHC.Exts (Int(..))
+import Data.Array.Parallel.Unlifted
+
+import GHC.Exts (Int(..), (+#))
 
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
 {-# INLINE closure1 #-}
@@ -213,4 +215,21 @@ concatPA_l pa (PNested m# lens1 idxs1 (PNested n# lens2 idxs2 xs))
 concatPA :: PA a -> (PArray (PArray a) :-> PArray a)
 {-# INLINE concatPA #-}
 concatPA pa = closure1 (concatPA_v pa) (concatPA_l pa)
+
+appPA_v :: PA a -> PArray a -> PArray a -> PArray a
+{-# INLINE appPA_v #-}
+appPA_v pa xs ys = appPA# pa xs ys
+
+appPA_l :: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
+{-# INLINE appPA_l #-}
+appPA_l pa (PNested m# (PInt# lens1) (PInt# idxs1) xs)
+           (PNested n# (PInt# lens2) (PInt# idxs2) ys)
+  = PNested (m# +# n#) (PInt# (zipWithU (+) lens1 lens2))
+                       (PInt# (zipWithU (+) idxs1 idxs2))
+                       (applPA# pa (toUSegd (zipU lens1 idxs1)) xs
+                                   (toUSegd (zipU lens2 idxs2)) ys)
+
+appPA :: PA a -> (PArray a :-> PArray a :-> PArray a)
+{-# INLINE appPA #-}
+appPA pa = closure2 (dPA_PArray pa) (appPA_v pa) (appPA_l pa)
 

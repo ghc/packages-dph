@@ -15,7 +15,7 @@ import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted
 
-import GHC.Exts    ( Int#, Int(..), (*#), (-#),
+import GHC.Exts    ( Int#, Int(..), (+#), (-#), (*#),
                      Double#, Double(..) )
 
 data instance PArray Int = PInt Int# PArray_Int#
@@ -47,6 +47,8 @@ dPR_Int = PR {
           , repeatPR     = repeatPR_Int
           , indexPR      = indexPR_Int
           , bpermutePR   = bpermutePR_Int
+          , appPR        = appPR_Int
+          , applPR       = applPR_Int
           }
 
 {-# INLINE lengthPR_Int #-}
@@ -69,6 +71,13 @@ indexPR_Int (PInt _ ns) i# = I# (indexPA_Int# ns i#)
 
 {-# INLINE bpermutePR_Int #-}
 bpermutePR_Int (PInt _ ns) is = PInt (lengthPA_Int# is) (bpermutePA_Int# ns is)
+
+{-# INLINE appPR_Int #-}
+appPR_Int (PInt m# ms) (PInt n# ns) = PInt (m# +# n#) (appPA_Int# ms ns)
+
+{-# INLINE applPR_Int #-}
+applPR_Int is (PInt m# ms) js (PInt n# ns)
+  = PInt (m# +# n#) (applPA_Int# is ms js ns)
 
 upToPA_Int :: Int -> PArray Int
 {-# INLINE upToPA_Int #-}
@@ -103,6 +112,8 @@ dPR_Double = PR {
           , repeatPR     = repeatPR_Double
           , indexPR      = indexPR_Double
           , bpermutePR   = bpermutePR_Double
+          , appPR        = appPR_Double
+          , applPR       = applPR_Double
           }
 
 {-# INLINE lengthPR_Double #-}
@@ -128,6 +139,14 @@ indexPR_Double (PDouble _ ds) i# = D# (indexPA_Double# ds i#)
 {-# INLINE bpermutePR_Double #-}
 bpermutePR_Double (PDouble _ ds) is
   = PDouble (lengthPA_Int# is) (bpermutePA_Double# ds is)
+
+{-# INLINE appPR_Double #-}
+appPR_Double (PDouble m# ms) (PDouble n# ns)
+  = PDouble (m# +# n#) (appPA_Double# ms ns)
+
+{-# INLINE applPR_Double #-}
+applPR_Double is (PDouble m# ms) js (PDouble n# ns)
+  = PDouble (m# +# n#) (applPA_Double# is ms js ns)
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#

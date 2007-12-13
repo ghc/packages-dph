@@ -2,14 +2,15 @@ module Data.Array.Parallel.Lifted.Unboxed (
   PArray_Int#(..),
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
-  indexPA_Int#, bpermutePA_Int#, upToPA_Int#, selectPA_Int#, sumPA_Int#,
+  indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
+  upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
   sumPAs_Int#, 
 
   PArray_Double#(..),
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
-  indexPA_Double#, bpermutePA_Double#,
+  indexPA_Double#, bpermutePA_Double#, appPA_Double#, applPA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
   unsafe_foldPAs_Double#,
 
@@ -53,6 +54,15 @@ indexPA_Int# (PInt# ns) i# = case ns !: I# i# of { I# n# -> n# }
 bpermutePA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int#
 bpermutePA_Int# (PInt# ns) (PInt# is) = PInt# (bpermuteU ns is)
 {-# INLINE bpermutePA_Int# #-}
+
+appPA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int#
+appPA_Int# (PInt# ms) (PInt# ns) = PInt# (ms +:+ ns)
+{-# INLINE appPA_Int# #-}
+
+applPA_Int# :: USegd -> PArray_Int# -> USegd -> PArray_Int# -> PArray_Int#
+applPA_Int# is (PInt# xs) js (PInt# ys)
+  = PInt# . concatSU $ (is >: xs) ^+:+^ (js >: ys)
+{-# INLINE applPA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = PInt# (enumFromToU 0 ((I# n#) -1))
@@ -113,6 +123,16 @@ indexPA_Double# (PDouble# ds) i# = case ds !: I# i# of { D# d# -> d# }
 bpermutePA_Double# :: PArray_Double# -> PArray_Int# -> PArray_Double#
 bpermutePA_Double# (PDouble# ds) (PInt# is) = PDouble# (bpermuteU ds is)
 {-# INLINE bpermutePA_Double# #-}
+
+appPA_Double# :: PArray_Double# -> PArray_Double# -> PArray_Double#
+appPA_Double# (PDouble# ms) (PDouble# ns) = PDouble# (ms +:+ ns)
+{-# INLINE appPA_Double# #-}
+
+applPA_Double# :: USegd -> PArray_Double# -> USegd -> PArray_Double#
+               -> PArray_Double#
+applPA_Double# is (PDouble# xs) js (PDouble# ys)
+  = PDouble# . concatSU $ (is >: xs) ^+:+^ (js >: ys)
+{-# INLINE applPA_Double# #-}
 
 unsafe_zipWithPA_Double# :: (Double -> Double -> Double)
                          -> PArray_Double# -> PArray_Double# -> PArray_Double#

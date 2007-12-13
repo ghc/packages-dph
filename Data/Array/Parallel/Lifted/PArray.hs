@@ -3,7 +3,7 @@ module Data.Array.Parallel.Lifted.PArray (
 
   PA(..),
   lengthPA#, replicatePA#, replicatelPA#, repeatPA#, emptyPA,
-  indexPA#, bpermutePA#,
+  indexPA#, bpermutePA#, appPA#, applPA#,
   packPA#, combine2PA#,
 
   PRepr, PR(..), mkPR, mkReprPA,
@@ -11,7 +11,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PrimPA(..), prim_lengthPA, fromUArrPA'
 ) where
 
-import Data.Array.Parallel.Unlifted ( UArr, UA, lengthU )
+import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Lifted.Unboxed ( PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#, Int(..))
 
@@ -71,6 +71,17 @@ bpermutePA# :: PA a -> PArray a -> PArray_Int# -> PArray a
 bpermutePA# pa xs is = fromArrPRepr pa
                      $ bpermutePR (dictPRepr pa) (toArrPRepr pa xs) is
 
+appPA# :: PA a -> PArray a -> PArray a -> PArray a
+{-# INLINE appPA# #-}
+appPA# pa xs ys = fromArrPRepr pa
+                $ appPR (dictPRepr pa) (toArrPRepr pa xs) (toArrPRepr pa ys)
+
+applPA# :: PA a -> USegd -> PArray a -> USegd -> PArray a -> PArray a
+{-# INLINE applPA# #-}
+applPA# pa is xs js ys = fromArrPRepr pa
+                       $ applPR (dictPRepr pa) is (toArrPRepr pa xs)
+                                               js (toArrPRepr pa ys)
+
 packPA# :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
 {-# INLINE packPA# #-}
 packPA# pa arr n# = fromArrPRepr pa
@@ -91,6 +102,8 @@ data PR a = PR {
             , repeatPR     :: Int# -> PArray a -> PArray a
             , indexPR      :: PArray a -> Int# -> a
             , bpermutePR   :: PArray a -> PArray_Int# -> PArray a
+            , appPR        :: PArray a -> PArray a -> PArray a
+            , applPR       :: USegd -> PArray a -> USegd -> PArray a -> PArray a
             , packPR       :: PArray a -> Int# -> PArray_Bool# -> PArray a
             , combine2PR   :: Int# -> PArray_Int# -> PArray_Int#
                               -> PArray a -> PArray a -> PArray a
@@ -106,6 +119,8 @@ mkPR pa = PR {
           , repeatPR     = repeatPA# pa
           , indexPR      = indexPA# pa
           , bpermutePR   = bpermutePA# pa
+          , appPR        = appPA# pa
+          , applPR       = applPA# pa
           , packPR       = packPA# pa
           , combine2PR   = combine2PA# pa
           }

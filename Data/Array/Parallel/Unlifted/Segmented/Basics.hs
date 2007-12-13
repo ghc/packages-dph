@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Unlifted.Segmented.Basics (
   lengthSU, singletonSU, replicateSU,
-  flattenSU, (>:), segmentU, segmentArrU, concatSU,
+  flattenSU, (>:), segmentU, segmentArrU, concatSU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
@@ -28,19 +28,14 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
 import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..),SStream(..),(+++),
+  Step(..), Stream(..),SStream(..),(+++), (^+++^),
   replicateEachS, zipS)
-import Data.Array.Parallel.Unlifted.Flat (
-  UA, UArr,
-  lengthU, (!:), sliceU, extractU, replicateU, enumFromToEachU,
-  mapU, fstU, sndU, zipU, zipWith3U, sumU,
-  toU, fromU,
-  streamU, unstreamU)
+import Data.Array.Parallel.Unlifted.Flat
 
 import Data.Array.Parallel.Unlifted.Segmented.Stream (streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
-  lengthsToUSegd, singletonUSegd)
+  lengthsToUSegd, singletonUSegd, toUSegd)
 
 -- lengthSU reexported from SUArr
 
@@ -111,6 +106,19 @@ indexedSU xss = segdSU xss >: zipU is xs
        . mapU (subtract 1)
        $ lengthsSU xss
 
+-- |Concatenation
+-- --------------
+
+infixr 5 ^+:+^
+
+(^+:+^) :: UA a => SUArr a -> SUArr a -> SUArr a
+{-# INLINE (^+:+^) #-}
+xss ^+:+^ yss = toUSegd (zipU lens idxs)
+                >: unstreamU (streamSU xss ^+++^ streamSU yss)
+  where
+    lens = zipWithU (+) (lengthsSU xss) (lengthsSU yss)
+    idxs = zipWithU (+) (indicesSU xss) (indicesSU yss)
+
 -- |Zipping
 -- --------
 
@@ -172,6 +180,8 @@ enumFromThenToEachS n (Stream next s _) =
       Yield (toEnum start) (n-1 :*: start+delta :*: delta :*: s)
 
 -- |Concatenate two arrays
+--
+-- FIXME: rename
 --
 (+:+^) :: UA e => SUArr e -> SUArr e -> SUArr e
 {-# INLINE (+:+^) #-}

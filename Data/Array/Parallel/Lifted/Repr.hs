@@ -19,7 +19,7 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted
 
-import GHC.Exts  (Int#, Int(..), (*#))
+import GHC.Exts  (Int#, Int(..), (+#), (*#))
 
 data Void
 
@@ -38,6 +38,8 @@ dPR_Void = PR {
            , repeatPR     = repeatPR_Void
            , indexPR      = indexPR_Void
            , bpermutePR   = bpermutePR_Void
+           , appPR        = appPR_Void
+           , applPR       = applPR_Void
            , packPR       = packPR_Void
            , combine2PR   = combine2PR_Void
            }
@@ -63,6 +65,12 @@ indexPR_Void (PVoid n#) i# = void
 
 {-# INLINE bpermutePR_Void #-}
 bpermutePR_Void (PVoid _) is = PVoid (lengthPA_Int# is)
+
+{-# INLINE appPR_Void #-}
+appPR_Void (PVoid m#) (PVoid n#) = PVoid (m# +# n#)
+
+{-# INLINE applPR_Void #-}
+applPR_Void _ (PVoid m#) _ (PVoid n#) = PVoid (m# +# n#)
 
 {-# INLINE packPR_Void #-}
 packPR_Void (PVoid _) n# _ = PVoid n#
@@ -94,6 +102,8 @@ dPR_Unit = PR {
            , repeatPR     = repeatPR_Unit
            , indexPR      = indexPR_Unit
            , bpermutePR   = bpermutePR_Unit
+           , appPR        = appPR_Unit
+           , applPR       = applPR_Unit
            , packPR       = packPR_Unit
            , combine2PR   = combine2PR_Unit
            }
@@ -121,6 +131,12 @@ indexPR_Unit (PUnit n# u) i# = u
 {-# INLINE bpermutePR_Unit #-}
 bpermutePR_Unit (PUnit _ u) is = PUnit (lengthPA_Int# is) u
 
+{-# INLINE appPR_Unit #-}
+appPR_Unit (PUnit m# u) (PUnit n# v) = PUnit (m# +# n#) (u `seq` v)
+
+{-# INLINE applPR_Unit #-}
+applPR_Unit _ (PUnit m# u) _ (PUnit n# v) = PUnit (m# +# n#) (u `seq` v)
+
 {-# INLINE packPR_Unit #-}
 packPR_Unit (PUnit _ u) n# _ = PUnit n# u
 
@@ -142,6 +158,8 @@ dPR_Wrap pr = PR {
             , repeatPR     = repeatPR_Wrap pr
             , indexPR      = indexPR_Wrap pr
             , bpermutePR   = bpermutePR_Wrap pr
+            , appPR        = appPR_Wrap pr
+            , applPR       = applPR_Wrap pr
             , packPR       = packPR_Wrap pr
             }
 
@@ -166,6 +184,13 @@ indexPR_Wrap pr (PWrap n# xs) i# = Wrap (indexPR pr xs i#)
 {-# INLINE bpermutePR_Wrap #-}
 bpermutePR_Wrap pr (PWrap n# xs) is = PWrap (lengthPA_Int# is)
                                             (bpermutePR pr xs is)
+
+{-# INLINE appPR_Wrap #-}
+appPR_Wrap pr (PWrap m# xs) (PWrap n# ys) = PWrap (m# +# n#) (appPR pr xs ys)
+
+{-# INLINE applPR_Wrap #-}
+applPR_Wrap pr is (PWrap m# xs) js (PWrap n# ys)
+  = PWrap (m# +# n#) (applPR pr is xs js ys)
 
 {-# INLINE packPR_Wrap #-}
 packPR_Wrap pr (PWrap _ xs) n# sel# = PWrap n# (packPR pr xs n# sel#)
@@ -223,6 +248,8 @@ dPR_2 pra prb
     , repeatPR     = repeatPR_2 pra prb
     , indexPR      = indexPR_2 pra prb
     , bpermutePR   = bpermutePR_2 pra prb
+    , appPR        = appPR_2 pra prb
+    , applPR       = applPR_2 pra prb
     , packPR       = packPR_2 pra prb
     , combine2PR   = combine2PR_2 pra prb
     }
@@ -256,6 +283,15 @@ bpermutePR_2 pra prb (P_2 _ as bs) is
   = P_2 (lengthPA_Int# is) (bpermutePR pra as is)
                            (bpermutePR prb bs is)
 
+{-# INLINE appPR_2 #-}
+appPR_2 pra prb (P_2 m# as1 bs1) (P_2 n# as2 bs2)
+  = P_2 (m# +# n#) (appPR pra as1 as2) (appPR prb bs1 bs2)
+
+{-# INLINE applPR_2 #-}
+applPR_2 pra prb is (P_2 m# as1 bs1) js (P_2 n# as2 bs2)
+  = P_2 (m# +# n#) (applPR pra is as1 js as2)
+                   (applPR prb is bs1 js bs2)
+
 {-# INLINE packPR_2 #-}
 packPR_2 pra prb (P_2 _ as bs) n# sel# = P_2 n# (packPR pra as n# sel#)
                                                 (packPR prb bs n# sel#)
@@ -280,6 +316,8 @@ dPR_3 pra prb prc
     , repeatPR     = repeatPR_3 pra prb prc
     , indexPR      = indexPR_3 pra prb prc
     , bpermutePR   = bpermutePR_3 pra prb prc
+    , appPR        = appPR_3 pra prb prc
+    , applPR       = applPR_3 pra prb prc
     , packPR       = packPR_3 pra prb prc
     , combine2PR   = combine2PR_3 pra prb prc
     }
@@ -317,6 +355,16 @@ bpermutePR_3 pra prb prc (P_3 _ as bs cs) is
   = P_3 (lengthPA_Int# is) (bpermutePR pra as is)
                            (bpermutePR prb bs is)
                            (bpermutePR prc cs is)
+{-# INLINE appPR_3 #-}
+appPR_3 pra prb prc (P_3 m# as1 bs1 cs1) (P_3 n# as2 bs2 cs2)
+  = P_3 (m# +# n#) (appPR pra as1 as2) (appPR prb bs1 bs2) (appPR prc cs1 cs2)
+
+{-# INLINE applPR_3 #-}
+applPR_3 pra prb prc is (P_3 m# as1 bs1 cs1) js (P_3 n# as2 bs2 cs2)
+  = P_3 (m# +# n#) (applPR pra is as1 js as2)
+                   (applPR prb is bs1 js bs2)
+                   (applPR prc is cs1 js cs2)
+
 {-# INLINE packPR_3 #-}
 packPR_3 pra prb prc (P_3 _ as bs cs) n# sel#
   = P_3 n# (packPR pra as n# sel#)

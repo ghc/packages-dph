@@ -16,7 +16,7 @@
 module Data.Array.Parallel.Stream.Segmented (
   SStream(..),
   segmentS, foldValuesSS, fold1ValuesSS,
-  combineSS
+  combineSS, (^+++^)
 ) where
 
 import Data.Array.Parallel.Base (
@@ -115,4 +115,50 @@ combineSS (Stream nextf sf nf)
       case nextv2 vs2 of
         Done         -> Done
         Skip vs2'    -> Skip (JustS n        :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2') 
-        Yield x vs2' -> Yield x (JustS (n-1) :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2') 
+        Yield x vs2' -> Yield x (JustS (n-1) :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2')
+
+(^+++^) :: SStream a -> SStream a -> Stream a
+{-# INLINE [1] (^+++^) #-}
+SStream (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
+  ^+++^ SStream (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
+  = Stream next (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2) (nv1 + nv2)
+  where
+    {-# INLINE next #-}
+    next (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+      = case nexts1 ss1 of
+          Done         -> Done
+          Skip    ss1' -> Skip (True :*: NothingS
+                                     :*: ss1' :*: sv1 :*: ss2 :*: sv2)
+          Yield n ss1' -> Skip (True :*: JustS n
+                                     :*: ss1' :*: sv1 :*: ss2 :*: sv2)
+
+    next (True :*: JustS 0 :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+      = Skip (False :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+
+    next (True :*: JustS n :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+      = case nextv1 sv1 of
+          Done         -> Done  -- FIXME: error
+          Skip    sv1' -> Skip    (True :*: JustS n
+                                        :*: ss1 :*: sv1' :*: ss2 :*: sv2)
+          Yield x sv1' -> Yield x (True :*: JustS (n-1)
+                                        :*: ss1 :*: sv1' :*: ss2 :*: sv2)
+
+    next (False :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+      = case nexts2 ss2 of
+          Done         -> Done  -- FIXME: error
+          Skip    ss2' -> Skip (False :*: NothingS
+                                      :*: ss1 :*: sv1 :*: ss2' :*: sv2)
+          Yield n ss2' -> Skip (False :*: JustS n
+                                      :*: ss1 :*: sv1 :*: ss2' :*: sv2)
+
+    next (False :*: JustS 0 :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+      = Skip (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+
+    next (False :*: JustS n :*: ss1 :*: sv1 :*: ss2 :*: sv2)
+      = case nextv2 sv2 of
+          Done         -> Done  -- FIXME: error
+          Skip    sv2' -> Skip    (False :*: JustS n
+                                         :*: ss1 :*: sv1 :*: ss2 :*: sv2')
+          Yield x sv2' -> Yield x (False :*: JustS (n-1)
+                                         :*: ss1 :*: sv1 :*: ss2 :*: sv2')
+
