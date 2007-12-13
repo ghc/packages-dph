@@ -34,14 +34,14 @@ import Data.Array.Parallel.Unlifted.Flat.Sums (
 -- |Yield an enumerated array
 --
 -- FIXME: See comments about enumFromThenToS
-enumFromToU :: (Enum e, UA e) => e -> e -> UArr e
+enumFromToU :: Int -> Int -> UArr Int
 {-# INLINE enumFromToU #-}
 enumFromToU start end = unstreamU (enumFromToS start end)
 
 -- |Yield an enumerated array using a specific step
 --
 -- FIXME: See comments about enumFromThenToS
-enumFromThenToU :: (Enum e, UA e) => e -> e -> e -> UArr e
+enumFromThenToU :: Int -> Int -> Int -> UArr Int
 {-# INLINE enumFromThenToU #-}
 enumFromThenToU start next end = unstreamU (enumFromThenToS start next end)
 

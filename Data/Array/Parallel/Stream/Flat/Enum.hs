@@ -28,40 +28,33 @@ import Data.Array.Parallel.Stream.Flat.Combinators (
 
 -- | Yield an enumerated stream
 --
--- FIXME: see comments about 'enumFromThenToS'
+-- FIXME: Can this be implemented polymorphically? We could just use
+-- enumFromThenTo here, but this won't really work for parallel arrays.
+-- Perhaps we have to introduce an EnumP class?
 --
-enumFromToS :: Enum a => a -> a -> Stream a
-{-# INLINE enumFromToS #-}
-enumFromToS start end = enumFromThenToS start (succ start) end
+enumFromToS :: Int -> Int -> Stream Int
+{-# INLINE [1] enumFromToS #-}
+enumFromToS start end
+  = Stream step start (max 0 (end - start))
+  where
+    {-# INLINE step #-}
+    step s | s > end   = Done
+           | otherwise = Yield s (s+1)
 
 -- | Yield an enumerated stream using a specific step
 --
--- FIXME: Can this be implemented at all?. Casting to 'Int' certainly doesn't
--- work for 'Float's; we have
 --
--- > enumFromTo 0.5 1.4 = [0.5,1.5]
---
--- but
---
--- > enumFromToU 0.5 1.4 = [0.0,1.0]
---
--- More importantly, this won't work for types larger than 'Int'. Short of
--- introducing an EnumP class, I don't see how this can be implemented
--- efficiently.
---
--- On the other hand, we could just use enumFromThenTo here; however, this
--- won't really work for parallel arrays.
---
-enumFromThenToS :: Enum a => a -> a -> a -> Stream a
+enumFromThenToS :: Int -> Int -> Int -> Stream Int
 {-# INLINE enumFromThenToS #-}
-enumFromThenToS start next end =
-  mapS toEnum (enumFromStepLenS start' delta len)
+enumFromThenToS start next end
+  = enumFromStepLenS start delta len
   where
-    start' = fromEnum start
-    next'  = fromEnum next
-    end'   = fromEnum end
-    delta  = next' - start'
-    len    = abs (end' - start' + delta) `div` abs delta
+    delta = next - start
+    diff  = end - start
+
+    len | start < next && start <= end = ((end-start) `div` delta) + 1
+        | start > next && start >= end = ((start-end) `div` (start-next)) + 1
+        | otherwise                    = 0
 
 enumFromStepLenS :: Int -> Int -> Int -> Stream Int
 {-# INLINE [1] enumFromStepLenS #-}
