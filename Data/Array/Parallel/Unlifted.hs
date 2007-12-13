@@ -43,7 +43,7 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Higher-order operations
   mapU, zipWithU, zipWith3U,
-  filterU, filterFlagsU, 
+  filterU, packU, 
   foldlU, foldl1U,
   {-foldrU, foldr1U,-}
   foldU, fold1U,

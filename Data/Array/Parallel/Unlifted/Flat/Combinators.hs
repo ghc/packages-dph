@@ -17,7 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Flat.Combinators (
-  mapU, filterU, filterFlagsU,
+  mapU, filterU, packU,
   foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
   foldU,  fold1U,  fold1MaybeU,
   scanlU, scanl1U, {-scanrU, scanr1U,-} scanU, scan1U,
@@ -27,7 +27,7 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), checkNotEmpty,fstS)
+  (:*:)(..), MaybeS(..), checkNotEmpty, sndS)
 import Data.Array.Parallel.Stream (
   mapS, filterS, foldS, fold1MaybeS, scan1S, scanS, mapAccumS,
   zipWithS, zipWith3S, combineS)
@@ -57,10 +57,9 @@ filterU p = unstreamU . filterS p . streamU
 
 -- |Extract all elements from an array according to a given flag array
 -- 
-filterFlagsU:: (UA e) => UArr Bool -> UArr e ->   UArr e
-{-# INLINE filterFlagsU #-}
-filterFlagsU flags arr = 
-   sndU $ filterU fstS $ zipU flags arr
+packU:: UA e => UArr e -> UArr Bool -> UArr e
+{-# INLINE packU #-}
+packU xs = fstU . filterU sndS . zipU xs
 
 -- |Array reduction proceeding from the left
 --
