@@ -472,6 +472,7 @@ dPR_PArray pr = PR {
                 , replicatePR  = replicatePR_PArray pr
                 , replicatelPR = replicatelPR_PArray pr
                 , repeatPR     = repeatPR_PArray pr
+                , packPR       = packPR_PArray pr
                 }
 
 {-# INLINE lengthPR_PArray #-}
@@ -513,6 +514,17 @@ replicatelPR_PArray pr n# (PInt# ns) (PNested _ (PInt# lens) (PInt# idxs) xs)
 
     indices = enumFromToEachU (sumU (zipWithU (*) ns lens))
             $ zipU starts ends
+
+{-# INLINE packPR_PArray #-}
+packPR_PArray pr (PNested _ lens _ xs) n# bs
+  = PNested n# lens' idxs'
+     (packPR pr xs (sumPA_Int# lens')
+                   (replicatelPA_Bool# (lengthPR pr xs) lens bs))
+  where
+    lens' = pack'PA_Int# lens bs
+    idxs' = unsafe_scanPA_Int# (+) 0 lens'
+
+    
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE concatPA# #-}

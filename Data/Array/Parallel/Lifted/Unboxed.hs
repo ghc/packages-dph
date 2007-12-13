@@ -3,7 +3,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
-  packPA_Int#,
+  packPA_Int#, pack'PA_Int#,
   upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
   sumPAs_Int#, 
@@ -12,12 +12,12 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#, appPA_Double#, applPA_Double#,
-  packPA_Double#,
+  packPA_Double#, pack'PA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
   unsafe_foldPAs_Double#,
 
   PArray_Bool#(..),
-  lengthPA_Bool#,
+  lengthPA_Bool#, replicatelPA_Bool#,
   truesPA_Bool#
 ) where
 
@@ -66,8 +66,12 @@ applPA_Int# is (PInt# xs) js (PInt# ys)
   = PInt# . concatSU $ (is >: xs) ^+:+^ (js >: ys)
 {-# INLINE applPA_Int# #-}
 
+pack'PA_Int# :: PArray_Int# -> PArray_Bool# -> PArray_Int#
+pack'PA_Int# (PInt# ns) (PBool# bs) = PInt# (packU ns bs)
+{-# INLINE pack'PA_Int# #-}
+
 packPA_Int# :: PArray_Int# -> Int# -> PArray_Bool# -> PArray_Int#
-packPA_Int# (PInt# ns) _ (PBool# bs) = PInt# (packU ns bs)
+packPA_Int# ns _ bs = pack'PA_Int# ns bs
 {-# INLINE packPA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
@@ -141,8 +145,12 @@ applPA_Double# is (PDouble# xs) js (PDouble# ys)
   = PDouble# . concatSU $ (is >: xs) ^+:+^ (js >: ys)
 {-# INLINE applPA_Double# #-}
 
+pack'PA_Double# :: PArray_Double# -> PArray_Bool# -> PArray_Double#
+pack'PA_Double# (PDouble# ns) (PBool# bs) = PDouble# (packU ns bs)
+{-# INLINE pack'PA_Double# #-}
+
 packPA_Double# :: PArray_Double# -> Int# -> PArray_Bool# -> PArray_Double#
-packPA_Double# (PDouble# ns) _ (PBool# bs) = PDouble# (packU ns bs)
+packPA_Double# ns _ bs = pack'PA_Double# ns bs
 {-# INLINE packPA_Double# #-}
 
 unsafe_zipWithPA_Double# :: (Double -> Double -> Double)
@@ -173,6 +181,11 @@ newtype PArray_Bool# = PBool# (UArr Bool)
 lengthPA_Bool# :: PArray_Bool# -> Int#
 lengthPA_Bool# (PBool# arr) = case lengthU arr of { I# n# -> n# }
 {-# INLINE lengthPA_Bool# #-}
+
+replicatelPA_Bool# :: Int# -> PArray_Int# -> PArray_Bool# -> PArray_Bool#
+replicatelPA_Bool# n# (PInt# ns) (PBool# ds)
+  = PBool# (concatSU (replicateSU ns ds))
+{-# INLINE replicatelPA_Bool# #-}
 
 truesPA_Bool# :: PArray_Bool# -> Int#
 truesPA_Bool# (PBool# arr)
