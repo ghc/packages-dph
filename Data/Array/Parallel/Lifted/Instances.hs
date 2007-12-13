@@ -49,6 +49,7 @@ dPR_Int = PR {
           , bpermutePR   = bpermutePR_Int
           , appPR        = appPR_Int
           , applPR       = applPR_Int
+          , packPR       = packPR_Int
           }
 
 {-# INLINE lengthPR_Int #-}
@@ -78,6 +79,9 @@ appPR_Int (PInt m# ms) (PInt n# ns) = PInt (m# +# n#) (appPA_Int# ms ns)
 {-# INLINE applPR_Int #-}
 applPR_Int is (PInt m# ms) js (PInt n# ns)
   = PInt (m# +# n#) (applPA_Int# is ms js ns)
+
+{-# INLINE packPR_Int #-}
+packPR_Int (PInt _ ns) n# bs = PInt n# (packPA_Int# ns n# bs)
 
 upToPA_Int :: Int -> PArray Int
 {-# INLINE upToPA_Int #-}
@@ -114,6 +118,7 @@ dPR_Double = PR {
           , bpermutePR   = bpermutePR_Double
           , appPR        = appPR_Double
           , applPR       = applPR_Double
+          , packPR       = packPR_Double
           }
 
 {-# INLINE lengthPR_Double #-}
@@ -147,6 +152,9 @@ appPR_Double (PDouble m# ms) (PDouble n# ns)
 {-# INLINE applPR_Double #-}
 applPR_Double is (PDouble m# ms) js (PDouble n# ns)
   = PDouble (m# +# n#) (applPA_Double# is ms js ns)
+
+{-# INLINE packPR_Double #-}
+packPR_Double (PDouble _ ns) n# bs = PDouble n# (packPA_Double# ns n# bs)
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#

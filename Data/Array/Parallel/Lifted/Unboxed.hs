@@ -3,6 +3,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
+  packPA_Int#,
   upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
   sumPAs_Int#, 
@@ -11,6 +12,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#, appPA_Double#, applPA_Double#,
+  packPA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
   unsafe_foldPAs_Double#,
 
@@ -63,6 +65,10 @@ applPA_Int# :: USegd -> PArray_Int# -> USegd -> PArray_Int# -> PArray_Int#
 applPA_Int# is (PInt# xs) js (PInt# ys)
   = PInt# . concatSU $ (is >: xs) ^+:+^ (js >: ys)
 {-# INLINE applPA_Int# #-}
+
+packPA_Int# :: PArray_Int# -> Int# -> PArray_Bool# -> PArray_Int#
+packPA_Int# (PInt# ns) _ (PBool# bs) = PInt# (packU ns bs)
+{-# INLINE packPA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = PInt# (enumFromToU 0 ((I# n#) -1))
@@ -134,6 +140,10 @@ applPA_Double# :: USegd -> PArray_Double# -> USegd -> PArray_Double#
 applPA_Double# is (PDouble# xs) js (PDouble# ys)
   = PDouble# . concatSU $ (is >: xs) ^+:+^ (js >: ys)
 {-# INLINE applPA_Double# #-}
+
+packPA_Double# :: PArray_Double# -> Int# -> PArray_Bool# -> PArray_Double#
+packPA_Double# (PDouble# ns) _ (PBool# bs) = PDouble# (packU ns bs)
+{-# INLINE packPA_Double# #-}
 
 unsafe_zipWithPA_Double# :: (Double -> Double -> Double)
                          -> PArray_Double# -> PArray_Double# -> PArray_Double#
