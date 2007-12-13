@@ -1,3 +1,4 @@
+{-# OPTIONS -fvectorise #-}
 module Data.Array.Parallel.Prelude.Int (
   P.Int, (+), (-), (*), sumP,
   (==), (/=), (<=), (<), (>=), (>)
