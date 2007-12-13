@@ -4,7 +4,7 @@ module Data.Array.Parallel.Prelude.Base.Double (
   plus, plusV,
   minus, minusV,
   mult, multV,
-  sumP, sumPA
+  sumP, sumPA, minIndexP, minIndexPA, maxIndexP, maxIndexPA
 ) where
 
 import Data.Array.Parallel.Prelude.Base.PArr
@@ -70,4 +70,26 @@ sumP _ = error "Double.sumP"
 minimumPA :: PArray Double :-> Double
 {-# INLINE minimumPA #-}
 minimumPA = closure1 (unsafe_fold1 min) (unsafe_fold1s min)
+
+minIndexPA :: PArray Double :-> Int
+{-# INLINE minIndexPA #-}
+minIndexPA = closure1 (unsafe_fold1Index min') (unsafe_fold1sIndex min')
+  where
+    min' (i,x) (j,y) | x <= y    = (i,x)
+                     | otherwise = (j,y)
+
+minIndexP :: [:Double:] -> Int
+{-# NOINLINE minIndexP #-}
+minIndexP _ = error "Double.minIndexP"
+
+maxIndexPA :: PArray Double :-> Int
+{-# INLINE maxIndexPA #-}
+maxIndexPA = closure1 (unsafe_fold1Index max') (unsafe_fold1sIndex max')
+  where
+    max' (i,x) (j,y) | x >= y    = (i,x)
+                     | otherwise = (j,y)
+
+maxIndexP :: [:Double:] -> Int
+{-# NOINLINE maxIndexP #-}
+maxIndexP _ = error "Double.maxIndexP"
 
