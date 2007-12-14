@@ -506,10 +506,10 @@ repeatPR_PArray pr n# (PNested m# lens _ xs)
 replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
   = PNested n# new_lens new_idxs (bpermutePR pr xs indices)
   where
-    new_lens = concatSU (replicateSU ns lens)
+    new_lens = replicateEachU (I# n#) ns lens
     new_idxs = scanU (+) 0 new_lens
-    starts = concatSU (replicateSU ns idxs)
-    ends   = concatSU . replicateSU ns
+    starts = replicateEachU (I# n#) ns idxs
+    ends   = replicateEachU (I# n#) ns
            $ zipWithU (\i l -> i+l-1) idxs lens
 
     indices = enumFromToEachU (sumU (zipWithU (*) ns lens))

@@ -16,7 +16,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
   unsafe_foldPAs_Double#,
 
-  PArray_Bool#(..),
+  PArray_Bool#,
   lengthPA_Bool#, replicatelPA_Bool#,
   truesPA_Bool#
 ) where
@@ -41,7 +41,7 @@ replicatePA_Int# n# i# = replicateU (I# n#) (I# i#)
 {-# INLINE replicatePA_Int# #-}
 
 replicatelPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
-replicatelPA_Int# n# ns is = concatSU (replicateSU ns is)
+replicatelPA_Int# n# ns is = replicateEachU (I# n#) ns is
 {-# INLINE replicatelPA_Int# #-}
 
 repeatPA_Int# :: Int# -> PArray_Int# -> PArray_Int#
@@ -127,7 +127,7 @@ replicatePA_Double# n# d# = replicateU (I# n#) (D# d#)
 {-# INLINE replicatePA_Double# #-}
 
 replicatelPA_Double# :: Int# -> PArray_Int# -> PArray_Double# -> PArray_Double#
-replicatelPA_Double# n# ns ds = concatSU (replicateSU ns ds)
+replicatelPA_Double# n# ns ds = replicateEachU (I# n#) ns ds
 {-# INLINE replicatelPA_Double# #-}
 
 repeatPA_Double# :: Int# -> PArray_Double# -> PArray_Double#
@@ -198,7 +198,7 @@ lengthPA_Bool# arr = case lengthU arr of { I# n# -> n# }
 {-# INLINE lengthPA_Bool# #-}
 
 replicatelPA_Bool# :: Int# -> PArray_Int# -> PArray_Bool# -> PArray_Bool#
-replicatelPA_Bool# n# ns ds = concatSU (replicateSU ns ds)
+replicatelPA_Bool# n# ns ds = replicateEachU (I# n#) ns ds
 {-# INLINE replicatelPA_Bool# #-}
 
 truesPA_Bool# :: PArray_Bool# -> Int#
