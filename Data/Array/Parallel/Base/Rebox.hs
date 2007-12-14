@@ -20,7 +20,7 @@ module Data.Array.Parallel.Base.Rebox (
 
 import Data.Array.Parallel.Base.Hyperstrict
 
-import GHC.Base   (Int(..))
+import GHC.Base   (Int(..), Char(..))
 import GHC.Float  (Float(..), Double(..))
 
 class Rebox a where
@@ -38,6 +38,13 @@ instance Rebox Bool where
   {-# INLINE [0] rebox #-}
   rebox True = True
   rebox False = False
+
+  {-# INLINE [0] dseq #-}
+  dseq = seq
+
+instance Rebox Char where
+  {-# INLINE [0] rebox #-}
+  rebox (C# c#) = id (C# c#)
 
   {-# INLINE [0] dseq #-}
   dseq = seq
