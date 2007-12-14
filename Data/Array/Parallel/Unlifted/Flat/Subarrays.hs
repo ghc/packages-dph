@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Subarrays (
   sliceU, extractU, tailU, takeU, dropU, splitAtU,
   {- takeWhileU, dropWhileU, spanU, breakU -}
@@ -32,26 +36,26 @@ import Data.Array.Parallel.Unlifted.Flat.Stream (
 
 -- sliceU reexported from UArr
 
-{-# INLINE extractU #-}
+{-# INLINE_U extractU #-}
 extractU :: UA a => UArr a -> Int -> Int -> UArr a
 extractU arr i n = newU n $ \marr -> copyMU marr 0 (sliceU arr i n)
 
 -- |Yield the tail of an array
 --
 tailU :: UA e => UArr e -> UArr e
-{-# INLINE tailU #-}
+{-# INLINE_U tailU #-}
 tailU = unstreamU . tailS . streamU
 
 -- |Extract a prefix of an array
 --
 takeU :: UA e=> Int -> UArr e -> UArr e
-{-# INLINE takeU #-}
+{-# INLINE_U takeU #-}
 takeU n a = extractU a 0 n
 
 -- |Extract a suffix of an array
 --
 dropU :: UA e => Int -> UArr e -> UArr e
-{-# INLINE dropU #-}
+{-# INLINE_U dropU #-}
 dropU n a = let len = lengthU a 
 	    in
 	    extractU a n (len - n)
@@ -59,6 +63,6 @@ dropU n a = let len = lengthU a
 -- |Split an array into two halves at the given index
 --
 splitAtU :: UA e => Int -> UArr e -> (UArr e, UArr e)
-{-# INLINE splitAtU #-}
+{-# INLINE_U splitAtU #-}
 splitAtU n a = (takeU n a, dropU n a)
 

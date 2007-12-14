@@ -13,6 +13,10 @@
 -- Random streams
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream.Flat.Random (
   randomS, randomRS
 ) where
@@ -23,7 +27,7 @@ import Data.Array.Parallel.Stream.Flat.Stream
 import System.Random
 
 randomS :: (RandomGen g, Random a) => Int -> g -> Stream a
-{-# INLINE [1] randomS #-}
+{-# INLINE_STREAM randomS #-}
 randomS n g = Stream step (Lazy g :*: n) n
   where
     {-# INLINE step #-}
@@ -32,7 +36,7 @@ randomS n g = Stream step (Lazy g :*: n) n
                           in Yield x (Lazy g' :*: (n-1))
 
 randomRS :: (RandomGen g, Random a) => Int -> (a,a) -> g -> Stream a
-{-# INLINE [1] randomRS #-}
+{-# INLINE_STREAM randomRS #-}
 randomRS n r g = Stream step (Lazy g :*: n) n
   where
     {-# INLINE step #-}

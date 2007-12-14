@@ -13,6 +13,10 @@
 -- Stream combinators and fusion rules for segmented unboxed arrays.
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Segmented.Stream (
   streamSU, unstreamSU
 ) where
@@ -27,19 +31,19 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   segdSU, flattenSU, (>:))
 
 streamSegd :: USegd -> Stream Int
-{-# INLINE streamSegd #-}
+{-# INLINE_U streamSegd #-}
 streamSegd = streamU . lengthsUSegd
 
 unstreamSegd :: Stream Int -> USegd
-{-# INLINE unstreamSegd #-}
+{-# INLINE_U unstreamSegd #-}
 unstreamSegd = lengthsToUSegd . unstreamU
 
 streamSU :: UA a => SUArr a -> SStream a
-{-# INLINE streamSU #-}
+{-# INLINE_U streamSU #-}
 streamSU !sa = segmentS (streamSegd (segdSU sa))
                        (streamU (flattenSU sa))
 
 unstreamSU :: UA a => SStream a -> SUArr a
-{-# INLINE unstreamSU #-}
+{-# INLINE_U unstreamSU #-}
 unstreamSU (SStream segs vals) = unstreamSegd segs >: unstreamU vals
 

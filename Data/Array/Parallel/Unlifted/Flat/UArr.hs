@@ -1,4 +1,5 @@
 {-# OPTIONS -fno-warn-incomplete-patterns #-}
+{-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Unlifted.Flat.UArr
@@ -24,6 +25,8 @@
 --
 -- Todo ----------------------------------------------------------------------
 --
+
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Flat.UArr (
 
@@ -112,11 +115,11 @@ unsafeFreezeAllMU marr = unsafeFreezeMU marr (lengthMU marr)
 -- ------------------------
 
 newU :: UA e => Int -> (forall s. MUArr e s -> ST s ()) -> UArr e
-{-# INLINE newU #-}
+{-# INLINE_U newU #-}
 newU n init = newDynU n (\ma -> init ma >> return n)
 
 newDynU :: UA e => Int -> (forall s. MUArr e s -> ST s Int) -> UArr e
-{-# INLINE newDynU #-}
+{-# INLINE_U newDynU #-}
 newDynU n init =
   runST (do
            ma <- newMU n
@@ -130,31 +133,31 @@ newDynU n init =
 -- |Yield an array of units 
 --
 unitsU :: Int -> UArr ()
-{-# INLINE [1] unitsU #-}
+{-# INLINE_STREAM unitsU #-}
 unitsU = UAUnit
 
 -- |Elementwise pairing of array elements.
 --
 zipU :: (UA a, UA b) => UArr a -> UArr b -> UArr (a :*: b)
-{-# INLINE [1] zipU #-}
+{-# INLINE_STREAM zipU #-}
 zipU = UAProd
 
 -- |Elementwise unpairing of array elements.
 --
 unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a :*: UArr b)
-{-# INLINE [1] unzipU #-}
+{-# INLINE_STREAM unzipU #-}
 unzipU (UAProd l r) = (l :*: r)
 
 -- |Yield the first components of an array of pairs.
 --
 fstU :: (UA a, UA b) => UArr (a :*: b) -> UArr a
-{-# INLINE [1] fstU #-}
+{-# INLINE_STREAM fstU #-}
 fstU (UAProd l r) = l
 
 -- |Yield the second components of an array of pairs.
 --
 sndU :: (UA a, UA b) => UArr (a :*: b) -> UArr b
-{-# INLINE [1] sndU #-}
+{-# INLINE_STREAM sndU #-}
 sndU (UAProd l r) = r
 
 -- |Family of representation types
@@ -184,33 +187,33 @@ instance (UA a, UA b) => UA (a :*: b) where
   data MUArr (a :*: b) s = MUAProd !(MUArr a s) !(MUArr b s)
 
   lengthU (UAProd l _)     = lengthU l
-  {-# INLINE indexU #-}
+  {-# INLINE_U indexU #-}
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
-  {-# INLINE sliceU #-}
+  {-# INLINE_U sliceU #-}
   sliceU  (UAProd l r) i n = UAProd (sliceU l i n) (sliceU r i n)
 
-  {-# INLINE lengthMU #-}
+  {-# INLINE_U lengthMU #-}
   lengthMU (MUAProd l r)   = lengthMU l
 
-  {-# INLINE newMU #-}
+  {-# INLINE_U newMU #-}
   newMU n = 
     do
       a <- newMU n
       b <- newMU n
       return $ MUAProd a b
-  {-# INLINE readMU #-}
+  {-# INLINE_U readMU #-}
   readMU (MUAProd a b) i = liftM2 (:*:) (a `readMU` i) (b `readMU` i)
-  {-# INLINE writeMU #-}
+  {-# INLINE_U writeMU #-}
   writeMU (MUAProd a b) i (x :*: y) = 
     do
       writeMU a i x
       writeMU b i y
-  {-# INLINE copyMU #-}
+  {-# INLINE_U copyMU #-}
   copyMU (MUAProd ma mb) i (UAProd a b) =
     do
       copyMU ma i a
       copyMU mb i b
-  {-# INLINE unsafeFreezeMU #-}
+  {-# INLINE_U unsafeFreezeMU #-}
   unsafeFreezeMU (MUAProd a b) n = 
     do
       a' <- unsafeFreezeMU a n
@@ -242,10 +245,10 @@ instance HS (MUSel s)
 --
 instance (UA a, UA b) => UA (a :+: b) where
   lengthU (UASum sel _ _)     = lengthBU (selUS sel)
-  {-# INLINE indexU #-}
+  {-# INLINE_U indexU #-}
   indexU  (UASum sel l r) i   = if (selUS sel)`indexBU`i then Inr $ indexU r i 
 					 	         else Inl $ indexU l i
-  {-# INLINE sliceU #-}
+  {-# INLINE_U sliceU #-}
   sliceU  (UASum sel l r) i n = 
     let
       sel'        = sliceBU (selUS sel) i n
@@ -257,7 +260,7 @@ instance (UA a, UA b) => UA (a :+: b) where
 					           ridx`indexBU`(n - 1))
     in
     UASum (USel sel' lidx ridx) (sliceU l li ln) (sliceU r ri rn)
-  {-# INLINE extractU #-}
+  {-# INLINE_U extractU #-}
   extractU  (UASum sel l r) i n = 
     let
       sel'        = extractBU (selUS sel) i n
@@ -271,7 +274,7 @@ instance (UA a, UA b) => UA (a :+: b) where
     UASum (USel sel' lidx ridx) (extractU l li ln) (extractU r ri rn)
 
 instance (MUA a, MUA b) => MUA (a :+: b) where
-  {-# INLINE newMU #-}
+  {-# INLINE_U newMU #-}
   newMU n = do
 	      sel  <- newMBU n
 	      lidx <- newMBU n
@@ -279,7 +282,7 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 	      a    <- newMU n
 	      b    <- newMU n
 	      return $ MUASum (MUSel sel lidx ridx) a b
-  {-# INLINE writeMU #-}
+  {-# INLINE_U writeMU #-}
   writeMU (MUASum sel l r) i (Inl x) = 
     do
       let lidx = lidxMUS sel
@@ -302,7 +305,7 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
       writeMU r ri x
     --FIXME: that works only when the array is constructed left to right, but
     --not for something like permutations
-  {-# INLINE unsafeFreezeMU #-}
+  {-# INLINE_U unsafeFreezeMU #-}
   unsafeFreezeMU (MUASum sel l r) n = 
     do
       sel' <- unsafeFreezeMBU (selMUS  sel) n
@@ -323,39 +326,39 @@ instance (MUA a, MUA b) => MUA (a :+: b) where
 --     in `UAPrimU'.
 
 primLengthU :: UPrim e => UArr e -> Int
-{-# INLINE primLengthU #-}
+{-# INLINE_U primLengthU #-}
 primLengthU = lengthBU . unUAPrim
 
 primIndexU :: UPrim e => UArr e -> Int -> e
-{-# INLINE primIndexU #-}
+{-# INLINE_U primIndexU #-}
 primIndexU = indexBU . unUAPrim
 
 primSliceU :: UPrim e => UArr e -> Int -> Int -> UArr e
-{-# INLINE primSliceU #-}
+{-# INLINE_U primSliceU #-}
 primSliceU arr i = mkUAPrim . sliceBU (unUAPrim arr) i
 
 primLengthMU :: UPrim e => MUArr e s -> Int
-{-# INLINE primLengthMU #-}
+{-# INLINE_U primLengthMU #-}
 primLengthMU = lengthMBU . unMUAPrim
 
 primNewMU :: UPrim e => Int -> ST s (MUArr e s)
-{-# INLINE primNewMU #-}
+{-# INLINE_U primNewMU #-}
 primNewMU = liftM mkMUAPrim . newMBU
 
 primReadMU :: UPrim e => MUArr e s -> Int -> ST s e
-{-# INLINE primReadMU #-}
+{-# INLINE_U primReadMU #-}
 primReadMU = readMBU . unMUAPrim
 
 primWriteMU :: UPrim e => MUArr e s -> Int -> e -> ST s ()
-{-# INLINE primWriteMU #-}
+{-# INLINE_U primWriteMU #-}
 primWriteMU = writeMBU . unMUAPrim
 
 primCopyMU :: UPrim e => MUArr e s -> Int -> UArr e -> ST s ()
-{-# INLINE primCopyMU #-}
+{-# INLINE_U primCopyMU #-}
 primCopyMU ma i = copyMBU (unMUAPrim ma) i . unUAPrim
 
 primUnsafeFreezeMU :: UPrim e => MUArr e s -> Int -> ST s (UArr e)
-{-# INLINE primUnsafeFreezeMU #-}
+{-# INLINE_U primUnsafeFreezeMU #-}
 primUnsafeFreezeMU ma = liftM mkUAPrim . unsafeFreezeMBU (unMUAPrim ma)
 
 instance UPrim Bool where

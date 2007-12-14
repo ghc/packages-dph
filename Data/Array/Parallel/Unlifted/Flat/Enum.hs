@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Enum (
   enumFromToU, enumFromThenToU, enumFromStepLenU, enumFromToEachU
 ) where
@@ -35,21 +39,21 @@ import Data.Array.Parallel.Unlifted.Flat.Sums (
 --
 -- FIXME: See comments about enumFromThenToS
 enumFromToU :: Int -> Int -> UArr Int
-{-# INLINE enumFromToU #-}
+{-# INLINE_U enumFromToU #-}
 enumFromToU start end = unstreamU (enumFromToS start end)
 
 -- |Yield an enumerated array using a specific step
 --
 -- FIXME: See comments about enumFromThenToS
 enumFromThenToU :: Int -> Int -> Int -> UArr Int
-{-# INLINE enumFromThenToU #-}
+{-# INLINE_U enumFromThenToU #-}
 enumFromThenToU start next end = unstreamU (enumFromThenToS start next end)
 
 enumFromStepLenU :: Int -> Int -> Int -> UArr Int
-{-# INLINE enumFromStepLenU #-}
+{-# INLINE_U enumFromStepLenU #-}
 enumFromStepLenU s d n = unstreamU (enumFromStepLenS s d n)
 
 enumFromToEachU :: Int -> UArr (Int :*: Int) -> UArr Int
-{-# INLINE enumFromToEachU #-}
+{-# INLINE_U enumFromToEachU #-}
 enumFromToEachU n = unstreamU . enumFromToEachS n . streamU
 

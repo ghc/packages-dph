@@ -13,6 +13,10 @@
 -- Segmented streams. This module will go away. 
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream.Segmented (
   SStream(..),
   segmentS, foldValuesSS, fold1ValuesSS,
@@ -33,7 +37,7 @@ segmentS :: Stream Int -> Stream a -> SStream a
 segmentS = SStream
         
 foldValuesSS :: (a -> b -> a) -> a -> SStream b -> Stream a
-{-# INLINE [1] foldValuesSS #-}
+{-# INLINE_STREAM foldValuesSS #-}
 foldValuesSS f z  (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
   Stream next (NothingS :*: Box z :*: ss :*: vs) ns
   where
@@ -56,7 +60,7 @@ foldValuesSS f z  (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
         Yield y vs' -> Skip (JustS (n-1) :*: Box (f x y) :*: ss :*: vs')
 
 fold1ValuesSS :: (a -> a -> a) -> SStream a -> Stream a
-{-# INLINE [1] fold1ValuesSS #-}
+{-# INLINE_STREAM fold1ValuesSS #-}
 fold1ValuesSS f (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
   Stream next (NothingS :*: NothingS :*: ss :*: vs) ns
   where
@@ -84,7 +88,7 @@ fold1ValuesSS f (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
 
 
 combineSS:: (Stream Bool) -> SStream a -> SStream a -> Stream a
-{-# INLINE [1] combineSS #-}
+{-# INLINE_STREAM combineSS #-}
 combineSS (Stream nextf sf nf) 
             (SStream (Stream nexts1 ss1 ns1) (Stream nextv1 vs1 nv1))
             (SStream (Stream nexts2 ss2 ns2) (Stream nextv2 vs2 nv2)) =
@@ -118,7 +122,7 @@ combineSS (Stream nextf sf nf)
         Yield x vs2' -> Yield x (JustS (n-1) :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2')
 
 (^+++^) :: SStream a -> SStream a -> Stream a
-{-# INLINE [1] (^+++^) #-}
+{-# INLINE_STREAM (^+++^) #-}
 SStream (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
   ^+++^ SStream (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
   = Stream next (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2) (nv1 + nv2)

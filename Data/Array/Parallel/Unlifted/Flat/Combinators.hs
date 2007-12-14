@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Combinators (
   mapU, filterU, packU,
   foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
@@ -46,25 +50,25 @@ here s = "Data.Array.Parallel.Unlifted.Flat.Combinators." ++ s
 -- |Map a function over an array
 --
 mapU :: (UA e, UA e') => (e -> e') -> UArr e -> UArr e'
-{-# INLINE mapU #-}
+{-# INLINE_U mapU #-}
 mapU f = unstreamU . mapS f . streamU
 
 -- |Extract all elements from an array that meet the given predicate
 --
 filterU :: UA e => (e -> Bool) -> UArr e -> UArr e 
-{-# INLINE filterU #-}
+{-# INLINE_U filterU #-}
 filterU p = unstreamU . filterS p . streamU
 
 -- |Extract all elements from an array according to a given flag array
 -- 
 packU:: UA e => UArr e -> UArr Bool -> UArr e
-{-# INLINE packU #-}
+{-# INLINE_U packU #-}
 packU xs = fstU . filterU sndS . zipU xs
 
 -- |Array reduction proceeding from the left
 --
 foldlU :: UA a => (b -> a -> b) -> b -> UArr a -> b
-{-# INLINE foldlU #-}
+{-# INLINE_U foldlU #-}
 foldlU f z = foldS f z . streamU
 
 -- |Array reduction proceeding from the left for non-empty arrays
@@ -72,42 +76,42 @@ foldlU f z = foldS f z . streamU
 -- FIXME: Rewrite for 'Stream's.
 --
 foldl1U :: UA a => (a -> a -> a) -> UArr a -> a
-{-# INLINE foldl1U #-}
+{-# INLINE_U foldl1U #-}
 foldl1U f arr = checkNotEmpty (here "foldl1U") (lengthU arr) $
                 foldlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
 
 foldl1MaybeU :: UA a => (a -> a -> a) -> UArr a -> MaybeS a
-{-# INLINE foldl1MaybeU #-}
+{-# INLINE_U foldl1MaybeU #-}
 foldl1MaybeU f = fold1MaybeS f . streamU
 
 -- |Array reduction that requires an associative combination function with its
 -- unit
 --
 foldU :: UA a => (a -> a -> a) -> a -> UArr a -> a
-{-# INLINE foldU #-}
+{-# INLINE_U foldU #-}
 foldU = foldlU
 
 fold1MaybeU :: UA a => (a -> a -> a) -> UArr a -> MaybeS a
-{-# INLINE fold1MaybeU #-}
+{-# INLINE_U fold1MaybeU #-}
 fold1MaybeU = foldl1MaybeU
 
 -- |Reduction of a non-empty array which requires an associative combination
 -- function
 --
 fold1U :: UA a => (a -> a -> a) -> UArr a -> a
-{-# INLINE fold1U #-}
+{-# INLINE_U fold1U #-}
 fold1U = foldl1U
 
 -- |Prefix scan proceedings from left to right
 --
 scanlU :: (UA a, UA b) => (b -> a -> b) -> b -> UArr a -> UArr b
-{-# INLINE scanlU #-}
+{-# INLINE_U scanlU #-}
 scanlU f z = unstreamU . scanS f z . streamU
 
 -- |Prefix scan of a non-empty array proceeding from left to right
 --
 scanl1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
-{-# INLINE scanl1U #-}
+{-# INLINE_U scanl1U #-}
 scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
                 unstreamU (scan1S f (streamU arr))
 
@@ -115,14 +119,14 @@ scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
 -- combination function with its unit
 --
 scanU :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a
-{-# INLINE scanU #-}
+{-# INLINE_U scanU #-}
 scanU = scanlU
 
 -- |Prefix scan of a non-empty array proceedings from left to right that needs
 -- an associative combination function
 --
 scan1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
-{-# INLINE scan1U #-}
+{-# INLINE_U scan1U #-}
 scan1U = scanl1U
 
 -- |Accumulating map from left to right. Does not return the accumulator.
@@ -130,7 +134,7 @@ scan1U = scanl1U
 -- FIXME: Naming inconsistent with lists.
 --
 mapAccumLU :: (UA a, UA b) => (c -> a -> c :*: b) -> c -> UArr a -> UArr b
-{-# INLINE mapAccumLU #-}
+{-# INLINE_U mapAccumLU #-}
 mapAccumLU f z = unstreamU . mapAccumS f z . streamU
 
 -- zipU is re-exported from UArr
@@ -139,19 +143,19 @@ mapAccumLU f z = unstreamU . mapAccumS f z . streamU
 --
 zip3U :: (UA e1, UA e2, UA e3) 
       => UArr e1 -> UArr e2 -> UArr e3 -> UArr (e1 :*: e2 :*: e3)
-{-# INLINE zip3U #-}
+{-# INLINE_U zip3U #-}
 zip3U a1 a2 a3 = (a1 `zipU` a2) `zipU` a3
 
 -- |
 zipWithU :: (UA a, UA b, UA c) 
 	 => (a -> b -> c) -> UArr a -> UArr b -> UArr c
-{-# INLINE zipWithU #-}
+{-# INLINE_U zipWithU #-}
 zipWithU f a1 a2 = unstreamU (zipWithS f (streamU a1) (streamU a2))
 
 -- |
 zipWith3U :: (UA a, UA b, UA c, UA d) 
           => (a -> b -> c -> d) -> UArr a -> UArr b -> UArr c -> UArr d
-{-# INLINE zipWith3U #-}
+{-# INLINE_U zipWith3U #-}
 zipWith3U f a1 a2 a3 = unstreamU (zipWith3S f (streamU a1)
                                               (streamU a2)
                                               (streamU a3))
@@ -161,7 +165,7 @@ zipWith3U f a1 a2 a3 = unstreamU (zipWith3S f (streamU a1)
 -- |
 unzip3U :: (UA e1, UA e2, UA e3) 
 	=> UArr (e1 :*: e2 :*: e3) -> (UArr e1 :*: UArr e2 :*: UArr e3)
-{-# INLINE unzip3U #-}
+{-# INLINE_U unzip3U #-}
 unzip3U a = let (a12 :*: a3) = unzipU a
 		(a1  :*: a2) = unzipU a12
 	    in
@@ -171,6 +175,6 @@ unzip3U a = let (a12 :*: a3) = unzipU a
 -- |
 combineU :: UA a
 	 => UArr Bool -> UArr a -> UArr a -> UArr a
-{-# INLINE combineU #-}
+{-# INLINE_U combineU #-}
 combineU f a1 a2 = unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
 

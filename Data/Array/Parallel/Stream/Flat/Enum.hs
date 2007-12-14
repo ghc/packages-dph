@@ -13,6 +13,10 @@
 -- Enum-related algorithms for streams.
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream.Flat.Enum (
   enumFromToS, enumFromThenToS,
   enumFromStepLenS,
@@ -33,7 +37,7 @@ import Data.Array.Parallel.Stream.Flat.Combinators (
 -- Perhaps we have to introduce an EnumP class?
 --
 enumFromToS :: Int -> Int -> Stream Int
-{-# INLINE [1] enumFromToS #-}
+{-# INLINE_STREAM enumFromToS #-}
 enumFromToS start end
   = Stream step start (max 0 (end - start))
   where
@@ -57,7 +61,7 @@ enumFromThenToS start next end
         | otherwise                    = 0
 
 enumFromStepLenS :: Int -> Int -> Int -> Stream Int
-{-# INLINE [1] enumFromStepLenS #-}
+{-# INLINE_STREAM enumFromStepLenS #-}
 enumFromStepLenS s d n = Stream step (s :*: n) n
   where
     step (s :*: 0) = Done
@@ -68,7 +72,7 @@ enumFromStepLenS s d n = Stream step (s :*: n) n
 -- FIXME: monomorphic for now because we need Rebox a otherwise!
 --
 enumFromToEachS :: Int -> Stream (Int :*: Int) -> Stream Int
-{-# INLINE [1] enumFromToEachS #-}
+{-# INLINE_STREAM enumFromToEachS #-}
 enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
   where
     {-# INLINE next' #-}

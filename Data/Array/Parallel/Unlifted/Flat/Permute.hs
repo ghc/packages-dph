@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Permute (
   permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU, updateMU
 ) where
@@ -52,14 +56,14 @@ permuteMU mpa arr is = permute 0
 -- |Standard permutation
 --
 permuteU :: UA e => UArr e -> UArr Int -> UArr e
-{-# INLINE permuteU #-}
+{-# INLINE_U permuteU #-}
 permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 
 -- |Back permutation operation (ie, the permutation vector determines for each
 -- position in the result array its origin in the input array)
 --
 bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
-{-# INLINE bpermuteU #-}
+{-# INLINE_U bpermuteU #-}
 bpermuteU !a = mapU (a!:)
 
 -- |Default back permute
@@ -75,15 +79,15 @@ bpermuteDftU :: UA e
 	     -> (Int -> e)		        -- ^ initialiser function
 	     -> UArr (Int :*: e)		-- ^ index-value pairs
 	     -> UArr e
-{-# INLINE bpermuteDftU #-}
+{-# INLINE_U bpermuteDftU #-}
 bpermuteDftU n init = updateU (mapU init . enumFromToU 0 $ n-1)
 
 updateMU :: UA e => MUArr e s -> UArr (Int :*: e) -> ST s ()
-{-# INLINE updateMU #-}
+{-# INLINE_U updateMU #-}
 updateMU marr upd = updateM marr (streamU upd)
 
 updateM :: UA e => MUArr e s -> Stream (Int :*: e) -> ST s ()
-{-# INLINE [1] updateM #-}
+{-# INLINE_STREAM updateM #-}
 updateM marr (Stream next s _) = upd s
   where
     upd s = case next s of
@@ -97,11 +101,11 @@ updateM marr (Stream next s _) = upd s
 -- associations from the second array (which contains index\/value pairs).
 --
 updateU :: UA e => UArr e -> UArr (Int :*: e) -> UArr e
-{-# INLINE updateU #-}
+{-# INLINE_U updateU #-}
 updateU arr upd = update (streamU arr) (streamU upd)
 
 update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
-{-# INLINE [1] update #-}
+{-# INLINE_STREAM update #-}
 update s1@(Stream _ _ n) s2 = newDynU n (\marr ->
   do
     i <- unstreamMU marr s1
@@ -112,12 +116,12 @@ update s1@(Stream _ _ n) s2 = newDynU n (\marr ->
 -- |Reverse the order of elements in an array
 --
 reverseU :: UA e => UArr e -> UArr e
-{-# INLINE reverseU #-}
+{-# INLINE_U reverseU #-}
 --reverseU a = mapU (a!:) . enumFromToU 0 $ lengthU a - 1
 reverseU = rev . streamU
 
 rev :: UA e => Stream e -> UArr e
-{-# INLINE [1] rev #-}
+{-# INLINE_STREAM rev #-}
 rev (Stream next s n) =
   runST (do
     marr <- newMU n

@@ -13,6 +13,10 @@
 -- Higher-order combinators for streams
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream.Flat.Combinators (
   mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
   zipWithS, zipWith3S, zipS, combineS
@@ -25,7 +29,7 @@ import Data.Array.Parallel.Stream.Flat.Stream
 -- | Mapping
 --
 mapS :: (a -> b) -> Stream a -> Stream b
-{-# INLINE [1] mapS #-}
+{-# INLINE_STREAM mapS #-}
 mapS f (Stream next s n) = Stream next' s n
   where
     {-# INLINE next' #-}
@@ -37,7 +41,7 @@ mapS f (Stream next s n) = Stream next' s n
 -- | Filtering
 --
 filterS :: (a -> Bool) -> Stream a -> Stream a
-{-# INLINE [1] filterS #-}
+{-# INLINE_STREAM filterS #-}
 filterS f (Stream next s n) = Stream next' s n
   where
     {-# INLINE next' #-}
@@ -52,7 +56,7 @@ filterS f (Stream next s n) = Stream next' s n
 -- | Folding
 -- 
 foldS :: (b -> a -> b) -> b -> Stream a -> b
-{-# INLINE [1] foldS #-}
+{-# INLINE_STREAM foldS #-}
 foldS f z (Stream next s _) = fold z s
   where
     fold z s = case next s of
@@ -61,7 +65,7 @@ foldS f z (Stream next s _) = fold z s
                  Yield x s' -> s' `dseq` fold (f z x) s'
 
 fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
-{-# INLINE [1] fold1MaybeS #-}
+{-# INLINE_STREAM fold1MaybeS #-}
 fold1MaybeS f (Stream next s _) = fold0 s
   where
     fold0 s   = case next s of
@@ -76,7 +80,7 @@ fold1MaybeS f (Stream next s _) = fold0 s
 -- | Scanning
 --
 scanS :: (b -> a -> b) -> b -> Stream a -> Stream b
-{-# INLINE [1] scanS #-}
+{-# INLINE_STREAM scanS #-}
 scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
   where
     {-# INLINE next' #-}
@@ -86,7 +90,7 @@ scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
                         Yield x s'  -> Yield z (Box (f z x) :*: s')
 
 scan1S :: (a -> a -> a) -> Stream a -> Stream a
-{-# INLINE [1] scan1S #-}
+{-# INLINE_STREAM scan1S #-}
 scan1S f (Stream next s n) = Stream next' (NothingS :*: s) n
   where
     {-# INLINE next' #-}
@@ -105,7 +109,7 @@ scan1S f (Stream next s n) = Stream next' (NothingS :*: s) n
         Done       -> Done
 
 mapAccumS :: (acc -> a -> acc :*: b) -> acc -> Stream a -> Stream b
-{-# INLINE [1] mapAccumS #-}
+{-# INLINE_STREAM mapAccumS #-}
 mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
   where
     step' (s :*: Box acc) = case step s of
@@ -117,7 +121,7 @@ mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
 
 
 combineS:: Stream Bool -> Stream a -> Stream a -> Stream a
-{-# INLINE [1] combineS #-}
+{-# INLINE_STREAM combineS #-}
 combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
   Stream next (s :*: t1 :*: t2) m
   where
@@ -142,7 +146,7 @@ combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
 -- Skips. Unfortunately, GHC tends to introduce join points which break
 -- SpecConstr with the correct definition.
 zipWithS :: (a -> b -> c) -> Stream a -> Stream b -> Stream c
-{-# INLINE [1] zipWithS #-}
+{-# INLINE_STREAM zipWithS #-}
 zipWithS f (Stream next1 s m) (Stream next2 t n) =
   Stream next (s :*: t) m
   where
@@ -178,7 +182,7 @@ zipWithS f (Stream next1 s m) (Stream next2 t n) =
 -}
 
 zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
-{-# INLINE [1] zipWith3S #-}
+{-# INLINE_STREAM zipWith3S #-}
 zipWith3S f (Stream next1 s1 n) (Stream next2 s2 _) (Stream next3 s3 _) =
   Stream next (s1 :*: s2 :*: s3) n
   where

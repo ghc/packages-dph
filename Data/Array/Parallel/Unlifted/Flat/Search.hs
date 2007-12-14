@@ -15,6 +15,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Search (
   findU, findIndexU
 ) where
@@ -27,10 +31,10 @@ import Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU)
 
 findU :: UA a => (a -> Bool) -> UArr a -> Maybe a
-{-# INLINE findU #-}
+{-# INLINE_U findU #-}
 findU p = findS p . streamU
 
 findIndexU :: UA a => (a -> Bool) -> UArr a -> Maybe Int
-{-# INLINE findIndexU #-}
+{-# INLINE_U findIndexU #-}
 findIndexU p = findIndexS p . streamU
 

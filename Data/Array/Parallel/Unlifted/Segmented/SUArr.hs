@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Segmented.SUArr (
 
   -- * Array types
@@ -64,31 +68,31 @@ data MSUArr e s = MSUArr (MUSegd s) (MUArr e s)
 -- |Yield the segment descriptor
 --
 segdSU :: UA e => SUArr e -> USegd
-{-# INLINE segdSU #-}
+{-# INLINE_U segdSU #-}
 segdSU (SUArr segd _) = segd
 
 -- |Yield the flat data array
 --
 flattenSU :: UA e => SUArr e -> UArr e
-{-# INLINE flattenSU #-}
+{-# INLINE_U flattenSU #-}
 flattenSU (SUArr _ a) = a
 
 -- |Yield the number of segments.
 -- 
 lengthSU :: UA e => SUArr e -> Int
-{-# INLINE lengthSU #-}
+{-# INLINE_U lengthSU #-}
 lengthSU = lengthUSegd . segdSU
 
 -- |Yield the lengths of the segments.
 --
 lengthsSU :: UA e => SUArr e -> UArr Int
-{-# INLINE lengthsSU #-}
+{-# INLINE_U lengthsSU #-}
 lengthsSU = lengthsUSegd . segdSU
 
 -- |Yield the starting indices of the segments.
 --
 indicesSU :: UA e => SUArr e -> UArr Int
-{-# INLINE indicesSU #-}
+{-# INLINE_U indicesSU #-}
 indicesSU = indicesUSegd . segdSU
 
 -- |Compose a nested array.
@@ -104,13 +108,13 @@ indicesSU = indicesUSegd . segdSU
 -- number of base elements).
 --
 newMSU :: UA e => Int -> Int -> ST s (MSUArr e s)
-{-# INLINE newMSU #-}
+{-# INLINE_U newMSU #-}
 newMSU nsegd n = liftM2 MSUArr (newMUSegd nsegd) (newMU n)
 
 -- |Convert a mutable segmented array into an immutable one.
 --
 unsafeFreezeMSU :: UA e => MSUArr e s -> Int -> ST s (SUArr e)
-{-# INLINE unsafeFreezeMSU #-}
+{-# INLINE_U unsafeFreezeMSU #-}
 unsafeFreezeMSU (MSUArr msegd ma) n = 
   do
     segd <- unsafeFreezeMUSegd msegd n

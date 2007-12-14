@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Basics (
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU,
   (!:), (+:+), repeatU,
@@ -51,13 +55,13 @@ emptyU = newU 0 (const $ return ())
 -- |Yield a singleton array
 --
 singletonU :: UA e => e -> UArr e
-{-# INLINE singletonU #-}
+{-# INLINE_U singletonU #-}
 singletonU = unstreamU . singletonS
 
 -- |Prepend an element to an array
 --
 consU :: UA e => e -> UArr e -> UArr e
-{-# INLINE consU #-}
+{-# INLINE_U consU #-}
 consU x = unstreamU . consS x . streamU
 
 -- unitsU is reexported from Loop
@@ -65,7 +69,7 @@ consU x = unstreamU . consS x . streamU
 -- |Yield an array where all elements contain the same value
 --
 replicateU :: UA e => Int -> e -> UArr e
-{-# INLINE replicateU #-}
+{-# INLINE_U replicateU #-}
 replicateU n e = unstreamU (replicateS n e)
 
 -- |Array indexing
@@ -76,17 +80,17 @@ replicateU n e = unstreamU (replicateS n e)
 -- |Concatenate two arrays
 --
 (+:+) :: UA e => UArr e -> UArr e -> UArr e
-{-# INLINE (+:+) #-}
+{-# INLINE_U (+:+) #-}
 a1 +:+ a2 = unstreamU (streamU a1 +++ streamU a2)
 
 -- |Repeat an array @n@ times
 --
 repeatU :: UA e => Int -> UArr e -> UArr e
-{-# INLINE repeatU #-}
+{-# INLINE_U repeatU #-}
 repeatU n !xs = unstreamU (rep n xs)
 
 rep :: UA e => Int -> UArr e -> Stream e
-{-# INLINE [1] rep #-}
+{-# INLINE_STREAM rep #-}
 rep k xs = Stream next (0 :*: k) (k*n)
   where
     n = lengthU xs
@@ -102,7 +106,7 @@ rep k xs = Stream next (0 :*: k) (k*n)
 -- |Associate each element of the array with its index
 --
 indexedU :: UA e => UArr e -> UArr (Int :*: e)
-{-# INLINE indexedU #-}
+{-# INLINE_U indexedU #-}
 indexedU = unstreamU . indexedS . streamU
 
 -- |Conversion
@@ -111,12 +115,12 @@ indexedU = unstreamU . indexedS . streamU
 -- |Turn a list into a parallel array
 --
 toU :: UA e => [e] -> UArr e
-{-# INLINE toU #-}
+{-# INLINE_U toU #-}
 toU = unstreamU . toStream
 
 -- |Collect the elements of a parallel array in a list
 --
 fromU :: UA e => UArr e -> [e]
-{-# INLINE fromU #-}
+{-# INLINE_U fromU #-}
 fromU a = [a!:i | i <- [0..lengthU a - 1]]
 

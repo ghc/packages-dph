@@ -13,6 +13,10 @@
 -- Basic algorithms on streams
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream.Flat.Basics (
   emptyS, singletonS, consS, replicateS, replicateEachS, (+++), indexedS,
   tailS,
@@ -31,7 +35,7 @@ emptyS = Stream (const Done) () 0
 -- | Singleton stream
 --
 singletonS :: a -> Stream a
-{-# INLINE [1] singletonS #-}
+{-# INLINE_STREAM singletonS #-}
 singletonS x = Stream next True 1
   where
     {-# INLINE next #-}
@@ -41,7 +45,7 @@ singletonS x = Stream next True 1
 -- | Construction
 --
 consS :: a -> Stream a -> Stream a
-{-# INLINE [1] consS #-}
+{-# INLINE_STREAM consS #-}
 consS x (Stream next s n) = Stream next' (JustS (Box x) :*: s) (n+1)
   where
     {-# INLINE next' #-}
@@ -54,7 +58,7 @@ consS x (Stream next s n) = Stream next' (JustS (Box x) :*: s) (n+1)
 -- | Replication
 --
 replicateS :: Int -> a -> Stream a
-{-# INLINE [1] replicateS #-}
+{-# INLINE_STREAM replicateS #-}
 replicateS n x = Stream next 0 n
   where
     {-# INLINE next #-}
@@ -68,7 +72,7 @@ replicateS n x = Stream next 0 n
 -- get rid of them anyway...
 --
 replicateEachS :: Int -> Stream (Int :*: a) -> Stream a
-{-# INLINE [1] replicateEachS #-}
+{-# INLINE_STREAM replicateEachS #-}
 replicateEachS n (Stream next s _) =
   Stream next' (0 :*: NothingS :*: s) n
   where
@@ -86,7 +90,7 @@ replicateEachS n (Stream next s _) =
 -- | Concatenation
 --
 (+++) :: Stream a -> Stream a -> Stream a
-{-# INLINE [1] (+++) #-}
+{-# INLINE_STREAM (+++) #-}
 Stream next1 s1 n1 +++ Stream next2 s2 n2 = Stream next (LeftS s1) (n1 + n2)
   where
     {-# INLINE next #-}
@@ -108,7 +112,7 @@ Stream next1 s1 n1 +++ Stream next2 s2 n2 = Stream next (LeftS s1) (n1 + n2)
 -- | Associate each element in the 'Stream' with its index
 --
 indexedS :: Stream a -> Stream (Int :*: a)
-{-# INLINE [1] indexedS #-}
+{-# INLINE_STREAM indexedS #-}
 indexedS (Stream next s n) = Stream next' (0 :*: s) n
   where
     {-# INLINE next' #-}
@@ -123,7 +127,7 @@ indexedS (Stream next s n) = Stream next' (0 :*: s) n
 -- | Yield the tail of a stream
 --
 tailS :: Stream a -> Stream a
-{-# INLINE [1] tailS #-}
+{-# INLINE_STREAM tailS #-}
 tailS (Stream next s n) = Stream next' (False :*: s) (n-1)
   where
     {-# INLINE next' #-}
@@ -142,7 +146,7 @@ tailS (Stream next s n) = Stream next' (False :*: s) (n-1)
 -- | Convert a list to a 'Stream'
 --
 toStream :: [a] -> Stream a
-{-# INLINE [1] toStream #-}
+{-# INLINE_STREAM toStream #-}
 toStream xs = Stream gen (Box xs) (length xs)
   where
     {-# INLINE gen #-}
@@ -152,7 +156,7 @@ toStream xs = Stream gen (Box xs) (length xs)
 -- | Generate a list from a 'Stream'
 --
 fromStream :: Stream a -> [a]
-{-# INLINE [1] fromStream #-}
+{-# INLINE_STREAM fromStream #-}
 fromStream (Stream next s _) = gen s
   where
     gen s = case next s of

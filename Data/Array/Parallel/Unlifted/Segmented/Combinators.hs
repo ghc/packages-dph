@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Segmented.Combinators (
   mapSU, zipWithSU,
   foldlSU, foldSU, foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
@@ -42,18 +46,18 @@ import Data.Array.Parallel.Unlifted.Flat.Combinators (
 import Debug.Trace
 
 mapSU :: (UA a, UA b) => (a -> b) -> SUArr a -> SUArr b
-{-# INLINE mapSU #-}
+{-# INLINE_U mapSU #-}
 mapSU f sa = segdSU sa >: mapU f (concatSU sa)
 
 zipWithSU :: (UA a, UA b, UA c)
           => (a -> b -> c) -> SUArr a -> SUArr b -> SUArr c
-{-# INLINE zipWithSU #-}
+{-# INLINE_U zipWithSU #-}
 zipWithSU f sa sb = segdSU sa >: zipWithU f (concatSU sa) (concatSU sb)
 
 -- |Segmented array reduction proceeding from the left
 --
 foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
-{-# INLINE foldlSU #-}
+{-# INLINE_U foldlSU #-}
 foldlSU f z = unstreamU . foldValuesSS f z . streamSU
 
 -- |Segmented array reduction that requires an associative combination
@@ -65,7 +69,7 @@ foldSU = foldlSU
 -- |Segmented array reduction from left to right with non-empty subarrays only
 --
 foldl1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
-{-# INLINE foldl1SU #-}
+{-# INLINE_U foldl1SU #-}
 foldl1SU f = unstreamU . fold1ValuesSS f . streamSU
 
 -- |Segmented array reduction with non-empty subarrays and an associative
@@ -78,14 +82,14 @@ fold1SU = foldl1SU
 -- |Merge two segmented arrays according to flag array
 --
 combineSU:: UA a => UArr Bool -> SUArr a -> SUArr a -> UArr a
-{-# INLINE combineSU #-}
+{-# INLINE_U combineSU #-}
 combineSU fs xs1 xs2 =
   unstreamU $ combineSS (streamU fs) (streamSU xs1) (streamSU xs2)
 
 -- |Filter segmented array
 --
 filterSU:: (UA e) => (e -> Bool) -> SUArr e -> SUArr e
-{-# INLINE filterSU #-}
+{-# INLINE_U filterSU #-}
 filterSU p xssArr = segmentArrU newLengths flatData
   where
     flatData   = filterU p $ flattenSU xssArr

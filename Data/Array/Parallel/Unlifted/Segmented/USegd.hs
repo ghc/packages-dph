@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Segmented.USegd (
 
   -- * Types
@@ -109,14 +113,14 @@ lengthsToUSegd = USegd . segdFromLengthsU
 -- |Convert a length array to an array of length\/index pairs.
 --
 segdFromLengthsU :: UArr Int -> UArr (Int :*: Int)
-{-# INLINE [1] segdFromLengthsU #-}
+{-# INLINE_STREAM segdFromLengthsU #-}
 segdFromLengthsU lens = zipU lens (scanlU (+) 0 lens)
 
 -- |Convert a length array to an array of length\/index pairs - fusible
 -- version.
 --
 segdFromLengthsU' :: UArr Int -> UArr (Int :*: Int)
-{-# INLINE segdFromLengthsU' #-}
+{-# INLINE_U segdFromLengthsU' #-}
 segdFromLengthsU' = mapAccumLU (\i n -> (i + n) :*: (n :*: i)) 0
 
 {-# RULES

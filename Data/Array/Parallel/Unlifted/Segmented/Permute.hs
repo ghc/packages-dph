@@ -16,6 +16,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Segmented.Permute (
   bpermuteSU, bpermuteSU'
 ) where
@@ -28,13 +32,13 @@ import Data.Array.Parallel.Unlifted.Segmented.Basics (
   concatSU)
 
 bpermuteSU' :: UA e => UArr e -> SUArr Int -> SUArr e
-{-# INLINE bpermuteSU' #-}
+{-# INLINE_U bpermuteSU' #-}
 bpermuteSU' es is = segdSU is >: bpermuteU es (concatSU is)
 
 -- |Segmented back permute
 --
 bpermuteSU :: UA e => SUArr e -> SUArr Int -> SUArr e
-{-# INLINE bpermuteSU #-}
+{-# INLINE_U bpermuteSU #-}
 bpermuteSU as = error "Not implemented: bpermuteSU"
 {-
 bpermuteSU as = loopArrS . loopSU extract nextOff 0

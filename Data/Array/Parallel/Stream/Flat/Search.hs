@@ -13,6 +13,10 @@
 -- Searching in streams
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream.Flat.Search (
   findS, findIndexS
 ) where
@@ -20,7 +24,7 @@ module Data.Array.Parallel.Stream.Flat.Search (
 import Data.Array.Parallel.Stream.Flat.Stream
 
 findS :: (a -> Bool) -> Stream a -> Maybe a
-{-# INLINE [1] findS #-}
+{-# INLINE_STREAM findS #-}
 findS p (Stream next s _) = go s
   where
     go s = case next s of
@@ -30,7 +34,7 @@ findS p (Stream next s _) = go s
              Done                   -> Nothing
 
 findIndexS :: (a -> Bool) -> Stream a -> Maybe Int
-{-# INLINE [1] findIndexS #-}
+{-# INLINE_STREAM findIndexS #-}
 findIndexS p (Stream next s _) = go 0 s
   where
     go i s = case next s of

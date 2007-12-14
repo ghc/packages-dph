@@ -15,6 +15,10 @@
 -- Todo ----------------------------------------------------------------------
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Random
 where
 
@@ -28,11 +32,11 @@ import Data.Array.Parallel.Unlifted.Flat.Stream (
 import System.Random
 
 randomU :: (UA a, Random a, RandomGen g) => Int -> g -> UArr a
-{-# INLINE randomU #-}
+{-# INLINE_U randomU #-}
 randomU n = unstreamU . randomS n
 
 randomRU :: (UA a, Random a, RandomGen g) => Int -> (a,a) -> g -> UArr a
-{-# INLINE randomRU #-}
+{-# INLINE_U randomRU #-}
 randomRU n r = unstreamU . randomRS n r
 
 

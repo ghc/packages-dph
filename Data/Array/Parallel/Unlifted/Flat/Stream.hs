@@ -13,6 +13,10 @@
 -- Stream combinators and fusion rules for flat unboxed arrays.
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamU, unstreamMU
 ) where
@@ -27,7 +31,7 @@ import Data.Array.Parallel.Unlifted.Flat.UArr (
 -- | Generate a stream from an array, from left to right
 --
 streamU :: UA a => UArr a -> Stream a
-{-# INLINE [1] streamU #-}
+{-# INLINE_STREAM streamU #-}
 streamU !arr = Stream next 0 n
   where
     n = lengthU arr
@@ -38,14 +42,14 @@ streamU !arr = Stream next 0 n
 -- | Create an array from a stream, filling it from left to right
 --
 unstreamU :: UA a => Stream a -> UArr a
-{-# INLINE [1] unstreamU #-}
+{-# INLINE_STREAM unstreamU #-}
 unstreamU st@(Stream next s n) = newDynU n (\marr -> unstreamMU marr st)
 
 -- | Fill a mutable array from a stream from left to right and yield
 -- the number of elements written.
 --
 unstreamMU :: UA a => MUArr a s -> Stream a -> ST s Int
-{-# INLINE unstreamMU #-}
+{-# INLINE_U unstreamMU #-}
 unstreamMU marr (Stream next s n) = fill s 0
   where
     fill s i = i `seq`
