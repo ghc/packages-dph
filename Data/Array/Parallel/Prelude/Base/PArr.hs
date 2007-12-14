@@ -12,7 +12,7 @@ import Data.Array.Parallel.Lifted.Combinators
 
 fromPArrayP :: PArray a -> [:a:]
 {-# NOINLINE fromPArrayP #-}
-fromPArrayP _ = error "fromPArray"
+fromPArrayP _ = singletonP undefined
 
 fromPArrayPA :: PA a -> PArray a :-> PArray a
 {-# INLINE fromPArrayPA #-}
