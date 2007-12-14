@@ -82,6 +82,7 @@ replicateEachS n (Stream next s _) =
         Done -> Done
         Skip s' -> Skip (0 :*: NothingS :*: s')
         Yield (k :*: x) s' -> Skip (k :*: JustS (Box x) :*: s')
+    next' (k :*: NothingS :*: s) = Done   -- FIXME: unreachable
     next' (k :*: JustS (Box x) :*: s) =
       Yield x (k-1 :*: JustS (Box x) :*: s)
 
