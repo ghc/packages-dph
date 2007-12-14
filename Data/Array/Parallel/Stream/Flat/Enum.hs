@@ -83,6 +83,6 @@ enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
           Done               -> Done
 
     next' (JustS (k :*: m) :*: s)
-      | k > m     = Skip    (NothingS             :*: s)
-      | otherwise = Yield k (JustS (succ k :*: m) :*: s)
+      | k > m     = Skip    (NothingS          :*: s)
+      | otherwise = Yield k (JustS (k+1 :*: m) :*: s)
 
