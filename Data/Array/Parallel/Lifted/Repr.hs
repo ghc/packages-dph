@@ -473,6 +473,7 @@ dPR_PArray pr = PR {
                 , replicatelPR = replicatelPR_PArray pr
                 , repeatPR     = repeatPR_PArray pr
                 , packPR       = packPR_PArray pr
+                , combine2PR   = combine2PR_PArray pr
                 }
 
 {-# INLINE lengthPR_PArray #-}
@@ -523,7 +524,31 @@ packPR_PArray pr (PNested _ lens _ xs) n# bs
     lens' = pack'PA_Int# lens bs
     idxs' = unsafe_scanPA_Int# (+) 0 lens'
 
-    
+{-# INLINE combine2PR_PArray #-}
+combine2PR_PArray pr n# sel is (PNested _ lens1 idxs1 xs)
+                               (PNested _ lens2 idxs2 ys)
+  = PNested n# lens idxs (combine2PR pr len# sel' is' xs ys)
+  where
+    lens = combine2PA_Int# n# sel is lens1 lens2
+    idxs = unsafe_scanPA_Int# (+) 0 lens
+
+    xlen# = lengthPR pr xs
+    ylen# = lengthPR pr ys
+    len#  = xlen# +# ylen#
+
+    sel' = replicatelPA_Int# len# lens sel
+    is'  = mapU pick
+         . zipU sel'
+         . scanU index (0 :*: 0)
+         $ mapU init sel'
+         
+    init 0 = 1 :*: 0
+    init _ = 0 :*: 1
+
+    index (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
+
+    pick (0 :*: (i :*: j)) = i
+    pick (_ :*: (i :*: j)) = j
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE concatPA# #-}

@@ -50,6 +50,7 @@ dPR_Int = PR {
           , appPR        = appPR_Int
           , applPR       = applPR_Int
           , packPR       = packPR_Int
+          , combine2PR   = combine2PR_Int
           }
 
 {-# INLINE lengthPR_Int #-}
@@ -82,6 +83,10 @@ applPR_Int is (PInt m# ms) js (PInt n# ns)
 
 {-# INLINE packPR_Int #-}
 packPR_Int (PInt _ ns) n# bs = PInt n# (packPA_Int# ns n# bs)
+
+{-# INLINE combine2PR_Int #-}
+combine2PR_Int n# sel is (PInt _ xs) (PInt _ ys)
+  = PInt n# (combine2PA_Int# n# sel is xs ys)
 
 upToPA_Int :: Int -> PArray Int
 {-# INLINE upToPA_Int #-}
@@ -119,6 +124,7 @@ dPR_Double = PR {
           , appPR        = appPR_Double
           , applPR       = applPR_Double
           , packPR       = packPR_Double
+          , combine2PR   = combine2PR_Double
           }
 
 {-# INLINE lengthPR_Double #-}
@@ -155,6 +161,10 @@ applPR_Double is (PDouble m# ms) js (PDouble n# ns)
 
 {-# INLINE packPR_Double #-}
 packPR_Double (PDouble _ ns) n# bs = PDouble n# (packPA_Double# ns n# bs)
+
+{-# INLINE combine2PR_Double #-}
+combine2PR_Double n# sel is (PDouble _ xs) (PDouble _ ys)
+  = PDouble n# (combine2PA_Double# n# sel is xs ys)
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#

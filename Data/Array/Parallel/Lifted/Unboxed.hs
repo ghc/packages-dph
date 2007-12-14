@@ -3,7 +3,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
-  packPA_Int#, pack'PA_Int#,
+  packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
   upToPA_Int#, selectPA_Int#, sumPA_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
   sumPAs_Int#, 
@@ -12,7 +12,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#, appPA_Double#, applPA_Double#,
-  packPA_Double#, pack'PA_Double#,
+  packPA_Double#, pack'PA_Double#, combine2PA_Double#, combine2'PA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
   unsafe_foldPAs_Double#,
 
@@ -72,6 +72,15 @@ pack'PA_Int# ns bs = packU ns bs
 packPA_Int# :: PArray_Int# -> Int# -> PArray_Bool# -> PArray_Int#
 packPA_Int# ns _ bs = pack'PA_Int# ns bs
 {-# INLINE packPA_Int# #-}
+
+combine2'PA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
+combine2'PA_Int# sel xs ys = combineU (mapU (== 0) sel) xs ys
+{-# INLINE combine2'PA_Int# #-}
+
+combine2PA_Int# :: Int# -> PArray_Int# -> PArray_Int#
+                -> PArray_Int# -> PArray_Int# -> PArray_Int#
+combine2PA_Int# _ sel _ xs ys = combine2'PA_Int# sel xs ys
+{-# INLINE combine2PA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = enumFromToU 0 (I# n# - 1)
@@ -149,6 +158,16 @@ pack'PA_Double# ns bs = packU ns bs
 packPA_Double# :: PArray_Double# -> Int# -> PArray_Bool# -> PArray_Double#
 packPA_Double# ns _ bs = pack'PA_Double# ns bs
 {-# INLINE packPA_Double# #-}
+
+combine2'PA_Double# :: PArray_Int#
+                    -> PArray_Double# -> PArray_Double# -> PArray_Double#
+combine2'PA_Double# sel xs ys = combineU (mapU (== 0) sel) xs ys
+{-# INLINE combine2'PA_Double# #-}
+
+combine2PA_Double# :: Int# -> PArray_Int# -> PArray_Int#
+                   -> PArray_Double# -> PArray_Double# -> PArray_Double#
+combine2PA_Double# _ sel _ xs ys = combine2'PA_Double# sel xs ys
+{-# INLINE combine2PA_Double# #-}
 
 unsafe_zipWithPA_Double# :: (Double -> Double -> Double)
                          -> PArray_Double# -> PArray_Double# -> PArray_Double#
