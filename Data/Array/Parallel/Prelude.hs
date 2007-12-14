@@ -3,7 +3,8 @@ module Data.Array.Parallel.Prelude (
 
   , module Data.Array.Parallel.Prelude.Bool
   
-  , PArray, PrimPA(..), fromSUArrPA, fromSUArrPA_2
+  , PArray, PrimPA(..), fromUArrPA', fromSUArrPA, fromSUArrPA'
+  , fromSUArrPA_2, fromSUArrPA_2'
 ) where
 
 import Data.Array.Parallel.Prelude.Bool

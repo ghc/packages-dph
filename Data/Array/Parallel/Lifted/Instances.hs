@@ -7,7 +7,8 @@ module Data.Array.Parallel.Lifted.Instances (
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
   dPA_Unit, dPA_2, dPA_3,
-  dPA_PArray, fromSUArrPA, fromSUArrPA_2
+  dPA_PArray, fromSUArrPA, fromSUArrPA',
+  fromSUArrPA_2, fromSUArrPA_2'
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
