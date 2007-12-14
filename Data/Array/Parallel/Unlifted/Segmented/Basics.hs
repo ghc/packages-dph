@@ -32,8 +32,7 @@ module Data.Array.Parallel.Unlifted.Segmented.Basics (
 import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..),SStream(..),(+++), (^+++^),
-  replicateEachS, zipS)
+  Step(..), Stream(..),SStream(..),(+++), (^+++^))
 import Data.Array.Parallel.Unlifted.Flat
 
 import Data.Array.Parallel.Unlifted.Segmented.Stream (streamSU,unstreamSU)
@@ -54,10 +53,7 @@ singletonSU es = singletonUSegd (lengthU es) >: es
 
 replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE_U replicateSU #-}
-replicateSU ns es =
-  lengthsToUSegd ns >: unstreamU (replicateEachS (sumU ns)
-                                                 (zipS (streamU ns)
-                                                       (streamU es)))
+replicateSU ns es = lengthsToUSegd ns >: replicateEachU (sumU ns) ns es
 
 -- |Segment an array according to the segmentation of the first argument
 --

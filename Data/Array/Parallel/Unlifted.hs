@@ -28,7 +28,8 @@ module Data.Array.Parallel.Unlifted (
   (:*:)(..), fstS, sndS, uncurryS, curryS,
 
   -- * Basic operations
-  lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, (!:), (+:+),
+  lengthU, nullU, emptyU, singletonU, consU, unitsU,
+  replicateU, replicateEachU, (!:), (+:+),
   indexedU, repeatU,
 
   -- * Subarrays

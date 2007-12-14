@@ -28,7 +28,9 @@ module Data.Array.Parallel.Unlifted.Flat (
   streamU, unstreamU,
 
   -- * Basic operations
-  lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, (!:), (+:+),
+  lengthU, nullU, emptyU, singletonU, consU, unitsU,
+  replicateU, replicateEachU,
+  (!:), (+:+),
   indexedU, repeatU,
 
   -- * Subarrays
