@@ -27,7 +27,7 @@ algs = [("smvmp",  SMVMPar.smvm)
        ,("smvmv",  smvm_vect)
        ]
 
-smvm_vect m v = toUArrPA (SMVMVect.smvm (fromSUArrPA_2 m) (fromUArrPA v))
+smvm_vect m v = toUArrPA (SMVMVect.smvm (fromSUArrPA_2' m) (fromUArrPA' v))
 
 main = ndpMain "Sparse matrix/vector multiplication"
                "[OPTION] ... FILE ..."
