@@ -39,7 +39,7 @@ import Data.Array.Parallel.Stream.Flat.Combinators (
 enumFromToS :: Int -> Int -> Stream Int
 {-# INLINE_STREAM enumFromToS #-}
 enumFromToS start end
-  = Stream step start (max 0 (end - start))
+  = Stream step start (max 0 (end - start + 1))
   where
     {-# INLINE step #-}
     step s | s > end   = Done
