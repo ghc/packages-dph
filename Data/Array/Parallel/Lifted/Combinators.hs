@@ -172,8 +172,8 @@ packPA_v pa xs bs = packPA# pa xs (truesPA# bs) (toPrimArrPA_Bool bs)
 packPA_l :: PA a
          -> PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE packPA_l #-}
-packPA_l pa (PNested _ _ _ xs) (PNested n# (PInt# lens) (PInt# idxs) bs)
-  = PNested n# (PInt# lens') (PInt# idxs') (packPA_v pa xs bs)
+packPA_l pa (PNested _ _ _ xs) (PNested n# lens idxs bs)
+  = PNested n# lens' idxs' (packPA_v pa xs bs)
   where
     lens' = foldSU (+) 0
           $ toUSegd (zipU lens idxs) >: mapU (\b -> if b then 1 else 0)
@@ -233,10 +233,10 @@ appPA_v pa xs ys = appPA# pa xs ys
 
 appPA_l :: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE appPA_l #-}
-appPA_l pa (PNested m# (PInt# lens1) (PInt# idxs1) xs)
-           (PNested n# (PInt# lens2) (PInt# idxs2) ys)
-  = PNested (m# +# n#) (PInt# (zipWithU (+) lens1 lens2))
-                       (PInt# (zipWithU (+) idxs1 idxs2))
+appPA_l pa (PNested m# lens1 idxs1 xs)
+           (PNested n# lens2 idxs2 ys)
+  = PNested (m# +# n#) (zipWithU (+) lens1 lens2)
+                       (zipWithU (+) idxs1 idxs2)
                        (applPA# pa (toUSegd (zipU lens1 idxs1)) xs
                                    (toUSegd (zipU lens2 idxs2)) ys)
 

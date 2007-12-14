@@ -502,9 +502,8 @@ repeatPR_PArray pr n# (PNested m# lens _ xs)
     lens' = repeatPA_Int# n# lens
 
 {-# INLINE replicatelPR_PArray #-}
-replicatelPR_PArray pr n# (PInt# ns) (PNested _ (PInt# lens) (PInt# idxs) xs)
-  = PNested n# (PInt# new_lens) (PInt# new_idxs)
-               (bpermutePR pr xs (PInt# indices))
+replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
+  = PNested n# new_lens new_idxs (bpermutePR pr xs indices)
   where
     new_lens = concatSU (replicateSU ns lens)
     new_idxs = scanU (+) 0 new_lens
@@ -532,23 +531,20 @@ concatPA# (PNested _ _ _ xs) = xs
 
 fromSUArrPA :: PrimPA a => Int -> Int -> SUArr a -> PArray (PArray a)
 {-# INLINE fromSUArrPA #-}
-fromSUArrPA (I# m#) n xss = PNested m#
-                              (PInt# (lengthsSU xss))
-                              (PInt# (indicesSU xss))
-                              (fromUArrPA n (concatSU xss))
+fromSUArrPA (I# m#) n xss = PNested m# (lengthsSU xss)
+                                       (indicesSU xss)
+                                       (fromUArrPA n (concatSU xss))
 
 toSUArrPA :: PrimPA a => PArray (PArray a) -> SUArr a
 {-# INLINE toSUArrPA #-}
-toSUArrPA (PNested _ (PInt# lens) (PInt# idxs) xs)
-  = toUSegd (zipU lens idxs) >: toUArrPA xs
+toSUArrPA (PNested _ lens idxs xs) = toUSegd (zipU lens idxs) >: toUArrPA xs
 
 fromSUArrPA_2 :: (PrimPA a, PrimPA b)
               => Int -> Int -> SUArr (a :*: b) -> PArray (PArray (a, b))
 {-# INLINE fromSUArrPA_2 #-}
-fromSUArrPA_2 (I# m#) n pss = PNested m#
-                                (PInt# (lengthsSU pss))
-                                (PInt# (indicesSU pss))
-                                (fromUArrPA_2 n (concatSU pss))
+fromSUArrPA_2 (I# m#) n pss = PNested m# (lengthsSU pss)
+                                         (indicesSU pss)
+                                         (fromUArrPA_2 n (concatSU pss))
 
 fromSUArrPA' :: PrimPA a => SUArr a -> PArray (PArray a)
 {-# INLINE fromSUArrPA' #-}

@@ -173,3 +173,4 @@ combineU :: UA a
 	 => UArr Bool -> UArr a -> UArr a -> UArr a
 {-# INLINE combineU #-}
 combineU f a1 a2 = unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
+

@@ -23,8 +23,8 @@ data instance PArray Int = PInt Int# PArray_Int#
 type instance PRepr Int = Int
 
 instance PrimPA Int where
-  fromUArrPA (I# n#) xs          = PInt n# (PInt# xs)
-  toUArrPA   (PInt _ (PInt# xs)) = xs
+  fromUArrPA (I# n#) xs  = PInt n# xs
+  toUArrPA   (PInt _ xs) = xs
   primPA = dPA_Int
 
 dPA_Int :: PA Int
@@ -92,8 +92,8 @@ data instance PArray Double = PDouble Int# PArray_Double#
 type instance PRepr Double = Double
 
 instance PrimPA Double where
-  fromUArrPA (I# n#) xs                = PDouble n# (PDouble# xs)
-  toUArrPA   (PDouble _ (PDouble# xs)) = xs
+  fromUArrPA (I# n#) xs     = PDouble n# xs
+  toUArrPA   (PDouble _ xs) = xs
   primPA = dPA_Double
 
 dPA_Double :: PA Double
@@ -186,18 +186,16 @@ fromArrPRepr_Bool (PSum2 n# sel# is# fs ts) = PBool n# sel# is# fs ts
 
 toUArrPA_Bool :: PArray Bool -> UArr Bool
 {-# INLINE toUArrPA_Bool #-}
-toUArrPA_Bool (PBool _ (PInt# ns#) _ _ _) = mapU (/= 0) ns#
+toUArrPA_Bool (PBool _ ns _ _ _) = mapU (/= 0) ns
 
 toPrimArrPA_Bool :: PArray Bool -> PArray_Bool#
 {-# INLINE toPrimArrPA_Bool #-}
-toPrimArrPA_Bool bs = PBool# (toUArrPA_Bool bs)
+toPrimArrPA_Bool bs =  (toUArrPA_Bool bs)
 
 instance PrimPA Bool where
   {-# INLINE fromUArrPA #-}
   fromUArrPA (I# n#) bs
-    = PBool n#
-            (PInt# ts)
-            (PInt# is)
+    = PBool n# ts is
             (PVoid (n# -# m#))
             (PVoid m#)
     where
@@ -216,7 +214,7 @@ instance PrimPA Bool where
       not_ _ = 0
 
   {-# INLINE toUArrPA #-}
-  toUArrPA (PBool _ (PInt# ts) _ _ _) = mapU (/= 0) ts
+  toUArrPA (PBool _ ts _ _ _) = mapU (/= 0) ts
 
   primPA = dPA_Bool
 
