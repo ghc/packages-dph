@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Lifted.PArray (
   PArray,
 
@@ -35,61 +39,61 @@ data PA a = PA {
             }
 
 lengthPA# :: PA a -> PArray a -> Int#
-{-# INLINE lengthPA# #-}
+{-# INLINE_PA lengthPA# #-}
 lengthPA# pa x = lengthPR (dictPRepr pa) (toArrPRepr pa x)
 
 replicatePA# :: PA a -> Int# -> a -> PArray a
-{-# INLINE replicatePA# #-}
+{-# INLINE_PA replicatePA# #-}
 replicatePA# pa n# = fromArrPRepr pa
                    . replicatePR (dictPRepr pa) n#
                    . toPRepr pa
 
 replicatelPA# :: PA a -> Int# -> PArray_Int# -> PArray a -> PArray a
-{-# INLINE replicatelPA# #-}
+{-# INLINE_PA replicatelPA# #-}
 replicatelPA# pa n# ns = fromArrPRepr pa
                        . replicatelPR (dictPRepr pa) n# ns
                        . toArrPRepr pa
 
 repeatPA# :: PA a -> Int# -> PArray a -> PArray a
-{-# INLINE repeatPA# #-}
+{-# INLINE_PA repeatPA# #-}
 repeatPA# pa n# = fromArrPRepr pa
                 . repeatPR (dictPRepr pa) n#
                 . toArrPRepr pa
 
 emptyPA :: PA a -> PArray a
-{-# INLINE emptyPA #-}
+{-# INLINE_PA emptyPA #-}
 emptyPA pa = fromArrPRepr pa
            $ emptyPR (dictPRepr pa)
 
 indexPA# :: PA a -> PArray a -> Int# -> a
-{-# INLINE indexPA# #-}
+{-# INLINE_PA indexPA# #-}
 indexPA# pa xs i# = fromPRepr pa
                   $ indexPR (dictPRepr pa) (toArrPRepr pa xs) i#
 
 bpermutePA# :: PA a -> PArray a -> PArray_Int# -> PArray a
-{-# INLINE bpermutePA# #-}
+{-# INLINE_PA bpermutePA# #-}
 bpermutePA# pa xs is = fromArrPRepr pa
                      $ bpermutePR (dictPRepr pa) (toArrPRepr pa xs) is
 
 appPA# :: PA a -> PArray a -> PArray a -> PArray a
-{-# INLINE appPA# #-}
+{-# INLINE_PA appPA# #-}
 appPA# pa xs ys = fromArrPRepr pa
                 $ appPR (dictPRepr pa) (toArrPRepr pa xs) (toArrPRepr pa ys)
 
 applPA# :: PA a -> USegd -> PArray a -> USegd -> PArray a -> PArray a
-{-# INLINE applPA# #-}
+{-# INLINE_PA applPA# #-}
 applPA# pa is xs js ys = fromArrPRepr pa
                        $ applPR (dictPRepr pa) is (toArrPRepr pa xs)
                                                js (toArrPRepr pa ys)
 
 packPA# :: PA a -> PArray a -> Int# -> PArray_Bool# -> PArray a
-{-# INLINE packPA# #-}
+{-# INLINE_PA packPA# #-}
 packPA# pa arr n# = fromArrPRepr pa
                   . packPR (dictPRepr pa) (toArrPRepr pa arr) n#
 
 combine2PA# :: PA a -> Int# -> PArray_Int# -> PArray_Int#
             -> PArray a -> PArray a -> PArray a
-{-# INLINE combine2PA# #-}
+{-# INLINE_PA combine2PA# #-}
 combine2PA# pa n# sel# is# as bs
   = fromArrPRepr pa
   $ combine2PR (dictPRepr pa) n# sel# is# (toArrPRepr pa as) (toArrPRepr pa bs)

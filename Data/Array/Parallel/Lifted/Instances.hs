@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Lifted.Instances (
   PArray(..),
 
@@ -29,7 +33,7 @@ instance PrimPA Int where
   primPA = dPA_Int
 
 dPA_Int :: PA Int
-{-# INLINE dPA_Int #-}
+{-# INLINE_PA dPA_Int #-}
 dPA_Int = PA {
             toPRepr      = id
           , fromPRepr    = id
@@ -90,7 +94,7 @@ combine2PR_Int n# sel is (PInt _ xs) (PInt _ ys)
   = PInt n# (combine2PA_Int# n# sel is xs ys)
 
 upToPA_Int :: Int -> PArray Int
-{-# INLINE upToPA_Int #-}
+{-# INLINE_PA upToPA_Int #-}
 upToPA_Int (I# n#) = PInt n# (upToPA_Int# n#)
 
 data instance PArray Double = PDouble Int# PArray_Double#
@@ -103,7 +107,7 @@ instance PrimPA Double where
   primPA = dPA_Double
 
 dPA_Double :: PA Double
-{-# INLINE dPA_Double #-}
+{-# INLINE_PA dPA_Double #-}
 dPA_Double = PA {
             toPRepr      = id
           , fromPRepr    = id
@@ -172,7 +176,7 @@ data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
                                   (PArray Void) (PArray Void)
 
 dPA_Bool :: PA Bool
-{-# INLINE dPA_Bool #-}
+{-# INLINE_PA dPA_Bool #-}
 dPA_Bool = PA {
              toPRepr      = toPRepr_Bool
            , fromPRepr    = fromPRepr_Bool
@@ -230,7 +234,7 @@ instance PrimPA Bool where
   primPA = dPA_Bool
 
 truesPA# :: PArray Bool -> Int#
-{-# INLINE truesPA# #-}
+{-# INLINE_PA truesPA# #-}
 truesPA# (PBool _ _ _ fs ts) = lengthPA# dPA_Void ts
 
 {-
@@ -239,7 +243,7 @@ data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#
 type instance PRepr Bool = Enumeration
 
 dPA_Bool :: PA Bool
-{-# INLINE dPA_Bool #-}
+{-# INLINE_PA dPA_Bool #-}
 dPA_Bool = PA {
              toPRepr      = toPRepr_Bool
            , fromPRepr    = fromPRepr_Bool
@@ -331,7 +335,7 @@ data STup5 a b c d e = STup5 !a !b !c !d !e
 type instance PRepr () = ()
 
 dPA_Unit :: PA ()
-{-# INLINE dPA_Unit #-}
+{-# INLINE_PA dPA_Unit #-}
 dPA_Unit = PA {
              toPRepr      = id
            , fromPRepr    = id
@@ -343,7 +347,7 @@ dPA_Unit = PA {
 type instance PRepr (a,b) = (a,b)
 
 dPA_2 :: PA a -> PA b -> PA (a,b)
-{-# INLINE dPA_2 #-}
+{-# INLINE_PA dPA_2 #-}
 dPA_2 pa pb = PA {
                 toPRepr      = id
               , fromPRepr    = id
@@ -355,7 +359,7 @@ dPA_2 pa pb = PA {
 type instance PRepr (a,b,c) = (a,b,c)
 
 dPA_3 :: PA a -> PA b -> PA c -> PA (a,b,c)
-{-# INLINE dPA_3 #-}
+{-# INLINE_PA dPA_3 #-}
 dPA_3 pa pb pc
   = PA {
       toPRepr      = id
@@ -368,7 +372,7 @@ dPA_3 pa pb pc
 type instance PRepr (PArray a) = PArray (PRepr a)
 
 dPA_PArray :: PA a -> PA (PArray a)
-{-# INLINE dPA_PArray #-}
+{-# INLINE_PA dPA_PArray #-}
 dPA_PArray pa
   = PA {
       toPRepr      = toArrPRepr pa

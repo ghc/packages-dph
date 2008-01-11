@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Lifted.Repr (
   PArray(..),
   Void, void,
@@ -81,7 +85,7 @@ combine2PR_Void n# _ _ (PVoid _) (PVoid _) = PVoid n#
 type instance PRepr Void = Void
 
 dPA_Void :: PA Void
-{-# INLINE dPA_Void #-}
+{-# INLINE_PA dPA_Void #-}
 dPA_Void = PA {
              toPRepr      = id
            , fromPRepr    = id
@@ -302,7 +306,7 @@ combine2PR_2 pra prb n# sel# is# (P_2 _ as1 bs1) (P_2 _ as2 bs2)
            (combine2PR prb n# sel# is# bs1 bs2)
 
 zipPA# :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
-{-# INLINE zipPA# #-}
+{-# INLINE_PA zipPA# #-}
 zipPA# pa pb xs ys = P_2 (lengthPA# pa xs) xs ys
 
 dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
@@ -551,7 +555,7 @@ combine2PR_PArray pr n# sel is (PNested _ lens1 idxs1 xs)
     pick (_ :*: (i :*: j)) = j
 
 concatPA# :: PArray (PArray a) -> PArray a
-{-# INLINE concatPA# #-}
+{-# INLINE_PA concatPA# #-}
 concatPA# (PNested _ _ _ xs) = xs
 
 fromSUArrPA :: PrimPA a => Int -> Int -> SUArr a -> PArray (PArray a)
