@@ -19,6 +19,8 @@ module Data.Array.Parallel.Unlifted.Parallel.Permute (
 
 import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Base (
+  (:*:)(..), fstS, sndS, uncurryS)
 
 bpermuteUP :: UA a => UArr a -> UArr Int -> UArr a
 {-# INLINE bpermuteUP #-}
@@ -40,6 +42,6 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
 
 updateUP :: UA a => UArr a -> UArr (Int :*: a) -> UArr a
 {-# INLINE updateUP #-}
-updateUP as us = updateD theGang (splitD theGang as) (splitD theGang us)
--}
+updateUP as us = updateD theGang (splitD theGang balanced as) (splitD theGang balanced us)
+ -}
 

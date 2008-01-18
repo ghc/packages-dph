@@ -68,6 +68,8 @@ other-modules:
         Data.Array.Parallel.Unlifted.Segmented
         Data.Array.Parallel.Unlifted.Parallel.Combinators
         Data.Array.Parallel.Unlifted.Parallel.Sums
+        Data.Array.Parallel.Unlifted.Parallel.Basics
+        Data.Array.Parallel.Unlifted.Parallel.UPArr
         Data.Array.Parallel.Unlifted.Parallel.Permute
         Data.Array.Parallel.Unlifted.Parallel.Enum
         Data.Array.Parallel.Unlifted.Parallel.Segmented
@@ -90,6 +92,6 @@ include-dirs:
 extensions: TypeFamilies, BangPatterns
 ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
              -fdicts-cheap -fno-method-sharing -fno-spec-constr-threshold
-             -fmax-simplifier-iterations10 -threaded -haddock
+             -fmax-simplifier-iterations10  -haddock
              -fcpr-off -package-name ndp
 

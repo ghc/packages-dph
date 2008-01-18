@@ -22,11 +22,14 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   andUP, sumUP,
 
-  zipWithSUP, foldSUP, sumSUP, bpermuteSUP'
+  zipWithSUP, foldSUP, sumSUP, bpermuteSUP',
+
+  indexedUP, replicateUP, replicateEachUnbalancedUP,
 ) where
 
 import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
+import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Segmented
