@@ -20,7 +20,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), uncurryS, ST, runST)
+  (:*:)(..), uncurryS, unsafe_pairS, unsafe_unpairS, ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
@@ -44,10 +44,14 @@ mapD g f !d = checkGangD (here "mapD") g d
   mapD gang f (mapD gang g d) = mapD gang (\x -> f (g x)) d
 
 "zipD/mapD[1]" forall gang f xs ys.
-  zipD (mapD gang f xs) ys = mapD gang (\(xs:*:ys) -> f xs :*: ys) (zipD xs ys)
+  zipD (mapD gang f xs) ys
+    = mapD gang (unsafe_pairS . (\(xs, ys) -> (f xs, ys)) . unsafe_unpairS)
+                (zipD xs ys)
 
 "zipD/mapD[2]" forall gang f xs ys.
-  zipD xs (mapD gang f ys) = mapD gang (\(xs:*:ys) -> xs :*: f ys) (zipD xs ys)
+  zipD xs (mapD gang f ys)
+    = mapD gang (unsafe_pairS . (\(xs, ys) -> (xs, f ys)) . unsafe_unpairS)
+                (zipD xs ys)
 
   #-}
 
@@ -57,7 +61,7 @@ mapD g f !d = checkGangD (here "mapD") g d
 zipWithD :: (DT a, DT b, DT c)
          => Gang -> (a -> b -> c) -> Dist a -> Dist b -> Dist c
 {-# INLINE zipWithD #-}
-zipWithD g f dx dy = mapD g (uncurryS f) (zipD dx dy)
+zipWithD g f dx dy = mapD g (uncurry f . unsafe_unpairS) (zipD dx dy)
 
 -- | Fold a distributed value.
 foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a

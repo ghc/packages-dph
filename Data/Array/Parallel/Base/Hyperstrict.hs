@@ -18,7 +18,7 @@ module Data.Array.Parallel.Base.Hyperstrict (
   (:*:)(..), EitherS(..),
 
   -- * Injection and projection functions
-  fstS, sndS, pairS, unpairS,
+  fstS, sndS, pairS, unpairS, unsafe_pairS, unsafe_unpairS,
 
   -- * Currying
   curryS, uncurryS,
@@ -55,6 +55,20 @@ curryS f x y = f (x :*: y)
 
 uncurryS :: (a -> b -> c) -> a :*: b -> c
 uncurryS f (x :*: y) = f x y
+
+unsafe_pairS :: (a,b) -> a :*: b
+{-# INLINE [1] unsafe_pairS #-}
+unsafe_pairS (a,b) = a :*: b
+
+unsafe_unpairS :: a :*: b -> (a,b)
+{-# INLINE [1] unsafe_unpairS #-}
+unsafe_unpairS (x :*: y) = (x,y)
+
+{-# RULES
+
+"unsafe_unpairS/unsafe_pairS" forall p.
+  unsafe_unpairS (unsafe_pairS p) = p
+ #-}
 
 -- |Strict sum
 data EitherS a b = LeftS !a | RightS !b
