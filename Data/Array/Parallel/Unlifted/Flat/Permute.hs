@@ -106,7 +106,7 @@ updateU arr upd = update (streamU arr) (streamU upd)
 
 update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
 {-# INLINE_STREAM update #-}
-update s1@(Stream _ _ n) s2 = newDynU n (\marr ->
+update s1@(Stream _ _ n) !s2 = newDynU n (\marr ->
   do
     i <- unstreamMU marr s1
     updateM marr s2
