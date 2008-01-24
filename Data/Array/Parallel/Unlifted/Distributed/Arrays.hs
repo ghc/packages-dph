@@ -164,7 +164,7 @@ permuteD g darr dis = newU n (\ma -> zipWithDST_ g (permute ma) darr dis)
 -- before we pass it to the parallel computation.
 bpermuteD :: UA a => Gang -> UArr a -> Dist (UArr Int) -> Dist (UArr a)
 {-# INLINE bpermuteD #-}
-bpermuteD g !as = mapD g (bpermuteU as)
+bpermuteD g !as ds = mapD g (bpermuteU as) ds
 
 -- NB: This does not (and cannot) try to prevent two threads from writing to
 -- the same position. We probably want to consider this an (unchecked) user
