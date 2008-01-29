@@ -37,7 +37,7 @@ procFiles :: Options -> Alg -> [String] -> IO ()
 procFiles opts alg fs =
   do
     benchmark opts (uncurry alg)
-              (map loadGraph $ files fs)
+              (map load $ files fs)
               showRes
     return ()
   where
@@ -46,11 +46,10 @@ procFiles opts alg fs =
 
     showRes (r :*: _) = "d=" ++ show r
 
-loadGraph :: String -> IO (Point (UArr (Int :*: Int), Int))
-loadGraph fname =
+load :: String -> IO (Point (UArr (Int :*: Int), Int))
+load fname =
   do
-    s <- if null fname then getContents else readFile fname
-    let g = read s
+    g <- loadGraph fname
     evaluate (edges g)
     return $ mkPoint (  "n=" ++ show (nodeCount g) ++ ", "
                      ++ "e=" ++ show (edgeCount g))

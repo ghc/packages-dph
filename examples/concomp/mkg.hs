@@ -33,17 +33,17 @@ randomG g n e = Graph n e ues
     ues = toU $ concat [map (:*: m) ns | (m,ns) <- assocs aes]
 
 main = do
-         args  <- getArgs
-         (n,e) <- parseArgs args
-         g     <- newStdGen
-         print $ randomG g n e
+         args       <- getArgs
+         (n,e,file) <- parseArgs args
+         g          <- newStdGen
+         storeGraph file $ randomG g n e
 
   where
-    parseArgs [nodes,edges] =
+    parseArgs [nodes,edges,file] =
       do
         n <- parseInt nodes
         e <- parseInt edges
-        return (n,e)
+        return (n,e,file)
     parseArgs _ = do
                     hPutStrLn stderr "Invalid arguments"
                     exitFailure
