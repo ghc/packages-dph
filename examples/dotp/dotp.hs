@@ -6,7 +6,7 @@ import Control.Exception (evaluate)
 import System.Console.GetOpt
 import System.Random
 
-import Data.Array.Parallel.Prelude (fromUArrPA)
+import Data.Array.Parallel.Prelude (fromUArrPA')
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Unlifted.Distributed
 
@@ -20,7 +20,7 @@ algs = [("par", DotPPar.dotp)
 type Vector = UArr Double
 
 dotp_vect :: Vector -> Vector -> Double
-dotp_vect xs ys = DotPVect.dotp (fromUArrPA xs) (fromUArrPA ys)
+dotp_vect xs ys = DotPVect.dotp (fromUArrPA' xs) (fromUArrPA' ys)
 
 -- generates a random vector of the given length in NF
 --
