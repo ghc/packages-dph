@@ -21,7 +21,8 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Flat.Permute (
-  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU, updateMU
+  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU,
+  atomicUpdateMU
 ) where
 
 import Data.Array.Parallel.Base (
@@ -82,19 +83,20 @@ bpermuteDftU :: UA e
 {-# INLINE_U bpermuteDftU #-}
 bpermuteDftU n init = updateU (mapU init . enumFromToU 0 $ n-1)
 
-updateMU :: UA e => MUArr e s -> UArr (Int :*: e) -> ST s ()
-{-# INLINE_U updateMU #-}
-updateMU marr upd = updateM marr (streamU upd)
+atomicUpdateMU :: UA e => MUArr e s -> UArr (Int :*: e) -> ST s ()
+{-# INLINE_U atomicUpdateMU #-}
+atomicUpdateMU marr upd = updateM writeMU marr (streamU upd)
 
-updateM :: UA e => MUArr e s -> Stream (Int :*: e) -> ST s ()
+updateM :: UA e => (MUArr e s -> Int -> e -> ST s ())
+                -> MUArr e s -> Stream (Int :*: e) -> ST s ()
 {-# INLINE_STREAM updateM #-}
-updateM marr (Stream next s _) = upd s
+updateM write marr (Stream next s _) = upd s
   where
     upd s = case next s of
               Done               -> return ()
               Skip s'            -> upd s'
               Yield (i :*: x) s' -> do
-                                      writeMU marr i x
+                                      write marr i x
                                       upd s' 
 
 -- | Yield an array constructed by updating the first array by the
@@ -109,7 +111,7 @@ update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
 update s1@(Stream _ _ n) !s2 = newDynU n (\marr ->
   do
     i <- unstreamMU marr s1
-    updateM marr s2
+    updateM writeMU marr s2
     return i
   )
 
