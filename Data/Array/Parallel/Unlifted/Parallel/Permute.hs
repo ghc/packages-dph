@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel.Permute (
-  bpermuteUP
+  bpermuteUP, updateUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat
@@ -27,7 +27,7 @@ bpermuteUP :: UA a => UArr a -> UArr Int -> UArr a
 bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
 
 {-
-  I'm really not sure if we can support this. There are two problems. First,
+  We can't support this for arbitrary types. The problem is:
   what happens if the second array maps multiple elements to the same position?
   I don't know what the semantics is supposed to be in Nesl, the spec don't
   seem to say anything. Note that it is not sufficient to say, e.g., that it
@@ -40,8 +40,17 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
   the time (at least in the algorithms I've seen) and, more importantly, it
   still won't work with packed arrays of Bools.
 
-updateUP :: UA a => UArr a -> UArr (Int :*: a) -> UArr a
+  So we only do the update in parallel if writing an element into the array is
+  atomic. Otherwise, we do a sequential update.
+-}
+
+updateUP :: forall a. UA a => UArr a -> UArr (Int :*: a) -> UArr a
 {-# INLINE updateUP #-}
-updateUP as us = updateD theGang (splitD theGang balanced as) (splitD theGang balanced us)
- -}
+updateUP as us
+  | hasAtomicWriteMU (undefined :: a) 
+  = atomicUpdateD theGang (splitD theGang unbalanced as)
+                          (splitD theGang unbalanced us)
+
+  | otherwise
+  = updateU as us
 

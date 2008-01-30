@@ -15,7 +15,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
   splitSD, joinSD, splitJoinSD,
 
-  permuteD, bpermuteD, updateD, bpermuteSD',
+  permuteD, bpermuteD, atomicUpdateD, bpermuteSD',
 
   Distribution, balanced, unbalanced
 ) where
@@ -24,7 +24,7 @@ import Data.Array.Parallel.Base (
   (:*:)(..), fstS, ST, runST)
 import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, MUArr, lengthU, sliceU, bpermuteU, zipU, (!:),
-  newU, newMU, copyMU, permuteMU, updateMU, unsafeFreezeAllMU,
+  newU, newMU, copyMU, permuteMU, atomicUpdateMU, unsafeFreezeAllMU,
   fromU)
 import Data.Array.Parallel.Unlifted.Segmented (
   USegd, SUArr, lengthsUSegd, lengthsToUSegd,
@@ -169,15 +169,16 @@ bpermuteD g !as ds = mapD g (bpermuteU as) ds
 -- NB: This does not (and cannot) try to prevent two threads from writing to
 -- the same position. We probably want to consider this an (unchecked) user
 -- error.
-updateD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
-updateD g darr upd = runST (
+atomicUpdateD :: UA a
+             => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
+atomicUpdateD g darr upd = runST (
   do
     marr <- joinDM g darr
     mapDST_ g (update marr) upd
     unsafeFreezeAllMU marr
   )
   where
-    update marr arr = stToDistST (updateMU marr arr)
+    update marr arr = stToDistST (atomicUpdateMU marr arr)
 
 splitSegdLengthsD :: Gang -> Int -> UArr Int -> Dist (Int :*: Int)
 splitSegdLengthsD g n !lens = newD g (\md -> fill md 0 0 0 0)
