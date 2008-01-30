@@ -30,14 +30,13 @@ randomG g n e = Graph n e ues
                  fill arr rs (e-1)
 
 
-    ues = toU $ concat [map (:*: m) ns | (m,ns) <- assocs aes]
+    ues = toU $ concat [map (m :*:) ns | (m,ns) <- assocs aes]
 
 main = do
          args       <- getArgs
          (n,e,file) <- parseArgs args
          g          <- newStdGen
          storeGraph file $ randomG g n e
-
   where
     parseArgs [nodes,edges,file] =
       do
