@@ -115,14 +115,14 @@ scanl1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
 scanl1U f arr = checkNotEmpty (here "scanl1U") (lengthU arr) $
                 unstreamU (scan1S f (streamU arr))
 
--- |Prefix scan proceedings from left to right that needs an associative
+-- |Prefix scan proceeding from left to right that needs an associative
 -- combination function with its unit
 --
 scanU :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a
 {-# INLINE_U scanU #-}
 scanU = scanlU
 
--- |Prefix scan of a non-empty array proceedings from left to right that needs
+-- |Prefix scan of a non-empty array proceeding from left to right that needs
 -- an associative combination function
 --
 scan1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
