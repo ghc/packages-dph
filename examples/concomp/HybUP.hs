@@ -6,7 +6,7 @@ import Data.Array.Parallel.Unlifted.Parallel
 
 enumerate :: UArr Bool -> UArr Int
 {-# INLINE enumerate #-}
-enumerate = scanU (+) 0 . mapU (\b -> if b then 1 else 0)
+enumerate = scanUP (+) 0 . mapUP (\b -> if b then 1 else 0)
 
 pack_index :: UArr Bool -> UArr Int
 {-# INLINE pack_index #-}
