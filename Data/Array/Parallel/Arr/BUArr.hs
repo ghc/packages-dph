@@ -585,6 +585,7 @@ hPutBU h arr@(BUArr i n arr#) =
         \handle@Handle__{ haFD=fd, haBuffer=ref, haIsStream=stream } -> do
       old_buf     <- readIORef ref
       flushed_buf <- flushWriteBuffer fd stream old_buf
+      writeIORef ref flushed_buf
       let this_buf = Buffer { bufBuf   = unsafeCoerce# arr#
                             , bufState = WriteBuffer
                             , bufRPtr  = off
