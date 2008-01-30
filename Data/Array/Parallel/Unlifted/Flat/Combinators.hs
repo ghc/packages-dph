@@ -25,18 +25,21 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
   foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
   foldU,  fold1U,  fold1MaybeU,
   scanlU, scanl1U, {-scanrU, scanr1U,-} scanU, scan1U,
+  scanResU,
   mapAccumLU,
   zipU, zip3U, unzipU, unzip3U, fstU, sndU,
   zipWithU, zipWith3U, combineU,
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), checkNotEmpty, sndS)
+  (:*:)(..), MaybeS(..), checkNotEmpty, sndS, Rebox(..), ST, runST)
 import Data.Array.Parallel.Stream (
+  Step(..), Stream(..),
   mapS, filterS, foldS, fold1MaybeS, scan1S, scanS, mapAccumS,
   zipWithS, zipWith3S, combineS)
 import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr,
+  UA, UArr, MUArr,
+  writeMU, newDynResU,
   zipU, unzipU, fstU, sndU)
 import Data.Array.Parallel.Unlifted.Flat.Stream (
   streamU, unstreamU)
@@ -128,6 +131,28 @@ scanU = scanlU
 scan1U :: UA a => (a -> a -> a) -> UArr a -> UArr a
 {-# INLINE_U scan1U #-}
 scan1U = scanl1U
+
+scanResU :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a :*: a
+{-# INLINE_U scanResU #-}
+scanResU f z = unstreamScan f z . streamU
+
+unstreamScan :: UA a => (a -> a -> a) -> a -> Stream a -> UArr a :*: a
+{-# INLINE_STREAM unstreamScan #-}
+unstreamScan f z st@(Stream _ _ n)
+  = newDynResU n (\marr -> unstreamScanM marr f z st)
+
+unstreamScanM :: UA a => MUArr a s -> (a -> a -> a) -> a -> Stream a
+                      -> ST s (Int :*: a)
+{-# INLINE_U unstreamScanM #-}
+unstreamScanM marr f z (Stream next s n) = fill s z 0
+  where
+    fill s !z !i = case next s of
+                     Done       -> return (i :*: z)
+                     Skip    s' -> s' `dseq` fill s' z i
+                     Yield x s' -> s' `dseq`
+                                   do
+                                     writeMU marr i z
+                                     fill s' (f z x) (i+1)
 
 -- |Accumulating map from left to right. Does not return the accumulator.
 --

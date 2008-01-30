@@ -51,6 +51,7 @@ module Data.Array.Parallel.Unlifted (
   scanlU, scanl1U,
   {-scanrU, scanr1U,-}
   scanU, scan1U,
+  scanResU,
   mapAccumLU,
 
   -- Segmented filter and combines
