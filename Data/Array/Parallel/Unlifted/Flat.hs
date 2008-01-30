@@ -90,7 +90,8 @@ module Data.Array.Parallel.Unlifted.Flat (
 
   -- * Operations on mutable arrays
   newU, lengthMU, newMU, readMU, writeMU, unsafeFreezeMU, unsafeFreezeAllMU,
-  copyMU, permuteMU, updateMU, unstreamMU,
+  copyMU, permuteMU, atomicUpdateMU, unstreamMU,
+  hasAtomicWriteMU, atomicWriteMU,
 
   -- FIXME
   lengthU'
@@ -99,7 +100,8 @@ module Data.Array.Parallel.Unlifted.Flat (
 import Data.Array.Parallel.Unlifted.Flat.UArr (
   UA, UArr, MUArr, UIO(..),
   newU, lengthMU, newMU, readMU, writeMU, copyMU,
-  unsafeFreezeMU, unsafeFreezeAllMU)
+  unsafeFreezeMU, unsafeFreezeAllMU,
+  hasAtomicWriteMU, atomicWriteMU)
 import Data.Array.Parallel.Unlifted.Flat.Stream
 import Data.Array.Parallel.Unlifted.Flat.Basics
 import Data.Array.Parallel.Unlifted.Flat.Enum

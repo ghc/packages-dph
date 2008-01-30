@@ -37,6 +37,8 @@ module Data.Array.Parallel.Unlifted.Flat.UArr (
   lengthU, indexU, sliceU, {-extractU,-} unitsU, zipU, unzipU, fstU, sndU,
   newU, newDynU, newDynResU,
   lengthMU, newMU, readMU, writeMU, copyMU, unsafeFreezeMU, unsafeFreezeAllMU,
+  hasAtomicWriteMU, atomicWriteMU,
+
 
   -- * I\/O
   UIO(..)
@@ -91,12 +93,22 @@ class HS e => UA e where
   -- |Update an element in a mutable unboxed array
   writeMU        :: MUArr e s -> Int -> e      -> ST s ()
 
+  -- |Indicate whether the type supports atomic updates
+  hasAtomicWriteMU :: e -> Bool
+
+  -- |Atomically update an element in a mutable unboxed array if supported
+  atomicWriteMU  :: MUArr e s -> Int -> e      -> ST s ()
+
   -- |Copy the contents of an immutable unboxed array into a mutable one
   -- from the specified position on
   copyMU         :: MUArr e s -> Int -> UArr e -> ST s ()
 
   -- |Convert a mutable into an immutable unboxed array
   unsafeFreezeMU :: MUArr e s -> Int           -> ST s (UArr e)
+
+
+  hasAtomicWriteMU _  = False
+  atomicWriteMU _ _ _ = error "atomicWriteMU: not supported"
 
 instance HS e => HS (UArr e)
 instance HS e => HS (MUArr e s)
@@ -190,6 +202,9 @@ instance UA () where
   writeMU (MUAUnit _) _ _         = return ()
   copyMU (MUAUnit _) _ (UAUnit _) = return ()
   unsafeFreezeMU (MUAUnit _) n    = return $ UAUnit n
+
+  hasAtomicWriteMU _ = True
+  atomicWriteMU      = writeMU
 
 -- |Array operations on the pair representation.
 --
@@ -437,6 +452,12 @@ instance UA Int where
   writeMU        = primWriteMU
   copyMU         = primCopyMU
   unsafeFreezeMU = primUnsafeFreezeMU
+
+  -- FIXME: For now, we assume that Int writes are atomic but we should really
+  --        configure this.
+
+  hasAtomicWriteMU _ = True
+  atomicWriteMU      = primWriteMU
 
 instance UPrim Float where
   mkUAPrim                 = UAFloat
