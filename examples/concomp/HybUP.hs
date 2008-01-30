@@ -38,12 +38,12 @@ compress_graph p e =
 hybrid_connected_components :: UArr (Int :*: Int) -> Int -> Int :*: UArr Int
 {-# NOINLINE hybrid_connected_components #-}
 hybrid_connected_components e n
-  | nullU e   = 0 :*: enumFromToU 0 (n-1)
+  | nullU e   = 0 :*: enumFromToUP 0 (n-1)
   | otherwise = let p        = shortcut_all
-                             $ updateU (enumFromToUP 0 (n-1)) e
+                             $ updateUP (enumFromToUP 0 (n-1)) e
                     e' :*: i = compress_graph p e
                     k :*: r  = hybrid_connected_components e' (lengthU i)
-                    ins      = updateU p
+                    ins      = updateUP p
                              . zipU i
                              $ bpermuteUP i r
                 in

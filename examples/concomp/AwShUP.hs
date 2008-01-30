@@ -8,21 +8,21 @@ starCheck :: UArr Int -> UArr Bool
 starCheck ds =
   let gs  = bpermuteUP ds ds
       st  = zipWithUP (==) ds gs
-      st' = updateU st . filterUP (not . sndS)
-                       $ zipU gs st
+      st' = updateUP st . filterUP (not . sndS)
+                        $ zipU gs st
   in
   bpermuteUP st' gs
 
 conComp :: UArr Int -> UArr (Int :*: Int) -> Int :*: UArr Int
 conComp ds es =
   let es1 :*: es2 = unzipU es
-      ds'         = updateU ds
+      ds'         = updateUP ds
                   . mapUP (\(di :*: dj :*: gi) -> (di :*: dj))
                   . filterUP (\(di :*: dj :*: gi) -> gi == di && di > dj)
                   $ zip3U (bpermuteUP ds es1)
                           (bpermuteUP ds es2)
                           (bpermuteUP ds (bpermuteUP ds es1))
-      ds''        = updateU ds'
+      ds''        = updateUP ds'
                   . mapUP (\(di :*: dj :*: st) -> (di :*: dj))
                   . filterUP (\(di :*: dj :*: st) -> st && di /= dj)
                   $ zip3U (bpermuteUP ds' es1)
