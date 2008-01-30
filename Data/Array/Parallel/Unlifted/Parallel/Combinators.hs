@@ -14,7 +14,8 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, filterUP, zipWithUP, foldUP, fold1UP, foldl1UP
+  mapUP, filterUP, zipWithUP, foldUP, fold1UP, foldl1UP,
+  scanUP
 ) where
 
 import Data.Array.Parallel.Base
@@ -90,4 +91,12 @@ foldl1UP f arr = (maybeS z (f z)
     combine NothingS  (JustS y) = JustS y
     combine NothingS  NothingS  = NothingS
 
+scanUP :: (DT a, UA a) => (a -> a -> a) -> a -> UArr a -> UArr a
+{-# INLINE_UP scanUP #-}
+scanUP f z = splitJoinD theGang go
+  where
+    go xs = let ds :*: zs = unzipD $ mapD theGang (scanResU f z) xs
+                zs'       = fstS (scanD theGang f z zs)
+            in
+            zipWithD theGang (mapU . f) zs' ds
 
