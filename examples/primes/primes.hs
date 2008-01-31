@@ -1,5 +1,4 @@
 import Control.Exception (evaluate)
-import Control.Parallel.Strategies (rnf)
 import System.Console.GetOpt
 
 import Data.Array.Parallel.Unlifted
@@ -12,7 +11,11 @@ import qualified Seq
 
 type Alg = Int -> ()
 
-algs = [("h98",  rnf . H98.primes)
+seqList :: [Int] -> ()
+seqList [] = ()
+seqList (x:xs) = x `seq` seqList xs
+
+algs = [("h98",  seqList . H98.primes)
        ,("seq",  \n -> Seq.primes n `seq` ())
        ]
 
