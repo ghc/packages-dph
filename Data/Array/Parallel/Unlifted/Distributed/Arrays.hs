@@ -82,7 +82,7 @@ splitAsD g dlen !arr = zipWithD (seqGang g) (sliceU arr) is dlen
 
 -- | Distribute an array over a 'Gang'.
 splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
-{-# INLINE [1] splitD #-}
+{-# INLINE_DIST splitD #-}
 splitD g _ !arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     dlen = splitLengthD g arr
@@ -96,7 +96,7 @@ joinLengthD g = sumD g . lengthD
 
 -- | Join a distributed array.
 joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
-{-# INLINE [1] joinD #-}
+{-# INLINE_DIST joinD #-}
 joinD g _ !darr = checkGangD (here "joinD") g darr $
                  newU n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
@@ -106,7 +106,7 @@ joinD g _ !darr = checkGangD (here "joinD") g darr $
 
 splitJoinD :: (UA a, UA b)
            => Gang -> (Dist (UArr a) -> Dist (UArr b)) -> UArr a -> UArr b
-{-# INLINE [1] splitJoinD #-}
+{-# INLINE_DIST splitJoinD #-}
 splitJoinD g f !xs = joinD g unbalanced (f (splitD g unbalanced xs))
 
 -- | Join a distributed array, yielding a mutable global array
@@ -171,6 +171,7 @@ bpermuteD g !as ds = mapD g (bpermuteU as) ds
 -- error.
 atomicUpdateD :: UA a
              => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
+{-# INLINE atomicUpdateD #-}
 atomicUpdateD g darr upd = runST (
   do
     marr <- joinDM g darr
@@ -209,20 +210,20 @@ joinSegD g = lengthsToUSegd
            . mapD (seqGang g) lengthsUSegd
 
 splitSD :: UA a => Gang -> Distribution -> SUArr a -> Dist (SUArr a)
-{-# INLINE [1] splitSD #-}
+{-# INLINE_DIST splitSD #-}
 splitSD g _ !sarr = zipWithD g (>:) dsegd (splitAsD g dlen flat)
   where
     flat = concatSU sarr
     dsegd :*: dlen = unzipD (splitSegdD' g (lengthU flat) (segdSU sarr))
 
 joinSD :: UA a => Gang -> Distribution -> Dist (SUArr a) -> SUArr a
-{-# INLINE [1] joinSD #-}
+{-# INLINE_DIST joinSD #-}
 joinSD g _ !darr = joinSegD g (segdSD darr)
                 >: joinD g unbalanced (concatSD darr)
 
 splitJoinSD :: (UA a, UA b)
            => Gang -> (Dist (SUArr a) -> Dist (SUArr b)) -> SUArr a -> SUArr b
-{-# INLINE [1] splitJoinSD #-}
+{-# INLINE_DIST splitJoinSD #-}
 splitJoinSD g f !xs = joinSD g unbalanced (f (splitSD g unbalanced xs))
 
 {-# RULES
