@@ -7,7 +7,8 @@ import Bench.Benchmark
 import Bench.Options
 
 import qualified H98
-import qualified Seq
+import qualified PrimSeq
+import qualified PrimPar
 
 type Alg = Int -> ()
 
@@ -16,7 +17,8 @@ seqList [] = ()
 seqList (x:xs) = x `seq` seqList xs
 
 algs = [("h98",  seqList . H98.primes)
-       ,("seq",  \n -> Seq.primes n `seq` ())
+       ,("seq",  \n -> PrimSeq.primes n `seq` ())
+       ,("par",  \n -> PrimPar.primes n `seq` ())
        ]
 
 main = ndpMain "Sieve of Eratosthenes"

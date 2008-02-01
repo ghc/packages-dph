@@ -22,9 +22,11 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   andUP, sumUP,
 
-  zipWithSUP, foldSUP, sumSUP, bpermuteSUP',
+  zipWithSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP,
 
   indexedUP, replicateUP, replicateEachUnbalancedUP,
+
+  dropUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Parallel.Permute
@@ -33,5 +35,6 @@ import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Segmented
+import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 
 

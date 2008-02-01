@@ -1,4 +1,4 @@
------------------------------------------------------------------------------
+----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Unlifted.Flat.Permute
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller

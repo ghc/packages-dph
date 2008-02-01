@@ -14,12 +14,14 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP'
+  zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat
 import Data.Array.Parallel.Unlifted.Segmented
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Base (
+  (:*:)(..), fstS, sndS, uncurryS)
 
 zipWithSUP :: (UA a, UA b, UA c)
            => (a -> b -> c) -> SUArr a -> SUArr b -> SUArr c
@@ -46,4 +48,14 @@ sumSUP = foldSUP (+) 0
 bpermuteSUP' :: UA a => UArr a -> SUArr Int -> SUArr a
 {-# INLINE bpermuteSUP' #-}
 bpermuteSUP' as = splitJoinSD theGang (bpermuteSD' theGang as)
+
+
+-- |Yield a segmented enumerated array using a specific step (unbalanced)
+--
+enumFromThenToSUP :: (Enum e, UA e) 
+		 => UArr e -> UArr e -> UArr e -> SUArr e
+{-# INLINE_U enumFromThenToSUP #-}
+enumFromThenToSUP  starts nexts ends = 
+  joinSD theGang unbalanced $ mapD theGang (\t -> enumFromThenToSU (fstU t) (fstU $ sndU t) (sndU $ sndU t)) $ 
+    splitD theGang unbalanced $ zipU starts $ zipU nexts ends
 

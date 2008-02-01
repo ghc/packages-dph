@@ -72,6 +72,8 @@ splitLenD g n = newD g (`fill` 0)
               | i < p     = writeMD md i l     >> fill md (i+1)
               | otherwise = return ()
 
+
+
 -- | Distribute an array over a 'Gang' such that each threads gets the given
 -- number of elements.
 splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
