@@ -13,6 +13,10 @@
 -- Enum-related parallel operations on unlifted arrays
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Parallel.Enum (
   enumFromToUP, enumFromThenToUP, enumFromStepLenUP
 ) where

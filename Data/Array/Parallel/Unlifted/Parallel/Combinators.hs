@@ -13,6 +13,10 @@
 -- Parallel combinators for unlifted arrays
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, filterUP, zipWithUP, foldUP, fold1UP, foldl1UP,
   scanUP

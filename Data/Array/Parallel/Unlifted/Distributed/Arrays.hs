@@ -11,6 +11,10 @@
 -- Operations on distributed arrays.
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
   splitSD, joinSD, splitJoinSD,

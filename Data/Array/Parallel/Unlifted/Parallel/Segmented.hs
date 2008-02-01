@@ -13,6 +13,10 @@
 -- Parallel combinators for segmented unboxed arrays
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP
 ) where
