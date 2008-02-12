@@ -64,8 +64,8 @@ filterFlagsCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
 filterFlagsCU flags xssArr = segmentArrU newLengths flatData
   where
     repFlags   = flattenSU $ replicateSU (lengthsSU xssArr) flags
-    flatData   = filterFlagsU repFlags $ flattenSU xssArr
-    newLengths = filterFlagsU flags    $ lengthsSU xssArr
+    flatData   = packU (flattenSU xssArr) repFlags 
+    newLengths = packU (lengthsSU xssArr) flags    
 
 combineCU::  (UA e) => UArr Bool -> SUArr e -> SUArr e -> SUArr e
 {-# INLINE combineCU #-}
