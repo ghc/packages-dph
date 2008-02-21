@@ -195,13 +195,15 @@ splitSegdLengthsD g n !lens = newD g (\md -> fill md 0 0 0 0)
     dlens = splitLenD g n
    
     fill md i j k l | i == p                  = return ()
-                    | l < (dlens `indexD` i)
+                    | (l < e || e == 0)   -- keep empty segments at the end!
                       && j < m                = fill md i (j + 1)
                                                           (k + 1)
                                                           (l + lens !: j)
                     | otherwise               = do
                                                   writeMD md i (k :*: l)
                                                   fill md (i + 1) j 0 0
+      where
+        e = dlens `indexD` i
 
 splitSegdD' :: Gang -> Int -> USegd -> Dist (USegd :*: Int)
 splitSegdD' g n !segd = zipD (mapD g lengthsToUSegd
