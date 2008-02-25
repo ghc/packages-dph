@@ -17,7 +17,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Segmented.Subarrays (
-  sliceSU, extractSU
+  sliceSU, extractSU, takeCU, dropCU
 ) where
 
 import Data.Array.Parallel.Unlifted.Flat (
@@ -50,3 +50,12 @@ extractSU sa i n =
   extractUSegd (segdSU sa) i n >: extractU a i' j
 
 
+takeCU:: (UA e) => Int ->  SUArr e  -> SUArr e
+{-# INLINE takeCU #-}
+takeCU n xssArr = sliceSU xssArr 0 n 
+
+
+
+dropCU:: (UA e) => Int ->  SUArr e  -> SUArr e
+{-# INLINE dropCU #-}
+dropCU n xssArr = sliceSU xssArr n (lengthSU xssArr -1)

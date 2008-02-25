@@ -2,7 +2,7 @@
 --
 -- TODO:
 --   why is combineSS slower?
-module QSortSeq (qsort, qsortList)
+module QSortSeq (qsortSeq, qsortList)
 where
 
 import Data.Array.Parallel.Unlifted
@@ -23,9 +23,9 @@ qsort xsarr
     greater   = filterU (> pivot) xsarr
 -}
 
-qsort :: UArr Double -> Int
-{-# NOINLINE qsort #-}
-qsort = lengthSU . qsortLifted . singletonSU
+qsortSeq :: UArr Double -> Int
+{-# NOINLINE qsortSeq #-}
+qsortSeq  = lengthSU . qsortLifted . singletonSU
 
 qsortLifted:: SUArr Double -> SUArr Double
 qsortLifted xssArr = splitApplySU flags qsortLifted' id xssArr
@@ -35,54 +35,38 @@ qsortLifted xssArr = splitApplySU flags qsortLifted' id xssArr
 qsortLifted' xssarr = 
   if (xssLen == 0) 
     then xssarr
-    else appendSU (takenCU xssLen sorted) (appendSU equal  (dropnCU xssLen sorted))
+    else appendSU (takeCU xssLen sorted) (appendSU equal  (dropCU xssLen sorted))
   where
     xssLen     = lengthSU xssarr
     xsLens     = lengthsSU xssarr
-    pivots     = indexSU xssarr $ mapU (flip div 2) xsLens
+    pivots     = xssarr !:^ mapU (flip div 2) xsLens
     pivotss    = replicateSU xsLens pivots
     xarrLens   = zipSU xssarr pivotss 
     sorted     = qsortLifted $ (mapSU fstS $ filterSU (uncurryS (>)) xarrLens)  +:+^    
                                (mapSU fstS $ filterSU (uncurryS (<)) xarrLens) 
 
     equal      =               mapSU fstS $ filterSU (uncurryS (==)) xarrLens
---    smaller    = qsortLifted $ mapSU fstS $ filterSU (uncurryS (<)) xarrLens
+
     
 
 
 
-indexSU :: (UA e) => SUArr e -> UArr Int -> UArr e
-{-# INLINE indexSU #-}
-indexSU sArr inds = bpermuteU (flattenSU sArr) newInds
-  where
-    xsLens  = lengthsSU sArr
-    newInds = zipWithU (+) inds $ scanU (+) 0 xsLens    
-  
-
-filterFlagsCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
-{-# INLINE filterFlagsCU #-}
-filterFlagsCU flags xssArr = segmentArrU newLengths flatData
+packCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
+{-# INLINE packCU #-}
+packCU flags xssArr = segmentArrU newLengths flatData
   where
     repFlags   = flattenSU $ replicateSU (lengthsSU xssArr) flags
     flatData   = packU (flattenSU xssArr) repFlags 
     newLengths = packU (lengthsSU xssArr) flags    
 
-combineCU::  (UA e) => UArr Bool -> SUArr e -> SUArr e -> SUArr e
-{-# INLINE combineCU #-}
-combineCU  flags xssArr1 xssArr2 = segmentArrU newLengths flatData
-  where
-    newLengths = combineU  flags (lengthsSU xssArr1) (lengthsSU xssArr2)
-    repFlags   = replicateSU newLengths flags
-    --flatData   = combineSU  flags  xssArr1   xssArr2
-    flatData   = combineU  (flattenSU repFlags) (flattenSU xssArr1)  (flattenSU xssArr2)  
 
       
 splitApplySU:: (UA e, UA e') =>  UArr Bool -> (SUArr e -> SUArr e') -> (SUArr e -> SUArr e') -> SUArr e -> SUArr e'
 {-# INLINE splitApplySU #-}
 splitApplySU  flags f1 f2 xssArr = combineCU flags res1 res2
   where
-    res1 = f1 $ filterFlagsCU flags xssArr 
-    res2 = f2 $ filterFlagsCU (mapU not flags) xssArr
+    res1 = f1 $ packCU flags xssArr 
+    res2 = f2 $ packCU (mapU not flags) xssArr
    
 
 appendSU:: (UA e) => SUArr e -> SUArr e -> SUArr e
@@ -96,24 +80,12 @@ appendSU xssArr1 xssArr2 = segmentArrU newLengths flatData
 
 
 
--- there should be a better way to implent dropn and taken
--- it makes qsort terribly slow
-takenCU:: (UA e) => Int ->  SUArr e  -> SUArr e
-{-# INLINE takenCU #-}
-takenCU n xssArr = filterFlagsCU flags xssArr
-  where
-    flags = mapU (<=n) $ enumFromToU 1 (lengthSU xssArr)
 
+qsortList:: [Double] -> Int
+qsortList = length . qsortList'
 
-dropnCU:: (UA e) => Int ->  SUArr e  -> SUArr e
-{-# INLINE dropnCU #-}
-dropnCU n xssArr = filterFlagsCU flags xssArr
-  where
-    flags = mapU (>n) $ enumFromToU 1 (lengthSU xssArr)
-
-
-qsortList [] = []
-qsortList xs = (qsortList smaller) ++ equal ++ (qsortList greater) 
+qsortList' [] = []
+qsortList' xs = (qsortList' smaller) ++ equal ++ (qsortList' greater) 
   where
     p = xs !! (length xs `div` 2)
     smaller = [x | x <- xs, x < p]

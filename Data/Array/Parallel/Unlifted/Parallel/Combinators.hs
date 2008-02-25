@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, filterUP, zipWithUP, foldUP, fold1UP, foldl1UP,
+  mapUP, filterUP, packUP, zipWithUP, foldUP, fold1UP, foldl1UP,
   scanUP
 ) where
 
@@ -35,6 +35,7 @@ filterUP :: UA a => (a -> Bool) -> UArr a -> UArr a
 filterUP f = joinD  theGang unbalanced
            . mapD   theGang (filterU f)
            . splitD theGang unbalanced
+
 
 
 -- |Extract all elements from an array according to a given flag array
@@ -103,4 +104,5 @@ scanUP f z = splitJoinD theGang go
                 zs'       = fstS (scanD theGang f z zs)
             in
             zipWithD theGang (mapU . f) zs' ds
+
 

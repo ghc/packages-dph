@@ -21,14 +21,17 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Flat.Combinators (
-  mapU, filterU, packU,
+  mapU, 
+  filterU, 
+  packU,
   foldlU, foldl1U, foldl1MaybeU, {-foldrU, foldr1U,-}
   foldU,  fold1U,  fold1MaybeU,
   scanlU, scanl1U, {-scanrU, scanr1U,-} scanU, scan1U,
   scanResU,
   mapAccumLU,
   zipU, zip3U, unzipU, unzip3U, fstU, sndU,
-  zipWithU, zipWith3U, combineU,
+  zipWithU, zipWith3U, 
+  combineU
 ) where
 
 import Data.Array.Parallel.Base (
@@ -67,6 +70,8 @@ filterU p = unstreamU . filterS p . streamU
 packU:: UA e => UArr e -> UArr Bool -> UArr e
 {-# INLINE_U packU #-}
 packU xs = fstU . filterU sndS . zipU xs
+
+
 
 -- |Array reduction proceeding from the left
 --

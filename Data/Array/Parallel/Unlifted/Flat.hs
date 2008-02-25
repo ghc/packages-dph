@@ -29,7 +29,8 @@ module Data.Array.Parallel.Unlifted.Flat (
 
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU,
-  replicateU, replicateEachU,
+  replicateU,
+  replicateEachU,
   (!:), (+:+),
   indexedU, repeatU,
 
@@ -41,11 +42,12 @@ module Data.Array.Parallel.Unlifted.Flat (
 
   -- * Permutations
   permuteU, bpermuteU, bpermuteDftU, reverseU, updateU,
-  combineU,
+
 
   -- * Higher-order operations
   mapU, zipWithU, zipWith3U,
   filterU, packU, 
+  combineU, 
   foldlU, foldl1U, foldl1MaybeU,
   {-foldrU, foldr1U,-}
   foldU, fold1U, fold1MaybeU,

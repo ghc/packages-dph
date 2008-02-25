@@ -43,7 +43,7 @@ splitPointsL  bboxes particless
   where
                            
     multiparticles = (splitPointsL' llbb lubb rubb rlbb) $ 
-       filterFlagsCU multiPointFlags particless
+       packCU multiPointFlags particless
 
     centroids =  
       calcCentroids $ segmentArrU nonEmptySegd $ flattenSU particless
@@ -192,25 +192,17 @@ splitApplySU:: (UA e, UA e') =>  UArr Bool -> (SUArr e -> SUArr e') -> (SUArr e 
 {-# INLINE splitApplySU #-}
 splitApplySU  flags f1 f2 xssArr = combineCU flags res1 res2
   where
-    res1 = f1 $ filterFlagsCU flags xssArr 
-    res2 = f2 $ filterFlagsCU (mapU not flags) xssArr
+    res1 = f1 $ packCU flags xssArr 
+    res2 = f2 $ packCU (mapU not flags) xssArr
 
-filterFlagsCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
-{-# INLINE filterFlagsCU #-}
-filterFlagsCU flags xssArr = segmentArrU newLengths flatData
+packCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
+{-# INLINE packCU #-}
+packCU flags xssArr = segmentArrU newLengths flatData
   where
     repFlags   = flattenSU $ replicateSU (lengthsSU xssArr) flags
     flatData   = packU (flattenSU xssArr) repFlags  
     newLengths = packU (lengthsSU xssArr) flags    
 
-combineCU::  (UA e) => UArr Bool -> SUArr e -> SUArr e -> SUArr e
-{-# INLINE combineCU #-}
-combineCU  flags xssArr1 xssArr2 = segmentArrU newLengths flatData
-  where
-    newLengths = combineU  flags (lengthsSU xssArr1) (lengthsSU xssArr2)
-    repFlags   = replicateSU newLengths flags
-    --flatData   = combineSU  flags  xssArr1   xssArr2
-    flatData   = combineU  (flattenSU repFlags) (flattenSU xssArr1)  (flattenSU xssArr2)  
 
 appendSU:: (UA e) => SUArr e -> SUArr e -> SUArr e
 {-# INLINE appendSU #-}
@@ -222,8 +214,3 @@ appendSU xssArr1 xssArr2 = segmentArrU newLengths flatData
     newLengths = zipWithU (+) (lengthsSU xssArr1) (lengthsSU xssArr2)
 
 
-replicateCU:: (UA e) => Int -> UArr e -> SUArr e
-replicateCU n arr = segmentArrU (replicateU n rLen) flatRep                      
-  where
-    flatRep = bpermuteU arr (mapU (`mod` rLen) $ enumFromToU 0 (n * rLen-1))
-    rLen  = lengthU arr

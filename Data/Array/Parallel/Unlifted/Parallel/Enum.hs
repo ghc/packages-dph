@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Enum (
-  enumFromToUP, enumFromThenToUP, enumFromStepLenUP
+  enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromToEachUP    
 ) where
 
 import Data.Array.Parallel.Base (

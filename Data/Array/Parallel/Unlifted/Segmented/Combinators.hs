@@ -23,7 +23,8 @@
 module Data.Array.Parallel.Unlifted.Segmented.Combinators (
   mapSU, zipWithSU,
   foldlSU, foldSU, foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
-  combineSU, filterSU
+  combineSU, combineCU,
+  filterSU, packCU
 ) where
 
 import Data.Array.Parallel.Base (
@@ -34,13 +35,13 @@ import Data.Array.Parallel.Unlifted.Flat (
   UA, UArr, mapU, zipWithU,
   unstreamU, streamU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
-  SUArr, segdSU, flattenSU, (>:))
+  SUArr, segdSU, flattenSU, (>:), lengthsSU)
 import Data.Array.Parallel.Unlifted.Segmented.Basics (
-  concatSU, segmentArrU,segmentU)
+  concatSU, segmentArrU,segmentU, replicateSU)
 import Data.Array.Parallel.Unlifted.Segmented.Stream (
   streamSU)
 import Data.Array.Parallel.Unlifted.Flat.Combinators (
-  filterU)
+  filterU, combineU, packU)
 
 
 import Debug.Trace
@@ -86,6 +87,15 @@ combineSU:: UA a => UArr Bool -> SUArr a -> SUArr a -> UArr a
 combineSU fs xs1 xs2 =
   unstreamU $ combineSS (streamU fs) (streamSU xs1) (streamSU xs2)
 
+combineCU::  (UA e) => UArr Bool -> SUArr e -> SUArr e -> SUArr e
+{-# INLINE combineCU #-}
+combineCU  flags xssArr1 xssArr2 = segmentArrU newLengths flatData
+  where
+    newLengths = combineU  flags (lengthsSU xssArr1) (lengthsSU xssArr2)
+    repFlags   = replicateSU newLengths flags
+    --flatData   = combineSU  flags  xssArr1   xssArr2
+    flatData   = combineU  (flattenSU repFlags) (flattenSU xssArr1)  (flattenSU xssArr2)  
+
 -- |Filter segmented array
 --
 filterSU:: (UA e) => (e -> Bool) -> SUArr e -> SUArr e
@@ -96,5 +106,13 @@ filterSU p xssArr = segmentArrU newLengths flatData
     segdFlags  = segmentU xssArr $ mapU (\x -> if p x then 1 else 0) $ flattenSU xssArr
     newLengths = foldSU (+) 0 segdFlags 
 
+
+packCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
+{-# INLINE packCU #-}
+packCU flags xssArr = segmentArrU newLengths flatData
+  where
+    repFlags   = flattenSU $ replicateSU (lengthsSU xssArr) flags
+    flatData   = packU (flattenSU xssArr) repFlags  
+    newLengths = packU (lengthsSU xssArr) flags    
 
 

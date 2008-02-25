@@ -18,11 +18,11 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   enumFromToUP, enumFromThenToUP, enumFromStepLenUP,
 
-  mapUP, filterUP, zipWithUP, foldUP, scanUP,
+  mapUP, filterUP, packUP, zipWithUP, foldUP, scanUP,
 
   andUP, sumUP,
 
-  zipWithSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP,
+  mapSUP, filterSUP, packCUP, zipWithSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP, replicateSUP, indexedSUP, jsTest,
 
   indexedUP, replicateUP, replicateEachUnbalancedUP,
 

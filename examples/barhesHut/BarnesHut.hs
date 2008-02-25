@@ -19,6 +19,21 @@ bhStep (dx, dy, particles) =
                         particles) (flattenSU particles)
 
 
+mapData:: IO (Bench.Benchmark.Point (UArr Double))
+mapData = do
+  evaluate testData
+  return $ ("N = " ) `mkPoint` testData
+  where
+    testData:: UArr Double
+    testData = toU $ map fromIntegral [0..10000000]
+
+
+mapSeq:: UArr Double -> UArr Double
+mapSeq = error ""
+
+mapPar:: UArr Double -> UArr Double
+mapPar = error ""
+
 -- simpleTest:: 
 simpleTest:: [Int] -> Double -> Double -> IO (Bench.Benchmark.Point (Double, Double, SUArr MassPoint))
 simpleTest _ _ _=
@@ -63,8 +78,15 @@ run opts alg sizes =
   case lookup alg algs of
     Nothing -> failWith ["Unknown algorithm"]
     Just f  -> case map read sizes of
-                 []  -> failWith ["No sizes specified"]
+--                 []    -> failWith ["No sizes specified"]
+                 [100] -> failWith ["No sizes specified"]
+                 szs -> do
+                           benchmark opts mapSeq [mapData] show
+                           benchmark opts mapPar [mapData] show
+                           return ()
+
+{-
                  szs -> do 
                           benchmark opts f [simpleTest szs undefined undefined] show
                           return ()
-
+-}

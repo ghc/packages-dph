@@ -56,7 +56,11 @@ module Data.Array.Parallel.Unlifted (
 
   -- Segmented filter and combines
   filterSU,
-  combineU, combineSU,
+  combineU, combineSU, combineCU, 
+
+
+  -- * Segmented Subarrays
+  sliceSU, extractSU, takeCU, dropCU,
 
   -- * Searching
   elemU, notElemU,
@@ -95,7 +99,7 @@ module Data.Array.Parallel.Unlifted (
   concatSU, flattenSU, (>:), segmentU, segmentArrU,
 
   -- * Basic operations (segmented)
-  lengthSU, singletonSU, replicateSU, (+:+^), indexedSU, (^+:+^),
+  lengthSU, singletonSU, replicateSU, (+:+^), indexedSU, (^+:+^), (!:^),
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,

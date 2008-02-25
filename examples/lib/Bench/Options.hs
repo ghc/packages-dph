@@ -41,7 +41,7 @@ options = [Option ['r'] ["runs"]
                                                 (maybe 1 read r) }) "N")
             "simulate N threads (default 1)"
          ,Option ['h'] ["help"]
-            (NoArg (\o -> o { optHelp = True }))
+                     (NoArg (\o -> o { optHelp = True }))
             "show help screen"
          ]
 

@@ -29,13 +29,14 @@ module Data.Array.Parallel.Unlifted.Segmented (
 
   -- * Basic operations
   lengthSU, singletonSU, replicateSU, sliceIndexSU, extractIndexSU, (+:+^),
+  replicateCU, (!:^),
   indexedSU, (^+:+^),
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,
 
   -- * Subarrays
-  sliceSU, extractSU,
+  sliceSU, extractSU, takeCU, dropCU,
 
   -- * Zipping
   fstSU, sndSU, zipSU,
@@ -51,9 +52,9 @@ module Data.Array.Parallel.Unlifted.Segmented (
   {-scanSU, scan1SU,-}
 
   -- filter and combines
-  filterSU,
+  filterSU, packCU, 
 
-  combineSU,
+  combineSU, combineCU,
   -- * Logical operations
   andSU, orSU,
 

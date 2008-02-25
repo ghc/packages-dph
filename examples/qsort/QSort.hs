@@ -1,7 +1,8 @@
 module Main where
 import QSortSeq
+import QSortPar
 
-import Control.Exception (evaluate)
+import Control.Exception (evaluate      )
 import System.Console.GetOpt
 
 import Data.Array.Parallel.Unlifted
@@ -9,7 +10,8 @@ import Data.Array.Parallel.Unlifted
 import Bench.Benchmark
 import Bench.Options
 
-algs = [("seq", qsort)]
+
+algs = [("seq", qsortSeq), ("par", qsortPar), ("list", qsortList . fromU)]
 
 generateVector :: Int -> IO (Point (UArr Double))
 generateVector n =

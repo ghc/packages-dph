@@ -21,7 +21,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Segmented.Basics (
-  lengthSU, singletonSU, replicateSU,
+  lengthSU, singletonSU, replicateSU, replicateCU, (!:^),
   flattenSU, (>:), segmentU, segmentArrU, concatSU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
@@ -35,10 +35,13 @@ import Data.Array.Parallel.Stream (
   Step(..), Stream(..),SStream(..),(+++), (^+++^))
 import Data.Array.Parallel.Unlifted.Flat
 
+
 import Data.Array.Parallel.Unlifted.Segmented.Stream (streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd)
+
+
 
 -- lengthSU reexported from SUArr
 
@@ -54,6 +57,25 @@ singletonSU es = singletonUSegd (lengthU es) >: es
 replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
 {-# INLINE_U replicateSU #-}
 replicateSU ns es = lengthsToUSegd ns >: replicateEachU (sumU ns) ns es
+
+-- |Yield a segmented array, where each element contains the same array value
+--
+replicateCU:: (UA e) => Int -> UArr e -> SUArr e
+{-# INLINE_U replicateCU #-}
+replicateCU n arr = segmentArrU (replicateU n rLen) $ repeatU n arr
+  where
+    rLen    = lengthU arr
+
+
+-- |Array indexing
+--
+(!:^) :: (UA e) => SUArr e -> UArr Int -> UArr e
+{-# INLINE (!:^) #-}
+(!:^) sArr inds = bpermuteU (flattenSU sArr) newInds
+  where
+    xsLens  = lengthsSU sArr
+    newInds = zipWithU (+) inds $ scanU (+) 0 xsLens    
+
 
 -- |Segment an array according to the segmentation of the first argument
 --
