@@ -61,6 +61,9 @@ unstreamMU marr (Stream next s n) = fill s 0
                                  writeMU marr i x
                                  fill s' (i+1)
 
+
+
+
 -- | Fusion rules
 -- --------------
 

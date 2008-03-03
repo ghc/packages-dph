@@ -6,26 +6,21 @@ import Data.Array.Parallel.Unlifted
 import BarnesHutGen
 
 
-type  BHTree      = [BHTreeLevel]
-type  BHTreeLevel = (UArr MassPoint, UArr Int) -- centroids
 
 
-
-
-
-
-
-eClose  = 0.5
 
 
 -- Phase 1: building the tree
+--
+
+-- Split massPoints according to their locations in the quadrants
 -- 
 splitPoints:: BoundingBox -> UArr MassPoint -> SUArr MassPoint
 splitPoints (ll@(llx :*: lly) :*: ru@(rux :*: ruy)) particles 
   | noOfPoints == 0 = singletonSU particles
   | otherwise          = singletonSU lls +:+^ singletonSU lus +:+^ singletonSU rus +:+^ singletonSU rls 
       where
-        noOfPoints = lengthU particles
+        noOfPoints    = lengthU particles
         lls           = filterU (inBox (ll :*: mid)) particles 
         lus           = filterU (inBox ((llx :*: midy)  :*: (midx :*: ruy ))) particles 
         rus           = filterU (inBox (mid             :*: ru             )) particles 
@@ -68,22 +63,6 @@ splitPointsL  bboxes particless
     makerls (ll@(llx :*: lly) :*: ru@(rux :*: ruy))  = 
             ((((llx + rux)/2.0) :*: lly)  :*: (rux  :*: ((lly + ruy)/2.0)))
         
-
-
-calcCentroids:: SUArr MassPoint -> UArr MassPoint
-calcCentroids orderedPoints = centroids
-  where
-    ms = foldSU (+) 0.0 $ sndSU orderedPoints
-    centroids = zipWithU div' ms $
-           foldSU pairP (0.0 :*: 0.0) $
-            zipWithSU multCoor orderedPoints 
-              (replicateSU (lengthsSU orderedPoints) ms)
-    div' m (x :*: y) = ((x/m :*: y/m)   :*: m)
-    multCoor ((x :*: y)  :*: _)  m = (m * x :*: y *x)
-
-    pairP (x1 :*: y1) (x2 :*: y2) = ((x1+x2) :*: (y1 + y2))
-
-
 splitPointsL':: UArr BoundingBox -> 
   UArr BoundingBox -> 
   UArr BoundingBox -> 
@@ -99,7 +78,7 @@ splitPointsL' llbb lubb rubb rlbb  particless
         -- the four quadrants
         orderedPoints = 
           segmentArrU newLengths $
-          flattenSU $ appendSU llsPs (appendSU lusPs (appendSU rusPs rlsPs))
+          flattenSU $ llsPs ^+:+^ lusPs ^+:+^ rusPs ^+:+^ rlsPs
         particlessLen = lengthSU particless
         pssLens = lengthsSU particless
         lls = replicateSU pssLens llbb
@@ -122,28 +101,48 @@ splitPointsL' llbb lubb rubb rlbb  particless
                  (lengthsSU rusPs) (lengthsSU rlsPs)
 
 
+-- Calculate centroid of each subarray
+--
+calcCentroids:: SUArr MassPoint -> UArr MassPoint
+calcCentroids orderedPoints = centroids
+  where
+    ms = foldSU (+) 0.0 $ sndSU orderedPoints
+    centroids = zipWithU div' ms $
+           foldSU pairP (0.0 :*: 0.0) $
+            zipWithSU multCoor orderedPoints 
+              (replicateSU (lengthsSU orderedPoints) ms)
+    div' m (x :*: y) = ((x/m :*: y/m)   :*: m)
+    multCoor ((x :*: y)  :*: _)  m = (m * x :*: y *x)
+
+    pairP (x1 :*: y1) (x2 :*: y2) = ((x1+x2) :*: (y1 + y2))
+
+
+
 -- phase 2:
 --   calculating the velocities
 
-calcVelocity:: BHTree -> UArr MassPoint ->  UArr (Double :*: Double)
-calcVelocity [] particles 
+calcAccel:: BHTree -> UArr MassPoint ->  UArr (Double :*: Double)
+calcAccel [] particles 
   | lengthU particles == 0 = emptyU
   | otherwise              = error $ "calcVelocity: reached empty tree" ++ (show particles)
-calcVelocity  ((centroids, segd) :trees) particles = closeVelo
+calcAccel  ((centroids, segd) :trees) particles = closeAccel
   where
 
-    closeVelo = splitApplyU  particlesClose
-                  ((calcVelocity trees) . sndU )
-                  calcFarVelocity 
-                  (zipU
+    closeAccel = splitApplyU  particlesClose
+                    ((calcAccel trees) . sndU )
+                    calcFarAccel 
+                    (zipU
                        (flattenSU $ replicateCU (lengthU particles) centroids)
                        (flattenSU $ replicateSU segd particles))
     particlesClose (((x1 :*: y1):*: _)  :*: ((x2 :*: y2) :*: _))  =  
         (x1-x2)^2 + (y1-y2)^2 < eClose
     
-calcFarVelocity      = mapU accel
+calcFarAccel:: UArr (MassPoint :*: MassPoint) -> UArr Accel
+calcFarAccel      = mapU accel
 
-
+-- 
+-- 
+accel:: MassPoint :*: MassPoint -> Accel
 accel (((x1:*: y1) :*: m)  :*:
       ((x2:*: y2) :*: _)) | r < epsilon  = (0.0 :*: 0.0) 
                           | otherwise    = (aabs * dx / r :*: aabs * dy / r)  
@@ -176,12 +175,6 @@ inBox ((ll@(llx :*: lly) :*: ru@(rux :*: ruy))) ((px :*: py) :*: _) =
   (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
 
 
-
-
---  General functions which should be in the library
-
---
-
 splitApplyU:: (UA e, UA e') =>  (e -> Bool) -> (UArr e -> UArr e') -> (UArr e -> UArr e') -> UArr e -> UArr e'
 splitApplyU p f1 f2 xsArr = combineU (mapU p xsArr) res1 res2
   where
@@ -195,22 +188,7 @@ splitApplySU  flags f1 f2 xssArr = combineCU flags res1 res2
     res1 = f1 $ packCU flags xssArr 
     res2 = f2 $ packCU (mapU not flags) xssArr
 
-packCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
-{-# INLINE packCU #-}
-packCU flags xssArr = segmentArrU newLengths flatData
-  where
-    repFlags   = flattenSU $ replicateSU (lengthsSU xssArr) flags
-    flatData   = packU (flattenSU xssArr) repFlags  
-    newLengths = packU (lengthsSU xssArr) flags    
 
 
-appendSU:: (UA e) => SUArr e -> SUArr e -> SUArr e
-{-# INLINE appendSU #-}
-appendSU xssArr1 xssArr2 = segmentArrU newLengths flatData 
-  where
-    len        = lengthSU xssArr1 + lengthSU xssArr2
-    flags      = mapU even $ enumFromToU 0 (len-1)
-    flatData   = flattenSU $ combineCU flags xssArr1 xssArr2 
-    newLengths = zipWithU (+) (lengthsSU xssArr1) (lengthsSU xssArr2)
 
 

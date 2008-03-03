@@ -47,10 +47,9 @@ filterS f (Stream next s n) = Stream next' s n
     {-# INLINE next' #-}
     next' s = case next s of
                 Done                    -> Done
-                Skip s'             -> Skip s'
+                Skip s'                 -> Skip s'
                 Yield x  s' | f x       -> Yield x s'
                             | otherwise -> Skip s'
-
 
 
 -- | Folding

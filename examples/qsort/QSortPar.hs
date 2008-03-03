@@ -7,7 +7,6 @@
 module QSortPar (qsortPar)
 where
 
-
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted
@@ -25,11 +24,11 @@ qsortLifted xssArr = splitApplySUP flags qsortLifted' id xssArr
   where
     flags = mapUP ((> 1)) $ lengthsSU xssArr
 
--- Actuall sorting
+-- Actual sorting
 qsortLifted' xssarr = 
   if (xssLen == 0) 
     then xssarr
-    else appendSU (takeCU xssLen sorted) (appendSU equal  (dropCU xssLen sorted))
+    else (takeCU xssLen sorted) ^+:+^  equal ^+:+^ (dropCU xssLen sorted)
 
   where 
   
@@ -57,15 +56,6 @@ splitApplySUP  flags f1 f2 xssArr =
     res1 = f1 $ packCUP flags xssArr 
     res2 = f2 $ packCUP (mapUP not flags) xssArr
    
-
-appendSU:: (UA e, Show e) => SUArr e -> SUArr e -> SUArr e
-{-# INLINE appendSU #-}
-appendSU xssArr1 xssArr2 = segmentArrU newLengths flatData 
-  where
-    len        = lengthSU xssArr1 + lengthSU xssArr2
-    flags      = mapUP even $ enumFromToUP 0 (len-1)
-    flatData   = flattenSU $ combineCU flags xssArr1 xssArr2 
-    newLengths = zipWithU (+) (lengthsSU xssArr1) (lengthsSU xssArr2)
 
 
 

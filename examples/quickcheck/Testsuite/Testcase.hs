@@ -5,7 +5,7 @@ module Testsuite.Testcase (
 import Test.QuickCheck
 import Test.QuickCheck.Batch (TestResult(..), run, defOpt)
 
-import Text.Regex
+import Text.Regex.Base
 
 import System.Environment (getArgs)
 

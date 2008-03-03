@@ -8,15 +8,21 @@ import System (ExitCode(..), getArgs, exitWith)
 import Random (Random, RandomGen, getStdGen, randoms, randomRs)
 import Data.Array.Parallel.Unlifted
 
+type Vector = (Double :*: Double) 
 
-type Point = (Double :*: Double)
+type Point     = Vector
+type Accel     = Vector
+type Velocity  = Vector
 type MassPoint = Point :*: Double
-type Particle  = MassPoint :*: (Double :*: Double)
+type Particle  = MassPoint :*: Velocity
 
-type BoundingBox = ((Double :*: Double) :*: (Double :*: Double)) 
+type BoundingBox = Point :*: Point
+
+type  BHTree      = [BHTreeLevel]
+type  BHTreeLevel = (UArr MassPoint, UArr Int) -- centroids
 
 epsilon = 0.05
-
+eClose  = 0.5
 
 -- particle generation
 -- -------------------
@@ -43,7 +49,7 @@ randomMassPointsIO       :: Double -> Double -> IO [MassPoint]
 randomMassPointsIO dx dy  = do
 			    rs <- randomRIOs (randomFrom, randomTo)
 			    return (massPnts rs)
-			  where
+		            	  where
 			    to    = fromIntegral randomTo
 			    from  = fromIntegral randomFrom
 			    xmin  = - (dx / 2.0)
