@@ -20,7 +20,8 @@ qsortPar = lengthSU . qsortLifted . singletonSU
 
 -- Remove the trivially sorted segments
 qsortLifted:: SUArr Double -> SUArr Double
-qsortLifted xssArr = splitApplySUP flags qsortLifted' id xssArr
+qsortLifted xssArr = 
+  splitApplySUP flags qsortLifted' id xssArr
   where
     flags = mapUP ((> 1)) $ lengthsSU xssArr
 

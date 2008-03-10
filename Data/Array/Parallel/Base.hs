@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Base
--- Copyright   : (c) [2006,2007]        Roman Leshchinskiy
+-- Copyright   : (c) [2006,2007]        Roman Leshchinsskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
 -- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
