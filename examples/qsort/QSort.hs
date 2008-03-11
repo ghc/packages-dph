@@ -1,21 +1,25 @@
+{-# OPTIONS -fno-spec-constr-count #-}
 module Main where
 import QSortSeq
 import QSortPar
+import QSortVect
 
 import Control.Exception (evaluate      )
 import System.Console.GetOpt
 
 import Data.Array.Parallel.Unlifted
 import Data.Array.Parallel.Unlifted.Parallel
+import Data.Array.Parallel.Prelude (toUArrPA, fromUArrPA')
 
 import Bench.Benchmark
 import Bench.Options
 
 
-algs = [("seq", qsortSeq), ("par", qsortPar), ("list", qsortList . fromU), 
+algs = [("seq", qsortSeq), ("par", qsortPar), ("list", qsortList . fromU), ("vect", qsortVect'),
      ("pt", parMapTest), ("sq", seqMapTest)]
 
-
+qsortVect':: UArr Double -> Int
+qsortVect' xs = lengthU $ toUArrPA $ qsortVect $ fromUArrPA' xs
 
 parMapTest:: UArr Double -> Int
 parMapTest xsArr =  (mapUP isPrime xsArr) !: 0

@@ -1,4 +1,5 @@
-        {-# GHC_OPTIONS -fglasgow-exts #-}
+{-# GHC_OPTIONS -fglasgow-exts #-}
+{-# OPTIONS -fno-spec-constr-count #-}
 --
 -- TODO:
 --   why is combineSS slower?
