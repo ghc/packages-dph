@@ -26,11 +26,11 @@ qsortLifted' xssarr =
     xssLen     = lengthSU xssarr
     xsLens     = lengthsSU xssarr
     pivots     = xssarr !:^ mapU (flip div 2) xsLens
-    pivotss    = replicateSU xsLens pivots
-    xarrLens   = zipSU xssarr pivotss 
-    sorted     = qsortLifted $ (mapSU fstS $ filterSU (uncurryS (>)) xarrLens)  +:+^    
-                               (mapSU fstS $ filterSU (uncurryS (<)) xarrLens) 
-    equal      =               mapSU fstS $ filterSU (uncurryS (==)) xarrLens
+    xarrLens   = zipSU xssarr $ replicateSU xsLens pivots
+    sorted     = qsortLifted $ (mapSU fstS $ filterSU (uncurryS (>)) xarrLens)
+                               +:+^    
+                               (mapSU fstS $ filterSU (uncurryS (<))  xarrLens)
+    equal      =               mapSU fstS $ filterSU (uncurryS (==))  xarrLens
 
     
 splitApplySU:: (UA e, UA e') =>  UArr Bool -> (SUArr e -> SUArr e') -> (SUArr e -> SUArr e') -> SUArr e -> SUArr e'
