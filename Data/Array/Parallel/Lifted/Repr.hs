@@ -12,7 +12,7 @@ module Data.Array.Parallel.Lifted.Repr (
   dPA_Void,
   dPR_Void, dPR_Unit, dPR_Wrap,
   dPR_Enumeration,
-  dPR_2, dPR_3, zipPA#, fromUArrPA_2, fromUArrPA_2',
+  dPR_2, dPR_3, dPR_4, zipPA#, fromUArrPA_2, fromUArrPA_2',
   dPR_Sum2, dPR_Sum3,
 
   dPR_PArray, nested_lengthPA, concatPA#,
@@ -231,6 +231,12 @@ data instance PArray (a,b,c)
              (PArray b)
              (PArray c)
 
+data instance PArray (a,b,c,d)
+  = P_4 Int# (PArray a)
+             (PArray b)
+             (PArray c)
+             (PArray d)
+
 fromUArrPA_2 :: (PrimPA a, PrimPA b) => Int -> UArr (a :*: b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}
 fromUArrPA_2 (I# n#) ps = P_2 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys)
@@ -381,6 +387,98 @@ combine2PR_3 pra prb prc n# sel# is# (P_3 _ as1 bs1 cs1)
   = P_3 n# (combine2PR pra n# sel# is# as1 as2)
            (combine2PR prb n# sel# is# bs1 bs2)
            (combine2PR prc n# sel# is# cs1 cs2)
+
+
+dPR_4 :: PR a -> PR b -> PR c -> PR d -> PR (a,b,c,d)
+{-# INLINE dPR_4 #-}
+dPR_4 pra prb prc prd
+  = PR {
+      lengthPR     = lengthPR_4
+    , emptyPR      = emptyPR_4 pra prb prc prd
+    , replicatePR  = replicatePR_4 pra prb prc prd
+    , replicatelPR = replicatelPR_4 pra prb prc prd
+    , repeatPR     = repeatPR_4 pra prb prc prd
+    , indexPR      = indexPR_4 pra prb prc prd
+    , bpermutePR   = bpermutePR_4 pra prb prc prd
+    , appPR        = appPR_4 pra prb prc prd
+    , applPR       = applPR_4 pra prb prc prd
+    , packPR       = packPR_4 pra prb prc prd
+    , combine2PR   = combine2PR_4 pra prb prc prd
+    }
+
+{-# INLINE lengthPR_4 #-}
+lengthPR_4 (P_4 n# _ _ _ _) = n#
+
+{-# INLINE emptyPR_4 #-}
+emptyPR_4 pra prb prc prd = P_4 0# (emptyPR pra)
+                                   (emptyPR prb)
+                                   (emptyPR prc)
+                                   (emptyPR prd)
+
+{-# INLINE replicatePR_4 #-}
+replicatePR_4 pra prb prc prd n# ~(a,b,c,d)
+  = P_4 n# (replicatePR pra n# a)
+           (replicatePR prb n# b)
+           (replicatePR prc n# c)
+           (replicatePR prd n# d)
+
+{-# INLINE replicatelPR_4 #-}
+replicatelPR_4 pra prb prc prd n# ns (P_4 _ as bs cs ds)
+  = P_4 n# (replicatelPR pra n# ns as)
+           (replicatelPR prb n# ns bs)
+           (replicatelPR prc n# ns cs)
+           (replicatelPR prd n# ns ds)
+
+{-# INLINE repeatPR_4 #-}
+repeatPR_4 pra prb prc prd n# (P_4 m# as bs cs ds)
+  = P_4 (n# *# m#) (repeatPR pra n# as)
+                   (repeatPR prb n# bs)
+                   (repeatPR prc n# cs)
+                   (repeatPR prd n# ds)
+
+{-# INLINE indexPR_4 #-}
+indexPR_4 pra prb prc prd (P_4 n# as bs cs ds) i#
+  = (indexPR pra as i#,
+     indexPR prb bs i#,
+     indexPR prc cs i#,
+     indexPR prd ds i#)
+
+{-# INLINE bpermutePR_4 #-}
+bpermutePR_4 pra prb prc prd (P_4 _ as bs cs ds) is
+  = P_4 (lengthPA_Int# is) (bpermutePR pra as is)
+                           (bpermutePR prb bs is)
+                           (bpermutePR prc cs is)
+                           (bpermutePR prd ds is)
+
+{-# INLINE appPR_4 #-}
+appPR_4 pra prb prc prd (P_4 m# as1 bs1 cs1 ds1) (P_4 n# as2 bs2 cs2 ds2)
+  = P_4 (m# +# n#) (appPR pra as1 as2)
+                   (appPR prb bs1 bs2)
+                   (appPR prc cs1 cs2)
+                   (appPR prd ds1 ds2)
+
+{-# INLINE applPR_4 #-}
+applPR_4 pra prb prc prd is (P_4 m# as1 bs1 cs1 ds1) js (P_4 n# as2 bs2 cs2 ds2)
+  = P_4 (m# +# n#) (applPR pra is as1 js as2)
+                   (applPR prb is bs1 js bs2)
+                   (applPR prc is cs1 js cs2)
+                   (applPR prd is ds1 js ds2)
+
+{-# INLINE packPR_4 #-}
+packPR_4 pra prb prc prd (P_4 _ as bs cs ds) n# sel#
+  = P_4 n# (packPR pra as n# sel#)
+           (packPR prb bs n# sel#)
+           (packPR prc cs n# sel#)
+           (packPR prd ds n# sel#)
+
+{-# INLINE combine2PR_4 #-}
+combine2PR_4 pra prb prc prd n# sel# is# (P_4 _ as1 bs1 cs1 ds1)
+                                         (P_4 _ as2 bs2 cs2 ds2)
+  = P_4 n# (combine2PR pra n# sel# is# as1 as2)
+           (combine2PR prb n# sel# is# bs1 bs2)
+           (combine2PR prc n# sel# is# cs1 cs2)
+           (combine2PR prd n# sel# is# ds1 ds2)
+
 
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
