@@ -10,7 +10,7 @@ module Data.Array.Parallel.Lifted.Instances (
   dPA_Double, dPR_Double,
 
   dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
-  dPA_Unit, dPA_2, dPA_3,
+  dPA_Unit, dPA_2, dPA_3, dPA_4,
   dPA_PArray, fromSUArrPA, fromSUArrPA',
   fromSUArrPA_2, fromSUArrPA_2'
 ) where
@@ -367,6 +367,19 @@ dPA_3 pa pb pc
     , toArrPRepr   = id
     , fromArrPRepr = id
     , dictPRepr    = dPR_3 (mkPR pa) (mkPR pb) (mkPR pc)
+    }
+
+type instance PRepr (a,b,c,d) = (a,b,c,d)
+
+dPA_4 :: PA a -> PA b -> PA c -> PA d -> PA (a,b,c,d)
+{-# INLINE_PA dPA_4 #-}
+dPA_4 pa pb pc pd
+  = PA {
+      toPRepr      = id
+    , fromPRepr    = id
+    , toArrPRepr   = id
+    , fromArrPRepr = id
+    , dictPRepr    = dPR_4 (mkPR pa) (mkPR pb) (mkPR pc) (mkPR pd)
     }
 
 type instance PRepr (PArray a) = PArray (PRepr a)
