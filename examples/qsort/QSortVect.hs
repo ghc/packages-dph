@@ -7,8 +7,6 @@ import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double
 import qualified Data.Array.Parallel.Prelude.Int as I
 
-
-
 import qualified Prelude
 
 qsortVect:: PArray Double -> PArray Double 

@@ -12,7 +12,7 @@ module Data.Array.Parallel.Lifted.Repr (
   dPA_Void,
   dPR_Void, dPR_Unit, dPR_Wrap,
   dPR_Enumeration,
-  dPR_2, dPR_3, dPR_4, dPR_5, zipPA#, fromUArrPA_2, fromUArrPA_2',
+  dPR_2, dPR_3, dPR_4, dPR_5, zipPA#, unzipPA#, fromUArrPA_2, fromUArrPA_2',
   dPR_Sum2, dPR_Sum3,
 
   dPR_PArray, nested_lengthPA, concatPA#,
@@ -321,6 +321,10 @@ combine2PR_2 pra prb n# sel# is# (P_2 _ as1 bs1) (P_2 _ as2 bs2)
 zipPA# :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
 {-# INLINE_PA zipPA# #-}
 zipPA# pa pb xs ys = P_2 (lengthPA# pa xs) xs ys
+
+unzipPA# :: PA a -> PA b  -> PArray (a,b) -> (PArray a,  PArray b)
+{-# INLINE_PA unzipPA# #-}
+unzipPA# pa pb (P_2 n xs ys)  = (xs, ys)
 
 dPR_3 :: PR a -> PR b -> PR c -> PR (a,b,c)
 {-# INLINE dPR_3 #-}

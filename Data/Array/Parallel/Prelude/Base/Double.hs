@@ -4,6 +4,7 @@ module Data.Array.Parallel.Prelude.Base.Double (
   plus, plusV,
   minus, minusV,
   mult, multV,
+  divide, divideV,
   sumP, sumPA, minIndexP, minIndexPA, maxIndexP, maxIndexPA
 ) where
 
@@ -51,12 +52,20 @@ minusV = closure2 dPA_Double (-) (unsafe_zipWith (-))
 minus :: Double -> Double -> Double
 minus = (-)
 
+mult :: Double -> Double -> Double
+mult = (*)
+
 multV :: Double :-> Double :-> Double
 {-# INLINE multV #-}
 multV = closure2 dPA_Double (*) (unsafe_zipWith (*))
 
-mult :: Double -> Double -> Double
-mult = (*)
+
+divide :: Double -> Double -> Double
+divide = (/)
+
+divideV :: Double :-> Double :-> Double
+{-# INLINE divideV #-}
+divideV = closure2 dPA_Double (/) (unsafe_zipWith (/))
 
 sumPA :: PArray Double :-> Double
 {-# INLINE sumPA #-}

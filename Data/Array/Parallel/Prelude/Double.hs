@@ -1,7 +1,7 @@
 {-# OPTIONS -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Double (
-  P.Double, (+), (-), (*), sumP, minIndexP, maxIndexP,
+  P.Double, (+), (-), (*), (/), sumP, minIndexP, maxIndexP,
   (==), (/=), (<=), (<), (>=), (>)
 ) where
 
@@ -25,6 +25,9 @@ infix 4 ==, /=, <, <=, >, >=
 
 (*) :: Double -> Double -> Double
 (*) = mult
+
+(/) :: Double -> Double -> Double
+(/) = divide
 
 (+) :: Double -> Double -> Double
 (+) = plus

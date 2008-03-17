@@ -112,7 +112,7 @@ calcCentroids orderedPoints = centroids
             zipWithSU multCoor orderedPoints 
               (replicateSU (lengthsSU orderedPoints) ms)
     div' m (x :*: y) = ((x/m :*: y/m)   :*: m)
-    multCoor ((x :*: y)  :*: _)  m = (m * x :*: y *x)
+    multCoor ((x :*: y)  :*: _)  m = (m * x :*: m * y)
 
     pairP (x1 :*: y1) (x2 :*: y2) = ((x1+x2) :*: (y1 + y2))
 

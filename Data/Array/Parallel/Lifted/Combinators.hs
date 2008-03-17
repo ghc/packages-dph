@@ -4,7 +4,7 @@
 
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
-  lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA,
+  lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA, unzipPA, 
   packPA, filterPA, indexPA, concatPA, appPA
 ) where
 
@@ -168,6 +168,19 @@ zipWithPA :: PA a -> PA b -> PA c
 zipWithPA pa pb pc = closure3 (dPA_Clo pa (dPA_Clo pb pc)) (dPA_PArray pa)
                               (zipWithPA_v pa pb pc)
                               (zipWithPA_l pa pb pc)
+
+unzipPA_v:: PA a -> PA b -> PArray (a,b) -> (PArray a, PArray b)
+unzipPA_v pa pb abs =  unzipPA# pa pb abs
+
+unzipPA_l:: PA a -> PA b -> PArray (PArray (a, b)) -> (PArray (PArray a), PArray (PArray b))
+unzipPA_l pa pb (PNested n lens idxys xys) =
+  (PNested n lens idxys xs, PNested n lens idxys ys)
+  where
+    (xs, ys) = unzipPA_v pa pb xys     
+
+unzipPA:: PA a -> PA b -> (PArray (a, b) :-> (PArray a, PArray b))  
+{-# INLINE unzipPA #-}
+unzipPA pa pb =  undefined
 
 packPA_v :: PA a -> PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
