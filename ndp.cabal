@@ -84,6 +84,7 @@ other-modules:
         Data.Array.Parallel.Prelude.Base.Int
         Data.Array.Parallel.Prelude.Base.Double
         Data.Array.Parallel.Prelude.Base.PArr
+        Data.Array.Parallel.Prelude.Base.Tuple
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
 extra-source-files:
