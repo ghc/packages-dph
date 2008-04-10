@@ -212,7 +212,10 @@ instance (UA a, UA b) => UA (a :*: b) where
   data UArr  (a :*: b)   = UAProd  !(UArr a)    !(UArr b)
   data MUArr (a :*: b) s = MUAProd !(MUArr a s) !(MUArr b s)
 
-  lengthU (UAProd l _)     = lengthU l
+  -- TODO: changed from (lengthU l), as this causes problems when the length is used to
+  --       limit the index
+  lengthU (UAProd l r)     = checkEq "lengthU" "lengths of zipped arrays differ" (lengthU l) (lengthU r)
+     (lengthU l) 
   {-# INLINE_U indexU #-}
   indexU  (UAProd l r) i   = indexU l i :*: indexU r i
   {-# INLINE_U sliceU #-}

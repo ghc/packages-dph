@@ -58,4 +58,4 @@ takeCU n xssArr = sliceSU xssArr 0 n
 
 dropCU:: (UA e) => Int ->  SUArr e  -> SUArr e
 {-# INLINE dropCU #-}
-dropCU n xssArr = sliceSU xssArr n (lengthSU xssArr -1)
+dropCU n xssArr = sliceSU xssArr n (lengthSU xssArr - n)

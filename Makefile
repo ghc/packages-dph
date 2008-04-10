@@ -17,7 +17,7 @@ ALL_DIRS = \
 
 EXCLUDED_SRCS += Setup.hs
 
-PACKAGE = ndp
+PACKAGE = ndp ghc-prim
 VERSION = 0.1
 
 PACKAGE_DEPS = base

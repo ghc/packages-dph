@@ -172,15 +172,15 @@ zipWithPA pa pb pc = closure3 (dPA_Clo pa (dPA_Clo pb pc)) (dPA_PArray pa)
 unzipPA_v:: PA a -> PA b -> PArray (a,b) -> (PArray a, PArray b)
 unzipPA_v pa pb abs =  unzipPA# pa pb abs
 
-unzipPA_l:: PA a -> PA b -> PArray (PArray (a, b)) -> (PArray (PArray a), PArray (PArray b))
-unzipPA_l pa pb (PNested n lens idxys xys) =
-  (PNested n lens idxys xs, PNested n lens idxys ys)
+unzipPA_l:: PA a -> PA b -> PArray (PArray (a, b)) -> PArray ((PArray a), (PArray b))
+unzipPA_l pa pb (PNested n lens idxys xys) = 
+  P_2 n  (PNested n lens idxys xs) (PNested n lens idxys ys)
   where
     (xs, ys) = unzipPA_v pa pb xys     
 
 unzipPA:: PA a -> PA b -> (PArray (a, b) :-> (PArray a, PArray b))  
 {-# INLINE unzipPA #-}
-unzipPA pa pb =  undefined
+unzipPA pa pb =  closure1 (unzipPA_v pa pb) (unzipPA_l pa pb)
 
 packPA_v :: PA a -> PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}

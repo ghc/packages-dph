@@ -5,6 +5,7 @@ module Data.Array.Parallel.Prelude.Base.Double (
   minus, minusV,
   mult, multV,
   divide, divideV,
+  squareRoot, squareRootV,
   sumP, sumPA, minIndexP, minIndexPA, maxIndexP, maxIndexPA
 ) where
 
@@ -16,7 +17,7 @@ import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
 
-eqV, neqV, leV, ltV, geV, gtV :: Double :-> Double :-> Bool
+eqV, neqV, leV, ltV, geV, gtV :: Double :-> (Double :-> Bool)
 {-# INLINE eqV #-}
 {-# INLINE neqV #-}
 {-# INLINE leV #-}
@@ -38,14 +39,14 @@ lt = (<)
 ge = (>=)
 gt = (>)
 
-plusV :: Double :-> Double :-> Double
+plusV :: Double :-> (Double :-> Double)
 {-# INLINE plusV #-}
 plusV = closure2 dPA_Double (+) (unsafe_zipWith (+))
 
 plus :: Double -> Double -> Double
 plus = (+)
 
-minusV :: Double :-> Double :-> Double
+minusV :: Double :-> (Double :-> Double)
 {-# INLINE minusV #-}
 minusV = closure2 dPA_Double (-) (unsafe_zipWith (-))
 
@@ -55,10 +56,9 @@ minus = (-)
 mult :: Double -> Double -> Double
 mult = (*)
 
-multV :: Double :-> Double :-> Double
+multV :: Double :-> (Double :-> Double)
 {-# INLINE multV #-}
 multV = closure2 dPA_Double (*) (unsafe_zipWith (*))
-
 
 divide :: Double -> Double -> Double
 divide = (/)
@@ -66,6 +66,15 @@ divide = (/)
 divideV :: Double :-> Double :-> Double
 {-# INLINE divideV #-}
 divideV = closure2 dPA_Double (/) (unsafe_zipWith (/))
+
+squareRoot ::  Double -> Double
+squareRoot = sqrt
+
+squareRootV :: Double :-> Double
+{-# INLINE squareRootV #-}
+squareRootV = closure1  (sqrt) (unsafe_map sqrt)
+
+
 
 sumPA :: PArray Double :-> Double
 {-# INLINE sumPA #-}

@@ -1,7 +1,7 @@
 {-# OPTIONS -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Double (
-  P.Double, (+), (-), (*), (/), sumP, minIndexP, maxIndexP,
+  P.Double, (+), (-), (*), (/), sqrt, sumP, minIndexP, maxIndexP,
   (==), (/=), (<=), (<), (>=), (>)
 ) where
 
@@ -34,4 +34,8 @@ infix 4 ==, /=, <, <=, >, >=
 
 (-) :: Double -> Double -> Double
 (-) = minus
+
+
+sqrt:: Double -> Double
+sqrt = squareRoot
 

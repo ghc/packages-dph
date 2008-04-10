@@ -26,6 +26,7 @@ import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), Rebox(..), Box(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
+import Debug.Trace 
 -- | Mapping
 --
 mapS :: (a -> b) -> Stream a -> Stream b
@@ -129,13 +130,13 @@ combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
       case next1 s of
         Done -> Done
         Skip s'    -> Skip (s' :*: t1 :*: t2) 
-        Yield c s' -> if c 
+        Yield c s' -> if trace ("\n\t\tstream: " ++ (show c) ++ "\n") c  
                         then case nextS1 t1 of
                                Done        -> error "combineS: stream 1 terminated unexpectedly" 
                                Skip t1'    -> Skip (s :*: t1' :*: t2)
                                Yield x t1' -> Yield x (s' :*: t1' :*: t2)
                         else case nextS2 t2 of
-                               Done        -> error "combineS: stream 1 terminated unexpectedly" 
+                               Done        -> error "combineS: stream 2 terminated unexpectedly" 
                                Skip t2'    -> Skip (s :*: t1 :*: t2')
                                Yield x t2' -> Yield x (s' :*: t1 :*: t2')
                

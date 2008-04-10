@@ -4,7 +4,7 @@ module Data.Array.Parallel.Prelude (
   , module Data.Array.Parallel.Prelude.Bool
   
   , PArray, PrimPA(..), fromUArrPA', fromSUArrPA, fromSUArrPA'
-  , fromSUArrPA_2, fromSUArrPA_2'
+  , fromSUArrPA_2, fromSUArrPA_2', fromUArrPA_3, fromUArrPA_3'
 ) where
 
 import Data.Array.Parallel.Prelude.Bool
@@ -16,5 +16,6 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
+import Data.Array.Parallel.Lifted.Repr
 
 

@@ -51,6 +51,8 @@ import Data.Array.Parallel.Unlifted.Flat.Basics (
 import Data.Array.Parallel.Unlifted.Flat.Subarrays (
   sliceU)
 
+import Debug.Trace
+
 here s = "Data.Array.Parallel.Unlifted.Flat.Combinators." ++ s
 
 -- |Map a function over an array
@@ -206,5 +208,6 @@ unzip3U a = let (a12 :*: a3) = unzipU a
 combineU :: UA a
 	 => UArr Bool -> UArr a -> UArr a -> UArr a
 {-# INLINE_U combineU #-}
-combineU f a1 a2 = unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
+combineU f a1 a2 = trace ("combineU:\n\t"  ++ show (lengthU f)  ++ "\n\t" ++ show (lengthU a1) ++ "\n\t" ++ show (lengthU a2) ++ "\n")
+  unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
 
