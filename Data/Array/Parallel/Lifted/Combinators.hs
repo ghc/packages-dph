@@ -5,7 +5,7 @@
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA, unzipPA, 
-  packPA, filterPA, indexPA, concatPA, appPA
+  packPA, filterPA, combine2PA, indexPA, concatPA, appPA
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -201,6 +201,25 @@ packPA_l pa (PNested _ _ _ xs) (PNested n# lens idxs bs)
 packPA :: PA a -> (PArray a :-> PArray Bool :-> PArray a)
 {-# INLINE packPA #-}
 packPA pa = closure2 (dPA_PArray pa) (packPA_v pa) (packPA_l pa)
+
+
+-- TODO: should the selector be a boolean array?
+--       fix index vector
+combine2PA_v:: PA a -> PArray a -> PArray a -> PArray Int -> PArray a
+{-# INLINE_PA combine2PA_v #-}
+combine2PA_v pa xs ys bs@(PInt _ bs#) = 
+  case (lengthPA# pa xs, lengthPA# pa ys) of
+    (n#,m#) -> combine2PA# pa  (n# +# m#) bs# bs# xs ys 
+
+combine2PA_l:: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Int) -> PArray (PArray a)
+{-# INLINE_PA combine2PA_l #-}
+combine2PA_l _ _ _ _ = error "combinePA_l nyi"
+    
+
+combine2PA:: PA a -> (PArray a :-> PArray a :-> PArray Int :-> PArray a)
+{-# INLINE_PA combine2PA #-}
+combine2PA pa = closure3 (dPA_PArray pa) (dPA_PArray pa) (combine2PA_v pa) (combine2PA_l pa)
+
 
 filterPA_v :: PA a -> (a :-> Bool) -> PArray a -> PArray a
 {-# INLINE_PA filterPA_v #-}

@@ -1,6 +1,6 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.PArr (
-  mapP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP,
+  mapP, combineP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP,
   fromPArrayP, fromPArrayPA,
   toPArrayP, toPArrayPA,
   fromNestedPArrayP, fromNestedPArrayPA
@@ -34,3 +34,5 @@ fromNestedPArrayPA :: PA a -> (PArray (PArray a) :-> PArray (PArray a))
 {-# INLINE fromNestedPArrayPA #-}
 fromNestedPArrayPA pa = closure1 (\xs -> xs) (\xss -> xss)
 
+combineP:: [:a:] -> [:a:] -> [:Int:] -> [:a:]
+combineP xs _ _ = xs

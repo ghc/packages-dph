@@ -735,8 +735,8 @@ combine2PR_Sum2 pra prb n# sel# is# (PSum2 m1# sel1# _ as1 bs1) (PSum2 m2# sel2#
                         bs' = combine2PR prb m2# ((packPA_Int# sel# n# s2#)) is# bs1 bs2
      where
        sel' = combine2PA_Int# n# sel# is#  sel1# sel2#
-       sel'Bool  = mapU (==1) sel'
-       nsel'Bool = mapU (==0) sel'
+       sel'Bool  = mapU (==0) sel'
+       nsel'Bool = mapU (==1) sel'
 
 
 dPR_Sum3 :: PR a -> PR b -> PR c -> PR (Sum3 a b c)
