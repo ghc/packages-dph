@@ -258,3 +258,9 @@ translateVel (dvx :*: dvy) (mp :*: (vx :*: vy)) =
   mp :*: (vx + dvx :*: vy + dvy)
 
 
+
+showBHTree:: BHTree -> String
+showBHTree treeLevels = "Tree:" ++ concat (map showBHTreeLevel treeLevels)
+
+showBHTreeLevel (massPnts, cents) = "\t" ++ show massPnts ++ "\n\t" ++
+                                     show cents   ++ "\n" ++ "\t\t|\n\t\t|\n"

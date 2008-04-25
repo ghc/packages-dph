@@ -1,4 +1,4 @@
-        {-# GHC_OPTIONS -fglasgow-exts #-}
+{-# GHC_OPTIONS -fglasgow-exts #-}
 module BarnesHutSeq
 
 where
@@ -9,10 +9,9 @@ import BarnesHutGen
 
 
 
-
 -- Phase 1: building the tree
 --
-
+{-
 -- Split massPoints according to their locations in the quadrants
 -- 
 splitPoints:: BoundingBox -> UArr MassPoint -> SUArr MassPoint
@@ -29,24 +28,27 @@ splitPoints (ll@(llx :*: lly) :*: ru@(rux :*: ruy)) particles
         mid@(midx :*: midy) = ((llx + rux)/2.0) :*: ((lly + ruy)/2.0) 
 
 
+-}
 
 splitPointsL::  UArr BoundingBox -> SUArr MassPoint -> BHTree
 splitPointsL  bboxes particless
   | lengthSU multiparticles == 0 =  [(centroids, toU [])]
-  | otherwise              = (centroids, lengthsSU multiparticles) : 
+  | otherwise                    = (centroids, lengthsSU multiparticles) : 
      (splitPointsL newBoxes multiparticles)
   where
-                           
-    multiparticles = (splitPointsL' llbb lubb rubb rlbb) $ 
-       packCU multiPointFlags particless
-
+    -- calculate centroid of each segment
     centroids =  
       calcCentroids $ segmentArrU nonEmptySegd $ flattenSU particless
-    
-    multiPointFlags = mapU ((>1)) $ lengthsSU particless 
-    nonEmptySegd = filterU ((>0)) $ lengthsSU particless 
+
+    -- remove empty segments
+    multiPointFlags = mapU ((>1)) $ lengthsSU particless                            
+    multiparticles = (splitPointsL' llbb lubb rubb rlbb) $ 
+       packCU multiPointFlags particless
     bboxes' = packU bboxes multiPointFlags
-    
+
+    nonEmptySegd = filterU ((>0)) $ lengthsSU particless 
+
+    -- split each box in four sub-boxes
     newBoxes = merge4 llbb lubb rubb rlbb 
 
     llbb = mapU makells bboxes'
