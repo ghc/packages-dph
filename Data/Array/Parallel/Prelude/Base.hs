@@ -8,6 +8,7 @@ module Data.Array.Parallel.Prelude.Base (
 
 import Data.Array.Parallel.Prelude.Base.Int
 import Data.Array.Parallel.Prelude.Base.Double
+import Data.Array.Parallel.Prelude.Base.Bool
 import Data.Array.Parallel.Prelude.Base.Tuple
 import Data.Array.Parallel.Prelude.Base.PArr
 import Data.Array.Parallel.Lifted

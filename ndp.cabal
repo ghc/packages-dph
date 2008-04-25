@@ -83,6 +83,7 @@ other-modules:
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Prelude.Base.Int
         Data.Array.Parallel.Prelude.Base.Double
+        Data.Array.Parallel.Prelude.Base.Bool
         Data.Array.Parallel.Prelude.Base.PArr
         Data.Array.Parallel.Prelude.Base.Tuple
         Data.Array.Parallel.Prelude.Base
@@ -96,4 +97,5 @@ ghc-options: -fglasgow-exts -O2 -funbox-strict-fields
              -fdicts-cheap -fno-method-sharing -fno-spec-constr-threshold
              -fmax-simplifier-iterations10  -haddock
              -fcpr-off -package-name ndp
+
 
