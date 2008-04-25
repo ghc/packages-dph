@@ -706,9 +706,11 @@ appPR_Sum2 pra prb (PSum2 n1# sel1# _ as1 bs1) (PSum2 n2# sel2# _ as2 bs2) =
 applPR_Sum2 pra prb _ _  = error "applPR_Sum2 nyi"
 
 packPR_Sum2 :: PR a -> PR b -> PArray (Sum2 a b) -> Int# -> PArray_Bool# -> PArray (Sum2 a b)
-packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags = trace "packSum" $
-  case sumPA_Int# sel# of
-    k# -> PSum2 n# sel' is as' bs' 
+packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags = let
+  sel' = packU sel# flags 
+  in
+  case sumPA_Int# sel' of
+    k# -> PSum2 m# sel' is as' bs' 
             where 
               aFlags = packU (mapU (==0) sel#) flags
               bFlags = packU (mapU (==1) sel#) flags
@@ -719,7 +721,7 @@ packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags = trace "packSum" $
 
 combine2PR_Sum2:: PR a -> PR b -> Int# -> PArray_Int# -> PArray_Int#
                               -> PArray (Sum2 a b) -> PArray (Sum2 a b) -> PArray (Sum2 a b)
-combine2PR_Sum2 pra prb n# sel# is# (PSum2 m1# sel1# _ as1 bs1) (PSum2 m2# sel2# _ as2 bs2) = trace ("cb 1 \n") $
+combine2PR_Sum2 pra prb n# sel# is# (PSum2 m1# sel1# _ as1 bs1) (PSum2 m2# sel2# _ as2 bs2) = 
      case   (sel'Bool, nsel'Bool) of
        (s1#, s2#) ->  trace ("n  = " ++ show (I# n#)  ++ "\n" ++
                              "m1 = " ++ show (I# m1#)  ++ "\n" ++
@@ -819,6 +821,16 @@ replicatePR_PArray pr n# xs
                (repeatPR pr n# xs)
   where
     lens = replicatePA_Int# n# (lengthPR pr xs)
+
+{- INLINE bpermutePR_PArray 3-}
+bpermutePR_PArray pr (PNested n# xslens xsInds xs) is = PNested n# xslens' xsInds' xs'
+  where
+    xslens' = bpermutePA_Int# xslens is
+    xsInds' = unsafe_scanPA_Int# (+) 0 xslens'
+    is1     = bpermutePA_Int# xsInds is  
+    is2     = zipWithU (\x -> \y -> x + y - 1) xslens' is1
+    ps      = concatSU $ enumFromToSU is1 is2    
+    xs'     = bpermutePR pr xs ps
 
 {-# INLINE appPR_PArray #-}
 appPR_PArray pr (PNested n# xslens xsInds xs) (PNested m# yslens ysInds ys) = 
