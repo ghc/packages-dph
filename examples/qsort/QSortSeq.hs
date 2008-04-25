@@ -1,17 +1,19 @@
 {-# GHC_OPTIONS -fglasgow-exts #-}
 {-# OPTIONS -fno-spec-constr-count #-}
 --
--- TODO:
---   why is combineSS slower?
+
 module QSortSeq (qsortSeq, qsortList)
 where
 
 import Data.Array.Parallel.Unlifted
+import Debug.Trace
 
 
-qsortSeq :: UArr Double -> Int
-{-# NOINLINE qsortSeq #-}
-qsortSeq  = lengthSU . qsortLifted . singletonSU
+qsortSeq :: UArr Double -> UArr Double
+qsortSeq  xs = -- trace (show res) 
+  res 
+  where 
+    res = concatSU $ qsortLifted $ singletonSU xs
 
 qsortLifted:: SUArr Double -> SUArr Double
 qsortLifted xssArr = splitApplySU flags qsortLifted' id xssArr
@@ -20,29 +22,30 @@ qsortLifted xssArr = splitApplySU flags qsortLifted' id xssArr
 
 qsortLifted' xssarr = 
   if (xssLen == 0) 
-    then xssarr
-    else (takeCU xssLen sorted) ^+:+^ equal  ^+:+^ (dropCU xssLen sorted)
+    then   xssarr
+    else (takeCU xssLen sorted) ^+:+^ equal ^+:+^  (dropCU xssLen sorted)
   where
     xssLen     = lengthSU xssarr
     xsLens     = lengthsSU xssarr
-    pivots     = xssarr !:^ mapU (flip div 2) xsLens
-    xarrLens   = zipSU xssarr $ replicateSU xsLens pivots
-    sorted     = qsortLifted $ (mapSU fstS $ filterSU (uncurryS (>)) xarrLens)
+    xarrLens   = zipSU xssarr $ replicateSU xsLens $ xssarr !:^ mapU (flip div 2) xsLens
+    sorted     = qsortLifted $ (mapSU fstS $ filterSU (uncurryS (<)) xarrLens)
                                +:+^    
-                               (mapSU fstS $ filterSU (uncurryS (<))  xarrLens)
-    equal      =               mapSU fstS $ filterSU (uncurryS (==))  xarrLens
+                               (mapSU fstS $ filterSU (uncurryS (>))  xarrLens)
+    equal      = mapSU fstS $ filterSU (uncurryS (==))  xarrLens
 
     
-splitApplySU:: (UA e, UA e') =>  UArr Bool -> (SUArr e -> SUArr e') -> (SUArr e -> SUArr e') -> SUArr e -> SUArr e'
+splitApplySU:: (UA e, UA e', Show e, Show e') =>  UArr Bool -> (SUArr e -> SUArr e') -> (SUArr e -> SUArr e') -> SUArr e -> SUArr e'
 {-# INLINE splitApplySU #-}
-splitApplySU  flags f1 f2 xssArr = combineCU flags res1 res2
+splitApplySU  flags f1 f2 xssArr = res
+                          
   where
+    res  = combineCU flags res1 res2
     res1 = f1 $ packCU flags xssArr 
     res2 = f2 $ packCU (mapU not flags) xssArr
    
 
-qsortList:: [Double] -> Int
-qsortList = length . qsortList'
+qsortList:: [Double] -> [Double]
+qsortList =  qsortList'
 
 qsortList' [] = []
 qsortList' xs = (qsortList' smaller) ++ equal ++ (qsortList' greater) 

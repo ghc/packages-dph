@@ -14,9 +14,9 @@ import Data.Array.Parallel.Unlifted
 import Debug.Trace
 
 -- I'm lazy here and use the lifted qsort instead of writing a flat version
-qsortPar :: UArr Double -> Int
+qsortPar :: UArr Double -> UArr Double
 {-# NOINLINE qsortPar #-}
-qsortPar = lengthSU . qsortLifted . singletonSU
+qsortPar = concatSU . qsortLifted . singletonSU
 
 
 -- Remove the trivially sorted segments
