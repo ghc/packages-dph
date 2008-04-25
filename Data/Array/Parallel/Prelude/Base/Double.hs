@@ -17,7 +17,7 @@ import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
 
-eqV, neqV, leV, ltV, geV, gtV :: Double :-> (Double :-> Bool)
+eqV, neqV, leV, ltV, geV, gtV :: Double :-> Double :-> Bool
 {-# INLINE eqV #-}
 {-# INLINE neqV #-}
 {-# INLINE leV #-}
@@ -39,14 +39,14 @@ lt = (<)
 ge = (>=)
 gt = (>)
 
-plusV :: Double :-> (Double :-> Double)
+plusV :: Double :-> Double :-> Double
 {-# INLINE plusV #-}
 plusV = closure2 dPA_Double (+) (unsafe_zipWith (+))
 
 plus :: Double -> Double -> Double
 plus = (+)
 
-minusV :: Double :-> (Double :-> Double)
+minusV :: Double :-> Double :-> Double
 {-# INLINE minusV #-}
 minusV = closure2 dPA_Double (-) (unsafe_zipWith (-))
 
@@ -56,7 +56,7 @@ minus = (-)
 mult :: Double -> Double -> Double
 mult = (*)
 
-multV :: Double :-> (Double :-> Double)
+multV :: Double :-> Double :-> Double
 {-# INLINE multV #-}
 multV = closure2 dPA_Double (*) (unsafe_zipWith (*))
 
