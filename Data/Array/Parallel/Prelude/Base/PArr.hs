@@ -1,6 +1,6 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.PArr (
-  mapP, combineP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP,
+  mapP, combineP, emptyP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP,
   fromPArrayP, fromPArrayPA,
   toPArrayP, toPArrayPA,
   fromNestedPArrayP, fromNestedPArrayPA

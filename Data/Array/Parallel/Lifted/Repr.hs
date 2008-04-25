@@ -28,6 +28,8 @@ import Data.Array.Parallel.Unlifted
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import Debug.Trace
 
+
+
 data Void
 
 void :: Void
@@ -710,9 +712,8 @@ packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags = trace "packSum" $
             where 
               aFlags = packU (mapU (==0) sel#) flags
               bFlags = packU (mapU (==1) sel#) flags
-              as'  = packPR pra as (n# -# k#) aFlags
+              as'  = packPR pra as (m# -# k#) aFlags
               bs'  = packPR prb bs k# bFlags
-              sel' = packU sel# flags
               is   = error "packPR_Sum2 index not impl"
 
 
@@ -732,9 +733,13 @@ combine2PR_Sum2 pra prb n# sel# is# (PSum2 m1# sel1# _ as1 bs1) (PSum2 m2# sel2#
                              )
                           $ 
                          PSum2  n# sel' (error "combine2PR_Sum2 index nyi") as' bs'
-                      where       
-                        as' = combine2PR pra m1# ((packPA_Int# sel# n# s1#)) is# as1 as2 
-                        bs' = combine2PR prb m2# ((packPA_Int# sel# n# s2#)) is# bs1 bs2
+                      where     
+                        as# = lengthPR pra as1 +#   lengthPR pra as2
+                        bs# = lengthPR prb bs1 +#   lengthPR prb bs2
+                        asel = packPA_Int# sel# as# s1#
+                        bsel = packPA_Int# sel# bs# s2#
+                        as' = trace ("cb1: " ++ show asel) $ combine2PR pra as# asel  is# as1 as2 
+                        bs' = trace ("cb2: " ++ show bsel) $ combine2PR prb bs# bsel is# bs1 bs2
      where
        sel' = combine2PA_Int# n# sel# is#  sel1# sel2#
        sel'Bool  = mapU (==0) sel'
@@ -787,12 +792,13 @@ dPR_PArray :: PR a -> PR (PArray a)
 {-# INLINE dPR_PArray #-}
 dPR_PArray pr = PR {
                   lengthPR     = lengthPR_PArray
-                , appPR        = appPR_PArray pr
-                , applPR       = applPR_PArray pr
                 , emptyPR      = emptyPR_PArray pr
                 , replicatePR  = replicatePR_PArray pr
                 , replicatelPR = replicatelPR_PArray pr
                 , repeatPR     = repeatPR_PArray pr
+                , bpermutePR   = bpermutePR_PArray pr
+                , appPR        = appPR_PArray pr
+                , applPR       = applPR_PArray pr
                 , packPR       = packPR_PArray pr
                 , combine2PR   = combine2PR_PArray pr
                 }
@@ -819,16 +825,19 @@ appPR_PArray pr (PNested n# xslens xsInds xs) (PNested m# yslens ysInds ys) =
    PNested (n# +# m#) (appPA_Int# xslens yslens) (appPA_Int# xsInds ysInds)  (appPR pr xs ys)
 
 {-# INLINE applPR_PArray #-}
--- applPR_PArray:: USegd -> PArray a -> USegd -> PArray a -> PArray a
+-- applPR_PArray:: PR a -> USegd -> PArray a -> USegd -> PArray a -> PArray a
 applPR_PArray pr is1  xn@(PNested n# xslens xsInds xs) is2 yn@(PNested m# yslens ysInds ys) = 
    PNested (n# +# m#) lens ids xys
    where 
-     lens = combine2'PA_Int# isel xslens yslens 
-     ids  = unsafe_scanPA_Int# (+) 0 lens
+     lens   = appPA_Int#  xslens yslens 
+     xsSegd = sumSU (is1 >: xslens)
+     ysSegd = sumSU (is2 >: yslens)
+     ids    = unsafe_scanPA_Int# (+) 0 lens
      xlen# = lengthPR pr xs
      ylen# = lengthPR pr ys
      len#  = xlen# +# ylen#
-     (PNested _ _ _ xys)   = combine2PR_PArray pr len# isel (error "tmp ind nyi") xn yn
+     (PNested _ _ _ xys)   = combine2PR_PArray pr len# isel (error "tmp ind nyi") 
+       (PNested n# xsSegd (error "bla1") xs)  (PNested n# ysSegd (error "bla1") ys)
      isel   = mapU (\x -> if odd x then (0::Int) else 1) $ enumFromToU 1 (2* lengthU xslens)
 
 

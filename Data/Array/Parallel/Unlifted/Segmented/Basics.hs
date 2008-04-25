@@ -41,7 +41,9 @@ import Data.Array.Parallel.Unlifted.Segmented.SUArr (
   SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd)
 
-
+-- TODO: Remove
+import Debug.Trace
+import Data.Array.Parallel.Unlifted.Segmented.USegd (lengthsUSegd, indicesUSegd)
 
 -- lengthSU reexported from SUArr
 

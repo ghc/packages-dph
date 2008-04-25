@@ -42,6 +42,11 @@ lengthPA# :: PA a -> PArray a -> Int#
 {-# INLINE_PA lengthPA# #-}
 lengthPA# pa x = lengthPR (dictPRepr pa) (toArrPRepr pa x)
 
+emptyPA :: PA a -> PArray a
+{-# INLINE_PA emptyPA #-}
+emptyPA pa = fromArrPRepr pa
+           $ emptyPR (dictPRepr pa)
+
 replicatePA# :: PA a -> Int# -> a -> PArray a
 {-# INLINE_PA replicatePA# #-}
 replicatePA# pa n# = fromArrPRepr pa
@@ -60,10 +65,6 @@ repeatPA# pa n# = fromArrPRepr pa
                 . repeatPR (dictPRepr pa) n#
                 . toArrPRepr pa
 
-emptyPA :: PA a -> PArray a
-{-# INLINE_PA emptyPA #-}
-emptyPA pa = fromArrPRepr pa
-           $ emptyPR (dictPRepr pa)
 
 indexPA# :: PA a -> PArray a -> Int# -> a
 {-# INLINE_PA indexPA# #-}

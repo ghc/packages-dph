@@ -83,7 +83,10 @@ sumPA = closure1 (unsafe_fold (+) 0)
 
 sumP :: [:Double:] -> Double
 {-# NOINLINE sumP #-}
-sumP _ = error "Double.sumP"
+sumP _ = 0.0
+
+
+
 
 minimumPA :: PArray Double :-> Double
 {-# INLINE minimumPA #-}
@@ -98,7 +101,7 @@ minIndexPA = closure1 (unsafe_fold1Index min') (unsafe_fold1sIndex min')
 
 minIndexP :: [:Double:] -> Int
 {-# NOINLINE minIndexP #-}
-minIndexP _ = error "Double.minIndexP"
+minIndexP _ = 0
 
 maxIndexPA :: PArray Double :-> Int
 {-# INLINE maxIndexPA #-}
@@ -109,5 +112,5 @@ maxIndexPA = closure1 (unsafe_fold1Index max') (unsafe_fold1sIndex max')
 
 maxIndexP :: [:Double:] -> Int
 {-# NOINLINE maxIndexP #-}
-maxIndexP _ = error "Double.maxIndexP"
+maxIndexP _ = 0
 

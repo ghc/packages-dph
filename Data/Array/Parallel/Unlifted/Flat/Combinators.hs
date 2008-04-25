@@ -35,7 +35,7 @@ module Data.Array.Parallel.Unlifted.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), checkNotEmpty, sndS, Rebox(..), ST, runST)
+  (:*:)(..), MaybeS(..), checkNotEmpty, checkEq, sndS, Rebox(..), ST, runST)
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   mapS, filterS, foldS, fold1MaybeS, scan1S, scanS, mapAccumS,
@@ -208,6 +208,9 @@ unzip3U a = let (a12 :*: a3) = unzipU a
 combineU :: UA a
 	 => UArr Bool -> UArr a -> UArr a -> UArr a
 {-# INLINE_U combineU #-}
-combineU f a1 a2 = trace ("combineU:\n\t"  ++ show (lengthU f)  ++ "\n\t" ++ show (lengthU a1) ++ "\n\t" ++ show (lengthU a2) ++ "\n")
+combineU f a1 a2 = checkEq (here "combineU") 
+     ("flag length not equal to sum of arg length")
+     (lengthU f) (lengthU a1 + lengthU a2) $ 
+  trace ("combineU:\n\t"  ++ show (lengthU f)  ++ "\n\t" ++ show (lengthU a1) ++ "\n\t" ++ show (lengthU a2) ++ "\n")
   unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
 

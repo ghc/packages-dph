@@ -87,7 +87,7 @@ combineSU:: UA a => UArr Bool -> SUArr a -> SUArr a -> UArr a
 combineSU fs xs1 xs2 =
   unstreamU $ combineSS (streamU fs) (streamSU xs1) (streamSU xs2)
 
-combineCU::  (UA e) => UArr Bool -> SUArr e -> SUArr e -> SUArr e
+combineCU::  UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
 {-# INLINE combineCU #-}
 combineCU  flags xssArr1 xssArr2 = segmentArrU newLengths flatData
   where

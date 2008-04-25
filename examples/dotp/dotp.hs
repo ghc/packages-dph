@@ -15,6 +15,7 @@ import Bench.Options
 
 algs = [("par", DotPPar.dotp)
        ,("seq", DotPSeq.dotp)
+       ,("list", dotp_list)
        ,("vect", dotp_vect)]
 
 type Vector = UArr Double
@@ -22,6 +23,9 @@ type Vector = UArr Double
 dotp_vect :: Vector -> Vector -> Double
 dotp_vect xs ys = DotPVect.dotp (fromUArrPA' xs) (fromUArrPA' ys)
 
+
+dotp_list:: Vector -> Vector -> Double
+dotp_list xs ys = sum $ zipWith (*) (fromU xs) (fromU ys)
 -- generates a random vector of the given length in NF
 --
 generateVector :: Int -> IO Vector

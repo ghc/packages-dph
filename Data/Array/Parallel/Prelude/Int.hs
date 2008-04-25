@@ -1,6 +1,6 @@
 {-# OPTIONS -fvectorise #-}
 module Data.Array.Parallel.Prelude.Int (
-  P.Int, (+), (-), (*), sumP, div, 
+  P.Int, (+), (-), (*), sumP, enumFromToP, div, mod, intSquareRoot,
   (==), (/=), (<=), (<), (>=), (>)
 ) where
 
@@ -33,3 +33,6 @@ infix 4 ==, /=, <, <=, >, >=
 
 div:: Int -> Int -> Int
 div = intDiv
+
+mod:: Int -> Int -> Int
+mod = intMod
