@@ -36,9 +36,3 @@ fromNestedPArrayPA pa = closure1 (\xs -> xs) (\xss -> xss)
 
 combineP:: [:a:] -> [:a:] -> [:Int:] -> [:a:]
 combineP xs _ _ = xs
-
-
-emptyP :: [:a:]
-emptyP = runST (do
-  marr# <- newArray 0 undefined
-  mkPArr 0 marr#)
