@@ -30,6 +30,10 @@ import Data.Array.Parallel.Unlifted
 import GHC.Exts ( Int#, Int(..),
                   Double#, Double(..) )
 
+
+import Debug.Trace
+
+
 type PArray_Int# = UArr Int
 
 lengthPA_Int# :: PArray_Int# -> Int#

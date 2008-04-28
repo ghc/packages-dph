@@ -99,7 +99,7 @@ enumFromToPA = closure2 dPA_Int unsafe_enumFromTo
 
 enumFromToP :: Int -> Int -> [: Int :] 
 {-# NOINLINE enumFromToP #-}
-enumFromToP _ _ = replicateP 0 0
+enumFromToP n m = replicateP n m 
 
 upToPA :: Int :-> PArray Int
 {-# INLINE upToPA #-}
@@ -107,5 +107,5 @@ upToPA = closure1 upToPA_Int (\_ -> error "Int.upToPA lifted")
 
 upToP :: Int -> [:Int:]
 {-# NOINLINE upToP #-}
-upToP _ = emptyP
+upToP n = enumFromToP 0 n
 
