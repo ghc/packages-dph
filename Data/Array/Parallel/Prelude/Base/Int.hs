@@ -18,6 +18,8 @@ import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
+import GHC.PArr
+
 
 eqV, neqV, leV, ltV, geV, gtV :: Int :-> Int :-> Bool
 {-# INLINE eqV #-}
