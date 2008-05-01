@@ -7,7 +7,7 @@ module Data.Array.Parallel.Prelude.Base.Int (
   intDiv, intDivV, 
   intMod, intModV, 
   intSquareRoot, intSquareRootV,
-  sumP, sumPA, enumFromToPA, enumFromToP,
+  sumPA, enumFromToPA,
   upToP, upToPA
 ) where
 
@@ -88,18 +88,12 @@ sumPA :: PArray Int :-> Int
 {-# INLINE sumPA #-}
 sumPA = closure1 (unsafe_fold (+) 0) (\_ -> error "Int.sumV lifted")
 
-sumP :: [:Int:] -> Int
-{-# NOINLINE sumP #-}
-sumP _ = 0
 
 enumFromToPA :: Int :-> Int :->  PArray Int 
 {-# INLINE enumFromToPA #-}
 enumFromToPA = closure2 dPA_Int unsafe_enumFromTo
                         unsafe_enumFromTos
 
-enumFromToP :: Int -> Int -> [: Int :] 
-{-# NOINLINE enumFromToP #-}
-enumFromToP n m = replicateP n m 
 
 upToPA :: Int :-> PArray Int
 {-# INLINE upToPA #-}

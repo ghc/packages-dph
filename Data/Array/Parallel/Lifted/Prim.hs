@@ -77,4 +77,4 @@ unsafe_enumFromTos:: PArray Int -> PArray Int -> PArray (PArray Int)
 unsafe_enumFromTos ss es = fromSUArrPA  flatLen nestedLen  $ enumFromToSU (toUArrPA ss) (toUArrPA es)
   where
     flatLen   = prim_lengthPA ss
-    nestedLen = unsafe_fold (+) 0 (unsafe_map (\x -> max (x-1) 0) $  unsafe_zipWith (-) es ss)
+    nestedLen = unsafe_fold (+) 0 (unsafe_map (\x -> max (x+1) 0) $  unsafe_zipWith (-) es ss)
