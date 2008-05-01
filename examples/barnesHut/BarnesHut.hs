@@ -2,6 +2,7 @@ module Main where
 import BarnesHutSeq
 import BarnesHutPar
 import qualified BarnesHutVect as V
+import qualified BarnesHutList as L
 import BarnesHutGen
 
 import Control.Exception (evaluate)
@@ -18,7 +19,7 @@ import Debug.Trace
 
 
 
-algs = [("seqSimple", bhStepSeq), ("parSimple", bhStepPar), ("vect", bhStepVect)]
+algs = [("seqSimple", bhStepSeq), ("parSimple", bhStepPar), ("vect", bhStepVect), ("list", bhStepList)]
 
 bhStepSeq (dx, dy, particles) = trace (showBHTree bhtree) accs
   where
@@ -36,6 +37,13 @@ bhStepVect (dx, dy, particles) = trace (show  accs) accs
     accs       = zipU (toUArrPA xs) (toUArrPA ys) 
     (xs, ys)   = V.oneStep 0.0 0.0 dx dy particles'
     particles' = (fromUArrPA_3' $ flattenSU particles) 
+
+bhStepList (dx, dy, particles) = trace (show  accs) accs  
+  where
+    accs       = zipU (toU xs) (toU ys) 
+    (xs, ys)   = L.oneStep 0.0 0.0 dx dy particles'
+    (p1 :*: p2 :*: p3) = unzip3U $ concatSU particles
+    particles' = zip3 (fromU p1) (fromU p2) (fromU p3) 
 
 
 
@@ -61,15 +69,14 @@ simpleTest _ _ _=
     testParticles:: UArr MassPoint
     testParticles = toU [
        0.3 :*: 0.2 :*: 5.0,
-{-
---       0.2 :*: 0.1 :*: 5.0,
---       0.1 :*: 0.2 :*: 5.0,
---       0.8 :*: 0.8 :*: 5.0,
-       0.7 :*: 0.9 :*: 5.0,
+       0.2 :*: 0.1 :*: 5.0,
+       0.1 :*: 0.2 :*: 5.0,
+       0.8 :*: 0.8 :*: 5.0,
+       0.7 :*: 0.9 :*: 5.0, 
        0.8 :*: 0.9 :*: 5.0,
        0.6 :*: 0.6 :*: 5.0,
        0.7 :*: 0.7 :*: 5.0,
-       0.8 :*: 0.7 :*: 5.0, -}
+       0.8 :*: 0.7 :*: 5.0,
        0.9 :*: 0.9 :*: 5.0]
 
 

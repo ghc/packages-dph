@@ -1,7 +1,7 @@
 TESTDIR=.
 include $(TESTDIR)/mk/test.mk
 
-SUBDIRS = concomp dotp primes smvm qsort
+SUBDIRS = concomp dotp primes smvm qsort barneshut
 
 .PHONY: all bench clean
 
