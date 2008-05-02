@@ -130,7 +130,7 @@ combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
       case next1 s of
         Done -> Done
         Skip s'    -> Skip (s' :*: t1 :*: t2) 
-        Yield c s' -> if trace ("\n\t\tstream: " ++ (show c) ++ "\n") c  
+        Yield c s' -> if  c  
                         then case nextS1 t1 of
                                Done        -> error "combineS: stream 1 terminated unexpectedly" 
                                Skip t1'    -> Skip (s :*: t1' :*: t2)
