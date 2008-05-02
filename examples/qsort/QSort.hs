@@ -21,7 +21,7 @@ algs = [("seq", qsortSeq), ("par", qsortPar), ("list", toU. qsortList . fromU), 
 
 
 qsortVect':: UArr Double -> UArr Double
-qsortVect' xs = -- trace (show res) 
+qsortVect' xs =  trace (show res) 
   res
   where  
     res = toUArrPA $ qsortVect $ fromUArrPA' xs

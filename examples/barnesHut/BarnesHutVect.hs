@@ -8,6 +8,7 @@ where
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double
 import qualified Data.Array.Parallel.Prelude.Int as I
+
 import qualified Prelude
 
 
@@ -76,16 +77,16 @@ inBox (Box llx  lly rux  ruy) (MP px  py  _) =
     (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
 
 calcCentroid:: [:MassPoint:] -> MassPoint
-calcCentroid mpts = MP  ((sumP xs)/mass) ((sumP ys)/mass) mass
+calcCentroid mpts = MP  ((doubleSumP xs)/mass) ((doubleSumP ys)/mass) mass
   where
-    mass     = sumP [: m | MP _ _ m  <- mpts :]
+    mass     = doubleSumP [: m | MP _ _ m  <- mpts :]
     (xs, ys) = unzipP [: (m * x, m * y) | MP x y m <- mpts :]   
 
 
 calcAccel:: MassPoint -> BHTree -> (Double, Double)
 calcAccel mpt (BHT x y m subtrees)
   | isClose mpt x y = accel mpt x y m
-  | otherwise       = (sumP xs, sumP ys) 
+  | otherwise       = (doubleSumP xs, doubleSumP ys) 
       where
         (xs, ys) = unzipP [: calcAccel mpt st | st <- subtrees:]
 

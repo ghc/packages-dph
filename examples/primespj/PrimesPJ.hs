@@ -34,7 +34,8 @@ primesList' n = sps ++ [ i | i <- [sq+1..n], multiple sps i ]
     multiple ps i = and [i `mod` p /= 0 | p <- ps]
 
 primesVect':: Int -> UArr Int
-primesVect' n = toUArrPA (primesVect n) 
+primesVect' n = trace (show res) res 
+  where res = toUArrPA (primesVect n) 
 
 
 simpleTest:: Int -> IO (Bench.Benchmark.Point ( Int))

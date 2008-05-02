@@ -12,5 +12,5 @@ dotp :: PArray Double -> PArray Double -> Double
 dotp v w = dotp' (fromPArrayP v) (fromPArrayP w)
 
 dotp' :: [:Double:] -> [:Double:] -> Double
-dotp' v w = sumP (zipWithP (*) v w)
+dotp' v w = doubleSumP (zipWithP (*) v w)
 
