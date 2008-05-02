@@ -32,8 +32,8 @@ import Debug.Trace
 
 data Void
 
-traceFn   = trace
-traceArgs = trace 
+traceFn   = flip const -- trace
+traceArgs = flip  const -- trace 
 
 void :: Void
 void = error "Data.Array.Parallel.void"

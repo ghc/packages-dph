@@ -6,7 +6,7 @@ module Data.Array.Parallel.Prelude.Base.Double (
   mult, multV,
   divide, divideV,
   squareRoot, squareRootV,
-  sumP, sumPA, minIndexP, minIndexPA, maxIndexP, maxIndexPA
+  doubleSumP, doubleSumPA, minIndexP, minIndexPA, maxIndexP, maxIndexPA
 ) where
 
 import Data.Array.Parallel.Prelude.Base.PArr
@@ -76,14 +76,14 @@ squareRootV = closure1  (sqrt) (unsafe_map sqrt)
 
 
 
-sumPA :: PArray Double :-> Double
-{-# INLINE sumPA #-}
-sumPA = closure1 (unsafe_fold (+) 0)
+doubleSumPA :: PArray Double :-> Double
+{-# INLINE doubleSumPA #-}
+doubleSumPA = closure1 (unsafe_fold (+) 0)
                  (unsafe_folds (+) 0)
 
-sumP :: [:Double:] -> Double
-{-# NOINLINE sumP #-}
-sumP _ = 0.0
+doubleSumP :: [:Double:] -> Double
+{-# NOINLINE doubleSumP #-}
+doubleSumP _ = 0.0
 
 
 

@@ -1,6 +1,6 @@
 {-# OPTIONS -fvectorise #-}
 module Data.Array.Parallel.Prelude.Int (
-  P.Int, (+), (-), (*), div, mod, intSquareRoot,
+  P.Int, (+), (-), (*), div, mod, intSquareRoot, enumFromToP, intSumP, 
   (==), (/=), (<=), (<), (>=), (>)
 ) where
 

@@ -7,7 +7,8 @@ module Data.Array.Parallel.Prelude.Base.Int (
   intDiv, intDivV, 
   intMod, intModV, 
   intSquareRoot, intSquareRootV,
-  sumPA, enumFromToPA,
+  intSumPA, intSumP,
+  enumFromToPA, enumFromToP,
   upToP, upToPA
 ) where
 
@@ -18,7 +19,7 @@ import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
-import GHC.PArr
+
 
 
 eqV, neqV, leV, ltV, geV, gtV :: Int :-> Int :-> Bool
@@ -86,16 +87,23 @@ intSquareRootV :: Int :-> Int
 intSquareRootV = closure1  (intSquareRoot) (unsafe_map intSquareRoot)
 
 
-sumPA :: PArray Int :-> Int
-{-# INLINE sumPA #-}
-sumPA = closure1 (unsafe_fold (+) 0) (\_ -> error "Int.sumV lifted")
+intSumPA :: PArray Int :-> Int
+{-# INLINE intSumPA #-}
+intSumPA = closure1 (unsafe_fold (+) 0) (\_ -> error "Int.sumV lifted")
 
+
+intSumP :: [:Int:] -> Int
+{-# NOINLINE intSumP #-}
+intSumP _ = 0
 
 enumFromToPA :: Int :-> Int :->  PArray Int 
 {-# INLINE enumFromToPA #-}
 enumFromToPA = closure2 dPA_Int unsafe_enumFromTo
                         unsafe_enumFromTos
 
+enumFromToP :: Int -> Int ->  [:Int:]
+{-# NOINLINE enumFromToP #-}
+enumFromToP n m = replicateP (n-m+1) 0
 
 upToPA :: Int :-> PArray Int
 {-# INLINE upToPA #-}

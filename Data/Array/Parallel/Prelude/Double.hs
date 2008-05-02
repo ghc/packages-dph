@@ -1,7 +1,7 @@
 {-# OPTIONS -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Double (
-  P.Double, (+), (-), (*), (/), sqrt, sumP, minIndexP, maxIndexP,
+  P.Double, (+), (-), (*), (/), sqrt, doubleSumP, minIndexP, maxIndexP,
   (==), (/=), (<=), (<), (>=), (>)
 ) where
 

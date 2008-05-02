@@ -211,6 +211,6 @@ combineU :: UA a
 combineU f a1 a2 = checkEq (here "combineU") 
      ("flag length not equal to sum of arg length")
      (lengthU f) (lengthU a1 + lengthU a2) $ 
-  trace ("combineU:\n\t"  ++ show (lengthU f)  ++ "\n\t" ++ show (lengthU a1) ++ "\n\t" ++ show (lengthU a2) ++ "\n")
+--  trace ("combineU:\n\t"  ++ show (lengthU f)  ++ "\n\t" ++ show (lengthU a1) ++ "\n\t" ++ show (lengthU a2) ++ "\n")
   unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
 

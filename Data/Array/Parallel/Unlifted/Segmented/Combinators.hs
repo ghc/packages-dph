@@ -89,7 +89,8 @@ combineSU fs xs1 xs2 =
 
 combineCU::  UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
 {-# INLINE combineCU #-}
-combineCU  flags xssArr1 xssArr2 = segmentArrU newLengths flatData
+combineCU  flags xssArr1 xssArr2 = trace "combineCU"
+  segmentArrU newLengths flatData
   where
     newLengths = combineU  flags (lengthsSU xssArr1) (lengthsSU xssArr2)
     repFlags   = replicateSU newLengths flags
