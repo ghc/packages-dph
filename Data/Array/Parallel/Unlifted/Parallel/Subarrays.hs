@@ -37,7 +37,7 @@ import Data.Array.Parallel.Unlifted.Flat.Basics (indexedU, replicateU, replicate
 import Data.Array.Parallel.Unlifted.Distributed
 
 
-dropUP :: UA Int => Int -> UArr Int -> UArr Int
+dropUP :: Int -> UArr Int -> UArr Int
 dropUP n xs = sliceU xs (min (max 0 n) (lengthU xs)) (min (lengthU xs) (lengthU xs - n)) 
 {-# INLINE_U dropUP #-}
 {-
