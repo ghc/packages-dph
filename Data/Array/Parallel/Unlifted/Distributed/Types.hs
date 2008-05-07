@@ -123,7 +123,6 @@ sizeD (DPrim  a)   = lengthBU a
 sizeD (DProd  x y) = sizeD x
 sizeD (DUArr  _ a) = lengthBB a
 sizeD (DMaybe b a) = sizeD b
-sizeD (DUArr ns _) = sizeD ns
 sizeD (DUSegd ps) = sizeD ps
 sizeD (DSUArr segd _) = sizeD segd
 
