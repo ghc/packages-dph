@@ -13,7 +13,6 @@ exposed-modules:
         Data.Array.Parallel.Unlifted.Distributed
         Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Lifted
-        Data.Array.Parallel.Base.Closure
         Data.Array.Parallel.Prelude
         Data.Array.Parallel.Prelude.Int
         Data.Array.Parallel.Prelude.Double
