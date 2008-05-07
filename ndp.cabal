@@ -92,8 +92,9 @@ extra-source-files:
         include/fusion-phases.h
 include-dirs:
         include
-extensions: TypeFamilies, BangPatterns
-ghc-options: -fglasgow-exts -O2 -funbox-strict-fields 
+extensions: TypeFamilies, GADTs, RankNTypes,
+            BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+ghc-options: -O2 -funbox-strict-fields
              -fdicts-cheap -fno-method-sharing -fno-spec-constr-threshold
              -fmax-simplifier-iterations10  -haddock
              -fcpr-off -package-name ndp

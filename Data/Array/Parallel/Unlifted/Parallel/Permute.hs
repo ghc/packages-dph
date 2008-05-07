@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Unlifted.Parallel.Permute

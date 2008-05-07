@@ -1,3 +1,6 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ForeignFunctionInterface, UnliftedFFITypes #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Arr.BUArr

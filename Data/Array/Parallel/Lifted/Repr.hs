@@ -1,3 +1,4 @@
+{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE CPP #-}
 
 #include "fusion-phases.h"

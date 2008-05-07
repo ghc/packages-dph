@@ -1,3 +1,5 @@
+{-# LANGUAGE ExistentialQuantification #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Stream.Flat.Stream

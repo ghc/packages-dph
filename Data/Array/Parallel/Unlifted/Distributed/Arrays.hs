@@ -1,3 +1,5 @@
+{-# LANGUAGE EmptyDataDecls #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Parallel.Unlifted.Distributed.Arrays

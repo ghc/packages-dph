@@ -1,3 +1,5 @@
+{-# LANGUAGE ExistentialQuantification #-}
+
 module Data.Array.Parallel.Base.Closure (
   (:->)(..),
   closure, ($:),
