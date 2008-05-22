@@ -208,8 +208,7 @@ packPA pa = closure2 (dPA_PArray pa) (packPA_v pa) (packPA_l pa)
 combine2PA_v:: PA a -> PArray a -> PArray a -> PArray Int -> PArray a
 {-# INLINE_PA combine2PA_v #-}
 combine2PA_v pa xs ys bs@(PInt _ bs#) = 
-  case (lengthPA# pa xs, lengthPA# pa ys) of
-    (n#,m#) -> combine2PA# pa  (n# +# m#) bs# bs# xs ys 
+  combine2PA# pa (lengthPA# pa xs +# lengthPA# pa ys) bs# bs# xs ys
 
 combine2PA_l:: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Int) -> PArray (PArray a)
 {-# INLINE_PA combine2PA_l #-}
