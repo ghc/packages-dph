@@ -27,10 +27,10 @@ import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS)
 
 
-import Data.Array.Parallel.Unlifted.Flat.UArr (
-  UA, UArr, unitsU, lengthU, indexU, newU)
-import Data.Array.Parallel.Unlifted.Flat.Combinators (foldU, mapU, zipU, unzipU)
-import Data.Array.Parallel.Unlifted.Flat.Basics (indexedU, replicateU, replicateEachU)
+import Data.Array.Parallel.Unlifted.Sequential (
+  UA, UArr, unitsU, lengthU, newU,
+  foldU, mapU, zipU, unzipU,
+  indexedU, replicateU, replicateEachU)
 import Data.Array.Parallel.Unlifted.Distributed
 
 -- infixl 9 !:

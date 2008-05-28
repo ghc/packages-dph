@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP #-}
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.UArr
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.UArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -28,7 +28,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.UArr (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
 
   -- * Array types and classes containing the admissable elements types
   UA, UArr, MUArr, {-USel(..), MUSel(..),-}

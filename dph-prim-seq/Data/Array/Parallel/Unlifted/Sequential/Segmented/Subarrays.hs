@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.Basics
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -16,15 +16,15 @@
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Unlifted.Segmented.Subarrays (
+module Data.Array.Parallel.Unlifted.Sequential.Segmented.Subarrays (
   sliceSU, extractSU, takeCU, dropCU
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat (
+import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, (!:), sliceU, extractU, lengthU)
-import Data.Array.Parallel.Unlifted.Segmented.SUArr (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, sliceUSegd, extractUSegd, (>:), segdSU, lengthSU, indicesSU)
-import Data.Array.Parallel.Unlifted.Segmented.Basics (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   concatSU)
 
 -- |Extract a subrange of the segmented array without copying the elements.

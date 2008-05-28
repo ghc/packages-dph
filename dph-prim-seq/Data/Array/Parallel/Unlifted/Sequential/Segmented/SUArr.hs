@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.SUArr
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -20,7 +20,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Segmented.SUArr (
+module Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
 
   -- * Array types
   SUArr, MSUArr,
@@ -31,17 +31,17 @@ module Data.Array.Parallel.Unlifted.Segmented.SUArr (
   newMSU, unsafeFreezeMSU,
 
   -- * Segment descriptors
-  module Data.Array.Parallel.Unlifted.Segmented.USegd
+  module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 ) where
 
 -- friends
 import Data.Array.Parallel.Base (
   ST)
-import Data.Array.Parallel.Unlifted.Flat (
+import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, UArr, MUArr,
   (!:),
   newMU, unsafeFreezeMU)
-import Data.Array.Parallel.Unlifted.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 
 import Control.Monad (
   liftM2)

@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.SUArr
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -16,7 +16,7 @@
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Unlifted.Flat (
+module Data.Array.Parallel.Unlifted.Sequential.Flat (
 
   -- * Array classes
   UA,
@@ -99,19 +99,19 @@ module Data.Array.Parallel.Unlifted.Flat (
   lengthU'
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, MUArr, UIO(..),
   newU, lengthMU, newMU, readMU, writeMU, copyMU,
   unsafeFreezeMU, unsafeFreezeAllMU,
   hasAtomicWriteMU, atomicWriteMU)
-import Data.Array.Parallel.Unlifted.Flat.Stream
-import Data.Array.Parallel.Unlifted.Flat.Basics
-import Data.Array.Parallel.Unlifted.Flat.Enum
-import Data.Array.Parallel.Unlifted.Flat.Subarrays
-import Data.Array.Parallel.Unlifted.Flat.Combinators
-import Data.Array.Parallel.Unlifted.Flat.Search
-import Data.Array.Parallel.Unlifted.Flat.Sums
-import Data.Array.Parallel.Unlifted.Flat.Permute
-import Data.Array.Parallel.Unlifted.Flat.Text ()
-import Data.Array.Parallel.Unlifted.Flat.Random
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Basics
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Enum
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Subarrays
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Search
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Sums
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Permute
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Text ()
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Random
 

@@ -22,8 +22,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP, replicateSUP, indexedSUP, jsTest
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat
-import Data.Array.Parallel.Unlifted.Segmented
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (mapUP, packUP)
 import Data.Array.Parallel.Unlifted.Parallel.Enum (enumFromToEachUP)

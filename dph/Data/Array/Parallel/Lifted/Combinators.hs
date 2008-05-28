@@ -14,7 +14,7 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
 
 import GHC.Exts (Int(..), (+#))
 

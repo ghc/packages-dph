@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Random
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Random
 -- Copyright   : (c) 2006 Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
@@ -19,14 +19,14 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.Random
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Random
 where
 
 import Data.Array.Parallel.Stream (
   randomS, randomRS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr)
-import Data.Array.Parallel.Unlifted.Flat.Stream (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   unstreamU)
 
 import System.Random

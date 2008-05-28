@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Text
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Text
 -- Copyright   : (c) 2006 Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
@@ -15,16 +15,16 @@
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Unlifted.Segmented.Text ()
+module Data.Array.Parallel.Unlifted.Sequential.Segmented.Text ()
 where
 
 import Data.Array.Parallel.Base (
   Read(..), showsApp, readApp)
-import Data.Array.Parallel.Unlifted.Flat (
+import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA)
-import Data.Array.Parallel.Unlifted.Segmented.SUArr (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   USegd, SUArr, lengthsUSegd, toUSegd)
-import Data.Array.Parallel.Unlifted.Segmented.Basics (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   fromSU, toSU)
 
 instance Show USegd where

@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Combinators
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -20,7 +20,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.Combinators (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
   mapU, 
   filterU, 
   packU,
@@ -40,20 +40,20 @@ import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   mapS, filterS, foldS, fold1MaybeS, scan1S, scanS, mapAccumS,
   zipWithS, zipWith3S, combineS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, MUArr,
   writeMU, newDynResU,
   zipU, unzipU, fstU, sndU)
-import Data.Array.Parallel.Unlifted.Flat.Stream (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   streamU, unstreamU)
-import Data.Array.Parallel.Unlifted.Flat.Basics (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   lengthU, (!:))
-import Data.Array.Parallel.Unlifted.Flat.Subarrays (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Subarrays (
   sliceU)
 
 import Debug.Trace
 
-here s = "Data.Array.Parallel.Unlifted.Flat.Combinators." ++ s
+here s = "Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators." ++ s
 
 -- |Map a function over an array
 --

@@ -15,7 +15,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PrimPA(..), prim_lengthPA, fromUArrPA'
 ) where
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Lifted.Unboxed ( PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#, Int(..))
 

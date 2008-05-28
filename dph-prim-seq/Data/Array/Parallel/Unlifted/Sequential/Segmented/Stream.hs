@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.Stream
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream
 -- Copyright   : (c) 2006 Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
@@ -17,15 +17,15 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Segmented.Stream (
+module Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
   streamSU, unstreamSU
 ) where
 
 import Data.Array.Parallel.Stream (
   Stream, SStream(..), segmentS)
-import Data.Array.Parallel.Unlifted.Flat (
+import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, streamU, unstreamU)
-import Data.Array.Parallel.Unlifted.Segmented.SUArr (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, USegd,
   lengthsUSegd, lengthsToUSegd,
   segdSU, flattenSU, (>:))

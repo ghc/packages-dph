@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Search
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Search
 -- Copyright   : (c) 2007         Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
@@ -19,15 +19,15 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.Search (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Search (
   findU, findIndexU
 ) where
 
 import Data.Array.Parallel.Stream (
   findS, findIndexS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr)
-import Data.Array.Parallel.Unlifted.Flat.Stream (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   streamU)
 
 findU :: UA a => (a -> Bool) -> UArr a -> Maybe a

@@ -17,7 +17,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Sums (
   andUP, orUP, sumUP
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   foldUP, foldl1UP, fold1UP, mapUP)

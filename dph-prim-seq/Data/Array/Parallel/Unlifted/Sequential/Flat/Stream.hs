@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Stream
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Stream
 -- Copyright   : (c) 2006 Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
@@ -17,7 +17,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.Stream (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   streamU, unstreamU, unstreamMU
 ) where
 
@@ -25,7 +25,7 @@ import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, ST, Rebox(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..), mapS, zipWithS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UArr, MUArr, UA, indexU, lengthU, zipU, fstU, sndU, newDynU, writeMU)
 
 -- | Generate a stream from an array, from left to right

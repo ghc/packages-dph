@@ -23,7 +23,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Enum (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, uncurryS)
-import Data.Array.Parallel.Unlifted.Flat (
+import Data.Array.Parallel.Unlifted.Sequential (
   UArr, UA, enumFromStepLenU, enumFromToEachU)
 import Data.Array.Parallel.Unlifted.Distributed (
   mapD, scanD, zipD, splitLenD, joinD, splitD, balanced, unbalanced,

@@ -23,7 +23,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Combinators (
 ) where
 
 import Data.Array.Parallel.Base
-import Data.Array.Parallel.Unlifted.Flat
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 
 mapUP :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b

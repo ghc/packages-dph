@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted
+-- Module      : Data.Array.Parallel.Unlifted.Sequential
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) [2006..2007] Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -16,7 +16,7 @@
 -- Todo ----------------------------------------------------------------------
 -- 
 
-module Data.Array.Parallel.Unlifted (
+module Data.Array.Parallel.Unlifted.Sequential (
 
   -- * Array classes
   UA,
@@ -42,9 +42,9 @@ module Data.Array.Parallel.Unlifted (
   -- * Higher-order operations
   mapU, zipWithU, zipWith3U,
   filterU, packU, 
-  foldlU, foldl1U,
+  foldlU, foldl1U, foldl1MaybeU,
   {-foldrU, foldr1U,-}
-  foldU, fold1U,
+  foldU, fold1U, fold1MaybeU,
   scanlU, scanl1U,
   {-scanrU, scanr1U,-}
   scanU, scan1U,
@@ -86,14 +86,14 @@ module Data.Array.Parallel.Unlifted (
   -- * Conversions to\/from lists
   toU, fromU,
 
-  -- * Unlifted arrays
+  -- * Unlifted.Sequential arrays
   randomU, randomRU,
 
   -- * I\/O
   UIO(..),
 
   -- * Segmentation
-  concatSU, flattenSU, (>:), segmentU, segmentArrU,
+  concatSU, flattenSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations (segmented)
   lengthSU, singletonSU, replicateSU, replicateCU, (+:+^), indexedSU, (^+:+^), (!:^),
@@ -129,7 +129,11 @@ module Data.Array.Parallel.Unlifted (
   toSU, fromSU,
 
   -- * Segment descriptors
-  lengthsToUSegd, toUSegd,
+  lengthsUSegd, lengthsToUSegd, toUSegd, fromUSegd,
+
+  -- * Mutable arrays
+  MUArr, newU, newMU, copyMU, permuteMU,
+  hasAtomicWriteMU, atomicUpdateMU, unsafeFreezeAllMU,
 
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer,
@@ -140,14 +144,14 @@ module Data.Array.Parallel.Unlifted (
 ) where
 
 import Data.Array.Parallel.Base ((:*:)(..))
-import Data.Array.Parallel.Unlifted.Flat
-import Data.Array.Parallel.Unlifted.Segmented
+import Data.Array.Parallel.Unlifted.Sequential.Flat
+import Data.Array.Parallel.Unlifted.Sequential.Segmented
 
 -- version number is major.minor.patchlvl; don't change the format of the
 -- `versnum' line as it is `grep'ed for by a Makefile
 --
 idstr      = "$Id: FIXME: Have the build-system produce an id$"
-name       = "Unlifted Array Library"
+name       = "Unlifted.Sequential Array Library"
 versnum    = "0.6.0"
 date	   = "28 Apr 2006"
 version    = name ++ ", version " ++ versnum ++ ", " ++ date

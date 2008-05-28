@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.Permute
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.Permute
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -20,15 +20,15 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Segmented.Permute (
+module Data.Array.Parallel.Unlifted.Sequential.Segmented.Permute (
   bpermuteSU, bpermuteSU'
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat (
+import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, UArr, bpermuteU)
-import Data.Array.Parallel.Unlifted.Segmented.SUArr (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, segdSU, (>:))
-import Data.Array.Parallel.Unlifted.Segmented.Basics (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   concatSU)
 
 bpermuteSU' :: UA e => UArr e -> SUArr Int -> SUArr e

@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Sums
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Sums
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/rl/LICENSE
@@ -16,7 +16,7 @@
 -- Todo ----------------------------------------------------------------------
 --
 
-module Data.Array.Parallel.Unlifted.Flat.Sums (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Sums (
   andU, orU, anyU, allU,
   elemU, notElemU,
   sumU, productU,
@@ -30,11 +30,11 @@ module Data.Array.Parallel.Unlifted.Flat.Sums (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr)
-import Data.Array.Parallel.Unlifted.Flat.Basics ( 
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Basics ( 
   indexedU)
-import Data.Array.Parallel.Unlifted.Flat.Combinators (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
   mapU, foldU, fold1U, foldlU)
 
 infix  4 `elemU`, `notElemU`

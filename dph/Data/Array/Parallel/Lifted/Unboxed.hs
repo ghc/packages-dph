@@ -25,7 +25,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   truesPA_Bool#
 ) where
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
 
 import GHC.Exts ( Int#, Int(..),
                   Double#, Double(..) )

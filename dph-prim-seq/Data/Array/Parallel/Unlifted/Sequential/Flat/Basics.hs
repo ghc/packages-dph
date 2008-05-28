@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Basics
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Basics
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -20,7 +20,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.Basics (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, 
   replicateEachU,
   (!:), (+:+), repeatU,
@@ -34,9 +34,9 @@ import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   consS, singletonS, replicateS, (+++), indexedS,
   replicateEachS, zipS, toStream)
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
-import Data.Array.Parallel.Unlifted.Flat.Stream (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   streamU, unstreamU)
 
 

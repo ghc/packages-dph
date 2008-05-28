@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Flat.Permute
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Permute
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -20,7 +20,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Flat.Permute (
+module Data.Array.Parallel.Unlifted.Sequential.Flat.Permute (
   permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU,
   atomicUpdateMU
 ) where
@@ -29,17 +29,17 @@ import Data.Array.Parallel.Base (
   ST, runST, (:*:)(..), Rebox(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..))
-import Data.Array.Parallel.Unlifted.Flat.UArr (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, MUArr,
   lengthU, newU, newDynU, newMU, unsafeFreezeAllMU, writeMU,
   sliceU)
-import Data.Array.Parallel.Unlifted.Flat.Stream (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   streamU, unstreamMU)
-import Data.Array.Parallel.Unlifted.Flat.Basics (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   (!:))
-import Data.Array.Parallel.Unlifted.Flat.Enum (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Enum (
   enumFromToU)
-import Data.Array.Parallel.Unlifted.Flat.Combinators (
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
   mapU)
 
 -- |Permutations

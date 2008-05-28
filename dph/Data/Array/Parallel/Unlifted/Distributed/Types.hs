@@ -33,8 +33,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize )
 import Data.Array.Parallel.Arr
-import Data.Array.Parallel.Unlifted.Flat
-import Data.Array.Parallel.Unlifted.Segmented
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Base
 
 import Control.Monad (liftM, liftM2)

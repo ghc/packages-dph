@@ -5,11 +5,10 @@ author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
 maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
 homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
 category:       Data Structures
-build-depends:  base, array, random, ghc-prim, dph-base
+build-depends:  base, array, random, ghc-prim, dph-base, dph-prim-seq
 synopsis:       Data structures for Nested Data-Parallel Haskell.
 exposed-modules:
 	Data.Array.Parallel
-	Data.Array.Parallel.Unlifted
         Data.Array.Parallel.Unlifted.Distributed
         Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Lifted
@@ -25,32 +24,9 @@ other-modules:
         Data.Array.Parallel.Unlifted.Distributed.Scalars
         Data.Array.Parallel.Unlifted.Distributed.Arrays
         Data.Array.Parallel.Unlifted.Distributed.Basics
-	Data.Array.Parallel.Unlifted.Flat.UArr
-        Data.Array.Parallel.Unlifted.Flat.Stream
-        Data.Array.Parallel.Unlifted.Flat.Basics
-        Data.Array.Parallel.Unlifted.Flat.Enum
-        Data.Array.Parallel.Unlifted.Flat.Subarrays
-        Data.Array.Parallel.Unlifted.Flat.Combinators
-        Data.Array.Parallel.Unlifted.Flat.Sums
-        Data.Array.Parallel.Unlifted.Flat.Permute
-        Data.Array.Parallel.Unlifted.Flat.Text
-        Data.Array.Parallel.Unlifted.Flat.Random
-        Data.Array.Parallel.Unlifted.Flat.Search
-        Data.Array.Parallel.Unlifted.Flat
-        Data.Array.Parallel.Unlifted.Segmented.USegd
-	Data.Array.Parallel.Unlifted.Segmented.SUArr
-        Data.Array.Parallel.Unlifted.Segmented.Stream
-        Data.Array.Parallel.Unlifted.Segmented.Basics
-        Data.Array.Parallel.Unlifted.Segmented.Subarrays
-        Data.Array.Parallel.Unlifted.Segmented.Combinators
-        Data.Array.Parallel.Unlifted.Segmented.Sums
-        Data.Array.Parallel.Unlifted.Segmented.Permute
-        Data.Array.Parallel.Unlifted.Segmented.Text
-        Data.Array.Parallel.Unlifted.Segmented
         Data.Array.Parallel.Unlifted.Parallel.Combinators
         Data.Array.Parallel.Unlifted.Parallel.Sums
         Data.Array.Parallel.Unlifted.Parallel.Basics
-        Data.Array.Parallel.Unlifted.Parallel.UPArr
         Data.Array.Parallel.Unlifted.Parallel.Permute
         Data.Array.Parallel.Unlifted.Parallel.Enum
         Data.Array.Parallel.Unlifted.Parallel.Segmented

@@ -19,7 +19,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Permute (
   bpermuteUP, updateUP
 ) where
 
-import Data.Array.Parallel.Unlifted.Flat
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS)

@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Unlifted.Segmented.Basics
+-- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --		 (c) 2006         Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -20,7 +20,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Segmented.Basics (
+module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   lengthSU, singletonSU, replicateSU, replicateCU, (!:^),
   flattenSU, (>:), segmentU, segmentArrU, concatSU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
@@ -33,17 +33,17 @@ import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),SStream(..),(+++), (^+++^))
-import Data.Array.Parallel.Unlifted.Flat
+import Data.Array.Parallel.Unlifted.Sequential.Flat
 
 
-import Data.Array.Parallel.Unlifted.Segmented.Stream (streamSU,unstreamSU)
-import Data.Array.Parallel.Unlifted.Segmented.SUArr (
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (streamSU,unstreamSU)
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd)
 
 -- TODO: Remove
 import Debug.Trace
-import Data.Array.Parallel.Unlifted.Segmented.USegd (lengthsUSegd, indicesUSegd)
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (lengthsUSegd, indicesUSegd)
 
 -- lengthSU reexported from SUArr
 

@@ -28,13 +28,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, ST, runST)
-import Data.Array.Parallel.Unlifted.Flat (
-  UA, UArr, MUArr, lengthU, sliceU, bpermuteU, zipU, (!:),
-  newU, newMU, copyMU, permuteMU, atomicUpdateMU, unsafeFreezeAllMU,
-  fromU)
-import Data.Array.Parallel.Unlifted.Segmented (
-  USegd, SUArr, lengthsUSegd, lengthsToUSegd,
-  (>:), concatSU, segdSU, bpermuteSU')
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
