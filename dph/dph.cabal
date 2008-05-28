@@ -9,28 +9,11 @@ build-depends:  base, array, random, ghc-prim, dph-base, dph-prim-seq
 synopsis:       Data structures for Nested Data-Parallel Haskell.
 exposed-modules:
 	Data.Array.Parallel
-        Data.Array.Parallel.Unlifted.Distributed
-        Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.Prelude
         Data.Array.Parallel.Prelude.Int
         Data.Array.Parallel.Prelude.Double
 other-modules:
-        Data.Array.Parallel.Unlifted.Distributed.Gang
-        Data.Array.Parallel.Unlifted.Distributed.TheGang
-        Data.Array.Parallel.Unlifted.Distributed.DistST
-	Data.Array.Parallel.Unlifted.Distributed.Types
-        Data.Array.Parallel.Unlifted.Distributed.Combinators
-        Data.Array.Parallel.Unlifted.Distributed.Scalars
-        Data.Array.Parallel.Unlifted.Distributed.Arrays
-        Data.Array.Parallel.Unlifted.Distributed.Basics
-        Data.Array.Parallel.Unlifted.Parallel.Combinators
-        Data.Array.Parallel.Unlifted.Parallel.Sums
-        Data.Array.Parallel.Unlifted.Parallel.Basics
-        Data.Array.Parallel.Unlifted.Parallel.Permute
-        Data.Array.Parallel.Unlifted.Parallel.Enum
-        Data.Array.Parallel.Unlifted.Parallel.Segmented
-        Data.Array.Parallel.Unlifted.Parallel.Subarrays
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Unboxed
         Data.Array.Parallel.Lifted.Prim

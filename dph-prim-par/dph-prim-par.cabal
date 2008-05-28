@@ -1,0 +1,36 @@
+name:           dph-prim-par
+version:        0.3
+license:        BSD3
+author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
+maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
+homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+category:       Data Structures
+build-depends:  base, array, random, ghc-prim, dph-base, dph-prim-seq
+synopsis:       Parallel Primitives for Data-Parallel Haskell.
+exposed-modules:
+        Data.Array.Parallel.Unlifted.Distributed
+        Data.Array.Parallel.Unlifted.Parallel
+other-modules:
+        Data.Array.Parallel.Unlifted.Distributed.Gang
+        Data.Array.Parallel.Unlifted.Distributed.TheGang
+        Data.Array.Parallel.Unlifted.Distributed.DistST
+	Data.Array.Parallel.Unlifted.Distributed.Types
+        Data.Array.Parallel.Unlifted.Distributed.Combinators
+        Data.Array.Parallel.Unlifted.Distributed.Scalars
+        Data.Array.Parallel.Unlifted.Distributed.Arrays
+        Data.Array.Parallel.Unlifted.Distributed.Basics
+        Data.Array.Parallel.Unlifted.Parallel.Combinators
+        Data.Array.Parallel.Unlifted.Parallel.Sums
+        Data.Array.Parallel.Unlifted.Parallel.Basics
+        Data.Array.Parallel.Unlifted.Parallel.Permute
+        Data.Array.Parallel.Unlifted.Parallel.Enum
+        Data.Array.Parallel.Unlifted.Parallel.Segmented
+        Data.Array.Parallel.Unlifted.Parallel.Subarrays
+extra-source-files:
+        include/fusion-phases.h
+include-dirs:
+        include
+extensions: TypeFamilies, GADTs, RankNTypes,
+            BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+ghc-options: -Odph -funbox-strict-fields -haddock -fcpr-off
+
