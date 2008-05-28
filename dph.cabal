@@ -1,5 +1,5 @@
-name:           ndp
-version:        0.2
+name:           dph
+version:        0.3
 license:        BSD3
 author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
 maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
