@@ -26,6 +26,8 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted
 
+import Data.Array.Parallel.Base ((:*:)(..))
+
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import Debug.Trace
 

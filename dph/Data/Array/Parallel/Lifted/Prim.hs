@@ -11,7 +11,7 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import Data.Array.Parallel.Base.Hyperstrict (pairS, unpairS)
+import Data.Array.Parallel.Base (fstS, pairS, unpairS)
 
 unsafe_map :: (PrimPA a, PrimPA b) => (a -> b) -> PArray a -> PArray b
 {-# INLINE_PA unsafe_map #-}
