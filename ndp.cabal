@@ -93,9 +93,5 @@ include-dirs:
         include
 extensions: TypeFamilies, GADTs, RankNTypes,
             BangPatterns, MagicHash, UnboxedTuples, TypeOperators
-ghc-options: -O2 -funbox-strict-fields
-             -fdicts-cheap -fno-method-sharing -fno-spec-constr-threshold
-             -fmax-simplifier-iterations10  -haddock
-             -fcpr-off -package-name ndp
-
+ghc-options: -Odph -funbox-strict-fields -haddock -fcpr-off -package-name ndp
 
