@@ -840,8 +840,8 @@ combine2PR_Sum2 pra prb n# sel# is# (PSum2 m1# sel1# _ as1 bs1) (PSum2 m2# sel2#
                         bs' = trace ("cb2: " ++ show bsel) $ combine2PR prb bs# bsel is# bs1 bs2
      where
        sel' = combine2PA_Int# n# sel# is#  sel1# sel2#
-       sel'Bool  = mapU (==0) sel'
-       nsel'Bool = mapU (==1) sel'
+       sel'Bool  = selectPA_Int# sel' 0#
+       nsel'Bool = selectPA_Int# sel' 1#
 
 
 dPR_Sum3 :: PR a -> PR b -> PR c -> PR (Sum3 a b c)
