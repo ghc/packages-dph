@@ -8,9 +8,9 @@ module Data.Array.Parallel.Lifted.Unboxed (
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
-  upToPA_Int#, selectPA_Int#, sumPA_Int#,
+  upToPA_Int#, selectPA_Int#, selectorToIndices2PA#,
+  sumPA_Int#, sumPAs_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
-  sumPAs_Int#, 
 
   PArray_Double#,
   lengthPA_Double#, emptyPA_Double#,
@@ -26,6 +26,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Base ((:*:)(..))
 
 import GHC.Exts ( Int#, Int(..),
                   Double#, Double(..) )
@@ -97,6 +98,21 @@ upToPA_Int# n# = enumFromToU 0 (I# n# - 1)
 selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# ns i# = mapU (\n -> n == I# i#) ns
 {-# INLINE_PA selectPA_Int# #-}
+
+selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
+selectorToIndices2PA# sel
+  = zipWithU pick sel
+  . scanU index (0 :*: 0)
+  $ mapU init sel
+  where
+    init 0 = 1 :*: 0
+    init _ = 0 :*: 1
+
+    index (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
+
+    pick 0 (i :*: j) = i
+    pick _ (i :*: j) = j
+{-# INLINE_PA selectorToIndices2PA# #-}
 
 sumPA_Int# :: PArray_Int# -> Int#
 sumPA_Int# ns = case sumU ns of I# n# -> n#
