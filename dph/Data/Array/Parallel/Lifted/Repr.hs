@@ -798,18 +798,19 @@ appPR_Sum2 pra prb (PSum2 n1# sel1# _ as1 bs1) (PSum2 n2# sel2# _ as2 bs2) = tra
 applPR_Sum2 pra prb _ _  = error "applPR_Sum2 nyi"
  
 packPR_Sum2 :: PR a -> PR b -> PArray (Sum2 a b) -> Int# -> PArray_Bool# -> PArray (Sum2 a b)
-packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags = traceFn "packPR_Sum2" $
-  let sel' = packU sel# flags 
-  in
-  case sumPA_Int# sel' of
-    k# -> PSum2 m# sel' is as' bs' 
-            where 
-              aFlags = packU (mapU (==0) sel#) flags
-              bFlags = packU (mapU (==1) sel#) flags
-              as'  = packPR pra as (m# -# k#) aFlags
-              bs'  = packPR prb bs k# bFlags
-              is   = error "packPR_Sum2 index not impl"
+packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags
+  = traceFn "packPR_Sum2" $
+    PSum2 m# sel' is as' bs'
+  where
+    sel'   = packPA_Int# sel# m# flags
 
+    aFlags = packPA_Bool# flags (lengthPR pra as) (selectPA_Int# sel# 0#)
+    bFlags = packPA_Bool# flags (lengthPR prb bs) (selectPA_Int# sel# 1#)
+    k#     = truesPA_Bool# bFlags
+
+    as'    = packPR pra as (m# -# k#) aFlags
+    bs'    = packPR prb bs k# bFlags
+    is     = error "packPR_Sum2 index not impl"
 
 combine2PR_Sum2:: PR a -> PR b -> Int# -> PArray_Int# -> PArray_Int#
                               -> PArray (Sum2 a b) -> PArray (Sum2 a b) -> PArray (Sum2 a b)
