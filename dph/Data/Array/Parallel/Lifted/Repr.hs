@@ -897,6 +897,7 @@ dPR_PArray pr = PR {
                 , replicatePR  = replicatePR_PArray pr
                 , replicatelPR = replicatelPR_PArray pr
                 , repeatPR     = repeatPR_PArray pr
+                , indexPR      = indexPR_PArray pr
                 , bpermutePR   = bpermutePR_PArray pr
                 , appPR        = appPR_PArray pr
                 , applPR       = applPR_PArray pr
@@ -923,6 +924,14 @@ replicatePR_PArray pr n# xs
                (repeatPR pr n# xs)
   where
     lens = replicatePA_Int# n# (lengthPR pr xs)
+
+{-# INLINE indexPR_PArray #-}
+indexPR_PArray pr  (PNested m# lens inds xs) i#
+  = bpermutePR pr xs bpinds
+  where
+    bpinds = enumFromToPA_Int#
+               (indexPA_Int# inds i#)
+               (indexPA_Int# inds i# +# indexPA_Int# lens i# -# 1#)
 
 {- INLINE bpermutePR_PArray 3-}
 bpermutePR_PArray pr (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_PArray\n" $
