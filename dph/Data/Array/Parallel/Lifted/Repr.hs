@@ -986,10 +986,10 @@ replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
   = traceFn "replicatelPR_PArray\n" $
   PNested n# new_lens new_idxs (bpermutePR pr xs indices)
   where
-    new_lens = replicateEachU (I# n#) ns lens
-    new_idxs = scanU (+) 0 new_lens
-    starts = replicateEachU (I# n#) ns idxs
-    ends   = replicateEachU (I# n#) ns
+    new_lens = replicatelPA_Int# n# ns lens
+    new_idxs = unsafe_scanPA_Int# (+) 0 new_lens
+    starts = replicatelPA_Int# n# ns idxs
+    ends   = replicatelPA_Int# n# ns
            $ zipWithU (\i l -> i+l-1) idxs lens
 
     indices = enumFromToEachU (sumU (zipWithU (*) ns lens))
