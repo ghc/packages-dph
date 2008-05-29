@@ -15,6 +15,7 @@ other-modules:
 	Data.Array.Parallel.Base.Config
 	Data.Array.Parallel.Base.Debug
 	Data.Array.Parallel.Base.Hyperstrict
+        Data.Array.Parallel.Base.Util
         Data.Array.Parallel.Base.Text
         Data.Array.Parallel.Base.Rebox
         Data.Array.Parallel.Stream.Flat.Stream

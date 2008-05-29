@@ -16,6 +16,7 @@
 module Data.Array.Parallel.Base (
   module Data.Array.Parallel.Base.Debug,
   module Data.Array.Parallel.Base.Hyperstrict,
+  module Data.Array.Parallel.Base.Util,
   module Data.Array.Parallel.Base.Text,
   module Data.Array.Parallel.Base.Rebox,
 
@@ -24,6 +25,7 @@ module Data.Array.Parallel.Base (
 
 import Data.Array.Parallel.Base.Debug
 import Data.Array.Parallel.Base.Hyperstrict
+import Data.Array.Parallel.Base.Util
 import Data.Array.Parallel.Base.Text
 import Data.Array.Parallel.Base.Rebox
 
