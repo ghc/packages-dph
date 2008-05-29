@@ -770,17 +770,15 @@ replicatelPR_Sum2 pra prb n# mults (PSum2 m# sel# is# as bs)
     an1#      = sumPA_Int# alt1mults
     is'       = selectorToIndices2PA# sel'
 
-repeatPR_Sum2 pra prb n# (PSum2 m# sel# is# as bs) = traceFn "repeatPR_Sum2" $
-              
-  case (sumPA_Int# sel#) of 
-    an1# -> PSum2 (m# *# n#) sel' is' as' bs' 
-            where
-              as'  = repeatPR pra n# as
-              bs'  = repeatPR prb n# bs
-              sel' = repeatPA_Int# n# sel#
-              is'  = combine2'PA_Int# sel' (enumFromToU 0 (I#(an1# -#  1#))) (enumFromToU 0 (I#(n# *# m# -# an1# -#  1#)))
-
-
+{-# INLINE repeatPR_Sum2 #-}
+repeatPR_Sum2 pra prb n# (PSum2 m# sel# is# as bs)
+  = traceFn "repeatPR_Sum2" $
+    PSum2 (m# *# n#) sel' is' as' bs'
+  where
+    as'  = repeatPR pra n# as
+    bs'  = repeatPR prb n# bs
+    sel' = repeatPA_Int# n# sel#
+    is'  = selectorToIndices2PA# sel'
 
 {-# INLINE indexPR_Sum2 #-}
 indexPR_Sum2 pra prb (PSum2 n# sel# is# as bs) i#
