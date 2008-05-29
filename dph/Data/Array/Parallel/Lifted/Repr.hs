@@ -1028,18 +1028,7 @@ combine2PR_PArray pr n# sel is (PNested m1# lens1 idxs1 xs)
     len#  = xlen# +# ylen#
 
     sel' = replicatelPA_Int# len# lens sel
-    is'  = mapU pick
-         . zipU sel'
-         . scanU index (0 :*: 0)
-         $ mapU init sel'
-         
-    init 0 = 1 :*: 0
-    init _ = 0 :*: 1
-
-    index (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
-
-    pick (0 :*: (i :*: j)) = i
-    pick (_ :*: (i :*: j)) = j
+    is'  = selectorToIndices2PA# sel'
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE_PA concatPA# #-}
