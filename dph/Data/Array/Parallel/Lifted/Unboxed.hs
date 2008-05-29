@@ -22,7 +22,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
 
   PArray_Bool#,
   lengthPA_Bool#, replicatelPA_Bool#,
-  truesPA_Bool#
+  packPA_Bool#, truesPA_Bool#
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
@@ -228,6 +228,10 @@ lengthPA_Bool# arr = case lengthU arr of { I# n# -> n# }
 replicatelPA_Bool# :: Int# -> PArray_Int# -> PArray_Bool# -> PArray_Bool#
 replicatelPA_Bool# n# ns ds = replicateEachU (I# n#) ns ds
 {-# INLINE_PA replicatelPA_Bool# #-}
+
+packPA_Bool# :: PArray_Bool# -> Int# -> PArray_Bool# -> PArray_Bool#
+packPA_Bool# ns _ bs = packU ns bs
+{-# INLINE_PA packPA_Bool# #-}
 
 truesPA_Bool# :: PArray_Bool# -> Int#
 truesPA_Bool# arr
