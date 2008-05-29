@@ -1002,7 +1002,7 @@ packPR_PArray pr (PNested _ lens _ xs) n# bs
      (packPR pr xs (sumPA_Int# lens')
                    (replicatelPA_Bool# (lengthPR pr xs) lens bs))
   where
-    lens' = pack'PA_Int# lens bs
+    lens' = packPA_Int# lens n# bs
     idxs' = unsafe_scanPA_Int# (+) 0 lens'
 
 {-# INLINE combine2PR_PArray #-}
