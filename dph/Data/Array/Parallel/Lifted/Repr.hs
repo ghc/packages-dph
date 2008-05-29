@@ -758,18 +758,17 @@ replicatePR_Sum2 pra prb n# p
                         _        -> emptyPR prb)
 
 {-# INLINE replicatelPR_Sum2 #-}
-replicatelPR_Sum2 pra prb n# mults (PSum2 m# sel# is# as bs) =
-   traceFn "replicatelPR_Sum2" $
-          case sumPA_Int# (unsafe_zipWithPA_Int# (*) sel# mults) of 
-    an1# -> PSum2 n# sel' is' as' bs'  
-            where
-              as'       = replicatelPR pra an1# alt1mults as
-              bs'       = replicatelPR prb (n# -# an1#) alt2mults bs
-              sel'      = replicatelPA_Int# n# sel# mults
-              alt1mults = packPA_Int# mults n# (mapU (==0) sel#)
-              alt2mults = packPA_Int# mults n# (mapU (==1) sel#)
-              is'       = combine2'PA_Int# sel' (enumFromToU 0 (I# (an1# -#  1#))) (enumFromToU 0 (I#(n# -# an1# -#  1#)))
-
+replicatelPR_Sum2 pra prb n# mults (PSum2 m# sel# is# as bs)
+  = traceFn "replicatelPR_Sum2" $
+    PSum2 n# sel' is' as' bs'  
+  where
+    as'       = replicatelPR pra an1# alt1mults as
+    bs'       = replicatelPR prb (n# -# an1#) alt2mults bs
+    sel'      = replicatelPA_Int# n# sel# mults
+    alt1mults = packPA_Int# mults n# (selectPA_Int# sel# 0#)
+    alt2mults = packPA_Int# mults n# (selectPA_Int# sel# 1#)
+    an1#      = sumPA_Int# alt1mults
+    is'       = selectorToIndices2PA# sel'
 
 repeatPR_Sum2 pra prb n# (PSum2 m# sel# is# as bs) = traceFn "repeatPR_Sum2" $
               
