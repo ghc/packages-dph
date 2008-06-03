@@ -1,20 +1,28 @@
-name:           dph-base
-version:        0.3
-license:        BSD3
-author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
-maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
-homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
-category:       Data Structures
-build-depends:  base, array, random, ghc-prim
-synopsis:       Basic Definitions for Data-Parallel Haskell.
-exposed-modules:
+Name:           dph-base
+Version:        0.3
+License:        BSD3
+License-File:   LICENSE
+Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
+Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
+Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Category:       Data Structures
+Synopsis:       Basic Definitions for Data-Parallel Haskell.
+
+Cabal-Version:  >= 1.2
+
+Extra-Source-Files:
+        include/fusion-phases.h
+
+Library
+  Exposed-Modules:
         Data.Array.Parallel.Base
         Data.Array.Parallel.Arr
         Data.Array.Parallel.Stream
-other-modules:
-	Data.Array.Parallel.Base.Config
-	Data.Array.Parallel.Base.Debug
-	Data.Array.Parallel.Base.Hyperstrict
+
+  Other-Modules:
+        Data.Array.Parallel.Base.Config
+        Data.Array.Parallel.Base.Debug
+        Data.Array.Parallel.Base.Hyperstrict
         Data.Array.Parallel.Base.Util
         Data.Array.Parallel.Base.Text
         Data.Array.Parallel.Base.Rebox
@@ -26,13 +34,21 @@ other-modules:
         Data.Array.Parallel.Stream.Flat.Search
         Data.Array.Parallel.Stream.Flat
         Data.Array.Parallel.Stream.Segmented
-	Data.Array.Parallel.Arr.BUArr
-	Data.Array.Parallel.Arr.BBArr
-extra-source-files:
-        include/fusion-phases.h
-include-dirs:
+        Data.Array.Parallel.Arr.BUArr
+        Data.Array.Parallel.Arr.BBArr
+
+  Include-Dirs:
         include
-extensions: TypeFamilies, GADTs, RankNTypes,
-            BangPatterns, MagicHash, UnboxedTuples, TypeOperators
-ghc-options: -Odph -funbox-strict-fields -haddock -fcpr-off
+
+  Extensions: TypeFamilies, GADTs, RankNTypes,
+              BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+  GHC-Options: -funbox-strict-fields -haddock -fcpr-off
+  if impl(ghc >= 6.9)
+    GHC-Options: -Odph
+  else
+    GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
+
+  Build-Depends:  base, array, random
+  if impl(ghc >= 6.9)
+    Build-Depends: ghc-prim
 

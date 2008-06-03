@@ -1,19 +1,27 @@
-name:           dph
-version:        0.3
-license:        BSD3
-author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
-maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
-homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
-category:       Data Structures
-build-depends:  base, array, random, ghc-prim, dph-base, dph-prim-seq
-synopsis:       Data structures for Nested Data-Parallel Haskell.
-exposed-modules:
-	Data.Array.Parallel
+Name:           dph
+Version:        0.3
+License:        BSD3
+License-File:   LICENSE
+Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
+Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
+Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Category:       Data Structures
+Synopsis:       Data structures for Nested Data-Parallel Haskell.
+
+Cabal-Version:  >= 1.2
+
+Extra-Source-Files:
+        include/fusion-phases.h
+
+Library
+  Exposed-Modules:
+        Data.Array.Parallel
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.Prelude
         Data.Array.Parallel.Prelude.Int
         Data.Array.Parallel.Prelude.Double
-other-modules:
+
+  Other-Modules:
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Unboxed
         Data.Array.Parallel.Lifted.Prim
@@ -28,11 +36,20 @@ other-modules:
         Data.Array.Parallel.Prelude.Base.Tuple
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
-extra-source-files:
-        include/fusion-phases.h
-include-dirs:
+
+  Include-Dirs:
         include
-extensions: TypeFamilies, GADTs, RankNTypes,
-            BangPatterns, MagicHash, UnboxedTuples, TypeOperators
-ghc-options: -Odph -funbox-strict-fields -haddock -fcpr-off -package-name dph
+
+  Extensions: TypeFamilies, GADTs, RankNTypes,
+              BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+  GHC-Options: -funbox-strict-fields -haddock -fcpr-off
+  if impl(ghc >= 6.9)
+    GHC-Options: -Odph
+  else
+    GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
+
+  Build-Depends:  base, array, random
+  if impl(ghc >= 6.9)
+    Build-Depends: ghc-prim
+  Build-Depends: dph-base, dph-prim-seq
 
