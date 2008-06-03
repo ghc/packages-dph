@@ -9,7 +9,6 @@
 -- Stability   : internal
 -- Portability : portable
 --
---- Description ---------------------------------------------------------------
 --
 -- Debugging infrastructure for the parallel arrays library
 

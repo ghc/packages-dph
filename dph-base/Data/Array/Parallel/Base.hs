@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (unboxed values and GHC libraries)
 --
--- Description ---------------------------------------------------------------
 --
 -- Interface to the Base modules
 --

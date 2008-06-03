@@ -6,22 +6,21 @@
 -- 
 -- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
 -- Stability   :  experimental
--- Portability :  portable
+-- Portability :  non-portable (infix type operators)
 --
 -- Hyperstrict types.
 --
--- ---------------------------------------------------------------------------
 
 module Data.Array.Parallel.Base.Hyperstrict (
 
-  -- * Strict pairs and sums
-  (:*:)(..), EitherS(..),
+  -- * Strict pairs
 
-  -- * Injection and projection functions
-  fstS, sndS, pairS, unpairS, unsafe_pairS, unsafe_unpairS,
+  (:*:)(..), 
+  fstS, sndS, pairS, unpairS, curryS, uncurryS,
+  unsafe_pairS, unsafe_unpairS,
 
-  -- * Currying
-  curryS, uncurryS,
+  -- * Strict sums
+  EitherS(..),
 
   -- * Strict Maybe
   MaybeS(..), maybeS, fromMaybeS,
@@ -56,10 +55,18 @@ curryS f x y = f (x :*: y)
 uncurryS :: (a -> b -> c) -> a :*: b -> c
 uncurryS f (x :*: y) = f x y
 
+-- | Same as 'pairS' but comes with the unsafe rule
+--
+-- > unsafe_unpairS . unsafe_pairS = id
+--
 unsafe_pairS :: (a,b) -> a :*: b
 {-# INLINE [1] unsafe_pairS #-}
 unsafe_pairS (a,b) = a :*: b
 
+-- | Same as 'unpairS' but comes with the unsafe rule
+--
+-- > unsafe_unpairS . unsafe_pairS = id
+--
 unsafe_unpairS :: a :*: b -> (a,b)
 {-# INLINE [1] unsafe_unpairS #-}
 unsafe_unpairS (x :*: y) = (x,y)

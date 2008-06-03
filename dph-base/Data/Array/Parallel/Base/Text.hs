@@ -10,7 +10,6 @@
 --
 -- Utilities for defining Read\/Show instances.
 --
--- ---------------------------------------------------------------------------
 
 module Data.Array.Parallel.Base.Text (
   showsApp, readApp, readsApp,

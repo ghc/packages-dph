@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (existentials)
 --
--- Description ---------------------------------------------------------------
 --
 -- Reboxing support for SpecConstr; should go away eventually.
 --
