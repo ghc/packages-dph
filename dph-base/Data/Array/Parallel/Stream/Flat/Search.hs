@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (existentials)
 --
--- Description ---------------------------------------------------------------
 --
 -- Searching in streams
 --

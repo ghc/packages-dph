@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (existentials)
 --
--- Description ---------------------------------------------------------------
 --
 -- This module defined the interface to the stream library used for loop
 -- fusion.

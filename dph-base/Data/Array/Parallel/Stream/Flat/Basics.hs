@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (existentials)
 --
--- Description ---------------------------------------------------------------
 --
 -- Basic algorithms on streams
 --
@@ -18,8 +17,11 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Stream.Flat.Basics (
+  -- * Basic operations
   emptyS, singletonS, consS, replicateS, replicateEachS, (+++), indexedS,
   tailS,
+
+  -- * Conversion to\/from lists
   toStream, fromStream
 ) where
 
@@ -68,9 +70,6 @@ replicateS n x = Stream next 0 n
 -- | Given a stream of (length,value) pairs and the sum of the lengths,
 -- replicate each value to the given length.
 --
--- FIXME: This should probably produce a segmented stream but since we want to
--- get rid of them anyway...
---
 replicateEachS :: Int -> Stream (Int :*: a) -> Stream a
 {-# INLINE_STREAM replicateEachS #-}
 replicateEachS n (Stream next s _) =
@@ -107,9 +106,6 @@ Stream next1 s1 n1 +++ Stream next2 s2 n2 = Stream next (LeftS s1) (n1 + n2)
         Skip    s2' -> Skip    (RightS s2')
         Yield x s2' -> Yield x (RightS s2')
 
--- | Indexing
--- ----------
-
 -- | Associate each element in the 'Stream' with its index
 --
 indexedS :: Stream a -> Stream (Int :*: a)
@@ -121,9 +117,6 @@ indexedS (Stream next s n) = Stream next' (0 :*: s) n
                         Yield x s' -> Yield (i :*: x) ((i+1) :*: s')
                         Skip    s' -> Skip            (i     :*: s')
                         Done       -> Done
-
--- | Substreams
--- ------------
 
 -- | Yield the tail of a stream
 --
@@ -141,8 +134,6 @@ tailS (Stream next s n) = Stream next' (False :*: s) (n-1)
                             Skip    s' -> Skip    (True :*: s')
                             Done       -> Done
 
--- | Conversion to\/from lists
--- --------------------------
 
 -- | Convert a list to a 'Stream'
 --

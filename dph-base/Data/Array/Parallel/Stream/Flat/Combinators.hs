@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (existentials)
 --
--- Description ---------------------------------------------------------------
 --
 -- Higher-order combinators for streams
 --
@@ -26,7 +25,9 @@ import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), Rebox(..), Box(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
-import Debug.Trace 
+import Debug.Trace
+
+
 -- | Mapping
 --
 mapS :: (a -> b) -> Stream a -> Stream b
@@ -64,6 +65,8 @@ foldS f z (Stream next s _) = fold z s
                  Skip    s' -> s' `dseq` fold z s'
                  Yield x s' -> s' `dseq` fold (f z x) s'
 
+-- | Yield 'NothingS' if the 'Stream' is empty and fold it otherwise.
+--
 fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
 {-# INLINE_STREAM fold1MaybeS #-}
 fold1MaybeS f (Stream next s _) = fold0 s
@@ -89,6 +92,8 @@ scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
                         Skip s' -> Skip (Box z :*: s')
                         Yield x s'  -> Yield z (Box (f z x) :*: s')
 
+-- | Scan over a non-empty 'Stream'
+--
 scan1S :: (a -> a -> a) -> Stream a -> Stream a
 {-# INLINE_STREAM scan1S #-}
 scan1S f (Stream next s n) = Stream next' (NothingS :*: s) n
@@ -142,6 +147,7 @@ combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
                
 -- | Zipping
 --
+
 -- FIXME: The definition below duplicates work if the second stream produces
 -- Skips. Unfortunately, GHC tends to introduce join points which break
 -- SpecConstr with the correct definition.

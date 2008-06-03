@@ -8,7 +8,6 @@
 -- Stability   : internal
 -- Portability : non-portable (existentials)
 --
--- Description ---------------------------------------------------------------
 --
 -- Enum-related algorithms for streams.
 --
@@ -32,6 +31,7 @@ import Data.Array.Parallel.Stream.Flat.Combinators (
 
 -- | Yield an enumerated stream
 --
+
 -- FIXME: Can this be implemented polymorphically? We could just use
 -- enumFromThenTo here, but this won't really work for parallel arrays.
 -- Perhaps we have to introduce an EnumP class?
@@ -67,8 +67,8 @@ enumFromStepLenS s d n = Stream step (s :*: n) n
     step (s :*: 0) = Done
     step (s :*: n) = Yield s ((s+d) :*: (n-1))
 
--- enumFromToEachS [k1 :*: m1, ..., kn :*: mn] = [k1,...,m1,...,kn,...,mn]
---
+-- | @enumFromToEachS [k1 :*: m1, ..., kn :*: mn] = [k1,...,m1,...,kn,...,mn]@
+
 -- FIXME: monomorphic for now because we need Rebox a otherwise!
 --
 enumFromToEachS :: Int -> Stream (Int :*: Int) -> Stream Int
