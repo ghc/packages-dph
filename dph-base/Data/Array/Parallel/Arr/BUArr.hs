@@ -5,14 +5,13 @@
 -- |
 -- Module      : Data.Array.Parallel.Arr.BUArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---		 (c) [2006..2007] Manuel M T Chakravarty & Roman Leshchinskiy
+--               (c) [2006..2007] Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
 -- 
 -- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
 -- Stability   : internal
 -- Portability : non-portable (unboxed values and GHC libraries)
 --
--- Description ---------------------------------------------------------------
 --
 -- This module define our own infrastructure for unboxed arrays, but recycle
 -- some of the existing abstractions for boxed arrays.  It's more important to
@@ -23,7 +22,8 @@
 -- So far, we only support Char, Int, Float, and Double in unboxed arrays
 -- (adding more is merely a matter of tedious typing).
 --
--- Todo ----------------------------------------------------------------------
+--
+-- TODO
 --
 -- * For some not understood reason, `checkCritical' prevents the write
 --   operations to be inlined.  Instead, a specialised version of them is
@@ -45,39 +45,32 @@
 --   originally allocated, it might be worthwhile to copy the data into a new,
 --   smaller array.
 
-
 module Data.Array.Parallel.Arr.BUArr (
-  -- * Unboxed primitive arrays (both immutable and mutable)
+  -- * Types
   BUArr, MBUArr,
 
-  -- * Class of elements of such arrays
+  -- * Elements of unboxed arrays
   UAE,
 
   -- * Operations on mutable arrays
   lengthMBU, newMBU, readMBU, writeMBU, extractMBU, copyMBU,
   unsafeFreezeMBU, unsafeFreezeAllMBU,
 
-  -- * Basic operations
+  -- * Operations on immutable arrays
+  -- ** Basic operations
   lengthBU, emptyBU, replicateBU, indexBU, sliceBU, extractBU,
 
-  -- * Streaming
+  -- ** Streaming
   streamBU, unstreamBU,
 
-  -- * Higher-order operations
-  mapBU, foldlBU, foldBU, scanlBU, scanBU,
-
-  -- * Arithmetic operations
-  sumBU,
+  -- ** Higher-order and arithmetic operations
+  mapBU, foldlBU, foldBU, scanlBU, scanBU, sumBU,
 
   -- * Conversions to\/from lists
   toBU, fromBU,
 
   -- * I\/O
   hPutBU, hGetBU
-
-  -- * Re-exporting some of GHC's internals that higher-level modules need
---  Char#, Int#, Float#, Double#, Char(..), Int(..), Float(..), Double(..), ST,
---  runST
 ) where
 
 -- GHC-internal definitions
@@ -112,13 +105,12 @@ infixl 9 `indexBU`, `readMBU`
 
 here s = "Arr.BUArr." ++ s
 
--- |Unboxed arrays
--- ---------------
-
--- Unboxed arrays of primitive element types arrays constructed from an
--- explicit length and a byte array in both an immutable and a mutable variant
+-- | Immutable unboxed arrays
 --
 data BUArr    e = BUArr  !Int !Int ByteArray#
+
+-- | Mutable unboxed arrays
+--
 data MBUArr s e = MBUArr !Int      (MutableByteArray# s)
 
 instance HS e => HS (BUArr e)
@@ -134,12 +126,24 @@ lengthBU (BUArr _ n _) = n
 lengthMBU :: MBUArr s e -> Int
 lengthMBU (MBUArr n _) = n
 
--- |The basic operations on unboxed arrays are overloaded
---
+
+-- | Class of elements that can be stored in unboxed arrays
 class HS e => UAE e where
-  sizeBU   :: Int -> e -> Int		-- size of an array with n elements
+  -- | Compute the size of an unboxed array with @n@ elements. The second
+  -- argument is just for type inference and will not be inspected.
+  --
+  sizeBU   :: Int -> e -> Int
+
+  -- | Yield the element at the given position of an immutable array.
+  --
   indexBU  :: BUArr e    -> Int      -> e
+
+  -- | Read the element at the given position of a mutable array.
+  --
   readMBU  :: MBUArr s e -> Int      -> ST s e
+
+  -- | Write the element at the given position of a mutable array.
+  --
   writeMBU :: MBUArr s e -> Int -> e -> ST s ()
 
 -- |Empty array

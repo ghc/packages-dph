@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Parallel.Stream
+-- Module      : Data.Array.Parallel.BBArr
 -- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
 --               (c) [2006..2007] Manuel M T Chakravarty & Roman Leshchinskiy
 -- License     : see libraries/ndp/LICENSE
@@ -9,54 +9,49 @@
 -- Stability   : internal
 -- Portability : non-portable
 --
---- Description ---------------------------------------------------------------
 --
---  Language: Haskell 98 + GHC-internal libraries
+-- This module defines two-phase boxed arrays which are strict in all
+-- elements which have been initialised. It is ok not to initialise some
+-- elements as long as we don't access them. Initialising an element with
+-- bottom diverges.
 --
---  This module defines two-phase boxed arrays which are strict in all
---  elements which have been initialised. It is ok not to initialise some
---  elements as long as we don't access them. Initialising an element with
---  bottom diverges.
+-- This means that in
 --
---  This means that in
+-- > let arr = runST (newMBB n >>= unsafeFreezeMBB)
 --
---  > let arr = runST (newMBB n >>= unsafeFreezeMBB)
+-- @arr@ itself is defined but @arr `indexBB` i@ diverges for all @i@. In
 --
---  @arr@ itself is defined but @arr `indexBB` i@ diverges for all @i@. In
+-- > let brr = runST (do mb <- newMBB n
+-- >                     <initialise all elements except at index 2>
+-- >                     unsafeFreezeMBB mb)
 --
---  > let brr = runST (do mb <- newMBB n
---  >                     <initialise all elements except at index 2>
---  >                     unsafeFreezeMBB mb)
+-- @brr `indexBB` i@ diverges for @i=2@ and converges otherwise.
 --
---  @brr `indexBB` i@ diverges for @i=2@ and converges otherwise.
+-- Thus, our arrays effectively model strict collections of (index,value)
+-- pairs but do not require the indices to be contiguous.
 --
---  Thus, our arrays effectively model strict collections of (index,value)
---  pairs but do not require the indices to be contiguous.
+-- Internally, we do use bottoms for uninitialised elements in the underlying
+-- GHC array; however, @writeMBB@ is strict in the value being written.
+-- Indexing into the array can never yield a thunk if the elements are
+-- hyperstrict but can diverge (which is ok). Hence, we can say that the
+-- arrays are hyperstrict for hyperstrict elements even though the underlying
+-- representation is not.
 --
---  Internally, we do use bottoms for uninitialised elements in the underlying
---  GHC array; however, @writeMBB@ is strict in the value being written.
---  Indexing into the array can never yield a thunk if the elements are
---  hyperstrict but can diverge (which is ok). Hence, we can say that the
---  arrays are hyperstrict for hyperstrict elements even though the underlying
---  representation is not.
---
---  The reason for this slightly peculiar (but sound, in my opinion) model are
---  distributed 'MaybeS's.
---
---- Todo ----------------------------------------------------------------------
+-- The reason for this slightly peculiar (but sound, in my opinion) model are
+-- distributed 'MaybeS's.
 --
 
 module Data.Array.Parallel.Arr.BBArr (
-  -- * Boxed primitive arrays (both immutable and mutable)
+  -- * Types
   BBArr, MBBArr,
 
-  -- * Operations on primitive boxed arrays
-  lengthBB, lengthMBB, newMBB, indexBB, readMBB, writeMBB,
-  unsafeFreezeMBB, unsafeFreezeAllMBB,
-  extractBB, extractMBB, copyMBB,
+  -- * Operations on immutable arrays
+  lengthBB, indexBB, extractBB,
 
-  -- * Re-exporting some of GHC's internals that higher-level modules need
-  ST, runST
+  -- * Operations on mutable arrays
+  newMBB, lengthMBB, readMBB, writeMBB,
+  unsafeFreezeMBB, unsafeFreezeAllMBB,
+  extractMBB, copyMBB
 ) where
 
 -- standard library
@@ -74,16 +69,15 @@ import Data.Array.Parallel.Base (
 infixl 9 `indexBB`, `readMBB`
 
 
--- |Boxed arrays
--- -------------
+-- Boxed arrays
+-- ------------
 
--- |Boxed arrays in both an immutable and a mutable variant
---
--- NB: We use a newtype instead of a type, as we need to be able to partially
---     apply the new type constructors (which type synonyms only support in a
---     restricted way).
+-- | Immutable boxed arrays
 --
 newtype BBArr    e = BBArr  (Array     Int e)
+
+-- |Mutable boxed arrays
+--
 newtype MBBArr s e = MBBArr (STArray s Int e)
 
 instance HS e => HS (BBArr e)
@@ -93,7 +87,7 @@ instance HS e => HS (BBArr e)
 lengthBB :: BBArr e -> Int
 lengthBB (BBArr arr) = (+ 1) . snd . bounds $ arr
 
--- |Length of an immutable boxed array
+-- |Length of a mutable boxed array
 --
 lengthMBB :: MBBArr s e -> Int
 lengthMBB (MBBArr marr) = (+ 1) . snd . boundsSTArray $ marr
@@ -132,7 +126,7 @@ unsafeFreezeMBB (MBBArr (STArray _ m1 _ marr#)) n =
   case unsafeFreezeArray# marr# s1# of {(# s2#, arr# #) ->
   (# s2#, BBArr (Array 0 (n - 1) n arr#) #)}
 
---- |Turn a mutable into an immutable array WITHOUT copying its contents, which
+-- |Turn a mutable into an immutable array WITHOUT copying its contents, which
 -- implies that the mutable array must not be mutated anymore after this
 -- operation has been executed.
 --
@@ -141,10 +135,6 @@ unsafeFreezeMBB (MBBArr (STArray _ m1 _ marr#)) n =
 --
 unsafeFreezeAllMBB :: MBBArr s e -> ST s (BBArr e)
 unsafeFreezeAllMBB marr = unsafeFreezeMBB marr (lengthMBB marr)
-
-
--- |Loop-based combinators on boxed arrays
--- -
 
 -- |Extract a slice from an array (given by its start index and length)
 --
