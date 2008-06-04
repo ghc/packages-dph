@@ -961,8 +961,8 @@ applPR_PArray pr is1  xn@(PNested n# xslens xsInds xs) is2 yn@(PNested m# yslens
    PNested (n# +# m#) lens ids xys
    where 
      lens   = appPA_Int#  xslens yslens 
-     xsSegd = sumSU (is1 >: xslens)
-     ysSegd = sumSU (is2 >: yslens)
+     xsSegd = sumPAs_Int# is1 xslens
+     ysSegd = sumPAs_Int# is2 yslens
      ids    = unsafe_scanPA_Int# (+) 0 lens
      xlen# = lengthPR pr xs
      ylen# = lengthPR pr ys

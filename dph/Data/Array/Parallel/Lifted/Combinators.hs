@@ -255,7 +255,7 @@ concatPA_l :: PA a -> PArray (PArray (PArray a)) -> PArray (PArray a)
 concatPA_l pa (PNested m# lens1 idxs1 (PNested n# lens2 idxs2 xs))
   = PNested m# lens idxs xs
   where
-    lens = sumPAs_Int# lens1 idxs1 lens2
+    lens = sumPAs_Int# (toSegd lens1 idxs1) lens2
     idxs = bpermutePA_Int# idxs2 idxs1
 
 concatPA :: PA a -> (PArray (PArray a) :-> PArray a)

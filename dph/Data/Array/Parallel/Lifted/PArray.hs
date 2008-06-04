@@ -15,8 +15,8 @@ module Data.Array.Parallel.Lifted.PArray (
   PrimPA(..), prim_lengthPA, fromUArrPA'
 ) where
 
-import Data.Array.Parallel.Unlifted.Sequential
-import Data.Array.Parallel.Lifted.Unboxed ( PArray_Int#, PArray_Bool# )
+import Data.Array.Parallel.Unlifted.Sequential ( UArr, UA, lengthU )
+import Data.Array.Parallel.Lifted.Unboxed ( Segd, PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#, Int(..))
 
 -- |Lifted parallel arrays
@@ -81,7 +81,7 @@ appPA# :: PA a -> PArray a -> PArray a -> PArray a
 appPA# pa xs ys = fromArrPRepr pa
                 $ appPR (dictPRepr pa) (toArrPRepr pa xs) (toArrPRepr pa ys)
 
-applPA# :: PA a -> USegd -> PArray a -> USegd -> PArray a -> PArray a
+applPA# :: PA a -> Segd -> PArray a -> Segd -> PArray a -> PArray a
 {-# INLINE_PA applPA# #-}
 applPA# pa is xs js ys = fromArrPRepr pa
                        $ applPR (dictPRepr pa) is (toArrPRepr pa xs)
@@ -108,7 +108,7 @@ data PR a = PR {
             , indexPR      :: PArray a -> Int# -> a
             , bpermutePR   :: PArray a -> PArray_Int# -> PArray a
             , appPR        :: PArray a -> PArray a -> PArray a
-            , applPR       :: USegd -> PArray a -> USegd -> PArray a -> PArray a
+            , applPR       :: Segd -> PArray a -> Segd -> PArray a -> PArray a
             , packPR       :: PArray a -> Int# -> PArray_Bool# -> PArray a
             , combine2PR   :: Int# -> PArray_Int# -> PArray_Int#
                               -> PArray a -> PArray a -> PArray a

@@ -3,6 +3,8 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Lifted.Unboxed (
+  Segd, toSegd,
+
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
@@ -35,6 +37,10 @@ import GHC.Exts ( Int#, Int(..),
 
 import Debug.Trace
 
+type Segd = USegd
+
+toSegd :: PArray_Int# -> PArray_Int# -> Segd
+toSegd is js = toUSegd (zipU is js)
 
 type PArray_Int# = UArr Int
 
@@ -70,7 +76,7 @@ appPA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int#
 appPA_Int# ms ns = ms +:+ ns
 {-# INLINE_PA appPA_Int# #-}
 
-applPA_Int# :: USegd -> PArray_Int# -> USegd -> PArray_Int# -> PArray_Int#
+applPA_Int# :: Segd -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
 applPA_Int# is xs js ys
   = concatSU $ (is >: xs) ^+:+^ (js >: ys)
 {-# INLINE_PA applPA_Int# #-}
@@ -127,9 +133,9 @@ sumPA_Int# :: PArray_Int# -> Int#
 sumPA_Int# ns = case sumU ns of I# n# -> n#
 {-# INLINE_PA sumPA_Int# #-}
 
-sumPAs_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
-sumPAs_Int# lens idxs ds
-  = sumSU (toUSegd (zipU lens idxs) >: ds)
+sumPAs_Int# :: Segd -> PArray_Int# -> PArray_Int#
+sumPAs_Int# segd ds
+  = sumSU (segd >: ds)
 {-# INLINE_PA sumPAs_Int# #-}
 
 unsafe_zipWithPA_Int# :: (Int -> Int -> Int)
@@ -179,7 +185,7 @@ appPA_Double# :: PArray_Double# -> PArray_Double# -> PArray_Double#
 appPA_Double# ms ns = ms +:+ ns
 {-# INLINE_PA appPA_Double# #-}
 
-applPA_Double# :: USegd -> PArray_Double# -> USegd -> PArray_Double#
+applPA_Double# :: Segd -> PArray_Double# -> Segd -> PArray_Double#
                -> PArray_Double#
 applPA_Double# is xs js ys = concatSU $ (is >: xs) ^+:+^ (js >: ys)
 {-# INLINE_PA applPA_Double# #-}
@@ -218,10 +224,8 @@ unsafe_fold1PA_Double# f ns = fold1U f ns
 {-# INLINE_PA unsafe_fold1PA_Double# #-}
 
 unsafe_foldPAs_Double# :: (Double -> Double -> Double) -> Double
-                       -> PArray_Int# -> PArray_Int# -> PArray_Double#
-                       -> PArray_Double#
-unsafe_foldPAs_Double# f z lens idxs ds
-  = foldSU f z (toUSegd (zipU lens idxs) >: ds)
+                       -> Segd -> PArray_Double# -> PArray_Double#
+unsafe_foldPAs_Double# f z segd ds = foldSU f z (segd >: ds)
 {-# INLINE_PA unsafe_foldPAs_Double# #-}
                
 type PArray_Bool# = UArr Bool
