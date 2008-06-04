@@ -942,7 +942,7 @@ bpermutePR_PArray pr (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_PArr
     xsInds' = unsafe_scanPA_Int# (+) 0 xslens'
     is1     = bpermutePA_Int# xsInds is  
     is2     = zipWithU (\x -> \y -> x + y - 1) xslens' is1
-    ps      = concatSU $ enumFromToSU is1 is2    
+    ps      = enumFromToEachPA_Int# n# is1 is2
     xs'     = bpermutePR pr xs ps
 
 {-# INLINE appPR_PArray #-}

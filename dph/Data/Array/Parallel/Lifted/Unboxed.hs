@@ -8,7 +8,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
-  upToPA_Int#, enumFromToPA_Int#, selectPA_Int#, selectorToIndices2PA#,
+  upToPA_Int#, enumFromToPA_Int#, enumFromToEachPA_Int#,
+  selectPA_Int#, selectorToIndices2PA#,
   sumPA_Int#, sumPAs_Int#,
   unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
 
@@ -98,6 +99,10 @@ upToPA_Int# n# = enumFromToU 0 (I# n# - 1)
 enumFromToPA_Int# :: Int# -> Int# -> PArray_Int#
 enumFromToPA_Int# m# n# = enumFromToU (I# m#) (I# n#)
 {-# INLINE_PA enumFromToPA_Int# #-}
+
+enumFromToEachPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
+enumFromToEachPA_Int# n# is js = enumFromToEachU (I# n#) (zipU is js)
+{-# INLINE_PA enumFromToEachPA_Int# #-}
 
 selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# ns i# = mapU (\n -> n == I# i#) ns
