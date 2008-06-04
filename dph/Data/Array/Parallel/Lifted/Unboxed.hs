@@ -13,7 +13,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   upToPA_Int#, enumFromToPA_Int#, enumFromToEachPA_Int#,
   selectPA_Int#, selectorToIndices2PA#,
   sumPA_Int#, sumPAs_Int#,
-  unsafe_zipWithPA_Int#, unsafe_foldPA_Int#, unsafe_scanPA_Int#,
+  unsafe_mapPA_Int#, unsafe_zipWithPA_Int#, unsafe_foldPA_Int#,
+  unsafe_scanPA_Int#,
 
   PArray_Double#,
   lengthPA_Double#, emptyPA_Double#,
@@ -137,6 +138,10 @@ sumPAs_Int# :: Segd -> PArray_Int# -> PArray_Int#
 sumPAs_Int# segd ds
   = sumSU (segd >: ds)
 {-# INLINE_PA sumPAs_Int# #-}
+
+unsafe_mapPA_Int# :: (Int -> Int) -> PArray_Int# -> PArray_Int#
+unsafe_mapPA_Int# f ns = mapU f ns
+{-# INLINE_PA unsafe_mapPA_Int# #-}
 
 unsafe_zipWithPA_Int# :: (Int -> Int -> Int)
                       -> PArray_Int# -> PArray_Int# -> PArray_Int#

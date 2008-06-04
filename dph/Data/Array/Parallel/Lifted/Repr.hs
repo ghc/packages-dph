@@ -26,7 +26,7 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted.Sequential
 
-import Data.Array.Parallel.Base ((:*:)(..))
+import Data.Array.Parallel.Base ((:*:)(..), fromBool)
 
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import Debug.Trace
@@ -941,8 +941,8 @@ bpermutePR_PArray pr (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_PArr
     xslens' = bpermutePA_Int# xslens is
     xsInds' = unsafe_scanPA_Int# (+) 0 xslens'
     is1     = bpermutePA_Int# xsInds is  
-    is2     = zipWithU (\x -> \y -> x + y - 1) xslens' is1
-    ps      = enumFromToEachPA_Int# n# is1 is2
+    is2     = unsafe_zipWithPA_Int# (\x -> \y -> x + y - 1) xslens' is1
+    ps      = enumFromToEachPA_Int# (lengthPR pr xs) is1 is2
     xs'     = bpermutePR pr xs ps
 
 {-# INLINE appPR_PArray #-}
@@ -969,7 +969,8 @@ applPR_PArray pr is1  xn@(PNested n# xslens xsInds xs) is2 yn@(PNested m# yslens
      len#  = xlen# +# ylen#
      (PNested _ _ _ xys)   = combine2PR_PArray pr len# isel (error "tmp ind nyi") 
        (PNested n# xsSegd (error "bla1") xs)  (PNested n# ysSegd (error "bla1") ys)
-     isel   = mapU (\x -> if odd x then (0::Int) else 1) $ enumFromToU 1 (2* lengthU xslens)
+     isel   = unsafe_mapPA_Int# (fromBool . even)
+            $ enumFromToPA_Int# 1# (2# *# lengthPA_Int# xslens)
 
 
 
@@ -991,10 +992,10 @@ replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
     new_idxs = unsafe_scanPA_Int# (+) 0 new_lens
     starts = replicatelPA_Int# n# ns idxs
     ends   = replicatelPA_Int# n# ns
-           $ zipWithU (\i l -> i+l-1) idxs lens
+           $ unsafe_zipWithPA_Int# (\i l -> i+l-1) idxs lens
 
-    indices = enumFromToEachU (sumU (zipWithU (*) ns lens))
-            $ zipU starts ends
+    len     = sumPA_Int# (unsafe_zipWithPA_Int# (*) ns lens)
+    indices = enumFromToEachPA_Int# len starts ends
 
 {-# INLINE packPR_PArray #-}
 packPR_PArray pr (PNested _ lens _ xs) n# bs
