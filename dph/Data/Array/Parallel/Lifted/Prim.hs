@@ -13,7 +13,7 @@ import Data.Array.Parallel.Lifted.Instances
 
 import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS)
 
-import GHC.Exts ( Int(..) )
+import GHC.Exts ( Int(..), (-#) )
 
 unsafe_map :: (PrimPA a, PrimPA b) => (a -> b) -> PArray a -> PArray b
 {-# INLINE_PA unsafe_map #-}
@@ -80,6 +80,42 @@ unsafe_enumFromTos ss es = fromSUArrPA  flatLen nestedLen  $ enumFromToSU (toUAr
   where
     flatLen   = prim_lengthPA ss
     nestedLen = unsafe_fold (+) 0 (unsafe_map (\x -> max (x+1) 0) $  unsafe_zipWith (-) es ss)
+
+instance PrimPA Int where
+  fromUArrPA (I# n#) xs  = PInt n# xs
+  toUArrPA   (PInt _ xs) = xs
+  primPA = dPA_Int
+
+instance PrimPA Double where
+  fromUArrPA (I# n#) xs     = PDouble n# xs
+  toUArrPA   (PDouble _ xs) = xs
+  primPA = dPA_Double
+
+instance PrimPA Bool where
+  {-# INLINE fromUArrPA #-}
+  fromUArrPA (I# n#) bs
+    = PBool n# ts is
+            (PVoid (n# -# m#))
+            (PVoid m#)
+    where
+      ts = mapU (\b -> if b then 1 else 0) bs
+
+      is = zipWith3U if_ ts (scanU (+) 0 ts) (scanU (+) 0 $ mapU not_ ts)
+
+      m# = case sumU ts of I# m# -> m#
+
+      {-# INLINE if_ #-}
+      if_ 0 x y = y
+      if_ _ x y = x
+
+      {-# INLINE not_ #-}
+      not_ 0 = 1
+      not_ _ = 0
+
+  {-# INLINE toUArrPA #-}
+  toUArrPA (PBool _ ts _ _ _) = mapU (/= 0) ts
+
+  primPA = dPA_Bool
 
 
 fromUArrPA_2 :: (PrimPA a, PrimPA b) => Int -> UArr (a :*: b) -> PArray (a,b)

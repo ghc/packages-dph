@@ -9,7 +9,7 @@ module Data.Array.Parallel.Lifted.Instances (
 
   dPA_Double, dPR_Double,
 
-  dPA_Bool, toUArrPA_Bool, toPrimArrPA_Bool, truesPA#,
+  dPA_Bool, toPrimArrPA_Bool, truesPA#,
   dPA_Unit, dPA_2, dPA_3, dPA_4, dPA_5,
   dPA_PArray
 ) where
@@ -25,11 +25,6 @@ import GHC.Exts    ( Int#, Int(..), (+#), (-#), (*#),
 data instance PArray Int = PInt Int# PArray_Int#
 
 type instance PRepr Int = Int
-
-instance PrimPA Int where
-  fromUArrPA (I# n#) xs  = PInt n# xs
-  toUArrPA   (PInt _ xs) = xs
-  primPA = dPA_Int
 
 dPA_Int :: PA Int
 {-# INLINE_PA dPA_Int #-}
@@ -99,11 +94,6 @@ upToPA_Int (I# n#) = PInt n# (upToPA_Int# n#)
 data instance PArray Double = PDouble Int# PArray_Double#
 
 type instance PRepr Double = Double
-
-instance PrimPA Double where
-  fromUArrPA (I# n#) xs     = PDouble n# xs
-  toUArrPA   (PDouble _ xs) = xs
-  primPA = dPA_Double
 
 dPA_Double :: PA Double
 {-# INLINE_PA dPA_Double #-}
@@ -198,39 +188,9 @@ toArrPRepr_Bool (PBool n# sel# is# fs ts) = PSum2 n# sel# is# fs ts
 {-# INLINE fromArrPRepr_Bool #-}
 fromArrPRepr_Bool (PSum2 n# sel# is# fs ts) = PBool n# sel# is# fs ts
 
-toUArrPA_Bool :: PArray Bool -> UArr Bool
-{-# INLINE toUArrPA_Bool #-}
-toUArrPA_Bool (PBool _ ns _ _ _) = mapU (/= 0) ns
-
 toPrimArrPA_Bool :: PArray Bool -> PArray_Bool#
 {-# INLINE toPrimArrPA_Bool #-}
-toPrimArrPA_Bool bs =  (toUArrPA_Bool bs)
-
-instance PrimPA Bool where
-  {-# INLINE fromUArrPA #-}
-  fromUArrPA (I# n#) bs
-    = PBool n# ts is
-            (PVoid (n# -# m#))
-            (PVoid m#)
-    where
-      ts = mapU (\b -> if b then 1 else 0) bs
-
-      is = zipWith3U if_ ts (scanU (+) 0 ts) (scanU (+) 0 $ mapU not_ ts)
-
-      m# = case sumU ts of I# m# -> m#
-
-      {-# INLINE if_ #-}
-      if_ 0 x y = y
-      if_ _ x y = x
-
-      {-# INLINE not_ #-}
-      not_ 0 = 1
-      not_ _ = 0
-
-  {-# INLINE toUArrPA #-}
-  toUArrPA (PBool _ ts _ _ _) = mapU (/= 0) ts
-
-  primPA = dPA_Bool
+toPrimArrPA_Bool (PBool _ ns# _ _ _) = toBoolPA# ns#
 
 truesPA# :: PArray Bool -> Int#
 {-# INLINE_PA truesPA# #-}
