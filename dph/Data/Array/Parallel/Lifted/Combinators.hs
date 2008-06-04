@@ -192,11 +192,8 @@ packPA_l :: PA a
 packPA_l pa (PNested _ _ _ xs) (PNested n# lens idxs bs)
   = PNested n# lens' idxs' (packPA_v pa xs bs)
   where
-    lens' = foldSU (+) 0
-          $ toUSegd (zipU lens idxs) >: mapU (\b -> if b then 1 else 0)
-                                             (toUArrPA bs)
-
-    idxs' = scanU (+) 0 lens'
+    lens' = truesPAs_Bool# (toSegd lens idxs) (toPrimArrPA_Bool bs)
+    idxs' = unsafe_scanPA_Int# (+) 0 lens'
 
 packPA :: PA a -> (PArray a :-> PArray Bool :-> PArray a)
 {-# INLINE packPA #-}

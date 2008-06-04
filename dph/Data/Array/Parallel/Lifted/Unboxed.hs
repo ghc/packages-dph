@@ -26,11 +26,13 @@ module Data.Array.Parallel.Lifted.Unboxed (
 
   PArray_Bool#,
   lengthPA_Bool#, replicatelPA_Bool#,
-  packPA_Bool#, truesPA_Bool#
+  packPA_Bool#, truesPA_Bool#, truesPAs_Bool#,
+
+  fromBoolPA#, toBoolPA#
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
-import Data.Array.Parallel.Base ((:*:)(..))
+import Data.Array.Parallel.Base ((:*:)(..), fromBool, toBool)
 
 import GHC.Exts ( Int#, Int(..),
                   Double#, Double(..) )
@@ -248,7 +250,18 @@ packPA_Bool# ns _ bs = packU ns bs
 {-# INLINE_PA packPA_Bool# #-}
 
 truesPA_Bool# :: PArray_Bool# -> Int#
-truesPA_Bool# arr
-  = case sumU (mapU (\b -> if b then 1 else 0) arr) of I# n# -> n#
+truesPA_Bool# bs = sumPA_Int# (fromBoolPA# bs)
 {-# INLINE_PA truesPA_Bool# #-}
+
+truesPAs_Bool# :: Segd -> PArray_Bool# -> PArray_Int#
+truesPAs_Bool# segd = sumPAs_Int# segd . fromBoolPA#
+{-# INLINE truesPAs_Bool# #-}
+
+fromBoolPA# :: PArray_Bool# -> PArray_Int#
+fromBoolPA# = mapU fromBool
+{-# INLINE_PA fromBoolPA# #-}
+
+toBoolPA# :: PArray_Int# -> PArray_Bool#
+toBoolPA# = mapU toBool
+{-# INLINE_PA toBoolPA# #-}
 
