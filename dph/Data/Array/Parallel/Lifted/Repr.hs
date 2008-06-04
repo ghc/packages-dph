@@ -21,7 +21,6 @@ module Data.Array.Parallel.Lifted.Repr (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
-import Data.Array.Parallel.Unlifted.Sequential
 
 import Data.Array.Parallel.Base ((:*:)(..), fromBool)
 
