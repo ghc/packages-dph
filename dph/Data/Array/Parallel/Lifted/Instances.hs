@@ -19,7 +19,7 @@ import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Unlifted.Sequential
 
-import GHC.Exts    ( Int#, Int(..), (+#), (-#), (*#),
+import GHC.Exts    ( Int#, Int(..), (+#), (*#),
                      Double#, Double(..) )
 
 data instance PArray Int = PInt Int# PArray_Int#
