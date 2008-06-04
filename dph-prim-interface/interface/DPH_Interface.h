@@ -46,6 +46,7 @@ indices_s :: UA a => SUArr a -> UArr Int
 
 fold_s :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
 fold1_s :: UA a => (a -> a -> a) -> SUArr a -> UArr a
+sum_s :: (Num a, UA a) => SUArr a -> UArr a
 
 indexed_s :: UA a => SUArr a -> SUArr (Int :*: a)
 

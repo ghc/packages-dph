@@ -14,7 +14,7 @@ module Data.Array.Parallel.Unlifted (
 
   (>:), concat, (^+:+^), length_s, lengths_s, indices_s,
   indexed_s,
-  fold_s, fold1_s,
+  fold_s, fold1_s, sum_s,
   toUSegd
 ) where
 

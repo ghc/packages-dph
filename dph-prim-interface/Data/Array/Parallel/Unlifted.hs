@@ -82,6 +82,7 @@ indices_s = scan (+) 0 . lengths_s
 
 fold_s f z = map (fold f z)
 fold1_s f = map (fold1 f)
+sum_s = map sum
 
 indexed_s = map indexed
 
