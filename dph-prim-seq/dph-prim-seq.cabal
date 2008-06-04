@@ -13,6 +13,7 @@ Cabal-Version:  >= 1.2
 Library
   Exposed-Modules:
         Data.Array.Parallel.Unlifted.Sequential
+        Data.Array.Parallel.Unlifted
   Other-Modules:
         Data.Array.Parallel.Unlifted.Sequential.Flat.UArr
         Data.Array.Parallel.Unlifted.Sequential.Flat.Stream
@@ -48,6 +49,5 @@ Library
   Build-Depends:  base, array, random
   if impl(ghc >= 6.9)
     Build-Depends: ghc-prim
-  Build-Depends: dph-base
-
+  Build-Depends: dph-base, dph-prim-interface
 
