@@ -42,6 +42,7 @@ lengths_s = lengthsSU
 indices_s = indicesSU
 fold_s = foldSU
 fold1_s = fold1SU
+sum_s = sumSU
 indexed_s = indexedSU
 toUSegd = U.toUSegd
 
