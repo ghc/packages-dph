@@ -14,8 +14,6 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import Data.Array.Parallel.Unlifted.Sequential
-
 import GHC.Exts (Int(..), (+#))
 
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
@@ -267,10 +265,10 @@ appPA_l :: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE_PA appPA_l #-}
 appPA_l pa (PNested m# lens1 idxs1 xs)
            (PNested n# lens2 idxs2 ys)
-  = PNested (m# +# n#) (zipWithU (+) lens1 lens2)
-                       (zipWithU (+) idxs1 idxs2)
-                       (applPA# pa (toUSegd (zipU lens1 idxs1)) xs
-                                   (toUSegd (zipU lens2 idxs2)) ys)
+  = PNested (m# +# n#) (unsafe_zipWithPA_Int# (+) lens1 lens2)
+                       (unsafe_zipWithPA_Int# (+) idxs1 idxs2)
+                       (applPA# pa (toSegd lens1 idxs1) xs
+                                   (toSegd lens2 idxs2) ys)
 
 appPA :: PA a -> (PArray a :-> PArray a :-> PArray a)
 {-# INLINE appPA #-}
