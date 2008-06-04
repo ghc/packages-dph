@@ -3,52 +3,122 @@ infixr 5 +:+
 infixr 5 ^+:+^
 infixr 9 >:
 
-length :: UA a => UArr a -> Int
-empty :: UA a => UArr a
-replicate :: UA a => Int -> a -> UArr a
-replicateEach :: UA a => Int -> UArr Int -> UArr a -> UArr a
-repeat :: UA a => Int -> UArr a -> UArr a
-(!:) :: UA a => UArr a -> Int -> a
-bpermute :: UA a => UArr a -> UArr Int -> UArr a
-(+:+) :: UA a => UArr a -> UArr a -> UArr a
+length :: Elt a => Array a -> Int
+{-# INLINE length #-}
 
-pack :: UA a => UArr a -> UArr Bool -> UArr a
-combine :: UA a => UArr Bool -> UArr a -> UArr a -> UArr a
+empty :: Elt a => Array a
+{-# INLINE empty #-}
 
-map :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b
-zip :: (UA a, UA b) => UArr a -> UArr b -> UArr (a :*: b)
-unzip :: (UA a, UA b) => UArr (a :*: b) -> UArr a :*: UArr b
-fsts  :: (UA a, UA b) => UArr (a :*: b) -> UArr a
-zip3 :: (UA a, UA b, UA c) => UArr a -> UArr b -> UArr c
-                           -> UArr (a :*: b :*: c)
-unzip3 :: (UA a, UA b, UA c)
-       => UArr (a :*: b :*: c) -> UArr a :*: UArr b :*: UArr c
-zipWith :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
-zipWith3 :: (UA a, UA b, UA c, UA d)
-          => (a -> b -> c -> d) -> UArr a -> UArr b -> UArr c -> UArr d
+replicate :: Elt a => Int -> a -> Array a
+{-# INLINE replicate #-}
 
-fold :: UA a => (a -> a -> a) -> a -> UArr a -> a
-fold1 :: UA a => (a -> a -> a) -> UArr a -> a
-sum :: (Num a, UA a) => UArr a -> a
-scan :: UA a => (a -> a -> a) -> a -> UArr a -> UArr a
+replicateEach :: Elt a => Int -> Array Int -> Array a -> Array a
+{-# INLINE replicateEach #-}
 
-indexed :: UA a => UArr a -> UArr (Int :*: a)
-enumFromTo :: Int -> Int -> UArr Int
-enumFromToEach :: Int -> UArr (Int :*: Int) -> UArr Int
+repeat :: Elt a => Int -> Array a -> Array a
+{-# INLINE repeat #-}
 
-concat :: UA a => SUArr a -> UArr a
-(>:) :: UA a => USegd -> UArr a -> SUArr a
-(^+:+^) :: UA a => SUArr a -> SUArr a -> SUArr a
+(!:) :: Elt a => Array a -> Int -> a
+{-# INLINE (!:) #-}
 
-length_s :: UA a => SUArr a -> Int
-lengths_s :: UA a => SUArr a -> UArr Int
-indices_s :: UA a => SUArr a -> UArr Int
+bpermute :: Elt a => Array a -> Array Int -> Array a
+{-# INLINE bpermute #-}
 
-fold_s :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
-fold1_s :: UA a => (a -> a -> a) -> SUArr a -> UArr a
-sum_s :: (Num a, UA a) => SUArr a -> UArr a
+(+:+) :: Elt a => Array a -> Array a -> Array a
+{-# INLINE (+:+) #-}
 
-indexed_s :: UA a => SUArr a -> SUArr (Int :*: a)
 
-toUSegd :: UArr (Int :*: Int) -> USegd
+pack :: Elt a => Array a -> Array Bool -> Array a
+{-# INLINE pack #-}
+
+combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
+{-# INLINE combine #-}
+
+map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
+{-# INLINE map #-}
+
+zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a :*: b)
+{-# INLINE zip #-}
+
+unzip :: (Elt a, Elt b) => Array (a :*: b) -> Array a :*: Array b
+{-# INLINE unzip #-}
+
+fsts  :: (Elt a, Elt b) => Array (a :*: b) -> Array a
+{-# INLINE fsts #-}
+
+zip3 :: (Elt a, Elt b, Elt c) => Array a -> Array b -> Array c
+                           -> Array (a :*: b :*: c)
+{-# INLINE zip3 #-}
+
+unzip3 :: (Elt a, Elt b, Elt c)
+       => Array (a :*: b :*: c) -> Array a :*: Array b :*: Array c
+{-# INLINE unzip3 #-}
+
+zipWith :: (Elt a, Elt b, Elt c)
+        => (a -> b -> c) -> Array a -> Array b -> Array c
+{-# INLINE zipWith #-}
+
+zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
+          => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
+{-# INLINE zipWith3 #-}
+
+
+fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
+{-# INLINE fold #-}
+
+fold1 :: Elt a => (a -> a -> a) -> Array a -> a
+{-# INLINE fold1 #-}
+
+sum :: (Num a, Elt a) => Array a -> a
+{-# INLINE sum #-}
+
+scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
+{-# INLINE scan #-}
+
+
+indexed :: Elt a => Array a -> Array (Int :*: a)
+{-# INLINE indexed #-}
+
+enumFromTo :: Int -> Int -> Array Int
+{-# INLINE enumFromTo #-}
+
+enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
+{-# INLINE enumFromToEach #-}
+
+concat :: Elt a => SArray a -> Array a
+{-# INLINE concat #-}
+
+(>:) :: Elt a => Segd -> Array a -> SArray a
+{-# INLINE (>:) #-}
+
+(^+:+^) :: Elt a => SArray a -> SArray a -> SArray a
+{-# INLINE (^+:+^) #-}
+
+
+length_s :: Elt a => SArray a -> Int
+{-# INLINE length_s #-}
+
+lengths_s :: Elt a => SArray a -> Array Int
+{-# INLINE lengths_s #-}
+
+indices_s :: Elt a => SArray a -> Array Int
+{-# INLINE indices_s #-}
+
+
+fold_s :: Elt a => (a -> a -> a) -> a -> SArray a -> Array a
+{-# INLINE fold_s #-}
+
+fold1_s :: Elt a => (a -> a -> a) -> SArray a -> Array a
+{-# INLINE fold1_s #-}
+
+sum_s :: (Num a, Elt a) => SArray a -> Array a
+{-# INLINE sum_s #-}
+
+
+indexed_s :: Elt a => SArray a -> SArray (Int :*: a)
+{-# INLINE indexed_s #-}
+
+
+toSegd :: Array (Int :*: Int) -> Segd
+{-# INLINE toSegd #-}
 
