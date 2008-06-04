@@ -1,5 +1,5 @@
 module Data.Array.Parallel.Unlifted (
-  UA, UArr, SUArr, USegd,
+  Elt, Array, SArray, Segd,
 
   length,
   empty, replicate, replicateEach, repeat, (+:+),
@@ -15,8 +15,9 @@ module Data.Array.Parallel.Unlifted (
   (>:), concat, (^+:+^), length_s, lengths_s, indices_s,
   indexed_s,
   fold_s, fold1_s, sum_s,
-  toUSegd
+  toSegd
 ) where
 
 import Data.Array.Parallel.Base   ( (:*:) )
-import Prelude                    (Num, Int, Bool)
+import Prelude                    (Num, Int, Bool, Double)
+

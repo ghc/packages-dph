@@ -1,3 +1,8 @@
+instance Elt Int
+instance Elt Bool
+instance Elt Double
+instance (Elt a, Elt b) => Elt (a :*: b)
+
 infixl 9 !:
 infixr 5 +:+
 infixr 5 ^+:+^

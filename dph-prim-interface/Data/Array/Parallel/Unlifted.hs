@@ -16,15 +16,12 @@ assert file line False _
   = P.error $ file P.++ " (line " P.++ P.show line P.++ "): assertion failure"
 assert _ _ _ x = x
 
-class UA a
-instance UA Bool
-instance UA Int
-instance (UA a, UA b) => UA (a :*: b)
-instance UA a => UA [a]
+class Elt a
+instance Elt a => Elt [a]
 
-type UArr a = [a]
-type SUArr a = [[a]]
-type USegd   = ([Int], [Int])
+type Array a = [a]
+type SArray a = [[a]]
+type Segd   = ([Int], [Int])
 
 length = P.length
 empty = []
@@ -86,5 +83,5 @@ sum_s = map sum
 
 indexed_s = map indexed
 
-toUSegd = unpairS . unzip
+toSegd = unpairS . unzip
 
