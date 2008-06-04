@@ -10,9 +10,6 @@ Synopsis:       Sequential Primitives for Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
 
-Extra-Source-Files:
-        include/fusion-phases.h
-
 Library
   Exposed-Modules:
         Data.Array.Parallel.Unlifted.Sequential
@@ -39,9 +36,6 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Permute
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Text
         Data.Array.Parallel.Unlifted.Sequential.Segmented
-
-  Include-Dirs:
-        include
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators

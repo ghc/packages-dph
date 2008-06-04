@@ -10,9 +10,6 @@ Synopsis:       Data structures for Nested Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
 
-Extra-Source-Files:
-        include/fusion-phases.h
-
 Library
   Exposed-Modules:
         Data.Array.Parallel
@@ -36,9 +33,6 @@ Library
         Data.Array.Parallel.Prelude.Base.Tuple
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
-
-  Include-Dirs:
-        include
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators

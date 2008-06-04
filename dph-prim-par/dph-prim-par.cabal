@@ -10,9 +10,6 @@ Synopsis:       Parallel Primitives for Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
 
-Extra-Source-Files:
-        include/fusion-phases.h
-
 Library
   Exposed-Modules:
         Data.Array.Parallel.Unlifted.Distributed
@@ -34,9 +31,6 @@ Library
         Data.Array.Parallel.Unlifted.Parallel.Enum
         Data.Array.Parallel.Unlifted.Parallel.Segmented
         Data.Array.Parallel.Unlifted.Parallel.Subarrays
-
-  Include-Dirs:
-        include
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators

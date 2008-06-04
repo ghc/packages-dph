@@ -10,9 +10,6 @@ Synopsis:       Basic Definitions for Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
 
-Extra-Source-Files:
-        include/fusion-phases.h
-
 Library
   Exposed-Modules:
         Data.Array.Parallel.Base
@@ -39,6 +36,9 @@ Library
 
   Include-Dirs:
         include
+
+  Install-Includes:
+        fusion-phases.h
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
