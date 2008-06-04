@@ -11,7 +11,9 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import Data.Array.Parallel.Base (fstS, pairS, unpairS)
+import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS)
+
+import GHC.Exts ( Int(..) )
 
 unsafe_map :: (PrimPA a, PrimPA b) => (a -> b) -> PArray a -> PArray b
 {-# INLINE_PA unsafe_map #-}
@@ -78,3 +80,58 @@ unsafe_enumFromTos ss es = fromSUArrPA  flatLen nestedLen  $ enumFromToSU (toUAr
   where
     flatLen   = prim_lengthPA ss
     nestedLen = unsafe_fold (+) 0 (unsafe_map (\x -> max (x+1) 0) $  unsafe_zipWith (-) es ss)
+
+
+fromUArrPA_2 :: (PrimPA a, PrimPA b) => Int -> UArr (a :*: b) -> PArray (a,b)
+{-# INLINE fromUArrPA_2 #-}
+fromUArrPA_2 (I# n#) ps = P_2 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys)
+  where
+    xs :*: ys = unzipU ps
+
+
+
+fromUArrPA_2' :: (PrimPA a, PrimPA b) => UArr (a :*: b) -> PArray (a, b)
+{-# INLINE fromUArrPA_2' #-}
+fromUArrPA_2' ps = fromUArrPA_2 (lengthU ps) ps
+
+fromUArrPA_3 :: (PrimPA a, PrimPA b, PrimPA c) => Int -> UArr (a :*: b :*: c) -> PArray (a,b,c)
+{-# INLINE fromUArrPA_3 #-}
+fromUArrPA_3 (I# n#) ps = P_3 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys) (fromUArrPA (I# n#) zs)
+  where
+    xs :*: ys :*: zs = unzip3U ps
+
+fromUArrPA_3' :: (PrimPA a, PrimPA b, PrimPA c) => UArr (a :*: b :*: c) -> PArray (a, b, c)
+{-# INLINE fromUArrPA_3' #-}
+fromUArrPA_3' ps = fromUArrPA_3 (lengthU ps) ps
+
+fromSUArrPA :: PrimPA a => Int -> Int -> SUArr a -> PArray (PArray a)
+{-# INLINE fromSUArrPA #-}
+fromSUArrPA (I# m#) n xss
+  = PNested m# (lengthsSU xss)
+               (indicesSU xss)
+               (fromUArrPA n (concatSU xss))
+
+toSUArrPA :: PrimPA a => PArray (PArray a) -> SUArr a
+{-# INLINE toSUArrPA #-}
+toSUArrPA (PNested _ lens idxs xs) = toUSegd (zipU lens idxs) >: toUArrPA xs
+
+fromSUArrPA_2 :: (PrimPA a, PrimPA b)
+              => Int -> Int -> SUArr (a :*: b) -> PArray (PArray (a, b))
+{-# INLINE fromSUArrPA_2 #-}
+fromSUArrPA_2 (I# m#) n pss = PNested m# (lengthsSU pss)
+                                         (indicesSU pss)
+                                         (fromUArrPA_2 n (concatSU pss))
+
+fromSUArrPA' :: PrimPA a => SUArr a -> PArray (PArray a)
+{-# INLINE fromSUArrPA' #-}
+fromSUArrPA' xss = fromSUArrPA (lengthSU xss)
+                               (lengthU (concatSU xss))
+                               xss
+
+fromSUArrPA_2' :: (PrimPA a, PrimPA b)
+                => SUArr (a :*: b) -> PArray (PArray (a, b))
+{-# INLINE fromSUArrPA_2' #-}
+fromSUArrPA_2' pss = fromSUArrPA_2 (lengthSU pss)
+                                   (lengthU (concatSU pss))
+                                   pss
+
