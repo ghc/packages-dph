@@ -5,7 +5,7 @@
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA, unzipPA, 
-  packPA, filterPA, combine2PA, indexPA, concatPA, appPA
+  packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -273,4 +273,27 @@ appPA_l pa (PNested m# lens1 idxs1 xs)
 appPA :: PA a -> (PArray a :-> PArray a :-> PArray a)
 {-# INLINE appPA #-}
 appPA pa = closure2 (dPA_PArray pa) (appPA_v pa) (appPA_l pa)
+
+
+enumFromToPA_v :: Int -> Int -> PArray Int
+{-# INLINE_PA enumFromToPA_v #-}
+enumFromToPA_v m@(I# m#) n@(I# n#) = PInt len# (enumFromToPA_Int# m# n#)
+  where
+    len# = case max 0 (n-m+1) of I# i# -> i#
+
+enumFromToPA_l :: PArray Int -> PArray Int -> PArray (PArray Int)
+{-# INLINE_PA enumFromToPA_l #-}
+enumFromToPA_l (PInt k# ms#) (PInt _ ns#) = PNested k# lens# idxs# (PInt n# is#)
+  where
+    lenOf m n = max 0 (n - m + 1)
+
+    lens# = unsafe_zipWithPA_Int# lenOf ms# ns#
+    idxs# = unsafe_scanPA_Int# (+) 0 lens#
+
+    n#    = sumPA_Int# lens#
+    is#   = enumFromToEachPA_Int# n# ms# ns#
+
+enumFromToPA_Int :: Int :-> Int :-> PArray Int
+{-# INLINE enumFromToPA_Int #-}
+enumFromToPA_Int = closure2 dPA_Int enumFromToPA_v enumFromToPA_l
 

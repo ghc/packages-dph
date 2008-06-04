@@ -98,8 +98,7 @@ intSumP _ = 0
 
 enumFromToPA :: Int :-> Int :->  PArray Int 
 {-# INLINE enumFromToPA #-}
-enumFromToPA = closure2 dPA_Int unsafe_enumFromTo
-                        unsafe_enumFromTos
+enumFromToPA = enumFromToPA_Int
 
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}

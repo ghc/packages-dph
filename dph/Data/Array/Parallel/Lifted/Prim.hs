@@ -68,19 +68,6 @@ unsafe_fold1sIndex f xss = fromUArrPA (nested_lengthPA xss)
     {-# INLINE f' #-}
     f' p q = pairS $ f (unpairS p) (unpairS q)
 
-
-
-unsafe_enumFromTo:: Int -> Int -> PArray Int
-{-# INLINE_PA unsafe_enumFromTo #-}
-unsafe_enumFromTo s e = fromUArrPA  (max 0 (e-s+1)) $ enumFromToU s e
-
-unsafe_enumFromTos:: PArray Int -> PArray Int -> PArray (PArray Int)
-{-# INLINE_PA unsafe_enumFromTos #-}
-unsafe_enumFromTos ss es = fromSUArrPA  flatLen nestedLen  $ enumFromToSU (toUArrPA ss) (toUArrPA es)
-  where
-    flatLen   = prim_lengthPA ss
-    nestedLen = unsafe_fold (+) 0 (unsafe_map (\x -> max (x+1) 0) $  unsafe_zipWith (-) es ss)
-
 instance PrimPA Int where
   fromUArrPA (I# n#) xs  = PInt n# xs
   toUArrPA   (PInt _ xs) = xs
