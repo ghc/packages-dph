@@ -9,6 +9,11 @@ import qualified Data.Array.Parallel.Unlifted.Sequential
 
 #include "DPH_Interface.h"
 
+class UA a => Elt a
+type Array = UArr
+type SArray = SUArr
+type Segd = USegd
+
 length = lengthU
 empty = emptyU
 replicate = replicateU
@@ -44,5 +49,5 @@ fold_s = foldSU
 fold1_s = fold1SU
 sum_s = sumSU
 indexed_s = indexedSU
-toUSegd = U.toUSegd
+toSegd = U.toUSegd
 
