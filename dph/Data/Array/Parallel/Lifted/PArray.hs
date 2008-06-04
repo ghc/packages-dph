@@ -15,7 +15,6 @@ module Data.Array.Parallel.Lifted.PArray (
   PrimPA(..), prim_lengthPA, fromUArrPA'
 ) where
 
-import Data.Array.Parallel.Unlifted ( UArr, UA )
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Lifted.Unboxed ( Segd, PArray_Int#, PArray_Bool# )
 import GHC.Exts (Int#, Int(..))
@@ -141,16 +140,16 @@ mkReprPA pr = PA {
               , dictPRepr    = pr
               }
 
-class UA a => PrimPA a where
-  fromUArrPA :: Int -> UArr a -> PArray a
-  toUArrPA   :: PArray a -> UArr a
+class U.Elt a => PrimPA a where
+  fromUArrPA :: Int -> U.Array a -> PArray a
+  toUArrPA   :: PArray a -> U.Array a
   primPA     :: PA a
 
 prim_lengthPA :: PrimPA a => PArray a -> Int
 {-# INLINE prim_lengthPA #-}
 prim_lengthPA xs = I# (lengthPA# primPA xs)
 
-fromUArrPA' :: PrimPA a => UArr a -> PArray a
+fromUArrPA' :: PrimPA a => U.Array a -> PArray a
 {-# INLINE fromUArrPA' #-}
 fromUArrPA' xs = fromUArrPA (U.length xs) xs
 

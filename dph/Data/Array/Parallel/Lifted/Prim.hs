@@ -10,7 +10,6 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import Data.Array.Parallel.Unlifted ( UArr, SUArr )
 import qualified Data.Array.Parallel.Unlifted as U
 
 import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS)
@@ -107,7 +106,7 @@ instance PrimPA Bool where
   primPA = dPA_Bool
 
 
-fromUArrPA_2 :: (PrimPA a, PrimPA b) => Int -> UArr (a :*: b) -> PArray (a,b)
+fromUArrPA_2 :: (PrimPA a, PrimPA b) => Int -> U.Array (a :*: b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}
 fromUArrPA_2 (I# n#) ps = P_2 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys)
   where
@@ -115,46 +114,46 @@ fromUArrPA_2 (I# n#) ps = P_2 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys)
 
 
 
-fromUArrPA_2' :: (PrimPA a, PrimPA b) => UArr (a :*: b) -> PArray (a, b)
+fromUArrPA_2' :: (PrimPA a, PrimPA b) => U.Array (a :*: b) -> PArray (a, b)
 {-# INLINE fromUArrPA_2' #-}
 fromUArrPA_2' ps = fromUArrPA_2 (U.length ps) ps
 
-fromUArrPA_3 :: (PrimPA a, PrimPA b, PrimPA c) => Int -> UArr (a :*: b :*: c) -> PArray (a,b,c)
+fromUArrPA_3 :: (PrimPA a, PrimPA b, PrimPA c) => Int -> U.Array (a :*: b :*: c) -> PArray (a,b,c)
 {-# INLINE fromUArrPA_3 #-}
 fromUArrPA_3 (I# n#) ps = P_3 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys) (fromUArrPA (I# n#) zs)
   where
     xs :*: ys :*: zs = U.unzip3 ps
 
-fromUArrPA_3' :: (PrimPA a, PrimPA b, PrimPA c) => UArr (a :*: b :*: c) -> PArray (a, b, c)
+fromUArrPA_3' :: (PrimPA a, PrimPA b, PrimPA c) => U.Array (a :*: b :*: c) -> PArray (a, b, c)
 {-# INLINE fromUArrPA_3' #-}
 fromUArrPA_3' ps = fromUArrPA_3 (U.length ps) ps
 
-fromSUArrPA :: PrimPA a => Int -> Int -> SUArr a -> PArray (PArray a)
+fromSUArrPA :: PrimPA a => Int -> Int -> U.SArray a -> PArray (PArray a)
 {-# INLINE fromSUArrPA #-}
 fromSUArrPA (I# m#) n xss
   = PNested m# (U.lengths_s xss)
                (U.indices_s xss)
                (fromUArrPA n (U.concat xss))
 
-toSUArrPA :: PrimPA a => PArray (PArray a) -> SUArr a
+toSUArrPA :: PrimPA a => PArray (PArray a) -> U.SArray a
 {-# INLINE toSUArrPA #-}
-toSUArrPA (PNested _ lens idxs xs) = U.toUSegd (U.zip lens idxs) U.>: toUArrPA xs
+toSUArrPA (PNested _ lens idxs xs) = U.toSegd (U.zip lens idxs) U.>: toUArrPA xs
 
 fromSUArrPA_2 :: (PrimPA a, PrimPA b)
-              => Int -> Int -> SUArr (a :*: b) -> PArray (PArray (a, b))
+              => Int -> Int -> U.SArray (a :*: b) -> PArray (PArray (a, b))
 {-# INLINE fromSUArrPA_2 #-}
 fromSUArrPA_2 (I# m#) n pss = PNested m# (U.lengths_s pss)
                                          (U.indices_s pss)
                                          (fromUArrPA_2 n (U.concat pss))
 
-fromSUArrPA' :: PrimPA a => SUArr a -> PArray (PArray a)
+fromSUArrPA' :: PrimPA a => U.SArray a -> PArray (PArray a)
 {-# INLINE fromSUArrPA' #-}
 fromSUArrPA' xss = fromSUArrPA (U.length_s xss)
                                (U.length (U.concat xss))
                                xss
 
 fromSUArrPA_2' :: (PrimPA a, PrimPA b)
-                => SUArr (a :*: b) -> PArray (PArray (a, b))
+                => U.SArray (a :*: b) -> PArray (PArray (a, b))
 {-# INLINE fromSUArrPA_2' #-}
 fromSUArrPA_2' pss = fromSUArrPA_2 (U.length_s pss)
                                    (U.length (U.concat pss))

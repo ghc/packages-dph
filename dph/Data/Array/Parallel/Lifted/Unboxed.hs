@@ -31,7 +31,6 @@ module Data.Array.Parallel.Lifted.Unboxed (
   fromBoolPA#, toBoolPA#
 ) where
 
-import Data.Array.Parallel.Unlifted (UArr, USegd, (>:))
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ((:*:)(..), fromBool, toBool)
 
@@ -41,12 +40,12 @@ import GHC.Exts ( Int#, Int(..),
 
 import Debug.Trace
 
-type Segd = USegd
+type Segd = U.Segd
 
 toSegd :: PArray_Int# -> PArray_Int# -> Segd
-toSegd is js = U.toUSegd (U.zip is js)
+toSegd is js = U.toSegd (U.zip is js)
 
-type PArray_Int# = UArr Int
+type PArray_Int# = U.Array Int
 
 lengthPA_Int# :: PArray_Int# -> Int#
 lengthPA_Int# arr = case U.length arr of { I# n# -> n# }
@@ -82,7 +81,7 @@ appPA_Int# ms ns = ms U.+:+ ns
 
 applPA_Int# :: Segd -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
 applPA_Int# is xs js ys
-  = U.concat $ (is >: xs) U.^+:+^ (js >: ys)
+  = U.concat $ (is U.>: xs) U.^+:+^ (js U.>: ys)
 {-# INLINE_PA applPA_Int# #-}
 
 pack'PA_Int# :: PArray_Int# -> PArray_Bool# -> PArray_Int#
@@ -139,7 +138,7 @@ sumPA_Int# ns = case U.sum ns of I# n# -> n#
 
 sumPAs_Int# :: Segd -> PArray_Int# -> PArray_Int#
 sumPAs_Int# segd ds
-  = U.sum_s (segd >: ds)
+  = U.sum_s (segd U.>: ds)
 {-# INLINE_PA sumPAs_Int# #-}
 
 unsafe_mapPA_Int# :: (Int -> Int) -> PArray_Int# -> PArray_Int#
@@ -159,7 +158,7 @@ unsafe_scanPA_Int# :: (Int -> Int -> Int) -> Int -> PArray_Int# -> PArray_Int#
 unsafe_scanPA_Int# f z ns = U.scan f z ns
 {-# INLINE_PA unsafe_scanPA_Int# #-}
 
-type PArray_Double# = UArr Double
+type PArray_Double# = U.Array Double
 
 lengthPA_Double# :: PArray_Double# -> Int#
 lengthPA_Double# arr = case U.length arr of { I# n# -> n# }
@@ -195,7 +194,7 @@ appPA_Double# ms ns = ms U.+:+ ns
 
 applPA_Double# :: Segd -> PArray_Double# -> Segd -> PArray_Double#
                -> PArray_Double#
-applPA_Double# is xs js ys = U.concat $ (is >: xs) U.^+:+^ (js >: ys)
+applPA_Double# is xs js ys = U.concat $ (is U.>: xs) U.^+:+^ (js U.>: ys)
 {-# INLINE_PA applPA_Double# #-}
 
 pack'PA_Double# :: PArray_Double# -> PArray_Bool# -> PArray_Double#
@@ -233,10 +232,10 @@ unsafe_fold1PA_Double# f ns = U.fold1 f ns
 
 unsafe_foldPAs_Double# :: (Double -> Double -> Double) -> Double
                        -> Segd -> PArray_Double# -> PArray_Double#
-unsafe_foldPAs_Double# f z segd ds = U.fold_s f z (segd >: ds)
+unsafe_foldPAs_Double# f z segd ds = U.fold_s f z (segd U.>: ds)
 {-# INLINE_PA unsafe_foldPAs_Double# #-}
                
-type PArray_Bool# = UArr Bool
+type PArray_Bool# = U.Array Bool
 
 lengthPA_Bool# :: PArray_Bool# -> Int#
 lengthPA_Bool# arr = case U.length arr of { I# n# -> n# }
