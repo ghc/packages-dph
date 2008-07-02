@@ -9,6 +9,15 @@ Category:       Data Structures
 Synopsis:       Data structures for Nested Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
+Build-Type:     Custom
+
+Flag seq
+  Description:  Use the sequential backend
+  Default:      False
+
+Flag par
+  Description:  Use the parallel backend
+  Default:      False
 
 Library
   Exposed-Modules:
@@ -45,5 +54,14 @@ Library
   Build-Depends:  base, array, random
   if impl(ghc >= 6.9)
     Build-Depends: ghc-prim
-  Build-Depends: dph-base, dph-prim-seq
+  Build-Depends: dph-base
+
+  if flag(seq)
+    Build-Depends: dph-prim-seq
+    GHC-Options: -package-name dph-seq
+  else
+    if flag(par)
+      Build-Depends: dph-prim-par
+      GHC-Options: -package-name dph-par
+
 
