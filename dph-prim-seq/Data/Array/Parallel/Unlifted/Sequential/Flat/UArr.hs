@@ -420,8 +420,8 @@ instance UPrim Char where
   unMUAPrim (MUAChar arr)  = arr
 
 instance UA Char where
-  newtype UArr  Char   = UAChar  !(BUArr Char)
-  newtype MUArr Char s = MUAChar !(MBUArr s Char)
+  newtype UArr  Char   = UAChar  (BUArr Char)
+  newtype MUArr Char s = MUAChar (MBUArr s Char)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -442,8 +442,8 @@ instance UPrim Int where
   unMUAPrim (MUAInt arr) = arr
 
 instance UA Int where
-  newtype UArr  Int   = UAInt  !(BUArr Int)
-  newtype MUArr Int s = MUAInt !(MBUArr s Int)
+  newtype UArr  Int   = UAInt  (BUArr Int)
+  newtype MUArr Int s = MUAInt (MBUArr s Int)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -470,8 +470,8 @@ instance UPrim Float where
   unMUAPrim (MUAFloat arr) = arr
 
 instance UA Float where
-  newtype UArr  Float   = UAFloat  !(BUArr Float)
-  newtype MUArr Float s = MUAFloat !(MBUArr s Float)
+  newtype UArr  Float   = UAFloat  (BUArr Float)
+  newtype MUArr Float s = MUAFloat (MBUArr s Float)
 
   lengthU        = primLengthU
   indexU         = primIndexU
@@ -492,8 +492,8 @@ instance UPrim Double where
   unMUAPrim (MUADouble arr) = arr
 
 instance UA Double where
-  newtype UArr  Double   = UADouble  !(BUArr Double)
-  newtype MUArr Double s = MUADouble !(MBUArr s Double)
+  newtype UArr  Double   = UADouble  (BUArr Double)
+  newtype MUArr Double s = MUADouble (MBUArr s Double)
 
   lengthU        = primLengthU
   indexU         = primIndexU
