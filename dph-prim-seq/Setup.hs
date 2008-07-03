@@ -1,7 +1,7 @@
 import Distribution.Simple
 import System.IO
 main = defaultMainWithHooks
-     $ defaultUserHooks {
+     $ simpleUserHooks {
          haddockHook = \_ _ _ _ -> warn
      }
   where
