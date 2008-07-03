@@ -9,6 +9,7 @@ Category:       Data Structures
 Synopsis:       Basic Definitions for Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
+Build-Type:     Simple
 
 Library
   Exposed-Modules:
