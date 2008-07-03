@@ -58,10 +58,10 @@ Library
 
   if flag(seq)
     Build-Depends: dph-prim-seq
-    GHC-Options: -package-name dph-seq
+    GHC-Options: -package-name dph-seq -fdph-seq
   else
     if flag(par)
       Build-Depends: dph-prim-par
-      GHC-Options: -package-name dph-par
+      GHC-Options: -package-name dph-par -fdph-par
 
 
