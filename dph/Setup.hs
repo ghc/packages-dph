@@ -46,7 +46,7 @@ hackPackageName distPref name = do
     lbi <- getPersistBuildConfig distPref
     let lpd = localPkgDescr lbi
         pkg = package lpd
-        pkg' = pkg { pkgName = name }
+        pkg' = pkg { pkgName = PackageName name }
         lpd' = lpd { package = pkg' }
         lbi' = lbi { localPkgDescr = lpd' }
     writePersistBuildConfig distPref lbi'
