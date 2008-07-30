@@ -69,7 +69,7 @@ foldUP f z = maybeS z (f z)
 -- |Array reduction proceeding from the left (requires associative combination)
 --
 foldlUP :: (DT a, UA a) => (a -> a -> a) -> a -> UArr a -> a
-{-# INLINE_UP foldlU #-}
+{-# INLINE_UP foldlUP #-}
 foldlUP f z arr 
   | nullU arr = z
   | otherwise = foldl1UP f arr
