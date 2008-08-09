@@ -1,4 +1,8 @@
-Name:           dph
+#ifdef USE_dph_seq
+Name:           dph-seq
+#else
+Name:           dph-par
+#endif
 Version:        0.3
 License:        BSD3
 License-File:   LICENSE
@@ -11,15 +15,12 @@ Synopsis:       Data structures for Nested Data-Parallel Haskell.
 Cabal-Version:  >= 1.2
 Build-Type:     Custom
 
-Flag seq
-  Description:  Use the sequential backend
-  Default:      False
-
-Flag par
-  Description:  Use the parallel backend
-  Default:      False
-
 Library
+  -- This Cabal file gets CPPed, then put in ../dhp_par and ../dph_seq
+  -- We therefore need to point back at the original location for
+  -- where to find the sources
+  HS-Source-Dirs: ../dph
+
   Exposed-Modules:
         Data.Array.Parallel
         Data.Array.Parallel.Lifted
@@ -56,12 +57,11 @@ Library
     Build-Depends: ghc-prim
   Build-Depends: dph-base
 
-  if flag(seq)
-    Build-Depends: dph-prim-seq
-    GHC-Options: -package-name dph-seq -fdph-seq
-  else
-    if flag(par)
-      Build-Depends: dph-prim-par
-      GHC-Options: -package-name dph-par -fdph-par
-
+#ifdef USE_dph_seq
+  Build-Depends: dph-prim-seq
+  GHC-Options: -package-name dph-seq -fdph-seq
+#else
+  Build-Depends: dph-prim-par
+  GHC-Options: -package-name dph-par -fdph-par
+#endif
 
