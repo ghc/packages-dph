@@ -44,6 +44,8 @@ Library
         Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
 
+  Exposed: False
+
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
   GHC-Options: -funbox-strict-fields -haddock -fcpr-off

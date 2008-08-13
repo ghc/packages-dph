@@ -39,6 +39,8 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Text
         Data.Array.Parallel.Unlifted.Sequential.Segmented
 
+  Exposed: False
+
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
   GHC-Options: -funbox-strict-fields -haddock -fcpr-off

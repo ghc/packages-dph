@@ -41,6 +41,8 @@ Library
   Install-Includes:
         fusion-phases.h
 
+  Exposed: False
+
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
   GHC-Options: -funbox-strict-fields -haddock -fcpr-off
