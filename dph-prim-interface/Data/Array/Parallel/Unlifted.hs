@@ -64,6 +64,9 @@ enumFromToEach n ps = ASSERT (n == length ns)
   where
     ns = concat (map (uncurryS enumFromTo) ps)
 
+randoms n = P.take n . System.Random.randoms
+randomRs n r = P.take n . System.Random.randomRs r
+
 concat = P.concat
 (ns, is) >: xs = go ns xs
   where

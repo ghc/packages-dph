@@ -12,6 +12,8 @@ module Data.Array.Parallel.Unlifted (
 
   fold, fold1, sum, scan,
 
+  randoms, randomRs,
+
   (>:), concat, (^+:+^), length_s, lengths_s, indices_s,
   indexed_s,
   fold_s, fold1_s, sum_s,
@@ -20,4 +22,5 @@ module Data.Array.Parallel.Unlifted (
 
 import Data.Array.Parallel.Base   ( (:*:) )
 import Prelude                    (Num, Int, Bool, Double)
+import qualified System.Random
 

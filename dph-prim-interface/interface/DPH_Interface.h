@@ -90,6 +90,16 @@ enumFromTo :: Int -> Int -> Array Int
 enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
 {-# INLINE enumFromToEach #-}
 
+
+randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
+        => Int -> g -> Array a
+{-# INLINE randoms #-}
+
+randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
+          => Int -> (a,a) -> g -> Array a
+{-# INLINE randomRs #-}
+
+
 concat :: Elt a => SArray a -> Array a
 {-# INLINE concat #-}
 
