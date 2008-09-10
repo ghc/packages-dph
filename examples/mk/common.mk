@@ -1,10 +1,14 @@
-NDPDIR = $(TESTDIR)/..
-NDPVERSION = 0.1
-BENCHDIR = $(TESTDIR)/lib
+DPHDIR = $(TOPDIR)/..
 
-NDPLIB = $(NDPDIR)/dist/build/libHSndp-$(NDPVERSION).a
-BENCHLIB = $(BENCHDIR)/libNDPBench.a
-HC = $(NDPDIR)/../../compiler/ghc-inplace
+HC = $(DPHDIR)/../../ghc/stage1-inplace/ghc
+HCPKG = $(DPHDIR)/../../utils/ghc-pkg/install-inplace/bin/ghc-pkg
 
-include $(NDPDIR)/ndp.mk
+BENCH_DIR = $(TOPDIR)/lib
+BENCH_FLAGS = -package dph-bench -package-conf $(BENCH_DIR)/dph-bench.conf
+BENCH_DEP = $(BENCH_DIR)/dist/inplace-pkg-config
+
+DPH_FLAGS = -Odph -funbox-strict-fields -fcpr-off
+
+WAYS = seq par
+WAY_FLAGS = -fdph-$(WAY) -package dph-$(WAY) -odir $(WAY) -hidir $(WAY)
 
