@@ -1,8 +1,11 @@
-TESTDIR = ..
-PROGS = dotp
-include $(TESTDIR)/mk/test.mk
+TOPDIR = ..
+BINARIES = dotp prim
 
-dotp.o: DotPSeq.hi DotPPar.hi DotPVect.hi
+dotp_DPH = vect
+dotp_SOURCES = vect.hs DotPVect.hs
 
-dotp: DotPSeq.o DotPPar.o DotPVect.o $(BENCHLIB)
+prim_DPH = prim
+prim_SOURCES = prim.hs DotPPrim.hs
+
+include $(TOPDIR)/mk/test.mk
 
