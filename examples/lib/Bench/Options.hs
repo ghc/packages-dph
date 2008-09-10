@@ -12,7 +12,6 @@ import Data.Array.Parallel.Unlifted.Distributed
 
 data Options = Options { optRuns       :: Int
                        , optVerbosity  :: Int
-                       , optSetGang    :: IO ()
                        , optHelp       :: Bool
                        }
 
@@ -22,7 +21,6 @@ defaultVerbosity = 1
 defaultOptions :: Options
 defaultOptions = Options { optRuns       = 1
                          , optVerbosity  = defaultVerbosity
-                         , optSetGang    = setSequentialGang 1
                          , optHelp       = False
                          }
 
@@ -33,13 +31,6 @@ options = [Option ['r'] ["runs"]
             (OptArg (\r o -> o { optVerbosity = maybe defaultVerbosity read r })
                     "N")
             "verbosity level"
-         ,Option ['t'] ["threads"]
-            (ReqArg (\s o -> o { optSetGang = setGang (read s)}) "N")
-            "use N threads"
-         ,Option ['s'] ["seq"]
-            (OptArg (\r o -> o { optSetGang = setSequentialGang
-                                                (maybe 1 read r) }) "N")
-            "simulate N threads (default 1)"
          ,Option ['h'] ["help"]
                      (NoArg (\o -> o { optHelp = True }))
             "show help screen"
@@ -70,7 +61,6 @@ ndpMain descr hdr run options' dft =
                  putStrLn $ usageInfo ("Usage: " ++ s ++ " " ++ hdr ++ "\n"
                                        ++ descr ++ "\n") opts
           else do
-                 optSetGang os
                  run os os' files
       (_, _, errs) -> failWith errs
   where
