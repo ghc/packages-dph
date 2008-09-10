@@ -16,7 +16,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   Gang, forkGang, gangSize, sequentialGang, seqGang,
 
   -- * Gang hacks
-  setGang, setSequentialGang, theGang,
+  theGang,
 
   -- * Distributed types and classes
   DT, Dist,
