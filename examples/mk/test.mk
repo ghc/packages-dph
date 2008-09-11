@@ -21,7 +21,7 @@ else
 ifeq ($($(BINARY)_DPH),prim)
 WAY_FLAGS = -package dph-prim-$(WAY) -odir $(WAY) -hidir $(WAY)
 else
-WAY_FLAGS = -fdph-$(WAY) -package dph-$(WAY) -odir $(WAY) -hidir $(WAY)
+WAY_FLAGS = -fdph-$(WAY) -package dph-$(WAY) -package dph-prim-$(WAY) -odir $(WAY) -hidir $(WAY)
 endif
 
 $(WAY)/$(BINARY): $($(BINARY)_SOURCES) $(BENCH_DEP)
