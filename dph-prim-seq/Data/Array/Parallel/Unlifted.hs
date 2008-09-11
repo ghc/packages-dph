@@ -52,4 +52,6 @@ fold1_s = fold1SU
 sum_s = sumSU
 indexed_s = indexedSU
 toSegd = U.toUSegd
+toList = fromU
+fromList = toU
 

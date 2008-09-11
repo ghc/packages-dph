@@ -137,3 +137,10 @@ indexed_s :: Elt a => SArray a -> SArray (Int :*: a)
 toSegd :: Array (Int :*: Int) -> Segd
 {-# INLINE toSegd #-}
 
+
+toList :: Elt a => Array a -> [a]
+{-# INLINE toList #-}
+
+fromList :: Elt a => [a] -> Array a
+{-# INLINE fromList #-}
+

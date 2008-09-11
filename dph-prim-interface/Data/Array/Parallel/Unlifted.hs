@@ -88,3 +88,7 @@ indexed_s = map indexed
 
 toSegd = unpairS . unzip
 
+
+toList x = x
+fromList x = x
+
