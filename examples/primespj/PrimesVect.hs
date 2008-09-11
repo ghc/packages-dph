@@ -1,7 +1,5 @@
 {-# LANGUAGE PArr #-}
-{-# GHC_OPTIONS -fglasgow-exts #-}
 {-# OPTIONS -fvectorise #-}
-{-# OPTIONS -fno-spec-constr-count #-}
 module PrimesVect (primesVect)
 
 where
@@ -27,3 +25,4 @@ primesVect' n
 
     notMultiple :: [:Int:] -> Int -> Bool
     notMultiple ps i = andP [: mod i p /= 0 | p <- ps:]
+

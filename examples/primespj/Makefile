@@ -1,9 +1,8 @@
-TESTDIR = ..
-PROGS = PrimesPJ
-HCCFLAGS = -optc-O3
-include $(TESTDIR)/mk/test.mk
+TOPDIR = ..
+BINARIES = primespj
 
+primespj_DPH = vect
+primespj_SOURCES = PrimesPJ.hs PrimesVect.hs
 
-PrimesPJ.o: PrimesVect.hi
+include $(TOPDIR)/mk/test.mk
 
-PrimesPJ: PrimesPJ.o PrimesVect.o

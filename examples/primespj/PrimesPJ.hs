@@ -4,8 +4,7 @@ module Main where
 import Control.Exception (evaluate)
 import System.Console.GetOpt
 
-import Data.Array.Parallel.Unlifted
-import Data.Array.Parallel.Unlifted.Parallel
+import qualified Data.Array.Parallel.Unlifted as U
 
 import Bench.Benchmark
 import Bench.Options
@@ -18,10 +17,10 @@ import Debug.Trace
 
 algs = [("list", primesList), ("vect", primesVect')]
 
-primesList:: Int -> UArr Int
+primesList:: Int -> U.Array Int
 primesList n = trace (show res) res
   where
-    res = toU $ primesList' n
+    res = U.fromList $ primesList' n
 
 primesList' :: Int -> [Int]
 primesList' 1 = []
@@ -33,7 +32,7 @@ primesList' n = sps ++ [ i | i <- [sq+1..n], multiple sps i ]
     multiple :: [Int] -> Int -> Bool
     multiple ps i = and [i `mod` p /= 0 | p <- ps]
 
-primesVect':: Int -> UArr Int
+primesVect':: Int -> U.Array Int
 primesVect' n = trace (show res) res 
   where res = toUArrPA (primesVect n) 
 
@@ -58,7 +57,7 @@ run opts alg sizes =
   case lookup alg algs of
     Nothing -> failWith ["Unknown algorithm"]
     Just f  -> case map read sizes of
-                 []             -> failWith ["No sizes specified"]
-                 ([szs]::[Int]) -> do 
-                                   benchmark opts f [simpleTest szs] show
-                                   return ()
+                 []    -> failWith ["No sizes specified"]
+                 [szs] -> do 
+                            benchmark opts f [simpleTest szs] show
+                            return ()
