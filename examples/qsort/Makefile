@@ -1,8 +1,8 @@
-TESTDIR = ..
-PROGS = QSort
-HCCFLAGS = -optc-O3
-include $(TESTDIR)/mk/test.mk
+TOPDIR = ..
+BINARIES = qsort
 
-QSort.o: QSortPar.hi QSortSeq.hi QSortVect.hi
+qsort_DPH = vect
+qsort_SOURCES = vect.hs QSortVect.hs
 
-QSort: QSort.o QSortPar.o QSortSeq.o QSortVect.o
+include $(TOPDIR)/mk/test.mk
+

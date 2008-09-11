@@ -13,6 +13,7 @@ qsortVect:: PArray Double -> PArray Double
 qsortVect xs = toPArrayP  (qsortVect' (fromPArrayP xs))
 
 qsortVect':: [: Double :] -> [: Double :]
+{-# NOINLINE qsortVect' #-}
 qsortVect' xs | lengthP xs I.<=  1 = xs
               | otherwise      = qsortVect' [:x | x <- xs, x < p:] +:+
                                             [:x | x <- xs, x == p:] +:+
