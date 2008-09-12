@@ -18,11 +18,7 @@ $(DPH_BINARIES): force
 force:
 else
 
-ifeq ($($(BINARY)_DPH),prim)
-WAY_FLAGS = -package dph-prim-$(WAY) -odir $(WAY) -hidir $(WAY)
-else
-WAY_FLAGS = -fdph-$(WAY) -package dph-$(WAY) -package dph-prim-$(WAY) -odir $(WAY) -hidir $(WAY)
-endif
+WAY_FLAGS = -fdph-$(WAY) -odir $(WAY) -hidir $(WAY)
 
 $(WAY)/$(BINARY): $($(BINARY)_SOURCES) $(BENCH_DEP)
 	@mkdir $(WAY) || true
