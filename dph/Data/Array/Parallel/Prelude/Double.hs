@@ -1,41 +1,19 @@
 {-# OPTIONS -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Double (
-  P.Double, (+), (-), (*), (/), sqrt, doubleSumP, minIndexP, maxIndexP,
-  (==), (/=), (<=), (<), (>=), (>)
+  Double,
+  (==), (/=), (<=), (<), (>=), (>), min, max,
+  minimumP, maximumP, minIndexP, maxIndexP,
+  (+), (-), (*), negate, abs, sumP, productP,
+  (/), recip,
+  pi, exp, sqrt, log, (**), logBase,
+  sin, tan, cos, asin, atan, acos,
+  sinh, tanh, cosh, asinh, atanh, acosh,
+
+  fromInt, truncate, round, ceiling, floor
 ) where
 
-import Data.Array.Parallel.Prelude.Base
 import Data.Array.Parallel.Prelude.Base.Double
-
-import qualified Prelude as P
+import qualified Data.Array.Parallel.Prelude.Base
 import Prelude (Double)
-
-infixl 7 *
-infixl 6 +, -
-infix 4 ==, /=, <, <=, >, >=
-
-(==), (/=), (<), (<=), (>), (>=) :: Double -> Double -> P.Bool
-(==) = eq
-(/=) = neq
-(<) = lt
-(<=) = le
-(>) = gt
-(>=) = ge
-
-(*) :: Double -> Double -> Double
-(*) = mult
-
-(/) :: Double -> Double -> Double
-(/) = divide
-
-(+) :: Double -> Double -> Double
-(+) = plus
-
-(-) :: Double -> Double -> Double
-(-) = minus
-
-
-sqrt:: Double -> Double
-sqrt = squareRoot
 

@@ -1,13 +1,23 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.Int (
-  eq, eqV, neq, neqV, le, leV, lt, ltV, ge, geV, gt, gtV,
-  plus, plusV,
-  minus, minusV,
-  mult, multV,
-  intDiv, intDivV, 
-  intMod, intModV, 
-  intSquareRoot, intSquareRootV,
-  intSumPA, intSumP,
+  -- Ord
+  (==), (/=), (<), (<=), (>), (>=), min, max,
+  eqV, neqV, ltV, leV, gtV, geV, minV, maxV,
+
+  minimumP, maximumP, minIndexP, maxIndexP,
+  minimumPA, maximumPA, minIndexPA, maxIndexPA,
+
+  -- Num
+  (+), (-), (*), negate, abs,
+  plusV, minusV, multV, negateV, absV,
+
+  sumP, productP,
+  sumPA, productPA,
+
+  div, divV, 
+  mod, modV, 
+  sqrt, sqrtV,
+
   enumFromToPA, enumFromToP,
   upToP, upToPA
 ) where
@@ -20,7 +30,14 @@ import Data.Array.Parallel.Lifted.Prim
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
 
+import Prelude (Int, Bool)
+import qualified Prelude as P
+import qualified GHC.PArr
 
+infixl 7 *
+infixl 6 +, -
+infix 4 ==, /=, <, <=, >, >=
+infixl 7 `div`, `mod`
 
 eqV, neqV, leV, ltV, geV, gtV :: Int :-> Int :-> Bool
 {-# INLINE eqV #-}
@@ -29,72 +46,114 @@ eqV, neqV, leV, ltV, geV, gtV :: Int :-> Int :-> Bool
 {-# INLINE ltV #-}
 {-# INLINE geV #-}
 {-# INLINE gtV #-}
-eqV = closure2 dPA_Int (==) (unsafe_zipWith (==))
-neqV = closure2 dPA_Int (/=) (unsafe_zipWith (/=))
-leV = closure2 dPA_Int (<=) (unsafe_zipWith (<=))
-ltV = closure2 dPA_Int (<) (unsafe_zipWith (<))
-geV = closure2 dPA_Int (>=) (unsafe_zipWith (>=))
-gtV = closure2 dPA_Int (>) (unsafe_zipWith (>))
+eqV = closure2 dPA_Int (P.==) (unsafe_zipWith (P.==))
+neqV = closure2 dPA_Int (P./=) (unsafe_zipWith (P./=))
+leV = closure2 dPA_Int (P.<=) (unsafe_zipWith (P.<=))
+ltV = closure2 dPA_Int (P.<) (unsafe_zipWith (P.<))
+geV = closure2 dPA_Int (P.>=) (unsafe_zipWith (P.>=))
+gtV = closure2 dPA_Int (P.>) (unsafe_zipWith (P.>))
 
-eq, neq, le, lt, ge, gt :: Int -> Int -> Bool
-eq = (==)
-neq = (/=)
-le = (<=)
-lt = (<)
-ge = (>=)
-gt = (>)
+(==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
+(==) = (P.==)
+(/=) = (P./=)
+(<=) = (P.<=)
+(<)  = (P.<)
+(>=) = (P.>=)
+(>)  = (P.>)
 
-plusV :: Int :-> Int :-> Int
+minV, maxV :: Int :-> Int :-> Int
+{-# INLINE minV #-}
+{-# INLINE maxV #-}
+minV = closure2 dPA_Int P.min (unsafe_zipWith P.min)
+maxV = closure2 dPA_Int P.max (unsafe_zipWith P.max)
+
+min, max :: Int -> Int -> Int
+min = P.min
+max = P.max
+
+minimumPA, maximumPA :: PArray Int :-> Int
+{-# INLINE minimumPA #-}
+{-# INLINE maximumPA #-}
+minimumPA = closure1 (unsafe_fold1 P.min) (unsafe_fold1s P.min)
+maximumPA = closure1 (unsafe_fold1 P.max) (unsafe_fold1s P.max)
+
+minimumP, maximumP :: [:Int:] -> Int
+minimumP = GHC.PArr.minimumP
+maximumP = GHC.PArr.maximumP
+
+minIndexPA :: PArray Int :-> Int
+{-# INLINE minIndexPA #-}
+minIndexPA = closure1 (unsafe_fold1Index min') (unsafe_fold1sIndex min')
+  where
+    min' (i,x) (j,y) | x P.<= y    = (i,x)
+                     | P.otherwise = (j,y)
+
+minIndexP :: [:Int:] -> Int
+{-# NOINLINE minIndexP #-}
+minIndexP _ = 0
+
+maxIndexPA :: PArray Int :-> Int
+{-# INLINE maxIndexPA #-}
+maxIndexPA = closure1 (unsafe_fold1Index max') (unsafe_fold1sIndex max')
+  where
+    max' (i,x) (j,y) | x P.>= y    = (i,x)
+                     | P.otherwise = (j,y)
+
+maxIndexP :: [:Int:] -> Int
+{-# NOINLINE maxIndexP #-}
+maxIndexP _ = 0
+
+
+plusV, minusV, multV :: Int :-> Int :-> Int
 {-# INLINE plusV #-}
-plusV = closure2 dPA_Int (+) (unsafe_zipWith (+))
-
-plus :: Int -> Int -> Int
-plus = (+)
-
-minusV :: Int :-> Int :-> Int
 {-# INLINE minusV #-}
-minusV = closure2 dPA_Int (-) (unsafe_zipWith (-))
-
-minus :: Int -> Int -> Int
-minus = (-)
-
-multV :: Int :-> Int :-> Int
 {-# INLINE multV #-}
-multV = closure2 dPA_Int (*) (unsafe_zipWith (*))
+plusV = closure2 dPA_Int (P.+) (unsafe_zipWith (P.+))
+minusV = closure2 dPA_Int (P.-) (unsafe_zipWith (P.-))
+multV = closure2 dPA_Int (P.*) (unsafe_zipWith (P.*))
 
-mult :: Int -> Int -> Int
-mult = (*)
+(+), (-), (*) :: Int -> Int -> Int
+(+) = (P.+)
+(-) = (P.-)
+(*) = (P.*)
 
-intDivV :: Int :-> Int :-> Int
-{-# INLINE intDivV #-}
-intDivV = closure2 dPA_Int div (unsafe_zipWith div)
+negateV, absV :: Int :-> Int
+{-# INLINE negateV #-}
+{-# INLINE absV #-}
+negateV = closure1 P.negate (unsafe_map P.negate)
+absV = closure1 P.abs (unsafe_map P.abs)
 
-intDiv :: Int -> Int -> Int
-intDiv = div
+negate, abs :: Int -> Int
+negate = P.negate
+abs = P.abs
 
-intModV :: Int :-> (Int :-> Int)
-{-# INLINE intModV #-}
-intModV = closure2 dPA_Int mod (unsafe_zipWith mod)
+sumPA, productPA :: PArray Int :-> Int
+{-# INLINE sumPA #-}
+{-# INLINE productPA #-}
+sumPA = closure1 (unsafe_fold (+) 0) (unsafe_folds (+) 0)
+productPA = closure1 (unsafe_fold (*) 1) (unsafe_folds (*) 1)
 
-intMod :: Int -> Int -> Int
-intMod = mod
-
-intSquareRoot ::  Int -> Int
-intSquareRoot = floor . sqrt . fromIntegral
-
-intSquareRootV :: Int :-> Int
-{-# INLINE intSquareRootV #-}
-intSquareRootV = closure1  (intSquareRoot) (unsafe_map intSquareRoot)
-
-
-intSumPA :: PArray Int :-> Int
-{-# INLINE intSumPA #-}
-intSumPA = closure1 (unsafe_fold (+) 0) (\_ -> error "Int.sumV lifted")
+sumP, productP :: [:Int:] -> Int
+sumP = GHC.PArr.sumP
+productP = GHC.PArr.productP
 
 
-intSumP :: [:Int:] -> Int
-{-# NOINLINE intSumP #-}
-intSumP _ = 0
+divV, modV :: Int :-> Int :-> Int
+{-# INLINE divV #-}
+{-# INLINE modV #-}
+divV = closure2 dPA_Int P.div (unsafe_zipWith P.div)
+modV = closure2 dPA_Int P.mod (unsafe_zipWith P.mod)
+
+div, mod :: Int -> Int -> Int
+div = P.div
+mod = P.mod
+
+sqrt ::  Int -> Int
+sqrt n = P.floor (P.sqrt (P.fromIntegral n))
+
+sqrtV :: Int :-> Int
+{-# INLINE sqrtV #-}
+sqrtV = closure1  (sqrt) (unsafe_map sqrt)
 
 enumFromToPA :: Int :-> Int :->  PArray Int 
 {-# INLINE enumFromToPA #-}
@@ -102,11 +161,11 @@ enumFromToPA = enumFromToPA_Int
 
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
-enumFromToP n m = replicateP (n-m+1) 0
+enumFromToP n m = [:n..m:]
 
 upToPA :: Int :-> PArray Int
 {-# INLINE upToPA #-}
-upToPA = closure1 upToPA_Int (\_ -> error "Int.upToPA lifted")
+upToPA = closure1 upToPA_Int (\_ -> P.error "Int.upToPA lifted")
 
 upToP :: Int -> [:Int:]
 {-# NOINLINE upToP #-}
