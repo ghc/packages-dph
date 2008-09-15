@@ -22,12 +22,12 @@ time p = do
 time_ :: IO a -> IO Time
 time_ = fmap snd . time
 
-timeFn :: (a -> b) -> a -> IO (b, Time)
+timeFn :: (a -> b) -> (b -> ()) -> a -> IO (b, Time)
 {-# NOINLINE timeFn #-}
-timeFn f x = time (return $! f x)
+timeFn f nf x = time $ let r = f x in nf r `seq` return r
 
-timeFn_ :: (a -> b) -> a -> IO Time
-timeFn_ f = fmap snd . timeFn f
+timeFn_ :: (a -> b) -> (b -> ()) -> a -> IO Time
+timeFn_ f nf = fmap snd . timeFn f nf
 
 showTime :: Time -> String
 showTime t = (show $ T.wallTime T.milliseconds t)
@@ -75,14 +75,14 @@ message msg opts x = case [p | (f,p) <- msg x, f (optVerbosity opts)] of
                        []    -> return ()
                        (p:_) -> p
 
-benchmark' :: Options -> (a -> b) -> a -> (b -> String) -> IO [Time]
-benchmark' opts f x outp = sequence $ map bench1 [1 .. optRuns opts]
+benchmark' :: Options -> (a -> b) -> a -> (b -> ()) -> (b -> String) -> IO [Time]
+benchmark' opts f x nf outp = sequence $ map bench1 [1 .. optRuns opts]
   where
     bench1 n =
       do
         message msgRun opts n
         performGC
-        (x, t) <- timeFn f x
+        (x, t) <- timeFn f nf x
         message msgResult opts (t, outp x)
         return t
 
@@ -100,15 +100,16 @@ mkPoint s x = Point s x
 benchmark :: Options
           -> (a -> b)
           -> [IO (Point a)]
+          -> (b -> ())
           -> (b -> String)
           -> IO [[Time]]
-benchmark o f ps outp = mapM bench1 ps
+benchmark o f ps nf outp = mapM bench1 ps
   where
     bench1 p =
       do
         Point s x <- p
         message msgPoint o s
-        ts <- benchmark' o f x outp
+        ts <- benchmark' o f x nf outp
         message msgTiming o $ showTimes ts
         return ts
 
