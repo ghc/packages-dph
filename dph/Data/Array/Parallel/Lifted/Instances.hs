@@ -50,6 +50,7 @@ dPR_Int = PR {
           , packPR       = packPR_Int
           , combine2PR   = combine2PR_Int
           , fromListPR   = fromListPR_Int
+          , nfPR         = nfPR_Int
           }
 
 {-# INLINE lengthPR_Int #-}
@@ -90,6 +91,9 @@ combine2PR_Int n# sel is (PInt _ xs) (PInt _ ys)
 {-# INLINE fromListPR_Int #-}
 fromListPR_Int n# xs = PInt n# (fromListPA_Int# n# xs)
 
+{-# INLINE nfPR_Int #-}
+nfPR_Int (PInt _ xs) = xs `seq` ()
+
 upToPA_Int :: Int -> PArray Int
 {-# INLINE_PA upToPA_Int #-}
 upToPA_Int (I# n#) = PInt n# (upToPA_Int# n#)
@@ -123,6 +127,7 @@ dPR_Double = PR {
           , packPR       = packPR_Double
           , combine2PR   = combine2PR_Double
           , fromListPR   = fromListPR_Double
+          , nfPR         = nfPR_Double
           }
 
 {-# INLINE lengthPR_Double #-}
@@ -166,6 +171,9 @@ combine2PR_Double n# sel is (PDouble _ xs) (PDouble _ ys)
 
 {-# INLINE fromListPR_Double #-}
 fromListPR_Double n# xs = PDouble n# (fromListPA_Double# n# xs)
+
+{-# INLINE nfPR_Double #-}
+nfPR_Double (PDouble _ xs) = xs `seq` ()
 
 type instance PRepr Bool = Sum2 Void Void
 data instance PArray Bool = PBool Int# PArray_Int# PArray_Int#

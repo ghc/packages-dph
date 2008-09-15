@@ -55,6 +55,7 @@ dPR_Void = PR {
            , packPR       = packPR_Void
            , combine2PR   = combine2PR_Void
            , fromListPR   = fromListPR_Void
+           , nfPR         = nfPR_Void
            }
 
 {-# INLINE lengthPR_Void #-}
@@ -105,6 +106,9 @@ combine2PR_Void n# _ _ (PVoid _) (PVoid _) = traceFn "combine2PR_Void" $
 {-# INLINE fromListPR_Void #-}
 fromListPR_Void n# _ = PVoid n#
 
+{-# INLINE nfPR_Void #-}
+nfPR_Void (PVoid _) = ()
+
 type instance PRepr Void = Void
 
 dPA_Void :: PA Void
@@ -134,6 +138,7 @@ dPR_Unit = PR {
            , packPR       = packPR_Unit
            , combine2PR   = combine2PR_Unit
            , fromListPR   = fromListPR_Unit
+           , nfPR         = nfPR_Unit
            }
          
 
@@ -188,6 +193,9 @@ combine2PR_Unit n# _ _ (PUnit _ u1) (PUnit _ u2) = traceFn "combine2PR_Unit" $
 
 {-# INLINE fromListPR_Unit #-}
 fromListPR_Unit n# xs = PUnit n# (foldr seq () xs)
+
+{-# INLINE nfPR_Unit #-}
+nfPR_Unit (PUnit _ u) = u
 
 data Wrap a = Wrap a
 
@@ -317,6 +325,7 @@ dPR_2 pra prb
     , packPR       = packPR_2 pra prb
     , combine2PR   = combine2PR_2 pra prb
     , fromListPR   = fromListPR_2 pra prb
+    , nfPR         = nfPR_2 pra prb
     }
 
 {-# INLINE lengthPR_2 #-}
@@ -383,6 +392,10 @@ fromListPR_2 pra prb n# xs
   where
     (as,bs) = unzip xs
 
+{-# INLINE nfPR_2 #-}
+nfPR_2 pra prb (P_2 _ as bs)
+  = nfPR pra as `seq` nfPR prb bs
+
 zipPA# :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
 {-# INLINE_PA zipPA# #-}
 zipPA# pa pb xs ys = 
@@ -413,6 +426,7 @@ dPR_3 pra prb prc
     , packPR       = packPR_3 pra prb prc
     , combine2PR   = combine2PR_3 pra prb prc
     , fromListPR   = fromListPR_3 pra prb prc
+    , nfPR         = nfPR_3 pra prb prc
     }
 
 {-# INLINE lengthPR_3 #-}
@@ -489,6 +503,11 @@ fromListPR_3 pra prb prc n# xs
   where
     (as,bs,cs) = unzip3 xs
 
+{-# INLINE nfPR_3 #-}
+nfPR_3 pra prb prc (P_3 _ as bs cs)
+  = nfPR pra as
+    `seq` nfPR prb bs
+    `seq` nfPR prc cs
 
 zip3PA# :: PA a -> PA b -> PA c
         -> PArray a -> PArray b -> PArray c -> PArray (a,b,c)
@@ -512,6 +531,7 @@ dPR_4 pra prb prc prd
     , packPR       = packPR_4 pra prb prc prd
     , combine2PR   = combine2PR_4 pra prb prc prd
     , fromListPR   = fromListPR_4 pra prb prc prd
+    , nfPR         = nfPR_4 pra prb prc prd
     }
 
 {-# INLINE lengthPR_4 #-}
@@ -606,6 +626,13 @@ fromListPR_4 pra prb prc prd n# xs
   where
     (as,bs,cs,ds) = L.unzip4 xs
 
+{-# INLINE nfPR_4 #-}
+nfPR_4 pra prb prc prd (P_4 _ as bs cs ds)
+  = nfPR pra as
+    `seq` nfPR prb bs
+    `seq` nfPR prc cs
+    `seq` nfPR prd ds
+
 dPR_5 :: PR a -> PR b -> PR c -> PR d -> PR e -> PR (a,b,c,d,e)
 {-# INLINE dPR_5 #-}
 dPR_5 pra prb prc prd pre
@@ -622,6 +649,7 @@ dPR_5 pra prb prc prd pre
     , packPR       = packPR_5 pra prb prc prd pre
     , combine2PR   = combine2PR_5 pra prb prc prd pre
     , fromListPR   = fromListPR_5 pra prb prc prd pre
+    , nfPR         = nfPR_5 pra prb prc prd pre
     }
 
 {-# INLINE lengthPR_5 #-}
@@ -729,6 +757,14 @@ fromListPR_5 pra prb prc prd pre n# xs
            (fromListPR pre n# es)
   where
     (as,bs,cs,ds,es) = L.unzip5 xs
+
+{-# INLINE nfPR_5 #-}
+nfPR_5 pra prb prc prd pre (P_5 _ as bs cs ds es)
+  = nfPR pra as
+    `seq` nfPR prb bs
+    `seq` nfPR prc cs
+    `seq` nfPR prd ds
+    `seq` nfPR pre es
 
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c

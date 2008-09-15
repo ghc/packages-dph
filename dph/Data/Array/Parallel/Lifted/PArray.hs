@@ -8,7 +8,7 @@ module Data.Array.Parallel.Lifted.PArray (
   PA(..),
   lengthPA#, replicatePA#, replicatelPA#, repeatPA#, emptyPA,
   indexPA#, bpermutePA#, appPA#, applPA#,
-  packPA#, combine2PA#, fromListPA#,
+  packPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
 
   PRepr, PR(..), mkPR, mkReprPA,
 
@@ -104,6 +104,15 @@ fromListPA# :: PA a -> Int# -> [a] -> PArray a
 fromListPA# pa n# xs = fromArrPRepr pa
                      $ fromListPR (dictPRepr pa) n# (map (toPRepr pa) xs)
 
+fromListPA :: PA a -> [a] -> PArray a
+{-# INLINE fromListPA #-}
+fromListPA pa xs = case length xs of
+                     I# n# -> fromListPA# pa n# xs
+
+nfPA :: PA a -> PArray a -> ()
+{-# INLINE nfPA #-}
+nfPA pa xs = nfPR (dictPRepr pa) $ toArrPRepr pa xs
+
 data PR a = PR {
               lengthPR     :: PArray a -> Int#
             , emptyPR      :: PArray a
@@ -118,6 +127,7 @@ data PR a = PR {
             , combine2PR   :: Int# -> PArray_Int# -> PArray_Int#
                               -> PArray a -> PArray a -> PArray a
             , fromListPR   :: Int# -> [a] -> PArray a
+            , nfPR         :: PArray a -> ()
             }
 
 mkPR :: PA a -> PR a
@@ -135,6 +145,7 @@ mkPR pa = PR {
           , packPR       = packPA# pa
           , combine2PR   = combine2PA# pa
           , fromListPR   = fromListPA# pa
+          , nfPR         = nfPA pa
           }
 
 mkReprPA :: (a ~ PRepr a) => PR a -> PA a
