@@ -1,7 +1,5 @@
 {-# LANGUAGE PArr #-}
-{-# GHC_OPTIONS -fglasgow-exts #-}
 {-# OPTIONS -fvectorise #-}
-{-# OPTIONS -fno-spec-constr-count #-}
 module BarnesHutVect (oneStep)
 
 where
@@ -28,14 +26,12 @@ eClose::Double
 eClose  = 0.5
 
 
-oneStep:: Double -> Double -> Double -> Double -> PArray (Double, Double, Double)  -> (PArray Double, PArray Double) 
-oneStep llx lly rux ruy mspnts = 
-    (toPArrayP xs, toPArrayP ys)
+oneStep:: Double -> Double -> Double -> Double -> PArray (Double, Double, Double)  -> PArray (Double, Double)
+oneStep llx lly rux ruy mspnts = toPArrayP accs
     where  
-       (xs, ys) = unzipP [: calcAccel m tree | m <- ms :]
+       accs = [: calcAccel m tree | m <- ms :]
        tree = buildTree (Box llx lly rux ruy) ms
        ms   = [: MP x y m | (x,y,m) <- fromPArrayP mspnts:]
-
 
 -- Phase 1: building the tree
 --
@@ -77,16 +73,16 @@ inBox (Box llx  lly rux  ruy) (MP px  py  _) =
     (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
 
 calcCentroid:: [:MassPoint:] -> MassPoint
-calcCentroid mpts = MP  ((doubleSumP xs)/mass) ((doubleSumP ys)/mass) mass
+calcCentroid mpts = MP  ((sumP xs)/mass) ((sumP ys)/mass) mass
   where
-    mass     = doubleSumP [: m | MP _ _ m  <- mpts :]
+    mass     = sumP [: m | MP _ _ m  <- mpts :]
     (xs, ys) = unzipP [: (m * x, m * y) | MP x y m <- mpts :]   
 
 
 calcAccel:: MassPoint -> BHTree -> (Double, Double)
 calcAccel mpt (BHT x y m subtrees)
   | isClose mpt x y = accel mpt x y m
-  | otherwise       = (doubleSumP xs, doubleSumP ys) 
+  | otherwise       = (sumP xs, sumP ys) 
       where
         (xs, ys) = unzipP [: calcAccel mpt st | st <- subtrees:]
 

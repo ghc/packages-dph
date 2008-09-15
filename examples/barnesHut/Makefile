@@ -1,9 +1,8 @@
-TESTDIR = ..
-PROGS = BarnesHut
-HCCFLAGS = -optc-O3
-include $(TESTDIR)/mk/test.mk
+TOPDIR = ..
+BINARIES = bh
 
-BarnesHut.o: BarnesHutGen.hi BarnesHutPar.hi BarnesHutGen.hi BarnesHutSeq.hi BarnesHutVect.hi BarnesHutList.hi
+bh_DPH = vect
+bh_SOURCES = vect.hs BarnesHutVect.hs
 
-BarnesHut: BarnesHut.o BarnesHutGen.o BarnesHutSeq.o BarnesHutVect.o BarnesHutList.o BarnesHutPar.o
+include $(TOPDIR)/mk/test.mk
 
