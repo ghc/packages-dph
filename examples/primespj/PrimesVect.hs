@@ -21,7 +21,7 @@ primesVect' n
   where
 
     sps = primesVect' sq
-    sq =  intSquareRoot n
+    sq =  sqrt n
 
     notMultiple :: [:Int:] -> Int -> Bool
     notMultiple ps i = andP [: mod i p /= 0 | p <- ps:]

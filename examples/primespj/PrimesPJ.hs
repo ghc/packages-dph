@@ -4,12 +4,11 @@ module Main where
 import Control.Exception (evaluate)
 import System.Console.GetOpt
 
-import qualified Data.Array.Parallel.Unlifted as U
+import Data.Array.Parallel.PArray (PArray)
+import qualified Data.Array.Parallel.PArray as P
 
 import Bench.Benchmark
 import Bench.Options
-import Data.Array.Parallel.Prelude (toUArrPA, fromUArrPA_3')
-
 
 import PrimesVect (primesVect)
 import Debug.Trace
@@ -17,10 +16,10 @@ import Debug.Trace
 
 algs = [("list", primesList), ("vect", primesVect')]
 
-primesList:: Int -> U.Array Int
-primesList n = trace (show res) res
+primesList:: Int -> PArray Int
+primesList n = res
   where
-    res = U.fromList $ primesList' n
+    res = P.fromList $ primesList' n
 
 primesList' :: Int -> [Int]
 primesList' 1 = []
@@ -32,19 +31,13 @@ primesList' n = sps ++ [ i | i <- [sq+1..n], multiple sps i ]
     multiple :: [Int] -> Int -> Bool
     multiple ps i = and [i `mod` p /= 0 | p <- ps]
 
-primesVect':: Int -> U.Array Int
-primesVect' n = trace (show res) res 
-  where res = toUArrPA (primesVect n) 
+primesVect':: Int -> PArray Int
+primesVect' n = res 
+  where res = primesVect n
 
 
-simpleTest:: Int -> IO (Bench.Benchmark.Point ( Int))
-simpleTest n =
-  do
-    evaluate testData
-    return $ ("N = " ) `mkPoint` testData
-  where
-    testData:: Int
-    testData = n
+simpleTest:: Int -> IO (Bench.Benchmark.Point Int)
+simpleTest n = return $ ("N = " ) `mkPoint` n
 
 main = ndpMain "Primes"
                "[OPTION] ... SIZES ..."
@@ -59,5 +52,5 @@ run opts alg sizes =
     Just f  -> case map read sizes of
                  []    -> failWith ["No sizes specified"]
                  [szs] -> do 
-                            benchmark opts f [simpleTest szs] show
+                            benchmark opts f [simpleTest szs] P.nf show
                             return ()
