@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fparr #-}
+{-# LANGUAGE PArr #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -118,4 +118,12 @@ Data.Array.Parallel.Base.Hyperstrict
 
 module Data.Array.Parallel (
   -- [::],		-- Built-in syntax
+
+  emptyP, singletonP, replicateP, lengthP,
+  (+:+), concatP,
+  mapP, filterP, combineP, zipP, unzipP,
 ) where
+
+import GHC.PArr
+import Data.Array.Parallel.Prelude.Base.PArr
+
