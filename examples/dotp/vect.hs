@@ -4,7 +4,7 @@ import Control.Exception (evaluate)
 import System.Console.GetOpt
 import qualified System.Random as R
 
-import Data.Array.Parallel.Prelude (randomRs, PArray)
+import Data.Array.Parallel.PArray (PArray, randomRs, nf)
 
 import Bench.Benchmark
 import Bench.Options
@@ -14,7 +14,7 @@ generateVector n =
   do
     rg <- R.newStdGen
     let vec = randomRs n (-100, 100) rg
-    evaluate vec
+    evaluate (nf vec)
     return vec
 
 generateVectors :: Int -> IO (Point (PArray Double, PArray Double))
@@ -23,7 +23,6 @@ generateVectors n =
     v <- generateVector n
     w <- generateVector n
     return $ ("N = " ++ show n) `mkPoint` (v,w)
-
 
 main = ndpMain "Dot product"
                "[OPTION] ... SIZES ..."
@@ -35,6 +34,6 @@ run opts () sizes =
     szs -> do
              benchmark opts (uncurry dotp)
                 (map generateVectors szs)
-                 show
+                (`seq` ()) show
              return ()
 

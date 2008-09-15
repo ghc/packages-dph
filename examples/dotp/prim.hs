@@ -35,6 +35,6 @@ run opts () sizes =
     szs -> do
              benchmark opts (uncurry dotp)
                 (map generateVectors szs)
-                 show
+                (`seq` ()) show
              return ()
 
