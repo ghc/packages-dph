@@ -10,6 +10,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
+  fromListPA_Int#,
   upToPA_Int#, enumFromToPA_Int#, enumFromToEachPA_Int#,
   selectPA_Int#, selectorToIndices2PA#,
   sumPA_Int#, sumPAs_Int#,
@@ -21,6 +22,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, bpermutePA_Double#, appPA_Double#, applPA_Double#,
   packPA_Double#, pack'PA_Double#, combine2PA_Double#, combine2'PA_Double#,
+  fromListPA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
   unsafe_foldPAs_Double#,
 
@@ -100,6 +102,10 @@ combine2PA_Int# :: Int# -> PArray_Int# -> PArray_Int#
                 -> PArray_Int# -> PArray_Int# -> PArray_Int#
 combine2PA_Int# _ sel _ xs ys = combine2'PA_Int# sel xs ys
 {-# INLINE_PA combine2PA_Int# #-}
+
+fromListPA_Int# :: Int# -> [Int] -> PArray_Int#
+fromListPA_Int# _ xs = U.fromList xs
+{-# INLINE_PA fromListPA_Int# #-}
 
 upToPA_Int# :: Int# -> PArray_Int#
 upToPA_Int# n# = U.enumFromTo 0 (I# n# - 1)
@@ -214,6 +220,10 @@ combine2PA_Double# :: Int# -> PArray_Int# -> PArray_Int#
                    -> PArray_Double# -> PArray_Double# -> PArray_Double#
 combine2PA_Double# _ sel _ xs ys = combine2'PA_Double# sel xs ys
 {-# INLINE_PA combine2PA_Double# #-}
+
+fromListPA_Double# :: Int# -> [Double] -> PArray_Double#
+fromListPA_Double# _ xs = U.fromList xs
+{-# INLINE_PA fromListPA_Double# #-}
 
 unsafe_zipWithPA_Double# :: (Double -> Double -> Double)
                          -> PArray_Double# -> PArray_Double# -> PArray_Double#

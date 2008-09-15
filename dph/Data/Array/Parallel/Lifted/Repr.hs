@@ -24,6 +24,7 @@ import Data.Array.Parallel.Lifted.Unboxed
 
 import Data.Array.Parallel.Base ((:*:)(..), fromBool)
 
+import qualified Data.List as L
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import Debug.Trace
 
@@ -53,6 +54,7 @@ dPR_Void = PR {
            , applPR       = applPR_Void
            , packPR       = packPR_Void
            , combine2PR   = combine2PR_Void
+           , fromListPR   = fromListPR_Void
            }
 
 {-# INLINE lengthPR_Void #-}
@@ -100,6 +102,9 @@ packPR_Void (PVoid _) n# _ = traceFn "packPR_Void" $
 combine2PR_Void n# _ _ (PVoid _) (PVoid _) = traceFn "combine2PR_Void" $
                 PVoid n#
 
+{-# INLINE fromListPR_Void #-}
+fromListPR_Void n# _ = PVoid n#
+
 type instance PRepr Void = Void
 
 dPA_Void :: PA Void
@@ -128,6 +133,7 @@ dPR_Unit = PR {
            , applPR       = applPR_Unit
            , packPR       = packPR_Unit
            , combine2PR   = combine2PR_Unit
+           , fromListPR   = fromListPR_Unit
            }
          
 
@@ -179,6 +185,9 @@ packPR_Unit (PUnit _ u) n# _ = traceFn "packPR_Unit" $
 {-# INLINE combine2PR_Unit #-}
 combine2PR_Unit n# _ _ (PUnit _ u1) (PUnit _ u2) = traceFn "combine2PR_Unit" $
   PUnit n# (u1 `seq` u2)
+
+{-# INLINE fromListPR_Unit #-}
+fromListPR_Unit n# xs = PUnit n# (foldr seq () xs)
 
 data Wrap a = Wrap a
 
@@ -307,6 +316,7 @@ dPR_2 pra prb
     , applPR       = applPR_2 pra prb
     , packPR       = packPR_2 pra prb
     , combine2PR   = combine2PR_2 pra prb
+    , fromListPR   = fromListPR_2 pra prb
     }
 
 {-# INLINE lengthPR_2 #-}
@@ -366,6 +376,13 @@ combine2PR_2 pra prb n# sel# is# (P_2 _ as1 bs1) (P_2 _ as2 bs2)
        P_2 n# (combine2PR pra n# sel# is# as1 as2)
               (combine2PR prb n# sel# is# bs1 bs2)
 
+{-# INLINE fromListPR_2 #-}
+fromListPR_2 pra prb n# xs
+  = P_2 n# (fromListPR pra n# as)
+           (fromListPR prb n# bs)
+  where
+    (as,bs) = unzip xs
+
 zipPA# :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
 {-# INLINE_PA zipPA# #-}
 zipPA# pa pb xs ys = 
@@ -395,6 +412,7 @@ dPR_3 pra prb prc
     , applPR       = applPR_3 pra prb prc
     , packPR       = packPR_3 pra prb prc
     , combine2PR   = combine2PR_3 pra prb prc
+    , fromListPR   = fromListPR_3 pra prb prc
     }
 
 {-# INLINE lengthPR_3 #-}
@@ -463,6 +481,14 @@ combine2PR_3 pra prb prc n# sel# is# (P_3 _ as1 bs1 cs1)
            (combine2PR prb n# sel# is# bs1 bs2)
            (combine2PR prc n# sel# is# cs1 cs2)
 
+{-# INLINE fromListPR_3 #-}
+fromListPR_3 pra prb prc n# xs
+  = P_3 n# (fromListPR pra n# as)
+           (fromListPR prb n# bs)
+           (fromListPR prc n# cs)
+  where
+    (as,bs,cs) = unzip3 xs
+
 
 zip3PA# :: PA a -> PA b -> PA c
         -> PArray a -> PArray b -> PArray c -> PArray (a,b,c)
@@ -485,6 +511,7 @@ dPR_4 pra prb prc prd
     , applPR       = applPR_4 pra prb prc prd
     , packPR       = packPR_4 pra prb prc prd
     , combine2PR   = combine2PR_4 pra prb prc prd
+    , fromListPR   = fromListPR_4 pra prb prc prd
     }
 
 {-# INLINE lengthPR_4 #-}
@@ -570,6 +597,15 @@ combine2PR_4 pra prb prc prd n# sel# is# (P_4 _ as1 bs1 cs1 ds1)
            (combine2PR prc n# sel# is# cs1 cs2)
            (combine2PR prd n# sel# is# ds1 ds2)
 
+{-# INLINE fromListPR_4 #-}
+fromListPR_4 pra prb prc prd n# xs
+  = P_4 n# (fromListPR pra n# as)
+           (fromListPR prb n# bs)
+           (fromListPR prc n# cs)
+           (fromListPR prd n# ds)
+  where
+    (as,bs,cs,ds) = L.unzip4 xs
+
 dPR_5 :: PR a -> PR b -> PR c -> PR d -> PR e -> PR (a,b,c,d,e)
 {-# INLINE dPR_5 #-}
 dPR_5 pra prb prc prd pre
@@ -585,6 +621,7 @@ dPR_5 pra prb prc prd pre
     , applPR       = applPR_5 pra prb prc prd pre
     , packPR       = packPR_5 pra prb prc prd pre
     , combine2PR   = combine2PR_5 pra prb prc prd pre
+    , fromListPR   = fromListPR_5 pra prb prc prd pre
     }
 
 {-# INLINE lengthPR_5 #-}
@@ -682,6 +719,16 @@ combine2PR_5 pra prb prc prd pre n# sel# is# (P_5 _ as1 bs1 cs1 ds1 es1)
            (combine2PR prc n# sel# is# cs1 cs2)
            (combine2PR prd n# sel# is# ds1 ds2)
            (combine2PR pre n# sel# is# es1 es2)
+
+{-# INLINE fromListPR_5 #-}
+fromListPR_5 pra prb prc prd pre n# xs
+  = P_5 n# (fromListPR pra n# as)
+           (fromListPR prb n# bs)
+           (fromListPR prc n# cs)
+           (fromListPR prd n# ds)
+           (fromListPR pre n# es)
+  where
+    (as,bs,cs,ds,es) = L.unzip5 xs
 
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
