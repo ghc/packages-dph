@@ -4,8 +4,12 @@
 
 module Data.Array.Parallel.Lifted.Combinators (
   closure1, closure2, closure3,
-  lengthPA, replicatePA, singletonPA, mapPA, crossMapPA, zipWithPA, zipPA, unzipPA, 
-  packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int
+  lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
+  zipWithPA, zipPA, unzipPA, 
+  packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
+
+  lengthPA_v, replicatePA_v, singletonPA_v, zipPA_v, unzipPA_v,
+  indexPA_v, appPA_v, enumFromToPA_v
 ) where
 
 import Data.Array.Parallel.Lifted.PArray

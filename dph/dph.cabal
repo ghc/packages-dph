@@ -27,6 +27,7 @@ Library
         Data.Array.Parallel.Prelude
         Data.Array.Parallel.Prelude.Int
         Data.Array.Parallel.Prelude.Double
+        Data.Array.Parallel.PArray
 
   Other-Modules:
         Data.Array.Parallel.Lifted.PArray
