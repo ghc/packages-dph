@@ -1,18 +1,21 @@
 module Data.Array.Parallel.PArray (
-  PArray, Elt,
+  PArray, Elt, Random(..),
 
   length, empty, replicate, singleton,
   zip, unzip, enumFromTo, fromList, nf
 ) where
 
-import Data.Array.Parallel.Lifted.PArray ( PArray, PA, emptyPA, fromListPA, nfPA )
+import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Combinators
+import Data.Array.Parallel.Lifted.Prim
+import qualified Data.Array.Parallel.Unlifted as U
 
 import Data.Array.Parallel.Base ( showsApp )
 
-import Prelude (Int, Double, Show(..), (-))
-import qualified Prelude as P
+import qualified System.Random as R
+
+import Prelude hiding ( length, replicate, zip, unzip, enumFromTo )
 
 class Elt a where
   pa :: PA a
@@ -75,4 +78,22 @@ nf = nfPA pa
 
 instance (Elt a, Show a) => Show (PArray a) where
   showsPrec n xs = showsApp n "fromList<PArray>" (toList xs)
+
+class Random a where
+  randoms  :: R.RandomGen g => Int -> g -> PArray a
+  randomRs :: R.RandomGen g => Int -> (a, a) -> g -> PArray a
+
+prim_randoms :: (PrimPA a, R.Random a, R.RandomGen g) => Int -> g -> PArray a
+prim_randoms n = fromUArrPA' . U.randoms n
+
+prim_randomRs :: (PrimPA a, R.Random a, R.RandomGen g) => Int -> (a, a) -> g -> PArray a
+prim_randomRs n r = fromUArrPA' . U.randomRs n r
+
+instance Random Int where
+  randoms = prim_randoms
+  randomRs = prim_randomRs
+
+instance Random Double where
+  randoms = prim_randoms
+  randomRs = prim_randomRs
 
