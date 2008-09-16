@@ -60,11 +60,13 @@ Library
     Build-Depends: ghc-prim
   Build-Depends: dph-base
 
+  GHC-Options: -fdph-this
+
 #ifdef USE_dph_seq
   Build-Depends: dph-prim-seq
-  GHC-Options: -package-name dph-seq -fdph-seq
+  GHC-Options: -package-name dph-seq
 #else
   Build-Depends: dph-prim-par
-  GHC-Options: -package-name dph-par -fdph-par
+  GHC-Options: -package-name dph-par
 #endif
 
