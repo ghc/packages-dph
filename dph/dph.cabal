@@ -13,7 +13,7 @@ Category:       Data Structures
 Synopsis:       Data structures for Nested Data-Parallel Haskell.
 
 Cabal-Version:  >= 1.2
-Build-Type:     Custom
+Build-Type:     Simple
 
 Library
   -- This Cabal file gets CPPed, then put in ../dhp_par and ../dph_seq
