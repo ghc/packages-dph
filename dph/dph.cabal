@@ -5,7 +5,7 @@ Name:           dph-par
 #endif
 Version:        0.3
 License:        BSD3
-License-File:   LICENSE
+License-File:   ../dph/LICENSE
 Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
 Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
 Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
