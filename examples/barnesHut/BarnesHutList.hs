@@ -1,10 +1,8 @@
 module BarnesHutList (oneStep)
 
 where
-import Data.Array.Parallel.Prelude (PArray, fromPArrayP, toPArrayP)
-import Data.Array.Parallel.Prelude (toUArrPA, fromUArrPA_3, toUArrPA, fromUArrPA)
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Parallel
 
 import Debug.Trace

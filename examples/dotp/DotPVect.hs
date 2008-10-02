@@ -1,6 +1,6 @@
 {-# LANGUAGE PArr #-}
 {-# OPTIONS -fvectorise #-}
-module DotPVect where
+module DotPVect ( dotp ) where
 
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double as D

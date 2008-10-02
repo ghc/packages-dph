@@ -1,25 +1,25 @@
+{-# LANGUAGE TypeOperators #-}
 module Main where
 import BarnesHutSeq
 import BarnesHutPar
-import qualified BarnesHutVect as V
 import qualified BarnesHutList as L
 import BarnesHutGen
 
 import Control.Exception (evaluate)
 import System.Console.GetOpt
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Parallel
+import Data.Array.Parallel.Base ( (:*:)(..) )
 
 import Bench.Benchmark
 import Bench.Options
-import Data.Array.Parallel.Prelude (toUArrPA, fromUArrPA_3')
 
 import Debug.Trace
 
 
 
-algs = [("seqSimple", bhStepSeq), ("parSimple", bhStepPar), ("vect", bhStepVect), ("list", bhStepList)]
+algs = [("seqSimple", bhStepSeq), ("parSimple", bhStepPar), ("list", bhStepList)]
 
 bhStepSeq (dx, dy, particles) = trace (showBHTree bhtree) accs
   where
@@ -31,12 +31,6 @@ bhStepPar (dx, dy, particles) = trace (showBHTree bhTree) accs
     accs     = calcAccel bhTree (flattenSU particles)
     bhTree    = splitPointsLPar (singletonU ((0.0 :*: 0.0) :*: (dx :*: dy)))
                         particles
-
-bhStepVect (dx, dy, particles) = trace (show  accs) accs  
-  where
-    accs       = zipU (toUArrPA xs) (toUArrPA ys) 
-    (xs, ys)   = V.oneStep 0.0 0.0 dx dy particles'
-    particles' = (fromUArrPA_3' $ flattenSU particles) 
 
 bhStepList (dx, dy, particles) = trace (show  accs) accs  
   where
@@ -103,6 +97,6 @@ run opts alg sizes =
     Just f  -> case map read sizes of
                  []    -> failWith ["No sizes specified"]
                  szs -> do 
-                          benchmark opts f [simpleTest szs 0  0] show
+                          benchmark opts f [simpleTest szs 0  0] (`seq` ()) show
                           return ()
 

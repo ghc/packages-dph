@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeOperators #-}
 module BarnesHutGen where
 
 import Monad   (liftM)
@@ -6,7 +7,8 @@ import List   (nubBy)
 import IO
 import System (ExitCode(..), getArgs, exitWith)
 import Random (Random, RandomGen, getStdGen, randoms, randomRs)
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Base ( (:*:)(..) )
 
 type Vector = (Double :*: Double) 
 

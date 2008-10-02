@@ -1,11 +1,12 @@
-        {-# GHC_OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE TypeOperators #-}
 module BarnesHutPar (splitPointsLPar)
 
 where
 
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Base ( (:*:)(..), sndS, uncurryS )
 
 import BarnesHutGen
 

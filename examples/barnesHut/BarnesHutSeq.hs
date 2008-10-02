@@ -1,8 +1,10 @@
-{-# GHC_OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE TypeOperators #-}
 module BarnesHutSeq
 
 where
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Base ( (:*:)(..), sndS, uncurryS )
+
 import BarnesHutGen
 
 
