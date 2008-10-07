@@ -32,6 +32,8 @@ module Data.Array.Parallel.Base.Hyperstrict (
   HS
 ) where
 
+import GHC.Word ( Word8 )
+
 infixl 2 :*:
 
 -- |Strict pair
@@ -115,6 +117,7 @@ instance HS ()
 instance HS Bool
 instance HS Char
 instance HS Int
+instance HS Word8
 instance HS Float
 instance HS Double
 

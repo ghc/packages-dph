@@ -87,6 +87,7 @@ import GHC.Base	(
   Char(..), Int(..), (+#), and#, or#, neWord#, int2Word#)
 import GHC.Float (
   Float(..), Double(..))
+import GHC.Word ( Word8(..) )
 import Data.Array.Base (
   wORD_SCALE, fLOAT_SCALE, dOUBLE_SCALE)
 
@@ -317,6 +318,29 @@ instance UAE Int where
     checkCritical (here "writeMBU[Int]") n i $
     ST $ \s# ->
     case writeIntArray# mba# i# e# s#  of {s2#   ->
+    (# s2#, () #)}
+
+instance UAE Word8 where
+  sizeBU (I# n#) _ = I# n#
+
+  {-# INLINE indexBU #-}
+  indexBU (BUArr (I# s#) n ba#) i@(I# i#) =
+    check (here "indexBU[Word8]") n i $
+    case indexWord8Array# ba# (s# +# i#) of {r# ->
+    (W8# r#)}
+
+  {-# INLINE readMBU #-}
+  readMBU (MBUArr n mba#) i@(I# i#) =
+    check (here "readMBU[Word8]") n i $
+    ST $ \s# ->
+    case readWord8Array# mba# i# s# of {(# s2#, r# #) ->
+    (# s2#, W8# r# #)}
+
+  {-# INLINE writeMBU #-}
+  writeMBU (MBUArr n mba#) i@(I# i#) (W8# e#) = 
+    checkCritical (here "writeMBU[Word8]") n i $
+    ST $ \s# ->
+    case writeWord8Array# mba# i# e# s#  of {s2#   ->
     (# s2#, () #)}
 
 instance UAE Float where
