@@ -36,6 +36,7 @@ import Data.Array.Parallel.Arr
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Base
 
+import Data.Word     (Word8)
 import Control.Monad (liftM, liftM2)
 
 infixl 9 `indexD`
@@ -190,6 +191,13 @@ instance DT Char where
   unsafeFreezeMD = primUnsafeFreezeMD
 
 instance DT Int where
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
+
+instance DT Word8 where
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
