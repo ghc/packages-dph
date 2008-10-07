@@ -15,6 +15,7 @@ import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS)
 
 import GHC.Exts ( Int(..), (-#) )
+import GHC.Word ( Word8 )
 
 unsafe_map :: (PrimPA a, PrimPA b) => (a -> b) -> PArray a -> PArray b
 {-# INLINE_PA unsafe_map #-}
@@ -73,6 +74,11 @@ instance PrimPA Int where
   fromUArrPA (I# n#) xs  = PInt n# xs
   toUArrPA   (PInt _ xs) = xs
   primPA = dPA_Int
+
+instance PrimPA Word8 where
+  fromUArrPA (I# n#) xs     = PWord8 n# xs
+  toUArrPA   (PWord8 _ xs) = xs
+  primPA = dPA_Word8
 
 instance PrimPA Double where
   fromUArrPA (I# n#) xs     = PDouble n# xs
