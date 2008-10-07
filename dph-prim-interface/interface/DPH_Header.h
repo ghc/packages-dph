@@ -24,5 +24,6 @@ module Data.Array.Parallel.Unlifted (
 
 import Data.Array.Parallel.Base   ( (:*:) )
 import Prelude                    (Num, Int, Bool, Double)
+import Data.Word                  (Word8)
 import qualified System.Random
 

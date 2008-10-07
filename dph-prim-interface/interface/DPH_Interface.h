@@ -1,4 +1,5 @@
 instance Elt Int
+instance Elt Word8
 instance Elt Bool
 instance Elt Double
 instance (Elt a, Elt b) => Elt (a :*: b)
