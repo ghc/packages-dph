@@ -7,6 +7,7 @@ module Data.Array.Parallel.Lifted.Instances (
 
   dPA_Int, dPR_Int, upToPA_Int,
 
+  dPA_Word8, dPR_Word8,
   dPA_Double, dPR_Double,
 
   dPA_Bool, toPrimArrPA_Bool, truesPA#,
@@ -20,6 +21,7 @@ import Data.Array.Parallel.Lifted.Unboxed
 
 import GHC.Exts    ( Int#, Int(..), (+#), (*#),
                      Double#, Double(..) )
+import GHC.Word    ( Word8(..) )
 
 data instance PArray Int = PInt Int# PArray_Int#
 
@@ -97,6 +99,83 @@ nfPR_Int (PInt _ xs) = xs `seq` ()
 upToPA_Int :: Int -> PArray Int
 {-# INLINE_PA upToPA_Int #-}
 upToPA_Int (I# n#) = PInt n# (upToPA_Int# n#)
+
+data instance PArray Word8 = PWord8 Int# PArray_Word8#
+
+type instance PRepr Word8 = Word8
+
+dPA_Word8 :: PA Word8
+{-# INLINE_PA dPA_Word8 #-}
+dPA_Word8 = PA {
+            toPRepr      = id
+          , fromPRepr    = id
+          , toArrPRepr   = id
+          , fromArrPRepr = id
+          , dictPRepr    = dPR_Word8
+          }
+
+dPR_Word8 :: PR Word8
+{-# INLINE dPR_Word8 #-}
+dPR_Word8 = PR {
+            lengthPR     = lengthPR_Word8
+          , emptyPR      = emptyPR_Word8
+          , replicatePR  = replicatePR_Word8
+          , replicatelPR = replicatelPR_Word8
+          , repeatPR     = repeatPR_Word8
+          , indexPR      = indexPR_Word8
+          , bpermutePR   = bpermutePR_Word8
+          , appPR        = appPR_Word8
+          , applPR       = applPR_Word8
+          , packPR       = packPR_Word8
+          , combine2PR   = combine2PR_Word8
+          , fromListPR   = fromListPR_Word8
+          , nfPR         = nfPR_Word8
+          }
+
+{-# INLINE lengthPR_Word8 #-}
+lengthPR_Word8 (PWord8 n# _) = n#
+
+{-# INLINE emptyPR_Word8 #-}
+emptyPR_Word8 = PWord8 0# emptyPA_Word8#
+
+{-# INLINE replicatePR_Word8 #-}
+replicatePR_Word8 n# d
+  = PWord8 n# (case d of W8# d# -> replicatePA_Word8# n# d#)
+
+{-# INLINE replicatelPR_Word8 #-}
+replicatelPR_Word8 n# ns (PWord8 _ ds)
+  = PWord8 n# (replicatelPA_Word8# n# ns ds)
+
+{-# INLINE repeatPR_Word8 #-}
+repeatPR_Word8 n# (PWord8 m# is) = PWord8 (n# *# m#) (repeatPA_Word8# n# is)
+
+{-# INLINE indexPR_Word8 #-}
+indexPR_Word8 (PWord8 _ ds) i# = W8# (indexPA_Word8# ds i#)
+
+{-# INLINE bpermutePR_Word8 #-}
+bpermutePR_Word8 (PWord8 _ ds) is
+  = PWord8 (lengthPA_Int# is) (bpermutePA_Word8# ds is)
+
+{-# INLINE appPR_Word8 #-}
+appPR_Word8 (PWord8 m# ms) (PWord8 n# ns)
+  = PWord8 (m# +# n#) (appPA_Word8# ms ns)
+
+{-# INLINE applPR_Word8 #-}
+applPR_Word8 is (PWord8 m# ms) js (PWord8 n# ns)
+  = PWord8 (m# +# n#) (applPA_Word8# is ms js ns)
+
+{-# INLINE packPR_Word8 #-}
+packPR_Word8 (PWord8 _ ns) n# bs = PWord8 n# (packPA_Word8# ns n# bs)
+
+{-# INLINE combine2PR_Word8 #-}
+combine2PR_Word8 n# sel is (PWord8 _ xs) (PWord8 _ ys)
+  = PWord8 n# (combine2PA_Word8# n# sel is xs ys)
+
+{-# INLINE fromListPR_Word8 #-}
+fromListPR_Word8 n# xs = PWord8 n# (fromListPA_Word8# n# xs)
+
+{-# INLINE nfPR_Word8 #-}
+nfPR_Word8 (PWord8 _ xs) = xs `seq` ()
 
 data instance PArray Double = PDouble Int# PArray_Double#
 

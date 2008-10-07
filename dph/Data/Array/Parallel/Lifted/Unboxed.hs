@@ -17,6 +17,15 @@ module Data.Array.Parallel.Lifted.Unboxed (
   unsafe_mapPA_Int#, unsafe_zipWithPA_Int#, unsafe_foldPA_Int#,
   unsafe_scanPA_Int#,
 
+  PArray_Word8#,
+  lengthPA_Word8#, emptyPA_Word8#,
+  replicatePA_Word8#, replicatelPA_Word8#, repeatPA_Word8#,
+  indexPA_Word8#, bpermutePA_Word8#, appPA_Word8#, applPA_Word8#,
+  packPA_Word8#, pack'PA_Word8#, combine2PA_Word8#, combine2'PA_Word8#,
+  fromListPA_Word8#,
+  unsafe_zipWithPA_Word8#, unsafe_foldPA_Word8#, unsafe_fold1PA_Word8#,
+  unsafe_foldPAs_Word8#,
+
   PArray_Double#,
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
@@ -36,8 +45,9 @@ module Data.Array.Parallel.Lifted.Unboxed (
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ((:*:)(..), fromBool, toBool)
 
-import GHC.Exts ( Int#, Int(..),
+import GHC.Exts ( Int#, Int(..), Word#,
                   Double#, Double(..) )
+import GHC.Word ( Word8(..) )
 
 
 import Debug.Trace
@@ -163,6 +173,87 @@ unsafe_foldPA_Int# f z ns = U.fold f z ns
 unsafe_scanPA_Int# :: (Int -> Int -> Int) -> Int -> PArray_Int# -> PArray_Int#
 unsafe_scanPA_Int# f z ns = U.scan f z ns
 {-# INLINE_PA unsafe_scanPA_Int# #-}
+
+type PArray_Word8# = U.Array Word8
+
+lengthPA_Word8# :: PArray_Word8# -> Int#
+lengthPA_Word8# arr = case U.length arr of { I# n# -> n# }
+{-# INLINE_PA lengthPA_Word8# #-}
+
+emptyPA_Word8# :: PArray_Word8#
+emptyPA_Word8# = U.empty
+{-# INLINE_PA emptyPA_Word8# #-}
+
+replicatePA_Word8# :: Int# -> Word# -> PArray_Word8#
+replicatePA_Word8# n# d# = U.replicate (I# n#) (W8# d#)
+{-# INLINE_PA replicatePA_Word8# #-}
+
+replicatelPA_Word8# :: Int# -> PArray_Int# -> PArray_Word8# -> PArray_Word8#
+replicatelPA_Word8# n# ns ds = U.replicateEach (I# n#) ns ds
+{-# INLINE_PA replicatelPA_Word8# #-}
+
+repeatPA_Word8# :: Int# -> PArray_Word8# -> PArray_Word8#
+repeatPA_Word8# n# ds = U.repeat (I# n#) ds
+{-# INLINE_PA repeatPA_Word8# #-}
+
+indexPA_Word8# :: PArray_Word8# -> Int# -> Word#
+indexPA_Word8# ds i# = case ds U.!: I# i# of { W8# d# -> d# }
+{-# INLINE_PA indexPA_Word8# #-}
+
+bpermutePA_Word8# :: PArray_Word8# -> PArray_Int# -> PArray_Word8#
+bpermutePA_Word8# ds is = U.bpermute ds is
+{-# INLINE_PA bpermutePA_Word8# #-}
+
+appPA_Word8# :: PArray_Word8# -> PArray_Word8# -> PArray_Word8#
+appPA_Word8# ms ns = ms U.+:+ ns
+{-# INLINE_PA appPA_Word8# #-}
+
+applPA_Word8# :: Segd -> PArray_Word8# -> Segd -> PArray_Word8#
+               -> PArray_Word8#
+applPA_Word8# is xs js ys = U.concat $ (is U.>: xs) U.^+:+^ (js U.>: ys)
+{-# INLINE_PA applPA_Word8# #-}
+
+pack'PA_Word8# :: PArray_Word8# -> PArray_Bool# -> PArray_Word8#
+pack'PA_Word8# ns bs = U.pack ns bs
+{-# INLINE_PA pack'PA_Word8# #-}
+
+packPA_Word8# :: PArray_Word8# -> Int# -> PArray_Bool# -> PArray_Word8#
+packPA_Word8# ns _ bs = pack'PA_Word8# ns bs
+{-# INLINE_PA packPA_Word8# #-}
+
+combine2'PA_Word8# :: PArray_Int#
+                    -> PArray_Word8# -> PArray_Word8# -> PArray_Word8#
+combine2'PA_Word8# sel xs ys = U.combine (U.map (== 0) sel) xs ys
+{-# INLINE_PA combine2'PA_Word8# #-}
+
+combine2PA_Word8# :: Int# -> PArray_Int# -> PArray_Int#
+                   -> PArray_Word8# -> PArray_Word8# -> PArray_Word8#
+combine2PA_Word8# _ sel _ xs ys = combine2'PA_Word8# sel xs ys
+{-# INLINE_PA combine2PA_Word8# #-}
+
+fromListPA_Word8# :: Int# -> [Word8] -> PArray_Word8#
+fromListPA_Word8# _ xs = U.fromList xs
+{-# INLINE_PA fromListPA_Word8# #-}
+
+unsafe_zipWithPA_Word8# :: (Word8 -> Word8 -> Word8)
+                         -> PArray_Word8# -> PArray_Word8# -> PArray_Word8#
+unsafe_zipWithPA_Word8# f ms ns = U.zipWith f ms ns
+{-# INLINE_PA unsafe_zipWithPA_Word8# #-}
+
+unsafe_foldPA_Word8# :: (Word8 -> Word8 -> Word8)
+                    -> Word8 -> PArray_Word8# -> Word8
+unsafe_foldPA_Word8# f z ns = U.fold f z ns
+{-# INLINE_PA unsafe_foldPA_Word8# #-}
+
+unsafe_fold1PA_Word8#
+  :: (Word8 -> Word8 -> Word8) -> PArray_Word8# -> Word8
+unsafe_fold1PA_Word8# f ns = U.fold1 f ns
+{-# INLINE_PA unsafe_fold1PA_Word8# #-}
+
+unsafe_foldPAs_Word8# :: (Word8 -> Word8 -> Word8) -> Word8
+                      -> Segd -> PArray_Word8# -> PArray_Word8#
+unsafe_foldPAs_Word8# f z segd ds = U.fold_s f z (segd U.>: ds)
+{-# INLINE_PA unsafe_foldPAs_Word8# #-}
 
 type PArray_Double# = U.Array Double
 
