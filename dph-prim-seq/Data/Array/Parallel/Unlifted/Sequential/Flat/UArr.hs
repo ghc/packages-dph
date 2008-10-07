@@ -47,6 +47,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
 
 -- standard libraries
 import Control.Monad (liftM, liftM2)
+import GHC.Word      (Word8)
 
 -- friends
 import Data.Array.Parallel.Base
@@ -457,6 +458,34 @@ instance UA Int where
   unsafeFreezeMU = primUnsafeFreezeMU
 
   -- FIXME: For now, we assume that Int writes are atomic but we should really
+  --        configure this.
+
+  hasAtomicWriteMU _ = True
+  atomicWriteMU      = primWriteMU
+
+instance UPrim Word8 where
+  mkUAPrim               = UAWord8
+  unUAPrim  (UAWord8  arr) = arr
+
+  mkMUAPrim              = MUAWord8
+  unMUAPrim (MUAWord8 arr) = arr
+
+instance UA Word8 where
+  newtype UArr  Word8   = UAWord8  (BUArr Word8)
+  newtype MUArr Word8 s = MUAWord8 (MBUArr s Word8)
+
+  lengthU        = primLengthU
+  indexU         = primIndexU
+  sliceU         = primSliceU
+
+  lengthMU       = primLengthMU
+  newMU          = primNewMU
+  readMU         = primReadMU
+  writeMU        = primWriteMU
+  copyMU         = primCopyMU
+  unsafeFreezeMU = primUnsafeFreezeMU
+
+  -- FIXME: For now, we assume that Word8 writes are atomic but we should really
   --        configure this.
 
   hasAtomicWriteMU _ = True
