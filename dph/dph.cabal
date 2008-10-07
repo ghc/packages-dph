@@ -26,6 +26,7 @@ Library
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.Prelude
         Data.Array.Parallel.Prelude.Int
+        Data.Array.Parallel.Prelude.Word8
         Data.Array.Parallel.Prelude.Double
         Data.Array.Parallel.PArray
 
@@ -38,6 +39,7 @@ Library
         Data.Array.Parallel.Lifted.Instances
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Prelude.Base.Int
+        Data.Array.Parallel.Prelude.Base.Word8
         Data.Array.Parallel.Prelude.Base.Double
         Data.Array.Parallel.Prelude.Base.Bool
         Data.Array.Parallel.Prelude.Base.PArr

@@ -7,6 +7,7 @@ module Data.Array.Parallel.Prelude.Base (
 ) where
 
 import Data.Array.Parallel.Prelude.Base.Int
+import Data.Array.Parallel.Prelude.Base.Word8
 import Data.Array.Parallel.Prelude.Base.Double
 import Data.Array.Parallel.Prelude.Base.Bool
 import Data.Array.Parallel.Prelude.Base.Tuple
