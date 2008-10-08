@@ -15,7 +15,10 @@ module Data.Array.Parallel.Prelude.Base.Word8 (
   sumPA, productPA,
 
   div, divV,
-  mod, modV
+  mod, modV,
+
+  toInt, fromInt,
+  toIntV, fromIntV
 ) where
 
 import Data.Array.Parallel.Prelude.Base.PArr
@@ -142,4 +145,18 @@ modV = closure2 dPA_Word8 P.mod (unsafe_zipWith P.mod)
 div, mod :: Word8 -> Word8 -> Word8
 div = P.div
 mod = P.mod
+
+toInt :: Word8 -> Int
+toInt = P.fromIntegral
+
+fromInt :: Int -> Word8
+fromInt = P.fromIntegral
+
+toIntV :: Word8 :-> Int
+{-# INLINE toIntV #-}
+toIntV = closure1 P.fromIntegral (unsafe_map P.fromIntegral)
+
+fromIntV :: Int :-> Word8
+{-# INLINE fromIntV #-}
+fromIntV = closure1 P.fromIntegral (unsafe_map P.fromIntegral)
 

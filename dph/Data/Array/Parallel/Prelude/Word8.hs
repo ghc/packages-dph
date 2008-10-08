@@ -5,7 +5,7 @@ module Data.Array.Parallel.Prelude.Word8 (
   (==), (/=), (<=), (<), (>=), (>), min, max,
   minimumP, maximumP, minIndexP, maxIndexP,
   (+), (-), (*), negate, abs, sumP, productP,
-  div, mod
+  div, mod, toInt, fromInt
 ) where
 
 import Data.Array.Parallel.Prelude.Base.Word8
