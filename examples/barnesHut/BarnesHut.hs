@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeOperators #-}
 module Main where
-import BarnesHutSeq
-import BarnesHutPar
+import qualified BarnesHutSeq as Seq
+import qualified BarnesHutPar as Par
 import qualified BarnesHutList as L
 import BarnesHutGen
 
@@ -19,18 +19,7 @@ import Debug.Trace
 
 
 
-algs = [("seqSimple", bhStepSeq), ("parSimple", bhStepPar), ("list", bhStepList)]
-
-bhStepSeq (dx, dy, particles) = trace (showBHTree bhtree) accs
-  where
-   accs   = calcAccel bhtree  (flattenSU particles)
-   bhtree = splitPointsL (singletonU ((0.0 :*: 0.0) :*: (dx :*: dy))) particles
-
-bhStepPar (dx, dy, particles) = trace (showBHTree bhTree) accs
-  where 
-    accs     = calcAccel bhTree (flattenSU particles)
-    bhTree    = splitPointsLPar (singletonU ((0.0 :*: 0.0) :*: (dx :*: dy)))
-                        particles
+algs = [("seq", Seq.bhStep), ("par", Par.bhStep), ("list", bhStepList)]
 
 bhStepList (dx, dy, particles) = trace (show  accs) accs  
   where
@@ -77,13 +66,10 @@ simpleTest _ _ _=
 randomDistTest n dx dy = 
   do
     testParticles <- randomMassPointsIO dx dy 
-    let testData = (singletonU testBox,  singletonSU $ toU $ take n testParticles)
-    evaluate testData
-    return $ ("N = " ) `mkPoint` testData
-       
-  where
-    testBox = (0.0 :*: 0.0) :*: (dx :*: dy)       
-   
+    let su = singletonSU . toU $ take n testParticles
+    evaluate (segdSU su)
+    evaluate (concatSU su)
+    return $ ("N = " ) `mkPoint` (dx, dy, su)
 
 main = ndpMain "BarnesHut"
                "[OPTION] ... SIZES ..."
@@ -96,7 +82,13 @@ run opts alg sizes =
     Nothing -> failWith ["Unknown algorithm"]
     Just f  -> case map read sizes of
                  []    -> failWith ["No sizes specified"]
+                 [sz]  -> do
+                            benchmark opts f [randomDistTest sz 1000 1000]
+                                             (`seq` ()) show
+                            return ()
+{-
                  szs -> do 
                           benchmark opts f [simpleTest szs 0  0] (`seq` ()) show
                           return ()
+-}
 

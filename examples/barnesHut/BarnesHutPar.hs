@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators #-}
-module BarnesHutPar (splitPointsLPar)
+module BarnesHutPar ( bhStep )
 
 where
 
@@ -11,9 +11,12 @@ import Data.Array.Parallel.Base ( (:*:)(..), sndS, uncurryS )
 import BarnesHutGen
 
 
-
-
-
+{-# NOINLINE bhStep #-}
+bhStep (dx, dy, particles) = accs
+  where 
+    accs     = calcAccel bhTree (flattenSU particles)
+    bhTree    = splitPointsLPar (singletonU ((0.0 :*: 0.0) :*: (dx :*: dy)))
+                        particles
 
 -- Phase 1: building the tree
 --

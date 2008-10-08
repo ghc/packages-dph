@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators #-}
-module BarnesHutSeq
+module BarnesHutSeq ( bhStep )
 
 where
 import Data.Array.Parallel.Unlifted.Sequential
@@ -8,8 +8,11 @@ import Data.Array.Parallel.Base ( (:*:)(..), sndS, uncurryS )
 import BarnesHutGen
 
 
-
-
+{-# NOINLINE bhStep #-}
+bhStep (dx, dy, particles) = accs
+  where
+   accs   = calcAccel bhtree  (flattenSU particles)
+   bhtree = splitPointsL (singletonU ((0.0 :*: 0.0) :*: (dx :*: dy))) particles
 
 -- Phase 1: building the tree
 --
