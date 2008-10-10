@@ -1,3 +1,5 @@
+TOP=../..
+include $(TOP)/mk/config.mk
 
 create: dph-par dph-seq
 
@@ -8,7 +10,7 @@ dph-par dph-seq:
 	rm -rf $@.tmp
 	mkdir $@.tmp
 	cp dph/Setup.hs $@.tmp/
-	cpp -DUSE_$(subst -,_,$@) < dph/dph.cabal | grep -v "^#" > $@.tmp/dph.cabal
+	$(CPP) $(RAWCPP_FLAGS) -P -DUSE_$(subst -,_,$@) -x c dph/dph.cabal > $@.tmp/dph.cabal
 	mv $@.tmp $@
 
 clean:
