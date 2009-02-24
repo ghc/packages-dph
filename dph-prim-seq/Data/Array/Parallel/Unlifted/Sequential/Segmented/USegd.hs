@@ -27,7 +27,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
 
   -- * Operations on segment descriptors
   lengthUSegd, lengthsUSegd, indicesUSegd, fromUSegd,
-  singletonUSegd, lengthsToUSegd, toUSegd,
+  emptyUSegd, singletonUSegd, lengthsToUSegd, toUSegd,
   sliceUSegd, extractUSegd,
   newMUSegd, unsafeFreezeMUSegd,
 ) where
@@ -36,7 +36,7 @@ import Data.Array.Parallel.Base (
   (:*:)(..), ST)
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UArr, MUArr,
-  lengthU, singletonU, (!:), sliceU, extractU, mapU,
+  lengthU, emptyU, singletonU, (!:), sliceU, extractU, mapU,
   scanlU, mapAccumLU,
   fstU, sndU, zipU,
   streamU, unstreamU,
@@ -97,6 +97,12 @@ fromUSegd = unUSegd
 toUSegd :: UArr (Int :*: Int) -> USegd
 {-# INLINE toUSegd #-}
 toUSegd = USegd
+
+-- |Yield an empty segment descriptor
+--
+emptyUSegd :: USegd
+{-# INLINE emptyUSegd #-}
+emptyUSegd = USegd emptyU
 
 -- |Yield a singleton segment descriptor
 --
