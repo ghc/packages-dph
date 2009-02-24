@@ -70,7 +70,7 @@ packCUP:: (UA e) => UArr Bool -> SUArr e -> SUArr e
 {-# INLINE packCUP #-}
 packCUP flags xssArr = segmentArrU newLengths flatData
   where
-    repFlags   = flattenSU $ replicateSUP (lengthsSU xssArr) flags
+    repFlags   = flattenSU $ replicateSUP (segdSU xssArr) flags
     flatData   = packUP (flattenSU xssArr) repFlags 
     newLengths = packUP (lengthsSU xssArr) flags    
 
@@ -104,12 +104,16 @@ enumFromThenToSUP  starts nexts ends =
     splitD theGang unbalanced $ zipU starts $ zipU nexts ends
 
 
-replicateSUP :: UA e => UArr Int -> UArr e -> SUArr e
+replicateSUP :: UA e => USegd -> UArr e -> SUArr e
 {-# INLINE_U replicateSUP #-}
-replicateSUP ns es = 
-  joinSD theGang unbalanced $ mapD theGang ((uncurryS replicateSU) . unzipU) $ 
-    splitD theGang unbalanced $ zipU ns es
+replicateSUP segd es = segd >: arr
+  where
+    arr = joinD theGang unbalanced
+        . mapD theGang mk
+        . splitD theGang unbalanced
+        $ zipU (lengthsUSegd segd) es
 
+    mk ps = concatSU $ replicateSU (lengthsToUSegd (fstU ps)) (sndU ps)
 
 -- |Associate each data element with its index
 --
