@@ -96,7 +96,8 @@ module Data.Array.Parallel.Unlifted.Sequential (
   concatSU, flattenSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations (segmented)
-  lengthSU, singletonSU, replicateSU, replicateCU, (+:+^), indexedSU, (^+:+^), (!:^),
+  lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, (+:+^),
+  indexedSU, (^+:+^), (!:^),
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,

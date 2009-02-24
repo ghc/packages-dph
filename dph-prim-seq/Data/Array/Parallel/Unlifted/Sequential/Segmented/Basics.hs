@@ -21,7 +21,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
-  lengthSU, singletonSU, replicateSU, replicateCU, (!:^),
+  lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, (!:^),
   flattenSU, (>:), segmentU, segmentArrU, concatSU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
@@ -55,6 +55,12 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (lengthsUSegd, in
 singletonSU :: UA e => UArr e -> SUArr e
 {-# INLINE_U singletonSU #-}
 singletonSU es = singletonUSegd (lengthU es) >: es
+
+singletonsSU :: UA e => UArr e -> SUArr e
+{-# INLINE_U singletonsSU #-}
+singletonsSU es = toUSegd (zipU (replicateU n 1) (enumFromToU 0 (n-1))) >: es
+  where
+    n = lengthU es
 
 replicateSU :: UA e => USegd -> UArr e -> SUArr e
 {-# INLINE_U replicateSU #-}
