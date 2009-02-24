@@ -11,6 +11,10 @@
 -- Standard combinators for distributed types.
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, zipD, unzipD, fstD, sndD, zipWithD,
   foldD, scanD,
@@ -65,6 +69,7 @@ zipWithD g f dx dy = mapD g (uncurry f . unsafe_unpairS) (zipD dx dy)
 
 -- | Fold a distributed value.
 foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
+{-# INLINE_DIST foldD #-}
 foldD g f d = checkGangD ("here foldD") g d $
               fold 1 (d `indexD` 0)
   where
@@ -75,6 +80,7 @@ foldD g f d = checkGangD ("here foldD") g d $
 
 -- | Prefix sum of a distributed value.
 scanD :: DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
+{-# INLINE_DIST scanD #-}
 scanD g f z d = checkGangD (here "scanD") g d $
                 runST (do
                   md <- newMD g

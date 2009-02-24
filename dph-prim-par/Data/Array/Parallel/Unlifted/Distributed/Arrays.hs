@@ -77,7 +77,7 @@ splitLenD g n = newD g (`fill` 0)
 -- | Distribute an array over a 'Gang' such that each threads gets the given
 -- number of elements.
 splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
-{-# INLINE splitAsD #-}
+{-# INLINE_DIST splitAsD #-}
 splitAsD g dlen !arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     is = fstS $ scanD g (+) 0 dlen
@@ -196,6 +196,7 @@ atomicUpdateD g darr upd = runST (
     update marr arr = stToDistST (atomicUpdateMU marr arr)
 
 splitSegdLengthsD :: Gang -> Int -> UArr Int -> Dist (Int :*: Int)
+{-# INLINE_DIST splitSegdLengthsD #-}
 splitSegdLengthsD g n !lens = newD g (\md -> fill md 0 0 0 0)
   where
     m = lengthU lens
@@ -214,6 +215,7 @@ splitSegdLengthsD g n !lens = newD g (\md -> fill md 0 0 0 0)
         e = dlens `indexD` i
 
 splitSegdD' :: Gang -> Int -> USegd -> Dist (USegd :*: Int)
+{-# INLINE_DIST splitSegdD' #-}
 splitSegdD' g n !segd = zipD (mapD g lengthsToUSegd
                              $ splitAsD g segdlens lens) adlens
   where

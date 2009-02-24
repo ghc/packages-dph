@@ -12,6 +12,10 @@
 -- Distributed types.
 --
 
+{-# LANGUAGE CPP #-}
+
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Distributed.Types (
   -- * Distributed types
   DT, Dist, MDist,
@@ -298,14 +302,17 @@ zipD !x !y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
 
 -- | Unpairing of distributed values.
 unzipD :: (DT a, DT b) => Dist (a :*: b) -> Dist a :*: Dist b
+{-# INLINE_DIST unzipD #-}
 unzipD (DProd dx dy) = dx :*: dy
 
 -- | Extract the first elements of a distributed pair.
 fstD :: (DT a, DT b) => Dist (a :*: b) -> Dist a
+{-# INLINE_DIST fstD #-}
 fstD = fstS . unzipD
 
 -- | Extract the second elements of a distributed pair.
 sndD :: (DT a, DT b) => Dist (a :*: b) -> Dist b
+{-# INLINE_DIST sndD #-}
 sndD = sndS . unzipD
 
 -- | Yield the distributed length of a distributed array.
