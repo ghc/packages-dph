@@ -197,7 +197,7 @@ atomicUpdateD g darr upd = runST (
 
 splitSegdLengthsD :: Gang -> Int -> UArr Int -> Dist (Int :*: Int)
 {-# INLINE_DIST splitSegdLengthsD #-}
-splitSegdLengthsD g n !lens = newD g (\md -> fill md 0 0 0 0)
+splitSegdLengthsD g !n !lens = newD g (\md -> fill md 0 0 0 0)
   where
     m = lengthU lens
     p = gangSize g
