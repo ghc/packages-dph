@@ -38,7 +38,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat
 
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
-  SUArr, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
+  SUArr, USegd, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd)
 
 -- TODO: Remove
@@ -56,9 +56,11 @@ singletonSU :: UA e => UArr e -> SUArr e
 {-# INLINE_U singletonSU #-}
 singletonSU es = singletonUSegd (lengthU es) >: es
 
-replicateSU :: UA e => UArr Int -> UArr e -> SUArr e
+replicateSU :: UA e => USegd -> UArr e -> SUArr e
 {-# INLINE_U replicateSU #-}
-replicateSU ns es = lengthsToUSegd ns >: replicateEachU (sumU ns) ns es
+replicateSU segd es = segd >: replicateEachU (sumU ns) ns es
+  where
+    ns = lengthsUSegd segd
 
 -- |Yield a segmented array, where each element contains the same array value
 --

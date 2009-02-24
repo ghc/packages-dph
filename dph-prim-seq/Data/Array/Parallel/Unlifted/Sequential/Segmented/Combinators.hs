@@ -35,7 +35,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, UArr, mapU, zipWithU,
   unstreamU, streamU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
-  SUArr, segdSU, flattenSU, (>:), lengthsSU)
+  SUArr, segdSU, flattenSU, (>:), lengthsSU, lengthsToUSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   concatSU, segmentArrU,segmentU, replicateSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
@@ -90,11 +90,11 @@ combineSU fs xs1 xs2 =
 combineCU::  UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
 {-# INLINE combineCU #-}
 combineCU  flags xssArr1 xssArr2 = trace "combineCU"
-  segmentArrU newLengths flatData
+  newSegd >: flatData
   where
     newLengths = combineU  flags (lengthsSU xssArr1) (lengthsSU xssArr2)
-    repFlags   = replicateSU newLengths flags
-    --flatData   = combineSU  flags  xssArr1   xssArr2
+    newSegd    = lengthsToUSegd newLengths
+    repFlags   = replicateSU newSegd flags
     flatData   = combineU  (flattenSU repFlags) (flattenSU xssArr1)  (flattenSU xssArr2)  
 
 -- |Filter segmented array
@@ -112,7 +112,7 @@ packCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
 {-# INLINE packCU #-}
 packCU flags xssArr = segmentArrU newLengths flatData
   where
-    repFlags   = flattenSU $ replicateSU (lengthsSU xssArr) flags
+    repFlags   = flattenSU $ replicateSU (segdSU xssArr) flags
     flatData   = packU (flattenSU xssArr) repFlags  
     newLengths = packU (lengthsSU xssArr) flags    
 
