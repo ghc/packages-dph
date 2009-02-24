@@ -18,8 +18,9 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
-  lengthD, splitLenD, splitLengthD, splitD, joinLengthD, joinD, splitJoinD,
-  splitSD, joinSD, splitJoinSD,
+  lengthD, splitLenD, splitLengthD, splitSegdLengthsD,
+  splitAsD, splitD, joinLengthD, joinD, splitJoinD,
+  splitAsSegdD, splitNestedD, splitSD, joinSD, splitJoinSD,
 
   permuteD, bpermuteD, atomicUpdateD, bpermuteSD',
 
@@ -227,12 +228,34 @@ joinSegD g = lengthsToUSegd
            . joinD g unbalanced
            . mapD (seqGang g) lengthsUSegd
 
+splitAsSegdD :: UA a => Gang -> Int -> USegd -> UArr a -> Dist (UArr a)
+{-# INLINE_DIST splitAsSegdD #-}
+splitAsSegdD g !n !segd xs = splitAsD g (fstD dlens) xs
+  where
+    lens  = lengthsUSegd segd 
+    dlens = splitSegdLengthsD g n lens
+
+splitNestedD :: UA a => Gang -> USegd -> UArr a -> Dist (UArr a)
+{-# INLINE_DIST splitNestedD #-}
+splitNestedD g segd xs = splitAsD g (sndD d) xs
+  where
+    d = splitSegdD' g (lengthU xs) segd
+
+splitSD' :: UA a => Gang -> Distribution -> USegd -> UArr a -> Dist (SUArr a)
+{-# INLINE_DIST splitSD' #-}
+splitSD' g _ segd xs = zipWithD g (>:) (fstD d) (splitAsD g (sndD d) xs)
+  where
+    d = splitSegdD' g (lengthU xs) segd
+
 splitSD :: UA a => Gang -> Distribution -> SUArr a -> Dist (SUArr a)
 {-# INLINE_DIST splitSD #-}
+splitSD g d !sarr = splitSD' g d (segdSU sarr) (concatSU sarr)
+{-
 splitSD g _ !sarr = zipWithD g (>:) dsegd (splitAsD g dlen flat)
   where
     flat = concatSU sarr
     dsegd :*: dlen = unzipD (splitSegdD' g (lengthU flat) (segdSU sarr))
+-}
 
 joinSD :: UA a => Gang -> Distribution -> Dist (SUArr a) -> SUArr a
 {-# INLINE_DIST joinSD #-}
