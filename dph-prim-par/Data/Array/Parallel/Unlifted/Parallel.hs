@@ -24,7 +24,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
   
   mapSUP, filterSUP, packCUP, zipWithSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP, replicateSUP, indexedSUP, jsTest,
 
-  indexedUP, replicateUP, replicateEachUnbalancedUP,
+  indexedUP, replicateUP, replicateEachUP, replicateEachUnbalancedUP, repeatUP,
 
   dropUP
 ) where

@@ -23,7 +23,7 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Basics (
   lengthUP, nullUP, indexedUP,
-  replicateUP, replicateEachUnbalancedUP
+  replicateUP, replicateEachUP, replicateEachUnbalancedUP, repeatUP
 ) where
 
 import Data.Array.Parallel.Base (
@@ -31,9 +31,9 @@ import Data.Array.Parallel.Base (
 
 
 import Data.Array.Parallel.Unlifted.Sequential (
-  UA, UArr, unitsU, lengthU, newU,
+  UA, UArr, (!:), unitsU, lengthU, newU,
   foldU, mapU, zipU, unzipU,
-  indexedU, replicateU, replicateEachU)
+  indexedU, enumFromToU, replicateU, replicateEachU)
 import Data.Array.Parallel.Unlifted.Distributed
 
 -- infixl 9 !:
@@ -61,7 +61,22 @@ replicateUP :: UA e => Int -> e -> UArr e
 {-# INLINE_UP replicateUP #-}
 replicateUP n e = joinD theGang balanced
                 . mapD theGang (\n ->replicateU n e)
-                $ splitLenD theGang n 
+                $ splitLenD theGang n
+
+repeatUP :: UA e => Int -> UArr e -> UArr e
+{-# INLINE_UP repeatUP #-}
+repeatUP n !es = joinD theGang balanced
+               . mapD theGang go
+               . zipD dlens
+               . fstS
+               $ scanD theGang (+) 0 dlens
+  where
+    m = lengthU es
+
+    dlens = splitLenD theGang n
+
+    go (n :*: i) = mapU (\j -> es !: (j `mod` m))
+                 $ enumFromToU i (i+n-1)
 
 -- | Expand every element in the argument array by the factor given in the 
 --   corresponding array. The resulting array is unbalanced. 
@@ -76,6 +91,18 @@ replicateEachUnbalancedUP  ns es =
      mapD theGang unzipU $ 
      splitD theGang unbalanced $ zipU ns es
 
+replicateEachUP :: UA e => Int -> UArr Int -> UArr e -> UArr e
+{-# INLINE_UP replicateEachUP #-}
+replicateEachUP n lens xs = joinD theGang unbalanced
+                          . mapD  theGang rep
+                          . zipD (sndD dlens)
+                          . splitAsD theGang (fstD dlens)
+                          $ zipU lens xs
+  where
+    dlens = splitSegdLengthsD theGang n lens
+
+    rep (n :*: ps) = let lens :*: xs = unzipU ps
+                     in replicateEachU n lens xs
 
 -- |Associate each element of the array with its index
 --
