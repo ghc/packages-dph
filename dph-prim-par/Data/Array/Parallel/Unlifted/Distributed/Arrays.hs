@@ -283,6 +283,13 @@ splitJoinSD g f !xs = joinSD g unbalanced (f (splitSD g unbalanced xs))
 
 "splitJoinSD/splitJoinSD" forall g f1 f2 xs.
   splitJoinSD g f1 (splitJoinSD g f2 xs) = splitJoinSD g (f1 . f2) xs
+
+"fstSU/joinSD" forall g b xs.
+  fstSU (joinSD g b xs) = joinSD g b (mapD g fstSU xs)
+
+"sndSU/joinSD" forall g b xs.
+  sndSU (joinSD g b xs) = joinSD g b (mapD g sndSU xs)
+
   #-}
 
 bpermuteSD' :: UA a => Gang -> UArr a -> Dist (SUArr Int) -> Dist (SUArr a)
