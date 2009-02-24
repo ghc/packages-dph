@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, filterUP, packUP, zipWithUP, foldUP, fold1UP, foldl1UP,
+  mapUP, filterUP, packUP, combineUP, zipWithUP, foldUP, fold1UP, foldl1UP,
   scanUP
 ) where
 
@@ -43,6 +43,24 @@ filterUP f = joinD  theGang unbalanced
 packUP:: UA e => UArr e -> UArr Bool -> UArr e
 {-# INLINE_UP packUP #-}
 packUP xs flags = fstU . filterUP sndS $  zipU xs flags
+
+combineUP :: UA a => UArr Bool -> UArr a -> UArr a -> UArr a
+{-# INLINE_UP combineUP #-}
+combineUP flags !xs !ys = joinD theGang balanced
+                        . zipWithD theGang go (zipD is ns)
+                        $ splitD theGang balanced flags
+  where
+    ns = mapD theGang count
+       $ splitD theGang balanced flags
+
+    is = fstS $ scanD theGang add (0 :*: 0) ns
+
+    count bs = let ts = sumU (mapU fromBool bs)
+               in ts :*: (lengthU bs - ts)
+
+    add (x1 :*: y1) (x2 :*: y2) = (x1 + x2) :*: (y1 + y2)
+
+    go ((i :*: j) :*: (m :*: n)) bs = combineU bs (sliceU xs i m) (sliceU ys j n)
 
 
 zipWithUP :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
