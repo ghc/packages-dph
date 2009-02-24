@@ -34,7 +34,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Gang (
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
   stToDistST)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, indexD, lengthD, newD, writeMD, zipD, unzipD,
+  DT, Dist, indexD, lengthD, newD, writeMD, zipD, unzipD, fstD, sndD,
   segdSD, concatSD,
   checkGangD)
 import Data.Array.Parallel.Unlifted.Distributed.Basics
@@ -217,10 +217,10 @@ splitSegdLengthsD g !n !lens = newD g (\md -> fill md 0 0 0 0)
 splitSegdD' :: Gang -> Int -> USegd -> Dist (USegd :*: Int)
 {-# INLINE_DIST splitSegdD' #-}
 splitSegdD' g n !segd = zipD (mapD g lengthsToUSegd
-                             $ splitAsD g segdlens lens) adlens
+                             $ splitAsD g (fstD dlens) lens) (sndD dlens)
   where
-    lens                = lengthsUSegd segd
-    segdlens :*: adlens = unzipD (splitSegdLengthsD g n lens)
+    lens  = lengthsUSegd segd
+    dlens = splitSegdLengthsD g n lens
 
 joinSegD :: Gang -> Dist USegd -> USegd
 joinSegD g = lengthsToUSegd
