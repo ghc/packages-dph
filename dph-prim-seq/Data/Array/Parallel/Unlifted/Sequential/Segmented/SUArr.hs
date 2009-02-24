@@ -98,7 +98,7 @@ indicesSU = indicesUSegd . segdSU
 -- |Compose a nested array.
 --
 (>:) :: UA a => USegd -> UArr a -> SUArr a
-{-# INLINE (>:) #-}
+{-# INLINE_U (>:) #-}
 (>:) = SUArr
 
 -- |Operations on mutable segmented arrays
