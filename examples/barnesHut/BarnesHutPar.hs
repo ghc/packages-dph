@@ -40,8 +40,8 @@ splitPoints (ll@(llx :*: lly) :*: ru@(rux :*: ruy)) particles
 
 splitPointsLPar::  UArr BoundingBox -> SUArr MassPoint -> BHTree
 splitPointsLPar  bboxes particless
-  | lengthSU multiparticles == 0 =  [(centroids, toU [])]
-  | otherwise              = (centroids, lengthsSU multiparticles) : 
+  | lengthSU multiparticles == 0 =  [(centroids, toUSegd emptyU)]
+  | otherwise              = (centroids, segdSU multiparticles) : 
      (splitPointsLPar newBoxes multiparticles)
   where
     -- calculate centroid of each segment
@@ -59,6 +59,21 @@ splitPointsLPar  bboxes particless
     -- split each box in four sub-boxes    
     newBoxes = merge4 llbb lubb rubb rlbb 
 
+    lls  :*: rus  = unzipU bboxes'
+    llxs :*: llys = unzipU lls
+    ruxs :*: ruys = unzipU rus
+
+    midxs = zipWithUP mid llxs ruxs
+    midys = zipWithUP mid llys ruys
+
+    llbb = zipU (zipU llxs  llys)  (zipU midxs midys)
+    lubb = zipU (zipU llxs  midys) (zipU midxs ruys)
+    rubb = zipU (zipU midxs midys) (zipU ruxs  ruys)
+    rlbb = zipU (zipU midxs llys)  (zipU ruxs  midys)
+
+    mid a b = (a+b)/2
+
+    {-
     llbb = mapUP makells bboxes'
     lubb = mapUP makelus bboxes'
     rubb = mapUP makerus bboxes'
@@ -72,7 +87,8 @@ splitPointsLPar  bboxes particless
             (((llx + rux)/2.0) :*: ((lly + ruy)/2.0)) :*: ru    
     makerls (ll@(llx :*: lly) :*: ru@(rux :*: ruy))  = 
             ((((llx + rux)/2.0) :*: lly)  :*: (rux  :*: ((lly + ruy)/2.0)))
-        
+    -}
+ 
 splitPointsL':: UArr BoundingBox -> 
   UArr BoundingBox -> 
   UArr BoundingBox -> 
@@ -90,37 +106,48 @@ splitPointsL' llbb lubb rubb rlbb  particless
           segmentArrU newLengths $
           flattenSU $ llsPs  ^+:+^ lusPs ^+:+^ rusPs ^+:+^ rlsPs
         particlessLen = lengthSU particless
+        pssSegd = segdSU particless
         pssLens = lengthsSU particless
-        lls = replicateSU pssLens llbb
-        lus = replicateSU pssLens lubb
-        rus = replicateSU pssLens rubb
-        rls = replicateSU pssLens rlbb
 
+        {-
+        llsPs = sndSU $ filterSUP (uncurryS inBox)
+          (zipSU (replicateSUP pssSegd llbb) particless)
+        lusPs = sndSU $ filterSUP (uncurryS inBox)  
+          (zipSU (replicateSUP pssSegd lubb) particless)
+        rusPs = sndSU $ filterSUP (uncurryS inBox)  
+          (zipSU (replicateSUP pssSegd rubb) particless)
+        rlsPs = sndSU $ filterSUP (uncurryS inBox)  
+          (zipSU (replicateSUP pssSegd rlbb) particless)
+        -}
 
-        llsPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens llbb) particless)
-        lusPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens lubb) particless)
-        rusPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens rubb) particless)
-        rlsPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens rlbb) particless)
+        llsPs = sndSU
+              . filterSUP (uncurryS inBox)
+              $ zipSU (replicateSUP pssSegd llbb) particless
+        lusPs = sndSU
+              . filterSUP (uncurryS inBox)
+              $ zipSU (replicateSUP pssSegd lubb) particless
+        rusPs = sndSU
+              . filterSUP (uncurryS inBox)
+              $ zipSU (replicateSUP pssSegd rubb) particless
+        rlsPs = sndSU
+              . filterSUP (uncurryS inBox)
+              $ zipSU (replicateSUP pssSegd rlbb) particless
+
 
         newLengths = 
           merge4 (lengthsSU llsPs) (lengthsSU lusPs) 
                  (lengthsSU rusPs) (lengthsSU rlsPs)
-
 
 -- Calculate centroid of each subarray
 --
 calcCentroids:: SUArr MassPoint -> UArr MassPoint
 calcCentroids orderedPoints = centroids
   where
-    ms = foldSU (+) 0.0 $ sndSU orderedPoints
+    ms = foldSUP (+) 0.0 $ sndSU orderedPoints
     centroids = zipWithUP div' ms $
-           foldSU pairP (0.0 :*: 0.0) $
-            zipWithSU multCoor orderedPoints 
-              (replicateSU (lengthsSU orderedPoints) ms)
+           foldSUP pairP (0.0 :*: 0.0) $
+            zipWithSUP multCoor orderedPoints 
+              (replicateSUP (segdSU orderedPoints) ms)
     div' m (x :*: y) = ((x/m :*: y/m)   :*: m)
     multCoor ((x :*: y)  :*: _)  m = (m * x :*: m * y)
 
@@ -132,7 +159,7 @@ calcCentroids orderedPoints = centroids
 --   calculating the velocities
 
 calcAccel:: BHTree -> UArr MassPoint ->  UArr (Double :*: Double)
-calcAccel [] particles 
+calcAccel [] particles
   | lengthU particles == 0 = emptyU
   | otherwise              = error $ "calcVelocity: reached empty tree" ++ (show particles)
 calcAccel  ((centroids, segd) :trees) particles = closeAccel
@@ -143,16 +170,18 @@ calcAccel  ((centroids, segd) :trees) particles = closeAccel
                     calcFarAccel 
                     (zipU
                        (flattenSU $ replicateCU (lengthU particles) centroids)
-                       (flattenSU $ replicateSU segd particles))
+                       (flattenSU $ replicateSUP segd particles))
     particlesClose (((x1 :*: y1):*: _)  :*: ((x2 :*: y2) :*: _))  =  
         (x1-x2)^2 + (y1-y2)^2 < eClose
     
 calcFarAccel:: UArr (MassPoint :*: MassPoint) -> UArr Accel
+{-# INLINE calcFarAccel #-}
 calcFarAccel      = mapUP accel
 
 -- 
 -- 
 accel:: MassPoint :*: MassPoint -> Accel
+{-# INLINE accel #-}
 accel (((x1:*: y1) :*: m)  :*:
       ((x2:*: y2) :*: _)) | r < epsilon  = (0.0 :*: 0.0) 
                           | otherwise    = (aabs * dx / r :*: aabs * dy / r)  
@@ -169,18 +198,24 @@ accel (((x1:*: y1) :*: m)  :*:
 
 -- assumes all arr have the same length
 -- result [a11, a21, a31, a41, a12, a22....]
-merge4:: UA a => 
-  UArr a ->UArr a ->UArr a ->UArr a ->UArr a
+merge4:: UA a => UArr a -> UArr a -> UArr a -> UArr a -> UArr a
+{-# INLINE merge4 #-}
+merge4 a1 a2 a3 a4 = concatSU
+                   $ singletonsSU a1 ^+:+^ singletonsSU a2
+                     ^+:+^ singletonsSU a3 ^+:+^ singletonsSU a4
+{-
 merge4 a1 a2 a3 a4 = 
   combineU flags3 (combineU flags2 (combineU flags1 a1 a2) a3) a4
   where
-    flags1 = mapUP even $ enumFromToU 0 (2 * len-1)
-    flags2 = mapUP (\x -> mod x 3 /= 2) $ enumFromToU 0 (3 * len-1)
-    flags3 = mapUP (\x -> mod x 4 /= 3) $ enumFromToU 0 (4 * len-1)
+    flags1 = mapUP even $ enumFromToUP 0 (2 * len-1)
+    flags2 = mapUP (\x -> mod x 3 /= 2) $ enumFromToUP 0 (3 * len-1)
+    flags3 = mapUP (\x -> mod x 4 /= 3) $ enumFromToUP 0 (4 * len-1)
     len    = lengthU a1
+-}
 
 -- checks if particle is in box (excluding left and lower border)
 inBox:: BoundingBox -> MassPoint -> Bool
+{-# INLINE inBox #-}
 inBox ((ll@(llx :*: lly) :*: ru@(rux :*: ruy))) ((px :*: py) :*: _) =
   (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
 
@@ -189,14 +224,17 @@ inBox ((ll@(llx :*: lly) :*: ru@(rux :*: ruy))) ((px :*: py) :*: _) =
 
 
 splitApplyU:: (UA e, UA e') =>  (e -> Bool) -> (UArr e -> UArr e') -> (UArr e -> UArr e') -> UArr e -> UArr e'
-splitApplyU p f1 f2 xsArr = combineU (mapUP p xsArr) res1 res2
+{-# INLINE splitApplyU #-}
+splitApplyU p f1 f2 xsArr = combineUP flags res1 res2
   where
-    res1 = f1 $ filterUP p xsArr
-    res2 = f2 $ filterUP (not . p) xsArr
+    flags = mapUP p xsArr
+
+    res1 = f1 $ packUP xsArr flags
+    res2 = f2 $ packUP xsArr (mapUP not flags)
 
 splitApplySU:: (UA e, UA e') =>  UArr Bool -> (SUArr e -> SUArr e') -> (SUArr e -> SUArr e') -> SUArr e -> SUArr e'
 {-# INLINE splitApplySU #-}
-splitApplySU  flags f1 f2 xssArr = combineCU flags res1 res2
+splitApplySU  flags f1 f2 xssArr = combineCUP flags res1 res2
   where
     res1 = f1 $ packCUP flags xssArr 
     res2 = f2 $ packCUP (mapUP not flags) xssArr

@@ -7,6 +7,8 @@ import Data.Array.Parallel.Base ( (:*:)(..), sndS, uncurryS )
 
 import BarnesHutGen
 
+import Debug.Trace ( trace )
+
 
 {-# NOINLINE bhStep #-}
 bhStep (dx, dy, particles) = accs
@@ -37,8 +39,8 @@ splitPoints (ll@(llx :*: lly) :*: ru@(rux :*: ruy)) particles
 
 splitPointsL::  UArr BoundingBox -> SUArr MassPoint -> BHTree
 splitPointsL  bboxes particless
-  | lengthSU multiparticles == 0 =  [(centroids, toU [])]
-  | otherwise                    = (centroids, lengthsSU multiparticles) : 
+  | lengthSU multiparticles == 0 =  [(centroids, toUSegd emptyU)]
+  | otherwise                    = (centroids, segdSU multiparticles) : 
      (splitPointsL newBoxes multiparticles)
   where
     -- calculate centroid of each segment
@@ -87,21 +89,16 @@ splitPointsL' llbb lubb rubb rlbb  particless
           segmentArrU newLengths $
           flattenSU $ llsPs ^+:+^ lusPs ^+:+^ rusPs ^+:+^ rlsPs
         particlessLen = lengthSU particless
-        pssLens = lengthsSU particless
-        lls = replicateSU pssLens llbb
-        lus = replicateSU pssLens lubb
-        rus = replicateSU pssLens rubb
-        rls = replicateSU pssLens rlbb
-
+        pssSegd = segdSU particless
 
         llsPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens llbb) particless)
+          (zipSU (replicateSU pssSegd llbb) particless)
         lusPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens lubb) particless)
+          (zipSU (replicateSU pssSegd lubb) particless)
         rusPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens rubb) particless)
+          (zipSU (replicateSU pssSegd rubb) particless)
         rlsPs = mapSU sndS $ filterSU (uncurryS inBox)  
-          (zipSU (replicateSU pssLens rlbb) particless)
+          (zipSU (replicateSU pssSegd rlbb) particless)
 
         newLengths = 
           merge4 (lengthsSU llsPs) (lengthsSU lusPs) 
@@ -117,7 +114,7 @@ calcCentroids orderedPoints = centroids
     centroids = zipWithU div' ms $
            foldSU pairP (0.0 :*: 0.0) $
             zipWithSU multCoor orderedPoints 
-              (replicateSU (lengthsSU orderedPoints) ms)
+              (replicateSU (segdSU orderedPoints) ms)
     div' m (x :*: y) = ((x/m :*: y/m)   :*: m)
     multCoor ((x :*: y)  :*: _)  m = (m * x :*: m * y)
 
@@ -132,7 +129,7 @@ calcAccel:: BHTree -> UArr MassPoint ->  UArr (Double :*: Double)
 calcAccel [] particles 
   | lengthU particles == 0 = emptyU
   | otherwise              = error $ "calcVelocity: reached empty tree" ++ (show particles)
-calcAccel  ((centroids, segd) :trees) particles = closeAccel
+calcAccel  ((centroids, segd) :trees) particles = trace ("segd: " ++ show segd ++ " " ++ show (lengthU centroids)) closeAccel
   where
 
     closeAccel = splitApplyU  particlesClose
@@ -140,7 +137,12 @@ calcAccel  ((centroids, segd) :trees) particles = closeAccel
                     calcFarAccel 
                     (zipU
                        (flattenSU $ replicateCU (lengthU particles) centroids)
-                       (flattenSU $ replicateSU segd particles))
+                       (flattenSU
+                        $ replicateSU
+                            (lengthsToUSegd
+                             $ replicateU (lengthU particles) (lengthU centroids))
+                          particles))
+                       -- (flattenSU $ replicateSU segd particles))
     particlesClose (((x1 :*: y1):*: _)  :*: ((x2 :*: y2) :*: _))  =  
         (x1-x2)^2 + (y1-y2)^2 < eClose
     

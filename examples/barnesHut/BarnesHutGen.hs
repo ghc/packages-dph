@@ -21,7 +21,7 @@ type Particle  = MassPoint :*: Velocity
 type BoundingBox = Point :*: Point
 
 type  BHTree      = [BHTreeLevel]
-type  BHTreeLevel = (UArr MassPoint, UArr Int) -- centroids
+type  BHTreeLevel = (UArr MassPoint, USegd) -- centroids
 
 epsilon = 0.05
 eClose  = 0.5
