@@ -1,8 +1,7 @@
-TESTDIR = ..
-PROGS = spec-constr
-include $(TESTDIR)/mk/test.mk
+TOPDIR = ..
+BINARIES = spec-constr
 
-spec-constr.o: Pipelines.hi
+spec-constr_SOURCES = Pipelines.hs spec-constr.hs
+spec-constr_FLAGS = -package dph-prim-seq -package dph-base
 
-spec-constr: Pipelines.o $(BENCHLIB)
-
+include $(TOPDIR)/mk/test.mk

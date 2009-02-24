@@ -1,6 +1,6 @@
 DPHDIR = $(TOPDIR)/..
 
-HC = $(DPHDIR)/../../ghc/stage1-inplace/ghc
+HC = $(DPHDIR)/../../ghc/stage2-inplace/ghc
 HCPKG = $(DPHDIR)/../../utils/ghc-pkg/install-inplace/bin/ghc-pkg
 
 BENCH_DIR = $(TOPDIR)/lib

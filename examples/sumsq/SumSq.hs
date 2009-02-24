@@ -3,12 +3,11 @@
 module Main (main)
 where
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted as U
 
 sumSq :: Int -> Int
 {-# NOINLINE sumSq #-}
---sumSq = sumP . mapP (\x -> x * x) . enumFromToP 1
-sumSq n = sumU (mapU (\x -> x * x) (enumFromToU 1 n))
+sumSq n = U.sum (U.map (\x -> x * x) (U.enumFromTo 1 n))
 
 main = print $ sumSq 100
 

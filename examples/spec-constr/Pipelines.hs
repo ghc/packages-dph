@@ -1,24 +1,24 @@
 module Pipelines where
 
-import Data.Array.Parallel.Unlifted
+import Data.Array.Parallel.Unlifted as U
 
-pipe1 :: UArr Int -> UArr Int -> UArr Int
-pipe1 xs ys = mapU (+1) (xs +:+ ys)
+pipe1 :: U.Array Int -> U.Array Int -> U.Array Int
+pipe1 xs ys = U.map (+1) (xs +:+ ys)
 {-# NOINLINE pipe1 #-}
 
-pipe2 :: UArr Int -> UArr Int
-pipe2 = mapU (+1) . tailU
+pipe2 :: U.Array Int -> U.Array Int
+pipe2 = U.map (+1) . U.tail
 {-# NOINLINE pipe2 #-}
 
-pipe3 :: UArr Int -> Int
-pipe3 = maximumU . scan1U (+)
+pipe3 :: U.Array Int -> Int
+pipe3 = U.maximum . U.scan1 (+)
 {-# NOINLINE pipe3 #-}
 
-pipe4 :: SUArr Int -> Int
-pipe4 = maximumU . sumSU
+pipe4 :: U.SArray Int -> Int
+pipe4 = U.maximum . U.sum_s
 {-# NOINLINE pipe4 #-}
 
-pipe5 :: UArr Int -> UArr Int
+pipe5 :: U.Array Int -> U.Array Int
 {-# NOINLINE pipe5 #-}
-pipe5 xs = sumSU (replicateSU (replicateU (lengthU xs) 5) xs)
+pipe5 xs = U.sum_s (U.replicate_s (U.replicate (U.length xs) 5) xs)
 
