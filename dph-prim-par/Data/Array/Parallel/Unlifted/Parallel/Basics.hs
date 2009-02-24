@@ -21,8 +21,11 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Unlifted.Parallel.Basics (lengthUP, nullUP, indexedUP, 
-       replicateUP, replicateEachUnbalancedUP) where
+module Data.Array.Parallel.Unlifted.Parallel.Basics (
+  lengthUP, nullUP, indexedUP,
+  replicateUP, replicateEachUnbalancedUP
+) where
+
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS)
 
