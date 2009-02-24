@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  mapSUP, filterSUP, packCUP,
+  mapSUP, filterSUP, packCUP, combineCUP,
   zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP',
   enumFromThenToSUP, replicateSUP, replicateCUP, indexedSUP, jsTest
 ) where
@@ -26,7 +26,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented (
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, zipWithUP, packUP)
+  mapUP, zipWithUP, packUP, combineUP)
 import Data.Array.Parallel.Unlifted.Parallel.Basics (
   replicateUP, repeatUP)
 import Data.Array.Parallel.Unlifted.Parallel.Enum (enumFromToEachUP)
@@ -77,6 +77,14 @@ packCUP flags xssArr = segmentArrU newLengths flatData
     flatData   = packUP (flattenSU xssArr) repFlags 
     newLengths = packUP (lengthsSU xssArr) flags    
 
+combineCUP :: UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
+{-# INLINE combineCUP #-}
+combineCUP flags xss yss = newSegd >: flatData
+  where
+    newLengths = combineUP flags (lengthsSU xss) (lengthsSU yss)
+    newSegd    = lengthsToUSegd newLengths
+    repFlags   = replicateSU newSegd flags
+    flatData   = combineUP (concatSU repFlags) (concatSU xss) (concatSU yss)
 
 foldlSUP :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE foldlSUP #-}
