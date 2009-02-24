@@ -19,13 +19,16 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   mapSUP, filterSUP, packCUP,
-  zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP', enumFromThenToSUP, replicateSUP, indexedSUP, jsTest
+  zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP',
+  enumFromThenToSUP, replicateSUP, replicateCUP, indexedSUP, jsTest
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, zipWithUP, packUP)
+import Data.Array.Parallel.Unlifted.Parallel.Basics (
+  replicateUP, repeatUP)
 import Data.Array.Parallel.Unlifted.Parallel.Enum (enumFromToEachUP)
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS)
@@ -114,6 +117,11 @@ replicateSUP segd es = segd >: arr
         $ zipU (lengthsUSegd segd) es
 
     mk ps = concatSU $ replicateSU (lengthsToUSegd (fstU ps)) (sndU ps)
+
+replicateCUP :: UA e => Int -> UArr e -> SUArr e
+{-# INLINE_UP replicateCUP #-}
+replicateCUP n arr = segmentArrU (replicateUP n (lengthU arr))
+                   $ repeatUP n arr
 
 -- |Associate each data element with its index
 --
