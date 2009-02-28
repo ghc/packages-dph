@@ -3,7 +3,7 @@ Name:           dph-seq
 #else
 Name:           dph-par
 #endif
-Version:        0.3
+Version:        0.4.0
 License:        BSD3
 License-File:   ../dph/LICENSE
 Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy

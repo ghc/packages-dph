@@ -27,8 +27,17 @@ repeat :: Elt a => Int -> Array a -> Array a
 (!:) :: Elt a => Array a -> Int -> a
 {-# INLINE (!:) #-}
 
+drop :: Elt a => Int -> Array a -> Array a
+{-# INLINE drop #-}
+
+permute :: Elt a => Array a -> Array Int -> Array a
+{-# INLINE permute #-}
+
 bpermute :: Elt a => Array a -> Array Int -> Array a
 {-# INLINE bpermute #-}
+
+update :: Elt a => Array a -> Array (Int :*: a) -> Array a
+{-# INLINE update #-}
 
 (+:+) :: Elt a => Array a -> Array a -> Array a
 {-# INLINE (+:+) #-}
@@ -42,6 +51,9 @@ combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
 
 map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
 {-# INLINE map #-}
+
+filter :: Elt a => (a -> Bool) -> Array a -> Array a
+{-# INLINE filter #-}
 
 zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a :*: b)
 {-# INLINE zip #-}
@@ -75,6 +87,9 @@ fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 fold1 :: Elt a => (a -> a -> a) -> Array a -> a
 {-# INLINE fold1 #-}
 
+and :: Array Bool -> Bool
+{-# INLINE and #-}
+
 sum :: (Num a, Elt a) => Array a -> a
 {-# INLINE sum #-}
 
@@ -87,6 +102,9 @@ indexed :: Elt a => Array a -> Array (Int :*: a)
 
 enumFromTo :: Int -> Int -> Array Int
 {-# INLINE enumFromTo #-}
+
+enumFromThenTo :: Int -> Int -> Int -> Array Int
+{-# INLINE enumFromThenTo #-}
 
 enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
 {-# INLINE enumFromToEach #-}
@@ -117,8 +135,42 @@ length_s :: Elt a => SArray a -> Int
 lengths_s :: Elt a => SArray a -> Array Int
 {-# INLINE lengths_s #-}
 
+replicate_s :: Elt a => Segd -> Array a -> SArray a
+{-# INLINE replicate_s #-}
+
 indices_s :: Elt a => SArray a -> Array Int
 {-# INLINE indices_s #-}
+
+
+fst_s :: (Elt a, Elt b) => SArray (a :*: b) -> SArray a
+{-# INLINE fst_s #-}
+
+snd_s :: (Elt a, Elt b) => SArray (a :*: b) -> SArray b
+{-# INLINE snd_s #-}
+
+zip_s :: (Elt a, Elt b) => SArray a -> SArray b -> SArray (a :*: b)
+{-# INLINE zip_s #-}
+
+
+bpermute_s' :: Elt a => Array a -> SArray Int -> SArray a
+{-# INLINE bpermute_s' #-}
+
+
+map_s:: (Elt a, Elt b) => (a -> b) -> SArray a -> SArray b
+{-# INLINE map_s #-}
+
+filter_s :: Elt a => (a -> Bool) -> SArray a -> SArray a
+{-# INLINE filter_s #-}
+
+pack_c :: Elt a => Array Bool -> SArray a -> SArray a
+{-# INLINE pack_c #-}
+
+combine_c :: Elt a => Array Bool -> SArray a -> SArray a -> SArray a
+{-# INLINE combine_c #-}
+
+zipWith_s :: (Elt a, Elt b, Elt c) 
+          => (a -> b -> c) -> SArray a -> SArray b -> SArray c
+{-# INLINE zipWith_s #-}
 
 
 fold_s :: Elt a => (a -> a -> a) -> a -> SArray a -> Array a
@@ -129,6 +181,10 @@ fold1_s :: Elt a => (a -> a -> a) -> SArray a -> Array a
 
 sum_s :: (Num a, Elt a) => SArray a -> Array a
 {-# INLINE sum_s #-}
+
+
+enumFromThenTo_s :: Array Int -> Array Int -> Array Int -> SArray Int
+{-# INLINE enumFromThenTo_s #-}
 
 
 indexed_s :: Elt a => SArray a -> SArray (Int :*: a)

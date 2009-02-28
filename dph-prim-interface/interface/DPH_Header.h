@@ -3,20 +3,24 @@ module Data.Array.Parallel.Unlifted (
 
   length,
   empty, replicate, replicateEach, repeat, (+:+),
-  (!:), bpermute,
+  (!:), drop, permute, bpermute, update,
   pack, combine,
-  enumFromTo, enumFromToEach, indexed,
+  enumFromTo, enumFromThenTo, enumFromToEach, indexed,
   
   zip, zip3, unzip, unzip3, fsts,
   map, zipWith, zipWith3,
+  filter,
 
-  fold, fold1, sum, scan,
+  fold, fold1, and, sum, scan,
 
   randoms, randomRs,
 
-  (>:), concat, (^+:+^), length_s, lengths_s, indices_s,
+  (>:), concat, (^+:+^), length_s, lengths_s, replicate_s, indices_s,
+  fst_s, snd_s, zip_s,
+  bpermute_s', map_s, filter_s, pack_c, combine_c, zipWith_s,
   indexed_s,
   fold_s, fold1_s, sum_s,
+  enumFromThenTo_s, replicate_s,
   toSegd,
 
   toList, fromList

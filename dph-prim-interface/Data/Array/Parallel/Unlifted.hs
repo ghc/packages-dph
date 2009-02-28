@@ -32,7 +32,10 @@ replicateEach n ns xs
   $ zipWith replicate ns xs
 repeat n xs = concat (replicate n xs)
 (!:) = (P.!!)
+drop = P.drop
+permute = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.permute"
 bpermute xs ns = map (xs !:) ns
+update = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.update"
 (+:+) = (P.++)
 
 pack xs bs = [x | (x,b) <- P.zip xs bs, b]
@@ -42,6 +45,7 @@ combine (True  : bs) (x : xs) ys       = x : combine bs xs ys
 combine (False : bs) xs       (y : ys) = y : combine bs xs ys
 
 map = P.map
+filter = P.filter
 zip = P.zipWith (:*:)
 unzip = pairS . P.unzip . P.map unpairS
 fsts = map fstS
@@ -54,11 +58,13 @@ zipWith3 = P.zipWith3
 
 fold = P.foldr -- or equivalently foldl
 fold1 = P.foldr1 -- or equivalently foldr1
+and = P.and
 sum = P.sum
 scan f z = P.init . P.scanl f z
 
 indexed xs = zip [0 .. length xs - 1] xs
 enumFromTo m n = [m .. n]
+enumFromThenTo m n s = [m, n..s]
 enumFromToEach n ps = ASSERT (n == length ns)
                     $ ns
   where
@@ -78,11 +84,26 @@ concat = P.concat
 
 length_s = P.length
 lengths_s = map length
+replicate_s (lens, _) = zipWith replicate lens
 indices_s = scan (+) 0 . lengths_s
+
+fst_s = map (map fstS)
+snd_s = map (map sndS)
+zip_s = zipWith zip
+
+bpermute_s' = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.update"
+
+map_s f = map (map f)
+filter_s p = map (filter p)
+pack_c = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.pack_c"
+combine_c = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.combine_c"
+zipWith_s f = zipWith (zipWith f)
 
 fold_s f z = map (fold f z)
 fold1_s f = map (fold1 f)
 sum_s = map sum
+
+enumFromThenTo_s = zipWith3 enumFromThenTo
 
 indexed_s = map indexed
 
