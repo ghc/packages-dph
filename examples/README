@@ -16,9 +16,6 @@ The following options are common to all benchmarks:
   --runs=N                Repeat each benchmark N times
   -r N
 
-  --threads=N             Use N threads
-  -t N
-
   --seq=N                 Simulate N threads
   -s N
 
@@ -35,7 +32,7 @@ Running benchmarks
 
 For parallel benchmarks, you usually want to use
 
-  benchmark --threads=<N> --runs=<R> <INPUT> +RTS -N<T>
+  benchmark --runs=<R> <INPUT> +RTS -N<N>
 
 Here, N is the number of threads to use and R the number of times the
 benchmark should be repeated (you probably want something between 3 and 10).
@@ -47,7 +44,8 @@ The output will look as follows:
 Here, wall_{best|avg|worst} is the best, average and worst wall-clock time,
 respectively; cpu_{best|avg|worst} is the CPU time. Note that for parallel
 benchmarks on a multiprocessor, the wall-clock time will typically decrease
-with more threads whereas the CPU time will slightly increase. 
+with more threads whereas the CPU time will slightly increase.  The results
+are in milliseconds. 
 
 For sequential benchmarks, the number of threads does not have to be
 specified, i.e., --threads and +RTS -N can be omitted.

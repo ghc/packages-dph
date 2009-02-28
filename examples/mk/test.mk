@@ -33,15 +33,25 @@ endif
 
 $(flags) += -odir $(WAY) -hidir $(WAY)
 
+ifneq (,$($(BINARY)_SOURCES))
 $(WAY)/$(BINARY): $($(BINARY)_SOURCES) $(BENCH_DEP)
-	@mkdir $(WAY) || true
+	@mkdir -p $(WAY)
 	$(HC) -o $@ --make $< $(DPH_FLAGS) $($(flags)) $(BENCH_FLAGS)
+endif
+
+ifneq (,$($(BINARY)_CSOURCES))
+$(WAY)/$(BINARY): $($(BINARY)_CSOURCES)
+	@mkdir -p $(WAY)
+	$(CC) -o $@ $< $(CFLAGS)
+endif
+
+
 endif
 
 .PHONY: clean
 
 clean:
-	$(RM) -r $(WAYS)
+	$(RM) -r $(WAYS) other/
 
 .PHONY: bench
 
