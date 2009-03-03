@@ -107,9 +107,19 @@ enumFromThenTo_s = zipWith3 enumFromThenTo
 
 indexed_s = map indexed
 
+lengthsSegd = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.lengthsSegd"
+lengthsToSegd  = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.lengthsToSegd"
 toSegd = unpairS . unzip
+fromSegd = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.fromSegd"
 
+
+class Elt a => IOElt a
+hPut = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.hPut"
+hGet = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.hGet"
 
 toList x = x
 fromList x = x
+
+toList_s x = x
+fromList_s x = x
 

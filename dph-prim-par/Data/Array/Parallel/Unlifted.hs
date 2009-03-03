@@ -5,7 +5,7 @@
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+), (>:), (^+:+^), toUSegd)
+  hiding ((!:), (+:+), (>:), (^+:+^))
 import qualified Data.Array.Parallel.Unlifted.Sequential
   as U
 
@@ -47,8 +47,6 @@ indexed = indexedUP
 enumFromTo = enumFromToUP
 enumFromThenTo = enumFromThenToUP
 enumFromToEach = enumFromToEachU
-randoms = randomU
-randomRs = randomRU
 concat = concatSU
 (>:) = (U.>:)
 (^+:+^) = (U.^+:+^)
@@ -70,6 +68,16 @@ fold1_s = fold1SU
 sum_s = sumSUP
 enumFromThenTo_s = enumFromThenToSUP
 indexed_s = indexedSUP
-toSegd = U.toUSegd
+lengthsSegd = lengthsUSegd
+lengthsToSegd  = lengthsToUSegd
+toSegd = toUSegd
+fromSegd = fromUSegd
+randoms = randomU
+randomRs = randomRU
+class UIO a => IOElt a
+hPut = hPutU
+hGet = hGetU
 toList = fromU
 fromList = toU
+toList_s = fromSU
+fromList_s = toSU

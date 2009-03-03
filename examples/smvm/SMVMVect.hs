@@ -3,8 +3,8 @@
 module SMVMVect (smvm) where
 
 import Data.Array.Parallel.Prelude
-import Data.Array.Parallel.Prelude.Double
-import Data.Array.Parallel.Prelude.Int (Int)
+import Data.Array.Parallel.Prelude.Double as D
+import Data.Array.Parallel.Prelude.Int    as I
 
 import qualified Prelude
 
@@ -13,5 +13,5 @@ smvm :: PArray (PArray (Int, Double)) -> PArray Double -> PArray Double
 smvm m v = toPArrayP (smvm' (fromNestedPArrayP m) (fromPArrayP v))
 
 smvm' :: [:[: (Int, Double) :]:] -> [:Double:] -> [:Double:]
-smvm' m v = [: doubleSumP [: x * (v !: i) | (i,x) <- row :] | row <- m :]
-
+smvm' m v = [: D.sumP [: x D.* (v !: i) | (i,x) <- row :] | row <- m :]
+--smvm' m v = mapP (\row -> D.sumP (mapP (\(i, x) -> x D.* (v !: i)) row)) m

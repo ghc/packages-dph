@@ -110,15 +110,6 @@ enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
 {-# INLINE enumFromToEach #-}
 
 
-randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
-        => Int -> g -> Array a
-{-# INLINE randoms #-}
-
-randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
-          => Int -> (a,a) -> g -> Array a
-{-# INLINE randomRs #-}
-
-
 concat :: Elt a => SArray a -> Array a
 {-# INLINE concat #-}
 
@@ -191,13 +182,47 @@ indexed_s :: Elt a => SArray a -> SArray (Int :*: a)
 {-# INLINE indexed_s #-}
 
 
+lengthsSegd :: Segd -> Array Int
+{-# INLINE lengthsSegd #-}
+
+lengthsToSegd :: Array Int -> Segd
+{-# INLINE lengthsToSegd #-}
+
 toSegd :: Array (Int :*: Int) -> Segd
 {-# INLINE toSegd #-}
 
+fromSegd :: Segd -> Array (Int :*: Int)
+{-# INLINE fromSegd #-}
+
+
+randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
+        => Int -> g -> Array a
+{-# INLINE randoms #-}
+
+randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
+          => Int -> (a,a) -> g -> Array a
+{-# INLINE randomRs #-}
+
+
+instance IOElt Int
+instance IOElt Double
+instance (IOElt a, IOElt b) => IOElt (a :*: b)
+
+hPut :: IOElt a => Handle -> Array a -> IO ()
+{-# INLINE hPut #-}
+
+hGet :: IOElt a => Handle -> IO (Array a)
+{-# INLINE hGet #-}
 
 toList :: Elt a => Array a -> [a]
 {-# INLINE toList #-}
 
 fromList :: Elt a => [a] -> Array a
 {-# INLINE fromList #-}
+
+toList_s :: Elt a => SArray a -> [[a]]
+{-# INLINE toList_s #-}
+
+fromList_s :: Elt a => [[a]] -> SArray a
+{-# INLINE fromList_s #-}
 

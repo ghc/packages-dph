@@ -1,12 +1,16 @@
 TOPDIR = ..
-BINARIES = mksm smvm-c smvm prim
+BINARIES = smvm prim mksm smvm-c
 
 HCCFLAGS = -optc-O3
 
 smvm_DPH = smvm
-smvm_SOURCES = smvm.hs SMVMVect.hs
+smvm_SOURCES = vect.hs SMVMVect.hs
 
 prim_DPH = prim
 prim_SOURCES = prim.hs SMVMPrim.hs
 
-include $(TESTDIR)/mk/test.mk
+smvm-c_CSOURCES = smvm-c.c
+
+mksm_CSOURCES = mksm.c
+
+include $(TOPDIR)/mk/test.mk
