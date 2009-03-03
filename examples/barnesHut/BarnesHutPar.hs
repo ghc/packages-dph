@@ -170,7 +170,11 @@ calcAccel  ((centroids, segd) :trees) particles = closeAccel
                     calcFarAccel 
                     (zipU
                        (flattenSU $ replicateCU (lengthU particles) centroids)
-                       (flattenSU $ replicateSUP segd particles))
+                       (flattenSU
+                        $ replicateSUP
+                            (lengthsToUSegd
+                             $ replicateUP (lengthU particles) (lengthU centroids))
+                          particles))
     particlesClose (((x1 :*: y1):*: _)  :*: ((x2 :*: y2) :*: _))  =  
         (x1-x2)^2 + (y1-y2)^2 < eClose
     
