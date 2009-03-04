@@ -97,6 +97,9 @@ labelPoint f x = Point (f x) x
 mkPoint :: String -> a -> Point a
 mkPoint s x = Point s x
 
+instance Functor Point where
+  fmap f (Point lbl x) = Point lbl (f x)
+
 benchmark :: Options
           -> (a -> b)
           -> [IO (Point a)]

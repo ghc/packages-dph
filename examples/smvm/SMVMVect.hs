@@ -6,7 +6,7 @@ import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double as D
 import Data.Array.Parallel.Prelude.Int    as I
 
-import qualified Prelude
+import qualified Prelude as P
 
 smvm :: PArray (PArray (Int, Double)) -> PArray Double -> PArray Double
 {-# NOINLINE smvm #-}

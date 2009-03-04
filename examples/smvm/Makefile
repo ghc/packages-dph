@@ -11,6 +11,7 @@ prim_SOURCES = prim.hs SMVMPrim.hs
 
 smvm-c_CSOURCES = smvm-c.c
 
+CFLAGS = -I$(TOPDIR)/../../../includes
 mksm_CSOURCES = mksm.c
 
 include $(TOPDIR)/mk/test.mk
