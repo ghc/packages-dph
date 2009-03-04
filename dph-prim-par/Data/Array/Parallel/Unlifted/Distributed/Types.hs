@@ -55,8 +55,8 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Types." ++ s
 -- must be hyperstrict as we do not want to pass thunks into distributed
 -- computations.
 class DT a where
-  -- data Dist a
-  -- data MDist a s
+  data Dist  a
+  data MDist a :: * -> *
 
   -- | Extract a single element of an immutable distributed value.
   indexD         :: Dist a -> Int -> a
@@ -75,74 +75,20 @@ class DT a where
   -- | Unsafely freeze a mutable distributed value.
   unsafeFreezeMD :: MDist a s             -> ST s (Dist a)
 
--- GADTs TO REPLACE ATs FOR THE MOMENT
-data Dist a where
-  DUnit  :: !Int                             -> Dist ()
-  DPrim  :: !(BUArr a)                       -> Dist a
-  DProd  :: !(Dist a)   -> !(Dist b)         -> Dist (a :*: b)
-  DMaybe :: !(Dist Bool) -> !(Dist a)        -> Dist (MaybeS a)
+  -- | Number of elements in the distributed value. This is for debugging
+  -- only.
+  sizeD :: Dist a -> Int
 
-	-- The Dist Int redundantly records the size of the UArrs
-	-- (redundantly because the UArrs also contain their sizes)
-  DUArr  :: !(Dist Int) -> !(BBArr (UArr a)) -> Dist (UArr a)
-
-  -- NOTE: comments here were de-haddockized by Waern, because 
-  -- GADTS currently can't be documented
-  DUSegd :: -- Local segment descriptors
-            !(Dist (UArr (Int :*: Int)))
-            -- Indicates whether the first local segment is
-            -- split across two processors.
-            -- -> !(Dist Bool)                
-            -> Dist USegd
-
-  DSUArr :: !(Dist USegd) -> !(Dist (UArr a)) -> Dist (SUArr a)
-
-data MDist a s where
-  MDUnit  :: !Int                                   -> MDist ()         s
-  MDPrim  :: !(MBUArr s a)                          -> MDist a          s
-  MDProd  :: !(MDist a s)   -> !(MDist b s)         -> MDist (a :*: b)  s
-  MDMaybe :: !(MDist Bool s) -> !(MDist a s)        -> MDist (MaybeS a) s
-  MDUArr  :: !(MDist Int s) -> !(MBBArr s (UArr a)) -> MDist (UArr a)   s
-
-  MDUSegd :: !(MDist (UArr (Int :*: Int)) s)
-          -- -> !(MDist Bool s)                        
-                                                    -> MDist USegd      s
-
-  MDSUArr :: !(MDist USegd s) -> !(MDist (UArr a) s) -> MDist (SUArr a) s
-
-unDPrim :: UAE a => Dist a -> BUArr a
-unDPrim (DPrim a) = a
-
-unMDPrim :: UAE a => MDist a s -> MBUArr s a
-unMDPrim (MDPrim ma) = ma
+  -- | Number of elements in the mutable distributed value. This is for
+  -- debugging only.
+  sizeMD :: MDist a s -> Int
 
 -- Distributing hyperstrict types may not change their strictness.
 instance (HS a, DT a) => HS (Dist a)
 
--- | Number of elements in the distributed value. This is for debugging only
--- and not a method of 'DT'.
-sizeD :: Dist a -> Int
-sizeD (DUnit  n)   = n
-sizeD (DPrim  a)   = lengthBU a
-sizeD (DProd  x y) = sizeD x
-sizeD (DUArr  _ a) = lengthBB a
-sizeD (DMaybe b a) = sizeD b
-sizeD (DUSegd ps) = sizeD ps
-sizeD (DSUArr segd _) = sizeD segd
-
-
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
 checkGangD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeD d) v
-
--- | Number of elements in the mutable distributed value. This is for debugging
--- only and is thus not a method of 'DT'.
-sizeMD :: MDist a s -> Int
-sizeMD (MDUnit  n)    = n
-sizeMD (MDPrim  a)    = lengthMBU a
-sizeMD (MDProd  x y)  = sizeMD x
-sizeMD (MDUArr  _ ma) = lengthMBB ma
-sizeMD (MDMaybe b a)  = sizeMD b
 
 -- | Check that the sizes of the 'Gang' and of the mutable distributed value
 -- match.
@@ -157,6 +103,9 @@ instance (Show a, DT a) => Show (Dist a) where
 -- ----------------
 
 instance DT () where
+  data Dist ()    = DUnit  !Int
+  data MDist () s = MDUnit !Int
+
   indexD  (DUnit n) i       = check (here "indexD[()]") n i $ ()
   newMD                     = return . MDUnit . gangSize
   readMD   (MDUnit n) i     = check (here "readMD[()]")  n i $
@@ -165,64 +114,159 @@ instance DT () where
                                return ()
   unsafeFreezeMD (MDUnit n) = return $ DUnit n
 
-primIndexD :: UAE a => Dist a -> Int -> a
+class UAE e => DPrim e where
+  mkDPrim :: BUArr e -> Dist  e
+  unDPrim :: Dist  e -> BUArr e
+
+  mkMDPrim :: MBUArr s e -> MDist  e s
+  unMDPrim :: MDist  e s -> MBUArr s e
+
+primIndexD :: DPrim a => Dist a -> Int -> a
+{-# INLINE primIndexD #-}
 primIndexD = indexBU . unDPrim
 
-primNewMD :: UAE a => Gang -> ST s (MDist a s)
-primNewMD = liftM MDPrim . newMBU . gangSize
+primNewMD :: DPrim a => Gang -> ST s (MDist a s)
+{-# INLINE primNewMD #-}
+primNewMD = liftM mkMDPrim . newMBU . gangSize
 
-primReadMD :: UAE a => MDist a s -> Int -> ST s a
+primReadMD :: DPrim a => MDist a s -> Int -> ST s a
+{-# INLINE primReadMD #-}
 primReadMD = readMBU . unMDPrim
 
-primWriteMD :: UAE a => MDist a s -> Int -> a -> ST s ()
+primWriteMD :: DPrim a => MDist a s -> Int -> a -> ST s ()
+{-# INLINE primWriteMD #-}
 primWriteMD = writeMBU . unMDPrim
 
-primUnsafeFreezeMD :: UAE a => MDist a s -> ST s (Dist a)
-primUnsafeFreezeMD = liftM DPrim . unsafeFreezeAllMBU . unMDPrim
+primUnsafeFreezeMD :: DPrim a => MDist a s -> ST s (Dist a)
+{-# INLINE primUnsafeFreezeMD #-}
+primUnsafeFreezeMD = liftM mkDPrim . unsafeFreezeAllMBU . unMDPrim
+
+primSizeD :: DPrim a => Dist a -> Int
+{-# INLINE primSizeD #-}
+primSizeD = lengthBU . unDPrim
+
+primSizeMD :: DPrim a => MDist a s -> Int
+{-# INLINE primSizeMD #-}
+primSizeMD = lengthMBU . unMDPrim
+
+instance DPrim Bool where
+  mkDPrim           = DBool
+  unDPrim (DBool a) = a
+
+  mkMDPrim            = MDBool
+  unMDPrim (MDBool a) = a
 
 instance DT Bool where
+  data Dist  Bool   = DBool  !(BUArr    Bool)
+  data MDist Bool s = MDBool !(MBUArr s Bool)
+
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
   writeMD        = primWriteMD
   unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
+
+instance DPrim Char where
+  mkDPrim           = DChar
+  unDPrim (DChar a) = a
+
+  mkMDPrim            = MDChar
+  unMDPrim (MDChar a) = a
 
 instance DT Char where
+  data Dist  Char   = DChar  !(BUArr    Char)
+  data MDist Char s = MDChar !(MBUArr s Char)
+
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
   writeMD        = primWriteMD
   unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
+
+instance DPrim Int where
+  mkDPrim          = DInt
+  unDPrim (DInt a) = a
+
+  mkMDPrim            = MDInt
+  unMDPrim (MDInt a) = a
 
 instance DT Int where
+  data Dist  Int   = DInt  !(BUArr    Int)
+  data MDist Int s = MDInt !(MBUArr s Int)
+
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
   writeMD        = primWriteMD
   unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
+
+instance DPrim Word8 where
+  mkDPrim            = DWord8
+  unDPrim (DWord8 a) = a
+
+  mkMDPrim             = MDWord8
+  unMDPrim (MDWord8 a) = a
 
 instance DT Word8 where
+  data Dist  Word8   = DWord8  !(BUArr    Word8)
+  data MDist Word8 s = MDWord8 !(MBUArr s Word8)
+
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
   writeMD        = primWriteMD
   unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
+
+instance DPrim Float where
+  mkDPrim            = DFloat
+  unDPrim (DFloat a) = a
+
+  mkMDPrim             = MDFloat
+  unMDPrim (MDFloat a) = a
 
 instance DT Float where
+  data Dist  Float   = DFloat  !(BUArr    Float)
+  data MDist Float s = MDFloat !(MBUArr s Float)
+
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
   writeMD        = primWriteMD
   unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
+
+instance DPrim Double where
+  mkDPrim             = DDouble
+  unDPrim (DDouble a) = a
+
+  mkMDPrim              = MDDouble
+  unMDPrim (MDDouble a) = a
 
 instance DT Double where
+  data Dist  Double   = DDouble  !(BUArr    Double)
+  data MDist Double s = MDDouble !(MBUArr s Double)
+
   indexD         = primIndexD
   newMD          = primNewMD
   readMD         = primReadMD
   writeMD        = primWriteMD
   unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
 
 instance (DT a, DT b) => DT (a :*: b) where
+  data Dist  (a :*: b)   = DProd  !(Dist a)    !(Dist b)
+  data MDist (a :*: b) s = MDProd !(MDist a s) !(MDist b s)
+
   indexD d i               = (fstD d `indexD` i) :*: (sndD d `indexD` i)
   newMD g                  = liftM2 MDProd (newMD g) (newMD g)
   readMD  (MDProd xs ys) i = liftM2 (:*:) (readMD xs i) (readMD ys i)
@@ -231,8 +275,13 @@ instance (DT a, DT b) => DT (a :*: b) where
   unsafeFreezeMD (MDProd xs ys)
                             = liftM2 DProd (unsafeFreezeMD xs)
                                            (unsafeFreezeMD ys)
+  sizeD  (DProd  x _) = sizeD  x
+  sizeMD (MDProd x _) = sizeMD x
 
 instance DT a => DT (MaybeS a) where
+  data Dist  (MaybeS a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
+  data MDist (MaybeS a) s = MDMaybe !(MDist Bool s) !(MDist a s)
+
   indexD (DMaybe bs as) i
     | bs `indexD` i       = JustS $ as `indexD` i
     | otherwise           = NothingS
@@ -247,8 +296,13 @@ instance DT a => DT (MaybeS a) where
                                      >> writeMD as i x
   unsafeFreezeMD (MDMaybe bs as) = liftM2 DMaybe (unsafeFreezeMD bs)
                                                  (unsafeFreezeMD as)
+  sizeD  (DMaybe  b _) = sizeD  b
+  sizeMD (MDMaybe b _) = sizeMD b
 
 instance UA a => DT (UArr a) where
+  data Dist  (UArr a)   = DUArr  !(Dist  Int)   !(BBArr    (UArr a))
+  data MDist (UArr a) s = MDUArr !(MDist Int s) !(MBBArr s (UArr a))
+
   indexD (DUArr _ a) i = indexBB a i
   newMD g = liftM2 MDUArr (newMD g) (newMBB (gangSize g))
   readMD (MDUArr _ marr) = readMBB marr
@@ -258,15 +312,25 @@ instance UA a => DT (UArr a) where
       writeMBB marr i a
   unsafeFreezeMD (MDUArr len a) = liftM2 DUArr (unsafeFreezeMD len)
                                                 (unsafeFreezeAllMBB a)
+  sizeD  (DUArr  _ a) = lengthBB  a
+  sizeMD (MDUArr _ a) = lengthMBB a
 
 instance DT USegd where
+  data Dist  USegd   = DUSegd  !(Dist  (UArr (Int :*: Int)))
+  data MDist USegd s = MDUSegd !(MDist (UArr (Int :*: Int)) s)
+
   indexD (DUSegd d) = toUSegd . indexD d
   newMD g = liftM MDUSegd (newMD g)
   readMD (MDUSegd d) = liftM toUSegd . readMD d
   writeMD (MDUSegd d) i segd = writeMD d i (fromUSegd segd)
   unsafeFreezeMD (MDUSegd d) = liftM DUSegd (unsafeFreezeMD d)
+  sizeD  (DUSegd  d) = sizeD  d
+  sizeMD (MDUSegd d) = sizeMD d
 
 instance UA a => DT (SUArr a) where
+  data Dist  (SUArr a)   = DSUArr  !(Dist  USegd)   !(Dist  (UArr a))
+  data MDist (SUArr a) s = MDSUArr !(MDist USegd s) !(MDist (UArr a) s)
+
   indexD (DSUArr dsegd da) i = indexD dsegd i >: indexD da i
   newMD g = liftM2 MDSUArr (newMD g) (newMD g)
   readMD (MDSUArr msegd ma) i = liftM2 (>:) (readMD msegd i)
@@ -277,6 +341,8 @@ instance UA a => DT (SUArr a) where
       writeMD ma    i (concatSU sarr)
   unsafeFreezeMD (MDSUArr msegd ma) = liftM2 DSUArr (unsafeFreezeMD msegd)
                                                     (unsafeFreezeMD ma)
+  sizeD  (DSUArr  dsegd _) = sizeD  dsegd
+  sizeMD (MDSUArr dsegd _) = sizeMD dsegd
 
 -- |Basic operations on immutable distributed types
 -- -------------------------------------------
