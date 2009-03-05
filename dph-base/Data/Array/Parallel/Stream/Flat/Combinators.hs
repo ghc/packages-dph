@@ -187,6 +187,13 @@ zipWithS f (Stream next1 s m) (Stream next2 t n) =
         Yield y t' -> Yield (f x y) (NothingS :*: s :*: t')
 -}
 
+{-# RULES
+
+"zipWithS[s,s]" forall f s.
+  zipWithS f s s = mapS (\x -> f x x) s
+
+ #-}
+
 zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
 {-# INLINE_STREAM zipWith3S #-}
 zipWith3S f (Stream next1 s1 n) (Stream next2 s2 _) (Stream next3 s3 _) =
