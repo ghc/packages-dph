@@ -18,7 +18,7 @@ import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 
-import GHC.Exts (Int(..), (+#))
+import GHC.Exts (Int(..), (+#), (-#), Int#, (<#))
 
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
 {-# INLINE closure1 #-}
@@ -283,7 +283,11 @@ enumFromToPA_v :: Int -> Int -> PArray Int
 {-# INLINE_PA enumFromToPA_v #-}
 enumFromToPA_v m@(I# m#) n@(I# n#) = PInt len# (enumFromToPA_Int# m# n#)
   where
-    len# = case max 0 (n-m+1) of I# i# -> i#
+    len# = max# 0# (n# -# m# +# 1#) -- case max 0 (n-m+1) of I# i# -> i#
+
+max# :: Int# -> Int# -> Int#
+{-# INLINE_STREAM max# #-}
+max# m# n# = if m# <# n# then n# else m#
 
 enumFromToPA_l :: PArray Int -> PArray Int -> PArray (PArray Int)
 {-# INLINE_PA enumFromToPA_l #-}
