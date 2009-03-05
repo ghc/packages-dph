@@ -1,5 +1,5 @@
 TOPDIR = ..
-include $(TOPDIR)/mk/common.mk
+include $(TOPDIR)/mk/test.mk
 
 .PHONY: default
 default: SumSq_seq SumSq_par

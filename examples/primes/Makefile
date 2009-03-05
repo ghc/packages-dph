@@ -1,6 +1,8 @@
-TESTDIR = ..
+# REVISE!!!
+
+TOPDIR = ..
 PROGS = primes
-include $(TESTDIR)/mk/test.mk
+include $(TOPDIR)/mk/test.mk
 
 primes.o: H98.hi PrimSeq.hi PrimPar.hi
 

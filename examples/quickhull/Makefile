@@ -1,7 +1,9 @@
-TESTDIR = ..
+# REVISE!!!
+
+TOPDIR = ..
 PROGS = quickhull
 HCCFLAGS = -optc-O3
-include $(TESTDIR)/mk/test.mk
+include $(TOPDIR)/mk/test.mk
 
 quickhull.o: Types.hi QH.hi
 QH.o: Types.hi

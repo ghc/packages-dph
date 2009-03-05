@@ -1,2 +1,0 @@
-These are reference implementations of dot product and matrix-vector 
-multiplication for comparison purposes.  They don't use parallel arrays.

@@ -1,6 +1,8 @@
-TESTDIR = ..
+# REVISE!!!
+
+TOPDIR = ..
 PROGS = mkg concomp
-include $(TESTDIR)/mk/test.mk
+include $(TOPDIR)/mk/test.mk
 
 ALGS = AwShU.hs AwShUP.hs HybU.hs HybUP.hs
 

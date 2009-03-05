@@ -15,4 +15,4 @@ dph-par dph-seq:
 
 clean:
 	rm -rf dph-par dph-seq
-
+	$(MAKE) -C examples $@
