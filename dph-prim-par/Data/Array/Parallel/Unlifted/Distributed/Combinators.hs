@@ -70,7 +70,7 @@ zipWithD g f dx dy = mapD g (uncurry f . unsafe_unpairS) (zipD dx dy)
 -- | Fold a distributed value.
 foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
 {-# INLINE_DIST foldD #-}
-foldD g f d = checkGangD ("here foldD") g d $
+foldD g f !d = checkGangD ("here foldD") g d $
               fold 1 (d `indexD` 0)
   where
     n = gangSize g
