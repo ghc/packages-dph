@@ -1,12 +1,9 @@
-# REVISE!!!
-
 TOPDIR = ..
-PROGS = quickhull
+BINARIES = quickhull
+
 HCCFLAGS = -optc-O3
+
+quickhull_DPH = quickhull
+quickhull_SOURCES = vect.hs QuickhullVect.hs Types.hs
+
 include $(TOPDIR)/mk/test.mk
-
-quickhull.o: Types.hi QH.hi
-QH.o: Types.hi
-
-quickhull: quickhull.o QH.o Types.o
-
