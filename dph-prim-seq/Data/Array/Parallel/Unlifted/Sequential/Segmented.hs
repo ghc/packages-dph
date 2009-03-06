@@ -25,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   streamSU, unstreamSU,
 
   -- * Segmentation
-  concatSU, flattenSU, (>:), segmentU, segmentArrU, segdSU,
+  concatSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations
   lengthSU, singletonSU, singletonsSU, replicateSU,

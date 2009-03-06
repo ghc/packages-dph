@@ -93,7 +93,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   UIO(..),
 
   -- * Segmentation
-  concatSU, flattenSU, (>:), segmentU, segmentArrU, segdSU,
+  concatSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations (segmented)
   lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, (+:+^),
@@ -174,5 +174,5 @@ instance (Eq e, UA e) => Eq (UArr e) where
 
 -- |
 instance (Eq e, UA e) => Eq (SUArr e) where
-  a1 == a2 = flattenSU a1 == flattenSU a2
+  a1 == a2 = concatSU a1 == concatSU a2
 

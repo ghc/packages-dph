@@ -22,7 +22,7 @@
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, (!:^),
-  flattenSU, (>:), segmentU, segmentArrU, concatSU, (^+:+^),
+  concatSU, (>:), segmentU, segmentArrU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
@@ -38,7 +38,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat
 
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
-  SUArr, USegd, lengthSU, (>:), flattenSU, segdSU, lengthsSU, indicesSU,
+  SUArr, USegd, lengthSU, (>:), concatSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd)
 
 -- TODO: Remove
@@ -50,7 +50,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (lengthsUSegd, in
 -- |Segmentation
 -- -------------
 
--- flattenSU and (>:) reexported from SUArr
+-- concatSU and (>:) reexported from SUArr
 
 singletonSU :: UA e => UArr e -> SUArr e
 {-# INLINE_U singletonSU #-}
@@ -81,7 +81,7 @@ replicateCU n arr = segmentArrU (replicateU n rLen) $ repeatU n arr
 --
 (!:^) :: (UA e) => SUArr e -> UArr Int -> UArr e
 {-# INLINE (!:^) #-}
-(!:^) sArr inds = bpermuteU (flattenSU sArr) newInds
+(!:^) sArr inds = bpermuteU (concatSU sArr) newInds
   where
     xsLens  = lengthsSU sArr
     newInds = zipWithU (+) inds $ scanU (+) 0 xsLens    
@@ -99,11 +99,6 @@ segmentU template arr = segdSU template >: arr
 segmentArrU :: (UA e) => UArr Int -> UArr e -> SUArr e
 {-# INLINE_U segmentArrU #-}
 segmentArrU lengths arr = (lengthsToUSegd lengths) >: arr
-
--- |Concatenate the subarrays of an array of arrays
---
-concatSU :: UA e => SUArr e -> UArr e
-concatSU = flattenSU
 
 -- |Indexing
 -- ---------

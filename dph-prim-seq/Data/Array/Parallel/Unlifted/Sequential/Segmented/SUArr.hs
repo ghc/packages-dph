@@ -27,7 +27,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
 
   -- * Basic operations on segmented parallel arrays
   lengthSU, lengthsSU,indicesSU, segdSU,
-  flattenSU, (>:),
+  concatSU, (>:),
   newMSU, unsafeFreezeMSU,
 
   -- * Segment descriptors
@@ -73,9 +73,9 @@ segdSU (SUArr segd _) = segd
 
 -- |Yield the flat data array
 --
-flattenSU :: UA e => SUArr e -> UArr e
-{-# INLINE_U flattenSU #-}
-flattenSU (SUArr _ a) = a
+concatSU :: UA e => SUArr e -> UArr e
+{-# INLINE_U concatSU #-}
+concatSU (SUArr _ a) = a
 
 -- |Yield the number of segments.
 -- 

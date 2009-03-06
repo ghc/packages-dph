@@ -73,8 +73,8 @@ packCUP:: (UA e) => UArr Bool -> SUArr e -> SUArr e
 {-# INLINE packCUP #-}
 packCUP flags xssArr = segmentArrU newLengths flatData
   where
-    repFlags   = flattenSU $ replicateSUP (segdSU xssArr) flags
-    flatData   = packUP (flattenSU xssArr) repFlags 
+    repFlags   = concatSU $ replicateSUP (segdSU xssArr) flags
+    flatData   = packUP (concatSU xssArr) repFlags 
     newLengths = packUP (lengthsSU xssArr) flags    
 
 combineCUP :: UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
