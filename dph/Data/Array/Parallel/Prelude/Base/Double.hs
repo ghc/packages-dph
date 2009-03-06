@@ -59,12 +59,12 @@ eqV, neqV, leV, ltV, geV, gtV :: Double :-> Double :-> Bool
 {-# INLINE ltV #-}
 {-# INLINE geV #-}
 {-# INLINE gtV #-}
-eqV = closure2 dPA_Double (P.==) (unsafe_zipWith (P.==))
-neqV = closure2 dPA_Double (P./=) (unsafe_zipWith (P./=))
-leV = closure2 dPA_Double (P.<=) (unsafe_zipWith (P.<=))
-ltV = closure2 dPA_Double (P.<) (unsafe_zipWith (P.<))
-geV = closure2 dPA_Double (P.>=) (unsafe_zipWith (P.>=))
-gtV = closure2 dPA_Double (P.>) (unsafe_zipWith (P.>))
+eqV = closure2 dPA_Double (P.==) (scalar_zipWith (P.==))
+neqV = closure2 dPA_Double (P./=) (scalar_zipWith (P./=))
+leV = closure2 dPA_Double (P.<=) (scalar_zipWith (P.<=))
+ltV = closure2 dPA_Double (P.<) (scalar_zipWith (P.<))
+geV = closure2 dPA_Double (P.>=) (scalar_zipWith (P.>=))
+gtV = closure2 dPA_Double (P.>) (scalar_zipWith (P.>))
 
 (==), (/=), (<), (<=), (>), (>=) :: Double -> Double -> Bool
 (==) = (P.==)
@@ -77,8 +77,8 @@ gtV = closure2 dPA_Double (P.>) (unsafe_zipWith (P.>))
 minV, maxV :: Double :-> Double :-> Double
 {-# INLINE minV #-}
 {-# INLINE maxV #-}
-minV = closure2 dPA_Double P.min (unsafe_zipWith P.min)
-maxV = closure2 dPA_Double P.max (unsafe_zipWith P.max)
+minV = closure2 dPA_Double P.min (scalar_zipWith P.min)
+maxV = closure2 dPA_Double P.max (scalar_zipWith P.max)
 
 min, max :: Double -> Double -> Double
 min = P.min
@@ -87,8 +87,8 @@ max = P.max
 minimumPA, maximumPA :: PArray Double :-> Double
 {-# INLINE minimumPA #-}
 {-# INLINE maximumPA #-}
-minimumPA = closure1 (unsafe_fold1 P.min) (unsafe_fold1s P.min)
-maximumPA = closure1 (unsafe_fold1 P.max) (unsafe_fold1s P.max)
+minimumPA = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
+maximumPA = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 
 minimumP, maximumP :: [:Double:] -> Double
 minimumP = GHC.PArr.minimumP
@@ -96,7 +96,7 @@ maximumP = GHC.PArr.maximumP
 
 minIndexPA :: PArray Double :-> Int
 {-# INLINE minIndexPA #-}
-minIndexPA = closure1 (unsafe_fold1Index min') (unsafe_fold1sIndex min')
+minIndexPA = closure1 (scalar_fold1Index min') (scalar_fold1sIndex min')
   where
     min' (i,x) (j,y) | x P.<= y    = (i,x)
                      | P.otherwise = (j,y)
@@ -107,7 +107,7 @@ minIndexP _ = 0
 
 maxIndexPA :: PArray Double :-> Int
 {-# INLINE maxIndexPA #-}
-maxIndexPA = closure1 (unsafe_fold1Index max') (unsafe_fold1sIndex max')
+maxIndexPA = closure1 (scalar_fold1Index max') (scalar_fold1sIndex max')
   where
     max' (i,x) (j,y) | x P.>= y    = (i,x)
                      | P.otherwise = (j,y)
@@ -120,9 +120,9 @@ plusV, minusV, multV :: Double :-> Double :-> Double
 {-# INLINE plusV #-}
 {-# INLINE minusV #-}
 {-# INLINE multV #-}
-plusV = closure2 dPA_Double (P.+) (unsafe_zipWith (P.+))
-minusV = closure2 dPA_Double (P.-) (unsafe_zipWith (P.-))
-multV = closure2 dPA_Double (P.*) (unsafe_zipWith (P.*))
+plusV = closure2 dPA_Double (P.+) (scalar_zipWith (P.+))
+minusV = closure2 dPA_Double (P.-) (scalar_zipWith (P.-))
+multV = closure2 dPA_Double (P.*) (scalar_zipWith (P.*))
 
 (+), (-), (*) :: Double -> Double -> Double
 (+) = (P.+)
@@ -132,8 +132,8 @@ multV = closure2 dPA_Double (P.*) (unsafe_zipWith (P.*))
 negateV, absV :: Double :-> Double
 {-# INLINE negateV #-}
 {-# INLINE absV #-}
-negateV = closure1 P.negate (unsafe_map P.negate)
-absV = closure1 P.abs (unsafe_map P.abs)
+negateV = closure1 P.negate (scalar_map P.negate)
+absV = closure1 P.abs (scalar_map P.abs)
 
 negate, abs :: Double -> Double
 negate = P.negate
@@ -142,8 +142,8 @@ abs = P.abs
 sumPA, productPA :: PArray Double :-> Double
 {-# INLINE sumPA #-}
 {-# INLINE productPA #-}
-sumPA = closure1 (unsafe_fold (+) 0) (unsafe_folds (+) 0)
-productPA = closure1 (unsafe_fold (*) 1) (unsafe_folds (*) 1)
+sumPA = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
+productPA = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
 
 sumP, productP :: [:Double:] -> Double
 sumP = GHC.PArr.sumP
@@ -154,14 +154,14 @@ productP = GHC.PArr.productP
 
 divideV :: Double :-> Double :-> Double
 {-# INLINE divideV #-}
-divideV = closure2 dPA_Double (P./) (unsafe_zipWith (P./))
+divideV = closure2 dPA_Double (P./) (scalar_zipWith (P./))
 
 recip :: Double -> Double
 recip = P.recip
 
 recipV :: Double :-> Double
 {-# INLINE recipV #-}
-recipV = closure1 P.recip (unsafe_map P.recip)
+recipV = closure1 P.recip (scalar_map P.recip)
 
 
 pi :: Double
@@ -202,21 +202,21 @@ expV, sqrtV, logV, sinV, tanV, cosV, asinV, atanV, acosV, sinhV, tanhV, coshV,
 {-# INLINE asinhV #-}
 {-# INLINE atanhV #-}
 {-# INLINE acoshV #-}
-expV = closure1 P.exp (unsafe_map P.exp)
-sqrtV = closure1 P.sqrt (unsafe_map P.sqrt)
-logV = closure1 P.log (unsafe_map P.log)
-sinV = closure1 P.sin (unsafe_map P.sin)
-tanV = closure1 P.tan (unsafe_map P.tan)
-cosV = closure1 P.cos (unsafe_map P.cos)
-asinV = closure1 P.asin (unsafe_map P.asin)
-atanV = closure1 P.atan (unsafe_map P.atan)
-acosV = closure1 P.acos (unsafe_map P.acos)
-sinhV = closure1 P.sinh (unsafe_map P.sinh)
-tanhV = closure1 P.tanh (unsafe_map P.tanh)
-coshV = closure1 P.cosh (unsafe_map P.cosh)
-asinhV = closure1 P.asinh (unsafe_map P.asinh)
-atanhV = closure1 P.atanh (unsafe_map P.atanh)
-acoshV = closure1 P.acosh (unsafe_map P.acosh)
+expV = closure1 P.exp (scalar_map P.exp)
+sqrtV = closure1 P.sqrt (scalar_map P.sqrt)
+logV = closure1 P.log (scalar_map P.log)
+sinV = closure1 P.sin (scalar_map P.sin)
+tanV = closure1 P.tan (scalar_map P.tan)
+cosV = closure1 P.cos (scalar_map P.cos)
+asinV = closure1 P.asin (scalar_map P.asin)
+atanV = closure1 P.atan (scalar_map P.atan)
+acosV = closure1 P.acos (scalar_map P.acos)
+sinhV = closure1 P.sinh (scalar_map P.sinh)
+tanhV = closure1 P.tanh (scalar_map P.tanh)
+coshV = closure1 P.cosh (scalar_map P.cosh)
+asinhV = closure1 P.asinh (scalar_map P.asinh)
+atanhV = closure1 P.atanh (scalar_map P.atanh)
+acoshV = closure1 P.acosh (scalar_map P.acosh)
 
 (**), logBase :: Double -> Double -> Double
 (**) = (P.**)
@@ -225,13 +225,13 @@ logBase = P.logBase
 powV, logBaseV :: Double :-> Double :-> Double
 {-# INLINE powV #-}
 {-# INLINE logBaseV #-}
-powV = closure2 dPA_Double (P.**) (unsafe_zipWith (P.**))
-logBaseV = closure2 dPA_Double P.logBase (unsafe_zipWith P.logBase)
+powV = closure2 dPA_Double (P.**) (scalar_zipWith (P.**))
+logBaseV = closure2 dPA_Double P.logBase (scalar_zipWith P.logBase)
 
 
 fromIntV :: Int :-> Double
 {-# INLINE fromIntV #-}
-fromIntV = closure1 P.fromIntegral (unsafe_map P.fromIntegral)
+fromIntV = closure1 P.fromIntegral (scalar_map P.fromIntegral)
 
 fromInt :: Int -> Double
 fromInt = P.fromIntegral
@@ -241,10 +241,10 @@ truncateV, roundV, ceilingV, floorV :: Double :-> Int
 {-# INLINE roundV #-}
 {-# INLINE ceilingV #-}
 {-# INLINE floorV #-}
-truncateV = closure1 P.truncate (unsafe_map P.truncate)
-roundV = closure1 P.round (unsafe_map P.round)
-ceilingV = closure1 P.ceiling (unsafe_map P.ceiling)
-floorV = closure1 P.floor (unsafe_map P.floor)
+truncateV = closure1 P.truncate (scalar_map P.truncate)
+roundV = closure1 P.round (scalar_map P.round)
+ceilingV = closure1 P.ceiling (scalar_map P.ceiling)
+floorV = closure1 P.floor (scalar_map P.floor)
 
 truncate, round, ceiling, floor :: Double -> Int
 truncate = P.truncate

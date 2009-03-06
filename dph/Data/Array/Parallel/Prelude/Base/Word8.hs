@@ -46,12 +46,12 @@ eqV, neqV, leV, ltV, geV, gtV :: Word8 :-> Word8 :-> Bool
 {-# INLINE ltV #-}
 {-# INLINE geV #-}
 {-# INLINE gtV #-}
-eqV = closure2 dPA_Word8 (P.==) (unsafe_zipWith (P.==))
-neqV = closure2 dPA_Word8 (P./=) (unsafe_zipWith (P./=))
-leV = closure2 dPA_Word8 (P.<=) (unsafe_zipWith (P.<=))
-ltV = closure2 dPA_Word8 (P.<) (unsafe_zipWith (P.<))
-geV = closure2 dPA_Word8 (P.>=) (unsafe_zipWith (P.>=))
-gtV = closure2 dPA_Word8 (P.>) (unsafe_zipWith (P.>))
+eqV = closure2 dPA_Word8 (P.==) (scalar_zipWith (P.==))
+neqV = closure2 dPA_Word8 (P./=) (scalar_zipWith (P./=))
+leV = closure2 dPA_Word8 (P.<=) (scalar_zipWith (P.<=))
+ltV = closure2 dPA_Word8 (P.<) (scalar_zipWith (P.<))
+geV = closure2 dPA_Word8 (P.>=) (scalar_zipWith (P.>=))
+gtV = closure2 dPA_Word8 (P.>) (scalar_zipWith (P.>))
 
 (==), (/=), (<), (<=), (>), (>=) :: Word8 -> Word8 -> Bool
 (==) = (P.==)
@@ -64,8 +64,8 @@ gtV = closure2 dPA_Word8 (P.>) (unsafe_zipWith (P.>))
 minV, maxV :: Word8 :-> Word8 :-> Word8
 {-# INLINE minV #-}
 {-# INLINE maxV #-}
-minV = closure2 dPA_Word8 P.min (unsafe_zipWith P.min)
-maxV = closure2 dPA_Word8 P.max (unsafe_zipWith P.max)
+minV = closure2 dPA_Word8 P.min (scalar_zipWith P.min)
+maxV = closure2 dPA_Word8 P.max (scalar_zipWith P.max)
 
 min, max :: Word8 -> Word8 -> Word8
 min = P.min
@@ -74,8 +74,8 @@ max = P.max
 minimumPA, maximumPA :: PArray Word8 :-> Word8
 {-# INLINE minimumPA #-}
 {-# INLINE maximumPA #-}
-minimumPA = closure1 (unsafe_fold1 P.min) (unsafe_fold1s P.min)
-maximumPA = closure1 (unsafe_fold1 P.max) (unsafe_fold1s P.max)
+minimumPA = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
+maximumPA = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 
 minimumP, maximumP :: [:Word8:] -> Word8
 minimumP = GHC.PArr.minimumP
@@ -83,7 +83,7 @@ maximumP = GHC.PArr.maximumP
 
 minIndexPA :: PArray Word8 :-> Int
 {-# INLINE minIndexPA #-}
-minIndexPA = closure1 (unsafe_fold1Index min') (unsafe_fold1sIndex min')
+minIndexPA = closure1 (scalar_fold1Index min') (scalar_fold1sIndex min')
   where
     min' (i,x) (j,y) | x P.<= y    = (i,x)
                      | P.otherwise = (j,y)
@@ -94,7 +94,7 @@ minIndexP _ = 0
 
 maxIndexPA :: PArray Word8 :-> Int
 {-# INLINE maxIndexPA #-}
-maxIndexPA = closure1 (unsafe_fold1Index max') (unsafe_fold1sIndex max')
+maxIndexPA = closure1 (scalar_fold1Index max') (scalar_fold1sIndex max')
   where
     max' (i,x) (j,y) | x P.>= y    = (i,x)
                      | P.otherwise = (j,y)
@@ -107,9 +107,9 @@ plusV, minusV, multV :: Word8 :-> Word8 :-> Word8
 {-# INLINE plusV #-}
 {-# INLINE minusV #-}
 {-# INLINE multV #-}
-plusV = closure2 dPA_Word8 (P.+) (unsafe_zipWith (P.+))
-minusV = closure2 dPA_Word8 (P.-) (unsafe_zipWith (P.-))
-multV = closure2 dPA_Word8 (P.*) (unsafe_zipWith (P.*))
+plusV = closure2 dPA_Word8 (P.+) (scalar_zipWith (P.+))
+minusV = closure2 dPA_Word8 (P.-) (scalar_zipWith (P.-))
+multV = closure2 dPA_Word8 (P.*) (scalar_zipWith (P.*))
 
 (+), (-), (*) :: Word8 -> Word8 -> Word8
 (+) = (P.+)
@@ -119,8 +119,8 @@ multV = closure2 dPA_Word8 (P.*) (unsafe_zipWith (P.*))
 negateV, absV :: Word8 :-> Word8
 {-# INLINE negateV #-}
 {-# INLINE absV #-}
-negateV = closure1 P.negate (unsafe_map P.negate)
-absV = closure1 P.abs (unsafe_map P.abs)
+negateV = closure1 P.negate (scalar_map P.negate)
+absV = closure1 P.abs (scalar_map P.abs)
 
 negate, abs :: Word8 -> Word8
 negate = P.negate
@@ -129,8 +129,8 @@ abs = P.abs
 sumPA, productPA :: PArray Word8 :-> Word8
 {-# INLINE sumPA #-}
 {-# INLINE productPA #-}
-sumPA = closure1 (unsafe_fold (+) 0) (unsafe_folds (+) 0)
-productPA = closure1 (unsafe_fold (*) 1) (unsafe_folds (*) 1)
+sumPA = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
+productPA = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
 
 sumP, productP :: [:Word8:] -> Word8
 sumP = GHC.PArr.sumP
@@ -139,8 +139,8 @@ productP = GHC.PArr.productP
 divV, modV :: Word8 :-> Word8 :-> Word8
 {-# INLINE divV #-}
 {-# INLINE modV #-}
-divV = closure2 dPA_Word8 P.div (unsafe_zipWith P.div)
-modV = closure2 dPA_Word8 P.mod (unsafe_zipWith P.mod)
+divV = closure2 dPA_Word8 P.div (scalar_zipWith P.div)
+modV = closure2 dPA_Word8 P.mod (scalar_zipWith P.mod)
 
 div, mod :: Word8 -> Word8 -> Word8
 div = P.div
@@ -154,9 +154,9 @@ fromInt = P.fromIntegral
 
 toIntV :: Word8 :-> Int
 {-# INLINE toIntV #-}
-toIntV = closure1 P.fromIntegral (unsafe_map P.fromIntegral)
+toIntV = closure1 P.fromIntegral (scalar_map P.fromIntegral)
 
 fromIntV :: Int :-> Word8
 {-# INLINE fromIntV #-}
-fromIntV = closure1 P.fromIntegral (unsafe_map P.fromIntegral)
+fromIntV = closure1 P.fromIntegral (scalar_map P.fromIntegral)
 

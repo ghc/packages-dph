@@ -83,10 +83,10 @@ class Random a where
   randoms  :: R.RandomGen g => Int -> g -> PArray a
   randomRs :: R.RandomGen g => Int -> (a, a) -> g -> PArray a
 
-prim_randoms :: (PrimPA a, R.Random a, R.RandomGen g) => Int -> g -> PArray a
+prim_randoms :: (Scalar a, R.Random a, R.RandomGen g) => Int -> g -> PArray a
 prim_randoms n = fromUArrPA' . U.randoms n
 
-prim_randomRs :: (PrimPA a, R.Random a, R.RandomGen g) => Int -> (a, a) -> g -> PArray a
+prim_randomRs :: (Scalar a, R.Random a, R.RandomGen g) => Int -> (a, a) -> g -> PArray a
 prim_randomRs n r = fromUArrPA' . U.randomRs n r
 
 instance Random Int where
