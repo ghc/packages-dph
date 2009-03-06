@@ -1,11 +1,14 @@
 module Data.Array.Parallel.Lifted.Closure (
   (:->)(..), PArray(..),
   mkClosure, mkClosureP, ($:), ($:^),
-  dPA_Clo, dPR_Clo
+  dPA_Clo, dPR_Clo,
+
+  closure1, closure2, closure3
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Instances  (dPA_Unit)
+import Data.Array.Parallel.Lifted.Instances  (dPA_Unit, dPA_2, dPA_3)
+import Data.Array.Parallel.Lifted.Repr
 
 infixr 0 :->
 infixl 0 $:, $:^
@@ -102,4 +105,36 @@ bpermutePR_Clo (AClo pa f f' es) is = AClo pa f f' (bpermutePA# pa es is)
 
 {-# INLINE packPR_Clo #-}
 packPR_Clo (AClo pa f f' es) n# sel# = AClo pa f f' (packPA# pa es n# sel#)
+
+-- Closure construction
+
+closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
+{-# INLINE closure1 #-}
+closure1 fv fl = Clo dPA_Unit (\_ -> fv) (\_ -> fl) ()
+
+closure2 :: PA a
+         -> (a -> b -> c)
+         -> (PArray a -> PArray b -> PArray c)
+         -> (a :-> b :-> c)
+{-# INLINE closure2 #-}
+closure2 pa fv fl = Clo dPA_Unit fv_1 fl_1 ()
+  where
+    fv_1 _ x  = Clo  pa fv fl x
+    fl_1 _ xs = AClo pa fv fl xs
+
+closure3 :: PA a -> PA b
+         -> (a -> b -> c -> d)
+         -> (PArray a -> PArray b -> PArray c -> PArray d)
+         -> (a :-> b :-> c :-> d)
+{-# INLINE closure3 #-}
+closure3 pa pb fv fl = Clo dPA_Unit fv_1 fl_1 ()
+  where
+    fv_1 _  x  = Clo  pa fv_2 fl_2 x
+    fl_1 _  xs = AClo pa fv_2 fl_2 xs
+
+    fv_2 x  y  = Clo  (dPA_2 pa pb) fv_3 fl_3 (x,y)
+    fl_2 xs ys = AClo (dPA_2 pa pb) fv_3 fl_3 (P_2 (lengthPA# pa xs) xs ys)
+
+    fv_3 (x,y) z = fv x y z
+    fl_3 (P_2 _ xs ys) zs = fl xs ys zs
 

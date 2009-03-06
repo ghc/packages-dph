@@ -8,7 +8,7 @@ module Data.Array.Parallel.Prelude.Base.PArr (
 
 import GHC.PArr
 import Data.Array.Parallel.Lifted
-import Data.Array.Parallel.Lifted.Combinators
+import Data.Array.Parallel.Lifted.Closure
 
 fromPArrayP :: PArray a -> [:a:]
 {-# NOINLINE fromPArrayP #-}
