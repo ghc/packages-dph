@@ -10,9 +10,7 @@ module Data.Array.Parallel.Lifted.PArray (
   indexPA#, bpermutePA#, appPA#, applPA#,
   packPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
 
-  PRepr, PR(..), mkPR, mkReprPA,
-
-  PrimPA(..), prim_lengthPA, fromUArrPA'
+  PRepr, PR(..), mkPR, mkReprPA
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -157,17 +155,4 @@ mkReprPA pr = PA {
               , fromArrPRepr = id
               , dictPRepr    = pr
               }
-
-class U.Elt a => PrimPA a where
-  fromUArrPA :: Int -> U.Array a -> PArray a
-  toUArrPA   :: PArray a -> U.Array a
-  primPA     :: PA a
-
-prim_lengthPA :: PrimPA a => PArray a -> Int
-{-# INLINE prim_lengthPA #-}
-prim_lengthPA xs = I# (lengthPA# primPA xs)
-
-fromUArrPA' :: PrimPA a => U.Array a -> PArray a
-{-# INLINE fromUArrPA' #-}
-fromUArrPA' xs = fromUArrPA (U.length xs) xs
 

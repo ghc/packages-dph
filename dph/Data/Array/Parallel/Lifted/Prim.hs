@@ -17,6 +17,19 @@ import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS)
 import GHC.Exts ( Int(..), (-#) )
 import GHC.Word ( Word8 )
 
+class U.Elt a => PrimPA a where
+  fromUArrPA :: Int -> U.Array a -> PArray a
+  toUArrPA   :: PArray a -> U.Array a
+  primPA     :: PA a
+
+prim_lengthPA :: PrimPA a => PArray a -> Int
+{-# INLINE prim_lengthPA #-}
+prim_lengthPA xs = I# (lengthPA# primPA xs)
+
+fromUArrPA' :: PrimPA a => U.Array a -> PArray a
+{-# INLINE fromUArrPA' #-}
+fromUArrPA' xs = fromUArrPA (U.length xs) xs
+
 unsafe_map :: (PrimPA a, PrimPA b) => (a -> b) -> PArray a -> PArray b
 {-# INLINE_PA unsafe_map #-}
 unsafe_map f xs = fromUArrPA (prim_lengthPA xs)
