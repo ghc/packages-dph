@@ -8,7 +8,7 @@ module Data.Array.Parallel.PArray (
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Combinators
-import Data.Array.Parallel.Lifted.Prim
+import Data.Array.Parallel.Lifted.Scalar
 import qualified Data.Array.Parallel.Unlifted as U
 
 import Data.Array.Parallel.Base ( showsApp )

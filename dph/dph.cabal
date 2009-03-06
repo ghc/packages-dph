@@ -33,7 +33,7 @@ Library
   Other-Modules:
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Unboxed
-        Data.Array.Parallel.Lifted.Prim
+        Data.Array.Parallel.Lifted.Scalar
         Data.Array.Parallel.Lifted.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Instances

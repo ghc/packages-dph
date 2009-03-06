@@ -2,7 +2,7 @@
 
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Lifted.Prim
+module Data.Array.Parallel.Lifted.Scalar
 where
 
 import Data.Array.Parallel.Lifted.PArray
