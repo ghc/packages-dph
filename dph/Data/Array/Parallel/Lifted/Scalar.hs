@@ -42,6 +42,14 @@ scalar_zipWith :: (Scalar a, Scalar b, Scalar c)
 scalar_zipWith f xs ys = fromUArrPA (prim_lengthPA xs)
                        $ U.zipWith f (toUArrPA xs) (toUArrPA ys)
 
+scalar_zipWith3
+  :: (Scalar a, Scalar b, Scalar c, Scalar d)
+  => (a -> b -> c -> d) -> PArray a -> PArray b -> PArray c -> PArray d
+{-# INLINE_PA scalar_zipWith3 #-}
+scalar_zipWith3 f xs ys zs
+  = fromUArrPA (prim_lengthPA xs)
+  $ U.zipWith3 f (toUArrPA xs) (toUArrPA ys) (toUArrPA zs)
+
 scalar_fold :: Scalar a => (a -> a -> a) -> a -> PArray a -> a
 {-# INLINE_PA scalar_fold #-}
 scalar_fold f z = U.fold f z . toUArrPA
