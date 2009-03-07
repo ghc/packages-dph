@@ -28,13 +28,13 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Permute (
 import Data.Array.Parallel.Base (
   ST, runST, (:*:)(..), Rebox(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..))
+  Step(..), Stream(..), mapS)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, MUArr,
   lengthU, newU, newDynU, newMU, unsafeFreezeAllMU, writeMU,
   sliceU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
-  streamU, unstreamMU)
+  unstreamU, streamU, unstreamMU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   (!:))
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Enum (
@@ -65,7 +65,11 @@ permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 --
 bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE_U bpermuteU #-}
-bpermuteU !a = mapU (a!:)
+bpermuteU es = unstreamU . bpermuteUS es . streamU
+
+bpermuteUS :: UA e => UArr e -> Stream Int -> Stream e
+{-# INLINE_STREAM bpermuteUS #-}
+bpermuteUS !a = mapS (a!:)
 
 -- |Default back permute
 --
