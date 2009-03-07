@@ -32,6 +32,7 @@ replicateEach n ns xs
   $ zipWith replicate ns xs
 repeat n xs = concat (replicate n xs)
 (!:) = (P.!!)
+extract xs i n = P.take n (P.drop i xs)
 drop = P.drop
 permute = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.permute"
 bpermute xs ns = map (xs !:) ns

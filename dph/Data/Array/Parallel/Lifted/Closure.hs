@@ -101,7 +101,7 @@ replicatelPR_Clo n# ns (AClo pa f f' es)
 indexPR_Clo (AClo pa f f' es) i# = Clo pa f f' (indexPA# pa es i#)
 
 {-# INLINE bpermutePR_Clo #-}
-bpermutePR_Clo (AClo pa f f' es) is = AClo pa f f' (bpermutePA# pa es is)
+bpermutePR_Clo n# (AClo pa f f' es) is = AClo pa f f' (bpermutePA# pa n# es is)
 
 {-# INLINE packPR_Clo #-}
 packPR_Clo (AClo pa f f' es) n# sel# = AClo pa f f' (packPA# pa es n# sel#)

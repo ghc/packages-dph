@@ -27,6 +27,9 @@ repeat :: Elt a => Int -> Array a -> Array a
 (!:) :: Elt a => Array a -> Int -> a
 {-# INLINE (!:) #-}
 
+extract :: Elt a => Array a -> Int -> Int -> Array a
+{-# INLINE extract #-}
+
 drop :: Elt a => Int -> Array a -> Array a
 {-# INLINE drop #-}
 

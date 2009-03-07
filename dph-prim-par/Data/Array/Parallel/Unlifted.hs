@@ -22,6 +22,7 @@ replicate = replicateUP
 replicateEach = replicateEachUP
 repeat = repeatUP
 (!:) = (U.!:)
+extract = extractU
 drop = dropUP
 permute = permuteU
 bpermute = bpermuteUP

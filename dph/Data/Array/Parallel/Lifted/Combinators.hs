@@ -207,8 +207,8 @@ indexPA_v pa xs (I# i#) = indexPA# pa xs i#
 
 indexPA_l :: PA a -> PArray (PArray a) -> PArray Int -> PArray a
 {-# INLINE_PA indexPA_l #-}
-indexPA_l pa (PNested _ lens idxs xs) (PInt _ is)
-  = bpermutePA# pa xs (unsafe_zipWithPA_Int# (+) idxs is)
+indexPA_l pa (PNested _ lens idxs xs) (PInt n# is)
+  = bpermutePA# pa n# xs (unsafe_zipWithPA_Int# (+) idxs is)
 
 indexPA :: PA a -> (PArray a :-> Int :-> a)
 {-# INLINE indexPA #-}

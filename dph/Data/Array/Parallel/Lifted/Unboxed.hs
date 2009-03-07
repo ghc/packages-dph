@@ -8,7 +8,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
   replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
-  indexPA_Int#, bpermutePA_Int#, appPA_Int#, applPA_Int#,
+  indexPA_Int#, extractPA_Int#, bpermutePA_Int#,
+  appPA_Int#, applPA_Int#,
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
   fromListPA_Int#,
   upToPA_Int#, enumFromToPA_Int#, enumFromToEachPA_Int#,
@@ -20,7 +21,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   PArray_Word8#,
   lengthPA_Word8#, emptyPA_Word8#,
   replicatePA_Word8#, replicatelPA_Word8#, repeatPA_Word8#,
-  indexPA_Word8#, bpermutePA_Word8#, appPA_Word8#, applPA_Word8#,
+  indexPA_Word8#, extractPA_Word8#, bpermutePA_Word8#,
+  appPA_Word8#, applPA_Word8#,
   packPA_Word8#, pack'PA_Word8#, combine2PA_Word8#, combine2'PA_Word8#,
   fromListPA_Word8#,
   unsafe_zipWithPA_Word8#, unsafe_foldPA_Word8#, unsafe_fold1PA_Word8#,
@@ -29,7 +31,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   PArray_Double#,
   lengthPA_Double#, emptyPA_Double#,
   replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
-  indexPA_Double#, bpermutePA_Double#, appPA_Double#, applPA_Double#,
+  indexPA_Double#, extractPA_Double#, bpermutePA_Double#,
+  appPA_Double#, applPA_Double#,
   packPA_Double#, pack'PA_Double#, combine2PA_Double#, combine2'PA_Double#,
   fromListPA_Double#,
   unsafe_zipWithPA_Double#, unsafe_foldPA_Double#, unsafe_fold1PA_Double#,
@@ -82,6 +85,10 @@ repeatPA_Int# n# is = U.repeat (I# n#) is
 indexPA_Int# :: PArray_Int# -> Int# -> Int#
 indexPA_Int# ns i# = case ns U.!: I# i# of { I# n# -> n# }
 {-# INLINE_PA indexPA_Int# #-}
+
+extractPA_Int# :: PArray_Int# -> Int# -> Int# -> PArray_Int#
+extractPA_Int# xs i# n# = U.extract xs (I# i#) (I# n#)
+{-# INLINE_PA extractPA_Int# #-}
 
 bpermutePA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int#
 bpermutePA_Int# ns is = U.bpermute ns is
@@ -200,6 +207,10 @@ indexPA_Word8# :: PArray_Word8# -> Int# -> Word#
 indexPA_Word8# ds i# = case ds U.!: I# i# of { W8# d# -> d# }
 {-# INLINE_PA indexPA_Word8# #-}
 
+extractPA_Word8# :: PArray_Word8# -> Int# -> Int# -> PArray_Word8#
+extractPA_Word8# xs i# n# = U.extract xs (I# i#) (I# n#)
+{-# INLINE_PA extractPA_Word8# #-}
+
 bpermutePA_Word8# :: PArray_Word8# -> PArray_Int# -> PArray_Word8#
 bpermutePA_Word8# ds is = U.bpermute ds is
 {-# INLINE_PA bpermutePA_Word8# #-}
@@ -280,6 +291,10 @@ repeatPA_Double# n# ds = U.repeat (I# n#) ds
 indexPA_Double# :: PArray_Double# -> Int# -> Double#
 indexPA_Double# ds i# = case ds U.!: I# i# of { D# d# -> d# }
 {-# INLINE_PA indexPA_Double# #-}
+
+extractPA_Double# :: PArray_Double# -> Int# -> Int# -> PArray_Double#
+extractPA_Double# xs i# n# = U.extract xs (I# i#) (I# n#)
+{-# INLINE_PA extractPA_Double# #-}
 
 bpermutePA_Double# :: PArray_Double# -> PArray_Int# -> PArray_Double#
 bpermutePA_Double# ds is = U.bpermute ds is

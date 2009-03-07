@@ -47,6 +47,7 @@ dPR_Int = PR {
           , repeatPR     = repeatPR_Int
           , indexPR      = indexPR_Int
           , bpermutePR   = bpermutePR_Int
+          , extractPR    = extractPR_Int
           , appPR        = appPR_Int
           , applPR       = applPR_Int
           , packPR       = packPR_Int
@@ -73,8 +74,11 @@ repeatPR_Int n# (PInt m# is) = PInt (n# *# m#) (repeatPA_Int# n# is)
 {-# INLINE indexPR_Int #-}
 indexPR_Int (PInt _ ns) i# = I# (indexPA_Int# ns i#)
 
+{-# INLINE extractPR_Int #-}
+extractPR_Int (PInt _ ns) i# n# = PInt n# (extractPA_Int# ns i# n#)
+
 {-# INLINE bpermutePR_Int #-}
-bpermutePR_Int (PInt _ ns) is = PInt (lengthPA_Int# is) (bpermutePA_Int# ns is)
+bpermutePR_Int n# (PInt _ ns) is = PInt n# (bpermutePA_Int# ns is)
 
 {-# INLINE appPR_Int #-}
 appPR_Int (PInt m# ms) (PInt n# ns) = PInt (m# +# n#) (appPA_Int# ms ns)
@@ -123,6 +127,7 @@ dPR_Word8 = PR {
           , replicatelPR = replicatelPR_Word8
           , repeatPR     = repeatPR_Word8
           , indexPR      = indexPR_Word8
+          , extractPR    = extractPR_Word8
           , bpermutePR   = bpermutePR_Word8
           , appPR        = appPR_Word8
           , applPR       = applPR_Word8
@@ -152,9 +157,12 @@ repeatPR_Word8 n# (PWord8 m# is) = PWord8 (n# *# m#) (repeatPA_Word8# n# is)
 {-# INLINE indexPR_Word8 #-}
 indexPR_Word8 (PWord8 _ ds) i# = W8# (indexPA_Word8# ds i#)
 
+{-# INLINE extractPR_Word8 #-}
+extractPR_Word8 (PWord8 _ ns) i# n# = PWord8 n# (extractPA_Word8# ns i# n#)
+
 {-# INLINE bpermutePR_Word8 #-}
-bpermutePR_Word8 (PWord8 _ ds) is
-  = PWord8 (lengthPA_Int# is) (bpermutePA_Word8# ds is)
+bpermutePR_Word8 n# (PWord8 _ ds) is
+  = PWord8 n# (bpermutePA_Word8# ds is)
 
 {-# INLINE appPR_Word8 #-}
 appPR_Word8 (PWord8 m# ms) (PWord8 n# ns)
@@ -200,6 +208,7 @@ dPR_Double = PR {
           , replicatelPR = replicatelPR_Double
           , repeatPR     = repeatPR_Double
           , indexPR      = indexPR_Double
+          , extractPR    = extractPR_Double
           , bpermutePR   = bpermutePR_Double
           , appPR        = appPR_Double
           , applPR       = applPR_Double
@@ -229,9 +238,13 @@ repeatPR_Double n# (PDouble m# is) = PDouble (n# *# m#) (repeatPA_Double# n# is)
 {-# INLINE indexPR_Double #-}
 indexPR_Double (PDouble _ ds) i# = D# (indexPA_Double# ds i#)
 
+{-# INLINE extractPR_Double #-}
+extractPR_Double (PDouble _ ns) i# n#
+  = PDouble n# (extractPA_Double# ns i# n#)
+
 {-# INLINE bpermutePR_Double #-}
-bpermutePR_Double (PDouble _ ds) is
-  = PDouble (lengthPA_Int# is) (bpermutePA_Double# ds is)
+bpermutePR_Double n# (PDouble _ ds) is
+  = PDouble n# (bpermutePA_Double# ds is)
 
 {-# INLINE appPR_Double #-}
 appPR_Double (PDouble m# ms) (PDouble n# ns)

@@ -49,6 +49,7 @@ dPR_Void = PR {
            , replicatelPR = replicatelPR_Void
            , repeatPR     = repeatPR_Void
            , indexPR      = indexPR_Void
+           , extractPR    = extractPR_Void
            , bpermutePR   = bpermutePR_Void
            , appPR        = appPR_Void
            , applPR       = applPR_Void
@@ -83,9 +84,14 @@ indexPR_Void :: PArray Void -> Int# -> Void
 indexPR_Void (PVoid n#) i# = traceFn "indexPR_Void" $
              void
 
+extractPR_Void :: PArray Void -> Int# -> Int# -> PArray Void
+{-# INLINE extractPR_Void #-}
+extractPR_Void (PVoid _) i# n# = traceFn "extractPR_Void" $
+             PVoid n#
+
 {-# INLINE bpermutePR_Void #-}
-bpermutePR_Void (PVoid _) is = traceFn "bpermutePR_Void" $
-                PVoid (lengthPA_Int# is)
+bpermutePR_Void n# (PVoid _) _ = traceFn "bpermutePR_Void" $
+                PVoid n#
 
 {-# INLINE appPR_Void #-}
 appPR_Void (PVoid m#) (PVoid n#) = traceFn "appPR_Void" $
@@ -132,6 +138,7 @@ dPR_Unit = PR {
            , replicatelPR = replicatelPR_Unit
            , repeatPR     = repeatPR_Unit
            , indexPR      = indexPR_Unit
+           , extractPR    = extractPR_Unit
            , bpermutePR   = bpermutePR_Unit
            , appPR        = appPR_Unit
            , applPR       = applPR_Unit
@@ -171,9 +178,14 @@ indexPR_Unit :: PArray () -> Int# -> ()
 indexPR_Unit (PUnit n# u) i# = traceFn "indexPR_Unit" $
              u
 
+extractPR_Unit :: PArray () -> Int# -> Int# -> PArray ()
+{-# INLINE extractPR_Unit #-}
+extractPR_Unit (PUnit _ u) _ n# = traceFn "extractPR_Unit" $
+             PUnit n# u
+
 {-# INLINE bpermutePR_Unit #-}
-bpermutePR_Unit (PUnit _ u) is = traceFn "bpermutePR_Unit" $
-                PUnit (lengthPA_Int# is) u
+bpermutePR_Unit n# (PUnit _ u) _ = traceFn "bpermutePR_Unit" $
+                PUnit n# u
 
 {-# INLINE appPR_Unit #-}
 appPR_Unit (PUnit m# u) (PUnit n# v) = traceFn "appPR_Unit" $
@@ -210,6 +222,7 @@ dPR_Wrap pr = PR {
             , replicatelPR = replicatelPR_Wrap pr
             , repeatPR     = repeatPR_Wrap pr
             , indexPR      = indexPR_Wrap pr
+            , extractPR    = extractPR_Wrap pr
             , bpermutePR   = bpermutePR_Wrap pr
             , appPR        = appPR_Wrap pr
             , applPR       = applPR_Wrap pr
@@ -241,9 +254,13 @@ repeatPR_Wrap pr n# (PWrap m# xs) = traceFn "repeatPR_Wrap" $
 indexPR_Wrap pr (PWrap n# xs) i# = traceFn "indexPR_Wrap" $
              Wrap (indexPR pr xs i#)
 
+{-# INLINE extractPR_Wrap #-}
+extractPR_Wrap pr (PWrap _ xs) i# n# = traceFn "extractPR_Wrap" $
+             PWrap n# (extractPR pr xs i# n#)
+
 {-# INLINE bpermutePR_Wrap #-}
-bpermutePR_Wrap pr (PWrap n# xs) is = traceFn "bpermutePR_Wrap" $
-                PWrap (lengthPA_Int# is) (bpermutePR pr xs is)
+bpermutePR_Wrap pr n# (PWrap _ xs) is = traceFn "bpermutePR_Wrap" $
+                PWrap n# (bpermutePR pr n# xs is)
 
 {-# INLINE appPR_Wrap #-}
 appPR_Wrap pr (PWrap m# xs) (PWrap n# ys) = traceFn "appPR_Wrap" $
@@ -319,6 +336,7 @@ dPR_2 pra prb
     , replicatelPR = replicatelPR_2 pra prb
     , repeatPR     = repeatPR_2 pra prb
     , indexPR      = indexPR_2 pra prb
+    , extractPR    = extractPR_2 pra prb
     , bpermutePR   = bpermutePR_2 pra prb
     , appPR        = appPR_2 pra prb
     , applPR       = applPR_2 pra prb
@@ -358,11 +376,15 @@ repeatPR_2 pra prb n# (P_2 m# as bs)
 indexPR_2 pra prb (P_2 _ as bs) i# = traceFn "indexPR_2" $
           (indexPR pra as i#, indexPR prb bs i#)
 
+{-# INLINE extractPR_2 #-}
+extractPR_2 pra prb (P_2 _ as bs) i# n# = traceFn "extractPR_2" $
+          P_2 n# (extractPR pra as i# n#)
+                 (extractPR prb bs i# n#)
+
 {-# INLINE bpermutePR_2 #-}
-bpermutePR_2 pra prb (P_2 _ as bs) is
+bpermutePR_2 pra prb n# (P_2 _ as bs) is
   = traceFn "bpermutePR_2" $
-  P_2 (lengthPA_Int# is) (bpermutePR pra as is)
-                           (bpermutePR prb bs is)
+  P_2 n# (bpermutePR pra n# as is) (bpermutePR prb n# bs is)
 
 {-# INLINE appPR_2 #-}
 appPR_2 pra prb (P_2 m# as1 bs1) (P_2 n# as2 bs2)
@@ -420,6 +442,7 @@ dPR_3 pra prb prc
     , replicatelPR = replicatelPR_3 pra prb prc
     , repeatPR     = repeatPR_3 pra prb prc
     , indexPR      = indexPR_3 pra prb prc
+    , extractPR    = extractPR_3 pra prb prc
     , bpermutePR   = bpermutePR_3 pra prb prc
     , appPR        = appPR_3 pra prb prc
     , applPR       = applPR_3 pra prb prc
@@ -462,12 +485,19 @@ indexPR_3 pra prb prc (P_3 n# as bs cs) i#
   = traceFn "indexPR_3" $
   (indexPR pra as i#, indexPR prb bs i#, indexPR prc cs i#)
 
+{-# INLINE extractPR_3 #-}
+extractPR_3 pra prb prc (P_3 _ as bs cs) i# n# = traceFn "extractPR_3" $
+          P_3 n# (extractPR pra as i# n#)
+                 (extractPR prb bs i# n#)
+                 (extractPR prc cs i# n#)
+
 {-# INLINE bpermutePR_3 #-}
-bpermutePR_3 pra prb prc (P_3 _ as bs cs) is
+bpermutePR_3 pra prb prc n# (P_3 _ as bs cs) is
   = traceFn "bpermutePR_3" $
-  P_3 (lengthPA_Int# is) (bpermutePR pra as is)
-                           (bpermutePR prb bs is)
-                           (bpermutePR prc cs is)
+  P_3 n# (bpermutePR pra n# as is)
+         (bpermutePR prb n# bs is)
+         (bpermutePR prc n# cs is)
+
 {-# INLINE appPR_3 #-}
 appPR_3 pra prb prc (P_3 m# as1 bs1 cs1) (P_3 n# as2 bs2 cs2)
   = traceFn "appPR_3" $
@@ -525,6 +555,7 @@ dPR_4 pra prb prc prd
     , replicatelPR = replicatelPR_4 pra prb prc prd
     , repeatPR     = repeatPR_4 pra prb prc prd
     , indexPR      = indexPR_4 pra prb prc prd
+    , extractPR    = extractPR_4 pra prb prc prd
     , bpermutePR   = bpermutePR_4 pra prb prc prd
     , appPR        = appPR_4 pra prb prc prd
     , applPR       = applPR_4 pra prb prc prd
@@ -576,13 +607,21 @@ indexPR_4 pra prb prc prd (P_4 n# as bs cs ds) i#
      indexPR prc cs i#,
      indexPR prd ds i#)
 
+{-# INLINE extractPR_4 #-}
+extractPR_4 pra prb prc prd (P_4 _ as bs cs ds) i# n#
+  = traceFn "extractPR_4" $
+    P_4 n# (extractPR pra as i# n#)
+           (extractPR prb bs i# n#)
+           (extractPR prc cs i# n#)
+           (extractPR prd ds i# n#)
+
 {-# INLINE bpermutePR_4 #-}
-bpermutePR_4 pra prb prc prd (P_4 _ as bs cs ds) is
+bpermutePR_4 pra prb prc prd n# (P_4 _ as bs cs ds) is
   = traceFn "bpermutePR_4" $
-  P_4 (lengthPA_Int# is) (bpermutePR pra as is)
-                           (bpermutePR prb bs is)
-                           (bpermutePR prc cs is)
-                           (bpermutePR prd ds is)
+  P_4 n# (bpermutePR pra n# as is)
+         (bpermutePR prb n# bs is)
+         (bpermutePR prc n# cs is)
+         (bpermutePR prd n# ds is)
 
 {-# INLINE appPR_4 #-}
 appPR_4 pra prb prc prd (P_4 m# as1 bs1 cs1 ds1) (P_4 n# as2 bs2 cs2 ds2)
@@ -643,6 +682,7 @@ dPR_5 pra prb prc prd pre
     , replicatelPR = replicatelPR_5 pra prb prc prd pre
     , repeatPR     = repeatPR_5 pra prb prc prd pre
     , indexPR      = indexPR_5 pra prb prc prd pre
+    , extractPR    = extractPR_5 pra prb prc prd pre
     , bpermutePR   = bpermutePR_5 pra prb prc prd pre
     , appPR        = appPR_5 pra prb prc prd pre
     , applPR       = applPR_5 pra prb prc prd pre
@@ -700,14 +740,23 @@ indexPR_5 pra prb prc prd pre (P_5 n# as bs cs ds es) i#
      indexPR prd ds i#,
      indexPR pre es i#)
 
+{-# INLINE extractPR_5 #-}
+extractPR_5 pra prb prc prd pre (P_5 _ as bs cs ds es) i# n#
+  = traceFn "extractPR_5" $
+    P_5 n# (extractPR pra as i# n#)
+           (extractPR prb bs i# n#)
+           (extractPR prc cs i# n#)
+           (extractPR prd ds i# n#)
+           (extractPR pre es i# n#)
+
 {-# INLINE bpermutePR_5 #-}
-bpermutePR_5 pra prb prc prd pre (P_5 _ as bs cs ds es) is
+bpermutePR_5 pra prb prc prd pre n# (P_5 _ as bs cs ds es) is
   = traceFn "bpermutePR_5" $
-  P_5 (lengthPA_Int# is) (bpermutePR pra as is)
-                           (bpermutePR prb bs is)
-                           (bpermutePR prc cs is)
-                           (bpermutePR prd ds is)
-                           (bpermutePR pre es is)
+  P_5 n# (bpermutePR pra n# as is)
+         (bpermutePR prb n# bs is)
+         (bpermutePR prc n# cs is)
+         (bpermutePR prd n# ds is)
+         (bpermutePR pre n# es is)
 
 {-# INLINE appPR_5 #-}
 appPR_5 pra prb prc prd pre (P_5 m# as1 bs1 cs1 ds1 es1)
@@ -843,8 +892,8 @@ indexPR_Sum2 pra prb (PSum2 n# sel# is# as bs) i#
       0# -> Alt2_1 (indexPR pra as (indexPA_Int# is# i#))
       _  -> Alt2_2 (indexPR prb bs (indexPA_Int# is# i#))
 
-
-bpermutePR_Sum2 pra prb  is = traceFn "bpermutePR_Sum2" $
+bpermutePR_Sum2 :: PR a -> PR b -> Int# -> PArray (Sum2 a b) -> PArray_Int# -> PArray (Sum2 a b)
+bpermutePR_Sum2 pra prb _ _ is = traceFn "bpermutePR_Sum2" $
                 error "bpermutePR_Sum2 nyi"
 
 appPR_Sum2 pra prb (PSum2 n1# sel1# _ as1 bs1) (PSum2 n2# sel2# _ as2 bs2) = traceFn "appPR_Sum2" $           
@@ -955,6 +1004,7 @@ dPR_PArray pr = PR {
                 , replicatelPR = replicatelPR_PArray pr
                 , repeatPR     = repeatPR_PArray pr
                 , indexPR      = indexPR_PArray pr
+                , extractPR    = extractPR_PArray pr
                 , bpermutePR   = bpermutePR_PArray pr
                 , appPR        = appPR_PArray pr
                 , applPR       = applPR_PArray pr
@@ -983,15 +1033,21 @@ replicatePR_PArray pr n# xs
     lens = replicatePA_Int# n# (lengthPR pr xs)
 
 {-# INLINE indexPR_PArray #-}
-indexPR_PArray pr  (PNested m# lens inds xs) i#
-  = bpermutePR pr xs bpinds
-  where
-    bpinds = enumFromToPA_Int#
-               (indexPA_Int# inds i#)
-               (indexPA_Int# inds i# +# indexPA_Int# lens i# -# 1#)
+indexPR_PArray pr  (PNested m# lens idxs xs) i#
+  = extractPR pr xs (indexPA_Int# idxs i#)
+                    (indexPA_Int# lens i#)
 
-{- INLINE bpermutePR_PArray 3-}
-bpermutePR_PArray pr (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_PArray\n" $
+{-# INLINE extractPR_PArray #-}
+extractPR_PArray pr (PNested m# lens idxs xs) i# n#
+  = PNested n# lens' idxs' (extractPR pr xs (indexPA_Int# idxs i#)
+                                            (sumPA_Int# lens'))
+  where
+    lens' = extractPA_Int# lens i# n#
+    idxs' = unsafe_scanPA_Int# (+) 0 lens'
+
+{-# INLINE bpermutePR_PArray #-}
+-- FIXME: this doesn't look right
+bpermutePR_PArray pr m# (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_PArray\n" $
                   PNested n# xslens' xsInds' xs'
   where
     xslens' = bpermutePA_Int# xslens is
@@ -999,7 +1055,10 @@ bpermutePR_PArray pr (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_PArr
     is1     = bpermutePA_Int# xsInds is  
     is2     = unsafe_zipWithPA_Int# (\x -> \y -> x + y - 1) xslens' is1
     ps      = enumFromToEachPA_Int# (lengthPR pr xs) is1 is2
-    xs'     = bpermutePR pr xs ps
+    xs'     = bpermutePR pr (lengthPA_Int# ps) xs ps
+
+    _dummy :: Int#
+    _dummy = m#
 
 {-# INLINE appPR_PArray #-}
 appPR_PArray pr (PNested n# xslens xsInds xs) (PNested m# yslens ysInds ys) = traceFn "appPR_PArray\n" $             
@@ -1042,7 +1101,7 @@ repeatPR_PArray pr n# (PNested m# lens _ xs)
 {-# INLINE replicatelPR_PArray #-}
 replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
   = traceFn "replicatelPR_PArray\n" $
-  PNested n# new_lens new_idxs (bpermutePR pr xs indices)
+  PNested n# new_lens new_idxs (bpermutePR pr len xs indices)
   where
     new_lens = replicatelPA_Int# n# ns lens
     new_idxs = unsafe_scanPA_Int# (+) 0 new_lens
