@@ -28,7 +28,7 @@ toPArrayPA pa = closure1 (\x -> x) (\xs -> xs)
 
 fromNestedPArrayP :: PArray (PArray a) -> [:[:a:]:]
 {-# NOINLINE fromNestedPArrayP #-}
-fromNestedPArrayP _ = error "fromNestedPArrayP"
+fromNestedPArrayP _ = singletonP undefined
 
 fromNestedPArrayPA :: PA a -> (PArray (PArray a) :-> PArray (PArray a))
 {-# INLINE fromNestedPArrayPA #-}
