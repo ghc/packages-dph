@@ -63,7 +63,7 @@ splitLengthD g = splitLenD g . lengthU
 
 -- | Distribute the given array length over a 'Gang'.
 splitLenD :: Gang -> Int -> Dist Int
-splitLenD g n = newD g (`fill` 0)
+splitLenD g !n = newD g (`fill` 0)
   where
     p = gangSize g
     l = n `div` p
