@@ -23,7 +23,7 @@
 module Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, 
   replicateEachU,
-  (!:), (+:+), repeatU,
+  (!:), (+:+), repeatU, repeatUS,
   indexedU,
   toU, fromU
 ) where
@@ -100,11 +100,11 @@ a1 +:+ a2 = unstreamU (streamU a1 +++ streamU a2)
 --
 repeatU :: UA e => Int -> UArr e -> UArr e
 {-# INLINE_U repeatU #-}
-repeatU n !xs = unstreamU (rep n xs)
+repeatU n xs = unstreamU (repeatUS n xs)
 
-rep :: UA e => Int -> UArr e -> Stream e
-{-# INLINE_STREAM rep #-}
-rep k xs = Stream next (0 :*: k) (k*n)
+repeatUS :: UA e => Int -> UArr e -> Stream e
+{-# INLINE_STREAM repeatUS #-}
+repeatUS k !xs = Stream next (0 :*: k) (k*n)
   where
     n = lengthU xs
 
