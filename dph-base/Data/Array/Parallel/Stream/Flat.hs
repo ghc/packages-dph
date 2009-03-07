@@ -21,7 +21,7 @@ module Data.Array.Parallel.Stream.Flat (
   toStream, fromStream,
 
   mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
-  zipWithS, zipWith3S, zipS, combineS,
+  zipWithS, zipWith3S, zipS, zip3S, combineS,
 
   findS, findIndexS,
 

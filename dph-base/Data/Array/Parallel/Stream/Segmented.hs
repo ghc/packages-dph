@@ -34,7 +34,7 @@ data SStream a = SStream { segd   :: Stream Int
 segmentS :: Stream Int -> Stream a -> SStream a
 {-# INLINE segmentS #-}
 segmentS = SStream
-        
+
 foldValuesSS :: (a -> b -> a) -> a -> SStream b -> Stream a
 {-# INLINE_STREAM foldValuesSS #-}
 foldValuesSS f z  (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =

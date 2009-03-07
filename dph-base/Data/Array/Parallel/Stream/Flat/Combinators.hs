@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Stream.Flat.Combinators (
   mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
-  zipWithS, zipWith3S, zipS, combineS
+  zipWithS, zipWith3S, zipS, zip3S, combineS
 ) where
 
 import Data.Array.Parallel.Base (
@@ -217,4 +217,8 @@ zipWith3S f (Stream next1 s1 n) (Stream next2 s2 _) (Stream next3 s3 _) =
 zipS :: Stream a -> Stream b -> Stream (a :*: b)
 {-# INLINE zipS #-}
 zipS = zipWithS (:*:)
+
+zip3S :: Stream a -> Stream b -> Stream c -> Stream (a :*: b :*: c)
+{-# INLINE zip3S #-}
+zip3S = zipWith3S (\x y z -> x :*: y :*: z)
 
