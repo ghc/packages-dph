@@ -10,204 +10,207 @@ infixr 5 ^+:+^
 infixr 9 >:
 
 length :: Elt a => Array a -> Int
-{-# INLINE length #-}
+{-# INLINE_BACKEND length #-}
 
 empty :: Elt a => Array a
-{-# INLINE empty #-}
+{-# INLINE_BACKEND empty #-}
 
 replicate :: Elt a => Int -> a -> Array a
-{-# INLINE replicate #-}
+{-# INLINE_BACKEND replicate #-}
 
 replicateEach :: Elt a => Int -> Array Int -> Array a -> Array a
-{-# INLINE replicateEach #-}
+{-# INLINE_BACKEND replicateEach #-}
 
 repeat :: Elt a => Int -> Array a -> Array a
-{-# INLINE repeat #-}
+{-# INLINE_BACKEND repeat #-}
 
 (!:) :: Elt a => Array a -> Int -> a
-{-# INLINE (!:) #-}
+{-# INLINE_BACKEND (!:) #-}
 
 extract :: Elt a => Array a -> Int -> Int -> Array a
-{-# INLINE extract #-}
+{-# INLINE_BACKEND extract #-}
 
 drop :: Elt a => Int -> Array a -> Array a
-{-# INLINE drop #-}
+{-# INLINE_BACKEND drop #-}
 
 permute :: Elt a => Array a -> Array Int -> Array a
-{-# INLINE permute #-}
+{-# INLINE_BACKEND permute #-}
 
 bpermute :: Elt a => Array a -> Array Int -> Array a
-{-# INLINE bpermute #-}
+{-# INLINE_BACKEND bpermute #-}
 
 update :: Elt a => Array a -> Array (Int :*: a) -> Array a
-{-# INLINE update #-}
+{-# INLINE_BACKEND update #-}
 
 (+:+) :: Elt a => Array a -> Array a -> Array a
-{-# INLINE (+:+) #-}
+{-# INLINE_BACKEND (+:+) #-}
 
 
 pack :: Elt a => Array a -> Array Bool -> Array a
-{-# INLINE pack #-}
+{-# INLINE_BACKEND pack #-}
 
 combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
-{-# INLINE combine #-}
+{-# INLINE_BACKEND combine #-}
 
 map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
-{-# INLINE map #-}
+{-# INLINE_BACKEND map #-}
 
 filter :: Elt a => (a -> Bool) -> Array a -> Array a
-{-# INLINE filter #-}
+{-# INLINE_BACKEND filter #-}
 
 zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a :*: b)
-{-# INLINE zip #-}
+{-# INLINE_BACKEND zip #-}
 
 unzip :: (Elt a, Elt b) => Array (a :*: b) -> Array a :*: Array b
-{-# INLINE unzip #-}
+{-# INLINE_BACKEND unzip #-}
 
 fsts  :: (Elt a, Elt b) => Array (a :*: b) -> Array a
-{-# INLINE fsts #-}
+{-# INLINE_BACKEND fsts #-}
 
 zip3 :: (Elt a, Elt b, Elt c) => Array a -> Array b -> Array c
                            -> Array (a :*: b :*: c)
-{-# INLINE zip3 #-}
+{-# INLINE_BACKEND zip3 #-}
 
 unzip3 :: (Elt a, Elt b, Elt c)
        => Array (a :*: b :*: c) -> Array a :*: Array b :*: Array c
-{-# INLINE unzip3 #-}
+{-# INLINE_BACKEND unzip3 #-}
 
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
-{-# INLINE zipWith #-}
+{-# INLINE_BACKEND zipWith #-}
 
 zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
           => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
-{-# INLINE zipWith3 #-}
+{-# INLINE_BACKEND zipWith3 #-}
 
 
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
-{-# INLINE fold #-}
+{-# INLINE_BACKEND fold #-}
 
 fold1 :: Elt a => (a -> a -> a) -> Array a -> a
-{-# INLINE fold1 #-}
+{-# INLINE_BACKEND fold1 #-}
 
 and :: Array Bool -> Bool
-{-# INLINE and #-}
+{-# INLINE_BACKEND and #-}
 
 sum :: (Num a, Elt a) => Array a -> a
-{-# INLINE sum #-}
+{-# INLINE_BACKEND sum #-}
 
 scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
-{-# INLINE scan #-}
+{-# INLINE_BACKEND scan #-}
 
 
 indexed :: Elt a => Array a -> Array (Int :*: a)
-{-# INLINE indexed #-}
+{-# INLINE_BACKEND indexed #-}
 
 enumFromTo :: Int -> Int -> Array Int
-{-# INLINE enumFromTo #-}
+{-# INLINE_BACKEND enumFromTo #-}
 
 enumFromThenTo :: Int -> Int -> Int -> Array Int
-{-# INLINE enumFromThenTo #-}
+{-# INLINE_BACKEND enumFromThenTo #-}
+
+enumFromStepLen :: Int -> Int -> Int -> Array Int
+{-# INLINE_BACKEND enumFromStepLen #-}
 
 enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
-{-# INLINE enumFromToEach #-}
+{-# INLINE_BACKEND enumFromToEach #-}
 
 
 concat :: Elt a => SArray a -> Array a
-{-# INLINE concat #-}
+{-# INLINE_BACKEND concat #-}
 
 (>:) :: Elt a => Segd -> Array a -> SArray a
-{-# INLINE (>:) #-}
+{-# INLINE_BACKEND (>:) #-}
 
 (^+:+^) :: Elt a => SArray a -> SArray a -> SArray a
-{-# INLINE (^+:+^) #-}
+{-# INLINE_BACKEND (^+:+^) #-}
 
 
 length_s :: Elt a => SArray a -> Int
-{-# INLINE length_s #-}
+{-# INLINE_BACKEND length_s #-}
 
 lengths_s :: Elt a => SArray a -> Array Int
-{-# INLINE lengths_s #-}
+{-# INLINE_BACKEND lengths_s #-}
 
 replicate_s :: Elt a => Segd -> Array a -> SArray a
-{-# INLINE replicate_s #-}
+{-# INLINE_BACKEND replicate_s #-}
 
 repeat_c :: Elt a => Int -> Array Int -> Segd -> Array a -> Array a
-{-# INLINE repeat_c #-}
+{-# INLINE_BACKEND repeat_c #-}
 
 indices_s :: Elt a => SArray a -> Array Int
-{-# INLINE indices_s #-}
+{-# INLINE_BACKEND indices_s #-}
 
 
 fst_s :: (Elt a, Elt b) => SArray (a :*: b) -> SArray a
-{-# INLINE fst_s #-}
+{-# INLINE_BACKEND fst_s #-}
 
 snd_s :: (Elt a, Elt b) => SArray (a :*: b) -> SArray b
-{-# INLINE snd_s #-}
+{-# INLINE_BACKEND snd_s #-}
 
 zip_s :: (Elt a, Elt b) => SArray a -> SArray b -> SArray (a :*: b)
-{-# INLINE zip_s #-}
+{-# INLINE_BACKEND zip_s #-}
 
 
 bpermute_s' :: Elt a => Array a -> SArray Int -> SArray a
-{-# INLINE bpermute_s' #-}
+{-# INLINE_BACKEND bpermute_s' #-}
 
 
 map_s:: (Elt a, Elt b) => (a -> b) -> SArray a -> SArray b
-{-# INLINE map_s #-}
+{-# INLINE_BACKEND map_s #-}
 
 filter_s :: Elt a => (a -> Bool) -> SArray a -> SArray a
-{-# INLINE filter_s #-}
+{-# INLINE_BACKEND filter_s #-}
 
 pack_c :: Elt a => Array Bool -> SArray a -> SArray a
-{-# INLINE pack_c #-}
+{-# INLINE_BACKEND pack_c #-}
 
 combine_c :: Elt a => Array Bool -> SArray a -> SArray a -> SArray a
-{-# INLINE combine_c #-}
+{-# INLINE_BACKEND combine_c #-}
 
 zipWith_s :: (Elt a, Elt b, Elt c) 
           => (a -> b -> c) -> SArray a -> SArray b -> SArray c
-{-# INLINE zipWith_s #-}
+{-# INLINE_BACKEND zipWith_s #-}
 
 
 fold_s :: Elt a => (a -> a -> a) -> a -> SArray a -> Array a
-{-# INLINE fold_s #-}
+{-# INLINE_BACKEND fold_s #-}
 
 fold1_s :: Elt a => (a -> a -> a) -> SArray a -> Array a
-{-# INLINE fold1_s #-}
+{-# INLINE_BACKEND fold1_s #-}
 
 sum_s :: (Num a, Elt a) => SArray a -> Array a
-{-# INLINE sum_s #-}
+{-# INLINE_BACKEND sum_s #-}
 
 
 enumFromThenTo_s :: Array Int -> Array Int -> Array Int -> SArray Int
-{-# INLINE enumFromThenTo_s #-}
+{-# INLINE_BACKEND enumFromThenTo_s #-}
 
 
 indexed_s :: Elt a => SArray a -> SArray (Int :*: a)
-{-# INLINE indexed_s #-}
+{-# INLINE_BACKEND indexed_s #-}
 
 
 lengthsSegd :: Segd -> Array Int
-{-# INLINE lengthsSegd #-}
+{-# INLINE_BACKEND lengthsSegd #-}
 
 lengthsToSegd :: Array Int -> Segd
-{-# INLINE lengthsToSegd #-}
+{-# INLINE_BACKEND lengthsToSegd #-}
 
 toSegd :: Array (Int :*: Int) -> Segd
-{-# INLINE toSegd #-}
+{-# INLINE_BACKEND toSegd #-}
 
 fromSegd :: Segd -> Array (Int :*: Int)
-{-# INLINE fromSegd #-}
+{-# INLINE_BACKEND fromSegd #-}
 
 
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
-{-# INLINE randoms #-}
+{-# INLINE_BACKEND randoms #-}
 
 randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
           => Int -> (a,a) -> g -> Array a
-{-# INLINE randomRs #-}
+{-# INLINE_BACKEND randomRs #-}
 
 
 instance IOElt Int
@@ -215,19 +218,19 @@ instance IOElt Double
 instance (IOElt a, IOElt b) => IOElt (a :*: b)
 
 hPut :: IOElt a => Handle -> Array a -> IO ()
-{-# INLINE hPut #-}
+{-# INLINE_BACKEND hPut #-}
 
 hGet :: IOElt a => Handle -> IO (Array a)
-{-# INLINE hGet #-}
+{-# INLINE_BACKEND hGet #-}
 
 toList :: Elt a => Array a -> [a]
-{-# INLINE toList #-}
+{-# INLINE_BACKEND toList #-}
 
 fromList :: Elt a => [a] -> Array a
-{-# INLINE fromList #-}
+{-# INLINE_BACKEND fromList #-}
 
 toList_s :: Elt a => SArray a -> [[a]]
-{-# INLINE toList_s #-}
+{-# INLINE_BACKEND toList_s #-}
 
 fromList_s :: Elt a => [[a]] -> SArray a
 {-# INLINE fromList_s #-}

@@ -1,3 +1,5 @@
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted (
   (:*:)(..), Elt, Array, SArray, Segd,
 
@@ -32,4 +34,5 @@ import Prelude                    (Num, Int, Bool, Double)
 import System.IO                  (IO, Handle)
 import Data.Word                  (Word8)
 import qualified System.Random
+import qualified Prelude
 
