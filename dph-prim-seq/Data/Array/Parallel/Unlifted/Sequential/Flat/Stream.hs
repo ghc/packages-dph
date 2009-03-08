@@ -24,7 +24,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, ST, Rebox(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..), mapS, zipWithS)
+  Step(..), Stream(..), mapS, zipS)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UArr, MUArr, UA, indexU, lengthU, zipU, fstU, sndU, newDynU, writeMU)
 
@@ -84,7 +84,7 @@ unstreamMU marr (Stream next s n) = fill s 0
 {-# RULES  -- -} (for font-locking)
 
 "streamU/zipU" forall a1 a2.
-  streamU (zipU a1 a2) = zipWithS (:*:) (streamU a1) (streamU a2)
+  streamU (zipU a1 a2) = zipS (streamU a1) (streamU a2)
 
 "fstU/unstreamU" forall s.
   fstU (unstreamU s) = unstreamU (mapS fstS s)
