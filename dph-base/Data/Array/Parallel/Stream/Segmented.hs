@@ -37,7 +37,21 @@ segmentS = SStream
 
 foldValuesSS :: (a -> b -> a) -> a -> SStream b -> Stream a
 {-# INLINE_STREAM foldValuesSS #-}
-foldValuesSS f z  (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
+foldValuesSS f z (SStream is xs) = foldValuesSS' f z is xs
+
+-- We don't want the case to appear in the simplifier output before the
+-- INLINE_STREAM phase. That's why the rule.
+--
+{-# RULES
+
+"foldValuesSS/SStream" forall f z is xs.
+  foldValuesSS f z (SStream is xs) = foldValuesSS' f z is xs
+
+  #-}
+        
+foldValuesSS' :: (a -> b -> a) -> a -> Stream Int -> Stream b -> Stream a
+{-# INLINE_STREAM foldValuesSS' #-}
+foldValuesSS' f z (Stream nexts ss ns) (Stream nextv vs nv) =
   Stream next (NothingS :*: Box z :*: ss :*: vs) ns
   where
     {-# INLINE next #-}
