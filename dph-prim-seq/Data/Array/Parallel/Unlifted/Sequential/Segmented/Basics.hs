@@ -21,8 +21,8 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
-  lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, (!:^),
-  concatSU, (>:), segmentU, segmentArrU, (^+:+^),
+  lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, repeatCU,
+  (!:^), concatSU, (>:), segmentU, segmentArrU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
@@ -30,13 +30,14 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..))
+  (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..),SStream(..),(+++), (^+++^))
+  Step(..), Stream(..),SStream(..),(+++), (^+++^), zip3S)
 import Data.Array.Parallel.Unlifted.Sequential.Flat
 
 
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (streamSU,unstreamSU)
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
+  streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, USegd, lengthSU, (>:), concatSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd)
@@ -76,6 +77,27 @@ replicateCU n arr = segmentArrU (replicateU n rLen) $ repeatU n arr
   where
     rLen    = lengthU arr
 
+repeatCU :: UA e => Int -> UArr Int -> USegd -> UArr e -> UArr e
+{-# INLINE_U repeatCU #-}
+repeatCU k ns segd xs
+  = unstreamU (repeatCUS k (zip3S (streamU ns)
+                                  (streamU $ lengthsUSegd segd)
+                                  (streamU $ indicesUSegd segd)) xs)
+
+repeatCUS :: UA e => Int -> Stream (Int :*: Int :*: Int) -> UArr e -> Stream e
+{-# INLINE_STREAM repeatCUS #-}
+repeatCUS k (Stream step s n) !xs = Stream step' (s :*: 0 :*: 0 :*: 0 :*: 0) k
+  where
+    step' (s :*: i :*: 0 :*: idx :*: len)
+      = case step s of
+          Yield (n :*: idx :*: len) s'
+            -> Skip (s' :*: 0 :*: n :*: idx :*: len)
+          Skip s' -> Skip (s' :*: 0 :*: 0 :*: 0 :*: 0)
+          Done    -> Done
+
+    step' (s :*: i :*: n :*: idx :*: len)
+      | i >= len  = Skip                  (s :*: 0 :*: n-1 :*: idx :*: len)
+      | otherwise = Yield (xs !: (i+idx)) (s :*: i+1 :*: n :*: idx :*: len)
 
 -- |Array indexing
 --

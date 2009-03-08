@@ -86,6 +86,11 @@ concat = P.concat
 length_s = P.length
 lengths_s = map length
 replicate_s (lens, _) = zipWith replicate lens
+repeat_c _ ns segd xs = concat
+                      . concat
+                      . zipWith replicate ns
+                      $ segd >: xs
+
 indices_s = scan (+) 0 . lengths_s
 
 fst_s = map (map fstS)

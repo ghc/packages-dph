@@ -30,7 +30,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   -- * Basic operations
   lengthSU, singletonSU, singletonsSU, replicateSU,
   sliceIndexSU, extractIndexSU, (+:+^),
-  replicateCU, (!:^),
+  replicateCU, repeatCU, (!:^),
   indexedSU, (^+:+^),
 
   -- * Basic operations lifted

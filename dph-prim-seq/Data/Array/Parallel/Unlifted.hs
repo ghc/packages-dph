@@ -52,6 +52,7 @@ concat = concatSU
 length_s = lengthSU
 lengths_s = lengthsSU
 replicate_s = replicateSU
+repeat_c = repeatCU
 indices_s = indicesSU
 fst_s = fstSU
 snd_s = sndSU

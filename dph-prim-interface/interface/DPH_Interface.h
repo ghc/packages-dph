@@ -132,6 +132,9 @@ lengths_s :: Elt a => SArray a -> Array Int
 replicate_s :: Elt a => Segd -> Array a -> SArray a
 {-# INLINE replicate_s #-}
 
+repeat_c :: Elt a => Int -> Array Int -> Segd -> Array a -> Array a
+{-# INLINE repeat_c #-}
+
 indices_s :: Elt a => SArray a -> Array Int
 {-# INLINE indices_s #-}
 
