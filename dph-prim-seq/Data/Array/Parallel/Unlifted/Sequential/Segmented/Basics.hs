@@ -40,7 +40,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
   streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, USegd, lengthSU, (>:), concatSU, segdSU, lengthsSU, indicesSU,
-  lengthsToUSegd, singletonUSegd, toUSegd)
+  lengthsToUSegd, singletonUSegd, toUSegd, fromUSegd)
 
 -- TODO: Remove
 import Debug.Trace
