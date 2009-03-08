@@ -233,5 +233,24 @@ toList_s :: Elt a => SArray a -> [[a]]
 {-# INLINE_BACKEND toList_s #-}
 
 fromList_s :: Elt a => [[a]] -> SArray a
-{-# INLINE fromList_s #-}
+{-# INLINE_BACKEND fromList_s #-}
+
+{-# RULES
+
+"bpermute/repeat" forall n xs is.
+  bpermute (repeat n xs) is
+    = let k = length xs in k `Prelude.seq` bpermute xs (map (`Prelude.mod` k) is)
+
+  #-}
+
+-- FIXME
+-- WARNING: THIS RULE IS UTTERLY WRONG, it's only here for smvm which we can't
+-- really optimise at the moment.
+--
+{-# RULES
+
+"repeat_c/repeat" forall n ns segd k xs.
+  repeat_c n ns segd (repeat k xs)
+    = repeat (k Prelude.* sum ns) xs
+  #-}
 
