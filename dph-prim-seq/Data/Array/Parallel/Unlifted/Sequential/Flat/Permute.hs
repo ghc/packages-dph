@@ -63,9 +63,12 @@ permuteU arr is = newU (lengthU arr) $ \mpa -> permuteMU mpa arr is
 -- |Back permutation operation (ie, the permutation vector determines for each
 -- position in the result array its origin in the input array)
 --
+-- WARNING: DO NOT rewrite this as unstreamU . bpermuteUS es . streamU
+-- because GHC won't be able to figure out its strictness.
+--
 bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE_U bpermuteU #-}
-bpermuteU es = unstreamU . bpermuteUS es . streamU
+bpermuteU es is = unstreamU (bpermuteUS es (streamU is))
 
 bpermuteUS :: UA e => UArr e -> Stream Int -> Stream e
 {-# INLINE_STREAM bpermuteUS #-}

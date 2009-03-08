@@ -81,12 +81,12 @@ foldD g f !d = checkGangD ("here foldD") g d $
 -- | Prefix sum of a distributed value.
 scanD :: DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
 {-# INLINE_DIST scanD #-}
-scanD g f z d = checkGangD (here "scanD") g d $
-                runST (do
-                  md <- newMD g
-                  s  <- scan md 0 z
-                  d' <- unsafeFreezeMD md
-                  return (d' :*: s))
+scanD g f z !d = checkGangD (here "scanD") g d $
+                 runST (do
+                   md <- newMD g
+                   s  <- scan md 0 z
+                   d' <- unsafeFreezeMD md
+                   return (d' :*: s))
   where
     n = gangSize g
     --
