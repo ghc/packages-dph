@@ -45,6 +45,7 @@ dPR_Int = PR {
           , replicatePR  = replicatePR_Int
           , replicatelPR = replicatelPR_Int
           , repeatPR     = repeatPR_Int
+          , repeatcPR    = repeatcPR_Int
           , indexPR      = indexPR_Int
           , bpermutePR   = bpermutePR_Int
           , extractPR    = extractPR_Int
@@ -70,6 +71,10 @@ replicatelPR_Int n# ns (PInt _ is) = PInt n# (replicatelPA_Int# n# ns is)
 
 {-# INLINE repeatPR_Int #-}
 repeatPR_Int n# (PInt m# is) = PInt (n# *# m#) (repeatPA_Int# n# is)
+
+{-# INLINE repeatcPR_Int #-}
+repeatcPR_Int n# ns segd (PInt _ is)
+  = PInt n# (repeatcPA_Int# n# ns segd is)
 
 {-# INLINE indexPR_Int #-}
 indexPR_Int (PInt _ ns) i# = I# (indexPA_Int# ns i#)
@@ -126,6 +131,7 @@ dPR_Word8 = PR {
           , replicatePR  = replicatePR_Word8
           , replicatelPR = replicatelPR_Word8
           , repeatPR     = repeatPR_Word8
+          , repeatcPR    = repeatcPR_Word8
           , indexPR      = indexPR_Word8
           , extractPR    = extractPR_Word8
           , bpermutePR   = bpermutePR_Word8
@@ -153,6 +159,10 @@ replicatelPR_Word8 n# ns (PWord8 _ ds)
 
 {-# INLINE repeatPR_Word8 #-}
 repeatPR_Word8 n# (PWord8 m# is) = PWord8 (n# *# m#) (repeatPA_Word8# n# is)
+
+{-# INLINE repeatcPR_Word8 #-}
+repeatcPR_Word8 n# ns segd (PWord8 _ is)
+  = PWord8 n# (repeatcPA_Word8# n# ns segd is)
 
 {-# INLINE indexPR_Word8 #-}
 indexPR_Word8 (PWord8 _ ds) i# = W8# (indexPA_Word8# ds i#)
@@ -207,6 +217,7 @@ dPR_Double = PR {
           , replicatePR  = replicatePR_Double
           , replicatelPR = replicatelPR_Double
           , repeatPR     = repeatPR_Double
+          , repeatcPR    = repeatcPR_Double
           , indexPR      = indexPR_Double
           , extractPR    = extractPR_Double
           , bpermutePR   = bpermutePR_Double
@@ -234,6 +245,10 @@ replicatelPR_Double n# ns (PDouble _ ds)
 
 {-# INLINE repeatPR_Double #-}
 repeatPR_Double n# (PDouble m# is) = PDouble (n# *# m#) (repeatPA_Double# n# is)
+
+{-# INLINE repeatcPR_Double #-}
+repeatcPR_Double n# ns segd (PDouble _ is)
+  = PDouble n# (repeatcPA_Double# n# ns segd is)
 
 {-# INLINE indexPR_Double #-}
 indexPR_Double (PDouble _ ds) i# = D# (indexPA_Double# ds i#)

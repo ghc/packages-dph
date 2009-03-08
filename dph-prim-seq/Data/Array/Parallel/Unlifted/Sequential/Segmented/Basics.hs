@@ -80,17 +80,15 @@ replicateCU n arr = segmentArrU (replicateU n rLen) $ repeatU n arr
 repeatCU :: UA e => Int -> UArr Int -> USegd -> UArr e -> UArr e
 {-# INLINE_U repeatCU #-}
 repeatCU k ns segd xs
-  = unstreamU (repeatCUS k (zip3S (streamU ns)
-                                  (streamU $ lengthsUSegd segd)
-                                  (streamU $ indicesUSegd segd)) xs)
+  = unstreamU (repeatCUS k (streamU (zipU ns (fromUSegd segd))) xs)
 
-repeatCUS :: UA e => Int -> Stream (Int :*: Int :*: Int) -> UArr e -> Stream e
+repeatCUS :: UA e => Int -> Stream (Int :*: (Int :*: Int)) -> UArr e -> Stream e
 {-# INLINE_STREAM repeatCUS #-}
-repeatCUS k (Stream step s n) !xs = Stream step' (s :*: 0 :*: 0 :*: 0 :*: 0) k
+repeatCUS k (Stream step s _) !xs = Stream step' (s :*: 0 :*: 0 :*: 0 :*: 0) k
   where
     step' (s :*: i :*: 0 :*: idx :*: len)
       = case step s of
-          Yield (n :*: idx :*: len) s'
+          Yield (n :*: (idx :*: len)) s'
             -> Skip (s' :*: 0 :*: n :*: idx :*: len)
           Skip s' -> Skip (s' :*: 0 :*: 0 :*: 0 :*: 0)
           Done    -> Done

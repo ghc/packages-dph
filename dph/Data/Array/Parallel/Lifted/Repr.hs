@@ -48,6 +48,7 @@ dPR_Void = PR {
            , replicatePR  = replicatePR_Void
            , replicatelPR = replicatelPR_Void
            , repeatPR     = repeatPR_Void
+           , repeatcPR    = repeatcPR_Void
            , indexPR      = indexPR_Void
            , extractPR    = extractPR_Void
            , bpermutePR   = bpermutePR_Void
@@ -78,6 +79,10 @@ replicatelPR_Void n# _ _ = traceFn "replicatelPR_Void" $
 {-# INLINE repeatPR_Void #-}
 repeatPR_Void n# (PVoid m#) = traceFn "repeatPR_Void" $
               PVoid (n# *# m#)
+
+{-# INLINE repeatcPR_Void #-}
+repeatcPR_Void n# _ _ (PVoid _) = traceFn "repeatcPR_Void" $
+              PVoid n#
 
 indexPR_Void :: PArray Void -> Int# -> Void
 {-# INLINE indexPR_Void #-}
@@ -137,6 +142,7 @@ dPR_Unit = PR {
            , replicatePR  = replicatePR_Unit
            , replicatelPR = replicatelPR_Unit
            , repeatPR     = repeatPR_Unit
+           , repeatcPR    = repeatcPR_Unit
            , indexPR      = indexPR_Unit
            , extractPR    = extractPR_Unit
            , bpermutePR   = bpermutePR_Unit
@@ -172,6 +178,10 @@ replicatelPR_Unit n# _ (PUnit _ u) =
 {-# INLINE repeatPR_Unit #-}
 repeatPR_Unit n# (PUnit m# u) = traceFn "repeatPR_Unit" $
               PUnit (n# *# m#) u
+
+{-# INLINE repeatcPR_Unit #-}
+repeatcPR_Unit n# _ _ (PUnit _ u) = traceFn "repeatcPR_Unit" $
+              PUnit n# u
 
 indexPR_Unit :: PArray () -> Int# -> ()
 {-# INLINE indexPR_Unit #-}
@@ -221,6 +231,7 @@ dPR_Wrap pr = PR {
             , replicatePR  = replicatePR_Wrap pr
             , replicatelPR = replicatelPR_Wrap pr
             , repeatPR     = repeatPR_Wrap pr
+            , repeatcPR    = repeatcPR_Wrap pr
             , indexPR      = indexPR_Wrap pr
             , extractPR    = extractPR_Wrap pr
             , bpermutePR   = bpermutePR_Wrap pr
@@ -249,6 +260,10 @@ replicatelPR_Wrap pr n# ns (PWrap _ xs) = traceFn "replicatelPR_Wrap" $
 {-# INLINE repeatPR_Wrap #-}
 repeatPR_Wrap pr n# (PWrap m# xs) = traceFn "repeatPR_Wrap" $
               PWrap (n# *# m#) (repeatPR pr n# xs)
+
+{-# INLINE repeatcPR_Wrap #-}
+repeatcPR_Wrap pr n# is segd (PWrap _ xs) = traceFn "repeatcPR_Wrap" $
+              PWrap n# (repeatcPR pr n# is segd xs)
 
 {-# INLINE indexPR_Wrap #-}
 indexPR_Wrap pr (PWrap n# xs) i# = traceFn "indexPR_Wrap" $
@@ -335,6 +350,7 @@ dPR_2 pra prb
     , replicatePR  = replicatePR_2 pra prb
     , replicatelPR = replicatelPR_2 pra prb
     , repeatPR     = repeatPR_2 pra prb
+    , repeatcPR    = repeatcPR_2 pra prb
     , indexPR      = indexPR_2 pra prb
     , extractPR    = extractPR_2 pra prb
     , bpermutePR   = bpermutePR_2 pra prb
@@ -371,6 +387,12 @@ repeatPR_2 pra prb n# (P_2 m# as bs)
   = traceFn "repeatPR_2" $
   P_2 (n# *# m#) (repeatPR pra n# as)
                    (repeatPR prb n# bs)
+
+{-# INLINE repeatcPR_2 #-}
+repeatcPR_2 pra prb n# ns segd (P_2 _ as bs)
+  = traceFn "repeatcPR_2" $
+  P_2 n# (repeatcPR pra n# ns segd as)
+         (repeatcPR prb n# ns segd bs)
 
 {-# INLINE indexPR_2 #-}
 indexPR_2 pra prb (P_2 _ as bs) i# = traceFn "indexPR_2" $
@@ -441,6 +463,7 @@ dPR_3 pra prb prc
     , replicatePR  = replicatePR_3 pra prb prc
     , replicatelPR = replicatelPR_3 pra prb prc
     , repeatPR     = repeatPR_3 pra prb prc
+    , repeatcPR    = repeatcPR_3 pra prb prc
     , indexPR      = indexPR_3 pra prb prc
     , extractPR    = extractPR_3 pra prb prc
     , bpermutePR   = bpermutePR_3 pra prb prc
@@ -479,6 +502,13 @@ repeatPR_3 pra prb prc n# (P_3 m# as bs cs)
   P_3 (n# *# m#) (repeatPR pra n# as)
                    (repeatPR prb n# bs)
                    (repeatPR prc n# cs)
+
+{-# INLINE repeatcPR_3 #-}
+repeatcPR_3 pra prb prc n# ns segd (P_3 _ as bs cs)
+  = traceFn "repeatcPR_3" $
+  P_3 n# (repeatcPR pra n# ns segd as)
+         (repeatcPR prb n# ns segd bs)
+         (repeatcPR prc n# ns segd cs)
 
 {-# INLINE indexPR_3 #-}
 indexPR_3 pra prb prc (P_3 n# as bs cs) i#
@@ -554,6 +584,7 @@ dPR_4 pra prb prc prd
     , replicatePR  = replicatePR_4 pra prb prc prd
     , replicatelPR = replicatelPR_4 pra prb prc prd
     , repeatPR     = repeatPR_4 pra prb prc prd
+    , repeatcPR    = repeatcPR_4 pra prb prc prd
     , indexPR      = indexPR_4 pra prb prc prd
     , extractPR    = extractPR_4 pra prb prc prd
     , bpermutePR   = bpermutePR_4 pra prb prc prd
@@ -598,6 +629,14 @@ repeatPR_4 pra prb prc prd n# (P_4 m# as bs cs ds)
                    (repeatPR prb n# bs)
                    (repeatPR prc n# cs)
                    (repeatPR prd n# ds)
+
+{-# INLINE repeatcPR_4 #-}
+repeatcPR_4 pra prb prc prd n# ns segd (P_4 _ as bs cs ds)
+  = traceFn "repeatcPR_4" $
+  P_4 n# (repeatcPR pra n# ns segd as)
+         (repeatcPR prb n# ns segd bs)
+         (repeatcPR prc n# ns segd cs)
+         (repeatcPR prd n# ns segd ds)
 
 {-# INLINE indexPR_4 #-}
 indexPR_4 pra prb prc prd (P_4 n# as bs cs ds) i#
@@ -681,6 +720,7 @@ dPR_5 pra prb prc prd pre
     , replicatePR  = replicatePR_5 pra prb prc prd pre
     , replicatelPR = replicatelPR_5 pra prb prc prd pre
     , repeatPR     = repeatPR_5 pra prb prc prd pre
+    , repeatcPR    = repeatcPR_5 pra prb prc prd pre
     , indexPR      = indexPR_5 pra prb prc prd pre
     , extractPR    = extractPR_5 pra prb prc prd pre
     , bpermutePR   = bpermutePR_5 pra prb prc prd pre
@@ -730,6 +770,15 @@ repeatPR_5 pra prb prc prd pre n# (P_5 m# as bs cs ds es)
                    (repeatPR prc n# cs)
                    (repeatPR prd n# ds)
                    (repeatPR pre n# es)
+
+{-# INLINE repeatcPR_5 #-}
+repeatcPR_5 pra prb prc prd pre n# ns segd (P_5 _ as bs cs ds es)
+  = traceFn "repeatcPR_5" $
+  P_5 n# (repeatcPR pra n# ns segd as)
+         (repeatcPR prb n# ns segd bs)
+         (repeatcPR prc n# ns segd cs)
+         (repeatcPR prd n# ns segd ds)
+         (repeatcPR pre n# ns segd es)
 
 {-# INLINE indexPR_5 #-}
 indexPR_5 pra prb prc prd pre (P_5 n# as bs cs ds es) i#

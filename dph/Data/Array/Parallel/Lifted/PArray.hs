@@ -63,6 +63,11 @@ repeatPA# pa n# = fromArrPRepr pa
                 . repeatPR (dictPRepr pa) n#
                 . toArrPRepr pa
 
+repeatcPA# :: PA a -> Int# -> PArray_Int# -> Segd -> PArray a -> PArray a
+{-# INLINE_PA repeatcPA# #-}
+repeatcPA# pa n# ns segd = fromArrPRepr pa
+                         . repeatcPR (dictPRepr pa) n# ns segd
+                         . toArrPRepr pa
 
 indexPA# :: PA a -> PArray a -> Int# -> a
 {-# INLINE_PA indexPA# #-}
@@ -122,6 +127,7 @@ data PR a = PR {
             , replicatePR  :: Int# -> a -> PArray a
             , replicatelPR :: Int# -> PArray_Int# -> PArray a -> PArray a
             , repeatPR     :: Int# -> PArray a -> PArray a
+            , repeatcPR    :: Int# -> PArray_Int# -> Segd -> PArray a -> PArray a
             , indexPR      :: PArray a -> Int# -> a
             , extractPR    :: PArray a -> Int# -> Int# -> PArray a
             , bpermutePR   :: Int# -> PArray a -> PArray_Int# -> PArray a
