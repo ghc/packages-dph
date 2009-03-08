@@ -49,7 +49,7 @@ enumFromToS start end
 --
 --
 enumFromThenToS :: Int -> Int -> Int -> Stream Int
-{-# INLINE enumFromThenToS #-}
+{-# INLINE_STREAM enumFromThenToS #-}
 enumFromThenToS start next end
   = enumFromStepLenS start delta len
   where
@@ -62,7 +62,7 @@ enumFromThenToS start next end
 
 enumFromStepLenS :: Int -> Int -> Int -> Stream Int
 {-# INLINE_STREAM enumFromStepLenS #-}
-enumFromStepLenS s d n = Stream step (s :*: n) n
+enumFromStepLenS s !d n = Stream step (s :*: n) n
   where
     step (s :*: 0) = Done
     step (s :*: n) = Yield s ((s+d) :*: (n-1))
