@@ -12,8 +12,9 @@ module Data.Array.Parallel.Lifted.Unboxed (
   appPA_Int#, applPA_Int#,
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
   fromListPA_Int#,
-  upToPA_Int#, enumFromToPA_Int#, enumFromToEachPA_Int#,
-  selectPA_Int#, selectorToIndices2PA#,
+  upToPA_Int#, enumFromToPA_Int#, enumFromThenToPA_Int#,
+  enumFromStepLenPA_Int#, enumFromToEachPA_Int#,
+  selectPA_Int#, selectorToIndices2PA#, mkSegdPA#,
   sumPA_Int#, sumPAs_Int#,
   unsafe_mapPA_Int#, unsafe_zipWithPA_Int#, unsafe_foldPA_Int#,
   unsafe_scanPA_Int#,
@@ -136,6 +137,14 @@ enumFromToPA_Int# :: Int# -> Int# -> PArray_Int#
 enumFromToPA_Int# m# n# = U.enumFromTo (I# m#) (I# n#)
 {-# INLINE_PA enumFromToPA_Int# #-}
 
+enumFromThenToPA_Int# :: Int# -> Int# -> Int# -> PArray_Int#
+enumFromThenToPA_Int# k# m# n# = U.enumFromThenTo (I# k#) (I# m#) (I# n#)
+{-# INLINE_PA enumFromThenToPA_Int# #-}
+
+enumFromStepLenPA_Int# :: Int# -> Int# -> Int# -> PArray_Int#
+enumFromStepLenPA_Int# k# m# n# = U.enumFromStepLen (I# k#) (I# m#) (I# n#)
+{-# INLINE_PA enumFromStepLenPA_Int# #-}
+
 enumFromToEachPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
 enumFromToEachPA_Int# n# is js = U.enumFromToEach (I# n#) (U.zip is js)
 {-# INLINE_PA enumFromToEachPA_Int# #-}
@@ -143,6 +152,10 @@ enumFromToEachPA_Int# n# is js = U.enumFromToEach (I# n#) (U.zip is js)
 selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# ns i# = U.map (\n -> n == I# i#) ns
 {-# INLINE_PA selectPA_Int# #-}
+
+mkSegdPA# :: PArray_Int# -> PArray_Int# -> Segd
+mkSegdPA# ns is = U.toSegd (U.zip ns is)
+{-# INLINE_PA mkSegdPA# #-}
 
 selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
 selectorToIndices2PA# sel

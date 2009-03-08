@@ -45,6 +45,7 @@ scan = scanU
 indexed = indexedU
 enumFromTo = enumFromToU
 enumFromThenTo = enumFromThenToU
+enumFromStepLen = enumFromStepLenU
 enumFromToEach = enumFromToEachU
 concat = concatSU
 (>:) = (U.>:)

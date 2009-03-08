@@ -110,6 +110,8 @@ fold1_s f = map (fold1 f)
 sum_s = map sum
 
 enumFromThenTo_s = zipWith3 enumFromThenTo
+enumFromStepLen i k 0 = []
+enumFromStepLen i k n = i : enumFromStepLen (i+k) k (n-1)
 
 indexed_s = map indexed
 

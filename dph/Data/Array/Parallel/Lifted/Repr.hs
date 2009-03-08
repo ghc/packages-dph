@@ -1075,11 +1075,11 @@ emptyPR_PArray pr = traceFn "emptyPR_PArray\n" $
 {-# INLINE replicatePR_PArray #-}
 replicatePR_PArray pr n# xs
   = traceFn "replicatePR_PArray\n" $
-  PNested n# lens
-               (unsafe_scanPA_Int# (+) 0 lens)
-               (repeatPR pr n# xs)
+  PNested n# (replicatePA_Int# n# m#)
+             (enumFromStepLenPA_Int# 0# m# n#)
+             (repeatPR pr n# xs)
   where
-    lens = replicatePA_Int# n# (lengthPR pr xs)
+    m# = lengthPR pr xs
 
 {-# INLINE indexPR_PArray #-}
 indexPR_PArray pr  (PNested m# lens idxs xs) i#
@@ -1150,6 +1150,13 @@ repeatPR_PArray pr n# (PNested m# lens _ xs)
 {-# INLINE replicatelPR_PArray #-}
 replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
   = traceFn "replicatelPR_PArray\n" $
+  PNested n# new_lens new_idxs
+  $ repeatcPR pr len ns (mkSegdPA# lens idxs) xs
+  where
+    new_lens = replicatelPA_Int# n# ns lens
+    new_idxs = unsafe_scanPA_Int# (+) 0 new_lens
+    len      = sumPA_Int# (unsafe_zipWithPA_Int# (*) ns lens)
+{-
   PNested n# new_lens new_idxs (bpermutePR pr len xs indices)
   where
     new_lens = replicatelPA_Int# n# ns lens
@@ -1160,6 +1167,7 @@ replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)
 
     len     = sumPA_Int# (unsafe_zipWithPA_Int# (*) ns lens)
     indices = enumFromToEachPA_Int# len starts ends
+-}
 
 {-# INLINE packPR_PArray #-}
 packPR_PArray pr (PNested _ lens _ xs) n# bs
