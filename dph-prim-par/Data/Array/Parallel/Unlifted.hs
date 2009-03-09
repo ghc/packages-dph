@@ -67,6 +67,7 @@ pack_c = packCUP
 combine_c = combineCUP
 zipWith_s = zipWithSUP
 fold_s = foldSUP
+fold_s' = foldSUP'
 fold1_s = fold1SU
 sum_s = sumSUP
 enumFromThenTo_s = enumFromThenToSUP

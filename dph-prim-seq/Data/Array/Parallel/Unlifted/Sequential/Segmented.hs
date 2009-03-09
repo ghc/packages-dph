@@ -48,7 +48,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   -- * Higher-order operations
   mapSU, zipWithSU,
   {-concatMapU,-}
-  foldlSU, foldSU,
+  foldlSU, foldlSU', foldSU, foldSU',
   fold1SU,
   {-scanSU, scan1SU,-}
 

@@ -22,7 +22,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   andUP, sumUP,
   
-  mapSUP, filterSUP, packCUP, combineCUP, zipWithSUP, foldSUP, sumSUP,
+  mapSUP, filterSUP, packCUP, combineCUP, zipWithSUP, foldSUP, foldSUP', sumSUP,
   bpermuteSUP', enumFromThenToSUP, replicateSUP, indexedSUP, jsTest,
 
   indexedUP, replicateUP, replicateEachUP, replicateEachUnbalancedUP, repeatUP,

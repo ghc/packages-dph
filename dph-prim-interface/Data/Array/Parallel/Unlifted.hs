@@ -106,6 +106,7 @@ combine_c = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unl
 zipWith_s f = zipWith (zipWith f)
 
 fold_s f z = map (fold f z)
+fold_s' f z segd xs = map (fold f z) (segd >: xs)
 fold1_s f = map (fold1 f)
 sum_s = map sum
 

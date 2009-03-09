@@ -19,7 +19,7 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   mapSUP, filterSUP, packCUP, combineCUP,
-  zipWithSUP, foldlSUP, foldSUP, sumSUP, bpermuteSUP',
+  zipWithSUP, foldlSUP, foldlSUP', foldSUP, foldSUP', sumSUP, bpermuteSUP',
   enumFromThenToSUP, replicateSUP, replicateCUP, indexedSUP, jsTest
 ) where
 
@@ -92,9 +92,19 @@ foldlSUP f z = joinD   theGang unbalanced
              . mapD    theGang (foldlSU f z)
              . splitSD theGang unbalanced
 
+foldlSUP' :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
+{-# INLINE foldlSUP' #-}
+foldlSUP' f z segd xs = joinD theGang unbalanced
+                       (mapD theGang (foldlSU f z)
+                       (splitSD' theGang unbalanced segd xs))
+
 foldSUP :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE foldSUP #-}
 foldSUP = foldlSUP
+
+foldSUP' :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
+{-# INLINE foldSUP' #-}
+foldSUP' = foldlSUP'
 
 sumSUP :: (Num e, UA e) => SUArr e -> UArr e
 {-# INLINE sumSUP #-}

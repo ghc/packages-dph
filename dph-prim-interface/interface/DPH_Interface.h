@@ -176,6 +176,9 @@ zipWith_s :: (Elt a, Elt b, Elt c)
 fold_s :: Elt a => (a -> a -> a) -> a -> SArray a -> Array a
 {-# INLINE_BACKEND fold_s #-}
 
+fold_s' :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
+{-# INLINE_BACKEND fold_s' #-}
+
 fold1_s :: Elt a => (a -> a -> a) -> SArray a -> Array a
 {-# INLINE_BACKEND fold1_s #-}
 

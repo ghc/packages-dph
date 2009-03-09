@@ -43,7 +43,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   permuteD, bpermuteD, atomicUpdateD, bpermuteSD',
 
   -- * Distributed segmented arrays
-  splitSD, joinSD, splitJoinSD,
+  splitSD, splitSD', joinSD, splitJoinSD,
 
   -- * Debugging
   fromD, toD

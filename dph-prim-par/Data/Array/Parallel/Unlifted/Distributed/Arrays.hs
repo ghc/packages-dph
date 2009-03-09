@@ -20,7 +20,7 @@
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLenD, splitLengthD, splitSegdLengthsD,
   splitAsD, splitD, joinLengthD, joinD, splitJoinD,
-  splitAsSegdD, splitNestedD, splitSD, joinSD, splitJoinSD,
+  splitAsSegdD, splitNestedD, splitSD, splitSD', joinSD, splitJoinSD,
 
   permuteD, bpermuteD, atomicUpdateD, bpermuteSD',
 

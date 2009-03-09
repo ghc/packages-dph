@@ -22,20 +22,19 @@
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
   mapSU, zipWithSU,
-  foldlSU, foldSU, foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
+  foldlSU, foldlSU', foldSU, foldSU', foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
   combineSU, combineCU,
   filterSU, packCU
 ) where
 
 import Data.Array.Parallel.Base (
   sndS)
-import Data.Array.Parallel.Stream (
-  Stream, SStream, mapS, foldValuesSS, fold1ValuesSS, combineSS)
+import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, UArr, mapU, zipWithU,
   unstreamU, streamU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
-  SUArr, segdSU, concatSU, (>:), lengthsSU, lengthsToUSegd)
+  SUArr, USegd, segdSU, concatSU, (>:), lengthsSU, lengthsUSegd, lengthsToUSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   concatSU, segmentArrU,segmentU, replicateSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
@@ -61,11 +60,20 @@ foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE_U foldlSU #-}
 foldlSU f z = unstreamU . foldValuesSS f z . streamSU
 
+foldlSU' :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
+{-# INLINE_U foldlSU' #-}
+foldlSU' f z segd xs = unstreamU
+                      (foldValuesSS' f z (streamU (lengthsUSegd segd))
+                                         (streamU xs))
+
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit
 --
 foldSU :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
 foldSU = foldlSU
+
+foldSU' :: UA a => (a -> a -> a) -> a -> USegd -> UArr a -> UArr a
+foldSU' = foldlSU'
 
 -- |Segmented array reduction from left to right with non-empty subarrays only
 --

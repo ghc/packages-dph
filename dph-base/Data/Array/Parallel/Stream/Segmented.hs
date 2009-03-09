@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Stream.Segmented (
   SStream(..),
-  segmentS, foldValuesSS, fold1ValuesSS,
+  segmentS, foldValuesSS, foldValuesSS', fold1ValuesSS,
   combineSS, (^+++^)
 ) where
 
