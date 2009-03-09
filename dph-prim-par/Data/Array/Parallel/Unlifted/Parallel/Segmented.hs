@@ -41,23 +41,20 @@ jsTest as=   joinSD theGang balanced $
 mapSUP:: (UA a, UA b)
            => (a -> b) -> SUArr a -> SUArr b
 {-# INLINE mapSUP #-}
-mapSUP f as = segdSU as >: mapUP f (concatSU as)
-{-
+mapSUP f as = -- segdSU as >: mapUP f (concatSU as)
   joinSD theGang balanced $
   mapD theGang (mapSU f) $
   (splitSD theGang unbalanced as)  
--}
 
 zipWithSUP :: (UA a, UA b, UA c)
            => (a -> b -> c) -> SUArr a -> SUArr b -> SUArr c
 {-# INLINE zipWithSUP #-}
-zipWithSUP f as bs = segdSU as >: zipWithUP f (concatSU as) (concatSU bs)
-{-
+-- zipWithSUP f as bs = segdSU as >: zipWithUP f (concatSU as) (concatSU bs)
+
 zipWithSUP f as bs = joinSD   theGang balanced
                    $ zipWithD theGang (zipWithSU f)
                        (splitSD theGang balanced as)
                        (splitSD theGang balanced bs)
--}
 
 -- |Filter segmented array
 --
