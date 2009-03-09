@@ -1,3 +1,5 @@
+import qualified GHC.Base
+
 instance Elt Int
 instance Elt Word8
 instance Elt Bool
@@ -238,22 +240,61 @@ toList_s :: Elt a => SArray a -> [[a]]
 fromList_s :: Elt a => [[a]] -> SArray a
 {-# INLINE_BACKEND fromList_s #-}
 
+dph_mod_index :: Int -> Int -> Int
+{-# INLINE_BACKEND dph_mod_index #-}
+dph_mod_index by idx = idx `Prelude.mod` by
+
 {-# RULES
 
-"bpermute/repeat" forall n xs is.
-  bpermute (repeat n xs) is
-    = let k = length xs in k `Prelude.seq` bpermute xs (map (`Prelude.mod` k) is)
+"bpermute/repeat" forall n len xs is.
+  bpermute (repeat n len xs) is
+    = len `Prelude.seq` bpermute xs (map (dph_mod_index len) is)
 
   #-}
 
--- FIXME
--- WARNING: THIS RULE IS UTTERLY WRONG, it's only here for smvm which we can't
--- really optimise at the moment.
---
 {-# RULES
 
-"repeat_c/repeat" forall n ns segd k xs.
-  repeat_c n ns segd (repeat k xs)
-    = repeat (k Prelude.* sum ns) xs
+"replicateEach/replicate" forall n lens k x.
+  replicateEach n lens (replicate k x) = replicate n x
+
+ #-}
+
+{-# RULES
+
+"repeat_c/repeat" forall k ks n m idxs len xs.
+  repeat_c k ks (toSegd (zip (replicate n m) idxs)) (repeat n len xs)
+    = repeat (sum ks) len xs
+
   #-}
+
+{-# RULES
+
+"scan/replicate" forall z n x.
+  scan GHC.Base.plusInt z (replicate n x)
+    = enumFromStepLen z x n
+
+"map/zipWith (+)/enumFromStepLen" forall m n is.
+  map (dph_mod_index m) (zipWith GHC.Base.plusInt (enumFromStepLen 0 m n) is)
+    = map (dph_mod_index m) is
+
+ #-} 
+
+-- These rules don't make a lot of sense in general, they are only here to make
+-- smvm happy. The aren't wrong, though.
+{-# RULES
+
+"fold_s/(>:)" forall f z segd xs.
+  fold_s f z (segd >: xs) = fold_s' f z segd xs
+
+"fold_s'/zipWith" forall f z segd g xs ys.
+  fold_s' f z segd (zipWith g xs ys)
+    = fold_s f z (zipWith_s g (segd >: xs) (segd >: ys))
+
+"(>:)/bpermute" forall segd xs is.
+  segd >: bpermute xs is = bpermute_s' xs (segd >: is)
+
+"(>:)/map" forall segd f xs.
+  segd >: map f xs = map_s f (segd >: xs)
+
+ #-}
 
