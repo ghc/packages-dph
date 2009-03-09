@@ -77,8 +77,8 @@ replicatelPR_Void n# _ _ = traceFn "replicatelPR_Void" $
                   PVoid n#
 
 {-# INLINE repeatPR_Void #-}
-repeatPR_Void n# (PVoid m#) = traceFn "repeatPR_Void" $
-              PVoid (n# *# m#)
+repeatPR_Void n# len# (PVoid _) = traceFn "repeatPR_Void" $
+              PVoid (n# *# len#)
 
 {-# INLINE repeatcPR_Void #-}
 repeatcPR_Void n# _ _ (PVoid _) = traceFn "repeatcPR_Void" $
@@ -176,8 +176,8 @@ replicatelPR_Unit n# _ (PUnit _ u) =
   PUnit n# u
 
 {-# INLINE repeatPR_Unit #-}
-repeatPR_Unit n# (PUnit m# u) = traceFn "repeatPR_Unit" $
-              PUnit (n# *# m#) u
+repeatPR_Unit n# len# (PUnit _ u) = traceFn "repeatPR_Unit" $
+              PUnit (n# *# len#) u
 
 {-# INLINE repeatcPR_Unit #-}
 repeatcPR_Unit n# _ _ (PUnit _ u) = traceFn "repeatcPR_Unit" $
@@ -258,8 +258,8 @@ replicatelPR_Wrap pr n# ns (PWrap _ xs) = traceFn "replicatelPR_Wrap" $
                   PWrap n# (replicatelPR pr n# ns xs)
 
 {-# INLINE repeatPR_Wrap #-}
-repeatPR_Wrap pr n# (PWrap m# xs) = traceFn "repeatPR_Wrap" $
-              PWrap (n# *# m#) (repeatPR pr n# xs)
+repeatPR_Wrap pr n# len# (PWrap _ xs) = traceFn "repeatPR_Wrap" $
+              PWrap (n# *# len#) (repeatPR pr n# len# xs)
 
 {-# INLINE repeatcPR_Wrap #-}
 repeatcPR_Wrap pr n# is segd (PWrap _ xs) = traceFn "repeatcPR_Wrap" $
@@ -383,10 +383,10 @@ replicatelPR_2 pra prb n# ns (P_2 _ as bs)
            (replicatelPR prb n# ns bs) 
 
 {-# INLINE repeatPR_2 #-}
-repeatPR_2 pra prb n# (P_2 m# as bs)
+repeatPR_2 pra prb n# len# (P_2 _ as bs)
   = traceFn "repeatPR_2" $
-  P_2 (n# *# m#) (repeatPR pra n# as)
-                   (repeatPR prb n# bs)
+  P_2 (n# *# len#) (repeatPR pra n# len# as)
+                   (repeatPR prb n# len# bs)
 
 {-# INLINE repeatcPR_2 #-}
 repeatcPR_2 pra prb n# ns segd (P_2 _ as bs)
@@ -497,11 +497,11 @@ replicatelPR_3 pra prb prc n# ns (P_3 _ as bs cs)
            (replicatelPR prc n# ns cs)
 
 {-# INLINE repeatPR_3 #-}
-repeatPR_3 pra prb prc n# (P_3 m# as bs cs)
+repeatPR_3 pra prb prc n# len# (P_3 _ as bs cs)
   = traceFn "repeatPR_3" $
-  P_3 (n# *# m#) (repeatPR pra n# as)
-                   (repeatPR prb n# bs)
-                   (repeatPR prc n# cs)
+  P_3 (n# *# len#) (repeatPR pra n# len# as)
+                   (repeatPR prb n# len# bs)
+                   (repeatPR prc n# len# cs)
 
 {-# INLINE repeatcPR_3 #-}
 repeatcPR_3 pra prb prc n# ns segd (P_3 _ as bs cs)
@@ -623,12 +623,12 @@ replicatelPR_4 pra prb prc prd n# ns (P_4 _ as bs cs ds)
            (replicatelPR prd n# ns ds)
 
 {-# INLINE repeatPR_4 #-}
-repeatPR_4 pra prb prc prd n# (P_4 m# as bs cs ds)
+repeatPR_4 pra prb prc prd n# len# (P_4 _ as bs cs ds)
   = traceFn "repeatPR_4" $
-  P_4 (n# *# m#) (repeatPR pra n# as)
-                   (repeatPR prb n# bs)
-                   (repeatPR prc n# cs)
-                   (repeatPR prd n# ds)
+  P_4 (n# *# len#) (repeatPR pra n# len# as)
+                   (repeatPR prb n# len# bs)
+                   (repeatPR prc n# len# cs)
+                   (repeatPR prd n# len# ds)
 
 {-# INLINE repeatcPR_4 #-}
 repeatcPR_4 pra prb prc prd n# ns segd (P_4 _ as bs cs ds)
@@ -763,13 +763,13 @@ replicatelPR_5 pra prb prc prd pre n# ns (P_5 _ as bs cs ds es)
            (replicatelPR pre n# ns es)
 
 {-# INLINE repeatPR_5 #-}
-repeatPR_5 pra prb prc prd pre n# (P_5 m# as bs cs ds es)
+repeatPR_5 pra prb prc prd pre n# len# (P_5 _ as bs cs ds es)
   = traceFn "repeatPR_5" $
-  P_5 (n# *# m#) (repeatPR pra n# as)
-                   (repeatPR prb n# bs)
-                   (repeatPR prc n# cs)
-                   (repeatPR prd n# ds)
-                   (repeatPR pre n# es)
+  P_5 (n# *# len#) (repeatPR pra n# len# as)
+                   (repeatPR prb n# len# bs)
+                   (repeatPR prc n# len# cs)
+                   (repeatPR prd n# len# ds)
+                   (repeatPR pre n# len# es)
 
 {-# INLINE repeatcPR_5 #-}
 repeatcPR_5 pra prb prc prd pre n# ns segd (P_5 _ as bs cs ds es)
@@ -925,13 +925,13 @@ replicatelPR_Sum2 pra prb n# mults (PSum2 m# sel# is# as bs)
     is'       = selectorToIndices2PA# sel'
 
 {-# INLINE repeatPR_Sum2 #-}
-repeatPR_Sum2 pra prb n# (PSum2 m# sel# is# as bs)
+repeatPR_Sum2 pra prb n# len# (PSum2 m# sel# is# as bs)
   = traceFn "repeatPR_Sum2" $
-    PSum2 (m# *# n#) sel' is' as' bs'
+    PSum2 (n# *# len#) sel' is' as' bs'
   where
-    as'  = repeatPR pra n# as
-    bs'  = repeatPR prb n# bs
-    sel' = repeatPA_Int# n# sel#
+    as'  = repeatPR pra n# (lengthPR pra as) as
+    bs'  = repeatPR prb n# (lengthPR prb bs) bs
+    sel' = repeatPA_Int# n# len# sel#
     is'  = selectorToIndices2PA# sel'
 
 {-# INLINE indexPR_Sum2 #-}
@@ -1077,7 +1077,7 @@ replicatePR_PArray pr n# xs
   = traceFn "replicatePR_PArray\n" $
   PNested n# (replicatePA_Int# n# m#)
              (enumFromStepLenPA_Int# 0# m# n#)
-             (repeatPR pr n# xs)
+             (repeatPR pr n# m# xs)
   where
     m# = lengthPR pr xs
 
@@ -1139,13 +1139,13 @@ applPR_PArray pr is1  xn@(PNested n# xslens xsInds xs) is2 yn@(PNested m# yslens
 
 
 {-# INLINE repeatPR_PArray #-}
-repeatPR_PArray pr n# (PNested m# lens _ xs)
+repeatPR_PArray pr n# len# (PNested _ lens _ xs)
   = traceFn "repeatPR_PArray\n" $
-  PNested (m# *# n#) lens'
+  PNested (n# *# len#) lens'
                        (unsafe_scanPA_Int# (+) 0 lens')
-                       (repeatPR pr n# xs)
+                       (repeatPR pr n# (lengthPR pr xs) xs)
   where
-    lens' = repeatPA_Int# n# lens
+    lens' = repeatPA_Int# n# len# lens
 
 {-# INLINE replicatelPR_PArray #-}
 replicatelPR_PArray pr n# ns (PNested _ lens idxs xs)

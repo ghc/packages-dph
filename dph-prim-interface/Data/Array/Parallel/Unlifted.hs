@@ -30,7 +30,7 @@ replicateEach n ns xs
   = ASSERT (n == sum ns)
   . concat
   $ zipWith replicate ns xs
-repeat n xs = concat (replicate n xs)
+repeat n _ xs = concat (replicate n xs)
 (!:) = (P.!!)
 extract xs i n = P.take n (P.drop i xs)
 drop = P.drop

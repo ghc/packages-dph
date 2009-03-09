@@ -70,7 +70,7 @@ replicatePR_Int n# i = PInt n# (case i of I# i# -> replicatePA_Int# n# i#)
 replicatelPR_Int n# ns (PInt _ is) = PInt n# (replicatelPA_Int# n# ns is)
 
 {-# INLINE repeatPR_Int #-}
-repeatPR_Int n# (PInt m# is) = PInt (n# *# m#) (repeatPA_Int# n# is)
+repeatPR_Int n# len# (PInt _ is) = PInt (n# *# len#) (repeatPA_Int# n# len# is)
 
 {-# INLINE repeatcPR_Int #-}
 repeatcPR_Int n# ns segd (PInt _ is)
@@ -158,7 +158,8 @@ replicatelPR_Word8 n# ns (PWord8 _ ds)
   = PWord8 n# (replicatelPA_Word8# n# ns ds)
 
 {-# INLINE repeatPR_Word8 #-}
-repeatPR_Word8 n# (PWord8 m# is) = PWord8 (n# *# m#) (repeatPA_Word8# n# is)
+repeatPR_Word8 n# len# (PWord8 _ is)
+  = PWord8 (n# *# len#) (repeatPA_Word8# n# len# is)
 
 {-# INLINE repeatcPR_Word8 #-}
 repeatcPR_Word8 n# ns segd (PWord8 _ is)
@@ -244,7 +245,8 @@ replicatelPR_Double n# ns (PDouble _ ds)
   = PDouble n# (replicatelPA_Double# n# ns ds)
 
 {-# INLINE repeatPR_Double #-}
-repeatPR_Double n# (PDouble m# is) = PDouble (n# *# m#) (repeatPA_Double# n# is)
+repeatPR_Double n# len# (PDouble _ is)
+  = PDouble (n# *# len#) (repeatPA_Double# n# len# is)
 
 {-# INLINE repeatcPR_Double #-}
 repeatcPR_Double n# ns segd (PDouble _ is)

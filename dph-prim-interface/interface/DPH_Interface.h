@@ -21,7 +21,7 @@ replicate :: Elt a => Int -> a -> Array a
 replicateEach :: Elt a => Int -> Array Int -> Array a -> Array a
 {-# INLINE_BACKEND replicateEach #-}
 
-repeat :: Elt a => Int -> Array a -> Array a
+repeat :: Elt a => Int -> Int -> Array a -> Array a
 {-# INLINE_BACKEND repeat #-}
 
 (!:) :: Elt a => Array a -> Int -> a

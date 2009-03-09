@@ -79,8 +79,8 @@ replicatelPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
 replicatelPA_Int# n# ns is = U.replicateEach (I# n#) ns is
 {-# INLINE_PA replicatelPA_Int# #-}
 
-repeatPA_Int# :: Int# -> PArray_Int# -> PArray_Int#
-repeatPA_Int# n# is = U.repeat (I# n#) is
+repeatPA_Int# :: Int# -> Int# -> PArray_Int# -> PArray_Int#
+repeatPA_Int# n# len# is = U.repeat (I# n#) (I# len#) is
 {-# INLINE_PA repeatPA_Int# #-}
 
 repeatcPA_Int# :: Int# -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
@@ -216,8 +216,8 @@ replicatelPA_Word8# :: Int# -> PArray_Int# -> PArray_Word8# -> PArray_Word8#
 replicatelPA_Word8# n# ns ds = U.replicateEach (I# n#) ns ds
 {-# INLINE_PA replicatelPA_Word8# #-}
 
-repeatPA_Word8# :: Int# -> PArray_Word8# -> PArray_Word8#
-repeatPA_Word8# n# ds = U.repeat (I# n#) ds
+repeatPA_Word8# :: Int# -> Int# -> PArray_Word8# -> PArray_Word8#
+repeatPA_Word8# n# len# ds = U.repeat (I# n#) (I# len#) ds
 {-# INLINE_PA repeatPA_Word8# #-}
 
 repeatcPA_Word8# :: Int# -> PArray_Int# -> Segd -> PArray_Word8# -> PArray_Word8#
@@ -305,14 +305,14 @@ replicatelPA_Double# :: Int# -> PArray_Int# -> PArray_Double# -> PArray_Double#
 replicatelPA_Double# n# ns ds = U.replicateEach (I# n#) ns ds
 {-# INLINE_PA replicatelPA_Double# #-}
 
-repeatPA_Double# :: Int# -> PArray_Double# -> PArray_Double#
-repeatPA_Double# n# ds = U.repeat (I# n#) ds
+repeatPA_Double# :: Int# -> Int# -> PArray_Double# -> PArray_Double#
+repeatPA_Double# n# len# ds = U.repeat (I# n#) (I# len#) ds
 {-# INLINE_PA repeatPA_Double# #-}
 
 {-# RULES
 
-"repeatPA_Double#" forall n# ds.
-  repeatPA_Double# n# ds = U.repeat (I# n#) ds
+"repeatPA_Double#" forall n# len# ds.
+  repeatPA_Double# n# len# ds = U.repeat (I# n#) (I# len#) ds
 
  #-}
 
