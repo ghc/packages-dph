@@ -75,6 +75,13 @@ replicatePA_Int# :: Int# -> Int# -> PArray_Int#
 replicatePA_Int# n# i# = U.replicate (I# n#) (I# i#)
 {-# INLINE_PA replicatePA_Int# #-}
 
+{-# RULES
+
+"replicatePA_Int#" forall n# i#.
+  replicatePA_Int# n# i# = U.replicate (I# n#) (I# i#)
+
+ #-}
+
 replicatelPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
 replicatelPA_Int# n# ns is = U.replicateEach (I# n#) ns is
 {-# INLINE_PA replicatelPA_Int# #-}
