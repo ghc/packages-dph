@@ -117,6 +117,8 @@ enumFromStepLen :: Int -> Int -> Int -> Array Int
 enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
 {-# INLINE_BACKEND enumFromToEach #-}
 
+enumFromStepLenEach :: Int -> Array (Int :*: Int :*: Int) -> Array Int
+{-# INLINE enumFromStepLenEach #-}
 
 concat :: Elt a => SArray a -> Array a
 {-# INLINE_BACKEND concat #-}

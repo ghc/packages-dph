@@ -21,13 +21,13 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Flat.Enum (
-  enumFromToU, enumFromThenToU, enumFromStepLenU, enumFromToEachU
+  enumFromToU, enumFromThenToU, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:))
 import Data.Array.Parallel.Stream (
-  enumFromToS, enumFromThenToS, enumFromStepLenS, enumFromToEachS)
+  enumFromToS, enumFromThenToS, enumFromStepLenS, enumFromToEachS, enumFromStepLenEachS)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
@@ -56,4 +56,11 @@ enumFromStepLenU s d n = unstreamU (enumFromStepLenS s d n)
 enumFromToEachU :: Int -> UArr (Int :*: Int) -> UArr Int
 {-# INLINE_U enumFromToEachU #-}
 enumFromToEachU n = unstreamU . enumFromToEachS n . streamU
+
+enumFromStepLenEachU :: Int -> UArr (Int :*: Int :*: Int) -> UArr Int
+{-# INLINE_U enumFromStepLenEachU #-}
+enumFromStepLenEachU len = unstreamU . enumFromStepLenEachS len . streamU 
+
+
+
 

@@ -20,7 +20,8 @@ module Data.Array.Parallel.Stream.Flat.Enum (
   enumFromToS, enumFromThenToS,
   enumFromStepLenS,
 
-  enumFromToEachS
+  enumFromToEachS,
+  enumFromStepLenEachS
 ) where
 
 import Data.Array.Parallel.Base (
@@ -86,3 +87,19 @@ enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
       | k > m     = Skip    (NothingS          :*: s)
       | otherwise = Yield k (JustS (k+1 :*: m) :*: s)
 
+-- FIXME: monomorphic for now because we need Rebox a otherwise!
+--
+enumFromStepLenEachS :: Int -> Stream (Int :*: Int :*: Int) -> Stream Int 
+enumFromStepLenEachS len (Stream next s n) = Stream next' (NothingS :*: s) len
+  where
+    {-# INLINE next' #-}
+    next' (NothingS :*: s) 
+      = case next s of 
+          Yield (from :*: step :*: len) s' -> Skip (JustS (from :*: step :*: len) :*: s')
+          Skip            s' -> Skip (NothingS        :*: s')
+          Done               -> Done
+
+    next' (JustS (from :*: step :*: 0) :*: s) = Done
+    next' (JustS (from :*: step :*: n) :*: s) = Yield from (JustS (from+step :*: step :*: (n-1)) :*: s)
+
+      

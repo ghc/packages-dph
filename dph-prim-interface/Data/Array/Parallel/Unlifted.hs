@@ -71,6 +71,10 @@ enumFromToEach n ps = ASSERT (n == length ns)
   where
     ns = concat (map (uncurryS enumFromTo) ps)
 
+enumFromStepLenEach size  fsl =  ASSERT (size == (sum (P.map (\(x :*: y :*: z) -> z) fsl))) $
+  P.concat $ P.map (\(x :*:y :*:z) -> P.enumFromThenTo x (x+y) (x+ y*z)) fsl
+  
+
 randoms n = P.take n . System.Random.randoms
 randomRs n r = P.take n . System.Random.randomRs r
 
