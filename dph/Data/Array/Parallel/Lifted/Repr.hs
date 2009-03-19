@@ -1075,7 +1075,7 @@ emptyPR_PArray pr = traceFn "emptyPR_PArray\n" $
 {-# INLINE replicatePR_PArray #-}
 replicatePR_PArray pr n# xs
   = traceFn "replicatePR_PArray\n" $
-  PNested n# ({-# CORE "INLINE" #-} replicatePA_Int# n# m#)
+  PNested n# (replicatePA_Int# n# m#)
              (enumFromStepLenPA_Int# 0# m# n#)
              (repeatPR pr n# m# xs)
   where

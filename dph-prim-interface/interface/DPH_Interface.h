@@ -18,7 +18,7 @@ empty :: Elt a => Array a
 {-# INLINE_BACKEND empty #-}
 
 replicate :: Elt a => Int -> a -> Array a
-{-# INLINE_BACKEND replicate #-}
+{-# INLINE CONLIKE PHASE_BACKEND replicate #-}
 
 replicateEach :: Elt a => Int -> Array Int -> Array a -> Array a
 {-# INLINE_BACKEND replicateEach #-}
