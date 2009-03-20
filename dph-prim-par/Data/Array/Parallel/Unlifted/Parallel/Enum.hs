@@ -18,13 +18,13 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Enum (
-  enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromToEachUP    
+  enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromToEachUP, enumFromStepLenEachUP    
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, uncurryS)
 import Data.Array.Parallel.Unlifted.Sequential (
-  UArr, UA, enumFromStepLenU, enumFromToEachU)
+  UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU)
 import Data.Array.Parallel.Unlifted.Distributed (
   mapD, scanD, zipD, splitLenD, joinD, splitD, balanced, unbalanced,
   theGang)
@@ -62,3 +62,8 @@ enumFromToEachUP n inds =
   joinD theGang unbalanced $ mapD theGang (uncurryS enumFromToEachU) $ 
     zipD  (splitLenD theGang n) (splitD theGang balanced inds)
 
+enumFromStepLenEachUP :: Int -> UArr (Int :*: Int :*: Int) -> UArr Int
+{-# INLINE enumFromStepLenEachUP #-}
+enumFromStepLenEachUP n inds =  
+  joinD theGang unbalanced $ mapD theGang (uncurryS enumFromStepLenEachU) $ 
+    zipD  (splitLenD theGang n) (splitD theGang balanced inds)

@@ -99,7 +99,7 @@ enumFromStepLenEachS len (Stream next s n) = Stream next' (NothingS :*: s) len
           Skip            s' -> Skip (NothingS        :*: s')
           Done               -> Done
 
-    next' (JustS (from :*: step :*: 0) :*: s) = Done
+    next' (JustS (from :*: step :*: 0) :*: s) = Skip (NothingS :*: s)
     next' (JustS (from :*: step :*: n) :*: s) = Yield from (JustS (from+step :*: step :*: (n-1)) :*: s)
 
       
