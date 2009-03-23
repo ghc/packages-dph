@@ -15,10 +15,24 @@ algs = [(" vecMult", mmMult)]
 
 
 mmMult'':: (Int, U.Array Double, U.Array Double) -> U.Array Double
-mmMult'' (order, m, n) = let xs = mmMult order m n
-                     in -- trace (show xs) 
-                        xs
+--mmMult'' (order, m, n) = 
+mmMult'' (order, m, n) = mmMult order m n
+{-
+  let 
+    xs = mmMult order m n
+    lres = (listMult order (U.toList m) (U.toList n)) 
+    ares = (U.toList xs)
+  in if (lres == ares)
+       then m
+       else error ("div res:\n" ++ (show (sum $ zipWith (-) ares lres)))
+-}
 
+
+listMult:: Int -> [Double] -> [Double] -> [Double]
+listMult order mA mB = [sum (zipWith (*) (mmA!!i) (mmB!!j)) | i<- [0..(order-1)], j <- [0..(order-1)]]
+  where
+    mmB  = [[mB!!(j*order+i)| j <- [0..(order-1)]] | i <- [0..(order-1)]]
+    mmA  = [[mA!!(i*order+j)| j <- [0..(order-1)]] | i <- [0..(order-1)]]              
 
 generateVector :: Int -> IO (U.Array Double)
 generateVector n =
