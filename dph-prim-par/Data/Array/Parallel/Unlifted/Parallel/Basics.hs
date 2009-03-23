@@ -35,6 +35,9 @@ import Data.Array.Parallel.Unlifted.Sequential (
   foldU, mapU, zipU, unzipU,
   indexedU, enumFromToU, replicateU, replicateEachU)
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Parallel.Combinators ( mapUP )
+import Data.Array.Parallel.Unlifted.Parallel.Enum        ( enumFromToUP )
+import Data.Array.Parallel.Unlifted.Parallel.Permute     ( bpermuteUP )
 
 -- infixl 9 !:
 -- infixr 5 +:+
@@ -65,19 +68,13 @@ replicateUP n e = joinD theGang balanced
 
 repeatUP :: UA e => Int -> UArr e -> UArr e
 {-# INLINE_UP repeatUP #-}
-repeatUP n !es = joinD theGang balanced
-               . mapD theGang go
-               . zipD dlens
-               . fstS
-               $ scanD theGang (+) 0 dlens
+repeatUP n es = seq m
+              . bpermuteUP es
+              . mapUP (\i -> i `mod` m)
+              $ enumFromToUP 0 (m*n-1)
   where
     m = lengthU es
-
-    dlens = splitLenD theGang n
-
-    go (n :*: i) = mapU (\j -> es !: (j `mod` m))
-                 $ enumFromToU i (i+n-1)
-
+    
 -- | Expand every element in the argument array by the factor given in the 
 --   corresponding array. The resulting array is unbalanced. 
 --   TODO: do we need a balanced version? Will probably provide no performance benefit
