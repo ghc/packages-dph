@@ -37,10 +37,9 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
   for instance, we might well get the first and second components from
   different values.
 
-  So we could require that the second array maps at most one element to each
-  index. This has two problems: apparently, this is not what is wanted most of
-  the time (at least in the algorithms I've seen) and, more importantly, it
-  still won't work with packed arrays of Bools.
+  We could require that the second array maps at most one element to each index.
+  However, this is not what is wanted most of the time, at least not in the
+  algorithms I've seen.
 
   So we only do the update in parallel if writing an element into the array is
   atomic. Otherwise, we do a sequential update.
