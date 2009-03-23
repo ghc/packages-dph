@@ -11,11 +11,11 @@ import Bench.Options
 
 import Debug.Trace
 
-algs = [(" vecMult", vecMult)]
+algs = [(" vecMult", mmMult)]
 
 
 mmMult'':: (Int, U.Array Double, U.Array Double) -> U.Array Double
-mmMult'' (order, m, n) = let xs = enumtest order m n
+mmMult'' (order, m, n) = let xs = mmMult order m n
                      in -- trace (show xs) 
                         xs
 
