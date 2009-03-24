@@ -86,16 +86,16 @@ repeatCUS :: UA e => Int -> Stream (Int :*: (Int :*: Int)) -> UArr e -> Stream e
 {-# INLINE_STREAM repeatCUS #-}
 repeatCUS k (Stream step s _) !xs = Stream step' (s :*: 0 :*: 0 :*: 0 :*: 0) k
   where
-    step' (s :*: i :*: 0 :*: idx :*: len)
+    step' (s :*: i :*: 0 :*: len :*: idx)
       = case step s of
-          Yield (n :*: (idx :*: len)) s'
-            -> Skip (s' :*: 0 :*: n :*: idx :*: len)
+          Yield (n :*: (len :*: idx)) s'
+            -> Skip (s' :*: 0 :*: n :*: len :*: idx)
           Skip s' -> Skip (s' :*: 0 :*: 0 :*: 0 :*: 0)
           Done    -> Done
 
-    step' (s :*: i :*: n :*: idx :*: len)
-      | i >= len  = Skip                  (s :*: 0 :*: n-1 :*: idx :*: len)
-      | otherwise = Yield (xs !: (i+idx)) (s :*: i+1 :*: n :*: idx :*: len)
+    step' (s :*: i :*: n :*: len :*: idx)
+      | i >= len  = Skip                  (s :*: 0 :*: n-1 :*: len :*: idx)
+      | otherwise = Yield (xs !: (i+idx)) (s :*: i+1 :*: n :*: len :*: idx)
 
 -- |Array indexing
 --

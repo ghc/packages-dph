@@ -204,6 +204,7 @@ lengthsSegd :: Segd -> Array Int
 lengthsToSegd :: Array Int -> Segd
 {-# INLINE_BACKEND lengthsToSegd #-}
 
+-- zip lens startInds
 toSegd :: Array (Int :*: Int) -> Segd
 {-# INLINE_BACKEND toSegd #-}
 
