@@ -16,16 +16,18 @@ algs = [(" vecMult", mmMult)]
 
 mmMult'':: (Int, U.Array Double, U.Array Double) -> U.Array Double
 --mmMult'' (order, m, n) = 
-mmMult'' (order, m, n) = mmMult order m n
-{-
+mmMult'' (order, m, n) = 
   let 
+--    m = U.fromList ([1,0,0,1]::[Double])
+--    n = U.fromList ([1,2,3,4]::[Double])
     xs = mmMult order m n
     lres = (listMult order (U.toList m) (U.toList n)) 
     ares = (U.toList xs)
-  in if (lres == ares)
-       then m
-       else error ("div res:\n" ++ (show (sum $ zipWith (-) ares lres)))
--}
+  in if True -- (lres == ares)
+       then xs
+--       else error ("div res:\n" ++ (show (sum (zipWith (-) ares  lres))))
+       else error ("div res:\n" ++ (show ares) ++ "\n" ++ show lres)
+
 
 
 listMult:: Int -> [Double] -> [Double] -> [Double]
