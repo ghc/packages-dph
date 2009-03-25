@@ -59,10 +59,12 @@ unbalanced = error $ here "unbalanced: touched"
 
 -- | Distribute the length of an array over a 'Gang'.
 splitLengthD :: UA a => Gang -> UArr a -> Dist Int
+{-# INLINE splitLengthD #-}
 splitLengthD g = splitLenD g . lengthU
 
 -- | Distribute the given array length over a 'Gang'.
 splitLenD :: Gang -> Int -> Dist Int
+{-# NOINLINE PHASE_DIST splitLenD #-}
 splitLenD g !n = newD g (`fill` 0)
   where
     p = gangSize g
@@ -95,6 +97,7 @@ splitD g _ !arr = zipWithD (seqGang g) (sliceU arr) is dlen
 
 -- | Overall length of a distributed array.
 joinLengthD :: UA a => Gang -> Dist (UArr a) -> Int
+{-# INLINE joinLengthD #-}
 joinLengthD g = sumD g . lengthD
 
 -- | Join a distributed array.
@@ -168,6 +171,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 
 -- | Permute for distributed arrays.
 permuteD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr Int) -> UArr a
+{-# INLINE_DIST permuteD #-}
 permuteD g darr dis = newU n (\ma -> zipWithDST_ g (permute ma) darr dis)
   where
     n = joinLengthD g darr
@@ -197,7 +201,7 @@ atomicUpdateD g darr upd = runST (
     update marr arr = stToDistST (atomicUpdateMU marr arr)
 
 splitSegdLengthsD :: Gang -> Int -> UArr Int -> Dist (Int :*: Int)
-{-# INLINE_DIST splitSegdLengthsD #-}
+{-# NOINLINE PHASE_DIST splitSegdLengthsD #-}
 splitSegdLengthsD g !n !lens = newD g (\md -> fill md 0 0 0 0)
   where
     m = lengthU lens
@@ -224,6 +228,7 @@ splitSegdD' g n !segd = zipD (mapD g lengthsToUSegd
     dlens = splitSegdLengthsD g n lens
 
 joinSegD :: Gang -> Dist USegd -> USegd
+{-# INLINE_DIST joinSegD #-}
 joinSegD g = lengthsToUSegd
            . joinD g unbalanced
            . mapD (seqGang g) lengthsUSegd
