@@ -80,22 +80,16 @@ replicateCU n arr = segmentArrU (replicateU n rLen) $ repeatU n arr
 repeatCU :: UA e => Int -> UArr Int -> USegd -> UArr e -> UArr e
 {-# INLINE_U repeatCU #-}
 repeatCU k ns segd xs
-  = unstreamU (repeatCUS k (streamU (zipU ns (fromUSegd segd))) xs)
+  = bpermuteU xs (repeatIndicesCU k ns segd)
 
-repeatCUS :: UA e => Int -> Stream (Int :*: (Int :*: Int)) -> UArr e -> Stream e
-{-# INLINE_STREAM repeatCUS #-}
-repeatCUS k (Stream step s _) !xs = Stream step' (s :*: 0 :*: 0 :*: 0 :*: 0) k
+repeatIndicesCU :: Int -> UArr Int -> USegd -> UArr Int
+{-# INLINE_U repeatIndicesCU #-}
+repeatIndicesCU k ns segd = enumFromStepLenEachU k
+                          . mapU (\(n :*: i) -> i :*: 1 :*: n)
+                          . replicateEachU n ns
+                          $ fromUSegd segd 
   where
-    step' (s :*: i :*: 0 :*: len :*: idx)
-      = case step s of
-          Yield (n :*: (len :*: idx)) s'
-            -> Skip (s' :*: 0 :*: n :*: len :*: idx)
-          Skip s' -> Skip (s' :*: 0 :*: 0 :*: 0 :*: 0)
-          Done    -> Done
-
-    step' (s :*: i :*: n :*: len :*: idx)
-      | i >= len  = Skip                  (s :*: 0 :*: n-1 :*: len :*: idx)
-      | otherwise = Yield (xs !: (i+idx)) (s :*: i+1 :*: n :*: len :*: idx)
+    n  = sumU ns
 
 -- |Array indexing
 --
