@@ -20,16 +20,19 @@
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   mapSUP, filterSUP, packCUP, combineCUP,
   zipWithSUP, foldlSUP, foldlSUP', foldSUP, foldSUP', sumSUP, bpermuteSUP',
-  enumFromThenToSUP, replicateSUP, replicateCUP, indexedSUP, jsTest
+  enumFromThenToSUP, replicateSUP, replicateCUP, repeatCUP, indexedSUP, jsTest
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, zipWithUP, packUP, combineUP)
+import Data.Array.Parallel.Unlifted.Parallel.Sums (
+  sumUP )
 import Data.Array.Parallel.Unlifted.Parallel.Basics (
-  replicateUP, repeatUP)
-import Data.Array.Parallel.Unlifted.Parallel.Enum (enumFromToEachUP)
+  replicateUP, replicateEachUP, repeatUP)
+import Data.Array.Parallel.Unlifted.Parallel.Enum
+import Data.Array.Parallel.Unlifted.Parallel.Permute ( bpermuteUP )
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS)
 
@@ -137,6 +140,20 @@ replicateCUP :: UA e => Int -> UArr e -> SUArr e
 {-# INLINE_UP replicateCUP #-}
 replicateCUP n arr = segmentArrU (replicateUP n (lengthU arr))
                    $ repeatUP n arr
+
+repeatCUP :: UA e => Int -> UArr Int -> USegd -> UArr e -> UArr e
+{-# INLINE_UP repeatCUP #-}
+repeatCUP k ns segd xs
+  = bpermuteUP xs (repeatIndicesCUP k ns segd)
+
+repeatIndicesCUP :: Int -> UArr Int -> USegd -> UArr Int
+{-# INLINE_UP repeatIndicesCUP #-}
+repeatIndicesCUP k ns segd = enumFromStepLenEachUP k
+                           . mapUP (\(n :*: i) -> i :*: 1 :*: n)
+                           . replicateEachUP n ns
+                           $ fromUSegd segd
+  where
+    n = sumUP ns
 
 -- |Associate each data element with its index
 --
