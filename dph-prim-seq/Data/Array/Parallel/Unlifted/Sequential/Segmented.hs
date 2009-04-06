@@ -76,7 +76,6 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Subarrays
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators

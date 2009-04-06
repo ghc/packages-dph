@@ -30,7 +30,6 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Flat
         Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
         Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr
-        Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Subarrays
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
