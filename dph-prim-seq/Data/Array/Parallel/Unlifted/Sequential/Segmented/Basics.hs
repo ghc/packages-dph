@@ -22,7 +22,7 @@
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, repeatCU,
-  (!:^), concatSU, (>:), segmentU, segmentArrU, (^+:+^),
+  (!:^), concatSU, (>:), segmentU, segmentArrU, appendSU, (^+:+^),
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
@@ -149,6 +149,10 @@ indexedSU xss = segdSU xss >: zipU is xs
 
 -- |Concatenation
 -- --------------
+
+appendSU :: UA a => USegd -> UArr a -> USegd -> UArr a -> UArr a
+{-# INLINE_U appendSU #-}
+appendSU xd xs yd ys = concatSU ((xd >: xs) ^+:+^ (yd >: ys))
 
 infixr 5 ^+:+^
 

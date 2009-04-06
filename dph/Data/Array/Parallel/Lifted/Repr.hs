@@ -16,7 +16,7 @@ module Data.Array.Parallel.Lifted.Repr (
   dPR_2, dPR_3, dPR_4, dPR_5, zipPA#, unzipPA#, zip3PA#,
   dPR_Sum2, dPR_Sum3,
 
-  dPR_PArray, nested_lengthPA, concatPA#,
+  dPR_PArray, nested_lengthPA, segdOfPA#, concatPA#,
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -1203,6 +1203,10 @@ combine2PR_PArray pr n# sel is (PNested m1# lens1 idxs1 xs)
 
     sel' = replicatelPA_Int# len# lens sel
     is'  = selectorToIndices2PA# sel'
+
+segdOfPA# :: PArray (PArray a) -> Segd
+{-# INLINE_PA segdOfPA# #-}
+segdOfPA# (PNested _ lens idxs _) = toSegd lens idxs
 
 concatPA# :: PArray (PArray a) -> PArray a
 {-# INLINE_PA concatPA# #-}

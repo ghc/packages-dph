@@ -61,14 +61,16 @@ scalar_fold1 f = U.fold1 f . toUArrPA
 scalar_folds :: Scalar a => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 {-# INLINE_PA scalar_folds #-}
 scalar_folds f z xss = fromUArrPA (prim_lengthPA (concatPA# xss))
-                     . U.fold_s f z
-                     $ toSUArrPA xss
+                     . U.fold_s f z (segdOfPA# xss)
+                     . toUArrPA
+                     $ concatPA# xss
 
 scalar_fold1s :: Scalar a => (a -> a -> a) -> PArray (PArray a) -> PArray a
 {-# INLINE_PA scalar_fold1s #-}
 scalar_fold1s f xss = fromUArrPA (prim_lengthPA (concatPA# xss))
-                    . U.fold1_s f
-                    $ toSUArrPA xss
+                    . U.fold1_s f (segdOfPA# xss)
+                    . toUArrPA
+                    $ concatPA# xss
 
 scalar_fold1Index :: Scalar a
                   => ((Int, a) -> (Int, a) -> (Int, a)) -> PArray a -> Int
@@ -82,14 +84,20 @@ scalar_fold1sIndex :: Scalar a
                    => ((Int, a) -> (Int, a) -> (Int, a))
                    -> PArray (PArray a) -> PArray Int
 {-# INLINE_PA scalar_fold1sIndex #-}
-scalar_fold1sIndex f xss = fromUArrPA (nested_lengthPA xss) 
+scalar_fold1sIndex f xss = fromUArrPA n
                          . U.fsts
-                         . U.fold1_s f'
-                         . U.indexed_s
-                         $ toSUArrPA xss
+                         . U.fold1_s f' segd
+                         . U.zip (U.indices_s m segd n)
+                         . toUArrPA
+                         $ concatPA# xss
   where
     {-# INLINE f' #-}
     f' p q = pairS $ f (unpairS p) (unpairS q)
+
+    m = I# (lengthPA# (dPA_PArray primPA) xss)
+    n = I# (lengthPA# primPA (concatPA# xss))
+
+    segd = segdOfPA# xss
 
 instance Scalar Int where
   fromUArrPA (I# n#) xs  = PInt n# xs
@@ -155,6 +163,7 @@ fromUArrPA_3' :: (Scalar a, Scalar b, Scalar c) => U.Array (a :*: b :*: c) -> PA
 {-# INLINE fromUArrPA_3' #-}
 fromUArrPA_3' ps = fromUArrPA_3 (U.length ps) ps
 
+{-
 fromSUArrPA :: Scalar a => Int -> Int -> U.SArray a -> PArray (PArray a)
 {-# INLINE fromSUArrPA #-}
 fromSUArrPA (I# m#) n xss
@@ -185,4 +194,5 @@ fromSUArrPA_2' :: (Scalar a, Scalar b)
 fromSUArrPA_2' pss = fromSUArrPA_2 (U.length_s pss)
                                    (U.length (U.concat pss))
                                    pss
+-}
 

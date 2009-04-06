@@ -19,7 +19,6 @@
 module Data.Array.Parallel.Stream.Segmented (
   SStream(..),
   segmentS, foldValuesSS, foldValuesSS', fold1ValuesSS,
-  foldValuesR,
   combineSS, (^+++^)
 ) where
 
@@ -75,7 +74,11 @@ foldValuesSS' f z (Stream nexts ss ns) (Stream nextv vs nv) =
 
 fold1ValuesSS :: (a -> a -> a) -> SStream a -> Stream a
 {-# INLINE_STREAM fold1ValuesSS #-}
-fold1ValuesSS f (SStream (Stream nexts ss ns) (Stream nextv vs nv)) =
+fold1ValuesSS f (SStream is xs) = fold1ValuesSS' f is xs
+
+fold1ValuesSS' :: (a -> a -> a) -> Stream Int -> Stream a -> Stream a
+{-# INLINE_STREAM fold1ValuesSS' #-}
+fold1ValuesSS' f (Stream nexts ss ns) (Stream nextv vs nv) =
   Stream next (NothingS :*: NothingS :*: ss :*: vs) ns
   where
     {-# INLINE next #-}

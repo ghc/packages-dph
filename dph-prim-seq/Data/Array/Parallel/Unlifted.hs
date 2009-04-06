@@ -48,13 +48,18 @@ enumFromThenTo = enumFromThenToU
 enumFromStepLen = enumFromStepLenU
 enumFromToEach = enumFromToEachU
 enumFromStepLenEach = enumFromStepLenEachU
+
+append_s = appendSU
+fold_s = foldSU'
+fold1_s = fold1SU'
+{-
 concat = concatSU
 (>:) = (U.>:)
 (^+:+^) = (U.^+:+^)
 length_s = lengthSU
 lengths_s = lengthsSU
 replicate_s = replicateSU
-repeat_c = repeatCU
+-- repeat_c = repeatCU
 indices_s = indicesSU
 fst_s = fstSU
 snd_s = sndSU
@@ -72,6 +77,7 @@ sum_s = sumSU
 sum_r = sumRU
 enumFromThenTo_s = enumFromThenToSU
 indexed_s = indexedSU
+-}
 lengthsSegd = lengthsUSegd
 lengthsToSegd  = lengthsToUSegd
 toSegd = toUSegd
@@ -83,6 +89,8 @@ hPut = hPutU
 hGet = hGetU
 toList = fromU
 fromList = toU
+{-
 toList_s = fromSU
 fromList_s = toSU
+-}
 

@@ -1,4 +1,5 @@
 import qualified GHC.Base
+import Prelude ((.), ($))
 
 instance Elt Int
 instance Elt Word8
@@ -8,8 +9,8 @@ instance (Elt a, Elt b) => Elt (a :*: b)
 
 infixl 9 !:
 infixr 5 +:+
-infixr 5 ^+:+^
-infixr 9 >:
+--infixr 5 ^+:+^
+--infixr 9 >:
 
 length :: Elt a => Array a -> Int
 {-# INLINE_BACKEND length #-}
@@ -120,12 +121,22 @@ enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
 enumFromStepLenEach :: Int -> Array (Int :*: Int :*: Int) -> Array Int
 {-# INLINE enumFromStepLenEach #-}
 
+{-
 concat :: Elt a => SArray a -> Array a
 {-# INLINE_BACKEND concat #-}
 
 (>:) :: Elt a => Segd -> Array a -> SArray a
 {-# INLINE_BACKEND (>:) #-}
+-}
 
+append_s :: Elt a => Segd         -- ^ segment descriptor of first array
+                  -> Array a      -- ^ data of first array
+                  -> Segd         -- ^ segment descriptor of second array
+                  -> Array a      -- ^ data of first array
+                  -> Array a
+{-# INLINE_BACKEND append_s #-}
+
+{-
 (^+:+^) :: Elt a => SArray a -> SArray a -> SArray a
 {-# INLINE_BACKEND (^+:+^) #-}
 
@@ -138,10 +149,19 @@ lengths_s :: Elt a => SArray a -> Array Int
 
 replicate_s :: Elt a => Segd -> Array a -> SArray a
 {-# INLINE_BACKEND replicate_s #-}
+-}
 
 repeat_c :: Elt a => Int -> Array Int -> Segd -> Array a -> Array a
-{-# INLINE_BACKEND repeat_c #-}
+{-# INLINE repeat_c #-}
+repeat_c k ns segd xs
+  = bpermute xs
+  . enumFromStepLenEach k
+  $ zip3 (snds ks) (replicate n 1) (fsts ks)
+  where
+    ks = replicateEach n ns (fromSegd segd)
+    n = sum ns
 
+{-
 indices_s :: Elt a => SArray a -> Array Int
 {-# INLINE_BACKEND indices_s #-}
 
@@ -175,8 +195,19 @@ combine_c :: Elt a => Array Bool -> SArray a -> SArray a -> SArray a
 zipWith_s :: (Elt a, Elt b, Elt c) 
           => (a -> b -> c) -> SArray a -> SArray b -> SArray c
 {-# INLINE_BACKEND zipWith_s #-}
+-}
 
+fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
+{-# INLINE_BACKEND fold_s #-}
 
+fold1_s :: Elt a => (a -> a -> a) -> Segd -> Array a -> Array a
+{-# INLINE_BACKEND fold1_s #-}
+
+sum_s :: (Num a, Elt a) => Segd -> Array a -> Array a
+{-# INLINE sum_s #-}
+sum_s = fold_s (Prelude.+) 0
+
+{-
 fold_s :: Elt a => (a -> a -> a) -> a -> SArray a -> Array a
 {-# INLINE_BACKEND fold_s #-}
 
@@ -194,10 +225,22 @@ sum_r :: (Num a, Elt a) => Int -> Int ->Array a -> Array a
 
 enumFromThenTo_s :: Array Int -> Array Int -> Array Int -> SArray Int
 {-# INLINE_BACKEND enumFromThenTo_s #-}
+-}
 
+indices_s :: Int    -- ^ number of segments
+          -> Segd   -- ^ segment descriptor
+          -> Int    -- ^ overall number of indices
+          -> Array Int
+{-# INLINE indices_s #-}
+indices_s m segd n = enumFromToEach n
+                   . zip (replicate m 0)
+                   . map (Prelude.subtract 1)
+                   $ lengthsSegd segd
 
+{-
 indexed_s :: Elt a => SArray a -> SArray (Int :*: a)
 {-# INLINE_BACKEND indexed_s #-}
+-}
 
 
 lengthsSegd :: Segd -> Array Int
@@ -239,11 +282,13 @@ toList :: Elt a => Array a -> [a]
 fromList :: Elt a => [a] -> Array a
 {-# INLINE_BACKEND fromList #-}
 
+{-
 toList_s :: Elt a => SArray a -> [[a]]
 {-# INLINE_BACKEND toList_s #-}
 
 fromList_s :: Elt a => [[a]] -> SArray a
 {-# INLINE_BACKEND fromList_s #-}
+-}
 
 dph_mod_index :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mod_index #-}
@@ -284,6 +329,7 @@ dph_mod_index by idx = idx `Prelude.mod` by
 
  #-} 
 
+{-
 -- These rules don't make a lot of sense in general, they are only here to make
 -- smvm happy. The aren't wrong, though.
 {-# RULES

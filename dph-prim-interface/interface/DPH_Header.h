@@ -1,7 +1,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
-  (:*:)(..), Elt, Array, SArray, Segd,
+  (:*:)(..), Elt, Array, {-SArray,-} Segd,
 
   length,
   empty, replicate, replicateEach, repeat, (+:+),
@@ -15,6 +15,13 @@ module Data.Array.Parallel.Unlifted (
 
   fold, fold1, and, sum, scan,
 
+  append_s,
+
+  repeat_c,
+
+  fold_s, fold1_s, sum_s,
+  indices_s,
+  {-
   (>:), concat, (^+:+^), length_s, lengths_s, replicate_s,
   repeat_c, indices_s,
   fst_s, snd_s, zip_s,
@@ -22,11 +29,12 @@ module Data.Array.Parallel.Unlifted (
   indexed_s,
   fold_s, fold_s', fold1_s, sum_s, sum_r,
   enumFromThenTo_s,
+  -}
   lengthsSegd, lengthsToSegd, toSegd, fromSegd,
 
   randoms, randomRs, IOElt, hGet, hPut,
 
-  toList, fromList, toList_s, fromList_s
+  toList, fromList, {-toList_s, fromList_s-}
 ) where
 
 import Data.Array.Parallel.Base   ( (:*:)(..) )

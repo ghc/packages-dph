@@ -111,8 +111,7 @@ appPA_Int# ms ns = ms U.+:+ ns
 {-# INLINE_PA appPA_Int# #-}
 
 applPA_Int# :: Segd -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
-applPA_Int# is xs js ys
-  = U.concat $ (is U.>: xs) U.^+:+^ (js U.>: ys)
+applPA_Int# is xs js ys = U.append_s is xs js ys
 {-# INLINE_PA applPA_Int# #-}
 
 pack'PA_Int# :: PArray_Int# -> PArray_Bool# -> PArray_Int#
@@ -184,8 +183,7 @@ sumPA_Int# ns = case U.sum ns of I# n# -> n#
 {-# INLINE_PA sumPA_Int# #-}
 
 sumPAs_Int# :: Segd -> PArray_Int# -> PArray_Int#
-sumPAs_Int# segd ds
-  = U.sum_s (segd U.>: ds)
+sumPAs_Int# segd ds = U.sum_s segd ds
 {-# INLINE_PA sumPAs_Int# #-}
 
 unsafe_mapPA_Int# :: (Int -> Int) -> PArray_Int# -> PArray_Int#
@@ -249,7 +247,7 @@ appPA_Word8# ms ns = ms U.+:+ ns
 
 applPA_Word8# :: Segd -> PArray_Word8# -> Segd -> PArray_Word8#
                -> PArray_Word8#
-applPA_Word8# is xs js ys = U.concat $ (is U.>: xs) U.^+:+^ (js U.>: ys)
+applPA_Word8# is xs js ys = U.append_s is xs js ys
 {-# INLINE_PA applPA_Word8# #-}
 
 pack'PA_Word8# :: PArray_Word8# -> PArray_Bool# -> PArray_Word8#
@@ -291,7 +289,7 @@ unsafe_fold1PA_Word8# f ns = U.fold1 f ns
 
 unsafe_foldPAs_Word8# :: (Word8 -> Word8 -> Word8) -> Word8
                       -> Segd -> PArray_Word8# -> PArray_Word8#
-unsafe_foldPAs_Word8# f z segd ds = U.fold_s f z (segd U.>: ds)
+unsafe_foldPAs_Word8# f z segd ds = U.fold_s f z segd ds
 {-# INLINE_PA unsafe_foldPAs_Word8# #-}
 
 type PArray_Double# = U.Array Double
@@ -345,7 +343,7 @@ appPA_Double# ms ns = ms U.+:+ ns
 
 applPA_Double# :: Segd -> PArray_Double# -> Segd -> PArray_Double#
                -> PArray_Double#
-applPA_Double# is xs js ys = U.concat $ (is U.>: xs) U.^+:+^ (js U.>: ys)
+applPA_Double# is xs js ys = U.append_s is xs js ys
 {-# INLINE_PA applPA_Double# #-}
 
 pack'PA_Double# :: PArray_Double# -> PArray_Bool# -> PArray_Double#
@@ -387,7 +385,7 @@ unsafe_fold1PA_Double# f ns = U.fold1 f ns
 
 unsafe_foldPAs_Double# :: (Double -> Double -> Double) -> Double
                        -> Segd -> PArray_Double# -> PArray_Double#
-unsafe_foldPAs_Double# f z segd ds = U.fold_s f z (segd U.>: ds)
+unsafe_foldPAs_Double# f z segd ds = U.fold_s f z segd ds
 {-# INLINE_PA unsafe_foldPAs_Double# #-}
                
 type PArray_Bool# = U.Array Bool

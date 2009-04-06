@@ -23,7 +23,6 @@
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
   mapSU, zipWithSU,
   foldlSU, foldlSU', foldSU, foldSU', foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
-  foldlRU,
   combineSU, combineCU,
   filterSU, packCU
 ) where
@@ -82,11 +81,20 @@ foldl1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
 {-# INLINE_U foldl1SU #-}
 foldl1SU f = unstreamU . fold1ValuesSS f . streamSU
 
+foldl1SU' :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
+{-# INLINE_U foldl1SU' #-}
+foldl1SU' f segd xs = unstreamU
+                     (fold1ValuesSS' f (streamU (lengthsUSegd segd))
+                                       (streamU xs))
+
 -- |Segmented array reduction with non-empty subarrays and an associative
 -- combination function
 --
 fold1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
 fold1SU = foldl1SU
+
+fold1SU' :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
+fold1SU' = foldl1SU'
 
 
 -- |Merge two segmented arrays according to flag array

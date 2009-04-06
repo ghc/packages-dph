@@ -97,7 +97,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
 
   -- * Basic operations (segmented)
   lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, repeatCU,
-  (+:+^), indexedSU, (^+:+^), (!:^),
+  (+:+^), indexedSU, (^+:+^), appendSU, (!:^),
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,
@@ -112,7 +112,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   mapSU, zipWithSU,
   {-concatMapU,-}
   foldlSU, foldlSU', foldSU, foldSU',
-  fold1SU,
+  fold1SU, fold1SU',
   {-scanSU, scan1SU,-}
 
   -- * Higher-order operations (regular)
