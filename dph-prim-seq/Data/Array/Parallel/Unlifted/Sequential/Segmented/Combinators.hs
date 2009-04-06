@@ -37,8 +37,6 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, USegd, segdSU, concatSU, (>:), lengthsSU, lengthsUSegd, lengthsToUSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   concatSU, segmentArrU,segmentU, replicateSU)
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
-  streamSU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
   filterU, combineU, packU)
 
@@ -58,13 +56,12 @@ zipWithSU f sa sb = segdSU sa >: zipWithU f (concatSU sa) (concatSU sb)
 --
 foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
 {-# INLINE_U foldlSU #-}
-foldlSU f z = unstreamU . foldValuesSS f z . streamSU
+foldlSU f z xss = foldlSU' f z (segdSU xss) (concatSU xss)
 
 foldlSU' :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
 {-# INLINE_U foldlSU' #-}
 foldlSU' f z segd xs = unstreamU
-                      (foldValuesSS' f z (streamU (lengthsUSegd segd))
-                                         (streamU xs))
+                     $ foldSS f z (streamU (lengthsUSegd segd)) (streamU xs)
 
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit
@@ -79,13 +76,12 @@ foldSU' = foldlSU'
 --
 foldl1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
 {-# INLINE_U foldl1SU #-}
-foldl1SU f = unstreamU . fold1ValuesSS f . streamSU
+foldl1SU f xss = foldl1SU' f (segdSU xss) (concatSU xss)
 
 foldl1SU' :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
 {-# INLINE_U foldl1SU' #-}
 foldl1SU' f segd xs = unstreamU
-                     (fold1ValuesSS' f (streamU (lengthsUSegd segd))
-                                       (streamU xs))
+                    $ fold1SS f (streamU (lengthsUSegd segd)) (streamU xs)
 
 -- |Segmented array reduction with non-empty subarrays and an associative
 -- combination function
@@ -101,8 +97,15 @@ fold1SU' = foldl1SU'
 --
 combineSU:: UA a => UArr Bool -> SUArr a -> SUArr a -> UArr a
 {-# INLINE_U combineSU #-}
-combineSU fs xs1 xs2 =
-  unstreamU $ combineSS (streamU fs) (streamSU xs1) (streamSU xs2)
+combineSU bs xss yss = combineSU' bs (segdSU xss) (concatSU xss)
+                                     (segdSU yss) (concatSU yss)
+
+combineSU' :: UA a => UArr Bool -> USegd -> UArr a -> USegd -> UArr a -> UArr a
+{-# INLINE_U combineSU' #-}
+combineSU' bs xd xs yd ys = unstreamU
+                          $ combineSS (streamU bs)
+                                      (streamU (lengthsUSegd xd)) (streamU xs)
+                                      (streamU (lengthsUSegd yd)) (streamU ys)
 
 combineCU::  UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
 {-# INLINE combineCU #-}

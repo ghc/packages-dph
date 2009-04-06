@@ -19,19 +19,16 @@
 module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 
   -- * Array types
-  SUArr,
-
-  -- * Streaming
-  streamSU, unstreamSU,
+  SUArr(..),
 
   -- * Segmentation
   concatSU, (>:), segmentU, segmentArrU, segdSU,
 
   -- * Basic operations
   lengthSU, singletonSU, singletonsSU, replicateSU,
-  sliceIndexSU, extractIndexSU, (+:+^),
+  sliceIndexSU, extractIndexSU,
   replicateCU, repeatCU, (!:^),
-  indexedSU, (^+:+^), appendSU,
+  indexedSU, appendSU,
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,

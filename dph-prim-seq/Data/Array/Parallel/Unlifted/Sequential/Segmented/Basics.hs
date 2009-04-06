@@ -22,22 +22,20 @@
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
   lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, repeatCU,
-  (!:^), concatSU, (>:), segmentU, segmentArrU, appendSU, (^+:+^),
+  (!:^), concatSU, (>:), segmentU, segmentArrU, appendSU,
   sliceIndexSU, extractIndexSU, indexedSU,
   fstSU, sndSU, zipSU,
   enumFromToSU, enumFromThenToSU,
-  toSU, fromSU,(+:+^)
+  toSU, fromSU
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..))
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..),SStream(..),(+++), (^+++^), zip3S)
+  Step(..), Stream(..), (+++), appendSS, zip3S)
 import Data.Array.Parallel.Unlifted.Sequential.Flat
 
 
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
-  streamSU,unstreamSU)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr, USegd, lengthSU, (>:), concatSU, segdSU, lengthsSU, indicesSU,
   lengthsToUSegd, singletonUSegd, toUSegd, fromUSegd)
@@ -152,17 +150,11 @@ indexedSU xss = segdSU xss >: zipU is xs
 
 appendSU :: UA a => USegd -> UArr a -> USegd -> UArr a -> UArr a
 {-# INLINE_U appendSU #-}
-appendSU xd xs yd ys = concatSU ((xd >: xs) ^+:+^ (yd >: ys))
-
-infixr 5 ^+:+^
-
-(^+:+^) :: UA a => SUArr a -> SUArr a -> SUArr a
-{-# INLINE_U (^+:+^) #-}
-xss ^+:+^ yss = toUSegd (zipU lens idxs)
-                >: unstreamU (streamSU xss ^+++^ streamSU yss)
-  where
-    lens = zipWithU (+) (lengthsSU xss) (lengthsSU yss)
-    idxs = zipWithU (+) (indicesSU xss) (indicesSU yss)
+appendSU xd xs yd ys = unstreamU
+                     $ appendSS (streamU (lengthsUSegd xd))
+                                (streamU xs)
+                                (streamU (lengthsUSegd yd))
+                                (streamU ys)
 
 -- |Zipping
 -- --------
@@ -223,17 +215,6 @@ enumFromThenToEachS n (Stream next s _) =
                    in Skip (len :*: start' :*: fromEnum k - start' :*: s')
     next' (n :*: start :*: delta :*: s) =
       Yield (toEnum start) (n-1 :*: start+delta :*: delta :*: s)
-
--- |Concatenate two arrays
---
--- FIXME: rename
---
-(+:+^) :: UA e => SUArr e -> SUArr e -> SUArr e
-{-# INLINE_U (+:+^) #-}
-a1 +:+^ a2 = unstreamSU $ SStream (segs1 +++ segs2) (vals1 +++ vals2)
-  where
-    (SStream segs1 vals1) = streamSU a1  
-    (SStream segs2 vals2) = streamSU a2
 
 -- |Conversion
 -- -----------

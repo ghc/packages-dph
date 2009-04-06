@@ -23,7 +23,7 @@
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
 
   -- * Array types
-  SUArr, MSUArr,
+  SUArr(..), MSUArr,
 
   -- * Basic operations on segmented parallel arrays
   lengthSU, lengthsSU,indicesSU, segdSU,

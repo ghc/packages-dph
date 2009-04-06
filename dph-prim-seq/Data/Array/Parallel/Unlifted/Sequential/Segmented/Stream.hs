@@ -18,9 +18,10 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Stream (
-  streamSU, unstreamSU
+  -- streamSU, unstreamSU
 ) where
 
+{-
 import Data.Array.Parallel.Stream (
   Stream, SStream(..), segmentS)
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
@@ -46,4 +47,5 @@ streamSU !sa = segmentS (streamSegd (segdSU sa))
 unstreamSU :: UA a => SStream a -> SUArr a
 {-# INLINE_U unstreamSU #-}
 unstreamSU (SStream segs vals) = unstreamSegd segs >: unstreamU vals
+-}
 

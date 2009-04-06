@@ -22,7 +22,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   UA,
 
   -- * Array types
-  UArr, USegd, SUArr,
+  UArr, USegd, SUArr(..),
 
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU,
@@ -97,7 +97,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
 
   -- * Basic operations (segmented)
   lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, repeatCU,
-  (+:+^), indexedSU, (^+:+^), appendSU, (!:^),
+  indexedSU, appendSU, (!:^),
 
   -- * Basic operations lifted
   lengthsSU, indicesSU,

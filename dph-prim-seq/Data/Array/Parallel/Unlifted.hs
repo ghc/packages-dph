@@ -3,7 +3,7 @@
 #include "DPH_Header.h"
 
 import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+), (>:), (^+:+^))
+  hiding ((!:), (+:+), (>:))
 import qualified Data.Array.Parallel.Unlifted.Sequential
   as U
 
@@ -33,6 +33,7 @@ filter = filterU
 zip = zipU
 unzip = unzipU
 fsts = fstU
+snds = sndU
 zip3 = zip3U
 unzip3 = unzip3U
 zipWith = zipWithU

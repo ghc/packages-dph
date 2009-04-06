@@ -5,7 +5,7 @@
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+), (>:), (^+:+^))
+  hiding ((!:), (+:+), (>:))
 import qualified Data.Array.Parallel.Unlifted.Sequential
   as U
 
