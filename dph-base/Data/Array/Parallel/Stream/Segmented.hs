@@ -27,31 +27,9 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Stream.Flat (
   Step(..), Stream(..))
 
-data SStream a = SStream { segd   :: Stream Int
-                         , values :: Stream a
-                         }
-
-segmentS :: Stream Int -> Stream a -> SStream a
-{-# INLINE segmentS #-}
-segmentS = SStream
-
-foldValuesSS :: (a -> b -> a) -> a -> SStream b -> Stream a
-{-# INLINE_STREAM foldValuesSS #-}
-foldValuesSS f z (SStream is xs) = foldValuesSS' f z is xs
-
--- We don't want the case to appear in the simplifier output before the
--- INLINE_STREAM phase. That's why the rule.
---
-{-# RULES
-
-"foldValuesSS/SStream" forall f z is xs.
-  foldValuesSS f z (SStream is xs) = foldValuesSS' f z is xs
-
-  #-}
-        
-foldValuesSS' :: (a -> b -> a) -> a -> Stream Int -> Stream b -> Stream a
-{-# INLINE_STREAM foldValuesSS' #-}
-foldValuesSS' f z (Stream nexts ss ns) (Stream nextv vs nv) =
+foldSS :: (a -> b -> a) -> a -> Stream Int -> Stream b -> Stream a
+{-# INLINE_STREAM foldSS #-}
+foldSS f z (Stream nexts ss ns) (Stream nextv vs nv) =
   Stream next (NothingS :*: Box z :*: ss :*: vs) ns
   where
     {-# INLINE next #-}
@@ -72,13 +50,9 @@ foldValuesSS' f z (Stream nexts ss ns) (Stream nextv vs nv) =
         Skip    vs' -> Skip (JustS n :*: Box x :*: ss :*: vs')
         Yield y vs' -> Skip (JustS (n-1) :*: Box (f x y) :*: ss :*: vs')
 
-fold1ValuesSS :: (a -> a -> a) -> SStream a -> Stream a
-{-# INLINE_STREAM fold1ValuesSS #-}
-fold1ValuesSS f (SStream is xs) = fold1ValuesSS' f is xs
-
-fold1ValuesSS' :: (a -> a -> a) -> Stream Int -> Stream a -> Stream a
-{-# INLINE_STREAM fold1ValuesSS' #-}
-fold1ValuesSS' f (Stream nexts ss ns) (Stream nextv vs nv) =
+fold1SS :: (a -> a -> a) -> Stream Int -> Stream a -> Stream a
+{-# INLINE_STREAM fold1SS #-}
+fold1SS f (Stream nexts ss ns) (Stream nextv vs nv) =
   Stream next (NothingS :*: NothingS :*: ss :*: vs) ns
   where
     {-# INLINE next #-}
@@ -104,12 +78,14 @@ fold1ValuesSS' f (Stream nexts ss ns) (Stream nextv vs nv) =
         Yield y vs' -> Skip (JustS (n-1) :*: JustS (Box (f x  y)) :*: ss :*: vs')
 
 
-combineSS:: (Stream Bool) -> SStream a -> SStream a -> Stream a
+combineSS:: Stream Bool -> Stream Int -> Stream a
+                        -> Stream Int -> Stream a -> Stream a
 {-# INLINE_STREAM combineSS #-}
 combineSS (Stream nextf sf nf) 
-            (SStream (Stream nexts1 ss1 ns1) (Stream nextv1 vs1 nv1))
-            (SStream (Stream nexts2 ss2 ns2) (Stream nextv2 vs2 nv2)) =
-  Stream next (NothingS :*: Box True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) (nv1+nv2)
+          (Stream nexts1 ss1 ns1) (Stream nextv1 vs1 nv1)
+          (Stream nexts2 ss2 ns2) (Stream nextv2 vs2 nv2)
+  = Stream next (NothingS :*: True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2)
+                (nv1+nv2)
   where
     {-# INLINE next #-}
     next (NothingS :*: f :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =
@@ -120,28 +96,28 @@ combineSS (Stream nextf sf nf)
                           then case nexts1 ss1 of
                                  Done         -> Done
                                  Skip ss1'    -> Skip (NothingS :*: f :*: sf :*: ss1' :*: vs1 :*: ss2 :*: vs2) 
-                                 Yield n ss1' -> Skip (JustS n  :*: Box c :*: sf' :*: ss1' :*: vs1 :*: ss2 :*: vs2) 
+                                 Yield n ss1' -> Skip (JustS n  :*: c :*: sf' :*: ss1' :*: vs1 :*: ss2 :*: vs2) 
                           else  case nexts2 ss2 of
                                  Done         -> Done
                                  Skip ss2'    -> Skip (NothingS :*: f :*: sf :*: ss1 :*: vs1 :*: ss2' :*: vs2) 
-                                 Yield n ss2' -> Skip (JustS n  :*: Box c :*: sf' :*: ss1 :*: vs1 :*: ss2' :*: vs2) 
+                                 Yield n ss2' -> Skip (JustS n  :*: c :*: sf' :*: ss1 :*: vs1 :*: ss2' :*: vs2) 
     next (JustS 0 :*: _ :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =                                            
-         Skip (NothingS :*: Box True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2)
-    next (JustS n :*: Box True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =                                            
+         Skip (NothingS :*: True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2)
+    next (JustS n :*: True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =                                            
       case nextv1 vs1 of
         Done         -> Done
-        Skip vs1'    -> Skip (JustS n          :*: Box True :*: sf :*: ss1 :*: vs1' :*: ss2 :*: vs2) 
-        Yield x vs1' -> Yield x (JustS (n-1)   :*: Box True :*: sf :*: ss1 :*: vs1' :*: ss2 :*: vs2) 
-    next (JustS n :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =                                            
+        Skip vs1'    -> Skip (JustS n          :*: True :*: sf :*: ss1 :*: vs1' :*: ss2 :*: vs2) 
+        Yield x vs1' -> Yield x (JustS (n-1)   :*: True :*: sf :*: ss1 :*: vs1' :*: ss2 :*: vs2) 
+    next (JustS n :*: False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =                                            
       case nextv2 vs2 of
         Done         -> Done
-        Skip vs2'    -> Skip (JustS n        :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2') 
-        Yield x vs2' -> Yield x (JustS (n-1) :*: Box False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2')
+        Skip vs2'    -> Skip (JustS n        :*: False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2') 
+        Yield x vs2' -> Yield x (JustS (n-1) :*: False :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2')
 
-(^+++^) :: SStream a -> SStream a -> Stream a
-{-# INLINE_STREAM (^+++^) #-}
-SStream (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
-  ^+++^ SStream (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
+appendSS :: Stream Int -> Stream a -> Stream Int -> Stream a -> Stream a
+{-# INLINE_STREAM appendSS #-}
+appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
+         (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
   = Stream next (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2) (nv1 + nv2)
   where
     {-# INLINE next #-}
