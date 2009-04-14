@@ -179,3 +179,18 @@ SStream (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
           Yield x sv2' -> Yield x (False :*: JustS (n-1)
                                          :*: ss1 :*: sv1 :*: ss2 :*: sv2')
 
+
+foldValuesR :: (a -> b -> a) -> a -> Int -> Stream b -> Stream a
+{-# INLINE_STREAM foldValuesR #-}
+foldValuesR f z segSize (Stream nextv vs nv) =
+  Stream next (segSize :*: Box z :*: vs) ns
+  where
+    {-# INLINE next #-}  
+    next (0 :*: Box x :*: vs) =
+      Yield x (segSize :*: Box z :*: vs)
+
+    next (n :*: Box x :*: vs) =
+      case nextv vs of
+        Done        -> Done
+        Skip    vs' -> Skip (n :*: Box x :*: vs')
+        Yield y vs' -> Skip ((n-1) :*: Box (f x y) :*: vs')
