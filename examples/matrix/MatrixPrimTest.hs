@@ -29,6 +29,12 @@ mmMult'' (order, m, n) =
        else error ("div res:\n" ++ (show ares) ++ "\n" ++ show lres)
 
 
+fnTest:: (Int, U.Array Double, U.Array Double) -> U.Array Double
+fnTest _ = 
+  let 
+    xs = mmMultTL 2 4 (U.fromList [1.0..16.0]) 
+                      (U.fromList [1.0,0,0,1.0,  1.0,0,0,1.0 ,1.0,0,0,1.0, 1.0,0,0,1.0])
+  in trace (show $ U.toList xs) xs
 
 listMult:: Int -> [Double] -> [Double] -> [Double]
 listMult order mA mB = [sum (zipWith (*) (mmA!!i) (mmB!!j)) | i<- [0..(order-1)], j <- [0..(order-1)]]
@@ -62,7 +68,8 @@ run opts () sizes =
   case map read sizes of
     []  -> failWith ["No sizes specified"]
     szs -> do
-             benchmark opts  mmMult''
+--             benchmark opts  mmMult''
+             benchmark opts mmMult''
                 (map generateVectors szs)
                 (`seq` ()) show
              return ()
