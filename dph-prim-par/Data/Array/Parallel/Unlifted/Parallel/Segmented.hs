@@ -20,6 +20,7 @@
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   mapSUP, filterSUP, packCUP, combineCUP,
   zipWithSUP, foldlSUP, foldlSUP', foldSUP, foldSUP', sumSUP, bpermuteSUP',
+  sumRUP, foldRUP,
   enumFromThenToSUP, replicateSUP, replicateCUP, repeatCUP, indexedSUP, jsTest
 ) where
 
@@ -167,3 +168,20 @@ indexedSUP xss = segdSU xss >: zipU is xs
        . zipU (replicateU (lengthSU xss) 0)
        . mapUP (subtract 1)
        $ lengthsSU xss
+
+
+sumRUP :: (Num e, UA e) => Int ->  Int -> UArr e -> UArr e
+{-# INLINE sumRUP #-}
+sumRUP = foldRUP (+) 0
+
+
+foldRUP :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> Int -> UArr a -> UArr b
+{-# INLINE foldRUP #-}
+foldRUP f z  noOfSegs segSize xs = 
+   joinD theGang unbalanced
+    (zipWithD theGang 
+              (\noS -> \xss -> foldlRU f z noS segSize xss)
+      (splitLenD theGang noOfSegs)
+      (splitAsD theGang 
+                (mapD theGang (*segSize) (splitLenD theGang noOfSegs))
+                xs))

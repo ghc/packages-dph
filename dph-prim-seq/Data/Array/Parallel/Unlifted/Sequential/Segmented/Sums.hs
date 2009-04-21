@@ -17,7 +17,8 @@
 --
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums (
-  andSU, orSU, sumSU, productSU, maximumSU, minimumSU
+  andSU, orSU, sumSU, productSU, maximumSU, minimumSU,
+  sumRU
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
@@ -25,7 +26,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat (
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
   SUArr)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
-  foldSU, fold1SU)
+  foldSU, fold1SU, foldlRU)
 
 -- |
 andSU :: SUArr Bool -> UArr Bool
@@ -59,3 +60,9 @@ minimumSU :: (Ord e, UA e) => SUArr e -> UArr e
 {-# INLINE minimumSU #-}
 minimumSU = fold1SU min
 
+
+-- |Compute the segmented sum of an array of numerals
+--
+sumRU :: (Num e, UA e) => Int -> Int ->UArr e -> UArr e
+{-# INLINE sumRU #-}
+sumRU = foldlRU (+) 0

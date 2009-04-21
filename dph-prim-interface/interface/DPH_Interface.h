@@ -189,6 +189,8 @@ fold1_s :: Elt a => (a -> a -> a) -> SArray a -> Array a
 sum_s :: (Num a, Elt a) => SArray a -> Array a
 {-# INLINE_BACKEND sum_s #-}
 
+sum_r :: (Num a, Elt a) => Int -> Int ->Array a -> Array a
+{-# INLINE_BACKEND sum_r #-}
 
 enumFromThenTo_s :: Array Int -> Array Int -> Array Int -> SArray Int
 {-# INLINE_BACKEND enumFromThenTo_s #-}

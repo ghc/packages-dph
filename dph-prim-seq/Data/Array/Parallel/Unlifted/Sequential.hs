@@ -115,11 +115,17 @@ module Data.Array.Parallel.Unlifted.Sequential (
   fold1SU,
   {-scanSU, scan1SU,-}
 
+  -- * Higher-order operations (regular)
+  foldlRU,
+
   -- * Logical operations (segmented)
   andSU, orSU,
 
   -- * Arithmetic operations (segmented)
   sumSU, productSU, maximumSU, minimumSU,
+ 
+  -- * Arithmetic operations (regular segmented)
+  sumRU, 
 
   -- * Enumerations (segmented)
   enumFromToSU, enumFromThenToSU,

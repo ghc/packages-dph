@@ -69,6 +69,7 @@ fold_s = foldSU
 fold_s' = foldSU'
 fold1_s = fold1SU
 sum_s = sumSU
+sum_r = sumRU
 enumFromThenTo_s = enumFromThenToSU
 indexed_s = indexedSU
 lengthsSegd = lengthsUSegd

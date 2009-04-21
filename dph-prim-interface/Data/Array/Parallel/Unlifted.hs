@@ -113,6 +113,10 @@ fold_s f z = map (fold f z)
 fold_s' f z segd xs = map (fold f z) (segd >: xs)
 fold1_s f = map (fold1 f)
 sum_s = map sum
+sum_r _ segSize xs = sum_s $ seg xs
+  where
+    seg [] = [] 
+    seg xs = (P.take segSize xs) : (seg (P.drop segSize xs))
 
 enumFromThenTo_s = zipWith3 enumFromThenTo
 enumFromStepLen i k 0 = []

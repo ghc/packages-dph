@@ -23,6 +23,7 @@
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
   mapSU, zipWithSU,
   foldlSU, foldlSU', foldSU, foldSU', foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
+  foldlRU,
   combineSU, combineCU,
   filterSU, packCU
 ) where
@@ -125,3 +126,9 @@ packCU flags xssArr = segmentArrU newLengths flatData
     newLengths = packU (lengthsSU xssArr) flags    
 
 
+-- | Regular arrar reduction 
+--
+
+foldlRU :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> Int -> UArr a -> UArr b
+{-# INLINE_U foldlRU #-}
+foldlRU f z noOfSegs segSize = unstreamU . foldValuesR f z noOfSegs segSize . streamU

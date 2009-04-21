@@ -52,6 +52,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   fold1SU,
   {-scanSU, scan1SU,-}
 
+  foldlRU,
+
   -- filter and combines
   filterSU, packCU, 
 
@@ -61,7 +63,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 
   -- * Arithmetic operations
   sumSU, productSU, maximumSU, minimumSU,
-
+  sumRU,
   -- * Enumerations
   enumFromToSU, enumFromThenToSU,
 

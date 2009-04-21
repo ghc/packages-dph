@@ -20,7 +20,7 @@ module Data.Array.Parallel.Unlifted (
   fst_s, snd_s, zip_s,
   bpermute_s', map_s, filter_s, pack_c, combine_c, zipWith_s,
   indexed_s,
-  fold_s, fold_s', fold1_s, sum_s,
+  fold_s, fold_s', fold1_s, sum_s, sum_r,
   enumFromThenTo_s,
   lengthsSegd, lengthsToSegd, toSegd, fromSegd,
 
