@@ -3,7 +3,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Lifted.Unboxed (
-  Segd, toSegd,
+  Segd,
 
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
@@ -14,7 +14,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   fromListPA_Int#,
   upToPA_Int#, enumFromToPA_Int#, enumFromThenToPA_Int#,
   enumFromStepLenPA_Int#, enumFromToEachPA_Int#,
-  selectPA_Int#, selectorToIndices2PA#, mkSegdPA#,
+  selectPA_Int#, selectorToIndices2PA#,
+  lengthsSegdPA#, indicesSegdPA#, elementsSegdPA#, lengthsToSegdPA#, mkSegdPA#,
   sumPA_Int#, sumPAs_Int#,
   unsafe_mapPA_Int#, unsafe_zipWithPA_Int#, unsafe_foldPA_Int#,
   unsafe_scanPA_Int#,
@@ -58,9 +59,6 @@ import Debug.Trace
 
 type Segd = U.Segd
 
-toSegd :: PArray_Int# -> PArray_Int# -> Segd
-toSegd is js = U.toSegd (U.zip is js)
-
 type PArray_Int# = U.Array Int
 
 lengthPA_Int# :: PArray_Int# -> Int#
@@ -82,8 +80,8 @@ replicatePA_Int# n# i# = U.replicate (I# n#) (I# i#)
 
  #-}
 
-replicatelPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
-replicatelPA_Int# n# ns is = U.replicateEach (I# n#) ns is
+replicatelPA_Int# :: Segd -> PArray_Int# -> PArray_Int#
+replicatelPA_Int# segd is = U.replicate_s segd is
 {-# INLINE_PA replicatelPA_Int# #-}
 
 repeatPA_Int# :: Int# -> Int# -> PArray_Int# -> PArray_Int#
@@ -159,8 +157,24 @@ selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# ns i# = U.map (\n -> n == I# i#) ns
 {-# INLINE_PA selectPA_Int# #-}
 
-mkSegdPA# :: PArray_Int# -> PArray_Int# -> Segd
-mkSegdPA# ns is = U.toSegd (U.zip ns is)
+lengthsSegdPA# :: Segd -> PArray_Int#
+lengthsSegdPA# = U.lengthsSegd
+{-# INLINE_PA lengthsSegdPA# #-}
+
+indicesSegdPA# :: Segd -> PArray_Int#
+indicesSegdPA# = U.indicesSegd
+{-# INLINE_PA indicesSegdPA# #-}
+
+elementsSegdPA# :: Segd -> Int#
+elementsSegdPA# segd = case U.elementsSegd segd of { I# n# -> n# }
+{-# INLINE_PA elementsSegdPA# #-}
+
+lengthsToSegdPA# :: PArray_Int# -> Segd
+lengthsToSegdPA# = U.lengthsToSegd
+{-# INLINE_PA lengthsToSegdPA# #-}
+
+mkSegdPA# :: PArray_Int# -> PArray_Int# -> Int# -> Segd
+mkSegdPA# ns is n# = U.mkSegd ns is (I# n#)
 {-# INLINE_PA mkSegdPA# #-}
 
 selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
@@ -217,8 +231,8 @@ replicatePA_Word8# :: Int# -> Word# -> PArray_Word8#
 replicatePA_Word8# n# d# = U.replicate (I# n#) (W8# d#)
 {-# INLINE_PA replicatePA_Word8# #-}
 
-replicatelPA_Word8# :: Int# -> PArray_Int# -> PArray_Word8# -> PArray_Word8#
-replicatelPA_Word8# n# ns ds = U.replicateEach (I# n#) ns ds
+replicatelPA_Word8# :: Segd -> PArray_Word8# -> PArray_Word8#
+replicatelPA_Word8# segd ds = U.replicate_s segd ds
 {-# INLINE_PA replicatelPA_Word8# #-}
 
 repeatPA_Word8# :: Int# -> Int# -> PArray_Word8# -> PArray_Word8#
@@ -306,8 +320,8 @@ replicatePA_Double# :: Int# -> Double# -> PArray_Double#
 replicatePA_Double# n# d# = U.replicate (I# n#) (D# d#)
 {-# INLINE_PA replicatePA_Double# #-}
 
-replicatelPA_Double# :: Int# -> PArray_Int# -> PArray_Double# -> PArray_Double#
-replicatelPA_Double# n# ns ds = U.replicateEach (I# n#) ns ds
+replicatelPA_Double# :: Segd -> PArray_Double# -> PArray_Double#
+replicatelPA_Double# segd ds = U.replicate_s segd ds
 {-# INLINE_PA replicatelPA_Double# #-}
 
 repeatPA_Double# :: Int# -> Int# -> PArray_Double# -> PArray_Double#
@@ -394,8 +408,8 @@ lengthPA_Bool# :: PArray_Bool# -> Int#
 lengthPA_Bool# arr = case U.length arr of { I# n# -> n# }
 {-# INLINE_PA lengthPA_Bool# #-}
 
-replicatelPA_Bool# :: Int# -> PArray_Int# -> PArray_Bool# -> PArray_Bool#
-replicatelPA_Bool# n# ns ds = U.replicateEach (I# n#) ns ds
+replicatelPA_Bool# :: Segd -> PArray_Bool# -> PArray_Bool#
+replicatelPA_Bool# segd ds = U.replicate_s segd ds
 {-# INLINE_PA replicatelPA_Bool# #-}
 
 packPA_Bool# :: PArray_Bool# -> Int# -> PArray_Bool# -> PArray_Bool#

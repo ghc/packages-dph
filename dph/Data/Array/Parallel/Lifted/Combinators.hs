@@ -38,8 +38,10 @@ replicatePA_v pa (I# n#) x = replicatePA# pa n# x
 replicatePA_l :: PA a -> PArray Int -> PArray a -> PArray (PArray a)
 {-# INLINE_PA replicatePA_l #-}
 replicatePA_l pa (PInt n# ns) xs
-  = PNested n# ns (unsafe_scanPA_Int# (+) 0 ns)
-                  (replicatelPA# pa (sumPA_Int# ns) ns xs)
+  = PNested n# ns (indicesSegdPA# segd)
+                  (replicatelPA# pa segd xs)
+  where
+    segd = lengthsToSegdPA# ns
 
 replicatePA :: PA a -> (Int :-> a :-> PArray a)
 {-# INLINE replicatePA #-}
@@ -67,9 +69,9 @@ mapPA_v pa pb f as = replicatePA# (dPA_Clo pa pb) (lengthPA# pa as) f
 mapPA_l :: PA a -> PA b
         -> PArray (a :-> b) -> PArray (PArray a) -> PArray (PArray b)
 {-# INLINE_PA mapPA_l #-}
-mapPA_l pa pb fs (PNested n# lens idxs xs)
+mapPA_l pa pb fs xss@(PNested n# lens idxs xs)
   = PNested n# lens idxs
-            (replicatelPA# (dPA_Clo pa pb) (lengthPA# pa xs) lens fs $:^ xs)
+            (replicatelPA# (dPA_Clo pa pb) (segdOfPA# pa xss) fs $:^ xs)
 
 mapPA :: PA a -> PA b -> ((a :-> b) :-> PArray a :-> PArray b)
 {-# INLINE mapPA #-}
@@ -78,10 +80,9 @@ mapPA pa pb = closure2 (dPA_Clo pa pb) (mapPA_v pa pb) (mapPA_l pa pb)
 crossMapPA_v :: PA a -> PA b -> PArray a -> (a :-> PArray b) -> PArray (a,b)
 {-# INLINE_PA crossMapPA_v #-}
 crossMapPA_v pa pb as f
-  = case lengthPA# pb bs of
-      n# -> zipPA# pa pb (replicatelPA# pa n# lens as) bs
+  = zipPA# pa pb (replicatelPA# pa (segdOfPA# pb bss) as) (concatPA# bss)
   where
-    PNested _ lens _ bs = mapPA_v pa (dPA_PArray pb) f as
+    bss = mapPA_v pa (dPA_PArray pb) f as
 
 crossMapPA_l :: PA a -> PA b
              -> PArray (PArray a)
@@ -92,10 +93,10 @@ crossMapPA_l pa pb ass@(PNested _ _ _ as) fs
   = case concatPA_l pb bsss of
       PNested n# lens1 idxs1 bs -> PNested n# lens1 idxs1 (zipPA# pa pb as' bs)
   where
-    bsss@(PNested _ _ _ (PNested _ lens2 _ bs2))
+    bsss@(PNested _ _ _ bss)
       = mapPA_l pa (dPA_PArray pb) fs ass
 
-    as' = replicatelPA# pa (lengthPA# pb bs2) lens2 as
+    as' = replicatelPA# pa (segdOfPA# pb bss) as
 
 crossMapPA :: PA a -> PA b -> (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
 {-# INLINE crossMapPA #-}
@@ -128,10 +129,10 @@ zipWithPA_l :: PA a -> PA b -> PA c
             -> PArray (a :-> b :-> c) -> PArray (PArray a) -> PArray (PArray b)
             -> PArray (PArray c)
 {-# INLINE_PA zipWithPA_l #-}
-zipWithPA_l pa pb pc fs (PNested n# lens idxs as) (PNested _ _ _ bs)
+zipWithPA_l pa pb pc fs ass@(PNested n# lens idxs as) (PNested _ _ _ bs)
   = PNested n# lens idxs
             (replicatelPA# (dPA_Clo pa (dPA_Clo pb pc))
-                           (lengthPA# pa as) lens fs $:^ as $:^ bs)
+                           (segdOfPA# pa ass) fs $:^ as $:^ bs)
 
 zipWithPA :: PA a -> PA b -> PA c
           -> ((a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c)
@@ -160,11 +161,13 @@ packPA_v pa xs bs = packPA# pa xs (truesPA# bs) (toPrimArrPA_Bool bs)
 packPA_l :: PA a
          -> PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE_PA packPA_l #-}
-packPA_l pa (PNested _ _ _ xs) (PNested n# lens idxs bs)
-  = PNested n# lens' idxs' (packPA_v pa xs bs)
+packPA_l pa (PNested _ _ _ xs) bss
+  = PNested (lengthPA# (dPA_PArray dPA_Bool) bss) lens' idxs' (packPA_v pa xs bs)
   where
-    lens' = truesPAs_Bool# (toSegd lens idxs) (toPrimArrPA_Bool bs)
+    lens' = truesPAs_Bool# segd (toPrimArrPA_Bool bs)
     idxs' = unsafe_scanPA_Int# (+) 0 lens'
+    segd  = segdOfPA# dPA_Bool bss
+    bs    = concatPA# bss
 
 packPA :: PA a -> (PArray a :-> PArray Bool :-> PArray a)
 {-# INLINE packPA #-}
@@ -220,11 +223,12 @@ concatPA_v pa (PNested _ _ _ xs) = xs
 
 concatPA_l :: PA a -> PArray (PArray (PArray a)) -> PArray (PArray a)
 {-# INLINE_PA concatPA_l #-}
-concatPA_l pa (PNested m# lens1 idxs1 (PNested n# lens2 idxs2 xs))
+concatPA_l pa arr@(PNested m# lens1 idxs1 (PNested n# lens2 idxs2 xs))
   = PNested m# lens idxs xs
   where
-    lens = sumPAs_Int# (toSegd lens1 idxs1) lens2
+    lens = sumPAs_Int# segd lens2
     idxs = bpermutePA_Int# idxs2 idxs1
+    segd = segdOfPA# (dPA_PArray pa) arr
 
 concatPA :: PA a -> (PArray (PArray a) :-> PArray a)
 {-# INLINE concatPA #-}
@@ -236,12 +240,12 @@ appPA_v pa xs ys = appPA# pa xs ys
 
 appPA_l :: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE_PA appPA_l #-}
-appPA_l pa (PNested m# lens1 idxs1 xs)
-           (PNested n# lens2 idxs2 ys)
+appPA_l pa xss@(PNested m# lens1 idxs1 xs)
+           yss@(PNested n# lens2 idxs2 ys)
   = PNested (m# +# n#) (unsafe_zipWithPA_Int# (+) lens1 lens2)
                        (unsafe_zipWithPA_Int# (+) idxs1 idxs2)
-                       (applPA# pa (toSegd lens1 idxs1) xs
-                                   (toSegd lens2 idxs2) ys)
+                       (applPA# pa (segdOfPA# pa xss) xs
+                                   (segdOfPA# pa yss) ys)
 
 appPA :: PA a -> (PArray a :-> PArray a :-> PArray a)
 {-# INLINE appPA #-}

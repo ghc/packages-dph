@@ -33,7 +33,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Sequential (
   UA, UArr, unitsU, lengthU, newU, sliceU, fstU, sndU,
   foldU, mapU, zipU, unzipU, scanU,
-  indexedU, replicateU, replicateEachU)
+  indexedU, replicateU)
 import Data.Array.Parallel.Unlifted.Distributed
 
 

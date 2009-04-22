@@ -17,7 +17,7 @@
 
 module Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, zipD, unzipD, fstD, sndD, zipWithD,
-  foldD, scanD,
+  foldD, scanD, mapAccumLD,
 
   -- * Monadic combinators
   mapDST_, mapDST, zipWithDST_, zipWithDST
@@ -95,6 +95,24 @@ scanD g f z !d = checkGangD (here "scanD") g d $
                                 writeMD md i x
                                 scan md (i+1) (f x $ d `indexD` i)
 
+mapAccumLD :: (DT a, DT b) => Gang -> (acc -> a -> acc :*: b)
+                                   -> acc -> Dist a -> acc :*: Dist b
+{-# INLINE_DIST mapAccumLD #-}
+mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
+                        runST (do
+                          md   <- newMD g
+                          acc' <- go md 0 acc
+                          d'   <- unsafeFreezeMD md
+                          return (acc' :*: d'))
+  where
+    n = gangSize g
+
+    go md i acc | i == n    = return acc
+                | otherwise = case f acc (d `indexD` i) of
+                                acc' :*: b -> do
+                                                writeMD md i b
+                                                go md (i+1) acc'
+                                
 -- NOTE: The following combinators must be strict in the Dists because if they
 -- are not, the Dist might be evaluated (in parallel) when it is requested in
 -- the current computation which, again, is parallel. This would break our

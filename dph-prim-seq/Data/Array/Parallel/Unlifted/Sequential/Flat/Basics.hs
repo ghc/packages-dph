@@ -22,7 +22,6 @@
 
 module Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, 
-  replicateEachU,
   (!:), (+:+), repeatU, repeatUS,
   indexedU,
   toU, fromU
@@ -33,7 +32,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   consS, singletonS, replicateS, (+++), indexedS,
-  replicateEachS, zipS, toStream)
+  {-replicateEachS, zipS,-} toStream)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
@@ -74,16 +73,6 @@ consU x = unstreamU . consS x . streamU
 replicateU :: UA e => Int -> e -> UArr e
 {-# INLINE_U replicateU #-}
 replicateU n e = unstreamU (replicateS n e)
-
-
-
-
-
-replicateEachU :: UA e => Int -> UArr Int -> UArr e -> UArr e
-{-# INLINE_U replicateEachU #-}
-replicateEachU n ns es = unstreamU
-                       . replicateEachS n
-                       $ zipS (streamU ns) (streamU es)
 
 -- |Array indexing
 --

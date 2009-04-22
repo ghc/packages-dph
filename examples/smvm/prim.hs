@@ -19,18 +19,14 @@ main = ndpMain "Sparse matrix/vector multiplication (primitives)"
 
 run opts () files
   = do
-      benchmark opts (uncurry smvm)
+      benchmark opts (\(segd, m, v) -> smvm segd m v)
                 (map loadSM files)
                 (`seq` ()) showRes
       return ()
   where
     showRes arr = "sum = " ++ show (U.sum arr)
 
-loadSM :: String -> IO (Point (U.SArray (Int U.:*: Double), U.Array Double))
-loadSM s@('(' : _) =
-  case reads s of
-    [((lm,lv), "")] -> return $ mkPoint "input" (U.fromList_s lm, U.fromList lv)
-    _               -> failWith ["Invalid data " ++ s]
+loadSM :: String -> IO (Point (U.Segd, U.Array (Int U.:*: Double), U.Array Double))
 loadSM fname =
   do
     h <- openBinaryFile fname ReadMode
@@ -38,8 +34,8 @@ loadSM fname =
     indices <- U.hGet h
     values  <- U.hGet h
     dv      <- U.hGet h
-    let sm = U.lengthsToSegd lengths U.>: U.zip indices values
-    return (sm, values)
+    let segd = U.lengthsToSegd lengths
+        m    = U.zip indices values
     evaluate lengths
     evaluate indices
     evaluate values
@@ -47,6 +43,6 @@ loadSM fname =
     -- print (sumU values)
     -- print (sumU dv)
     return $ mkPoint (  "cols=" ++ show (U.length dv) ++ ", "
-                     ++ "rows=" ++ show (U.length_s sm) ++ ", "
-                     ++ "elems=" ++ show (U.length (U.concat sm)))
-              (sm,dv)
+                     ++ "rows=" ++ show (U.length lengths) ++ ", "
+                     ++ "elems=" ++ show (U.length m))
+              (segd, m, dv)

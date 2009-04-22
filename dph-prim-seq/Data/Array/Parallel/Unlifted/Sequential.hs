@@ -22,11 +22,11 @@ module Data.Array.Parallel.Unlifted.Sequential (
   UA,
 
   -- * Array types
-  UArr, USegd, SUArr(..),
+  UArr, USegd,
 
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU,
-  replicateU, replicateEachU, (!:), (+:+),
+  replicateU, (!:), (+:+),
   indexedU, repeatU,
 
   -- * Subarrays
@@ -52,12 +52,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   mapAccumLU,
 
   -- Segmented filter and combines
-  filterSU, packCU, 
-  combineU, combineSU, combineCU, 
-
-
-  -- * Segmented Subarrays
-  sliceSU, extractSU, takeCU, dropCU,
+  combineU, combineSU,
 
   -- * Searching
   elemU, notElemU,
@@ -92,27 +87,11 @@ module Data.Array.Parallel.Unlifted.Sequential (
   -- * I\/O
   UIO(..),
 
-  -- * Segmentation
-  concatSU, (>:), segmentU, segmentArrU, segdSU,
-
   -- * Basic operations (segmented)
-  lengthSU, singletonSU, singletonsSU, replicateSU, replicateCU, repeatCU,
-  indexedSU, appendSU, (!:^),
-
-  -- * Basic operations lifted
-  lengthsSU, indicesSU,
-
-  -- * Zipping (segmented)
-  fstSU, sndSU, zipSU,
-
-  -- * Permutations (segmented)
-  bpermuteSU, bpermuteSU',
+  {-repeatCU,-} replicateSU, appendSU,
 
   -- * Higher-order operations (segmented)
-  mapSU, zipWithSU,
-  {-concatMapU,-}
-  foldlSU, foldlSU', foldSU, foldSU',
-  fold1SU, fold1SU',
+  foldlSU, foldSU, fold1SU,
   {-scanSU, scan1SU,-}
 
   -- * Higher-order operations (regular)
@@ -127,16 +106,8 @@ module Data.Array.Parallel.Unlifted.Sequential (
   -- * Arithmetic operations (regular segmented)
   sumRU, 
 
-  -- * Enumerations (segmented)
-  enumFromToSU, enumFromThenToSU,
-
---  lines, words, unlines, unwords,  -- is string processing really needed
-
-  -- * Conversions to\/from lists (segmented)
-  toSU, fromSU,
-
   -- * Segment descriptors
-  lengthsUSegd, lengthsToUSegd, toUSegd, fromUSegd,
+  lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd, lengthsToUSegd, mkUSegd,
 
   -- * Mutable arrays
   MUArr, newU, newMU, copyMU, permuteMU,
@@ -177,8 +148,4 @@ instance (Eq e, UA e) => Eq (UArr e) where
   a1 == a2 = lengthU a1 == lengthU a2 && foldlU cmp True (zipU a1 a2)
 	     where
 	       cmp r (e1 :*: e2) = e1 == e2 && r
-
--- |
-instance (Eq e, UA e) => Eq (SUArr e) where
-  a1 == a2 = concatSU a1 == concatSU a2
 

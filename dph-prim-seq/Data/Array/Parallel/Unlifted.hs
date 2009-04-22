@@ -3,7 +3,7 @@
 #include "DPH_Header.h"
 
 import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+), (>:))
+  hiding ((!:), (+:+))
 import qualified Data.Array.Parallel.Unlifted.Sequential
   as U
 
@@ -11,13 +11,11 @@ import qualified Data.Array.Parallel.Unlifted.Sequential
 
 class UA a => Elt a
 type Array = UArr
-type SArray = SUArr
 type Segd = USegd
 
 length = lengthU
 empty = emptyU
 replicate = replicateU
-replicateEach = replicateEachU
 repeat n _ = repeatU n
 (!:) = (U.!:)
 extract = extractU
@@ -50,39 +48,19 @@ enumFromStepLen = enumFromStepLenU
 enumFromToEach = enumFromToEachU
 enumFromStepLenEach = enumFromStepLenEachU
 
-append_s = appendSU
-fold_s = foldSU'
-fold1_s = fold1SU'
-{-
-concat = concatSU
-(>:) = (U.>:)
-(^+:+^) = (U.^+:+^)
-length_s = lengthSU
-lengths_s = lengthsSU
 replicate_s = replicateSU
--- repeat_c = repeatCU
-indices_s = indicesSU
-fst_s = fstSU
-snd_s = sndSU
-zip_s = zipSU
-bpermute_s' = bpermuteSU'
-map_s = mapSU
-filter_s = filterSU
-pack_c = packCU
-combine_c = combineCU
-zipWith_s = zipWithSU
+append_s = appendSU
 fold_s = foldSU
-fold_s' = foldSU'
 fold1_s = fold1SU
 sum_s = sumSU
-sum_r = sumRU
 enumFromThenTo_s = enumFromThenToSU
 indexed_s = indexedSU
 -}
 lengthsSegd = lengthsUSegd
+indicesSegd = indicesUSegd
+elementsSegd = elementsUSegd
 lengthsToSegd  = lengthsToUSegd
-toSegd = toUSegd
-fromSegd = fromUSegd
+mkSegd = mkUSegd
 randoms = randomU
 randomRs = randomRU
 class UIO a => IOElt a
@@ -90,8 +68,4 @@ hPut = hPutU
 hGet = hGetU
 toList = fromU
 fromList = toU
-{-
-toList_s = fromSU
-fromList_s = toSU
--}
 

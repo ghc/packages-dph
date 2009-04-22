@@ -23,24 +23,20 @@
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
 
   -- * Types
-  USegd, MUSegd,
+  USegd,
 
   -- * Operations on segment descriptors
-  lengthUSegd, lengthsUSegd, indicesUSegd, fromUSegd,
-  emptyUSegd, singletonUSegd, lengthsToUSegd, toUSegd,
-  sliceUSegd, extractUSegd,
-  newMUSegd, unsafeFreezeMUSegd,
+  lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd, mkUSegd,
+  emptyUSegd, singletonUSegd, lengthsToUSegd,
+  sliceUSegd, extractUSegd
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), ST)
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UArr, MUArr,
-  lengthU, emptyU, singletonU, (!:), sliceU, extractU, mapU,
-  scanlU, mapAccumLU,
-  fstU, sndU, zipU,
-  streamU, unstreamU,
-  newMU, unsafeFreezeMU)
+  lengthU, emptyU, singletonU, sliceU, extractU,
+  scanlU, sumU )
 
 import Control.Monad (
   liftM)
@@ -50,93 +46,59 @@ import Control.Monad (
 -- segment, it stores the length and the starting index in the flat data
 -- array.
 --
-newtype USegd    = USegd  { unUSegd  :: UArr  (Int :*: Int)   }
-newtype MUSegd s = MUSegd { unMUSegd :: MUArr (Int :*: Int) s }
+data USegd = USegd { usegd_lengths  :: !(UArr Int)
+                   , usegd_indices  :: !(UArr Int)
+                   , usegd_elements :: !Int
+                   }
 
 -- |Operations on segment descriptors
 -- ----------------------------------
-
--- |Allocate a mutable segment descriptor for the given number of segments
---
-newMUSegd :: Int -> ST s (MUSegd s)
-{-# INLINE newMUSegd #-}
-newMUSegd = liftM MUSegd . newMU
-
--- |Convert a mutable segment descriptor to an immutable one
---
-unsafeFreezeMUSegd :: MUSegd s -> Int -> ST s USegd
-{-# INLINE unsafeFreezeMUSegd #-}
-unsafeFreezeMUSegd sd n = liftM USegd (unsafeFreezeMU (unMUSegd sd) n)
 
 -- |Yield the overall number of segments
 --
 lengthUSegd :: USegd -> Int
 {-# INLINE lengthUSegd #-}
-lengthUSegd = lengthU . unUSegd
+lengthUSegd = lengthU . usegd_lengths
 
 -- |Yield the segment lengths of a segment descriptor
 --
 lengthsUSegd :: USegd -> UArr Int
 {-# INLINE lengthsUSegd #-}
-lengthsUSegd = fstU . unUSegd
+lengthsUSegd = usegd_lengths
 
 -- |Yield the segment indices of a segment descriptor
 --
 indicesUSegd :: USegd -> UArr Int
 {-# INLINE indicesUSegd #-}
-indicesUSegd = sndU . unUSegd
+indicesUSegd = usegd_indices
 
--- |Convert a segment descriptor to an array of length\/index pairs.
+-- |Yield the number of data elements
 --
-fromUSegd :: USegd -> UArr (Int :*: Int)
-{-# INLINE fromUSegd #-}
-fromUSegd = unUSegd
+elementsUSegd :: USegd -> Int
+{-# INLINE elementsUSegd #-}
+elementsUSegd = usegd_elements
 
--- |Convert an array of length\/index pairs to a segment descriptor.
---
-toUSegd :: UArr (Int :*: Int) -> USegd
-{-# INLINE toUSegd #-}
-toUSegd = USegd
+mkUSegd :: UArr Int -> UArr Int -> Int -> USegd
+{-# INLINE mkUSegd #-}
+mkUSegd = USegd
 
 -- |Yield an empty segment descriptor
 --
 emptyUSegd :: USegd
 {-# INLINE emptyUSegd #-}
-emptyUSegd = USegd emptyU
+emptyUSegd = USegd emptyU emptyU 0
 
 -- |Yield a singleton segment descriptor
 --
 singletonUSegd :: Int -> USegd
 {-# INLINE singletonUSegd #-}
-singletonUSegd n = toUSegd $ singletonU (n :*: 0)
+singletonUSegd n = USegd (singletonU n) (singletonU 0) n
 
 -- |Convert a length array into a segment descriptor.
 --
 lengthsToUSegd :: UArr Int -> USegd
 {-# INLINE lengthsToUSegd #-}
-lengthsToUSegd = USegd . segdFromLengthsU
-
--- |Convert a length array to an array of length\/index pairs.
---
-segdFromLengthsU :: UArr Int -> UArr (Int :*: Int)
-{-# INLINE_STREAM segdFromLengthsU #-}
-segdFromLengthsU lens = zipU lens (scanlU (+) 0 lens)
-
--- |Convert a length array to an array of length\/index pairs - fusible
--- version.
---
-segdFromLengthsU' :: UArr Int -> UArr (Int :*: Int)
-{-# INLINE_U segdFromLengthsU' #-}
-segdFromLengthsU' = mapAccumLU (\i n -> (i + n) :*: (n :*: i)) 0
-
-{-# RULES
-
-"segdFromLengthsU/unstreamU" forall s.
-  segdFromLengthsU (unstreamU s) = segdFromLengthsU' (unstreamU s)
-"streamU/fromLengthsU" forall a.
-  streamU (segdFromLengthsU a) = streamU (segdFromLengthsU' a)
- #-}
-
+lengthsToUSegd lens = USegd lens (scanlU (+) 0 lens) (sumU lens)
 
 -- |Extract a slice of a segment descriptor, avoiding copying where possible.
 --
@@ -144,12 +106,8 @@ segdFromLengthsU' = mapAccumLU (\i n -> (i + n) :*: (n :*: i)) 0
 --       segment will be 0.
 --
 sliceUSegd :: USegd -> Int -> Int -> USegd
-sliceUSegd segd i n = USegd (zipU lens idxs')
-  where
-    lens  = sliceU (lengthsUSegd segd) i n
-    idxs  = sliceU (indicesUSegd segd) i n
-    idxs' = mapU (subtract k) idxs
-    k     = idxs !: 0
+{-# INLINE sliceUSegd #-}
+sliceUSegd segd i n = lengthsToUSegd $ sliceU (lengthsUSegd segd) i n
 
 -- |Extract a slice of a segment descriptor, copying everything.
 --
@@ -157,10 +115,6 @@ sliceUSegd segd i n = USegd (zipU lens idxs')
 --       segment will be 0.
 --
 extractUSegd :: USegd -> Int -> Int -> USegd
-extractUSegd segd i n = USegd (zipU lens idxs')
-  where
-    lens  = extractU (lengthsUSegd segd) i n
-    idxs  = sliceU   (indicesUSegd segd) i n
-    idxs' = mapU (subtract k) idxs
-    k     = idxs !: 0
+{-# INLINE extractUSegd #-}
+extractUSegd segd i n = lengthsToUSegd $ extractU (lengthsUSegd segd) i n
 

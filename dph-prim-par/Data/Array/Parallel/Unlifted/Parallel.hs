@@ -22,13 +22,10 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   andUP, sumUP,
   
-  mapSUP, filterSUP, packCUP, combineCUP, zipWithSUP, foldSUP, foldSUP', sumSUP,
-  bpermuteSUP', enumFromThenToSUP, replicateSUP, repeatCUP, indexedSUP, jsTest,
+  replicateSUP, foldSUP, sumSUP,
 
-  sumRUP,
   indexedUP, replicateUP, replicateEachUP, replicateEachUnbalancedUP, repeatUP,
 
-  dropUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Parallel.Permute

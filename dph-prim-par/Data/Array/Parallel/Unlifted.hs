@@ -5,7 +5,7 @@
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+), (>:))
+  hiding ((!:), (+:+))
 import qualified Data.Array.Parallel.Unlifted.Sequential
   as U
 
@@ -13,13 +13,11 @@ import qualified Data.Array.Parallel.Unlifted.Sequential
 
 class (UA a, DT a) => Elt a
 type Array = UArr
-type SArray = SUArr
 type Segd = USegd
 
 length = lengthU
 empty = emptyU
 replicate = replicateUP
-replicateEach = replicateEachUP
 repeat n _ = repeatUP n
 (!:) = (U.!:)
 extract = extractU
@@ -35,6 +33,7 @@ filter = filterUP
 zip = zipU
 unzip = unzipU
 fsts = fstU
+snds = sndU
 zip3 = zip3U
 unzip3 = unzip3U
 zipWith = zipWithUP
@@ -51,39 +50,19 @@ enumFromStepLen = enumFromStepLenUP
 enumFromToEach = enumFromToEachU
 enumFromStepLenEach =enumFromStepLenEachUP
 
-append_s = U.appendSU
-fold_s = foldSUP'
-fold1_s = fold1SU'
-{-
-concat = concatSU
-(>:) = (U.>:)
-(^+:+^) = (U.^+:+^)
-length_s = lengthSU
-lengths_s = lengthsSU
 replicate_s = replicateSUP
--- repeat_c = repeatCUP
-indices_s = indicesSU
-fst_s = fstSU
-snd_s = sndSU
-zip_s = zipSU
-bpermute_s' = bpermuteSUP'
-map_s = mapSUP
-filter_s = filterSUP
-pack_c = packCUP
-combine_c = combineCUP
-zipWith_s = zipWithSUP
+append_s = U.appendSU
 fold_s = foldSUP
-fold_s' = foldSUP'
 fold1_s = fold1SU
 sum_s = sumSUP
-sum_r = sumRUP
 enumFromThenTo_s = enumFromThenToSUP
 indexed_s = indexedSUP
 -}
 lengthsSegd = lengthsUSegd
+indicesSegd = indicesUSegd
+elementsSegd = elementsUSegd
 lengthsToSegd  = lengthsToUSegd
-toSegd = toUSegd
-fromSegd = fromUSegd
+mkSegd = mkUSegd
 randoms = randomU
 randomRs = randomRU
 class UIO a => IOElt a
@@ -91,8 +70,4 @@ hPut = hPutU
 hGet = hGetU
 toList = fromU
 fromList = toU
-{-
-toList_s = fromSU
-fromList_s = toSU
--}
 

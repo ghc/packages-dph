@@ -30,13 +30,15 @@ loadSM :: String -> IO (Point (PArray (PArray (Int, Double)), PArray Double))
 loadSM s 
   = do
       pnt <- loadSM' s
-      return $ fmap (\(m, v) -> (fromSUArrPA_2' m, fromUArrPA' v)) pnt
+      return $ fmap (\(segd, m, v) -> (nestUSegdPA' segd (fromUArrPA_2' m), fromUArrPA' v)) pnt
 
-loadSM' :: String -> IO (Point (U.SArray (Int U.:*: Double), U.Array Double))
+loadSM' :: String -> IO (Point (U.Segd, U.Array (Int U.:*: Double), U.Array Double))
+{-
 loadSM' s@('(' : _) =
   case reads s of
     [((lm,lv), "")] -> return $ mkPoint "input" (U.fromList_s lm, U.fromList lv)
     _               -> failWith ["Invalid data " ++ s]
+-}
 loadSM' fname =
   do
     h <- openBinaryFile fname ReadMode
@@ -44,8 +46,8 @@ loadSM' fname =
     indices <- U.hGet h
     values  <- U.hGet h
     dv      <- U.hGet h
-    let sm = U.lengthsToSegd lengths U.>: U.zip indices values
-    return (sm, values)
+    let segd = U.lengthsToSegd lengths
+        m    = U.zip indices values
     evaluate lengths
     evaluate indices
     evaluate values
@@ -53,6 +55,6 @@ loadSM' fname =
     -- print (sumU values)
     -- print (sumU dv)
     return $ mkPoint (  "cols=" ++ show (U.length dv) ++ ", "
-                     ++ "rows=" ++ show (U.length_s sm) ++ ", "
-                     ++ "elems=" ++ show (U.length (U.concat sm)))
-              (sm,dv)
+                     ++ "rows=" ++ show (U.length lengths) ++ ", "
+                     ++ "elems=" ++ show (U.length m))
+              (segd,m,dv)

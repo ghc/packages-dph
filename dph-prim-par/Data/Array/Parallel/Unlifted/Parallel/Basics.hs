@@ -23,7 +23,7 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Basics (
   lengthUP, nullUP, indexedUP,
-  replicateUP, replicateEachUP, replicateEachUnbalancedUP, repeatUP
+  replicateUP, repeatUP
 ) where
 
 import Data.Array.Parallel.Base (
@@ -33,7 +33,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Sequential (
   UA, UArr, (!:), unitsU, lengthU, newU,
   foldU, mapU, zipU, unzipU,
-  indexedU, enumFromToU, replicateU, replicateEachU)
+  indexedU, enumFromToU, replicateU)
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators ( mapUP )
 import Data.Array.Parallel.Unlifted.Parallel.Enum        ( enumFromToUP )
@@ -74,33 +74,7 @@ repeatUP n es = seq m
               $ enumFromToUP 0 (m*n-1)
   where
     m = lengthU es
-    
--- | Expand every element in the argument array by the factor given in the 
---   corresponding array. The resulting array is unbalanced. 
---   TODO: do we need a balanced version? Will probably provide no performance benefit
---
-replicateEachUnbalancedUP :: UA e => UArr Int -> UArr e -> UArr e
-{-# INLINE_UP    replicateEachUnbalancedUP #-}
-replicateEachUnbalancedUP  ns es = 
-  joinD theGang unbalanced $ 
-     mapD theGang ((uncurryS.uncurryS) replicateEachU) $ 
-     mapD theGang (\t -> (((foldU (+) 0 $ fstS t) :*: fstS t) :*: sndS t)) $ 
-     mapD theGang unzipU $ 
-     splitD theGang unbalanced $ zipU ns es
-
-replicateEachUP :: UA e => Int -> UArr Int -> UArr e -> UArr e
-{-# INLINE_UP replicateEachUP #-}
-replicateEachUP n lens xs = joinD theGang unbalanced
-                          . mapD  theGang rep
-                          . zipD (sndD dlens)
-                          . splitAsD theGang (fstD dlens)
-                          $ zipU lens xs
-  where
-    dlens = splitSegdLengthsD theGang n lens
-
-    rep (n :*: ps) = let lens :*: xs = unzipU ps
-                     in replicateEachU n lens xs
-
+   
 -- |Associate each element of the array with its index
 --
 indexedUP :: (DT e, UA e) => UArr e -> UArr (Int :*: e)

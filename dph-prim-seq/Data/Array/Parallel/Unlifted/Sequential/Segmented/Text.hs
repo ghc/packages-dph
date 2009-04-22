@@ -22,20 +22,12 @@ import Data.Array.Parallel.Base (
   Read(..), showsApp, readApp)
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA)
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
-  USegd, SUArr, lengthsUSegd, toUSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
-  fromSU, toSU)
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
+  USegd, lengthsUSegd )
 
 instance Show USegd where
   showsPrec k = showsApp k "toUSegd" . lengthsUSegd
 
-instance Read USegd where
-  readPrec = fmap toUSegd (readApp "toUSegd")
-
-instance (Show e, UA e) => Show (SUArr e) where
-  showsPrec k = showsApp k "toSU" . fromSU
-
-instance (Read e, UA e) => Read (SUArr e) where
-  readPrec = fmap toSU (readApp "toSU")
+-- instance Read USegd where
+--   readPrec = fmap toUSegd (readApp "toUSegd")
 

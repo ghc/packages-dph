@@ -30,7 +30,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat (
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU,
   replicateU,
-  replicateEachU,
+  -- replicateEachU,
   (!:), (+:+),
   indexedU, repeatU, repeatUS,
 

@@ -20,16 +20,14 @@ class Elt a
 instance Elt a => Elt [a]
 
 type Array a = [a]
--- type SArray a = [[a]]
-type Segd   = ([Int], [Int])
+data Segd = Segd { segd_lengths  :: [Int]
+                 , segd_indices  :: [Int]
+                 , segd_elements :: Int
+                 }
 
 length = P.length
 empty = []
 replicate = P.replicate
-replicateEach n ns xs
-  = ASSERT (n == sum ns)
-  . P.concat
-  $ zipWith replicate ns xs
 repeat n _ xs = P.concat (replicate n xs)
 (!:) = (P.!!)
 extract xs i n = P.take n (P.drop i xs)
@@ -50,6 +48,7 @@ filter = P.filter
 zip = P.zipWith (:*:)
 unzip = pairS . P.unzip . P.map unpairS
 fsts = map fstS
+snds = map sndS
 zip3 = P.zipWith3 (\x y z -> x :*: y :*: z)
 unzip3 xs = unzip ys :*: zs
   where
@@ -82,13 +81,15 @@ randoms n = P.take n . System.Random.randoms
 randomRs n r = P.take n . System.Random.randomRs r
 
 nest :: Segd -> [a] -> [[a]]
-nest (ns, is) xs = go ns xs
+nest (Segd ns is _) xs = go ns xs
   where
     go [] [] = []
     go (n : ns) xs = let (ys, zs) = P.splitAt n xs
                      in ys : go ns zs
 
-
+replicate_s segd xs
+  = P.concat
+  $ zipWith replicate (lengthsSegd segd) xs
 append_s xd xs yd ys = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
 
 fold_s  f z segd xs = P.map (P.foldr f z) (nest segd xs)
@@ -132,10 +133,6 @@ fold_s f z = map (fold f z)
 fold_s' f z segd xs = map (fold f z) (segd >: xs)
 fold1_s f = map (fold1 f)
 sum_s = map sum
-sum_r _ segSize xs = sum_s $ seg xs
-  where
-    seg [] = [] 
-    seg xs = (P.take segSize xs) : (seg (P.drop segSize xs))
 
 enumFromThenTo_s = zipWith3 enumFromThenTo
 indexed_s = map indexed

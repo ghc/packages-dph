@@ -29,12 +29,9 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Flat.Search
         Data.Array.Parallel.Unlifted.Sequential.Flat
         Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
-        Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
-        Data.Array.Parallel.Unlifted.Sequential.Segmented.Subarrays
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums
-        Data.Array.Parallel.Unlifted.Sequential.Segmented.Permute
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Text
         Data.Array.Parallel.Unlifted.Sequential.Segmented
 

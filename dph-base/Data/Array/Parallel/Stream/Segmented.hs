@@ -9,8 +9,6 @@
 -- Portability : non-portable (existentials)
 --
 --
--- Segmented streams. This module will go away. 
---
 
 {-# LANGUAGE CPP #-}
 

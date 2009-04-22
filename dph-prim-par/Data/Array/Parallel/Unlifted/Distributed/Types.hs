@@ -22,7 +22,9 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
 
   -- * Operations on immutable distributed types
   indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,
-  newD, segdSD, concatSD,
+  newD,
+
+  elementsUSegdD,
 
   -- * Operations on mutable distributed types
   newMD, readMD, writeMD, unsafeFreezeMD,
@@ -41,7 +43,7 @@ import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Base
 
 import Data.Word     (Word8)
-import Control.Monad (liftM, liftM2)
+import Control.Monad (liftM, liftM2, liftM3)
 
 infixl 9 `indexD`
 
@@ -316,33 +318,33 @@ instance UA a => DT (UArr a) where
   sizeMD (MDUArr _ a) = lengthMBB a
 
 instance DT USegd where
-  data Dist  USegd   = DUSegd  !(Dist  (UArr (Int :*: Int)))
-  data MDist USegd s = MDUSegd !(MDist (UArr (Int :*: Int)) s)
+  data Dist  USegd   = DUSegd  !(Dist (UArr Int))
+                               !(Dist (UArr Int))
+                               !(Dist Int)
+  data MDist USegd s = MDUSegd !(MDist (UArr Int) s)
+                               !(MDist (UArr Int) s)
+                               !(MDist Int        s)
 
-  indexD (DUSegd d) = toUSegd . indexD d
-  newMD g = liftM MDUSegd (newMD g)
-  readMD (MDUSegd d) = liftM toUSegd . readMD d
-  writeMD (MDUSegd d) i segd = writeMD d i (fromUSegd segd)
-  unsafeFreezeMD (MDUSegd d) = liftM DUSegd (unsafeFreezeMD d)
-  sizeD  (DUSegd  d) = sizeD  d
-  sizeMD (MDUSegd d) = sizeMD d
+  indexD (DUSegd lens idxs eles) i
+          = mkUSegd (indexD lens i) (indexD idxs i) (indexD eles i)
+  newMD g = liftM3 MDUSegd (newMD g) (newMD g) (newMD g)
+  readMD (MDUSegd lens idxs eles) i
+          = liftM3 mkUSegd (readMD lens i) (readMD idxs i) (readMD eles i)
+  writeMD (MDUSegd lens idxs eles) i segd
+          = do
+              writeMD lens i (lengthsUSegd  segd)
+              writeMD idxs i (indicesUSegd  segd)
+              writeMD eles i (elementsUSegd segd)
+  unsafeFreezeMD (MDUSegd lens idxs eles)
+          = liftM3 DUSegd (unsafeFreezeMD lens)
+                          (unsafeFreezeMD idxs)
+                          (unsafeFreezeMD eles)
+  sizeD  (DUSegd  _ _ eles) = sizeD eles
+  sizeMD (MDUSegd _ _ eles) = sizeMD eles
 
-instance UA a => DT (SUArr a) where
-  data Dist  (SUArr a)   = DSUArr  !(Dist  USegd)   !(Dist  (UArr a))
-  data MDist (SUArr a) s = MDSUArr !(MDist USegd s) !(MDist (UArr a) s)
-
-  indexD (DSUArr dsegd da) i = indexD dsegd i >: indexD da i
-  newMD g = liftM2 MDSUArr (newMD g) (newMD g)
-  readMD (MDSUArr msegd ma) i = liftM2 (>:) (readMD msegd i)
-                                            (readMD ma    i)
-  writeMD (MDSUArr msegd ma) i sarr =
-    do
-      writeMD msegd i (segdSU sarr)
-      writeMD ma    i (concatSU sarr)
-  unsafeFreezeMD (MDSUArr msegd ma) = liftM2 DSUArr (unsafeFreezeMD msegd)
-                                                    (unsafeFreezeMD ma)
-  sizeD  (DSUArr  dsegd _) = sizeD  dsegd
-  sizeMD (MDSUArr dsegd _) = sizeMD dsegd
+elementsUSegdD :: Dist USegd -> Dist Int
+{-# INLINE_DIST elementsUSegdD #-}
+elementsUSegdD (DUSegd _ _ dns) = dns
 
 -- |Basic operations on immutable distributed types
 -- -------------------------------------------
@@ -384,13 +386,4 @@ sndD = sndS . unzipD
 -- | Yield the distributed length of a distributed array.
 lengthD :: UA a => Dist (UArr a) -> Dist Int
 lengthD (DUArr l _) = l
-
--- | Yield the distributed segment descriptor of a distributed segmented
--- array.
-segdSD :: UA a => Dist (SUArr a) -> Dist USegd
-segdSD (DSUArr dsegd _) = dsegd
-
--- | Flatten a distributed segmented array.
-concatSD :: UA a => Dist (SUArr a) -> Dist (UArr a)
-concatSD (DSUArr _ darr) = darr
 

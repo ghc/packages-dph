@@ -1,21 +1,21 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
-  (:*:)(..), Elt, Array, {-SArray,-} Segd,
+  (:*:)(..), Elt, Array, Segd,
 
   length,
-  empty, replicate, replicateEach, repeat, (+:+),
+  empty, replicate, repeat, (+:+),
   (!:), extract, drop, permute, bpermute, update,
   pack, combine,
   enumFromTo, enumFromThenTo, enumFromToEach, enumFromStepLen, enumFromStepLenEach,
   indexed,
-  zip, zip3, unzip, unzip3, fsts,
+  zip, zip3, unzip, unzip3, fsts, snds,
   map, zipWith, zipWith3,
   filter,
 
   fold, fold1, and, sum, scan,
 
-  append_s,
+  replicate_s, append_s,
 
   repeat_c,
 
@@ -27,14 +27,14 @@ module Data.Array.Parallel.Unlifted (
   fst_s, snd_s, zip_s,
   bpermute_s', map_s, filter_s, pack_c, combine_c, zipWith_s,
   indexed_s,
-  fold_s, fold_s', fold1_s, sum_s, sum_r,
+  fold_s, fold_s', fold1_s, sum_s,
   enumFromThenTo_s,
   -}
   lengthsSegd, lengthsToSegd, toSegd, fromSegd,
 
   randoms, randomRs, IOElt, hGet, hPut,
 
-  toList, fromList, {-toList_s, fromList_s-}
+  toList, fromList,
 ) where
 
 import Data.Array.Parallel.Base   ( (:*:)(..) )

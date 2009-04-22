@@ -18,11 +18,9 @@
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 
-  -- * Array types
-  SUArr(..),
+  replicateSU, appendSU,
 
-  -- * Segmentation
-  concatSU, (>:), segmentU, segmentArrU, segdSU,
+  foldlSU, foldSU, fold1SU,
 
   -- * Basic operations
   lengthSU, singletonSU, singletonsSU, replicateSU,
@@ -49,8 +47,6 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   fold1SU, fold1SU',
   {-scanSU, scan1SU,-}
 
-  foldlRU,
-
   -- filter and combines
   filterSU, packCU, 
 
@@ -61,25 +57,16 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   -- * Arithmetic operations
   sumSU, productSU, maximumSU, minimumSU,
   sumRU,
-  -- * Enumerations
-  enumFromToSU, enumFromThenToSU,
-
-  -- * Conversions to\/from lists
-  toSU, fromSU,
-
-  -- * Segment descriptors
-  USegd, MUSegd,
+  USegd,
 
   -- * Operations on segment descriptors
-  lengthUSegd, lengthsUSegd, indicesUSegd,
-  lengthsToUSegd, toUSegd, fromUSegd
+  lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd,
+  lengthsToUSegd, mkUSegd
 ) where
 
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Subarrays
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Permute
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Text ()
 

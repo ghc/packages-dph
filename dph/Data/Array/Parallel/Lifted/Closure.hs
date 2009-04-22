@@ -94,8 +94,8 @@ emptyPR_Clo = AClo dPA_Unit (\e  a  -> error "empty array closure")
 replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA# pa n# e)
 
 {-# INLINE replicatelPR_Clo #-}
-replicatelPR_Clo n# ns (AClo pa f f' es)
-  = AClo pa f f' (replicatelPA# pa n# ns es)
+replicatelPR_Clo segd (AClo pa f f' es)
+  = AClo pa f f' (replicatelPA# pa segd es)
 
 {-# INLINE indexPR_Clo #-}
 indexPR_Clo (AClo pa f f' es) i# = Clo pa f f' (indexPA# pa es i#)

@@ -29,84 +29,52 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
 
 import Data.Array.Parallel.Base (
   sndS)
-import Data.Array.Parallel.Stream
+import Data.Array.Parallel.Stream (
+  foldSS, fold1SS, combineSS )
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, UArr, mapU, zipWithU,
   unstreamU, streamU)
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.SUArr (
-  SUArr, USegd, segdSU, concatSU, (>:), lengthsSU, lengthsUSegd, lengthsToUSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
-  concatSU, segmentArrU,segmentU, replicateSU)
-import Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
-  filterU, combineU, packU)
-
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 
 import Debug.Trace
 
-mapSU :: (UA a, UA b) => (a -> b) -> SUArr a -> SUArr b
-{-# INLINE_U mapSU #-}
-mapSU f sa = segdSU sa >: mapU f (concatSU sa)
-
-zipWithSU :: (UA a, UA b, UA c)
-          => (a -> b -> c) -> SUArr a -> SUArr b -> SUArr c
-{-# INLINE_U zipWithSU #-}
-zipWithSU f sa sb = segdSU sa >: zipWithU f (concatSU sa) (concatSU sb)
-
 -- |Segmented array reduction proceeding from the left
 --
-foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> SUArr a -> UArr b
+foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
 {-# INLINE_U foldlSU #-}
-foldlSU f z xss = foldlSU' f z (segdSU xss) (concatSU xss)
-
-foldlSU' :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
-{-# INLINE_U foldlSU' #-}
-foldlSU' f z segd xs = unstreamU
-                     $ foldSS f z (streamU (lengthsUSegd segd)) (streamU xs)
+foldlSU f z segd xs = unstreamU
+                    $ foldSS f z (streamU (lengthsUSegd segd)) (streamU xs)
 
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit
 --
-foldSU :: UA a => (a -> a -> a) -> a -> SUArr a -> UArr a
+foldSU :: UA a => (a -> a -> a) -> a -> USegd -> UArr a -> UArr a
 foldSU = foldlSU
-
-foldSU' :: UA a => (a -> a -> a) -> a -> USegd -> UArr a -> UArr a
-foldSU' = foldlSU'
 
 -- |Segmented array reduction from left to right with non-empty subarrays only
 --
-foldl1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
+foldl1SU :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
 {-# INLINE_U foldl1SU #-}
-foldl1SU f xss = foldl1SU' f (segdSU xss) (concatSU xss)
-
-foldl1SU' :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
-{-# INLINE_U foldl1SU' #-}
-foldl1SU' f segd xs = unstreamU
-                    $ fold1SS f (streamU (lengthsUSegd segd)) (streamU xs)
+foldl1SU f segd xs = unstreamU
+                   $ fold1SS f (streamU (lengthsUSegd segd)) (streamU xs)
 
 -- |Segmented array reduction with non-empty subarrays and an associative
 -- combination function
 --
-fold1SU :: UA a => (a -> a -> a) -> SUArr a -> UArr a
+fold1SU :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
 fold1SU = foldl1SU
-
-fold1SU' :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
-fold1SU' = foldl1SU'
 
 
 -- |Merge two segmented arrays according to flag array
 --
-combineSU:: UA a => UArr Bool -> SUArr a -> SUArr a -> UArr a
+combineSU :: UA a => UArr Bool -> USegd -> UArr a -> USegd -> UArr a -> UArr a
 {-# INLINE_U combineSU #-}
-combineSU bs xss yss = combineSU' bs (segdSU xss) (concatSU xss)
-                                     (segdSU yss) (concatSU yss)
+combineSU bs xd xs yd ys = unstreamU
+                         $ combineSS (streamU bs)
+                                     (streamU (lengthsUSegd xd)) (streamU xs)
+                                     (streamU (lengthsUSegd yd)) (streamU ys)
 
-combineSU' :: UA a => UArr Bool -> USegd -> UArr a -> USegd -> UArr a -> UArr a
-{-# INLINE_U combineSU' #-}
-combineSU' bs xd xs yd ys = unstreamU
-                          $ combineSS (streamU bs)
-                                      (streamU (lengthsUSegd xd)) (streamU xs)
-                                      (streamU (lengthsUSegd yd)) (streamU ys)
-
+{-
 combineCU::  UA e => UArr Bool -> SUArr e -> SUArr e -> SUArr e
 {-# INLINE combineCU #-}
 combineCU  flags xssArr1 xssArr2 = trace "combineCU"
@@ -117,17 +85,6 @@ combineCU  flags xssArr1 xssArr2 = trace "combineCU"
     repFlags   = replicateSU newSegd flags
     flatData   = combineU  (concatSU repFlags) (concatSU xssArr1)  (concatSU xssArr2)  
 
--- |Filter segmented array
---
-filterSU:: (UA e) => (e -> Bool) -> SUArr e -> SUArr e
-{-# INLINE_U filterSU #-}
-filterSU p xssArr = segmentArrU newLengths flatData
-  where
-    flatData   = filterU p $ concatSU xssArr
-    segdFlags  = segmentU xssArr $ mapU (\x -> if p x then 1 else 0) $ concatSU xssArr
-    newLengths = foldSU (+) 0 segdFlags 
-
-
 packCU:: (UA e) => UArr Bool -> SUArr e -> SUArr e
 {-# INLINE packCU #-}
 packCU flags xssArr = segmentArrU newLengths flatData
@@ -135,7 +92,7 @@ packCU flags xssArr = segmentArrU newLengths flatData
     repFlags   = concatSU $ replicateSU (segdSU xssArr) flags
     flatData   = packU (concatSU xssArr) repFlags  
     newLengths = packU (lengthsSU xssArr) flags    
-
+-}
 
 -- | Regular arrar reduction 
 --

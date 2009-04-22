@@ -15,3 +15,13 @@ smvm m v = toPArrayP (smvm' (fromNestedPArrayP m) (fromPArrayP v))
 smvm' :: [:[: (Int, Double) :]:] -> [:Double:] -> [:Double:]
 smvm' m v = [: D.sumP [: x D.* (v !: i) | (i,x) <- row :] | row <- m :]
 --smvm' m v = mapP (\row -> D.sumP (mapP (\(i, x) -> x D.* (v !: i)) row)) m
+
+{-
+dotp :: PArray Double -> PArray (Int, Double) -> Double
+{-# NOINLINE dotp #-}
+dotp v row = dotp' (fromPArrayP v) (fromPArrayP row)
+
+dotp' :: [:Double:] -> [:(Int,Double):] -> Double
+dotp' v row = D.sumP [: x D.* (v !: i) | (i,x) <- row :]
+-}
+

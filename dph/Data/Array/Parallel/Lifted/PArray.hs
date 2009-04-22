@@ -51,10 +51,10 @@ replicatePA# pa n# = fromArrPRepr pa
                    . replicatePR (dictPRepr pa) n#
                    . toPRepr pa
 
-replicatelPA# :: PA a -> Int# -> PArray_Int# -> PArray a -> PArray a
+replicatelPA# :: PA a -> Segd -> PArray a -> PArray a
 {-# INLINE_PA replicatelPA# #-}
-replicatelPA# pa n# ns = fromArrPRepr pa
-                       . replicatelPR (dictPRepr pa) n# ns
+replicatelPA# pa segd = fromArrPRepr pa
+                       . replicatelPR (dictPRepr pa) segd
                        . toArrPRepr pa
 
 repeatPA# :: PA a -> Int# -> Int# -> PArray a -> PArray a
@@ -125,7 +125,7 @@ data PR a = PR {
               lengthPR     :: PArray a -> Int#
             , emptyPR      :: PArray a
             , replicatePR  :: Int# -> a -> PArray a
-            , replicatelPR :: Int# -> PArray_Int# -> PArray a -> PArray a
+            , replicatelPR :: Segd -> PArray a -> PArray a
             , repeatPR     :: Int# -> Int# -> PArray a -> PArray a
             , repeatcPR    :: Int# -> PArray_Int# -> Segd -> PArray a -> PArray a
             , indexPR      :: PArray a -> Int# -> a

@@ -61,14 +61,14 @@ scalar_fold1 f = U.fold1 f . toUArrPA
 scalar_folds :: Scalar a => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 {-# INLINE_PA scalar_folds #-}
 scalar_folds f z xss = fromUArrPA (prim_lengthPA (concatPA# xss))
-                     . U.fold_s f z (segdOfPA# xss)
+                     . U.fold_s f z (segdOfPA# primPA xss)
                      . toUArrPA
                      $ concatPA# xss
 
 scalar_fold1s :: Scalar a => (a -> a -> a) -> PArray (PArray a) -> PArray a
 {-# INLINE_PA scalar_fold1s #-}
 scalar_fold1s f xss = fromUArrPA (prim_lengthPA (concatPA# xss))
-                    . U.fold1_s f (segdOfPA# xss)
+                    . U.fold1_s f (segdOfPA# primPA xss)
                     . toUArrPA
                     $ concatPA# xss
 
@@ -97,7 +97,7 @@ scalar_fold1sIndex f xss = fromUArrPA n
     m = I# (lengthPA# (dPA_PArray primPA) xss)
     n = I# (lengthPA# primPA (concatPA# xss))
 
-    segd = segdOfPA# xss
+    segd = segdOfPA# primPA xss
 
 instance Scalar Int where
   fromUArrPA (I# n#) xs  = PInt n# xs
@@ -162,6 +162,17 @@ fromUArrPA_3 (I# n#) ps = P_3 n# (fromUArrPA (I# n#) xs) (fromUArrPA (I# n#) ys)
 fromUArrPA_3' :: (Scalar a, Scalar b, Scalar c) => U.Array (a :*: b :*: c) -> PArray (a, b, c)
 {-# INLINE fromUArrPA_3' #-}
 fromUArrPA_3' ps = fromUArrPA_3 (U.length ps) ps
+
+nestUSegdPA :: Int -> U.Segd -> PArray a -> PArray (PArray a)
+{-# INLINE nestUSegdPA #-}
+nestUSegdPA (I# n#) segd xs = PNested n# (U.lengthsSegd segd)
+                                         (U.indicesSegd segd)
+                                         xs
+
+nestUSegdPA' :: U.Segd -> PArray a -> PArray (PArray a)
+{-# INLINE nestUSegdPA' #-}
+nestUSegdPA' segd xs = nestUSegdPA (U.lengthSegd segd) segd xs
+    
 
 {-
 fromSUArrPA :: Scalar a => Int -> Int -> U.SArray a -> PArray (PArray a)
