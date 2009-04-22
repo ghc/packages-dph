@@ -52,10 +52,9 @@ replicate_s = replicateSU
 append_s = appendSU
 fold_s = foldSU
 fold1_s = fold1SU
-sum_s = sumSU
-enumFromThenTo_s = enumFromThenToSU
-indexed_s = indexedSU
--}
+sum_r = sumRU
+
+lengthSegd = lengthUSegd
 lengthsSegd = lengthsUSegd
 indicesSegd = indicesUSegd
 elementsSegd = elementsUSegd

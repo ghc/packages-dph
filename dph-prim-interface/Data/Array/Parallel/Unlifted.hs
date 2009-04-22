@@ -94,55 +94,14 @@ append_s xd xs yd ys = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
 
 fold_s  f z segd xs = P.map (P.foldr f z) (nest segd xs)
 fold1_s f   segd xs = P.map (P.foldr1 f)  (nest segd xs)
+sum_r _ segSize xs = P.error "FIXME GABI PLEASE PLEASE PLEASE" 
 
-{-
-concat = P.concat
-(ns, is) >: xs = go ns xs
-  where
-    go [] [] = []
-    go (n : ns) xs = let (ys, zs) = P.splitAt n xs
-                     in ys : go ns zs
-
-(^+:+^) = P.zipWith (+:+)
-
-length_s = P.length
-lengths_s = map length
-replicate_s (lens, _) = zipWith replicate lens
-{-
-repeat_c _ ns segd xs = concat
-                      . concat
-                      . zipWith replicate ns
-                      $ segd >: xs
--}
-
-indices_s = scan (+) 0 . lengths_s
-
-fst_s = map (map fstS)
-snd_s = map (map sndS)
-zip_s = zipWith zip
-
-bpermute_s' = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.update"
-
-map_s f = map (map f)
-filter_s p = map (filter p)
-pack_c = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.pack_c"
-combine_c = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.combine_c"
-zipWith_s f = zipWith (zipWith f)
-
-fold_s f z = map (fold f z)
-fold_s' f z segd xs = map (fold f z) (segd >: xs)
-fold1_s f = map (fold1 f)
-sum_s = map sum
-
-enumFromThenTo_s = zipWith3 enumFromThenTo
-indexed_s = map indexed
--}
-
-lengthsSegd = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.lengthsSegd"
-lengthsToSegd  = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.lengthsToSegd"
-toSegd = unpairS . unzip
-fromSegd = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.fromSegd"
-
+lengthSegd = length . lengthsSegd
+lengthsSegd = segd_lengths
+indicesSegd = segd_indices
+elementsSegd = segd_elements
+lengthsToSegd lens = Segd lens (scan (+) 0 lens) (sum lens)
+mkSegd = Segd
 
 class Elt a => IOElt a
 hPut = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.hPut"

@@ -21,36 +21,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   replicateSU, appendSU,
 
   foldlSU, foldSU, fold1SU,
+  foldlRU,
+  combineSU,
 
-  -- * Basic operations
-  lengthSU, singletonSU, singletonsSU, replicateSU,
-  sliceIndexSU, extractIndexSU,
-  replicateCU, repeatCU, (!:^),
-  indexedSU, appendSU,
-
-  -- * Basic operations lifted
-  lengthsSU, indicesSU,
-
-  -- * Subarrays
-  sliceSU, extractSU, takeCU, dropCU,
-
-  -- * Zipping
-  fstSU, sndSU, zipSU,
-
-  -- * Permutations
-  bpermuteSU, bpermuteSU',
-
-  -- * Higher-order operations
-  mapSU, zipWithSU,
-  {-concatMapU,-}
-  foldlSU, foldlSU', foldSU, foldSU',
-  fold1SU, fold1SU',
-  {-scanSU, scan1SU,-}
-
-  -- filter and combines
-  filterSU, packCU, 
-
-  combineSU, combineCU,
   -- * Logical operations
   andSU, orSU,
 

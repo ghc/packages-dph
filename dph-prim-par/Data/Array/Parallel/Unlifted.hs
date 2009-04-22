@@ -54,10 +54,9 @@ replicate_s = replicateSUP
 append_s = U.appendSU
 fold_s = foldSUP
 fold1_s = fold1SU
-sum_s = sumSUP
-enumFromThenTo_s = enumFromThenToSUP
-indexed_s = indexedSUP
--}
+sum_r = sumRUP
+
+lengthSegd = lengthUSegd
 lengthsSegd = lengthsUSegd
 indicesSegd = indicesUSegd
 elementsSegd = elementsUSegd

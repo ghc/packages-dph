@@ -18,9 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  mapSUP, filterSUP, packCUP, combineCUP,
-  zipWithSUP, foldlSUP, foldlSUP', foldSUP, foldSUP', sumSUP, bpermuteSUP',
-  enumFromThenToSUP, replicateSUP, replicateCUP, repeatCUP, indexedSUP, jsTest
+  replicateSUP, foldlSUP, foldSUP, sumSUP, sumRUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential

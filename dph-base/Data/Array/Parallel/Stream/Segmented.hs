@@ -15,9 +15,8 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Stream.Segmented (
-  SStream(..),
-  segmentS, foldValuesSS, foldValuesSS', fold1ValuesSS,
-  combineSS, (^+++^)
+  foldSS, fold1SS, combineSS, appendSS,
+  foldValuesR
 ) where
 
 import Data.Array.Parallel.Base (

@@ -21,16 +21,15 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
-  mapSU, zipWithSU,
-  foldlSU, foldlSU', foldSU, foldSU', foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
-  combineSU, combineCU,
-  filterSU, packCU
+  foldlSU, foldSU, foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
+  foldlRU,
+  combineSU
 ) where
 
 import Data.Array.Parallel.Base (
   sndS)
 import Data.Array.Parallel.Stream (
-  foldSS, fold1SS, combineSS )
+  foldSS, fold1SS, combineSS, foldValuesR )
 import Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA, UArr, mapU, zipWithU,
   unstreamU, streamU)
@@ -100,3 +99,4 @@ packCU flags xssArr = segmentArrU newLengths flatData
 foldlRU :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> Int -> UArr a -> UArr b
 {-# INLINE_U foldlRU #-}
 foldlRU f z noOfSegs segSize = unstreamU . foldValuesR f z noOfSegs segSize . streamU
+
