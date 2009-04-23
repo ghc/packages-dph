@@ -524,8 +524,7 @@ extractMBU arr i n = do
 -- specified position on
 --
 copyMBU :: UAE e => MBUArr s e -> Int -> BUArr e -> ST s ()
-{-# SPECIALIZE 
-      copyMBU :: MBUArr s Int -> Int -> BUArr Int -> ST s () #-}
+{-# INLINE copyMBU #-}
 copyMBU marr i arr = ins i 0
   where
     n = lengthBU arr
