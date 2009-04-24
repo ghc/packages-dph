@@ -177,6 +177,13 @@ mkSegdPA# :: PArray_Int# -> PArray_Int# -> Int# -> Segd
 mkSegdPA# ns is n# = U.mkSegd ns is (I# n#)
 {-# INLINE_PA mkSegdPA# #-}
 
+{-# RULES
+
+"mkSegdPA#" forall ns is n#.
+  mkSegdPA# ns is n# = U.mkSegd ns is (I# n#)
+
+  #-}
+
 selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
 selectorToIndices2PA# sel
   = U.zipWith pick sel
