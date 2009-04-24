@@ -79,7 +79,7 @@ packU xs = fstU . filterU sndS . zipU xs
 --
 foldlU :: UA a => (b -> a -> b) -> b -> UArr a -> b
 {-# INLINE_U foldlU #-}
-foldlU f z = foldS f z . streamU
+foldlU f z xs = foldS f z (streamU xs)
 
 -- |Array reduction proceeding from the left for non-empty arrays
 --
