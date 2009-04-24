@@ -181,7 +181,20 @@ lengthsToSegd :: Array Int -> Segd
 {-# INLINE_BACKEND lengthsToSegd #-}
 
 mkSegd :: Array Int -> Array Int -> Int -> Segd
-{-# INLINE_BACKEND mkSegd #-}
+{-# INLINE CONLIKE PHASE_BACKEND mkSegd #-}
+
+{-# RULES
+
+"lengthsSegd/mkSegd" forall lens idxs n.
+  lengthsSegd (mkSegd lens idxs n) = lens
+
+"indicesSegd/mkSegd" forall lens idxs n.
+  indicesSegd (mkSegd lens idxs n) = idxs
+
+"elementsSegd/mkSegd" forall lens idxs n.
+  elementsSegd (mkSegd lens idxs n) = n
+
+ #-}
 
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
