@@ -26,7 +26,7 @@ mkClosure :: forall a b e.
              PA e -> (e -> a -> b)
                   -> (PArray e -> PArray a -> PArray b)
                   -> e -> (a :-> b)
-{-# INLINE mkClosure #-}
+{-# INLINE CONLIKE mkClosure #-}
 mkClosure = Clo
 
 -- |Closure application
@@ -34,6 +34,13 @@ mkClosure = Clo
 ($:) :: forall a b. (a :-> b) -> a -> b
 {-# INLINE ($:) #-}
 Clo _ f _ e $: a = f e a
+
+{-# RULES
+
+"mkClosure/($:)" forall pa fv fl e x.
+  mkClosure pa fv fl e $: x = fv e x
+
+ #-}
 
 -- |Arrays of closures (aka array closures)
 --
