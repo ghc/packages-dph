@@ -39,7 +39,7 @@ replicateSUP :: UA a => USegd -> UArr a -> UArr a
 replicateSUP segd xs = joinD theGang unbalanced
                      . mapD theGang (uncurryS replicateSU)
                      . zipD dsegd
-                     $ splitAsD theGang (elementsUSegdD dsegd) xs
+                     $ splitAsD theGang (lengthUSegdD dsegd) xs
   where
     dsegd = splitSegdD theGang segd
 
