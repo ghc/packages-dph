@@ -38,7 +38,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   lengthD, splitLenD, splitLengthD,
   splitD, splitAsD, joinLengthD, joinD, splitJoinD,
   splitSegdD, splitSD,
-  elementsUSegdD,
+  lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
   Distribution, balanced, unbalanced,
 
   -- * Permutations
@@ -51,8 +51,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, forkGang, gangSize, sequentialGang, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.TheGang
-import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist)
+import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Distributed.Arrays

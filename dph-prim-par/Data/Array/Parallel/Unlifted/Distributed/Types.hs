@@ -24,7 +24,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
   indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,
   newD,
 
-  elementsUSegdD,
+  lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
 
   -- * Operations on mutable distributed types
   newMD, readMD, writeMD, unsafeFreezeMD,
@@ -341,6 +341,18 @@ instance DT USegd where
                           (unsafeFreezeMD eles)
   sizeD  (DUSegd  _ _ eles) = sizeD eles
   sizeMD (MDUSegd _ _ eles) = sizeMD eles
+
+lengthUSegdD :: Dist USegd -> Dist Int
+{-# INLINE_DIST lengthUSegdD #-}
+lengthUSegdD (DUSegd lens _ _) = lengthD lens
+
+lengthsUSegdD :: Dist USegd -> Dist (UArr Int)
+{-# INLINE_DIST lengthsUSegdD #-}
+lengthsUSegdD (DUSegd lens _ _ ) = lens
+
+indicesUSegdD :: Dist USegd -> Dist (UArr Int)
+{-# INLINE_DIST indicesUSegdD #-}
+indicesUSegdD (DUSegd _ idxs _) = idxs
 
 elementsUSegdD :: Dist USegd -> Dist Int
 {-# INLINE_DIST elementsUSegdD #-}
