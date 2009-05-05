@@ -1,8 +1,4 @@
-#ifdef USE_dph_seq
-Name:           dph-seq
-#else
-Name:           dph-par
-#endif
+Name:           dph-DPHWAY
 Version:        0.4.0
 License:        BSD3
 License-File:   ../dph/LICENSE
@@ -19,7 +15,7 @@ Library
   -- This Cabal file gets CPPed, then put in ../dhp_par and ../dph_seq
   -- We therefore need to point back at the original location for
   -- where to find the sources
-  HS-Source-Dirs: ../dph
+  HS-Source-Dirs: ../dph-common
 
   Exposed-Modules:
         Data.Array.Parallel
@@ -64,11 +60,6 @@ Library
 
   GHC-Options: -fdph-this
 
-#ifdef USE_dph_seq
-  Build-Depends: dph-prim-seq
-  GHC-Options: -package-name dph-seq
-#else
-  Build-Depends: dph-prim-par
-  GHC-Options: -package-name dph-par
-#endif
+  Build-Depends: dph-prim-DPHWAY
+  GHC-Options: -package-name dph-DPHWAY
 
