@@ -1,4 +1,6 @@
-SUBDIRS = barnesHut concomp dotp primes primespj qsort quickhull smvm sumsq
+# SUBDIRS = barnesHut concomp dotp primes primespj qsort quickhull smvm sumsq
+# we currently don't have all benchmarks working
+SUBDIRS = sumsq dotp smvm
 
 .PHONY: all bench clean
 
