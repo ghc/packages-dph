@@ -8,6 +8,9 @@ DPH_PACKAGES = $(DPH_BASE_PACKAGES) \
                $(foreach way, $(DPH_WAYS), dph-$(way))
 
 define dph_create
+
+ifneq "$(BINDIST)" "YES"
+
 $(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-common/ghc.mk $(DPH_DIR)/dph-common/GNUmakefile
 	rm -rf $(DPH_DIR)/dph-$1 $(DPH_DIR)/dph-$1.tmp
 	mkdir $(DPH_DIR)/dph-$1.tmp
@@ -16,6 +19,9 @@ $(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-common/g
 	sed "s/common/$1/g" $(DPH_DIR)/dph-common/ghc.mk > $(DPH_DIR)/dph-$1.tmp/ghc.mk
 	sed "s/common/$1/g" $(DPH_DIR)/dph-common/GNUmakefile > $(DPH_DIR)/dph-$1.tmp/GNUmakefile
 	mv $(DPH_DIR)/dph-$1.tmp $(DPH_DIR)/dph-$1
+
+endif
+
 endef
 
 $(foreach way, $(DPH_WAYS), $(eval $(call dph_create,$(way))))
@@ -29,10 +35,6 @@ clean_$(DPH_DIR) : $(foreach pkg, $(DPH_BASE_PACKAGES), clean_$(DPH_DIR)/$(pkg))
 	$(RM) -rf $(foreach way, $(DPH_WAYS), $(DPH_DIR)/dph-$(way))
 
 distclean : clean_$(DPH_DIR)
-
-install : install_$(DPH_DIR)
-.PHONY: install_$(DPH_DIR)
-install_$(DPH_DIR) : $(foreach pkg, $(DPH_PACKAGES), install_$(DPH_DIR)/$(pkg))
 
 define dph_package
 .PHONY: $(DPH_DIR)/$1
