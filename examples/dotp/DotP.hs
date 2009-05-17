@@ -144,6 +144,9 @@ zipT f (Time cpu1 wall1) (Time cpu2 wall2) =
 minus :: Time -> Time -> Time
 minus = zipT (-)
 
+fromTime :: Time -> (Integer, Integer)
+fromTime t = (wallTime milliseconds t, cpuTime milliseconds t)
+
 instance Show Time where
   showsPrec n t = showsPrec n (wallTime milliseconds t)
                 . showChar '/'
@@ -159,18 +162,24 @@ dotp (Gang n as rs) xss yss
       mapM takeMVar rs
 
 main = do
-         [arg] <- getArgs
-         let n   = read arg
-             xs  = replicateA n 5
-             ys  = replicateA n 6
-             xss = splitA numCapabilities xs
-             yss = splitA numCapabilities ys
-         gang <- forkGang numCapabilities
+         [arg1, arg2] <- getArgs
+         let n    = read arg2
+             runs = read arg1
+             xs   = replicateA n 5
+             ys   = replicateA n 6
+             xss  = splitA numCapabilities xs
+             yss  = splitA numCapabilities ys
          eval xss `seq` eval yss `seq` return ()
-         t1 <- getTime
-         dotp gang xss yss
-         t2 <- getTime
-         print $ t2 `minus` t1
+         let oneRun = do 
+                        gang <- forkGang numCapabilities
+                        t1 <- getTime
+                        dotp gang xss yss
+                        t2 <- getTime
+                        return $ fromTime (t2 `minus` t1)
+         times <- sequence (replicate runs oneRun)
+         let (walls, cpus) = unzip times
+         putStrLn $ show (sum walls `div` toInteger runs) ++ "/" ++ 
+                    show (sum cpus  `div` toInteger runs)
          return ()
   where
     eval (x:xs) = x `seq` eval xs

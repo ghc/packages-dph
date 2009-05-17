@@ -1,8 +1,9 @@
 module Data.Array.Parallel.PArray (
   PArray, Elt, Random(..),
 
-  length, empty, replicate, singleton,
-  zip, unzip, enumFromTo, fromList, nf
+  length, empty, replicate, singleton, (!:),
+  zip, unzip, enumFromTo, fromList, nf,
+  fromUArrPA'
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
@@ -53,6 +54,10 @@ replicate = replicatePA_v pa
 singleton :: Elt a => a -> PArray a
 {-# INLINE singleton #-}
 singleton = singletonPA_v pa
+
+(!:) :: Elt a => PArray a -> Int -> a
+{-# INLINE (!:) #-}
+(!:) = indexPA_v pa
 
 zip :: (Elt a, Elt b) => PArray a -> PArray b -> PArray (a,b)
 {-# INLINE zip #-}

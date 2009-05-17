@@ -1,31 +1,39 @@
-NDP benchmarks
+DPH benchmarks
 ==============
 
-This directory contains several NDP benchmarks:
+This directory contains several DPH benchmarks.  Currently, only the following 
+are working:
 
-concomp    - connected components in undirected graphs
-dotp       - dot product of two vectors
-primes     - sieve of Eratosthenes
+sumsq	   - parallel version of `sum [x * x | x <- [1..n]]'
+dotp       - dot product of two dense vectors
 smvm       - sparse matrix/vector multiplication
 
-Options
--------
+For more details and benchmark results, see
+
+  http://hackage.haskell.org/trac/ghc/wiki/DataParallel/BenchmarkStatus
+
+
+Benchmark driver
+----------------
+
+This directory contains a benchmark driver `runbench.hs', which runs all 
+available benchmarks on a set of standard configuartions while choosing the 
+number of threads in dependence on the capabilities of the hardware.
+
+
+Options of the benchmark framework
+----------------------------------
 
 The following options are common to all benchmarks:
 
   --runs=N                Repeat each benchmark N times
   -r N
 
-  --seq=N                 Simulate N threads
-  -s N
-
-  --algo=ALGORITHM        Use the specified algorithm (if the benchmark
-  -a ALGORITHM            implements multiple algorithms)
-
-  --verbose=N             Set the verbosity level
-  -v N
+  --verbose[=N]           Set the verbosity level
+  -v[N]
 
   --help                  Show a help screen
+
 
 Running benchmarks
 ------------------
@@ -35,7 +43,8 @@ For parallel benchmarks, you usually want to use
   benchmark --runs=<R> <INPUT> +RTS -N<N>
 
 Here, N is the number of threads to use and R the number of times the
-benchmark should be repeated (you probably want something between 3 and 10).
+benchmark should be repeated (you probably want something between 3 and 10).  
+Some benchmarks require further <INPUT>, some don't.
 
 The output will look as follows:
 
@@ -52,6 +61,3 @@ specified, i.e., --threads and +RTS -N can be omitted.
 
 At higher verbosity levels, more information (in particular, the timings of
 the individual runs) will be displayed.
-
-
-

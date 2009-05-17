@@ -4,18 +4,31 @@ import Control.Exception (evaluate)
 import System.Console.GetOpt
 import qualified System.Random as R
 
-import Data.Array.Parallel.PArray (PArray, randomRs, nf)
+import qualified Data.Array.Parallel.Unlifted as U
+import qualified Data.Array.Parallel.PArray   as P
+import Data.Array.Parallel.PArray (PArray)
 
 import Bench.Benchmark
 import Bench.Options
 
-generateVector :: Int -> IO (PArray Double)
-generateVector n =
+generateVectorU :: Int -> IO (U.Array Double)
+generateVectorU n =
   do
     rg <- R.newStdGen
-    let vec = randomRs n (-100, 100) rg
-    evaluate (nf vec)
+    let -- The std random function is too slow to generate really big vectors
+        -- with.  Instead, we generate a short random vector and repeat that.
+        randvec = U.randomRs k (-100, 100) rg
+        vec     = U.map (\i -> randvec U.!: (i `mod` k)) (U.enumFromTo 0 (n-1))
+    evaluate vec
     return vec
+  where
+    k = 1000
+
+generateVector :: Int -> IO (PArray Double)
+generateVector n 
+  = do
+      vec <- generateVectorU n
+      return $ P.fromUArrPA' vec
 
 generateVectors :: Int -> IO (Point (PArray Double, PArray Double))
 generateVectors n =

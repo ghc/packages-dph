@@ -2,6 +2,8 @@
 # we currently don't have all benchmarks working
 SUBDIRS = sumsq dotp smvm
 
+DRIVER = runbench.hs
+
 .PHONY: all bench clean
 
 all: bench
@@ -9,6 +11,7 @@ all: bench
 	  echo $(MAKE) -C $$i;    \
 	  $(MAKE) -C $$i;         \
 	done
+	chmod a+x $(DRIVER)
 
 bench:
 	$(MAKE) -C lib

@@ -177,8 +177,7 @@ print_timeval( const struct timeval *t )
 
 int main( int argc, char *argv[] )
 {
-  int elems;
-  int threads;
+  int elems, threads, runs;
   struct timeval start, finish;
   struct rusage start_ru, finish_ru;
 
@@ -187,8 +186,10 @@ int main( int argc, char *argv[] )
   Arr *xss;
   Arr *yss;
 
-  elems   = atoi( argv[1] );
+  runs    = atoi( argv[1] );	/* FIXME: runs currently ignored */
   threads = atoi( argv[2] );
+  elems   = atoi( argv[3] );
+  printf ("N = %d; P = %d, R = %d: ", elems, threads, runs);
 
   replicateA( &xs, elems, 5 );
   replicateA( &ys, elems, 6 );
@@ -208,5 +209,7 @@ int main( int argc, char *argv[] )
 
   print_timeval( &finish ); putchar( '/' ); print_timeval( &finish_ru.ru_utime);
   putchar( '\n' );
+
+  return 0;
 }
 

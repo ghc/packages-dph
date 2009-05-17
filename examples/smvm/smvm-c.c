@@ -65,10 +65,11 @@ HsDouble checksum( Array * arr )
                        
 int main( int argc, char * argv[] )
 {
-  int file;
+  int file, runs;
   clock_t start, finish;
 
-  file = open( argv[1], O_RDONLY );
+  runs = atoi( argv[1] );	// FIXME: runs are ignored
+  file = open( argv[2], O_RDONLY );
   load( file, &lengths, sizeof(HsInt) );
   load( file, &indices, sizeof(HsInt) );
   load( file, &values,  sizeof(HsDouble) );
@@ -85,5 +86,7 @@ int main( int argc, char * argv[] )
 
   printf( "%ld %Lf\n", (long int)((finish-start) / (CLOCKS_PER_SEC/1000)),
                           (long double)(checksum(&result)) );
+
+  return 0;
 }
 

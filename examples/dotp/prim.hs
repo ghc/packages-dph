@@ -13,9 +13,14 @@ generateVector :: Int -> IO (U.Array Double)
 generateVector n =
   do
     rg <- R.newStdGen
-    let vec = U.randomRs n (-100, 100) rg
+    let -- The std random function is too slow to generate really big vectors
+        -- with.  Instead, we generate a short random vector and repeat that.
+        randvec = U.randomRs k (-100, 100) rg
+        vec     = U.map (\i -> randvec U.!: (i `mod` k)) (U.enumFromTo 0 (n-1))
     evaluate vec
     return vec
+  where
+    k = 1000
 
 generateVectors :: Int -> IO (Point (U.Array Double, U.Array Double))
 generateVectors n =

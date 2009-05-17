@@ -25,7 +25,7 @@ quite a long time as it is not optimised at all.
 Sequential C benchmark
 ----------------------
 
-smvm-c FILE
+smvm-c RUNS FILE
 
 Benchmark
 ---------

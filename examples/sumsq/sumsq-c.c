@@ -19,18 +19,24 @@ HsInt compute(HsInt n)
 
 int main( int argc, char * argv[] )
 {
-  HsInt result, n;
-  clock_t start, finish;
+  HsInt result, n, r, i;
+  clock_t start, finish, acc;
 
-  n = atoi( argv[1] );
-  printf( "n = %ld \n", (long)n );
+  n = atoi( argv[2] );
+  r = atoi( argv[1] );
+  printf( "n = %ld; r = %ld \n", (long)n, (long)r );
 
-  start = clock();
-  result = compute( n ); 
-  finish = clock();
+  acc = 0;
+  for (i = 0; i < r; i++) {
+    start = clock();
+    result = compute( n ); 
+    finish = clock();
+    acc += finish - start;
+  }
 
   printf( "time = %ld; value = %ld\n", 
-	  (long int)((finish-start) / (CLOCKS_PER_SEC/1000)),
+	  (long int)((acc/r) / (CLOCKS_PER_SEC/1000)),
 	  (long)result);
+  return 0;
 }
 
