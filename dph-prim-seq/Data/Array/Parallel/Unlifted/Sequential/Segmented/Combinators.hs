@@ -41,8 +41,8 @@ import Debug.Trace
 --
 foldlSU :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
 {-# INLINE_U foldlSU #-}
-foldlSU f z segd xs = unstreamU
-                    $ foldSS f z (streamU (lengthsUSegd segd)) (streamU xs)
+foldlSU f z segd !xs = unstreamU
+                     $ foldSS f z (streamU (lengthsUSegd segd)) (streamU xs)
 
 -- |Segmented array reduction that requires an associative combination
 -- function with its unit
