@@ -84,6 +84,13 @@ replicatelPA_Int# :: Segd -> PArray_Int# -> PArray_Int#
 replicatelPA_Int# segd is = U.replicate_s segd is
 {-# INLINE_PA replicatelPA_Int# #-}
 
+{-# RULES
+
+"replicatelPA_Int#" forall segd is.
+  replicatelPA_Int# segd is = U.replicate_s segd is
+
+ #-}
+
 repeatPA_Int# :: Int# -> Int# -> PArray_Int# -> PArray_Int#
 repeatPA_Int# n# len# is = U.repeat (I# n#) (I# len#) is
 {-# INLINE_PA repeatPA_Int# #-}
