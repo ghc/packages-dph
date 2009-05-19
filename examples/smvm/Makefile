@@ -3,9 +3,6 @@ BINARIES = smvm prim mksm smvm-c
 
 HCCFLAGS = -optc-O3
 
-smvm_seq_FLAGS = -fsimplifier-phases=3
-smvm_par_FLAGS = -fsimplifier-phases=3
-
 smvm_DPH = smvm
 smvm_SOURCES = vect.hs SMVMVect.hs
 

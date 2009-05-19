@@ -219,7 +219,7 @@ main
 
       runBenchmarks hw benchsToRun
   where
-    benchmarks = [ sumsq, dotp, smvm ]
+    benchmarks = [ sumsq, dotp, smvm, quickhull ]
 
     sumsq = BM { name = "SumSq"
                , dir  = "sumsq"
@@ -284,5 +284,21 @@ main
            where
              testmat = "smvm" </> "test.mat" 
 
+    quickhull = BM { name = "QuickHull"
+                   , dir  = "quickhull"
+                   , dph  = [ Imp { impName = "vectorised"
+                                  , impCmd  = "quickhull"
+                                  , impArgs = [ oneMillion ] 
+                                  } 
+                            ]
+                   , seq  = [ Imp { impName = "ref Haskell"
+                                  , impCmd  = "QuickHull"
+                                  , impArgs = [ "%d", oneMillion ]
+                                  } 
+                            ]
+                   , par  = [ {- no parallel reference implementation -} ]
+                   }
+
+    oneMillion     = "1000000"
     tenMillion     = "10000000"
     hundredMillion = "100000000"

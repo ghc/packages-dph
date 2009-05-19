@@ -148,6 +148,7 @@ mkPR pa = PR {
           , replicatePR  = replicatePA# pa
           , replicatelPR = replicatelPA# pa
           , repeatPR     = repeatPA# pa
+          , repeatcPR    = repeatcPA# pa
           , indexPR      = indexPA# pa
           , bpermutePR   = bpermutePA# pa
           , appPR        = appPA# pa
