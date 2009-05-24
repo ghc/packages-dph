@@ -15,6 +15,7 @@ $(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-common/g
 	rm -rf $(DPH_DIR)/dph-$1 $(DPH_DIR)/dph-$1.tmp
 	mkdir $(DPH_DIR)/dph-$1.tmp
 	cp $(DPH_DIR)/dph-common/Setup.hs $(DPH_DIR)/dph-$1.tmp/Setup.hs
+	cp $(DPH_DIR)/dph-common/LICENSE $(DPH_DIR)/dph-$1.tmp/LICENSE
 	sed "s/DPHWAY/$1/g" $(DPH_DIR)/dph-common/dph-common.cabal > $(DPH_DIR)/dph-$1.tmp/dph-$1.cabal
 	sed "s/common/$1/g" $(DPH_DIR)/dph-common/ghc.mk > $(DPH_DIR)/dph-$1.tmp/ghc.mk
 	sed "s/common/$1/g" $(DPH_DIR)/dph-common/GNUmakefile > $(DPH_DIR)/dph-$1.tmp/GNUmakefile
