@@ -963,7 +963,7 @@ packPR_Sum2 pra prb  (PSum2 n# sel# _ as bs) m# flags
 
     aFlags = packPA_Bool# flags (lengthPR pra as) (selectPA_Int# sel# 0#)
     bFlags = packPA_Bool# flags (lengthPR prb bs) (selectPA_Int# sel# 1#)
-    k#     = truesPA_Bool# bFlags
+    !k#    = truesPA_Bool# bFlags
 
     as'    = packPR pra as (m# -# k#) aFlags
     bs'    = packPR prb bs k# bFlags
@@ -990,8 +990,8 @@ combine2PR_Sum2 pra prb n# sel# is# (PSum2 m1# sel1# _ as1 bs1) (PSum2 m2# sel2#
                           $ 
                          PSum2  n# sel' (error "combine2PR_Sum2 index nyi") as' bs'
                       where     
-                        as# = lengthPR pra as1 +#   lengthPR pra as2
-                        bs# = lengthPR prb bs1 +#   lengthPR prb bs2
+                        !as# = lengthPR pra as1 +#   lengthPR pra as2
+                        !bs# = lengthPR prb bs1 +#   lengthPR prb bs2
                         asel = packPA_Int# sel# as# s1#
                         bsel = packPA_Int# sel# bs# s2#
                         as' = trace ("cb1: " ++ show asel) $ combine2PR pra as# asel  is# as1 as2 
@@ -1082,7 +1082,7 @@ replicatePR_PArray pr n# xs
              (enumFromStepLenPA_Int# 0# m# n#)
              (repeatPR pr n# m# xs)
   where
-    m# = lengthPR pr xs
+    !m# = lengthPR pr xs
 
 {-# INLINE indexPR_PArray #-}
 indexPR_PArray pr  (PNested m# lens idxs xs) i#
@@ -1110,7 +1110,7 @@ bpermutePR_PArray pr m# (PNested n# xslens xsInds xs) is = traceFn "bpermutePR_P
     xs'     = bpermutePR pr (lengthPA_Int# ps) xs ps
 
     _dummy :: Int#
-    _dummy = m#
+    !_dummy = m#
 
 {-# INLINE appPR_PArray #-}
 appPR_PArray pr (PNested n# xslens xsInds xs) (PNested m# yslens ysInds ys) = traceFn "appPR_PArray\n" $             
@@ -1131,9 +1131,9 @@ applPR_PArray pr is1  xn@(PNested n# xslens xsInds xs) is2 yn@(PNested m# yslens
      xsSegd = sumPAs_Int# is1 xslens
      ysSegd = sumPAs_Int# is2 yslens
      ids    = unsafe_scanPA_Int# (+) 0 lens
-     xlen# = lengthPR pr xs
-     ylen# = lengthPR pr ys
-     len#  = xlen# +# ylen#
+     !xlen# = lengthPR pr xs
+     !ylen# = lengthPR pr ys
+     !len#  = xlen# +# ylen#
      (PNested _ _ _ xys)   = combine2PR_PArray pr len# isel (error "tmp ind nyi") 
        (PNested n# xsSegd (error "bla1") xs)  (PNested n# ysSegd (error "bla1") ys)
      isel   = unsafe_mapPA_Int# (fromBool . even)
@@ -1158,7 +1158,7 @@ replicatelPR_PArray pr segd {-n# ns-} (PNested _ lens idxs xs)
   where
     new_lens = replicatelPA_Int# segd lens
     new_idxs = unsafe_scanPA_Int# (+) 0 new_lens
-    len      = sumPA_Int# (unsafe_zipWithPA_Int# (*) rlens lens)
+    !len      = sumPA_Int# (unsafe_zipWithPA_Int# (*) rlens lens)
 
     rlens    = lengthsSegdPA# segd
 {-
@@ -1202,9 +1202,9 @@ combine2PR_PArray pr n# sel is (PNested m1# lens1 idxs1 xs)
     lens = combine2PA_Int# (m1# +# m2#) sel is lens1 lens2
     idxs = unsafe_scanPA_Int# (+) 0 lens
 
-    xlen# = lengthPR pr xs
-    ylen# = lengthPR pr ys
-    len#  = xlen# +# ylen#
+    !xlen# = lengthPR pr xs
+    !ylen# = lengthPR pr ys
+    !len#  = xlen# +# ylen#
 
     sel' = replicatelPA_Int# (lengthsToSegdPA# lens) sel
     is'  = selectorToIndices2PA# sel'

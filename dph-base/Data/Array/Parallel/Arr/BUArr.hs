@@ -243,7 +243,7 @@ instance UAE Bool where
     case writeWord8Array# mba# i# b# s# of {s2# ->
     (# s2#, () #)}
     where
-      b# = int2Word# (if e# then 1# else 0#)
+      !b# = int2Word# (if e# then 1# else 0#)
 
 {-
 instance UAE Bool where

@@ -125,7 +125,7 @@ instance Scalar Bool where
 
       is = U.zipWith3 if_ ts (U.scan (+) 0 ts) (U.scan (+) 0 $ U.map not_ ts)
 
-      m# = case U.sum ts of I# m# -> m#
+      !m# = case U.sum ts of I# m# -> m#
 
       {-# INLINE if_ #-}
       if_ 0 x y = y

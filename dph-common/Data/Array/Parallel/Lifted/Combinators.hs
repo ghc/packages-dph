@@ -256,7 +256,7 @@ enumFromToPA_v :: Int -> Int -> PArray Int
 {-# INLINE_PA enumFromToPA_v #-}
 enumFromToPA_v m@(I# m#) n@(I# n#) = PInt len# (enumFromToPA_Int# m# n#)
   where
-    len# = max# 0# (n# -# m# +# 1#) -- case max 0 (n-m+1) of I# i# -> i#
+    !len# = max# 0# (n# -# m# +# 1#) -- case max 0 (n-m+1) of I# i# -> i#
 
 max# :: Int# -> Int# -> Int#
 {-# INLINE_STREAM max# #-}
@@ -271,7 +271,7 @@ enumFromToPA_l (PInt k# ms#) (PInt _ ns#) = PNested k# lens# idxs# (PInt n# is#)
     lens# = unsafe_zipWithPA_Int# lenOf ms# ns#
     idxs# = unsafe_scanPA_Int# (+) 0 lens#
 
-    n#    = sumPA_Int# lens#
+    !n#   = sumPA_Int# lens#
     is#   = enumFromToEachPA_Int# n# ms# ns#
 
 enumFromToPA_Int :: Int :-> Int :-> PArray Int
