@@ -1,5 +1,5 @@
-{-# GHC_OPTIONS -fglasgow-exts #-}
-{-# OPTIONS -fno-spec-constr-count #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fno-spec-constr-count #-}
 --
 
 module QSortSeq (qsortSeq, qsortList)

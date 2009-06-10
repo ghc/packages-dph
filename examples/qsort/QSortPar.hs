@@ -1,5 +1,5 @@
-{-# GHC_OPTIONS -fglasgow-exts #-}
-{-# OPTIONS -fno-spec-constr-count #-}
+{-# OPTIONS_GHC -fglasgow-exts #-}
+{-# OPTIONS_GHC -fno-spec-constr-count #-}
 --
 -- TODO:
 --   permute operations, which are fairly important for this algorithm, are currently
