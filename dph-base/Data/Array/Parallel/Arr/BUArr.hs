@@ -93,7 +93,7 @@ import Data.Array.Base (
 
 import System.IO
 import Foreign
-import Foreign.C   (CSize)
+import Foreign.C   (CSize,CInt)
 
 import GHC.Handle
 import GHC.IOBase
@@ -578,32 +578,15 @@ hGetBU h =
   do
     hGetBuf h iptr (sizeOf (undefined :: Int))
     n <- peek iptr
-    marr@(MBUArr _ marr#) <- stToIO (newMBU n)
     let bytes = sizeBU n (undefined :: e)
-    wantReadableHandle "hGetBU" h $
-        \handle@Handle__{ haFD=fd, haBuffer=ref, haIsStream=is_stream } -> do
-      buf@Buffer { bufBuf = raw, bufWPtr = w, bufRPtr = r } <- readIORef ref
-      let copied    = bytes `min` (w - r)
-          remaining = bytes - copied
-          newr      = r + copied
-          newbuf | newr == w = buf{ bufRPtr = 0, bufWPtr = 0 }
-                 | otherwise = buf{ bufRPtr = newr }
-      memcpy_ba_baoff marr# raw r (fromIntegral copied)
-      writeIORef ref newbuf
-      readChunkBU fd is_stream marr# copied remaining
+    -- ToDo: we're doing an extra copy here.  If we allocated the array
+    -- pinned, then we could read directly into the array rather than
+    -- copying it.
+    allocaBytes bytes $ \ptr -> do
+      r <- hGetBuf h ptr bytes
+      marr@(MBUArr _ marr#) <- stToIO (newMBU n)
+      memcpy_ba marr# ptr (fromIntegral r)
       stToIO (unsafeFreezeAllMBU marr)
-
-readChunkBU :: FD -> Bool -> MutableByteArray# RealWorld -> Int -> Int -> IO ()
-readChunkBU fd is_stream marr# off bytes = loop off bytes
-  where
-    loop off bytes | bytes <= 0 = return ()
-    loop off bytes = do
-      r' <- readRawBuffer "readChunkBU" (fromIntegral fd) is_stream marr#
-                                        (fromIntegral off) (fromIntegral bytes)
-      let r = fromIntegral r'
-      if r == 0
-        then error "readChunkBU: can't read"
-        else loop (off + r) (bytes - r)
 
 hPutBU :: forall e. UAE e => Handle -> BUArr e -> IO ()
 hPutBU h arr@(BUArr i n arr#) =
@@ -611,18 +594,12 @@ hPutBU h arr@(BUArr i n arr#) =
   do
     poke iptr n
     hPutBuf h iptr (sizeOf n)
-    wantWritableHandle "hPutBU" h $
-        \handle@Handle__{ haFD=fd, haBuffer=ref, haIsStream=stream } -> do
-      old_buf     <- readIORef ref
-      flushed_buf <- flushWriteBuffer fd stream old_buf
-      writeIORef ref flushed_buf
-      let this_buf = Buffer { bufBuf   = unsafeCoerce# arr#
-                            , bufState = WriteBuffer
-                            , bufRPtr  = off
-                            , bufWPtr  = off + size
-                            , bufSize  = size
-                            }
-      flushWriteBuffer fd stream this_buf
+    -- ToDo: we're doing an extra copy here.  If we allocated the array
+    -- pinned, then we could read directly into the array rather than
+    -- copying it.
+    allocaBytes size $ \ptr -> do
+      memcpy_src_off ptr arr# (fromIntegral off) (fromIntegral size)
+      hPutBuf h ptr size
       return ()
   where
     off  = sizeBU i (undefined :: e)
@@ -630,6 +607,9 @@ hPutBU h arr@(BUArr i n arr#) =
 
 --foreign import ccall unsafe "__hscore_memcpy_dst_off"
 --   memcpy_baoff_ba :: RawBuffer -> Int -> RawBuffer -> CSize -> IO (Ptr ())
-foreign import ccall unsafe "__hscore_memcpy_src_off"
-   memcpy_ba_baoff :: RawBuffer -> RawBuffer -> Int -> CSize -> IO (Ptr ())
+foreign import ccall unsafe "__hscore_memcpy_dst_off"
+   memcpy_src_off :: Ptr a -> ByteArray# -> CInt -> CSize -> IO (Ptr ())
+
+foreign import ccall unsafe "memcpy"
+   memcpy_ba :: MutableByteArray# RealWorld -> Ptr a -> CSize -> IO (Ptr ())
 
