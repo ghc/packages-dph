@@ -605,9 +605,9 @@ hPutBU h arr@(BUArr i n arr#) =
     off  = sizeBU i (undefined :: e)
     size = sizeBU n (undefined :: e)
 
---foreign import ccall unsafe "__hscore_memcpy_dst_off"
---   memcpy_baoff_ba :: RawBuffer -> Int -> RawBuffer -> CSize -> IO (Ptr ())
-foreign import ccall unsafe "__hscore_memcpy_dst_off"
+-- ToDo: dodgy dependency on base-package C wrapper.  This should be moved
+-- into the dph package.
+foreign import ccall unsafe "__hscore_memcpy_src_off"
    memcpy_src_off :: Ptr a -> ByteArray# -> CInt -> CSize -> IO (Ptr ())
 
 foreign import ccall unsafe "memcpy"
