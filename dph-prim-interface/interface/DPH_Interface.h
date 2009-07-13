@@ -1,5 +1,6 @@
+import Data.Array.Parallel.Base ( fromBool )
 import qualified GHC.Base
-import Prelude ((.), ($))
+import Prelude ((.), ($), Num(..), Eq(..))
 
 instance Elt Int
 instance Elt Word8
@@ -131,7 +132,11 @@ append_s :: Elt a => Segd         -- ^ segment descriptor of first array
                   -> Array a
 {-# INLINE_BACKEND append_s #-}
 
-repeat_c :: Elt a => Int -> Array Int -> Segd -> Array a -> Array a
+repeat_c :: Elt a => Int          -- ^ length of the result array
+                  -> Array Int    -- ^ number of time a segment is repeated
+                  -> Segd         -- ^ segment descriptor
+                  -> Array a      -- ^ data array
+                  -> Array a
 {-# INLINE_BACKEND repeat_c #-}
 repeat_c k ns segd xs
   = bpermute xs
@@ -195,6 +200,30 @@ mkSegd :: Array Int -> Array Int -> Int -> Segd
   elementsSegd (mkSegd lens idxs n) = n
 
  #-}
+
+
+selectorToIndices2 :: Array Int -> Array Int
+{-# INLINE_BACKEND selectorToIndices2 #-}
+selectorToIndices2 sel
+  = zipWith pick sel
+  . scan idx (0 :*: 0)
+  $ map start sel
+  where
+    start 0 = 1 :*: 0
+    start _ = 0 :*: 1
+
+    idx (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
+
+    pick 0 (i :*: j) = i
+    pick _ (i :*: j) = j
+
+pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
+{-# INLINE pick #-}
+pick xs x = map (x==) xs
+
+count :: (Elt a, Eq a) => Array a -> a -> Int
+{-# INLINE_BACKEND count #-}
+count xs x = sum (map (fromBool . (==) x) xs)
 
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a

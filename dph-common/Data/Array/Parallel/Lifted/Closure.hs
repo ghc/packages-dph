@@ -1,6 +1,7 @@
 module Data.Array.Parallel.Lifted.Closure (
   (:->)(..), PArray(..),
   mkClosure, mkClosureP, ($:), ($:^),
+  closure, liftedClosure, liftedApply,
   dPA_Clo, dPR_Clo,
 
   closure1, closure2, closure3
@@ -10,6 +11,8 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Instances  (dPA_Unit, dPA_2, dPA_3)
 import Data.Array.Parallel.Lifted.Repr
 
+import GHC.Exts (Int#)
+
 infixr 0 :->
 infixl 0 $:, $:^
 
@@ -17,8 +20,13 @@ infixl 0 $:, $:^
 --
 data a :-> b = forall e. Clo (PA e)
                              !(e -> a -> b)
-                             !(PArray e -> PArray a -> PArray b)
+                             !(Int# -> PData e -> PData a -> PData b)
                              e
+
+lifted :: (PArray e -> PArray a -> PArray b)
+       -> Int# -> PData e -> PData a -> PData b
+{-# INLINE lifted #-}
+lifted f n# es as = case f (PArray n# es) (PArray n# as) of PArray _ bs -> bs
 
 -- |Closure construction
 --
@@ -27,7 +35,15 @@ mkClosure :: forall a b e.
                   -> (PArray e -> PArray a -> PArray b)
                   -> e -> (a :-> b)
 {-# INLINE CONLIKE mkClosure #-}
-mkClosure = Clo
+mkClosure pa fv fl e = Clo pa fv (lifted fl) e
+
+closure :: forall a b e.
+           PA e -> (e -> a -> b)
+                -> (Int# -> PData e -> PData a -> PData b)
+                -> e
+                -> (a :-> b)
+{-# INLINE closure #-}
+closure pa fv fl e = Clo pa fv fl e
 
 -- |Closure application
 --
@@ -44,11 +60,11 @@ Clo _ f _ e $: a = f e a
 
 -- |Arrays of closures (aka array closures)
 --
-data instance PArray (a :-> b)
+data instance PData (a :-> b)
   = forall e. AClo (PA e)
                    !(e -> a -> b)
-                   !(PArray e -> PArray a -> PArray b)
-                   !(PArray e)
+                   !(Int# -> PData e -> PData a -> PData b)
+                    (PData e)
 
 -- |Lifted closure construction
 --
@@ -57,13 +73,25 @@ mkClosureP :: forall a b e.
                    -> (PArray e -> PArray a -> PArray b)
                    -> PArray e -> PArray (a :-> b)
 {-# INLINE mkClosureP #-}
-mkClosureP = AClo
+mkClosureP pa fv fl (PArray n# es) = PArray n# (AClo pa fv (lifted fl) es)
+
+liftedClosure :: forall a b e.
+                 PA e -> (e -> a -> b)
+                      -> (Int# -> PData e -> PData a -> PData b)
+                      -> PData e
+                      -> PData (a :-> b)
+{-# INLINE liftedClosure #-}
+liftedClosure pa fv fl es = AClo pa fv fl es
 
 -- |Lifted closure application
 --
 ($:^) :: forall a b. PArray (a :-> b) -> PArray a -> PArray b
 {-# INLINE ($:^) #-}
-AClo _ _ f es $:^ as = f es as
+PArray n# (AClo _ _ f es) $:^ PArray _ as = PArray n# (f n# es as)
+
+liftedApply :: forall a b. Int# -> PData (a :-> b) -> PData a -> PData b
+{-# INLINE liftedApply #-}
+liftedApply n# (AClo _ _ f es) as = f n# es as
 
 type instance PRepr (a :-> b) = a :-> b
 
@@ -80,8 +108,7 @@ dPA_Clo _ _ = PA {
 dPR_Clo :: PR (a :-> b)
 {-# INLINE dPR_Clo #-}
 dPR_Clo = PR {
-            lengthPR     = lengthPR_Clo
-          , emptyPR      = emptyPR_Clo
+            emptyPR      = emptyPR_Clo
           , replicatePR  = replicatePR_Clo
           , replicatelPR = replicatelPR_Clo
           , indexPR      = indexPR_Clo
@@ -89,59 +116,56 @@ dPR_Clo = PR {
           , packPR       = packPR_Clo
           }
 
-{-# INLINE lengthPR_Clo #-}
-lengthPR_Clo (AClo pa f f' es) = lengthPA# pa es
-
 {-# INLINE emptyPR_Clo #-}
 emptyPR_Clo = AClo dPA_Unit (\e  a  -> error "empty array closure")
                             (\es as -> error "empty array closure")
-                            (emptyPA dPA_Unit)
+                            (emptyPD dPA_Unit)
 
 {-# INLINE replicatePR_Clo #-}
-replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePA# pa n# e)
+replicatePR_Clo n# (Clo pa f f' e) = AClo pa f f' (replicatePD pa n# e)
 
 {-# INLINE replicatelPR_Clo #-}
 replicatelPR_Clo segd (AClo pa f f' es)
-  = AClo pa f f' (replicatelPA# pa segd es)
+  = AClo pa f f' (replicatelPD pa segd es)
 
 {-# INLINE indexPR_Clo #-}
-indexPR_Clo (AClo pa f f' es) i# = Clo pa f f' (indexPA# pa es i#)
+indexPR_Clo (AClo pa f f' es) i# = Clo pa f f' (indexPD pa es i#)
 
 {-# INLINE bpermutePR_Clo #-}
-bpermutePR_Clo n# (AClo pa f f' es) is = AClo pa f f' (bpermutePA# pa n# es is)
+bpermutePR_Clo (AClo pa f f' es) n# is = AClo pa f f' (bpermutePD pa es n# is)
 
 {-# INLINE packPR_Clo #-}
-packPR_Clo (AClo pa f f' es) n# sel# = AClo pa f f' (packPA# pa es n# sel#)
+packPR_Clo (AClo pa f f' es) n# sel = AClo pa f f' (packPD pa es n# sel)
 
 -- Closure construction
 
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
 {-# INLINE closure1 #-}
-closure1 fv fl = Clo dPA_Unit (\_ -> fv) (\_ -> fl) ()
+closure1 fv fl = mkClosure dPA_Unit (\_ -> fv) (\_ -> fl) ()
 
 closure2 :: PA a
          -> (a -> b -> c)
          -> (PArray a -> PArray b -> PArray c)
          -> (a :-> b :-> c)
 {-# INLINE closure2 #-}
-closure2 pa fv fl = Clo dPA_Unit fv_1 fl_1 ()
+closure2 pa fv fl = mkClosure dPA_Unit fv_1 fl_1 ()
   where
-    fv_1 _ x  = Clo  pa fv fl x
-    fl_1 _ xs = AClo pa fv fl xs
+    fv_1 _ x  = mkClosure  pa fv fl x
+    fl_1 _ xs = mkClosureP pa fv fl xs
 
 closure3 :: PA a -> PA b
          -> (a -> b -> c -> d)
          -> (PArray a -> PArray b -> PArray c -> PArray d)
          -> (a :-> b :-> c :-> d)
 {-# INLINE closure3 #-}
-closure3 pa pb fv fl = Clo dPA_Unit fv_1 fl_1 ()
+closure3 pa pb fv fl = mkClosure dPA_Unit fv_1 fl_1 ()
   where
-    fv_1 _  x  = Clo  pa fv_2 fl_2 x
-    fl_1 _  xs = AClo pa fv_2 fl_2 xs
+    fv_1 _  x  = mkClosure  pa fv_2 fl_2 x
+    fl_1 _  xs = mkClosureP pa fv_2 fl_2 xs
 
-    fv_2 x  y  = Clo  (dPA_2 pa pb) fv_3 fl_3 (x,y)
-    fl_2 xs ys = AClo (dPA_2 pa pb) fv_3 fl_3 (P_2 (lengthPA# pa xs) xs ys)
+    fv_2 x  y  = mkClosure  (dPA_2 pa pb) fv_3 fl_3 (x,y)
+    fl_2 xs ys = mkClosureP (dPA_2 pa pb) fv_3 fl_3 (zipPA# xs ys)
 
     fv_3 (x,y) z = fv x y z
-    fl_3 (P_2 _ xs ys) zs = fl xs ys zs
+    fl_3 ps zs = case unzipPA# ps of (xs,ys) -> fl xs ys zs
 

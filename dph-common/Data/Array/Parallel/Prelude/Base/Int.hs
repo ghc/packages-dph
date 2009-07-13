@@ -18,8 +18,7 @@ module Data.Array.Parallel.Prelude.Base.Int (
   mod, modV, 
   sqrt, sqrtV,
 
-  enumFromToPA, enumFromToP,
-  upToP, upToPA
+  enumFromToPA, enumFromToP
 ) where
 
 import Data.Array.Parallel.Prelude.Base.PArr
@@ -162,12 +161,4 @@ enumFromToPA = enumFromToPA_Int
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
 enumFromToP n m = [:n..m:]
-
-upToPA :: Int :-> PArray Int
-{-# INLINE upToPA #-}
-upToPA = closure1 upToPA_Int (\_ -> P.error "Int.upToPA lifted")
-
-upToP :: Int -> [:Int:]
-{-# NOINLINE upToP #-}
-upToP n = enumFromToP 0 n
 

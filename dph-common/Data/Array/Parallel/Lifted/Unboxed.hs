@@ -3,7 +3,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Lifted.Unboxed (
-  Segd,
+  Segd, elementsSegd#, mkSegd#,
 
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
@@ -15,7 +15,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
   upToPA_Int#, enumFromToPA_Int#, enumFromThenToPA_Int#,
   enumFromStepLenPA_Int#, enumFromToEachPA_Int#,
   selectPA_Int#, selectorToIndices2PA#,
-  lengthsSegdPA#, indicesSegdPA#, elementsSegdPA#, lengthsToSegdPA#, mkSegdPA#,
+  -- lengthSegdPA#, lengthsSegdPA#, indicesSegdPA#, elementsSegdPA#,
+  -- lengthsToSegdPA#, mkSegdPA#,
   sumPA_Int#, sumPAs_Int#,
   unsafe_mapPA_Int#, unsafe_zipWithPA_Int#, unsafe_foldPA_Int#,
   unsafe_scanPA_Int#,
@@ -58,6 +59,34 @@ import GHC.Word ( Word8(..) )
 import Debug.Trace
 
 type Segd = U.Segd
+
+{-
+lengthSegd# :: Segd -> Int#
+lengthSegd# segd = case U.lengthSegd segd of { I# n# -> n# }
+{-# INLINE_PA lengthSegd# #-}
+-}
+
+elementsSegd# :: Segd -> Int#
+elementsSegd# segd = case U.elementsSegd segd of { I# n# -> n# }
+{-# INLINE_PA elementsSegd# #-}
+
+{-
+lengthsToSegdPA# :: PArray_Int# -> Segd
+lengthsToSegdPA# = U.lengthsToSegd
+{-# INLINE_PA lengthsToSegdPA# #-}
+-}
+
+mkSegd# :: U.Array Int -> U.Array Int -> Int# -> Segd
+mkSegd# ns is n# = U.mkSegd ns is (I# n#)
+{-# INLINE_PA mkSegd# #-}
+
+{-# RULES
+
+"mkSegd#" forall ns is n#.
+  mkSegd# ns is n# = U.mkSegd ns is (I# n#)
+
+  #-}
+
 
 type PArray_Int# = U.Array Int
 
@@ -164,32 +193,6 @@ selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# ns i# = U.map (\n -> n == I# i#) ns
 {-# INLINE_PA selectPA_Int# #-}
 
-lengthsSegdPA# :: Segd -> PArray_Int#
-lengthsSegdPA# = U.lengthsSegd
-{-# INLINE_PA lengthsSegdPA# #-}
-
-indicesSegdPA# :: Segd -> PArray_Int#
-indicesSegdPA# = U.indicesSegd
-{-# INLINE_PA indicesSegdPA# #-}
-
-elementsSegdPA# :: Segd -> Int#
-elementsSegdPA# segd = case U.elementsSegd segd of { I# n# -> n# }
-{-# INLINE_PA elementsSegdPA# #-}
-
-lengthsToSegdPA# :: PArray_Int# -> Segd
-lengthsToSegdPA# = U.lengthsToSegd
-{-# INLINE_PA lengthsToSegdPA# #-}
-
-mkSegdPA# :: PArray_Int# -> PArray_Int# -> Int# -> Segd
-mkSegdPA# ns is n# = U.mkSegd ns is (I# n#)
-{-# INLINE_PA mkSegdPA# #-}
-
-{-# RULES
-
-"mkSegdPA#" forall ns is n#.
-  mkSegdPA# ns is n# = U.mkSegd ns is (I# n#)
-
-  #-}
 
 selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
 selectorToIndices2PA# sel
