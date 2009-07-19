@@ -21,7 +21,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Flat.Permute (
-  permuteU, permuteMU, bpermuteU, bpermuteDftU, reverseU, updateU,
+  permuteU, permuteMU, mbpermuteU, bpermuteU, bpermuteDftU, reverseU, updateU,
   atomicUpdateMU
 ) where
 
@@ -70,9 +70,19 @@ bpermuteU :: UA e => UArr e -> UArr Int -> UArr e
 {-# INLINE_U bpermuteU #-}
 bpermuteU es is = unstreamU (bpermuteUS es (streamU is))
 
+mbpermuteU:: (UA e, UA d) => (e -> d) -> UArr e -> UArr Int -> UArr d
+{-# INLINE_STREAM mbpermuteU #-}
+mbpermuteU f es is  = unstreamU (mbpermuteUS f es (streamU is))
+
+
+
 bpermuteUS :: UA e => UArr e -> Stream Int -> Stream e
 {-# INLINE_STREAM bpermuteUS #-}
 bpermuteUS !a = mapS (a!:)
+
+mbpermuteUS:: (UA e, UA d) => (e -> d) -> UArr e -> Stream Int -> Stream d
+{-# INLINE_STREAM mbpermuteUS #-}
+mbpermuteUS f !a = mapS (f . (a!:))
 
 -- |Default back permute
 --

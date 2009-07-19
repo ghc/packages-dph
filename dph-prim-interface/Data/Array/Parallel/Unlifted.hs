@@ -37,6 +37,10 @@ bpermute xs ns = map (xs !:) ns
 update = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.update"
 (+:+) = (P.++)
 
+mbpermute = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.mbpermute"
+bpermuteDft = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.bpermuteDft"
+
+
 pack xs bs = [x | (x,b) <- P.zip xs bs, b]
 
 combine [] [] [] = []

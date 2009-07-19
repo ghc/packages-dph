@@ -40,6 +40,12 @@ permute :: Elt a => Array a -> Array Int -> Array a
 bpermute :: Elt a => Array a -> Array Int -> Array a
 {-# INLINE_BACKEND bpermute #-}
 
+mbpermute :: (Elt a, Elt b) => (a->b) ->Array a -> Array Int -> Array b
+{-# INLINE_BACKEND mbpermute #-}
+
+bpermuteDft:: Elt e => Int -> (Int -> e) -> Array (Int :*: e) -> Array e
+{-# INLINE_BACKEND bpermuteDft #-}
+
 update :: Elt a => Array a -> Array (Int :*: a) -> Array a
 {-# INLINE_BACKEND update #-}
 

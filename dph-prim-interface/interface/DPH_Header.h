@@ -5,7 +5,7 @@ module Data.Array.Parallel.Unlifted (
 
   length,
   empty, replicate, repeat, (+:+),
-  (!:), extract, drop, permute, bpermute, update,
+  (!:), extract, drop, permute, mbpermute, bpermute, bpermuteDft, update,
   pack, combine,
   enumFromTo, enumFromThenTo, enumFromToEach, enumFromStepLen, enumFromStepLenEach,
   indexed,

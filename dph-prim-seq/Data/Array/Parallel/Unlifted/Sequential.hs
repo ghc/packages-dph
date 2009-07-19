@@ -36,7 +36,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   {-takeWhileU, dropWhileU, spanU, breakU,-}
 
   -- * Permutations
-  permuteU, bpermuteU, bpermuteDftU, reverseU, updateU,
+  permuteU, mbpermuteU, bpermuteU, bpermuteDftU, reverseU, updateU,
 
 
   -- * Higher-order operations
