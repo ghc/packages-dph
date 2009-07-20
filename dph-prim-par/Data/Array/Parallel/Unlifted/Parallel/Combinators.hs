@@ -76,10 +76,11 @@ zipWithUP f a b = joinD    theGang balanced
 
 foldUP :: (UA a, DT a) => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE foldUP #-}
-foldUP f z = maybeS z (f z)
-           . foldD  theGang combine
-           . mapD   theGang (foldl1MaybeU f)
-           . splitD theGang unbalanced
+foldUP f z xs = maybeS z (f z)
+               (foldD  theGang combine
+               (mapD   theGang (foldl1MaybeU f)
+               (splitD theGang unbalanced
+                xs)))
   where
     combine (JustS x) (JustS y) = JustS (f x y)
     combine (JustS x) NothingS  = JustS x

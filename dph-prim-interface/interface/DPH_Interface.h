@@ -260,6 +260,10 @@ dph_mod_index :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mod_index #-}
 dph_mod_index by idx = idx `Prelude.mod` by
 
+dph_mult :: Int -> Int -> Int
+{-# INLINE_BACKEND dph_mult #-}
+dph_mult x y = x Prelude.* y
+
 {-# RULES
 
 "bpermute/repeat" forall n len xs is.
@@ -293,7 +297,15 @@ dph_mod_index by idx = idx `Prelude.mod` by
   map (dph_mod_index m) (zipWith GHC.Base.plusInt (enumFromStepLen 0 m n) is)
     = map (dph_mod_index m) is
 
- #-} 
+ #-}
+
+{-# RULES
+
+"legthsToSegd/replicate" forall m n.
+  lengthsToSegd (replicate m n)
+    = mkSegd (replicate m n) (enumFromStepLen 0 n m) (m `dph_mult` n)
+
+ #-}
 
 -- These are for Gabi
 {- RULES
