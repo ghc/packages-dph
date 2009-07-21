@@ -13,45 +13,50 @@ import qualified System.Random as R
 import  Data.Array.Parallel.Unlifted  ((:*:)(..))
 import qualified Data.Array.Parallel.Unlifted as U
 
+import Control.Exception (evaluate)
+
+
 import Bench.Benchmark
 import Bench.Options
+
 
 import Debug.Trace
 
 algs = [("1", transposeT)
         , ("2", transposePT)
         , ("3", transposeDFT)
-        , ("4", backpermuteDftT)
-        , ("5", relaxT)
-        , ("6", relaxShiftT)
-        , ("7", mmT)
-        , ("8", replicateT)
-        , ("9", sumT)
-        , ("10", selectT)
+        , ("4", relaxT)
+        , ("5", relaxShiftT)
+--        , ("4", backpermuteDftT)
+--        , ("7", mmT)
+--        , ("8", replicateT)
+--        , ("9", sumT)
+--        , ("10", selectT)
 --        , ("11", lmmT)
        ]
 
 
-transposeT:: Int -> U.Array Int
-transposeT n = 
+transposeT:: (Int, U.Array Int) -> U.Array Int
+transposeT (n,arrData) = 
   res
   where  
     res = A.arrayData $ A.transpose arr
-    arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  (U.fromList ([1..(n*n)]::[Int]))
+    arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
-transposePT:: Int -> U.Array Int
-transposePT n = 
+
+transposePT:: (Int, U.Array Int) -> U.Array Int
+transposePT (n,arrData) = 
   res
   where  
     res = A.arrayData $ A.transposePrim arr
-    arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  (U.fromList ([1..(n*n)]::[Int]))
+    arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
-transposeDFT:: Int -> U.Array Int
-transposeDFT n = 
+transposeDFT:: (Int, U.Array Int) -> U.Array Int
+transposeDFT (n,arrData) = 
   res
   where  
     res = A.arrayData $ A.transposeDFT arr
-    arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  (U.fromList ([1..(n*n)]::[Int]))
+    arr = A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
 
 
 -- insert an array into one twice the size
@@ -65,19 +70,19 @@ backpermuteDftT n = --trace (show res) res
     arr = A.toArray (() :*: n)  (U.fromList ([1..n]::[Int]))
 
 
-relaxT:: Int -> U.Array Int
-relaxT n = --trace (show res) res
+relaxT:: (Int, U.Array Int) -> U.Array Int
+relaxT (n, arrData) = --trace (show res) res
   res
   where
     res = A.arrayData $ A.relax arr
-    arr = A.toArray ((() :*: n) :*: n) (U.fromList ([1..(n*n)]::[Int]))
+    arr = A.toArray ((() :*: n) :*: n) arrData
 
-relaxShiftT:: Int -> U.Array Int
-relaxShiftT n = --trace (show res) res
+relaxShiftT:: (Int, U.Array Int) -> U.Array Int
+relaxShiftT (n, arrData) = --trace (show res) res
   res
   where
     res = A.arrayData $ A.relaxShift arr
-    arr = A.toArray ((() :*: n) :*: n) (U.fromList ([1..(n*n)]::[Int]))
+    arr = A.toArray ((() :*: n) :*: n) arrData 
 
 
 
@@ -115,6 +120,14 @@ mmT n = -- trace (show res)
   a1 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   a2 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
 
+generatePoints :: Int -> IO (Point (Int, (U.Array Int)))
+generatePoints n =
+  do 
+    let pts = (U.fromList [1..(n*n)])
+    evaluate $ force pts 
+    return $  ("N = " ++ show n) `mkPoint` (n, pts)
+  where
+    force pts = pts U.!: n
 
 {-
 lmmT:: Int -> U.Array Int
@@ -139,13 +152,13 @@ run opts alg sizes =
     szs -> case lookup alg algs of
              Nothing -> do
                           benchmark opts transposeT
-                             (Prelude.map (\t -> (return (mkPoint "transposeT" t))) szs)
+                             (Prelude.map generatePoints szs)
                              (`seq` ()) show
                           return ()
 
              Just f  -> do
                           benchmark opts f
-                             (Prelude.map (\t -> (return (mkPoint alg t))) szs)
+                             (Prelude.map generatePoints szs)
                              (`seq` ()) show
                           return ()
 
