@@ -1,11 +1,16 @@
 TOPDIR = ..
-BINARIES = reglib
+BINARIES = raBench raTest 
 
-reglib_seq_FLAGS = -fsimplifier-phases=3
-reglib_par_FLAGS = -fsimplifier-phases=3
+raBench_seq_FLAGS = -fsimplifier-phases=3
+raBench_par_FLAGS = -fsimplifier-phases=3
 
-reglib_DPH = reg
-reglib_SOURCES =  ReglibTest.hs Array.hs 
+raBench_DPH = raBench
+raBench_SOURCES =  ReglibBench.hs Array.hs LArray.hs Hierarchical.hs
 
+raTest_seq_FLAGS = -fsimplifier-phases=3
+raTest_par_FLAGS = -fsimplifier-phases=3
+
+raTest_DPH = raTest
+raTest_SOURCES =  ReglibTest.hs Array.hs LArray.hs Hierarchical.hs
 
 include $(TOPDIR)/mk/test.mk
