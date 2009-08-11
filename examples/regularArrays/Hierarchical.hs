@@ -3,8 +3,9 @@
 
 module Hierarchical where 
 
-import qualified LArray as LA
+
 import qualified Array as A
+import qualified Data.Array.Parallel.Unlifted as U
 
 import Control.Exception (evaluate, assert)
 import System.Console.GetOpt
@@ -14,56 +15,69 @@ import  Data.Array.Parallel.Unlifted  ((:*:)(..))
 import qualified Data.Array.Parallel.Unlifted as U
 import Control.Exception (evaluate)
 
--- type HMatrix = (Int, LA.LArray)
+data HMatrix a =  HMatrix { hmThreshold:: Int
+                          , hmOrder    :: Int
+                          , hmDA       :: A.DArray A.DIM2 a
+                          }
+
+
+-- Just changes the representation, not the ordering of the elements.
+--
+toHMatrix:: (U.Elt a) => Int -> A.Array A.DIM2 a -> HMatrix a
+{-# INLINE toHMatrix #-}
+toHMatrix threshold arr =
+   HMatrix{ hmThreshold =  threshold
+          , hmOrder     =  order
+          , hmDA        =  A.toDArray  arr
+          }
+   where
+     (_:*: order) = A.arrayShape arr
+
+
+ 
+
+($$):: (A.DArray A.DIM2 a -> b) -> HMatrix a -> b
+($$) f hm = f $ hmDA hm
+
+hmSplit:: U.Elt a => HMatrix a -> (HMatrix a, HMatrix a, HMatrix a, HMatrix a)
+{-# INLINE hmSplit #-}
+hmSplit hm = assert (hmOrder hm > 1) $
+  (t1,t2,t3,t4)
+  where
+    n2 = (hmOrder hm) `div` 2
+    t1 = hm{ hmOrder = n2, hmDA    = (A.da_tile $$ hm) (():*: 0 :*: 0)   (() :*: n2 :*: n2)}
+    t2 = hm{ hmOrder = n2, hmDA    = (A.da_tile $$ hm) (():*: n2 :*: 0)  (() :*: n2 :*: n2)}
+    t3 = hm{ hmOrder = n2, hmDA    = (A.da_tile $$ hm) (():*: 0 :*: n2)  (() :*: n2 :*: n2)}
+    t4 = hm{ hmOrder = n2, hmDA    = (A.da_tile $$ hm) (():*: n2 :*: n2) (() :*: n2 :*: n2)}
+
+hmJoin:: U.Elt a => (HMatrix a, HMatrix a, HMatrix a, HMatrix a) -> HMatrix a 
+{-# INLINE hmJoin #-}
+hmJoin (t1,t2,t3,t4) = assert (hmOrder t1 > 1) $
+    t1{hmDA = A.da_append (A.da_append (hmDA t1) (hmDA t2) (() :*: 2 * order :*: order)) 
+                        (A.da_append (hmDA t3) (hmDA t4) (() :*: 2 * order :*: order))
+                        (() :*: 2* order :*: 2* order)}
+  where
+    order = hmOrder t1    
+
+
 
 --  matrix multiplication, assumes square matrices of size 2^n * 2^n
 --
-hmmult:: LA.LArray A.DIM2 Double -> LA.LArray A.DIM2 Double -> LA.LArray A.DIM2 Double
-hmmult a@(LA.LArray (() :*: n :*: n') _) b@(LA.LArray (() :*: m :*: m') _) = 
-  assert (n == m) $ 
-         if (n <= 256) 
-    then LA.mmMult a b
-    else LA.append (LA.append r1 r2 (() :*: 2*q :*: n)) (LA.append r3 r4 (() :*: 2*q :*: n))
-                   (() :*: n :*: n)
+hmmult:: HMatrix Double -> HMatrix Double -> HMatrix Double
+hmmult a b = 
+    if (n <= hmThreshold a) 
+    then a{hmDA = A.da_mmMult (hmDA a) (hmDA b)}
+    else hmJoin (r1,r2,r3,r4)
+
   where
-    q = n `div` 4
-    a1 = LA.tile a (() :*: 0   :*: 0)     (() :*: q :*: n)
-    a2 = LA.tile a (() :*: q   :*: 0)     (() :*: q :*: n)
-    a3 = LA.tile a (() :*: 2*q :*: 0)     (() :*: q :*: n)
-    a4 = LA.tile a (() :*: 3*q :*: 0)   (() :*: q :*: n)
+    n = hmOrder a
+    m = hmOrder b
 
-    b1 = LA.tile b (() :*: 0   :*: 0)     (() :*: q :*: n)
-    b2 = LA.tile b (() :*: q   :*: 0)     (() :*: q :*: n)
-    b3 = LA.tile b (() :*: 2*q :*: 0)     (() :*: q :*: n)
-    b4 = LA.tile b (() :*: 3*q :*: 0)   (() :*: q :*: n)
+    (a1,a2,a3,a4) = hmSplit a
+    (b1,b2,b3,b4) = hmSplit b
   
-    r1 = LA.zipWith (+) (hmmult a1 b1) (hmmult a2 b3)
-    r2 = LA.zipWith (+) (hmmult a1 b2) (hmmult a2 b4)
-    r3 = LA.zipWith (+) (hmmult a3 b1) (hmmult a4 b3)
-    r4 = LA.zipWith (+) (hmmult a3 b2) (hmmult a4 b4)
+    r1 = a1{hmDA = (A.da_zipWith (+) $$ (hmmult a1 b1)) $$ (hmmult a2 b3)}
+    r2 = a2{hmDA = (A.da_zipWith (+) $$ (hmmult a1 b2)) $$ (hmmult a2 b4)}
+    r3 = a3{hmDA = (A.da_zipWith (+) $$ (hmmult a3 b1)) $$ (hmmult a4 b3)}
+    r4 = a4{hmDA = (A.da_zipWith (+) $$ (hmmult a3 b2)) $$ (hmmult a4 b4)}
 
-
-{-
-hmmult':: LA.LArray A.DIM2 Int -> LA.LArray A.DIM2 Int -> LA.LArray A.DIM2 Int
-hmmult' a@(LA.LArray (() :*: n) _) b@(LA.LArray (() :*: m) _) = 
-  assert (n == m) $ 
-  if (n <= 128) 
-    then LA.mmMult a b
-    else LA.append (LA.append r1 r2 (() :*: mid :*: n)) (LA.append r3 r4 (() :*: mid :*: n))
-                   (() :*: n :*: n)
-  where
-    mid = n `div` 2
-    a1 = LA.tile a (() :*: 0 :*: 0)     (() :*: mid :*: mid)
-    a2 = LA.tile a (() :*: 0 :*: mid)   (() :*: mid :*: mid)
-    a3 = LA.tile a (() :*: mid :*: 0)   (() :*: mid :*: mid)
-    a4 = LA.tile a (() :*: mid :*: mid) (() :*: mid :*: mid)
-
-    b1 = LA.tile b (() :*: 0 :*: 0)     (() :*: mid :*: mid)
-    b2 = LA.tile b (() :*: 0 :*: mid)   (() :*: mid :*: mid)
-    b3 = LA.tile b (() :*: mid :*: 0)   (() :*: mid :*: mid)
-    b4 = LA.tile b (() :*: mid :*: mid) (() :*: mid :*: mid)
-  
-    r1 = LA.zipWith (+) (hmmult' a1 b1) (hmmult' a2 b3)
-    r2 = LA.zipWith (+) (hmmult' a1 b2) (hmmult' a2 b4)
-    r3 = LA.zipWith (+) (hmmult' a3 b1) (hmmult' a4 b3)
-    r4 = LA.zipWith (+) (hmmult' a3 b2) (hmmult' a4 b4)-}

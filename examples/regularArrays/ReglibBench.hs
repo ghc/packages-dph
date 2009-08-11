@@ -3,13 +3,19 @@
 
 module Main where
 
+import Array 
 import qualified Array as A
-import qualified LArray as LA
+import Array (ae_mmMult, ae_transpose, ae_transposeDFT, ae_transposePrim,
+             fromDArray, DArray(..), toDArray,
+             hmDA, hmJoin, hmSplit, toHMatrix, hmmult)
+
+
+--import qualified DArray as DA
 
 import Control.Exception (evaluate)
 import System.Console.GetOpt
 import qualified System.Random as R
-import qualified Hierarchical as H
+-- import qualified Hierarchical as H
 
 
 import  Data.Array.Parallel.Unlifted  ((:*:)(..))
@@ -24,22 +30,17 @@ import Bench.Options
 
 
 
-algs = [ ("1", transposeT)
-       , ("2", transposePT)
+algs = [ ("1", transposeT) 
+       , ("2", transposePT) 
        , ("3", transposeDFT)
-       , ("4", transposeLT)
-       , ("5", transposePLT)
-       , ("6", relaxT)
-       , ("7", relaxLT)
-       , ("8", mmT)
-       , ("9", mmLT)
-       , ("10", hmLT)
-       ]
---        , ("4", backpermuteDftT)
---        , ("7", mmT)
---        , ("8", replicateT)
---        , ("9", sumT)
---        , ("10", selectT)
+       , ("4", transposeDT) 
+       , ("5", transposePDT) 
+       , ("6", relaxT) 
+       , ("7", relaxDT) 
+       , ("8", mmT) 
+       , ("9", mmDT) 
+       , ("10", hmDT) 
+       , ("11", hhmDT) ]
   
 
   
@@ -47,7 +48,7 @@ transposeT:: (Int, U.Array Double) -> U.Array Double
 transposeT (n,arrData) = 
   res
   where  
-    res = A.arrayData $ A.transpose arr
+    res = A.arrayData $ ae_transpose arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
 
@@ -55,25 +56,25 @@ transposePT:: (Int, U.Array Double) -> U.Array Double
 transposePT (n,arrData) = 
   res
   where  
-    res = A.arrayData $ A.transposePrim arr
+    res = A.arrayData $ ae_transposePrim arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
 transposeDFT:: (Int, U.Array Double) -> U.Array Double
 transposeDFT (n,arrData) = 
   res
   where  
-    res = A.arrayData $ A.transposeDFT arr
+    res = A.arrayData $ ae_transposeDFT arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
 
-transposeLT:: (Int, U.Array Double) -> U.Array Double
-transposeLT (n,arrData) = 
+transposeDT:: (Int, U.Array Double) -> U.Array Double
+transposeDT (n,arrData) = 
   res
   where  
-    res = A.arrayData $ LA.fromLArray $ arr -- LA.transpose arr
-    arr = LA.toLArray $ A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
+    res = A.arrayData $ fromDArray $ da_transpose arr
+    arr = toDArray $ A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
 
-transposePLT:: (Int, U.Array Double) -> U.Array Double
-transposePLT (n,arrData) = 
+transposePDT:: (Int, U.Array Double) -> U.Array Double
+transposePDT (n,arrData) = 
   res
   where  
     res = U.map  (\i -> (arrData U.!: (A.index sh (flip i)))) (A.range sh)
@@ -97,14 +98,14 @@ relaxT:: (Int, U.Array Double) -> U.Array Double
 relaxT (n, arrData) = --trace (show res) res
   res
   where
-    res = A.arrayData $ A.relax arr
+    res = A.arrayData $ ae_relax arr
     arr = A.toArray ((() :*: n) :*: n) arrData
 
-relaxLT:: (Int, U.Array Double) -> U.Array Double
-relaxLT (n, arrData) = --trace (show res) res
+relaxDT:: (Int, U.Array Double) -> U.Array Double
+relaxDT (n, arrData) = --trace (show res) res
   res
   where
-    res = A.arrayData $ LA.relaxShift arr
+    res = A.arrayData $ da_relaxShift arr
     arr = A.toArray ((() :*: n) :*: n) arrData 
 
 
@@ -139,28 +140,36 @@ mmT (n,arrData) =
   res 
   where
   res = A.arrayData arr
-  arr = A.mmMult  a1 a2
-  a1 = A.toArray (() :*: n :*: n) arrData
-  a2 = A.toArray (() :*: n :*: n) arrData
+  arr = ae_mmMult  a1 a2
+  a1 =  A.toArray (() :*: n :*: n) arrData
+  a2 =  A.toArray (() :*: n :*: n) arrData
 
-mmLT:: (Int, U.Array Double) -> U.Array Double
-mmLT (n,arrData) = 
+mmDT:: (Int, U.Array Double) -> U.Array Double
+mmDT (n,arrData) = 
   res 
   where
   res = A.arrayData arr
-  arr = LA.fromLArray $ LA.mmMult  a1 a2
-  a1 = LA.toLArray $ A.toArray (() :*: n :*: n) arrData
-  a2 = LA.toLArray $ A.toArray (() :*: n :*: n) arrData
+  arr = fromDArray $ da_mmMult  a1 a2
+  a1  = toDArray $ A.toArray (() :*: n :*: n) arrData
+  a2  = toDArray $ A.toArray (() :*: n :*: n) arrData
 
-hmLT:: (Int, U.Array Double) -> U.Array Double
-hmLT (n,arrData) = 
+hmDT:: (Int, U.Array Double) -> U.Array Double
+hmDT (n,arrData) = 
   res 
   where
   res = A.arrayData arr
-  arr = LA.fromLArray $ H.hmmult  a1 a1
-  a1 = LA.toLArray $ A.toArray (() :*: n :*: n) arrData
-  a2 = LA.toLArray $ A.toArray (() :*: n :*: n) arrData
+  arr = fromDArray $ hmDA $ hmmult  (toHMatrix 128 a1)(toHMatrix 128 a1)
+  a1  = A.toArray (() :*: n :*: n) arrData
+  a2  = A.toArray (() :*: n :*: n) arrData
 
+hhmDT:: (Int, U.Array Double) -> U.Array Double
+hhmDT (n,arrData) = 
+  res 
+  where
+  res = A.arrayData arr
+  arr = fromDArray $ hhmDA $ hhmmult  (toHHMatrix n 128 a1)(toHHMatrix n 128 a1)
+  a1  = A.toArray (() :*: n*n) arrData
+  a2  = A.toArray (() :*: n*n) arrData
 
 generatePoints :: Int -> IO (Point (Int, (U.Array Double)))
 generatePoints n =
@@ -177,7 +186,7 @@ lmmT n = -- trace (show res)
   res 
   where
   res = A.arrayData arr
-  arr = LA.mmMult  a1 a2
+  arr = DA.mmMult  a1 a2
   a1 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   a2 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   -}

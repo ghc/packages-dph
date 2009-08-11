@@ -3,31 +3,29 @@ Description of benchmarks:
 ==========================
 1 -- transposeT: transposition of matrix implemented using array backpermute
   
-2 -- transposePT: transposition implemented using Unlifted.backpermute. This 
-     avoids the indirection over index pairs and calculates the bpermute indices
-     directly. Is 50% slower (!?) than transpose.
+2 -- transposePT: transposition implemented using Unlifted.backpermute.
 
 3 -- transposeDFT: transpose using array default backpermute. This is just a test
      compare the performance of default backpermute and backpermute. Strangely enough,
      slightly faster(!)  than backpermute. 
 
-4 -- backpermuteDftT: insert an array into one twice the size
+4 -- transposeDT: delayed version of transposeT
+  
+5 -- transposePDT: delayed version of transposePT
 
-5 -- relaxT: for each element of a matrix, calculate the average of element value with
+6 -- relaxT: for each element of a matrix, calculate the average of element value with
      its four neighbours, using backpermuteDft
 
-6 -- relaxShiftT: for each element of a matrix, calculate the average of element value with
-     its four neighbours, using shift (no measurable overhead of using shift)
+7 -- relaxDT: delayed version of relaxT
 
-7 -- mmT: matrix-matrix multiplication
+8 -- mmT: matrix-matrix multiplication, strict
 
--- the following are just  tests to check functions are correctly 
-   implemented - needs to be properly done:
+9 -- mmDT: matrix-matrix multiplication, delayed
 
-8 -- replicateT: shape polymorphic replicate
+10 -- hmDT: dq matrix multiplication, delayed
 
-9 -- sumT: calculates sum of innermost subarrays
+11 -- hhmDT: hierarchical dq matrix multiplication, delayed
 
-10 -- selectT: shape polymorphic selection of subarrays
+
 
 

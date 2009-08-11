@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs, TypeFamilies, FlexibleInstances, FlexibleContexts, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
  
-import qualified Array as A
+
 
 
 import Control.Exception (evaluate)
@@ -10,8 +10,17 @@ import qualified System.Random as R
 
 import  Data.Array.Parallel.Unlifted  ((:*:)(..))
 import qualified Data.Array.Parallel.Unlifted as U
-import qualified LArray as LA
-import qualified Hierarchical as H
+
+--import qualified DArray as DA
+import qualified Array as A
+import Array (ae_mmMult, ae_transpose, ae_transposeDFT, ae_transposePrim,
+             fromDArray, DArray(..), toDArray, da_append, da_tile, da_mmMult, da_mapFold,
+             hmDA, hmJoin, hmSplit, toHMatrix, hmmult)
+--import qualified ArrayExamples as A
+
+import Foo
+
+-- import qualified Hierarchical as H
 
 import Control.Exception (evaluate)
 
@@ -31,8 +40,9 @@ algs = [ ("1", transposeTest1)
        , ("7", mmMultTest)
        , ("8", lmMultTest)
        , ("9", hmMultTest)
-       , ("10", mfTest)
---       , ("3", transposeDFT)
+       , ("10", hmSplitJoinTest)
+       , ("11", mfTest)
+       , ("12", toHMTest)
 --       , ("4", relaxT)
 --       , ("5", relaxShiftT)
 --        , ("4", backpermuteDftT)
@@ -44,37 +54,39 @@ algs = [ ("1", transposeTest1)
        ]
   
 
-transposeTest1:: (Int, U.Array Int) -> U.Array Int
+transposeTest1:: (Int, U.Array Double) -> U.Array Double
 transposeTest1 (n, arrData) = trace (
     if (res == arrData) 
       then "OK: transpose . transpose = id"
       else "Error:  transpose . transpose /= id")
   res
   where  
-    res = A.arrayData $ A.transpose $ A.transpose arr
+    i = ((() :*:  3 :*: 4 ):*:7) :: A.DIM3
+    i' = ((() :*: 1 :*: 1):*:5) :: A.DIM3
+    res = A.arrayData $ ae_transpose $ ae_transpose arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
  
-transposeTest2:: (Int, U.Array Int) -> U.Array Int
+transposeTest2:: (Int, U.Array Double) -> U.Array Double
 transposeTest2 (n, arrData) = trace (
     if (res == arrData) 
       then "OK: transposeDFT . transposeDFT = id"
       else "Error:  transposeDFT . transposeDFT /= id")
   res
   where  
-    res = A.arrayData $ A.transposeDFT $ A.transposeDFT arr
+    res = A.arrayData $ ae_transposeDFT $ ae_transposeDFT arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
-transposeTest3:: (Int, U.Array Int) -> U.Array Int
+transposeTest3:: (Int, U.Array Double) -> U.Array Double
 transposeTest3 (n, arrData) = trace (
     if (res == arrData) 
       then "OK: transposePrim . transposePrim = id"
       else "Error:  transposePrim . transposePrim /= id")
   res 
   where  
-    res = A.arrayData $ A.transposeDFT $ A.transposeDFT arr
+    res = A.arrayData $ ae_transposeDFT $ ae_transposeDFT arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
-appendTest1:: (Int, U.Array Int) -> U.Array Int
+appendTest1:: (Int, U.Array Double) -> U.Array Double
 appendTest1 _ = trace (
    if (res == expected) 
       then "OK"
@@ -82,72 +94,98 @@ appendTest1 _ = trace (
   res 
 
   where 
-    res = A.arrayData $ LA.fromLArray $ LA.append arr1 arr2 ((() :*: (2::Int)) :*: (8::Int))
+    res = A.arrayData $ fromDArray $ da_append arr1 arr2 ((() :*: (2::Int)) :*: (8::Int))
     expected = U.fromList [1,2,3,4,5,1,2,3,6,7,8,9,10,4,5,6]
-    arr1 = LA.toLArray $ A.toArray ((() :*: (2::Int)) :*: (5::Int)) $ U.fromList [1..10]
-    arr2 = LA.toLArray $ A.toArray ((() :*: (2::Int)) :*: (3::Int)) $ U.fromList [1..6]
+    arr1 = toDArray $ A.toArray ((() :*: (2::Int)) :*: (5::Int)) $ U.fromList [1..10]
+    arr2 = toDArray $ A.toArray ((() :*: (2::Int)) :*: (3::Int)) $ U.fromList [1..6]
 
 
-appendTest2:: (Int, U.Array Int) -> U.Array Int
-appendTest2 _ = trace (show res) res
+appendTest2:: (Int, U.Array Double) -> U.Array Double
+appendTest2 _ = trace (
+   if (res == expected) 
+      then "OK"
+      else "Error: " ++ (show res))
+  res 
+ 
   where 
-    res = A.arrayData $ LA.fromLArray $ LA.append arr1 arr2 ((() :*: (16::Int)))
-    arr1 = LA.toLArray $ A.toArray ((() :*: (10::Int))) $ U.fromList [1..10]
-    arr2 = LA.toLArray $ A.toArray ((() :*: (6::Int))) $ U.fromList [1..6]
+    expected = U.fromList [1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6]
+    res = A.arrayData $ fromDArray $ da_append arr1 arr2 ((() :*: (8::Int)) :*: (2::Int))
+    arr1 = toDArray $ A.toArray ((() :*: (5::Int)) :*: (2::Int)) $ U.fromList [1..10]
+    arr2 = toDArray $ A.toArray ((() :*: (3::Int)) :*: (2::Int)) $ U.fromList [1..6]
+
 
   
-tileTest::  (Int, U.Array Int) -> U.Array Int
+tileTest::  (Int, U.Array Double) -> U.Array Double
 tileTest _ = trace (show res) res
   where 
-    res = A.arrayData $ LA.fromLArray $ LA.tile arr1 (() :*: 0 :*: 0)     (() :*: 2 :*: 4)
---    res = A.arrayData $ LA.mmMult arr1 arr2
-    arr1 = LA.toLArray $ A.toArray ((() :*: (4::Int)):*: (4::Int)) $ U.fromList [1..16]
+    res = A.arrayData $ fromDArray $ da_tile arr1 (() :*: 0 :*: 0)     (() :*: 2 :*: 2)
+    arr1 = toDArray $ A.toArray ((() :*: (4::Int)):*: (4::Int)) $ U.fromList [1..16]
 
   
 
+hmSplitJoinTest:: (Int, U.Array Double) -> U.Array Double
+hmSplitJoinTest (n, arr) = trace( 
+  if (res == arr)
+    then ("hmSplitJoin test ok, join . split $ m = m\n")
+    else ("hmSplitJoin test error, join . split $ m /= m\n"))
+  res
+  where 
+    res = A.arrayData $ fromDArray $ hmDA $ hmJoin $ hmSplit $ 
+            toHMatrix 128 $ A.toArray ((():*:n :*: n)::A.DIM2) $  arr
 
-hmMultTest:: (Int, U.Array Int) -> U.Array Int
+toHMTest:: (Int, U.Array Double) -> U.Array Double
+toHMTest (n, arr) = trace (show res)
+  res
+  where
+    res = A.arrayData $ fromDArray $ hmDA $ toHMatrix 128 arr
+    arr = A.toArray ((():*:n :*: n)::A.DIM2) $ 
+            (U.fromList ((concat $ replicate (n-1) ([1.0::Double] ++ (replicate n 0.0))) ++ 
+            [1::Double]))
+
+
+
+hmMultTest:: (Int, U.Array Double) -> U.Array Double
 hmMultTest (n, arr) = trace( 
   if (res == arr)
     then ("hmMult test ok, m * id = m\n")
     else ("hmMult test error, m * id /= m\n"))
   res
   where 
-    res = A.arrayData $ LA.fromLArray $ H.hmmult arr1 arr2
-    arr1 = LA.toLArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
-    arr2 = LA.LArray ((() :*: (n::Int)):*: (n::Int)) 
+    res = A.arrayData $ fromDArray $ hmDA $ hmmult arr1 arr2
+    arr1 = toHMatrix 128 $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
+    arr2 = toHMatrix 128 $ fromDArray $ DArray ((() :*: (n::Int)):*: (n::Int)) 
                 (\(() :*: i :*: j) -> if (i==j) then 1 else 0)
 
-lmMultTest:: (Int, U.Array Int) -> U.Array Int
+lmMultTest:: (Int, U.Array Double) -> U.Array Double
 lmMultTest (n, arr) = trace( 
   if (res == arr)
     then ("lmMult test ok, m * id = m\n")
     else ("lmMult test error, m * id /= m\n"))
   res
   where   
-    res = A.arrayData $ LA.fromLArray $ LA.mmMult arr1 arr2
-    arr1 = LA.toLArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
-    arr2 = LA.LArray ((() :*: (n::Int)):*: (n::Int)) 
+    res = A.arrayData $ fromDArray $ da_mmMult arr1 arr2
+    arr1 = toDArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
+    arr2 = DArray ((() :*: (n::Int)):*: (n::Int)) 
                 (\(() :*: i :*: j) -> if (i==j) then 1 else 0)
 
 
-mmMultTest:: (Int, U.Array Int) -> U.Array Int
+mmMultTest:: (Int, U.Array Double) -> U.Array Double
 mmMultTest (n, arr) = trace( 
   if (res == arr)
     then ("mmMult test ok, m * id = m\n")
     else ("mmMult test error, m * id /= m\n"))
   res
   where 
-    res = A.arrayData $ A.mmMult arr1 arr2
+    res = A.arrayData $ ae_mmMult arr1 arr2
     arr1 = A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
-    arr2 = LA.fromLArray $ LA.LArray ((() :*: (n::Int)):*: (n::Int)) 
+    arr2 = fromDArray $ DArray ((() :*: (n::Int)):*: (n::Int)) 
                 (\(() :*: i :*: j) -> if (i==j) then 1 else 0)
 
-mfTest:: (Int, U.Array Int) -> U.Array Int
+mfTest:: (Int, U.Array Double) -> U.Array Double
 mfTest _ = trace (show res) res
   where 
-    res = A.arrayData $ LA.fromLArray $ LA.mapFold (+) 0 arr1
-    arr1 = LA.toLArray $ A.toArray ((() :*: (2::Int)):*: (8::Int)) $ U.fromList [1..16]
+    res = A.arrayData $ fromDArray $ da_mapFold (+) 0 arr1
+    arr1 = toDArray $ A.toArray ((() :*: (2::Int)):*: (8::Int)) $ U.fromList [1..16]
     
 
 {-
@@ -229,10 +267,10 @@ mmT n = -- trace (show res)
 
 -}
 
-generatePoints :: Int -> IO (Point (Int, (U.Array Int)))
+generatePoints :: Int -> IO (Point (Int, (U.Array Double)))
 generatePoints n =
   do 
-    let pts = (U.fromList [1..(n*n)])
+    let pts = (U.fromList [1..(fromIntegral $ n*n)])
     evaluate $ force pts 
     return $  ("N = " ++ show n) `mkPoint` (n, pts)
   where
@@ -244,7 +282,7 @@ lmmT n = -- trace (show res)
   res 
   where
   res = A.arrayData arr
-  arr = LA.mmMult  a1 a2
+  arr = DA.mmMult  a1 a2
   a1 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   a2 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   -}

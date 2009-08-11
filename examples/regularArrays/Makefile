@@ -5,12 +5,12 @@ raBench_seq_FLAGS = -fsimplifier-phases=3
 raBench_par_FLAGS = -fsimplifier-phases=3
 
 raBench_DPH = raBench
-raBench_SOURCES =  ReglibBench.hs Array.hs LArray.hs Hierarchical.hs
+raBench_SOURCES =  ReglibBench.hs Array.hs DArray.hs Hierarchical.hs ArrayExamples.hs
 
 raTest_seq_FLAGS = -fsimplifier-phases=3
 raTest_par_FLAGS = -fsimplifier-phases=3
 
 raTest_DPH = raTest
-raTest_SOURCES =  ReglibTest.hs Array.hs LArray.hs Hierarchical.hs
+raTest_SOURCES =  ReglibTest.hs Array.hs DArray.hs Hierarchical.hs ArrayExamples.hs
 
 include $(TOPDIR)/mk/test.mk
