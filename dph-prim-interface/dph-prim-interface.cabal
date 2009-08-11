@@ -30,5 +30,5 @@ Library
   else
     GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
 
-  Build-Depends:  base, random, dph-base
+  Build-Depends:  base >= 3 && < 5, random, dph-base
 
