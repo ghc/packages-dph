@@ -78,7 +78,7 @@ mbpermuteU f es is  = unstreamU (mbpermuteUS f es (streamU is))
 
 bpermuteUS :: UA e => UArr e -> Stream Int -> Stream e
 {-# INLINE_STREAM bpermuteUS #-}
-bpermuteUS !a = mapS (a!:)
+bpermuteUS !a s = mapS (a!:) s
 
 mbpermuteUS:: (UA e, UA d) => (e -> d) -> UArr e -> Stream Int -> Stream d
 {-# INLINE_STREAM mbpermuteUS #-}
