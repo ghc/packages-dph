@@ -16,6 +16,10 @@ infixr 5 +:+
 length :: Elt a => Array a -> Int
 {-# INLINE_BACKEND length #-}
 
+generate :: Elt a => Int -> (Int -> a) -> Array a
+{-# INLINE_BACKEND generate #-}
+generate n f = map f (enumFromTo 0 (n-1))
+
 empty :: Elt a => Array a
 {-# INLINE_BACKEND empty #-}
 
@@ -283,6 +287,7 @@ dph_mult x y = x Prelude.* y
 "replicate_s->replicate_rs" forall n m idxs nm xs.
   replicate_s (mkSegd (replicate n m) idxs nm) xs
     = replicate_rs m xs
+
  #-}
 
 {-# RULES
@@ -290,6 +295,10 @@ dph_mult x y = x Prelude.* y
 "repeat_c/repeat" forall k ks n m idxs nm len xs.
   repeat_c k ks (mkSegd (replicate n m) idxs nm) (repeat n len xs)
     = repeat (sum ks) len xs
+
+"repeat/enumFromStepLen[Int]" forall i j k n len.
+  repeat n len (enumFromStepLen i j k)
+    = generate len (\m -> i + ((m `Prelude.rem` k) * j))
 
   #-}
 
