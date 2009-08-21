@@ -90,7 +90,7 @@ replicateEachS n (Stream next s _) =
 --
 replicateEachRS :: Int -> Stream a -> Stream a
 {-# INLINE_STREAM replicateEachRS #-}
-replicateEachRS n (Stream next s m)
+replicateEachRS !n (Stream next s m)
   = Stream next' (0 :*: NothingS :*: s) (m * n)
   where
     next' (0 :*: _ :*: s) =
