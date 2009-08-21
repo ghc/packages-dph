@@ -94,7 +94,7 @@ instance Rebox a => Rebox (MaybeS a) where
   dseq NothingS  y = y
   dseq (JustS x) y = dseq x y
 
-newtype Box a = Box a
+data Box a = Box a
 
 instance Rebox (Box a) where
   {-# INLINE [0] rebox #-}
