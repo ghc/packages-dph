@@ -31,8 +31,8 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 replicateSU :: UA a => USegd -> UArr a -> UArr a
 {-# INLINE_U replicateSU #-}
 replicateSU segd xs = unstreamU
-                    . replicateEachS (elementsUSegd segd)
-                    $ zipS (streamU (lengthsUSegd segd)) (streamU xs)
+                     (replicateEachS (elementsUSegd segd)
+                     (zipS (streamU (lengthsUSegd segd)) (streamU xs)))
 
 replicateRSU :: UA a => Int -> UArr a -> UArr a
 {-# INLINE_U replicateRSU #-}
