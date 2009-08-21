@@ -18,7 +18,8 @@
 
 module Data.Array.Parallel.Stream.Flat.Basics (
   -- * Basic operations
-  emptyS, singletonS, consS, replicateS, replicateEachS, (+++), indexedS,
+  emptyS, singletonS, consS, replicateS, replicateEachS, replicateEachRS,
+  (+++), indexedS,
   tailS,
 
   -- * Conversion to\/from lists
@@ -85,7 +86,20 @@ replicateEachS n (Stream next s _) =
     next' (k :*: JustS (Box x) :*: s) =
       Yield x (k-1 :*: JustS (Box x) :*: s)
 
-     
+-- | Repeat each element in the stream n times
+--
+replicateEachRS :: Int -> Stream a -> Stream a
+{-# INLINE_STREAM replicateEachRS #-}
+replicateEachRS n (Stream next s m)
+  = Stream next' (0 :*: NothingS :*: s) (m * n)
+  where
+    next' (0 :*: _ :*: s) =
+      case next s of
+        Done       -> Done
+        Skip    s' -> Skip (0 :*: NothingS      :*: s')
+        Yield x s' -> Skip (n :*: JustS (Box x) :*: s')
+    next' (i :*: NothingS :*: s) = Done -- unreachable
+    next' (i :*: JustS (Box x) :*: s) = Yield x (i-1 :*: JustS (Box x) :*: s)
 
 -- | Concatenation
 --

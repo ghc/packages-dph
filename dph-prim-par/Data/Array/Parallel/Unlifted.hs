@@ -53,6 +53,7 @@ enumFromToEach = enumFromToEachU
 enumFromStepLenEach =enumFromStepLenEachUP
 
 replicate_s = replicateSUP
+replicate_rs = replicateRSUP
 append_s = U.appendSU
 fold_s = foldSUP
 fold1_s = fold1SU

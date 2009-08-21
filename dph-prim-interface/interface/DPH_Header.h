@@ -15,7 +15,7 @@ module Data.Array.Parallel.Unlifted (
 
   fold, fold1, and, sum, scan,
 
-  replicate_s, append_s,
+  replicate_s, replicate_rs, append_s,
 
   repeat_c,
 

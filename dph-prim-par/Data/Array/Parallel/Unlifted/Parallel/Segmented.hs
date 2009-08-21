@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  replicateSUP, foldlSUP, foldSUP, sumSUP, sumRUP
+  replicateSUP, replicateRSUP, foldlSUP, foldSUP, sumSUP, sumRUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
@@ -42,6 +42,12 @@ replicateSUP segd xs = joinD theGang unbalanced
                      $ splitAsD theGang (lengthUSegdD dsegd) xs
   where
     dsegd = splitSegdD theGang segd
+
+-- FIXME: make this efficient
+replicateRSUP :: UA a => Int -> UArr a -> UArr a
+{-# INLINE_UP replicateRSUP #-}
+replicateRSUP n xs = replicateSUP (lengthsToUSegd (replicateUP (lengthU xs) n)) xs
+                                  
 
 {-
 replicateEachUnbalancedUP :: UA e => UArr Int -> UArr e -> UArr e

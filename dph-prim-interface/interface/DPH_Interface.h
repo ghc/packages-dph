@@ -131,6 +131,9 @@ enumFromStepLenEach :: Int -> Array (Int :*: Int :*: Int) -> Array Int
 replicate_s :: Elt a => Segd -> Array a -> Array a
 {-# INLINE_BACKEND replicate_s #-}
 
+replicate_rs :: Elt a => Int -> Array a -> Array a
+{-# INLINE_BACKEND replicate_rs #-}
+
 append_s :: Elt a => Segd         -- ^ segment descriptor of first array
                   -> Array a      -- ^ data of first array
                   -> Segd         -- ^ segment descriptor of second array
@@ -277,6 +280,9 @@ dph_mult x y = x Prelude.* y
 "replicate_s/replicate" forall segd k x.
   replicate_s segd (replicate k x) = replicate (elementsSegd segd) x
 
+"replicate_s->replicate_rs" forall n m idxs nm xs.
+  replicate_s (mkSegd (replicate n m) idxs nm) xs
+    = replicate_rs m xs
  #-}
 
 {-# RULES

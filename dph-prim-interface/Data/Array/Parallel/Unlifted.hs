@@ -94,6 +94,9 @@ nest (Segd ns is _) xs = go ns xs
 replicate_s segd xs
   = P.concat
   $ zipWith replicate (lengthsSegd segd) xs
+replicate_rs n xs
+  = P.concat
+  $ P.map (P.replicate n) xs
 append_s xd xs yd ys = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
 
 fold_s  f z segd xs = P.map (P.foldr f z) (nest segd xs)

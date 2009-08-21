@@ -21,10 +21,10 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
-  replicateSU, appendSU
+  replicateSU, replicateRSU, appendSU
 ) where
 
-import Data.Array.Parallel.Stream ( zipS, replicateEachS, appendSS )
+import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Flat
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 
@@ -33,6 +33,13 @@ replicateSU :: UA a => USegd -> UArr a -> UArr a
 replicateSU segd xs = unstreamU
                     . replicateEachS (elementsUSegd segd)
                     $ zipS (streamU (lengthsUSegd segd)) (streamU xs)
+
+replicateRSU :: UA a => Int -> UArr a -> UArr a
+{-# INLINE_U replicateRSU #-}
+replicateRSU n xs = unstreamU
+                  . replicateEachRS n
+                  $ streamU xs
+                  
 
 appendSU :: UA a => USegd -> UArr a -> USegd -> UArr a -> UArr a
 {-# INLINE_U appendSU #-}
