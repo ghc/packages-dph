@@ -55,8 +55,8 @@ unstreamMU marr (Stream next s n) = fill s 0
     fill s i = i `seq`
                case next s of
                  Done       -> return i
-                 Skip s'    -> s' `dseq` fill s' i
-                 Yield x s' -> s' `dseq`
+                 Skip s'    -> {- s' `dseq` -} fill s' i
+                 Yield x s' -> {- s' `dseq` -}
                                do
                                  writeMU marr i x
                                  fill s' (i+1)
