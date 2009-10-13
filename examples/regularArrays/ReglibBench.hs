@@ -5,10 +5,10 @@ module Main where
 
 import Array 
 import qualified Array as A
-import Array (ae_mmMult, ae_transpose, ae_transposeDFT, ae_transposePrim,
-             fromDArray, DArray(..), toDArray,
-             hmDA, hmJoin, hmSplit, toHMatrix, hmmult)
-
+import qualified ArrayExamples  as AE
+import qualified DArray as DA
+import qualified DArrayExamples as DAE
+import Hierarchical
 
 --import qualified DArray as DA
 
@@ -30,51 +30,53 @@ import Bench.Options
 
 
 
-algs = [ ("1", transposeT) 
-       , ("2", transposePT) 
-       , ("3", transposeDFT)
-       , ("4", transposeDT) 
-       , ("5", transposePDT) 
-       , ("6", relaxT) 
-       , ("7", relaxDT) 
+algs = [ ("0", transposeT) 
+       , ("1", transposePT) 
+       , ("2", transposeDFT)
+       , ("3", transposeDT) 
+       , ("4", transposePDT) 
+       , ("5", relaxT) 
+       , ("6", relaxDT) 
+       , ("7", relaxDMS) 
        , ("8", mmT) 
        , ("9", mmDT) 
        , ("10", hmDT) 
-       , ("11", hhmDT) ]
+       , ("11", hhmDT)
+       , ("12", fft3d)]
   
 
   
-transposeT:: (Int, U.Array Double) -> U.Array Double
-transposeT (n,arrData) = 
+transposeT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+transposeT (n,(arrData,_)) = 
   res
   where  
-    res = A.arrayData $ ae_transpose arr
+    res = A.arrayData $ AE.transpose arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
 
-transposePT:: (Int, U.Array Double) -> U.Array Double
-transposePT (n,arrData) = 
+transposePT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+transposePT (n,(arrData,_)) = 
   res
   where  
-    res = A.arrayData $ ae_transposePrim arr
+    res = A.arrayData $ AE.transposePrim arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
 
-transposeDFT:: (Int, U.Array Double) -> U.Array Double
-transposeDFT (n,arrData) = 
+transposeDFT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+transposeDFT (n,(arrData,_)) = 
   res
   where  
-    res = A.arrayData $ ae_transposeDFT arr
+    res = A.arrayData $ AE.transposeDFT arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
 
-transposeDT:: (Int, U.Array Double) -> U.Array Double
-transposeDT (n,arrData) = 
+transposeDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+transposeDT (n,(arrData,_)) = 
   res
   where  
-    res = A.arrayData $ fromDArray $ da_transpose arr
-    arr = toDArray $ A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
+    res = A.arrayData $ DA.fromDArray $ DAE.transpose arr
+    arr = DA.toDArray $ A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
 
-transposePDT:: (Int, U.Array Double) -> U.Array Double
-transposePDT (n,arrData) = 
+transposePDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+transposePDT (n,(arrData,_)) = 
   res
   where  
     res = U.map  (\i -> (arrData U.!: (A.index sh (flip i)))) (A.range sh)
@@ -94,20 +96,26 @@ backpermuteDftT n = --trace (show res) res
     arr = A.toArray (() :*: n)  (U.fromList ([1.0..(fromIntegral n)]::[Double]))
 
 
-relaxT:: (Int, U.Array Double) -> U.Array Double
-relaxT (n, arrData) = --trace (show res) res
+relaxT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+relaxT (n,( arrData,_)) = --trace (show res) res
   res
   where
-    res = A.arrayData $ ae_relax arr
+    res = A.arrayData $ AE.relax arr
     arr = A.toArray ((() :*: n) :*: n) arrData
 
-relaxDT:: (Int, U.Array Double) -> U.Array Double
-relaxDT (n, arrData) = --trace (show res) res
+relaxDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+relaxDT (n,( arrData,_)) = --trace (show res) res
   res
   where
-    res = A.arrayData $ da_relaxShift arr
-    arr = A.toArray ((() :*: n) :*: n) arrData 
+    res = A.arrayData $ DAE.relaxShift arr
+    arr = DA.toDArray $ A.toArray ((() :*: n) :*: n) arrData 
 
+relaxDMS:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+relaxDMS (n,( arrData,_)) = --trace (show res) res
+  res
+  where
+    res = A.arrayData $ DA.fromDArray $ DAE.relaxMS arr
+    arr = DA.toDArray $ A.toArray ((() :*: n) :*: n) arrData 
 
 
 selectT:: Int -> U.Array Double
@@ -135,48 +143,61 @@ sumT n = -- trace (show res)
     arr = A.mapFold (+) 0  (A.toArray ((() :*: 5) :*: 2) (U.fromList ([1..(fromIntegral n)*2*5]::[Double])))
 
 
-mmT:: (Int, U.Array Double) -> U.Array Double
-mmT (n,arrData) = 
+mmT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+mmT (n,(arrData1,arrData2)) = 
   res 
   where
   res = A.arrayData arr
-  arr = ae_mmMult  a1 a2
-  a1 =  A.toArray (() :*: n :*: n) arrData
-  a2 =  A.toArray (() :*: n :*: n) arrData
+  arr = AE.mmMult  a1 a2
+  a1 =  A.toArray (() :*: n :*: n) arrData1
+  a2 =  A.toArray (() :*: n :*: n) arrData2
 
-mmDT:: (Int, U.Array Double) -> U.Array Double
-mmDT (n,arrData) = 
+mmDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+mmDT (n,(arrData1,arrData2)) = 
   res 
   where
   res = A.arrayData arr
-  arr = fromDArray $ da_mmMult  a1 a2
-  a1  = toDArray $ A.toArray (() :*: n :*: n) arrData
-  a2  = toDArray $ A.toArray (() :*: n :*: n) arrData
+  arr = DAE.mmMult'  a1 a2
+  a1  = DA.toDArray $ A.toArray (() :*: n :*: n) arrData1
+  a2  = DA.toDArray $ A.toArray (() :*: n :*: n) arrData2
 
-hmDT:: (Int, U.Array Double) -> U.Array Double
-hmDT (n,arrData) = 
+hmDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+hmDT (n,(arrData,_)) = 
   res 
   where
   res = A.arrayData arr
-  arr = fromDArray $ hmDA $ hmmult  (toHMatrix 128 a1)(toHMatrix 128 a1)
+  arr = DA.fromDArray $ hmDA $ hmmult  (toHMatrix 128 a1)(toHMatrix 128 a1)
   a1  = A.toArray (() :*: n :*: n) arrData
   a2  = A.toArray (() :*: n :*: n) arrData
 
-hhmDT:: (Int, U.Array Double) -> U.Array Double
-hhmDT (n,arrData) = 
+hhmDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double 
+hhmDT (n,(arrData1,arrData2)) = 
   res 
   where
   res = A.arrayData arr
-  arr = fromDArray $ hhmDA $ hhmmult  (toHHMatrix n 128 a1)(toHHMatrix n 128 a1)
-  a1  = A.toArray (() :*: n*n) arrData
-  a2  = A.toArray (() :*: n*n) arrData
+  arr = DA.fromDArray $ hhmDA $ hhmmult  (toHHMatrix n 128 a1)(toHHMatrix n 128 a1)
+  a1  = A.toArray (() :*: n*n) arrData1
+  a2  = A.toArray (() :*: n*n) arrData2
 
-generatePoints :: Int -> IO (Point (Int, (U.Array Double)))
+fft3d:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+fft3d _ =  res
+  where
+    size = 64
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3d 6 rofu arr
+    arr = DA.toDArray $ A.map (\x -> (x :*: x)) $ 
+             A.toArray (() :*: size :*: size :*: size) $ U.fromList $ take (size*size*size) [1.0,1.05..]
+    rofu = DA.toDArray $ A.map (\x -> (x :*: x)) $ 
+             A.toArray (() :*: (size `div` 2)) $ U.fromList $ take (size*size*size) [1.0,1.05..]
+
+
+generatePoints :: Int -> IO (Point (Int, (U.Array Double, U.Array Double)))
 generatePoints n =
   do 
-    let pts = (U.fromList [1.0..(fromIntegral (n*n))])
-    evaluate $ force pts 
-    return $  ("N = " ++ show n) `mkPoint` (n, pts)
+    let pts1 = (U.fromList [1.0..(fromIntegral (n*n))])
+    evaluate $ force pts1     
+    let pts2 = (U.fromList [1.0..(fromIntegral (n*n))])
+    evaluate $ force pts2 
+    return $  ("N = " ++ show n) `mkPoint` (n, (pts1, pts2))
   where
     force pts = pts U.!: n
 
@@ -202,10 +223,7 @@ run opts alg sizes =
     []  -> failWith ["No sizes specified"]
     szs -> case lookup alg algs of
              Nothing -> do
-                          benchmark opts transposeT
-                             (Prelude.map generatePoints szs)
-                             (`seq` ()) show
-                          return ()
+                          runMMBench opts
 
              Just f  -> do
                           benchmark opts f
@@ -213,4 +231,18 @@ run opts alg sizes =
                              (`seq` ()) show
                           return ()
 
-
+runMMBench opts =
+  do
+     putStrLn "strict rarrays :" 
+     benchmark opts mmT (Prelude.map generatePoints [128,256,512])
+        (`seq` ()) show
+     putStrLn "delayed :" 
+     benchmark opts mmDT (Prelude.map generatePoints [128,256,512,1024])
+        (`seq` ()) show
+     putStrLn "hier. alg delayed :" 
+     benchmark opts hmDT (Prelude.map generatePoints [128,256,512,1024])
+        (`seq` ()) show
+     putStrLn "hier. rep delayed :" 
+     benchmark opts hhmDT (Prelude.map generatePoints [128,256,512,1024])
+        (`seq` ()) show
+     return ()
