@@ -36,7 +36,7 @@ $(flags) += -odir $(WAY) -hidir $(WAY)
 ifneq (,$($(BINARY)_SOURCES))
 $(WAY)/$(BINARY): $($(BINARY)_SOURCES) $(BENCH_DEP)
 	@mkdir -p $(WAY)
-	$(HC) -o $@ --make $< $(DPH_FLAGS) $($(flags)) $(BENCH_FLAGS)
+	$(HC) -o $@ --make $< $(DPH_FLAGS) $($(flags)) $(BENCH_FLAGS) -dcore-lint
 endif
 
 ifneq (,$($(BINARY)_CSOURCES))
