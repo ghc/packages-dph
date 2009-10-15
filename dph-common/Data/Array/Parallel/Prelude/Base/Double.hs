@@ -59,12 +59,12 @@ eqV, neqV, leV, ltV, geV, gtV :: Double :-> Double :-> Bool
 {-# INLINE ltV #-}
 {-# INLINE geV #-}
 {-# INLINE gtV #-}
-eqV = closure2 dPA_Double (P.==) (scalar_zipWith (P.==))
-neqV = closure2 dPA_Double (P./=) (scalar_zipWith (P./=))
-leV = closure2 dPA_Double (P.<=) (scalar_zipWith (P.<=))
-ltV = closure2 dPA_Double (P.<) (scalar_zipWith (P.<))
-geV = closure2 dPA_Double (P.>=) (scalar_zipWith (P.>=))
-gtV = closure2 dPA_Double (P.>) (scalar_zipWith (P.>))
+eqV = closure2 (P.==) (scalar_zipWith (P.==))
+neqV = closure2 (P./=) (scalar_zipWith (P./=))
+leV = closure2 (P.<=) (scalar_zipWith (P.<=))
+ltV = closure2 (P.<) (scalar_zipWith (P.<))
+geV = closure2 (P.>=) (scalar_zipWith (P.>=))
+gtV = closure2 (P.>) (scalar_zipWith (P.>))
 
 (==), (/=), (<), (<=), (>), (>=) :: Double -> Double -> Bool
 (==) = (P.==)
@@ -77,8 +77,8 @@ gtV = closure2 dPA_Double (P.>) (scalar_zipWith (P.>))
 minV, maxV :: Double :-> Double :-> Double
 {-# INLINE minV #-}
 {-# INLINE maxV #-}
-minV = closure2 dPA_Double P.min (scalar_zipWith P.min)
-maxV = closure2 dPA_Double P.max (scalar_zipWith P.max)
+minV = closure2 P.min (scalar_zipWith P.min)
+maxV = closure2 P.max (scalar_zipWith P.max)
 
 min, max :: Double -> Double -> Double
 min = P.min
@@ -120,9 +120,9 @@ plusV, minusV, multV :: Double :-> Double :-> Double
 {-# INLINE plusV #-}
 {-# INLINE minusV #-}
 {-# INLINE multV #-}
-plusV = closure2 dPA_Double (P.+) (scalar_zipWith (P.+))
-minusV = closure2 dPA_Double (P.-) (scalar_zipWith (P.-))
-multV = closure2 dPA_Double (P.*) (scalar_zipWith (P.*))
+plusV = closure2 (P.+) (scalar_zipWith (P.+))
+minusV = closure2 (P.-) (scalar_zipWith (P.-))
+multV = closure2 (P.*) (scalar_zipWith (P.*))
 
 (+), (-), (*) :: Double -> Double -> Double
 (+) = (P.+)
@@ -154,7 +154,7 @@ productP = GHC.PArr.productP
 
 divideV :: Double :-> Double :-> Double
 {-# INLINE divideV #-}
-divideV = closure2 dPA_Double (P./) (scalar_zipWith (P./))
+divideV = closure2 (P./) (scalar_zipWith (P./))
 
 recip :: Double -> Double
 recip = P.recip
@@ -225,8 +225,8 @@ logBase = P.logBase
 powV, logBaseV :: Double :-> Double :-> Double
 {-# INLINE powV #-}
 {-# INLINE logBaseV #-}
-powV = closure2 dPA_Double (P.**) (scalar_zipWith (P.**))
-logBaseV = closure2 dPA_Double P.logBase (scalar_zipWith P.logBase)
+powV = closure2 (P.**) (scalar_zipWith (P.**))
+logBaseV = closure2 P.logBase (scalar_zipWith P.logBase)
 
 
 fromIntV :: Int :-> Double

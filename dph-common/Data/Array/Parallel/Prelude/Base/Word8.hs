@@ -46,12 +46,12 @@ eqV, neqV, leV, ltV, geV, gtV :: Word8 :-> Word8 :-> Bool
 {-# INLINE ltV #-}
 {-# INLINE geV #-}
 {-# INLINE gtV #-}
-eqV = closure2 dPA_Word8 (P.==) (scalar_zipWith (P.==))
-neqV = closure2 dPA_Word8 (P./=) (scalar_zipWith (P./=))
-leV = closure2 dPA_Word8 (P.<=) (scalar_zipWith (P.<=))
-ltV = closure2 dPA_Word8 (P.<) (scalar_zipWith (P.<))
-geV = closure2 dPA_Word8 (P.>=) (scalar_zipWith (P.>=))
-gtV = closure2 dPA_Word8 (P.>) (scalar_zipWith (P.>))
+eqV = closure2  (P.==) (scalar_zipWith (P.==))
+neqV = closure2  (P./=) (scalar_zipWith (P./=))
+leV = closure2  (P.<=) (scalar_zipWith (P.<=))
+ltV = closure2  (P.<) (scalar_zipWith (P.<))
+geV = closure2  (P.>=) (scalar_zipWith (P.>=))
+gtV = closure2  (P.>) (scalar_zipWith (P.>))
 
 (==), (/=), (<), (<=), (>), (>=) :: Word8 -> Word8 -> Bool
 (==) = (P.==)
@@ -64,8 +64,8 @@ gtV = closure2 dPA_Word8 (P.>) (scalar_zipWith (P.>))
 minV, maxV :: Word8 :-> Word8 :-> Word8
 {-# INLINE minV #-}
 {-# INLINE maxV #-}
-minV = closure2 dPA_Word8 P.min (scalar_zipWith P.min)
-maxV = closure2 dPA_Word8 P.max (scalar_zipWith P.max)
+minV = closure2  P.min (scalar_zipWith P.min)
+maxV = closure2  P.max (scalar_zipWith P.max)
 
 min, max :: Word8 -> Word8 -> Word8
 min = P.min
@@ -107,9 +107,9 @@ plusV, minusV, multV :: Word8 :-> Word8 :-> Word8
 {-# INLINE plusV #-}
 {-# INLINE minusV #-}
 {-# INLINE multV #-}
-plusV = closure2 dPA_Word8 (P.+) (scalar_zipWith (P.+))
-minusV = closure2 dPA_Word8 (P.-) (scalar_zipWith (P.-))
-multV = closure2 dPA_Word8 (P.*) (scalar_zipWith (P.*))
+plusV = closure2  (P.+) (scalar_zipWith (P.+))
+minusV = closure2  (P.-) (scalar_zipWith (P.-))
+multV = closure2  (P.*) (scalar_zipWith (P.*))
 
 (+), (-), (*) :: Word8 -> Word8 -> Word8
 (+) = (P.+)
@@ -139,8 +139,8 @@ productP = GHC.PArr.productP
 divV, modV :: Word8 :-> Word8 :-> Word8
 {-# INLINE divV #-}
 {-# INLINE modV #-}
-divV = closure2 dPA_Word8 P.div (scalar_zipWith P.div)
-modV = closure2 dPA_Word8 P.mod (scalar_zipWith P.mod)
+divV = closure2  P.div (scalar_zipWith P.div)
+modV = closure2  P.mod (scalar_zipWith P.mod)
 
 div, mod :: Word8 -> Word8 -> Word8
 div = P.div

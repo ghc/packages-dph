@@ -24,231 +24,225 @@ import Data.Array.Parallel.Base ( fromBool )
 
 import GHC.Exts (Int(..), (+#), (-#), Int#, (<#))
 
-lengthPA_v :: PA a -> PArray a -> Int
+lengthPA_v :: PA a => PArray a -> Int
 {-# INLINE_PA lengthPA_v #-}
-lengthPA_v pa xs = I# (lengthPA# xs)
+lengthPA_v xs = I# (lengthPA# xs)
 
-lengthPA_l :: PA a -> PArray (PArray a) -> PArray Int
+lengthPA_l :: PA a => PArray (PArray a) -> PArray Int
 {-# INLINE_PA lengthPA_l #-}
-lengthPA_l pa xss = fromUArrPA (U.elementsSegd segd) (U.lengthsSegd segd)
+lengthPA_l xss = fromUArrPA (U.elementsSegd segd) (U.lengthsSegd segd)
   where
     segd = segdPA# xss
 
-lengthPA :: PA a -> (PArray a :-> Int)
+lengthPA :: PA a => PArray a :-> Int
 {-# INLINE lengthPA #-}
-lengthPA pa = closure1 (lengthPA_v pa) (lengthPA_l pa)
+lengthPA = closure1 lengthPA_v lengthPA_l
 
-replicatePA_v :: PA a -> Int -> a -> PArray a
+replicatePA_v :: PA a => Int -> a -> PArray a
 {-# INLINE_PA replicatePA_v #-}
-replicatePA_v pa (I# n#) x = replicatePA# pa n# x
+replicatePA_v (I# n#) x = replicatePA# n# x
 
-replicatePA_l :: PA a -> PArray Int -> PArray a -> PArray (PArray a)
+replicatePA_l :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 {-# INLINE_PA replicatePA_l #-}
-replicatePA_l pa (PArray n# (PInt ns)) (PArray _ xs)
+replicatePA_l (PArray n# (PInt ns)) (PArray _ xs)
   = PArray n# (PNested (U.lengthsToSegd ns) xs)
 
-replicatePA :: PA a -> (Int :-> a :-> PArray a)
+replicatePA :: PA a => Int :-> a :-> PArray a
 {-# INLINE replicatePA #-}
-replicatePA pa = closure2 dPA_Int (replicatePA_v pa) (replicatePA_l pa)
+replicatePA = closure2 replicatePA_v replicatePA_l
 
-singletonPA_v :: PA a -> a -> PArray a
+singletonPA_v :: PA a => a -> PArray a
 {-# INLINE_PA singletonPA_v #-}
-singletonPA_v pa x = replicatePA_v pa 1 x
+singletonPA_v x = replicatePA_v 1 x
 
-singletonPA_l :: PA a -> PArray a -> PArray (PArray a)
+singletonPA_l :: PA a => PArray a -> PArray (PArray a)
 {-# INLINE_PA singletonPA_l #-}
-singletonPA_l pa (PArray n# xs)
+singletonPA_l (PArray n# xs)
   = PArray n# (PNested (U.mkSegd (U.replicate (I# n#) 1)
                                  (U.enumFromStepLen 0 1 (I# n#))
                                  (I# n#))
                        xs)
 
-singletonPA :: PA a -> (a :-> PArray a)
+singletonPA :: PA a => a :-> PArray a
 {-# INLINE singletonPA #-}
-singletonPA pa = closure1 (singletonPA_v pa) (singletonPA_l pa)
+singletonPA = closure1 singletonPA_v singletonPA_l
 
-mapPA_v :: PA a -> PA b -> (a :-> b) -> PArray a -> PArray b
+mapPA_v :: (PA a, PA b) => (a :-> b) -> PArray a -> PArray b
 {-# INLINE_PA mapPA_v #-}
-mapPA_v pa pb f as = replicatePA# (dPA_Clo pa pb) (lengthPA# as) f
-                     $:^ as
+mapPA_v f as = replicatePA# (lengthPA# as) f $:^ as
 
-mapPA_l :: PA a -> PA b
-        -> PArray (a :-> b) -> PArray (PArray a) -> PArray (PArray b)
+mapPA_l :: (PA a, PA b)
+        => PArray (a :-> b) -> PArray (PArray a) -> PArray (PArray b)
 {-# INLINE_PA mapPA_l #-}
-mapPA_l pa pb fs xss
+mapPA_l fs xss
   = copySegdPA# xss
-      (replicatelPA# (dPA_Clo pa pb) (segdPA# xss) fs $:^ concatPA# xss)
+      (replicatelPA# (segdPA# xss) fs $:^ concatPA# xss)
 
-mapPA :: PA a -> PA b -> ((a :-> b) :-> PArray a :-> PArray b)
+mapPA :: (PA a, PA b) => (a :-> b) :-> PArray a :-> PArray b
 {-# INLINE mapPA #-}
-mapPA pa pb = closure2 (dPA_Clo pa pb) (mapPA_v pa pb) (mapPA_l pa pb)
+mapPA = closure2 mapPA_v mapPA_l
 
-crossMapPA_v :: PA a -> PA b -> PArray a -> (a :-> PArray b) -> PArray (a,b)
+crossMapPA_v :: (PA a, PA b) => PArray a -> (a :-> PArray b) -> PArray (a,b)
 {-# INLINE_PA crossMapPA_v #-}
-crossMapPA_v pa pb as f
-  = zipPA# (replicatelPA# pa (segdPA# bss) as) (concatPA# bss)
+crossMapPA_v as f
+  = zipPA# (replicatelPA# (segdPA# bss) as) (concatPA# bss)
   where
-    bss = mapPA_v pa (dPA_PArray pb) f as
+    bss = mapPA_v f as
 
-crossMapPA_l :: PA a -> PA b
-             -> PArray (PArray a)
+crossMapPA_l :: (PA a, PA b)
+             => PArray (PArray a)
              -> PArray (a :-> PArray b)
              -> PArray (PArray (a,b))
 {-# INLINE_PA crossMapPA_l #-}
-crossMapPA_l pa pb ass fs = copySegdPA# bss (zipPA# as' (concatPA# bss))
+crossMapPA_l ass fs = copySegdPA# bss (zipPA# as' (concatPA# bss))
   where
-    bsss = mapPA_l pa (dPA_PArray pb) fs ass
-    bss  = concatPA_l pb bsss
-    as' = replicatelPA# pa (segdPA# (concatPA# bsss)) (concatPA# ass)
+    bsss = mapPA_l fs ass
+    bss  = concatPA_l bsss
+    as' = replicatelPA# (segdPA# (concatPA# bsss)) (concatPA# ass)
 
-crossMapPA :: PA a -> PA b -> (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
+crossMapPA :: (PA a, PA b) => (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
 {-# INLINE crossMapPA #-}
-crossMapPA pa pb = closure2 (dPA_PArray pa) (crossMapPA_v pa pb)
-                                            (crossMapPA_l pa pb)
+crossMapPA = closure2 crossMapPA_v crossMapPA_l
 
-zipPA_v :: PA a -> PA b -> PArray a -> PArray b -> PArray (a,b)
+zipPA_v :: (PA a, PA b) => PArray a -> PArray b -> PArray (a,b)
 {-# INLINE_PA zipPA_v #-}
-zipPA_v pa pb xs ys = zipPA# xs ys
+zipPA_v xs ys = zipPA# xs ys
 
-zipPA_l :: PA a -> PA b
-        -> PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a,b))
+zipPA_l :: (PA a, PA b)
+        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a,b))
 {-# INLINE_PA zipPA_l #-}
-zipPA_l pa pb xss yss = copySegdPA# xss (zipPA# (concatPA# xss) (concatPA# yss))
+zipPA_l xss yss = copySegdPA# xss (zipPA# (concatPA# xss) (concatPA# yss))
 
-zipPA :: PA a -> PA b -> (PArray a :-> PArray b :-> PArray (a,b))
+zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a,b)
 {-# INLINE zipPA #-}
-zipPA pa pb = closure2 (dPA_PArray pa) (zipPA_v pa pb) (zipPA_l pa pb)
+zipPA = closure2 zipPA_v zipPA_l
 
-zipWithPA_v :: PA a -> PA b -> PA c
-            -> (a :-> b :-> c) -> PArray a -> PArray b -> PArray c
+zipWithPA_v :: (PA a, PA b, PA c)
+            => (a :-> b :-> c) -> PArray a -> PArray b -> PArray c
 {-# INLINE_PA zipWithPA_v #-}
-zipWithPA_v pa pb pc f as bs = replicatePA# (dPA_Clo pa (dPA_Clo pb pc))
-                                            (lengthPA# as)
-                                            f
-                                $:^ as $:^ bs
+zipWithPA_v f as bs = replicatePA# (lengthPA# as) f $:^ as $:^ bs
 
-zipWithPA_l :: PA a -> PA b -> PA c
-            -> PArray (a :-> b :-> c) -> PArray (PArray a) -> PArray (PArray b)
+zipWithPA_l :: (PA a, PA b, PA c)
+            => PArray (a :-> b :-> c) -> PArray (PArray a) -> PArray (PArray b)
             -> PArray (PArray c)
 {-# INLINE_PA zipWithPA_l #-}
-zipWithPA_l pa pb pc fs ass bss
+zipWithPA_l fs ass bss
   = copySegdPA# ass
-      (replicatelPA# (dPA_Clo pa (dPA_Clo pb pc))
-                     (segdPA# ass) fs $:^ concatPA# ass $:^ concatPA# bss)
+      (replicatelPA# (segdPA# ass) fs $:^ concatPA# ass $:^ concatPA# bss)
 
-zipWithPA :: PA a -> PA b -> PA c
-          -> ((a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c)
+zipWithPA :: (PA a, PA b, PA c)
+          => (a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c
 {-# INLINE zipWithPA #-}
-zipWithPA pa pb pc = closure3 (dPA_Clo pa (dPA_Clo pb pc)) (dPA_PArray pa)
-                              (zipWithPA_v pa pb pc)
-                              (zipWithPA_l pa pb pc)
+zipWithPA = closure3 zipWithPA_v zipWithPA_l
 
-unzipPA_v:: PA a -> PA b -> PArray (a,b) -> (PArray a, PArray b)
+unzipPA_v:: (PA a, PA b) => PArray (a,b) -> (PArray a, PArray b)
 {-# INLINE_PA unzipPA_v #-}
-unzipPA_v pa pb abs = unzipPA# abs
+unzipPA_v abs = unzipPA# abs
 
-unzipPA_l:: PA a -> PA b -> PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
+unzipPA_l:: (PA a, PA b) => PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 {-# INLINE_PA unzipPA_l #-}
-unzipPA_l pa pb xyss = zipPA# (copySegdPA# xyss xs) (copySegdPA# xyss ys)
+unzipPA_l xyss = zipPA# (copySegdPA# xyss xs) (copySegdPA# xyss ys)
   where
     (xs, ys) = unzipPA# (concatPA# xyss)
 
-unzipPA:: PA a -> PA b -> (PArray (a, b) :-> (PArray a, PArray b))  
+unzipPA:: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
 {-# INLINE unzipPA #-}
-unzipPA pa pb =  closure1 (unzipPA_v pa pb) (unzipPA_l pa pb)
+unzipPA = closure1 unzipPA_v unzipPA_l
 
-packPA_v :: PA a -> PArray a -> PArray Bool -> PArray a
+packPA_v :: PA a => PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
-packPA_v pa xs bs
-  = case U.count (toUArrPA bs) True of I# n# -> packPA# pa xs n# (toUArrPA bs)
+packPA_v xs bs
+  = case U.count (toUArrPA bs) True of I# n# -> packPA# xs n# (toUArrPA bs)
 
 packPA_l :: PA a
-         -> PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
+         => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE_PA packPA_l #-}
-packPA_l pa xss bss
+packPA_l xss bss
   = segmentPA# (lengthPA# xss) (segdPA# xss)
-  $ packPA# pa (concatPA# xss) (elementsSegd# segd') (toUArrPA (concatPA# bss))
+  $ packPA# (concatPA# xss) (elementsSegd# segd') (toUArrPA (concatPA# bss))
   where
     segd' = U.lengthsToSegd
           . U.sum_s (segdPA# xss)
           . U.map fromBool
           $ toUArrPA (concatPA# bss)
 
-packPA :: PA a -> (PArray a :-> PArray Bool :-> PArray a)
+packPA :: PA a => PArray a :-> PArray Bool :-> PArray a
 {-# INLINE packPA #-}
-packPA pa = closure2 (dPA_PArray pa) (packPA_v pa) (packPA_l pa)
+packPA = closure2 packPA_v packPA_l
 
 
 -- TODO: should the selector be a boolean array?
-combine2PA_v:: PA a -> PArray a -> PArray a -> PArray Int -> PArray a
+combine2PA_v:: PA a => PArray a -> PArray a -> PArray Int -> PArray a
 {-# INLINE_PA combine2PA_v #-}
-combine2PA_v pa xs ys bs
-  = combine2PA# pa (lengthPA# xs +# lengthPA# ys)
-                   (tagsToSel2 (toUArrPA bs))
-                   xs ys
+combine2PA_v xs ys bs
+  = combine2PA# (lengthPA# xs +# lengthPA# ys)
+                (tagsToSel2 (toUArrPA bs))
+                xs ys
 
-combine2PA_l:: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Int) -> PArray (PArray a)
+combine2PA_l:: PA a
+            => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Int)
+               -> PArray (PArray a)
 {-# INLINE_PA combine2PA_l #-}
-combine2PA_l _ _ _ _ = error "combinePA_l nyi"
+combine2PA_l _ _ _ = error "combinePA_l nyi"
     
 
-combine2PA:: PA a -> (PArray a :-> PArray a :-> PArray Int :-> PArray a)
+combine2PA:: PA a => PArray a :-> PArray a :-> PArray Int :-> PArray a
 {-# INLINE_PA combine2PA #-}
-combine2PA pa = closure3 (dPA_PArray pa) (dPA_PArray pa) (combine2PA_v pa) (combine2PA_l pa)
+combine2PA = closure3 combine2PA_v combine2PA_l
 
 
-filterPA_v :: PA a -> (a :-> Bool) -> PArray a -> PArray a
+filterPA_v :: PA a => (a :-> Bool) -> PArray a -> PArray a
 {-# INLINE_PA filterPA_v #-}
-filterPA_v pa p xs = packPA_v pa xs (mapPA_v pa dPA_Bool p xs)
+filterPA_v p xs = packPA_v xs (mapPA_v p xs)
 
 filterPA_l :: PA a
-           -> PArray (a :-> Bool) -> PArray (PArray a) -> PArray (PArray a)
+           => PArray (a :-> Bool) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE_PA filterPA_l #-}
-filterPA_l pa ps xss = packPA_l pa xss (mapPA_l pa dPA_Bool ps xss)
+filterPA_l ps xss = packPA_l xss (mapPA_l ps xss)
 
-filterPA :: PA a -> ((a :-> Bool) :-> PArray a :-> PArray a)
+filterPA :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
 {-# INLINE filterPA #-}
-filterPA pa = closure2 (dPA_Clo pa dPA_Bool) (filterPA_v pa) (filterPA_l pa)
+filterPA = closure2 filterPA_v filterPA_l
 
-indexPA_v :: PA a -> PArray a -> Int -> a
+indexPA_v :: PA a => PArray a -> Int -> a
 {-# INLINE_PA indexPA_v #-}
-indexPA_v pa xs (I# i#) = indexPA# pa xs i#
+indexPA_v xs (I# i#) = indexPA# xs i#
 
-indexPA_l :: PA a -> PArray (PArray a) -> PArray Int -> PArray a
+indexPA_l :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 {-# INLINE_PA indexPA_l #-}
-indexPA_l pa xss is
-  = bpermutePA# pa (concatPA# xss)
-                   (lengthPA# xss)
-                   (U.zipWith (+) (U.indicesSegd (segdPA# xss)) (toUArrPA is))
+indexPA_l xss is
+  = bpermutePA# (concatPA# xss)
+                (lengthPA# xss)
+                (U.zipWith (+) (U.indicesSegd (segdPA# xss)) (toUArrPA is))
 
-indexPA :: PA a -> (PArray a :-> Int :-> a)
+indexPA :: PA a => PArray a :-> Int :-> a
 {-# INLINE indexPA #-}
-indexPA pa = closure2 (dPA_PArray pa) (indexPA_v pa) (indexPA_l pa)
+indexPA = closure2 indexPA_v indexPA_l
 
-concatPA_v :: PA a -> PArray (PArray a) -> PArray a
+concatPA_v :: PA a => PArray (PArray a) -> PArray a
 {-# INLINE_PA concatPA_v #-}
-concatPA_v pa xss = concatPA# xss
+concatPA_v xss = concatPA# xss
 
-concatPA_l :: PA a -> PArray (PArray (PArray a)) -> PArray (PArray a)
+concatPA_l :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
 {-# INLINE_PA concatPA_l #-}
-concatPA_l pa (PArray m# (PNested segd1 (PNested segd2 xs)))
+concatPA_l (PArray m# (PNested segd1 (PNested segd2 xs)))
   = PArray m#
       (PNested (U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
                          (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))
                          (U.elementsSegd segd2))
                xs)
 
-concatPA :: PA a -> (PArray (PArray a) :-> PArray a)
+concatPA :: PA a => PArray (PArray a) :-> PArray a
 {-# INLINE concatPA #-}
-concatPA pa = closure1 (concatPA_v pa) (concatPA_l pa)
+concatPA = closure1 concatPA_v concatPA_l
 
-appPA_v :: PA a -> PArray a -> PArray a -> PArray a
+appPA_v :: PA a => PArray a -> PArray a -> PArray a
 {-# INLINE_PA appPA_v #-}
-appPA_v pa xs ys = appPA# pa xs ys
+appPA_v xs ys = appPA# xs ys
 
-appPA_l :: PA a -> PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
+appPA_l :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE_PA appPA_l #-}
-appPA_l pa xss yss
+appPA_l xss yss
   = segmentPA# (lengthPA# xss +# lengthPA# yss)
                segd
                xys
@@ -260,11 +254,11 @@ appPA_l pa xss yss
                     (U.zipWith (+) (U.indicesSegd xsegd) (U.indicesSegd ysegd))
                     (U.elementsSegd xsegd + U.elementsSegd ysegd)
 
-    xys  = applPA# pa xsegd (concatPA# xss) ysegd (concatPA# yss) 
+    xys  = applPA# xsegd (concatPA# xss) ysegd (concatPA# yss) 
 
-appPA :: PA a -> (PArray a :-> PArray a :-> PArray a)
+appPA :: PA a => PArray a :-> PArray a :-> PArray a
 {-# INLINE appPA #-}
-appPA pa = closure2 (dPA_PArray pa) (appPA_v pa) (appPA_l pa)
+appPA = closure2 appPA_v appPA_l
 
 
 enumFromToPA_v :: Int -> Int -> PArray Int
@@ -288,5 +282,5 @@ enumFromToPA_l ms ns
 
 enumFromToPA_Int :: Int :-> Int :-> PArray Int
 {-# INLINE enumFromToPA_Int #-}
-enumFromToPA_Int = closure2 dPA_Int enumFromToPA_v enumFromToPA_l
+enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
 

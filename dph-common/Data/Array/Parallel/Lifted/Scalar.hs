@@ -19,10 +19,9 @@ import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS,
 import GHC.Exts ( Int(..), (-#) )
 import GHC.Word ( Word8 )
 
-class U.Elt a => Scalar a where
+class (U.Elt a, PA a)  => Scalar a where
   fromUArrPD :: U.Array a -> PData a
   toUArrPD   :: PData a -> U.Array a
-  primPA     :: PA a
 
 fromUArrPA :: Scalar a => Int -> U.Array a -> PArray a
 {-# INLINE fromUArrPA #-}
@@ -112,17 +111,14 @@ scalar_fold1sIndex f xss = fromUArrPA n
 instance Scalar Int where
   fromUArrPD xs        = PInt xs
   toUArrPD   (PInt xs) = xs
-  primPA = dPA_Int
 
 instance Scalar Word8 where
   fromUArrPD  xs         = PWord8 xs
   toUArrPD   (PWord8 xs) = xs
-  primPA = dPA_Word8
 
 instance Scalar Double where
   fromUArrPD  xs          = PDouble xs
   toUArrPD   (PDouble xs) = xs
-  primPA = dPA_Double
 
 instance Scalar Bool where
   {-# INLINE fromUArrPD #-}
@@ -131,9 +127,6 @@ instance Scalar Bool where
 
   {-# INLINE toUArrPD #-}
   toUArrPD (PBool sel) = U.map toBool (tagsSel2 sel)
-
-  primPA = dPA_Bool
-
 
 fromUArrPA_2 :: (Scalar a, Scalar b) => Int -> U.Array (a :*: b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}

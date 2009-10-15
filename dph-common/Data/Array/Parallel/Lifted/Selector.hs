@@ -62,14 +62,16 @@ empty2 :: Sel2
 {-# INLINE empty2 #-}
 empty2 = mkSel2 U.empty U.empty 0 0
 
-replicate2 :: Int -> Int -> Sel2
+replicate2 :: Int# -> Int# -> Sel2
 {-# INLINE replicate2 #-}
-replicate2 n tag = mkSel2 (U.replicate n tag)
-                          (U.enumFromTo 0 (n-1))
-                          (if n == 0 then n else 0)
-                          (if n == 0 then 0 else n)
+replicate2 n# tag# = mkSel2 (U.replicate n (I# tag#))
+                            (U.enumFromTo 0 (n-1))
+                            (if n == 0 then n else 0)
+                            (if n == 0 then 0 else n)
+  where
+    n = I# n#
 
 pick2 :: Sel2 -> Int# -> U.Array Bool
 {-# INLINE pick2 #-}
 pick2 sel tag# = U.pick (tagsSel2 sel) (I# tag#)
-                              
+                 

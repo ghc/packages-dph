@@ -45,12 +45,12 @@ eqV, neqV, leV, ltV, geV, gtV :: Int :-> Int :-> Bool
 {-# INLINE ltV #-}
 {-# INLINE geV #-}
 {-# INLINE gtV #-}
-eqV = closure2 dPA_Int (P.==) (scalar_zipWith (P.==))
-neqV = closure2 dPA_Int (P./=) (scalar_zipWith (P./=))
-leV = closure2 dPA_Int (P.<=) (scalar_zipWith (P.<=))
-ltV = closure2 dPA_Int (P.<) (scalar_zipWith (P.<))
-geV = closure2 dPA_Int (P.>=) (scalar_zipWith (P.>=))
-gtV = closure2 dPA_Int (P.>) (scalar_zipWith (P.>))
+eqV = closure2 (P.==) (scalar_zipWith (P.==))
+neqV = closure2 (P./=) (scalar_zipWith (P./=))
+leV = closure2 (P.<=) (scalar_zipWith (P.<=))
+ltV = closure2 (P.<) (scalar_zipWith (P.<))
+geV = closure2 (P.>=) (scalar_zipWith (P.>=))
+gtV = closure2 (P.>) (scalar_zipWith (P.>))
 
 (==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
 (==) = (P.==)
@@ -63,8 +63,8 @@ gtV = closure2 dPA_Int (P.>) (scalar_zipWith (P.>))
 minV, maxV :: Int :-> Int :-> Int
 {-# INLINE minV #-}
 {-# INLINE maxV #-}
-minV = closure2 dPA_Int P.min (scalar_zipWith P.min)
-maxV = closure2 dPA_Int P.max (scalar_zipWith P.max)
+minV = closure2 P.min (scalar_zipWith P.min)
+maxV = closure2 P.max (scalar_zipWith P.max)
 
 min, max :: Int -> Int -> Int
 min = P.min
@@ -107,9 +107,9 @@ plusV, minusV, multV :: Int :-> Int :-> Int
 {-# INLINE plusV #-}
 {-# INLINE minusV #-}
 {-# INLINE multV #-}
-plusV = closure2 dPA_Int (P.+) (scalar_zipWith (P.+))
-minusV = closure2 dPA_Int (P.-) (scalar_zipWith (P.-))
-multV = closure2 dPA_Int (P.*) (scalar_zipWith (P.*))
+plusV = closure2 (P.+) (scalar_zipWith (P.+))
+minusV = closure2 (P.-) (scalar_zipWith (P.-))
+multV = closure2 (P.*) (scalar_zipWith (P.*))
 
 (+), (-), (*) :: Int -> Int -> Int
 (+) = (P.+)
@@ -140,8 +140,8 @@ productP = GHC.PArr.productP
 divV, modV :: Int :-> Int :-> Int
 {-# INLINE divV #-}
 {-# INLINE modV #-}
-divV = closure2 dPA_Int P.div (scalar_zipWith P.div)
-modV = closure2 dPA_Int P.mod (scalar_zipWith P.mod)
+divV = closure2 P.div (scalar_zipWith P.div)
+modV = closure2 P.mod (scalar_zipWith P.mod)
 
 div, mod :: Int -> Int -> Int
 div = P.div

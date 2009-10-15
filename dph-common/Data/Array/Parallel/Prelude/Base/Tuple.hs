@@ -7,11 +7,11 @@ import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
 
-tup2 :: PA a -> PA b -> a :-> b :-> (a,b)
+tup2 :: (PA a, PA b) => a :-> b :-> (a,b)
 {-# INLINE tup2 #-}
-tup2 pa pb = closure2 pa (,) zipPA#
+tup2 = closure2 (,) zipPA#
 
-tup3 :: PA a -> PA b -> PA c -> a :-> b :-> c :-> (a,b,c)
+tup3 :: (PA a, PA b, PA c) => a :-> b :-> c :-> (a,b,c)
 {-# INLINE tup3 #-}
-tup3 pa pb pc = closure3 pa pb (,,) zip3PA#
+tup3 = closure3 (,,) zip3PA#
 
