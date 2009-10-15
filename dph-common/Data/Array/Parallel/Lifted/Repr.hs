@@ -6,10 +6,6 @@
 module Data.Array.Parallel.Lifted.Repr (
   PData(..),
   Void, void, pvoid, fromVoid,
-{-
-  Wrap(..),
-  Sum2(..), Sum3(..), 
--}
 
   punit,
   Wrap(..),
@@ -29,8 +25,157 @@ import Data.Array.Parallel.Base ((:*:)(..), fromBool)
 
 import qualified Data.List as L
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
+import GHC.Word  ( Word8 )
 import Debug.Trace
 
+
+---------------------
+-- Primitive types --
+
+newtype instance PData Int = PInt (U.Array Int)
+
+instance PR Int where
+  {-# INLINE emptyPR #-}
+  emptyPR = PInt U.empty
+
+  {-# INLINE replicatePR #-}
+  replicatePR n# i = PInt (U.replicate (I# n#) i)
+
+  {-# INLINE replicatelPR #-}
+  replicatelPR segd (PInt xs) = PInt (U.replicate_s segd xs)
+
+  {-# INLINE repeatPR #-}
+  repeatPR n# len# (PInt xs) = PInt (U.repeat (I# n#) (I# len#) xs)
+
+  {-# INLINE repeatcPR #-}
+  repeatcPR n# ns segd (PInt xs) = PInt (U.repeat_c (I# n#) ns segd xs)
+
+  {-# INLINE indexPR #-}
+  indexPR (PInt xs) i# = xs U.!: I# i#
+
+  {-# INLINE extractPR #-}
+  extractPR (PInt xs) i# n# = PInt (U.extract xs (I# i#) (I# n#))
+
+  {-# INLINE bpermutePR #-}
+  bpermutePR (PInt xs) _ is = PInt (U.bpermute xs is)
+
+  {-# INLINE appPR #-}
+  appPR (PInt xs) (PInt ys) = PInt (xs U.+:+ ys)
+
+  {-# INLINE applPR #-}
+  applPR xsegd (PInt xs) ysegd (PInt ys)
+    = PInt (U.append_s xsegd xs ysegd ys)
+
+  {-# INLINE packPR #-}
+  packPR (PInt ns) n# bs = PInt (U.pack ns bs)
+
+  {-# INLINE combine2PR #-}
+  combine2PR n# sel (PInt xs) (PInt ys)
+    = PInt (U.combine (U.pick (tagsSel2 sel) 0) xs ys)
+
+  {-# INLINE fromListPR #-}
+  fromListPR n# xs = PInt (U.fromList xs)
+
+  {-# INLINE nfPR #-}
+  nfPR (PInt xs) = xs `seq` ()
+
+
+newtype instance PData Word8 = PWord8 (U.Array Word8)
+
+instance PR Word8 where
+  {-# INLINE emptyPR #-}
+  emptyPR = PWord8 U.empty
+
+  {-# INLINE replicatePR #-}
+  replicatePR n# i = PWord8 (U.replicate (I# n#) i)
+
+  {-# INLINE replicatelPR #-}
+  replicatelPR segd (PWord8 xs) = PWord8 (U.replicate_s segd xs)
+
+  {-# INLINE repeatPR #-}
+  repeatPR n# len# (PWord8 xs) = PWord8 (U.repeat (I# n#) (I# len#) xs)
+
+  {-# INLINE repeatcPR #-}
+  repeatcPR n# ns segd (PWord8 xs) = PWord8 (U.repeat_c (I# n#) ns segd xs)
+
+  {-# INLINE indexPR #-}
+  indexPR (PWord8 xs) i# = xs U.!: I# i#
+
+  {-# INLINE extractPR #-}
+  extractPR (PWord8 xs) i# n# = PWord8 (U.extract xs (I# i#) (I# n#))
+
+  {-# INLINE bpermutePR #-}
+  bpermutePR (PWord8 xs) _ is = PWord8 (U.bpermute xs is)
+
+  {-# INLINE appPR #-}
+  appPR (PWord8 xs) (PWord8 ys) = PWord8 (xs U.+:+ ys)
+
+  {-# INLINE applPR #-}
+  applPR xsegd (PWord8 xs) ysegd (PWord8 ys)
+    = PWord8 (U.append_s xsegd xs ysegd ys)
+
+  {-# INLINE packPR #-}
+  packPR (PWord8 ns) n# bs = PWord8 (U.pack ns bs)
+
+  {-# INLINE combine2PR #-}
+  combine2PR n# sel (PWord8 xs) (PWord8 ys)
+    = PWord8 (U.combine (U.pick (tagsSel2 sel) 0) xs ys)
+
+  {-# INLINE fromListPR #-}
+  fromListPR n# xs = PWord8 (U.fromList xs)
+
+  {-# INLINE nfPR #-}
+  nfPR (PWord8 xs) = xs `seq` ()
+
+newtype instance PData Double = PDouble (U.Array Double)
+
+instance PR Double where
+  {-# INLINE emptyPR #-}
+  emptyPR = PDouble U.empty
+
+  {-# INLINE replicatePR #-}
+  replicatePR n# i = PDouble (U.replicate (I# n#) i)
+
+  {-# INLINE replicatelPR #-}
+  replicatelPR segd (PDouble xs) = PDouble (U.replicate_s segd xs)
+
+  {-# INLINE repeatPR #-}
+  repeatPR n# len# (PDouble xs) = PDouble (U.repeat (I# n#) (I# len#) xs)
+
+  {-# INLINE repeatcPR #-}
+  repeatcPR n# ns segd (PDouble xs) = PDouble (U.repeat_c (I# n#) ns segd xs)
+
+  {-# INLINE indexPR #-}
+  indexPR (PDouble xs) i# = xs U.!: I# i#
+
+  {-# INLINE extractPR #-}
+  extractPR (PDouble xs) i# n# = PDouble (U.extract xs (I# i#) (I# n#))
+
+  {-# INLINE bpermutePR #-}
+  bpermutePR (PDouble xs) _ is = PDouble (U.bpermute xs is)
+
+  {-# INLINE appPR #-}
+  appPR (PDouble xs) (PDouble ys) = PDouble (xs U.+:+ ys)
+
+  {-# INLINE applPR #-}
+  applPR xsegd (PDouble xs) ysegd (PDouble ys)
+    = PDouble (U.append_s xsegd xs ysegd ys)
+
+  {-# INLINE packPR #-}
+  packPR (PDouble ns) n# bs = PDouble (U.pack ns bs)
+
+  {-# INLINE combine2PR #-}
+  combine2PR n# sel (PDouble xs) (PDouble ys)
+    = PDouble (U.combine (U.pick (tagsSel2 sel) 0) xs ys)
+
+  {-# INLINE fromListPR #-}
+  fromListPR n# xs = PDouble (U.fromList xs)
+
+  {-# INLINE nfPR #-}
+  nfPR (PDouble xs) = xs `seq` ()
+
+----------
+-- Void --
 
 data Void
 
@@ -91,14 +236,8 @@ instance PR Void where
   {-# INLINE nfPR #-}
   nfPR _ = ()
 
-type instance PRepr Void = Void
-
-instance PA Void where
-  toPRepr      = id
-  fromPRepr    = id
-  toArrPRepr   = id
-  fromArrPRepr = id
-
+----------
+-- Unit --
 
 data instance PData () = PUnit
 
@@ -154,6 +293,8 @@ instance PR () where
   {-# INLINE nfPR #-}
   nfPR PUnit = ()
 
+----------
+-- Wrap --
 
 newtype Wrap a = Wrap { unWrap :: a }
 
@@ -204,6 +345,8 @@ instance PA a => PR (Wrap a) where
   {-# INLINE nfPR #-}
   nfPR (PWrap xs) = nfPD xs
 
+------------
+-- Tuples --
 
 data instance PData (a,b)
   = P_2 (PData a)
@@ -652,6 +795,9 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
       `seq` nfPR ds
       `seq` nfPR es
 
+----------
+-- Sums --
+
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
 
@@ -746,9 +892,6 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       as'    = packPR as (elementsSel2_0# sel') aFlags
       bs'    = packPR bs (elementsSel2_1# sel') bFlags
 
-      _dummy :: Int#
-      _dummy = m#
-
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PSum2 sel1 as1 bs1)
                                  (PSum2 sel2 as2 bs2)
@@ -765,227 +908,10 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       as   = combine2PR (elementsSel2_0# sel') asel as1 as2
       bs   = combine2PR (elementsSel2_1# sel') bsel bs1 bs2
 
-{-
-data instance PData (Sum2 a b)
-  = PSum2 (U.Array Int) (U.Array Int) Int# (PData a)
-                                      Int# (PData b)
-
-data instance PData (Sum3 a b c)
-  = PSum3 (U.Array Int) (U.Array Int) Int# (PData a)
-                                      Int# (PData b)
-                                      Int# (PData c)
-
-dPR_Sum2 :: PR a -> PR b -> PR (Sum2 a b)
-{-# INLINE dPR_Sum2 #-}
-dPR_Sum2 pra prb = PR {
-                     emptyPR      = emptyPR_Sum2 pra prb
-                   , replicatePR  = replicatePR_Sum2 pra prb
-                   , replicatelPR = replicatelPR_Sum2 pra prb
-                   , repeatPR     = repeatPR_Sum2 pra prb
-                   , indexPR      = indexPR_Sum2 pra prb
-                   , appPR        = appPR_Sum2 pra prb 
-                   , packPR       = packPR_Sum2 pra prb 
-                   , combine2PR   = combine2PR_Sum2 pra prb 
-                   }
- 
-{-# INLINE emptyPR_Sum2 #-}
-emptyPR_Sum2 pra prb
-  = traceFn "emptyPR_Sum2" $
-  PSum2 U.empty U.empty 0# (emptyPR pra)
-                        0# (emptyPR prb)
-
-{-# INLINE replicatePR_Sum2 #-}
-replicatePR_Sum2 pra prb n# (Alt2_1 x)
-  = traceFn "replicatePR_Sum2" $
-    PSum2 (U.replicate (I# n#) 0)
-          (U.enumFromStepLen 0 1 (I# n#))
-          n# (replicatePR pra n# x)
-          0# (emptyPR prb)
-replicatePR_Sum2 pra prb n# (Alt2_2 x)
-  = traceFn "replicatePR_Sum2" $
-    PSum2 (U.replicate (I# n#) 1)
-          (U.enumFromStepLen 0 1 (I# n#))
-          0# (emptyPR pra)
-          n# (replicatePR prb n# x)
-
-{-# INLINE replicatelPR_Sum2 #-}
-replicatelPR_Sum2 pra prb segd (PSum2 sel is _ as _ bs)
-  = traceFn "replicatelPR_Sum2" $
-    PSum2 sel' is' (elementsSegd# asegd) as'
-                   (elementsSegd# bsegd) bs'
-  where
-    sel'      = U.replicate_s segd sel
-    is'       = U.selectorToIndices2 sel'
-
-    lens      = U.lengthsSegd segd
-
-    asegd     = U.lengthsToSegd
-              . U.pack lens
-              $ U.pick sel 0
-    bsegd     = U.lengthsToSegd
-              . U.pack lens
-              $ U.pick sel 1
-
-    as'       = replicatelPR pra asegd as
-    bs'       = replicatelPR prb bsegd bs
-
-{-# INLINE repeatPR_Sum2 #-}
-repeatPR_Sum2 pra prb m# n# (PSum2 sel is an# as bn# bs)
-  = traceFn "repeatPR_Sum2" $
-    PSum2 sel' is' (m# *# an#) as'
-                   (m# *# bn#) bs'
-  where
-    sel' = U.repeat (I# m#) (I# n#) sel
-    is'  = U.selectorToIndices2 sel'
-
-    !an'# = m# *# an#
-    !bn'# = m# *# bn#
-
-    as'  = repeatPR pra m# an# as
-    bs'  = repeatPR prb n# bn# bs
-
-{-# INLINE indexPR_Sum2 #-}
-indexPR_Sum2 pra prb (PSum2 sel is _ as _ bs) i#
-  = traceFn "indexPR_Sum2" $
-  case is U.!: I# i# of
-    I# k# -> case sel U.!: I# i# of
-               0 -> Alt2_1 (indexPR pra as k#)
-               _ -> Alt2_2 (indexPR prb bs k#)
-
-{-# INLINE appPR_Sum2 #-}
-appPR_Sum2 pra prb (PSum2 sel1 _ an1# as1 bn1# bs1)
-                   (PSum2 sel2 _ an2# as2 bn2# bs2)
-  = traceFn "appPR_Sum2" $           
-    PSum2 sel is (an1# +# an2#) (appPR pra as1 as2)
-                 (bn1# +# bn2#) (appPR prb bs1 bs2)
-  where
-    sel = sel1 U.+:+ sel2
-    is  = U.selectorToIndices2 sel
-
-{-# INLINE packPR_Sum2 #-}
-packPR_Sum2 pra prb (PSum2 sel _ an# as bn# bs) m# flags
-  = traceFn "packPR_Sum2" $
-    PSum2 sel' is' an'# as' bn'# bs'
-  where
-    sel'   = U.pack sel flags
-    is'    = U.selectorToIndices2 sel'
-
-    aFlags = U.pack flags (U.pick sel 0)
-    bFlags = U.pack flags (U.pick sel 1)
-
-    !bn'#   = case U.count bFlags True of I# n# -> n#
-    !an'#   = m# -# bn'#
-
-    as'    = packPR pra as an'# aFlags
-    bs'    = packPR prb bs bn'# bFlags
-
-combine2PR_Sum2 :: PR a -> PR b -> T_combine2PR (Sum2 a b)
-{-# INLINE combine2PR_Sum2 #-}
-combine2PR_Sum2 pra prb n# sel is (PSum2 sel1 _ an1# as1 bn1# bs1)
-                                  (PSum2 sel2 _ an2# as2 bn2# bs2)
-  = traceFn "combine2PR_Sum2" $
-    PSum2 sel' is' an# as bn# bs
-  where
-    sel' = U.combine (U.pick sel 0) sel1 sel2
-    is'  = U.selectorToIndices2 sel'
-   
-    !an# = an1# +# an2#
-    !bn# = bn1# +# bn2#
-
-    asel = U.pack sel (U.pick sel' 0)
-    bsel = U.pack sel (U.pick sel' 1)
-
-    as   = combine2PR pra an# asel (U.selectorToIndices2 asel) as1 as2
-    bs   = combine2PR prb bn# bsel (U.selectorToIndices2 bsel) bs1 bs2
-
-{-
-= traceFn "combine2PR_Sum2" $                
-     case   (sel'Bool, nsel'Bool) of
-       (s1#, s2#) ->  traceArgs ("combinePR_Sum\nn  = " ++ show (I# n#)  ++ "\n" ++
-                                 "m1 = " ++ show (I# m1#)  ++ "\n" ++
-                                 "m2 = " ++ show (I# m2#)  ++ "\n" ++
-                                 "as# = " ++ show (I# (lengthPR pra as1)) ++ " " ++ show (I# (lengthPR pra as2)) ++ "\n" ++
-                                 "bs# = " ++ show (I# (lengthPR prb bs1)) ++ " " ++ show (I# (lengthPR prb bs2)) ++ "\n" ++
-                                 "sel = " ++ show sel#  ++ "\n" ++
-                                 "sel1 = " ++ show sel1#  ++ "\n" ++
-                                 "sel2 = " ++ show sel2#  ++ "\n" ++
-                                 "s1# = " ++ show s1#  ++ "\n" ++
-                                 "s2# = " ++ show s2#  ++ "\n" ++
-                                 "selB = " ++ show sel'Bool  ++ "\n" ++
-                                 "nselB = " ++ show nsel'Bool  ++ "\n" ++
-                                 "sel' = " ++ show sel'  ++ "\n"
-                             )
-                          $ 
-                         PSum2  n# sel' (error "combine2PR_Sum2 index nyi") as' bs'
-                      where     
-                        !as# = lengthPR pra as1 +#   lengthPR pra as2
-                        !bs# = lengthPR prb bs1 +#   lengthPR prb bs2
-                        asel = packPA_Int# sel# as# s1#
-                        bsel = packPA_Int# sel# bs# s2#
-                        as' = trace ("cb1: " ++ show asel) $ combine2PR pra as# asel  is# as1 as2 
-                        bs' = trace ("cb2: " ++ show bsel) $ combine2PR prb bs# bsel is# bs1 bs2
-     where
-       sel' = combine2PA_Int# n# sel# is#  sel1# sel2#
-       sel'Bool  = selectPA_Int# sel' 0#
-       nsel'Bool = selectPA_Int# sel' 1#
--}
-
-dPR_Sum3 :: PR a -> PR b -> PR c -> PR (Sum3 a b c)
-{-# INLINE dPR_Sum3 #-}
-dPR_Sum3 pra prb prc
-  = PR {
-     emptyPR     = emptyPR_Sum3 pra prb prc
-   , replicatePR = replicatePR_Sum3 pra prb prc
-   , indexPR     = indexPR_Sum3 pra prb prc
-   }
-
-{-# INLINE emptyPR_Sum3 #-}
-emptyPR_Sum3 pra prb prc        
-  = traceFn "emptyPR_Sum3\n" $
-  PSum3 U.empty U.empty 0# (emptyPR pra)
-                        0# (emptyPR prb)
-                        0# (emptyPR prc)
-
-{-# INLINE replicatePR_Sum3 #-}
-replicatePR_Sum3 pra prb prc n# (Alt3_1 x)
-  = traceFn "replicatePR_Sum3\n" $
-  PSum3 (U.replicate (I# n#) 0)
-        (U.enumFromStepLen 0 1 (I# n#))
-        n# (replicatePR pra n# x)
-        0# (emptyPR prb)
-        0# (emptyPR prc)
-replicatePR_Sum3 pra prb prc n# (Alt3_2 x)
-  = traceFn "replicatePR_Sum3\n" $
-  PSum3 (U.replicate (I# n#) 1)
-        (U.enumFromStepLen 0 1 (I# n#))
-        0# (emptyPR pra)
-        n# (replicatePR prb n# x)
-        0# (emptyPR prc)
-replicatePR_Sum3 pra prb prc n# (Alt3_3 x)
-  = traceFn "replicatePR_Sum3\n" $
-  PSum3 (U.replicate (I# n#) 2)
-        (U.enumFromStepLen 0 1 (I# n#))
-        0# (emptyPR pra)
-        0# (emptyPR prb)
-        n# (replicatePR prc n# x)
-
-{-# INLINE indexPR_Sum3 #-}
-indexPR_Sum3 pra prb prc (PSum3 sel is _ as _ bs _ cs) i#
-  = traceFn "indexPR_Sum3\n" $
-  case is U.!: I# i# of
-    I# k# -> case sel U.!: I# i# of
-               0 -> Alt3_1 (indexPR pra as k#)
-               1 -> Alt3_2 (indexPR prb bs k#)
-               _ -> Alt3_3 (indexPR prc cs k#)
--}
+-------------------
+-- Nested arrays --
 
 data instance PData (PArray a) = PNested U.Segd (PData a)
-
-{-
-{-# INLINE nested_lengthPA #-}
-nested_lengthPA xss = traceFn "nested_lengthPA\n" $
-                I# (lengthPR_PArray xss)
--}
 
 instance PR a => PR (PArray a) where
   {-# INLINE emptyPR #-}
