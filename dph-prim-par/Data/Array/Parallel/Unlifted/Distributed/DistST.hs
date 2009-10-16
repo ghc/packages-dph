@@ -57,19 +57,19 @@ stToDistST p = DistST $ \i -> p
 
 -- | Yields the 'Dist' element owned by the current thread.
 myD :: DT a => Dist a -> DistST s a
-{-# INLINE myD #-}
+{-# NOINLINE myD #-}
 myD dt = liftM (indexD dt) myIndex
 
 -- | Yields the 'MDist' element owned by the current thread.
 readMyMD :: DT a => MDist a s -> DistST s a
-{-# INLINE readMyMD #-}
+{-# NOINLINE readMyMD #-}
 readMyMD mdt = do
                  i <- myIndex
                  stToDistST $ readMD mdt i
 
 -- | Writes the 'MDist' element owned by the current thread.
 writeMyMD :: DT a => MDist a s -> a -> DistST s ()
-{-# INLINE writeMyMD #-}
+{-# NOINLINE writeMyMD #-}
 writeMyMD mdt x = do
                     i <- myIndex
                     stToDistST $ writeMD mdt i x
@@ -89,6 +89,7 @@ distST g p = do
 
 -- | Run a data-parallel computation, yielding the distributed result.
 runDistST :: DT a => Gang -> (forall s. DistST s a) -> Dist a
-{-# INLINE runDistST #-}
+-- {-# INLINE runDistST #-}
+{-# NOINLINE runDistST #-}
 runDistST g p = runST (distST g p)
 
