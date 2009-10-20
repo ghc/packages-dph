@@ -90,6 +90,7 @@ enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
 -- FIXME: monomorphic for now because we need Rebox a otherwise!
 --
 enumFromStepLenEachS :: Int -> Stream (Int :*: Int :*: Int) -> Stream Int 
+{-# INLINE_STREAM enumFromStepLenEachS #-}
 enumFromStepLenEachS len (Stream next s n) = Stream next' (NothingS :*: s) len
   where
     {-# INLINE next' #-}
