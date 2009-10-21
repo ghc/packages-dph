@@ -242,6 +242,10 @@ count :: (Elt a, Eq a) => Array a -> a -> Int
 {-# INLINE_BACKEND count #-}
 count xs x = sum (map (fromBool . (==) x) xs)
 
+count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
+{-# INLINE_BACKEND count_s #-}
+count_s segd xs x = sum_s segd (map (fromBool . (==) x) xs)
+
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
 {-# INLINE_BACKEND randoms #-}

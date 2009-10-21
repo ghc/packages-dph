@@ -22,7 +22,7 @@ module Data.Array.Parallel.Unlifted (
   fold_s, fold1_s, sum_s, indices_s, sum_r,
   lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd, mkSegd,
 
-  selectorToIndices2, pick, count,
+  selectorToIndices2, packByTag, pick, count, count_s,
 
   randoms, randomRs, IOElt, hGet, hPut,
 
