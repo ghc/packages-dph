@@ -29,7 +29,7 @@ module Data.Array.Parallel.Unlifted (
   toList, fromList,
 ) where
 
-import Data.Array.Parallel.Base   ( (:*:)(..) )
+import Data.Array.Parallel.Base   ( (:*:)(..), fstS, sndS )
 import Prelude                    (Num, Int, Bool, Double)
 import System.IO                  (IO, Handle)
 import Data.Word                  (Word8)

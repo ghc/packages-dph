@@ -1,6 +1,6 @@
 import Data.Array.Parallel.Base ( fromBool )
 import qualified GHC.Base
-import Prelude ((.), ($), Num(..), Eq(..))
+import Prelude ((.), ($), Num(..), Eq(..), seq)
 
 instance Elt Int
 instance Elt Word8
