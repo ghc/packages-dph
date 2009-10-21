@@ -120,6 +120,9 @@ instance PR (a :-> b) where
   {-# INLINE packPR #-}
   packPR (AClo f f' es) n# sel = AClo f f' (packPD es n# sel)
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR (AClo f f' es) n# tags t# = AClo f f' (packByTagPD es n# tags t#)
+
 -- Closure construction
 
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)

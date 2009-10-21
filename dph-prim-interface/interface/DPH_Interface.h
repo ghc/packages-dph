@@ -230,6 +230,10 @@ selectorToIndices2 sel
     pick 0 (i :*: j) = i
     pick _ (i :*: j) = j
 
+packByTag :: Elt a => Array a -> Array Int -> Int -> Array a
+{-# INLINE_BACKEND packByTag #-}
+packByTag xs tags tag = fsts (filter (\p -> sndS p == tag) (zip xs tags))
+
 pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
 {-# INLINE pick #-}
 pick xs x = map (x==) xs

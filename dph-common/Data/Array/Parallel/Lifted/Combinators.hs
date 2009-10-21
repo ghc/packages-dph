@@ -149,15 +149,30 @@ unzipPA:: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
 {-# INLINE unzipPA #-}
 unzipPA = closure1 unzipPA_v unzipPA_l
 
+
+boolSel :: PArray Bool -> Sel2
+{-# INLINE boolSel #-}
+boolSel (PArray _ (PBool sel)) = sel
+
 packPA_v :: PA a => PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
 packPA_v xs bs
-  = case U.count (toUArrPA bs) True of I# n# -> packPA# xs n# (toUArrPA bs)
+  = packByTagPA# xs (elementsSel2_1# sel) (tagsSel2 sel) 1#
+  -- = case U.count (toUArrPA bs) True of I# n# -> packPA# xs n# (toUArrPA bs)
+  where
+    sel = boolSel bs
 
 packPA_l :: PA a
          => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE_PA packPA_l #-}
 packPA_l xss bss
+  = segmentPA# (lengthPA# xss) segd'
+  $ packByTagPA# (concatPA# xss) (elementsSel2_1# sel) (tagsSel2 sel) 1#
+  where
+    sel   = boolSel (concatPA# bss)
+    segd' = U.lengthsToSegd
+          $ U.count_s (segdPA# xss) (tagsSel2 sel) 1
+{-
   = segmentPA# (lengthPA# xss) (segdPA# xss)
   $ packPA# (concatPA# xss) (elementsSegd# segd') (toUArrPA (concatPA# bss))
   where
@@ -165,10 +180,13 @@ packPA_l xss bss
           . U.sum_s (segdPA# xss)
           . U.map fromBool
           $ toUArrPA (concatPA# bss)
+-}
 
 packPA :: PA a => PArray a :-> PArray Bool :-> PArray a
 {-# INLINE packPA #-}
 packPA = closure2 packPA_v packPA_l
+
+
 
 
 -- TODO: should the selector be a boolean array?

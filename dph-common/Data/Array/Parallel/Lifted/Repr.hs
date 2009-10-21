@@ -69,6 +69,9 @@ instance PR Int where
   {-# INLINE packPR #-}
   packPR (PInt ns) n# bs = PInt (U.pack ns bs)
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR (PInt ns) n# tags t# = PInt (U.packByTag ns tags (I# t#))
+
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PInt xs) (PInt ys)
     = PInt (U.combine (U.pick (tagsSel2 sel) 0) xs ys)
@@ -117,6 +120,9 @@ instance PR Word8 where
   {-# INLINE packPR #-}
   packPR (PWord8 ns) n# bs = PWord8 (U.pack ns bs)
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR (PWord8 ns) n# tags t# = PWord8 (U.packByTag ns tags (I# t#))
+
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PWord8 xs) (PWord8 ys)
     = PWord8 (U.combine (U.pick (tagsSel2 sel) 0) xs ys)
@@ -163,6 +169,9 @@ instance PR Double where
 
   {-# INLINE packPR #-}
   packPR (PDouble ns) n# bs = PDouble (U.pack ns bs)
+
+  {-# INLINE packByTagPR #-}
+  packByTagPR (PDouble ns) n# tags t# = PDouble (U.packByTag ns tags (I# t#))
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PDouble xs) (PDouble ys)
@@ -227,6 +236,9 @@ instance PR Void where
   {-# INLINE packPR #-}
   packPR _ _ _ = traceFn "packPR<Void>" $ pvoid
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR _ _ _ _ = traceFn "packByTagPR<Void>" $ pvoid
+
   {-# INLINE combine2PR #-}
   combine2PR _ _ _ _ = traceFn "combine2PR<Void>" $ pvoid
 
@@ -284,6 +296,9 @@ instance PR () where
   {-# INLINE packPR #-}
   packPR u _ _ = traceFn "packPR<Unit>" $ u
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR u _ _ _ = u
+
   {-# INLINE combine2PR #-}
   combine2PR _ _ u v = traceFn "combine2PR<Unit>" (u `seq` v)
 
@@ -334,6 +349,9 @@ instance PA a => PR (Wrap a) where
 
   {-# INLINE packPR #-}
   packPR (PWrap xs) n# bs = PWrap (packPD xs n# bs)
+
+  {-# INLINE packByTagPR #-}
+  packByTagPR (PWrap xs) n# tags t# = PWrap (packByTagPD xs n# tags t#)
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PWrap xs) (PWrap ys)
@@ -428,6 +446,11 @@ instance (PR a, PR b) => PR (a,b) where
   packPR (P_2 as bs) n# sel# = traceFn "packPR<(a,b)>" $
          P_2 (packPR as n# sel#)
              (packPR bs n# sel#)
+
+  {-# INLINE packByTagPR #-}
+  packByTagPR (P_2 as bs) n# tags t#
+    = P_2 (packByTagPR as n# tags t#)
+          (packByTagPR bs n# tags t#)
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_2 as1 bs1) (P_2 as2 bs2)
@@ -524,6 +547,12 @@ instance (PR a, PR b, PR c) => PR (a,b,c) where
       P_3 (packPR as n# sel#)
           (packPR bs n# sel#)
           (packPR cs n# sel#)
+
+  {-# INLINE packByTagPR #-}
+  packByTagPR (P_3 as bs cs) n# tags t#
+    = P_3 (packByTagPR as n# tags t#)
+          (packByTagPR bs n# tags t#)
+          (packByTagPR cs n# tags t#)
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_3 as1 bs1 cs1)
@@ -639,6 +668,13 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
           (packPR bs n# sel#)
           (packPR cs n# sel#)
           (packPR ds n# sel#)
+
+  {-# INLINE packByTagPR #-}
+  packByTagPR (P_4 as bs cs ds) n# tags t#
+    = P_4 (packByTagPR as n# tags t#)
+          (packByTagPR bs n# tags t#)
+          (packByTagPR cs n# tags t#)
+          (packByTagPR ds n# tags t#)
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_4 as1 bs1 cs1 ds1)
@@ -767,6 +803,14 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
         (packPR ds n# sel#)
         (packPR es n# sel#)
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR (P_5 as bs cs ds es) n# tags t#
+    = P_5 (packByTagPR as n# tags t#)
+          (packByTagPR bs n# tags t#)
+          (packByTagPR cs n# tags t#)
+          (packByTagPR ds n# tags t#)
+          (packByTagPR es n# tags t#)
+
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_5 as1 bs1 cs1 ds1 es1)
                                           (P_5 as2 bs2 cs2 ds2 es2)
@@ -837,12 +881,8 @@ instance (PR a, PR b) => PR (Sum2 a b) where
 
       lens      = U.lengthsSegd segd
 
-      asegd     = U.lengthsToSegd
-                . U.pack lens
-                $ U.pick tags 0
-      bsegd     = U.lengthsToSegd
-                . U.pack lens
-                $ U.pick tags 1
+      asegd     = U.lengthsToSegd (U.packByTag lens tags 0)
+      bsegd     = U.lengthsToSegd (U.packByTag lens tags 1)
 
       as'       = replicatelPR asegd as
       bs'       = replicatelPR bsegd bs
@@ -892,6 +932,20 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       as'    = packPR as (elementsSel2_0# sel') aFlags
       bs'    = packPR bs (elementsSel2_1# sel') bFlags
 
+  {-# INLINE packByTagPR #-}
+  packByTagPR (PSum2 sel as bs) n# tags t#
+    = PSum2 sel' as' bs'
+    where
+      my_tags  = tagsSel2 sel
+      my_tags' = U.packByTag my_tags tags (I# t#)
+      sel'     = tagsToSel2 my_tags'
+
+      atags    = U.packByTag tags my_tags 0
+      btags    = U.packByTag tags my_tags 1
+
+      as'      = packByTagPR as (elementsSel2_0# sel') atags t#
+      bs'      = packByTagPR bs (elementsSel2_1# sel') btags t#
+
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PSum2 sel1 as1 bs1)
                                  (PSum2 sel2 as2 bs2)
@@ -902,8 +956,8 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       tags' = U.combine (U.pick tags 0) (tagsSel2 sel1) (tagsSel2 sel2)
       sel'  = tagsToSel2 tags'
 
-      asel = tagsToSel2 (U.pack tags (U.pick tags' 0))
-      bsel = tagsToSel2 (U.pack tags (U.pick tags' 1))
+      asel = tagsToSel2 (U.packByTag tags tags' 0)
+      bsel = tagsToSel2 (U.packByTag tags tags' 1)
 
       as   = combine2PR (elementsSel2_0# sel') asel as1 as2
       bs   = combine2PR (elementsSel2_1# sel') bsel bs1 bs2
@@ -999,6 +1053,15 @@ instance PR a => PR (PArray a) where
             $ U.pack (U.lengthsSegd segd) flags
 
       xs'   = packPR xs (elementsSegd# segd') (U.replicate_s segd flags)
+
+  {-# INLINE packByTagPR #-}
+  packByTagPR (PNested segd xs) n# tags t#
+    = PNested segd' xs'
+    where
+      segd' = U.lengthsToSegd
+            $ U.packByTag (U.lengthsSegd segd) tags (I# t#)
+
+      xs'   = packByTagPR xs (elementsSegd# segd') (U.replicate_s segd tags) t#
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PNested xsegd xs) (PNested ysegd ys)

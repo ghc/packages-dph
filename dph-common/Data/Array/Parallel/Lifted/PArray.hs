@@ -8,17 +8,17 @@ module Data.Array.Parallel.Lifted.PArray (
   PA(..),
   lengthPA#, dataPA#, replicatePA#, replicatelPA#, repeatPA#, repeatcPA#,
   emptyPA, indexPA#, extractPA#, bpermutePA#, appPA#, applPA#,
-  packPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
+  packPA#, packByTagPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
 
   replicatePD, replicatelPD, repeatPD, repeatcPD, emptyPD,
   indexPD, extractPD, bpermutePD, appPD, applPD,
-  packPD, combine2PD, fromListPD, fromListPD, nfPD,
+  packPD, packByTagPD, combine2PD, fromListPD, fromListPD, nfPD,
 
   PRepr, PR(..), -- mkPR, mkReprPA,
 
   T_replicatePR, T_replicatelPR, T_repeatPR, T_repeatcPR, T_emptyPR,
   T_indexPR, T_extractPR, T_bpermutePR, T_appPR, T_applPR,
-  T_packPR, T_combine2PR, T_fromListPR, T_fromListPR, T_nfPR
+  T_packPR, T_packByTagPR, T_combine2PR, T_fromListPR, T_fromListPR, T_nfPR
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -84,6 +84,12 @@ type T_packPR       a =  PData a
                       -> U.Array Bool      -- flags
                       -> PData a
 
+type T_packByTagPR  a = PData a
+                      -> Int#              -- result length
+                      -> U.Array Int       -- tags
+                      -> Int#              -- tag value
+                      -> PData a
+
 type T_combine2PR   a =  Int#              -- result length
                       -> Sel2              -- selector
                       -> PData a -> PData a -> PData a
@@ -104,6 +110,7 @@ class PR a where
   appPR        :: T_appPR a
   applPR       :: T_applPR a
   packPR       :: T_packPR a
+  packByTagPR  :: T_packByTagPR a
   combine2PR   :: T_combine2PR a
   fromListPR   :: T_fromListPR a
   nfPR         :: T_nfPR a
@@ -159,6 +166,11 @@ applPD is xs js ys = fromArrPRepr $ applPR is (toArrPRepr xs) js (toArrPRepr ys)
 packPD :: PA a => T_packPR a
 {-# INLINE_PA packPD #-}
 packPD xs n# bs = fromArrPRepr $ packPR (toArrPRepr xs) n# bs
+
+packByTagPD :: PA a => T_packByTagPR a
+{-# INLINE_PA packByTagPD #-}
+packByTagPD xs n# tags t#
+  = fromArrPRepr $ packByTagPR (toArrPRepr xs) n# tags t#
 
 combine2PD :: PA a => T_combine2PR a
 {-# INLINE_PA combine2PD #-}
@@ -229,6 +241,10 @@ applPA# is (PArray m# xs) js (PArray n# ys)
 packPA# :: PA a => PArray a -> Int# -> U.Array Bool -> PArray a
 {-# INLINE_PA packPA# #-}
 packPA# (PArray _ xs) n# bs = PArray n# (packPD xs n# bs)
+
+packByTagPA# :: PA a => PArray a -> Int# -> U.Array Int -> Int# -> PArray a
+{-# INLINE_PA packByTagPA# #-}
+packByTagPA# (PArray _ xs) n# tags t# = PArray n# (packByTagPD xs n# tags t#)
 
 combine2PA# :: PA a => Int# -> Sel2 -> PArray a -> PArray a -> PArray a
 {-# INLINE_PA combine2PA# #-}
