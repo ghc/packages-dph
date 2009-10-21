@@ -196,7 +196,7 @@ elementsSegd :: Segd -> Int
 {-# INLINE_BACKEND elementsSegd #-}
 
 lengthsToSegd :: Array Int -> Segd
-{-# INLINE_BACKEND lengthsToSegd #-}
+{-# INLINE CONLIKE PHASE_BACKEND lengthsToSegd #-}
 
 mkSegd :: Array Int -> Array Int -> Int -> Segd
 {-# INLINE CONLIKE PHASE_BACKEND mkSegd #-}
@@ -211,6 +211,12 @@ mkSegd :: Array Int -> Array Int -> Int -> Segd
 
 "elementsSegd/mkSegd" forall lens idxs n.
   elementsSegd (mkSegd lens idxs n) = n
+
+"lengthsSegd/lengthsToSegd" forall lens.
+  lengthsSegd (lengthsToSegd lens) = lens
+
+"seq/elementsSegd" forall segd e.
+  seq (elementsSegd segd) e = seq segd e
 
  #-}
 
