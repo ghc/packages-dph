@@ -24,7 +24,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Enum (
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, uncurryS)
 import Data.Array.Parallel.Unlifted.Sequential (
-  UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU)
+  UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU, sndU, sumU)
 import Data.Array.Parallel.Unlifted.Distributed (
   mapD, scanD, zipD, splitLenD, joinD, splitD, balanced, unbalanced,
   theGang)
@@ -64,6 +64,10 @@ enumFromToEachUP n inds =
 
 enumFromStepLenEachUP :: Int -> UArr (Int :*: Int :*: Int) -> UArr Int
 {-# INLINE enumFromStepLenEachUP #-}
-enumFromStepLenEachUP n inds =  
-  joinD theGang unbalanced $ mapD theGang (uncurryS enumFromStepLenEachU) $ 
-    zipD  (splitLenD theGang n) (splitD theGang balanced inds)
+enumFromStepLenEachUP n ps
+  = joinD theGang unbalanced
+  $ mapD theGang enum
+  $ splitD theGang unbalanced ps
+  where
+    enum ps = enumFromStepLenEachU (sumU (sndU ps)) ps
+
