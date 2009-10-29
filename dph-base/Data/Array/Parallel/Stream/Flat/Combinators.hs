@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Stream.Flat.Combinators (
   mapS, filterS, foldS, fold1MaybeS, scanS, scan1S, mapAccumS,
-  zipWithS, zipWith3S, zipS, zip3S, combineS
+  zipWithS, zipWith3S, zipS, zip3S, combineS, combine2ByTagS
 ) where
 
 import Data.Array.Parallel.Base (
@@ -148,7 +148,33 @@ combineS (Stream next1 s m c) (Stream nextS1 t1 n1 c1) (Stream nextS2 t2 n2 c2)
                                Done        -> error "combineS: stream 2 terminated unexpectedly" 
                                Skip t2'    -> Skip (s :*: t1 :*: t2')
                                Yield x t2' -> Yield x (s' :*: t1 :*: t2')
-               
+
+
+combine2ByTagS :: Stream Int -> Stream a -> Stream a -> Stream a
+{-# INLINE_STREAM combine2ByTagS #-}
+combine2ByTagS (Stream next_tag s m c) (Stream next0 s0 _ c1)
+                                       (Stream next1 s1 _ c2)
+  = Stream next (NothingS :*: s :*: s0 :*: s1) m ("combine2ByTagS" `sArgs` (c,c1,c2))
+  where
+    {-# INLINE next #-}
+    next (NothingS :*: s :*: s0 :*: s1)
+      = case next_tag s of
+          Done       -> Done
+          Skip    s' -> Skip (NothingS :*: s' :*: s0 :*: s1)
+          Yield t s' -> Skip (JustS t  :*: s' :*: s0 :*: s1)
+
+    next (JustS 0 :*: s :*: s0 :*: s1)
+      = case next0 s0 of
+          Done        -> error "combine2ByTagS: stream 1 too short"
+          Skip    s0' -> Skip    (JustS 0  :*: s :*: s0' :*: s1)
+          Yield x s0' -> Yield x (NothingS :*: s :*: s0' :*: s1)
+
+    next (JustS t :*: s :*: s0 :*: s1)
+      = case next1 s1 of
+          Done        -> error "combine2ByTagS: stream 2 too short"
+          Skip    s1' -> Skip    (JustS t  :*: s :*: s0 :*: s1')
+          Yield x s1' -> Yield x (NothingS :*: s :*: s0 :*: s1')
+
 -- | Zipping
 --
 
