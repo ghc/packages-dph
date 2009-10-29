@@ -11,11 +11,16 @@ Synopsis:       Basic Definitions for Data-Parallel Haskell.
 Cabal-Version:  >= 1.2.3
 Build-Type:     Simple
 
+Flag DTrace
+  Description: Enable experimental support for dtrace-based profiling
+  Default:     False
+
 Library
   Exposed-Modules:
         Data.Array.Parallel.Base
         Data.Array.Parallel.Arr
         Data.Array.Parallel.Stream
+        Data.Array.Parallel.Base.DTrace
 
   Other-Modules:
         Data.Array.Parallel.Base.Config
@@ -41,7 +46,12 @@ Library
   Install-Includes:
         fusion-phases.h
 
-  Exposed: False
+  Exposed: True
+
+  if flag(DTrace)
+    CPP-Options: -DDPH_ENABLE_DTRACE
+    Extra-Libraries: dph-trace
+    Extra-Lib-Dirs: /Users/rl/projects/ndp/dtrace
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
