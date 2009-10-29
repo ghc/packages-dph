@@ -29,6 +29,14 @@ import GHC.Word  ( Word8 )
 import Debug.Trace
 
 
+traceFn :: String -> String -> a -> a
+-- traceFn fn ty x = trace (fn ++ "<" ++ ty ++ ">") x
+traceFn _ _ x = x
+
+traceArg :: Show a => String -> a -> b -> b
+-- traceArg name arg x = trace ("    " ++ name ++ " = " ++ show arg) x
+traceArg _ _ x = x
+
 ---------------------
 -- Primitive types --
 
@@ -36,41 +44,64 @@ newtype instance PData Int = PInt (U.Array Int)
 
 instance PR Int where
   {-# INLINE emptyPR #-}
-  emptyPR = PInt U.empty
+  emptyPR = traceFn "emptyPR" "Int"
+          $ PInt U.empty
 
   {-# INLINE replicatePR #-}
-  replicatePR n# i = PInt (U.replicate (I# n#) i)
+  replicatePR n# i = traceFn "replicatePR" "Int"
+                   $ traceArg "n#" (I# n#)
+                   $ traceArg "i" i
+                   $ PInt (U.replicate (I# n#) i)
 
   {-# INLINE replicatelPR #-}
-  replicatelPR segd (PInt xs) = PInt (U.replicate_s segd xs)
+  replicatelPR segd (PInt xs) = traceFn  "replicatelPR" "Int"
+                              $ PInt (U.replicate_s segd xs)
 
   {-# INLINE repeatPR #-}
-  repeatPR n# len# (PInt xs) = PInt (U.repeat (I# n#) (I# len#) xs)
+  repeatPR n# len# (PInt xs) = traceFn "repeatPR" "Int"
+                             $ traceArg "n#" (I# n#)
+                             $ traceArg "len#" (I# len#)
+                             $ PInt (U.repeat (I# n#) (I# len#) xs)
 
   {-# INLINE repeatcPR #-}
-  repeatcPR n# ns segd (PInt xs) = PInt (U.repeat_c (I# n#) ns segd xs)
+  repeatcPR n# ns segd (PInt xs) = traceFn "repeatcPR" "Int"
+                                 $ traceArg "n#" (I# n#)
+                                 $ PInt (U.repeat_c (I# n#) ns segd xs)
 
   {-# INLINE indexPR #-}
-  indexPR (PInt xs) i# = xs U.!: I# i#
+  indexPR (PInt xs) i# = traceFn "indexPR" "Int"
+                       $ traceArg "i#" (I# i#)
+                       $ xs U.!: I# i#
 
   {-# INLINE extractPR #-}
-  extractPR (PInt xs) i# n# = PInt (U.extract xs (I# i#) (I# n#))
+  extractPR (PInt xs) i# n# = traceFn "extractPR" "Int"
+                            $ traceArg "i#" (I# i#)
+                            $ traceArg "n#" (I# n#)
+                            $ PInt (U.extract xs (I# i#) (I# n#))
 
   {-# INLINE bpermutePR #-}
-  bpermutePR (PInt xs) _ is = PInt (U.bpermute xs is)
+  bpermutePR (PInt xs) _ is = traceFn "bpermutePR" "Int"
+                            $ PInt (U.bpermute xs is)
 
   {-# INLINE appPR #-}
-  appPR (PInt xs) (PInt ys) = PInt (xs U.+:+ ys)
+  appPR (PInt xs) (PInt ys) = traceFn "appPR" "Int"
+                            $ PInt (xs U.+:+ ys)
 
   {-# INLINE applPR #-}
   applPR xsegd (PInt xs) ysegd (PInt ys)
-    = PInt (U.append_s xsegd xs ysegd ys)
+    = traceFn "applPR" "Int"
+    $ PInt (U.append_s xsegd xs ysegd ys)
 
   {-# INLINE packPR #-}
-  packPR (PInt ns) n# bs = PInt (U.pack ns bs)
+  packPR (PInt ns) n# bs = traceFn "packPR" "Int"
+                         $ traceArg "n#" (I# n#)
+                         $ PInt (U.pack ns bs)
 
   {-# INLINE packByTagPR #-}
-  packByTagPR (PInt ns) n# tags t# = PInt (U.packByTag ns tags (I# t#))
+  packByTagPR (PInt ns) n# tags t# = traceFn "packByTagPR" "Int"
+                                   $ traceArg "n#" (I# n#)
+                                   $ traceArg "t#" (I# t#)
+                                   $ PInt (U.packByTag ns tags (I# t#))
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PInt xs) (PInt ys)
@@ -90,10 +121,12 @@ instance PR Word8 where
   emptyPR = PWord8 U.empty
 
   {-# INLINE replicatePR #-}
-  replicatePR n# i = PWord8 (U.replicate (I# n#) i)
+  replicatePR n# i = traceFn "replicatePR" "Word8"
+                   $ PWord8 (U.replicate (I# n#) i)
 
   {-# INLINE replicatelPR #-}
-  replicatelPR segd (PWord8 xs) = PWord8 (U.replicate_s segd xs)
+  replicatelPR segd (PWord8 xs) = traceFn "replicatelPR" "Word8"
+                                $ PWord8 (U.replicate_s segd xs)
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (PWord8 xs) = PWord8 (U.repeat (I# n#) (I# len#) xs)
@@ -143,7 +176,13 @@ instance PR Double where
   replicatePR n# i = PDouble (U.replicate (I# n#) i)
 
   {-# INLINE replicatelPR #-}
-  replicatelPR segd (PDouble xs) = PDouble (U.replicate_s segd xs)
+  replicatelPR segd (PDouble xs)
+    = PDouble
+    $ traceFn "replicatelPR" "Double"
+    $ traceArg "lengthSegd segd" (U.lengthSegd segd)
+    $ traceArg "elementsSegd segd" (U.elementsSegd segd)
+    $ traceArg "length xs" (U.length xs)
+    $ (U.replicate_s segd xs)
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (PDouble xs) = PDouble (U.repeat (I# n#) (I# len#) xs)
@@ -188,9 +227,6 @@ instance PR Double where
 
 data Void
 
-traceFn   = flip const -- trace
-traceArgs = flip  const -- trace 
-
 void :: Void
 void = error "Data.Array.Parallel.void"
 
@@ -204,43 +240,43 @@ pvoid = error "Data.Array.Parallel.PData Void"
 
 instance PR Void where
   {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR<Void>" $ pvoid
+  emptyPR = traceFn "emptyPR" "Void" $ pvoid
 
   {-# INLINE replicatePR #-}
-  replicatePR _ _ = traceFn "replicatePR<Void>" $ pvoid
+  replicatePR _ _ = traceFn "replicatePR" "Void" $ pvoid
 
   {-# INLINE replicatelPR #-}
-  replicatelPR segd _ = traceFn "replicatelPR<Void>" $ pvoid
+  replicatelPR segd _ = traceFn "replicatelPR" "Void" $ pvoid
 
   {-# INLINE repeatPR #-}
-  repeatPR _ _ _ = traceFn "repeatPR<Void>" $ pvoid
+  repeatPR _ _ _ = traceFn "repeatPR" "Void" $ pvoid
 
   {-# INLINE repeatcPR #-}
-  repeatcPR _ _ _ _ = traceFn "repeatcPR<Void>" $ pvoid
+  repeatcPR _ _ _ _ = traceFn "repeatcPR" "Void" $ pvoid
 
   {-# INLINE indexPR #-}
-  indexPR _ _ = traceFn "indexPR<Void>" $ void
+  indexPR _ _ = traceFn "indexPR" "Void" $ void
 
   {-# INLINE extractPR #-}
-  extractPR  _ _ _ = traceFn "extractPR<Void>" $ pvoid
+  extractPR  _ _ _ = traceFn "extractPR" "Void" $ pvoid
 
   {-# INLINE bpermutePR #-}
-  bpermutePR _ _ _ = traceFn "bpermutePR<Void>" $ pvoid
+  bpermutePR _ _ _ = traceFn "bpermutePR" "Void" $ pvoid
 
   {-# INLINE appPR #-}
-  appPR  _ _ = traceFn "appPR<Void>" $ pvoid
+  appPR  _ _ = traceFn "appPR" "Void" $ pvoid
 
   {-# INLINE applPR #-}
-  applPR _ _ _ _ = traceFn "applPR<Void>" $ pvoid
+  applPR _ _ _ _ = traceFn "applPR" "Void" $ pvoid
 
   {-# INLINE packPR #-}
-  packPR _ _ _ = traceFn "packPR<Void>" $ pvoid
+  packPR _ _ _ = traceFn "packPR" "Void" $ pvoid
 
   {-# INLINE packByTagPR #-}
-  packByTagPR _ _ _ _ = traceFn "packByTagPR<Void>" $ pvoid
+  packByTagPR _ _ _ _ = traceFn "packByTagPR" "Void" $ pvoid
 
   {-# INLINE combine2PR #-}
-  combine2PR _ _ _ _ = traceFn "combine2PR<Void>" $ pvoid
+  combine2PR _ _ _ _ = traceFn "combine2PR" "Void" $ pvoid
 
   {-# INLINE fromListPR #-}
   fromListPR _ _ = pvoid
@@ -258,49 +294,47 @@ punit = PUnit
 
 instance PR () where
   {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR<Unit>" $ PUnit
+  emptyPR = traceFn "emptyPR" "()" $ PUnit
 
   {-# INLINE replicatePR #-}
-  replicatePR n# () = 
-    traceFn "replicatePR<Unit>" $
-    traceArgs ("replicatePR len = " ++ show (I# n#)) $
-    PUnit
+  replicatePR n# () = traceFn "replicatePR" "()"
+                    $ traceArg "n#" (I# n#)
+                    $ PUnit
 
   {-# INLINE replicatelPR #-}
-  replicatelPR segd u =
-    traceFn "replicatelPR<Unit>" 
-    traceArgs ("replicatelPR args len = " ++ (show (U.elementsSegd segd))) $
-    u
+  replicatelPR segd u = traceFn "replicatelPR" "()" 
+                      $ traceArg "elementsSegd segd" (U.elementsSegd segd)
+                      $ u
 
   {-# INLINE repeatPR #-}
-  repeatPR _ _ u = traceFn "repeatPR<Unit>" $ u
+  repeatPR _ _ u = traceFn "repeatPR" "()" $ u
 
   {-# INLINE repeatcPR #-}
-  repeatcPR _ _ _ u = traceFn "repeatcPR<Unit>" $ u
+  repeatcPR _ _ _ u = traceFn "repeatcPR" "()" $ u
 
   {-# INLINE indexPR #-}
-  indexPR PUnit _ = traceFn "indexPR<Unit>" $ ()
+  indexPR PUnit _ = traceFn "indexPR" "()" $ ()
 
   {-# INLINE extractPR #-}
-  extractPR u _ _ = traceFn "extractPR<Unit>" $ u
+  extractPR u _ _ = traceFn "extractPR" "()" $ u
 
   {-# INLINE bpermutePR #-}
-  bpermutePR u _ _ = traceFn "bpermutePR<Unit>" $ u
+  bpermutePR u _ _ = traceFn "bpermutePR" "()" $ u
 
   {-# INLINE appPR #-}
-  appPR u v = traceFn "appPR<Unit>" (u `seq` v)
+  appPR u v = traceFn "appPR" "()" (u `seq` v)
 
   {-# INLINE applPR #-}
-  applPR _ u _ v = traceFn "applPR<Unit>" (u `seq` v)
+  applPR _ u _ v = traceFn "applPR" "()" (u `seq` v)
 
   {-# INLINE packPR #-}
-  packPR u _ _ = traceFn "packPR<Unit>" $ u
+  packPR u _ _ = traceFn "packPR" "()" $ u
 
   {-# INLINE packByTagPR #-}
   packByTagPR u _ _ _ = u
 
   {-# INLINE combine2PR #-}
-  combine2PR _ _ u v = traceFn "combine2PR<Unit>" (u `seq` v)
+  combine2PR _ _ u v = traceFn "combine2PR" "()" (u `seq` v)
 
   {-# INLINE fromListPR #-}
   fromListPR _ xs = foldr seq PUnit xs
@@ -390,46 +424,46 @@ data instance PData (a,b,c,d,e)
 
 instance (PR a, PR b) => PR (a,b) where
   {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR<(a,b)>" $
+  emptyPR = traceFn "emptyPR" "(a,b)" $
             P_2 emptyPR emptyPR
 
   {-# INLINE replicatePR #-}
-  replicatePR n# (a,b) = 
-    traceFn "replicatePR<(a,b)>" $
-    traceArgs ("replicatePR args len = "  ++ (show (I# n#))) $
+  replicatePR n# (a,b) = traceFn "replicatePR" "(a,b)"
+                       $ traceArg "n#" (I# n#)
+                       $
     P_2 (replicatePR n# a)
         (replicatePR n# b)
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (P_2 as bs)
-    = traceFn "replicatelPR<(a,b)>" $
+    = traceFn "replicatelPR" "(a,b)" $
       P_2 (replicatelPR segd as)
           (replicatelPR segd bs) 
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (P_2 as bs)
-    = traceFn "repeatPR<(a,b)>" $
+    = traceFn "repeatPR" "(a,b)" $
       P_2 (repeatPR n# len# as)
           (repeatPR n# len# bs)
 
   {-# INLINE repeatcPR #-}
   repeatcPR n# ns segd (P_2 as bs)
-    = traceFn "repeatcPR<(a,b)>" $
+    = traceFn "repeatcPR" "(a,b)" $
       P_2 (repeatcPR n# ns segd as)
           (repeatcPR n# ns segd bs)
 
   {-# INLINE indexPR #-}
-  indexPR (P_2 as bs) i# = traceFn "indexPR<(a,b)>" $
+  indexPR (P_2 as bs) i# = traceFn "indexPR" "(a,b)" $
                                      (indexPR as i#, indexPR bs i#)
 
   {-# INLINE extractPR #-}
-  extractPR (P_2 as bs) i# n# = traceFn "extractPR<(a,b)>"
+  extractPR (P_2 as bs) i# n# = traceFn "extractPR" "(a,b)"
                                           P_2 (extractPR as i# n#)
                                               (extractPR bs i# n#)
 
   {-# INLINE bpermutePR #-}
   bpermutePR (P_2 as bs) n# is
-    = traceFn "bpermutePR<(a,b)>" $
+    = traceFn "bpermutePR" "(a,b)" $
       P_2 (bpermutePR as n# is) (bpermutePR bs n# is)
 
   {-# INLINE appPR #-}
@@ -438,12 +472,12 @@ instance (PR a, PR b) => PR (a,b) where
 
   {-# INLINE applPR #-}
   applPR is (P_2 as1 bs1) js (P_2 as2 bs2)
-    = traceFn "applPR<(a,b)>" $
+    = traceFn "applPR" "(a,b)" $
       P_2 (applPR is as1 js as2)
           (applPR is bs1 js bs2)
 
   {-# INLINE packPR #-}
-  packPR (P_2 as bs) n# sel# = traceFn "packPR<(a,b)>" $
+  packPR (P_2 as bs) n# sel# = traceFn "packPR" "(a,b)" $
          P_2 (packPR as n# sel#)
              (packPR bs n# sel#)
 
@@ -454,7 +488,7 @@ instance (PR a, PR b) => PR (a,b) where
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_2 as1 bs1) (P_2 as2 bs2)
-    = traceFn "combine2PR<(a,b)>" $
+    = traceFn "combine2PR" "(a,b)" $
       P_2 (combine2PR n# sel as1 as2)
           (combine2PR n# sel bs1 bs2)
 
@@ -478,72 +512,72 @@ unzipPA# (PArray n# (P_2 xs ys)) = (PArray n# xs, PArray n# ys)
 
 instance (PR a, PR b, PR c) => PR (a,b,c) where
   {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR<(a,b,c)>" $
+  emptyPR = traceFn "emptyPR" "(a,b,c)" $
           P_3 emptyPR emptyPR emptyPR
 
   {-# INLINE replicatePR #-}
   replicatePR n# (a,b,c)
-    = traceFn "replicatePR<(a,b,c)>" $
+    = traceFn "replicatePR" "(a,b,c)" $
       P_3 (replicatePR n# a)
           (replicatePR n# b)
           (replicatePR n# c)
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (P_3 as bs cs)
-    = traceFn "replicatelPR<(a,b,c)>" $
+    = traceFn "replicatelPR" "(a,b,c)" $
       P_3 (replicatelPR segd as)
           (replicatelPR segd bs)
           (replicatelPR segd cs)
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (P_3 as bs cs)
-    = traceFn "repeatPR<(a,b,c)>" $
+    = traceFn "repeatPR" "(a,b,c)" $
       P_3 (repeatPR n# len# as)
           (repeatPR n# len# bs)
           (repeatPR n# len# cs)
 
   {-# INLINE repeatcPR #-}
   repeatcPR n# ns segd (P_3 as bs cs)
-    = traceFn "repeatcPR<(a,b,c)>" $
+    = traceFn "repeatcPR" "(a,b,c)" $
       P_3 (repeatcPR n# ns segd as)
           (repeatcPR n# ns segd bs)
           (repeatcPR n# ns segd cs)
 
   {-# INLINE indexPR #-}
   indexPR (P_3 as bs cs) i#
-    = traceFn "indexPR<(a,b,c)>" $
+    = traceFn "indexPR" "(a,b,c)" $
       (indexPR as i#, indexPR bs i#, indexPR cs i#)
 
   {-# INLINE extractPR #-}
-  extractPR (P_3 as bs cs) i# n# = traceFn "extractPR<(a,b,c)>" $
+  extractPR (P_3 as bs cs) i# n# = traceFn "extractPR" "(a,b,c)" $
           P_3 (extractPR as i# n#)
               (extractPR bs i# n#)
               (extractPR cs i# n#)
 
   {-# INLINE bpermutePR #-}
   bpermutePR (P_3 as bs cs) n# is
-    = traceFn "bpermutePR<(a,b,c)>" $
+    = traceFn "bpermutePR" "(a,b,c)" $
       P_3 (bpermutePR as n# is)
           (bpermutePR bs n# is)
           (bpermutePR cs n# is)
 
   {-# INLINE appPR #-}
   appPR (P_3 as1 bs1 cs1) (P_3 as2 bs2 cs2)
-    = traceFn "appPR<(a,b,c)>" $
+    = traceFn "appPR" "(a,b,c)" $
       P_3 (appPR as1 as2)
           (appPR bs1 bs2)
           (appPR cs1 cs2)
 
   {-# INLINE applPR #-}
   applPR is (P_3 as1 bs1 cs1) js (P_3 as2 bs2 cs2)
-    = traceFn "applPR<(a,b,c)>" $
+    = traceFn "applPR" "(a,b,c)" $
       P_3 (applPR is as1 js as2)
           (applPR is bs1 js bs2)
           (applPR is cs1 js cs2)
 
   {-# INLINE packPR #-}
   packPR (P_3 as bs cs) n# sel#
-    = traceFn "packPR<(a,b,c)>" $
+    = traceFn "packPR" "(a,b,c)" $
       P_3 (packPR as n# sel#)
           (packPR bs n# sel#)
           (packPR cs n# sel#)
@@ -557,7 +591,7 @@ instance (PR a, PR b, PR c) => PR (a,b,c) where
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_3 as1 bs1 cs1)
                                   (P_3 as2 bs2 cs2)
-    = traceFn "combine2PR<(a,b,c)>" $
+    = traceFn "combine2PR" "(a,b,c)" $
       P_3 (combine2PR n# sel as1 as2)
           (combine2PR n# sel bs1 bs2)
           (combine2PR n# sel cs1 cs2)
@@ -583,7 +617,7 @@ zip3PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) = PArray n# (P_3 xs ys zs)
 
 instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
   {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR<(a,b,c,d)>" $
+  emptyPR = traceFn "emptyPR" "(a,b,c,d)" $
           P_4 emptyPR
               emptyPR
               emptyPR
@@ -591,7 +625,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE replicatePR #-}
   replicatePR n# (a,b,c,d)
-    = traceFn "replicatePR<(a,b,c,d)>" $
+    = traceFn "replicatePR" "(a,b,c,d)" $
       P_4 (replicatePR n# a)
           (replicatePR n# b)
           (replicatePR n# c)
@@ -599,7 +633,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (P_4 as bs cs ds)
-    = traceFn "replicatelPR<(a,b,c,d)>" $
+    = traceFn "replicatelPR" "(a,b,c,d)" $
       P_4 (replicatelPR segd as)
           (replicatelPR segd bs)
           (replicatelPR segd cs)
@@ -607,7 +641,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (P_4 as bs cs ds)
-    = traceFn "repeatPR<(a,b,c,d)>" $
+    = traceFn "repeatPR" "(a,b,c,d)" $
       P_4 (repeatPR n# len# as)
           (repeatPR n# len# bs)
           (repeatPR n# len# cs)
@@ -615,7 +649,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE repeatcPR #-}
   repeatcPR n# ns segd (P_4 as bs cs ds)
-    = traceFn "repeatcPR<(a,b,c,d)>" $
+    = traceFn "repeatcPR" "(a,b,c,d)" $
       P_4 (repeatcPR n# ns segd as)
           (repeatcPR n# ns segd bs)
           (repeatcPR n# ns segd cs)
@@ -623,7 +657,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE indexPR #-}
   indexPR (P_4 as bs cs ds) i#
-    = traceFn "indexPR<(a,b,c,d)>" $
+    = traceFn "indexPR" "(a,b,c,d)" $
       (indexPR as i#,
        indexPR bs i#,
        indexPR cs i#,
@@ -631,7 +665,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE extractPR #-}
   extractPR (P_4 as bs cs ds) i# n#
-    = traceFn "extractPR<(a,b,c,d)>" $
+    = traceFn "extractPR" "(a,b,c,d)" $
         P_4 (extractPR as i# n#)
             (extractPR bs i# n#)
             (extractPR cs i# n#)
@@ -639,7 +673,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE bpermutePR #-}
   bpermutePR (P_4 as bs cs ds) n# is
-    = traceFn "bpermutePR<(a,b,c,d)>" $
+    = traceFn "bpermutePR" "(a,b,c,d)" $
       P_4 (bpermutePR as n# is)
           (bpermutePR bs n# is)
           (bpermutePR cs n# is)
@@ -647,7 +681,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE appPR #-}
   appPR (P_4 as1 bs1 cs1 ds1) (P_4 as2 bs2 cs2 ds2)
-    = traceFn "appPR<(a,b,c,d)>" $
+    = traceFn "appPR" "(a,b,c,d)" $
       P_4 (appPR as1 as2)
           (appPR bs1 bs2)
           (appPR cs1 cs2)
@@ -655,7 +689,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE applPR #-}
   applPR is (P_4 as1 bs1 cs1 ds1) js (P_4 as2 bs2 cs2 ds2)
-    = traceFn "applPR<(a,b,c,d)>" $
+    = traceFn "applPR" "(a,b,c,d)" $
       P_4 (applPR is as1 js as2)
           (applPR is bs1 js bs2)
           (applPR is cs1 js cs2)
@@ -663,7 +697,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 
   {-# INLINE packPR #-}
   packPR (P_4 as bs cs ds) n# sel#
-    = traceFn "packPR<(a,b,c,d)>" $
+    = traceFn "packPR" "(a,b,c,d)" $
       P_4 (packPR as n# sel#)
           (packPR bs n# sel#)
           (packPR cs n# sel#)
@@ -679,7 +713,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_4 as1 bs1 cs1 ds1)
                                     (P_4 as2 bs2 cs2 ds2)
-    = traceFn "combine2PR<(a,b,c,d)>" $
+    = traceFn "combine2PR" "(a,b,c,d)" $
       P_4 (combine2PR n# sel as1 as2)
           (combine2PR n# sel bs1 bs2)
           (combine2PR n# sel cs1 cs2)
@@ -704,7 +738,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a,b,c,d) where
 instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
   {-# INLINE emptyPR #-}
   emptyPR
-    = traceFn "emptyPR<(a,b,c,d,e)>" $
+    = traceFn "emptyPR" "(a,b,c,d,e)" $
     P_5 emptyPR
         emptyPR
         emptyPR
@@ -713,7 +747,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE replicatePR #-}
   replicatePR n# (a,b,c,d,e)
-    = traceFn "replicatePR<(a,b,c,d,e)>" $
+    = traceFn "replicatePR" "(a,b,c,d,e)" $
     P_5 (replicatePR n# a)
         (replicatePR n# b)
         (replicatePR n# c)
@@ -722,7 +756,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (P_5 as bs cs ds es)
-    = traceFn "replicatelPR<(a,b,c,d,e)>" $
+    = traceFn "replicatelPR" "(a,b,c,d,e)" $
     P_5 (replicatelPR segd as)
         (replicatelPR segd bs)
         (replicatelPR segd cs)
@@ -731,7 +765,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (P_5 as bs cs ds es)
-    = traceFn "repeatPR<(a,b,c,d,e)>" $
+    = traceFn "repeatPR" "(a,b,c,d,e)" $
     P_5 (repeatPR n# len# as)
         (repeatPR n# len# bs)
         (repeatPR n# len# cs)
@@ -740,7 +774,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE repeatcPR #-}
   repeatcPR n# ns segd (P_5 as bs cs ds es)
-    = traceFn "repeatcPR<(a,b,c,d,e)>" $
+    = traceFn "repeatcPR" "(a,b,c,d,e)" $
     P_5 (repeatcPR n# ns segd as)
         (repeatcPR n# ns segd bs)
         (repeatcPR n# ns segd cs)
@@ -749,7 +783,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE indexPR #-}
   indexPR (P_5 as bs cs ds es) i#
-    = traceFn "indexPR<(a,b,c,d,e)>" $
+    = traceFn "indexPR" "(a,b,c,d,e)" $
     (indexPR as i#,
      indexPR bs i#,
      indexPR cs i#,
@@ -758,7 +792,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE extractPR #-}
   extractPR (P_5 as bs cs ds es) i# n#
-    = traceFn "extractPR<(a,b,c,d,e)>" $
+    = traceFn "extractPR" "(a,b,c,d,e)" $
       P_5 (extractPR as i# n#)
           (extractPR bs i# n#)
           (extractPR cs i# n#)
@@ -767,7 +801,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE bpermutePR #-}
   bpermutePR (P_5 as bs cs ds es) n# is
-    = traceFn "bpermutePR<(a,b,c,d,e)>" $
+    = traceFn "bpermutePR" "(a,b,c,d,e)" $
     P_5 (bpermutePR as n# is)
         (bpermutePR bs n# is)
         (bpermutePR cs n# is)
@@ -777,7 +811,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
   {-# INLINE appPR #-}
   appPR (P_5 as1 bs1 cs1 ds1 es1)
                               (P_5 as2 bs2 cs2 ds2 es2)
-    = traceFn "appPR<(a,b,c,d,e)>" $
+    = traceFn "appPR" "(a,b,c,d,e)" $
     P_5 (appPR as1 as2)
         (appPR bs1 bs2)
         (appPR cs1 cs2)
@@ -787,7 +821,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
   {-# INLINE applPR #-}
   applPR is (P_5 as1 bs1 cs1 ds1 es1)
                                js (P_5 as2 bs2 cs2 ds2 es2)
-    = traceFn "applPR<(a,b,c,d,e)>" $
+    = traceFn "applPR" "(a,b,c,d,e)" $
     P_5 (applPR is as1 js as2)
         (applPR is bs1 js bs2)
         (applPR is cs1 js cs2)
@@ -796,7 +830,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
 
   {-# INLINE packPR #-}
   packPR (P_5 as bs cs ds es) n# sel#
-    = traceFn "packPR<(a,b,c,d,e)>" $
+    = traceFn "packPR" "(a,b,c,d,e)" $
     P_5 (packPR as n# sel#)
         (packPR bs n# sel#)
         (packPR cs n# sel#)
@@ -814,7 +848,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a,b,c,d,e) where
   {-# INLINE combine2PR #-}
   combine2PR n# sel (P_5 as1 bs1 cs1 ds1 es1)
                                           (P_5 as2 bs2 cs2 ds2 es2)
-    = traceFn "combine2PR<(a,b,c,d,e)>" $
+    = traceFn "combine2PR" "(a,b,c,d,e)" $
     P_5 (combine2PR n# sel as1 as2)
         (combine2PR n# sel bs1 bs2)
         (combine2PR n# sel cs1 cs2)
@@ -851,19 +885,19 @@ data instance PData (Sum2 a b)
 instance (PR a, PR b) => PR (Sum2 a b) where 
   {-# INLINE emptyPR #-}
   emptyPR
-    = traceFn "emptyPR<Sum2>" $
+    = traceFn "emptyPR" "(Sum2 a b)" $
     PSum2 (mkSel2 U.empty U.empty 0 0) emptyPR emptyPR
 
   {-# INLINE replicatePR #-}
   replicatePR n# (Alt2_1 x)
-    = traceFn "replicatePR<Sum2>" $
+    = traceFn "replicatePR" "(Sum2 a b)" $
       PSum2 (mkSel2 (U.replicate (I# n#) 0)
                     (U.enumFromStepLen 0 1 (I# n#))
                     (I# n#) 0)
             (replicatePR n# x)
             emptyPR
   replicatePR n# (Alt2_2 x)
-    = traceFn "replicatePR<Sum2>" $
+    = traceFn "replicatePR" "(Sum2 a b)" $
       PSum2 (mkSel2 (U.replicate (I# n#) 1)
                     (U.enumFromStepLen 0 1 (I# n#))
                     0 (I# n#))
@@ -872,7 +906,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (PSum2 sel as bs)
-    = traceFn "replicatelPR<Sum2>" $
+    = traceFn "replicatelPR" "(Sum2 a b)" $
       PSum2 sel' as' bs'
     where
       tags      = tagsSel2 sel
@@ -889,7 +923,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
 
   {-# INLINE repeatPR #-}
   repeatPR m# n# (PSum2 sel as bs)
-    = traceFn "repeatPR<Sum2>" $
+    = traceFn "repeatPR" "(Sum2 a b)" $
       PSum2 sel' as' bs'
     where
       sel' = tagsToSel2
@@ -901,7 +935,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
 
   {-# INLINE indexPR #-}
   indexPR (PSum2 sel as bs) i#
-    = traceFn "indexPR<Sum2>" $
+    = traceFn "indexPR" "(Sum2 a b)" $
     case indicesSel2 sel U.!: I# i# of
       I# k# -> case tagsSel2 sel U.!: I# i# of
                  0 -> Alt2_1 (indexPR as k#)
@@ -910,7 +944,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
   {-# INLINE appPR #-}
   appPR (PSum2 sel1 as1 bs1)
                      (PSum2 sel2 as2 bs2)
-    = traceFn "appPR<Sum2>" $           
+    = traceFn "appPR" "(Sum2 a b)" $           
       PSum2 sel (appPR as1 as2)
                 (appPR bs1 bs2)
     where
@@ -919,7 +953,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
 
   {-# INLINE packPR #-}
   packPR (PSum2 sel as bs) m# flags
-    = traceFn "packPR<Sum2>" $
+    = traceFn "packPR" "(Sum2 a b)" $
       PSum2 sel' as' bs'
     where
       tags   = tagsSel2 sel
@@ -949,7 +983,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PSum2 sel1 as1 bs1)
                                  (PSum2 sel2 as2 bs2)
-    = traceFn "combine2PR<Sum2>" $
+    = traceFn "combine2PR" "(Sum2 a b)" $
       PSum2 sel' as bs
     where
       tags  = tagsSel2 sel
@@ -969,12 +1003,12 @@ data instance PData (PArray a) = PNested U.Segd (PData a)
 
 instance PR a => PR (PArray a) where
   {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR<PArray>" $
+  emptyPR = traceFn "emptyPR" "(PArray a)" $
           PNested (U.mkSegd U.empty U.empty 0) emptyPR
 
   {-# INLINE replicatePR #-}
   replicatePR n# (PArray m# xs)
-    = traceFn "replicatePR<PArray>" $
+    = traceFn "replicatePR" "(PArray a)" $
     PNested (U.mkSegd (U.replicate (I# n#) (I# m#))
                       (U.enumFromStepLen 0 (I# m#) (I# n#))
                       (I# n# * I# m#))
@@ -996,7 +1030,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE bpermutePR #-}
   bpermutePR (PNested segd xs) n# is
-    = traceFn "bpermutePR<PArray>" $
+    = traceFn "bpermutePR" "(PArray a)" $
       PNested segd' (bpermutePR xs (elementsSegd# segd') flat_is)
     where
       segd'   = U.lengthsToSegd
@@ -1009,7 +1043,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE appPR #-}
   appPR (PNested xsegd xs) (PNested ysegd ys)
-    = traceFn "appPR<PArray>" $             
+    = traceFn "appPR" "(PArray a)" $             
       PNested (U.lengthsToSegd (U.lengthsSegd xsegd U.+:+ U.lengthsSegd ysegd))
               (appPR xs ys)
 
@@ -1027,14 +1061,14 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE repeatPR #-}
   repeatPR n# len# (PNested segd xs)
-    = traceFn "repeatPR<PArray>" $
+    = traceFn "repeatPR" "(PArray a)" $
     PNested segd' (repeatPR n# (elementsSegd# segd) xs)
     where
       segd' = U.lengthsToSegd (U.repeat (I# n#) (I# len#) (U.lengthsSegd segd))
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (PNested xsegd xs)
-    = traceFn "replicatelPR<PArray>" $
+    = traceFn "replicatelPR" "(PArray a)" $
     PNested xsegd' xs'
     where
       xsegd' = U.lengthsToSegd
@@ -1046,7 +1080,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE packPR #-}
   packPR (PNested segd xs) n# flags
-    = traceFn "packPR<PArray>" $
+    = traceFn "packPR" "(PArray a)" $
     PNested segd' xs'
     where
       segd' = U.lengthsToSegd
@@ -1065,7 +1099,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE combine2PR #-}
   combine2PR n# sel (PNested xsegd xs) (PNested ysegd ys)
-    = traceFn "combine2PR<PArray>" $
+    = traceFn "combine2PR" "(PArray a)" $
     PNested segd xys
     where
       tags = tagsSel2 sel
