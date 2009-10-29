@@ -32,7 +32,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   consS, singletonS, replicateS, (+++), indexedS,
-  {-replicateEachS, zipS,-} toStream)
+  {-replicateEachS, zipS,-} toStream, sNoArgs)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
@@ -93,7 +93,7 @@ repeatU n xs = unstreamU (repeatUS n xs)
 
 repeatUS :: UA e => Int -> UArr e -> Stream e
 {-# INLINE_STREAM repeatUS #-}
-repeatUS k !xs = Stream next (0 :*: k) (k*n)
+repeatUS k !xs = Stream next (0 :*: k) (k*n) (sNoArgs "repeatUS")
   where
     n = lengthU xs
 

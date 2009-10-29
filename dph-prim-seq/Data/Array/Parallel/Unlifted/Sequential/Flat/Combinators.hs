@@ -36,10 +36,12 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), checkNotEmpty, checkEq, sndS, Rebox(..), ST, runST)
+import Data.Array.Parallel.Base.DTrace
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
   mapS, filterS, foldS, fold1MaybeS, scan1S, scanS, mapAccumS,
-  zipWithS, zipWith3S, combineS)
+  zipWithS, zipWith3S, combineS, combine2ByTagS,
+  sArgs, sNoArgs)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, MUArr,
   writeMU, newDynResU,
@@ -145,13 +147,14 @@ scanResU f z = unstreamScan f z . streamU
 
 unstreamScan :: UA a => (a -> a -> a) -> a -> Stream a -> UArr a :*: a
 {-# INLINE_STREAM unstreamScan #-}
-unstreamScan f z st@(Stream _ _ n)
+unstreamScan f z st@(Stream _ _ n _)
   = newDynResU n (\marr -> unstreamScanM marr f z st)
 
 unstreamScanM :: UA a => MUArr a s -> (a -> a -> a) -> a -> Stream a
                       -> ST s (Int :*: a)
 {-# INLINE_U unstreamScanM #-}
-unstreamScanM marr f z (Stream next s n) = fill s z 0
+unstreamScanM marr f z (Stream next s n c)
+  = traceLoopST ("unstreamScanM" `sArgs` c) $ fill s z 0
   where
     fill s !z !i = case next s of
                      Done       -> return (i :*: z)

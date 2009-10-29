@@ -23,16 +23,16 @@ module Data.Array.Parallel.Stream.Flat.Combinators (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), MaybeS(..), Rebox(..), Box(..))
+import Data.Array.Parallel.Base.DTrace
 import Data.Array.Parallel.Stream.Flat.Stream
 
-import Debug.Trace
 
 
 -- | Mapping
 --
 mapS :: (a -> b) -> Stream a -> Stream b
 {-# INLINE_STREAM mapS #-}
-mapS f (Stream next s n) = Stream next' s n
+mapS f (Stream next s n c) = Stream next' s n ("mapS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' s = case next s of
@@ -44,7 +44,7 @@ mapS f (Stream next s n) = Stream next' s n
 --
 filterS :: (a -> Bool) -> Stream a -> Stream a
 {-# INLINE_STREAM filterS #-}
-filterS f (Stream next s n) = Stream next' s n
+filterS f (Stream next s n c) = Stream next' s n ("filterS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' s = case next s of
@@ -58,33 +58,37 @@ filterS f (Stream next s n) = Stream next' s n
 -- 
 foldS :: (b -> a -> b) -> b -> Stream a -> b
 {-# INLINE_STREAM foldS #-}
-foldS f z (Stream next s _) = fold z s
+foldS f z (Stream next s _ c) = traceLoopEntry c' $ fold z s
   where
     fold z s = case next s of
-                 Done       -> z
+                 Done       -> traceLoopExit c' z
                  Skip    s' -> s' `dseq` fold z s'
                  Yield x s' -> s' `dseq` fold (f z x) s'
+
+    c' = "foldS" `sArgs` c
 
 -- | Yield 'NothingS' if the 'Stream' is empty and fold it otherwise.
 --
 fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
 {-# INLINE_STREAM fold1MaybeS #-}
-fold1MaybeS f (Stream next s _) = fold0 s
+fold1MaybeS f (Stream next s _ c) = traceLoopEntry c' $ fold0 s
   where
     fold0 s   = case next s of
-                  Done       -> NothingS
+                  Done       -> traceLoopExit c' NothingS
                   Skip    s' -> s' `dseq` fold0 s'
                   Yield x s' -> s' `dseq` fold1 x s'
     fold1 z s = case next s of
-                  Done       -> JustS z
+                  Done       -> traceLoopExit c' $ JustS z
                   Skip    s' -> s' `dseq` fold1 z s'
                   Yield x s' -> s' `dseq` fold1 (f z x) s'
+
+    c' = "fold1MaybeS" `sArgs` c
 
 -- | Scanning
 --
 scanS :: (b -> a -> b) -> b -> Stream a -> Stream b
 {-# INLINE_STREAM scanS #-}
-scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
+scanS f z (Stream next s n c) = Stream next' (Box z :*: s) n ("scanS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (Box z :*: s) = case next s of
@@ -96,7 +100,7 @@ scanS f z (Stream next s n) = Stream next' (Box z :*: s) n
 --
 scan1S :: (a -> a -> a) -> Stream a -> Stream a
 {-# INLINE_STREAM scan1S #-}
-scan1S f (Stream next s n) = Stream next' (NothingS :*: s) n
+scan1S f (Stream next s n c) = Stream next' (NothingS :*: s) n ("scan1S" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (NothingS :*: s) =
@@ -115,7 +119,7 @@ scan1S f (Stream next s n) = Stream next' (NothingS :*: s) n
 
 mapAccumS :: (acc -> a -> acc :*: b) -> acc -> Stream a -> Stream b
 {-# INLINE_STREAM mapAccumS #-}
-mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
+mapAccumS f acc (Stream step s n c) = Stream step' (s :*: Box acc) n ("mapAccumS" `sArgs` c)
   where
     step' (s :*: Box acc) = case step s of
                           Done -> Done
@@ -127,8 +131,8 @@ mapAccumS f acc (Stream step s n) = Stream step' (s :*: Box acc) n
 
 combineS:: Stream Bool -> Stream a -> Stream a -> Stream a
 {-# INLINE_STREAM combineS #-}
-combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
-  Stream next (s :*: t1 :*: t2) m
+combineS (Stream next1 s m c) (Stream nextS1 t1 n1 c1) (Stream nextS2 t2 n2 c2)
+  = Stream next (s :*: t1 :*: t2) m ("combineS" `sArgs` (c,c1,c2))
   where
     {-# INLINE next #-}
     next (s :*: t1 :*: t2) = 
@@ -153,8 +157,8 @@ combineS (Stream next1 s m) (Stream nextS1 t1 n1) (Stream nextS2 t2 n2)  =
 -- SpecConstr with the correct definition.
 zipWithS :: (a -> b -> c) -> Stream a -> Stream b -> Stream c
 {-# INLINE_STREAM zipWithS #-}
-zipWithS f (Stream next1 s m) (Stream next2 t n) =
-  Stream next (s :*: t) m
+zipWithS f (Stream next1 s m c1) (Stream next2 t n c2) =
+  Stream next (s :*: t) m ("zipWithS" `sArgs` (c1,c2))
   where
     {-# INLINE next #-}
     next (s :*: t) =
@@ -196,8 +200,8 @@ zipWithS f (Stream next1 s m) (Stream next2 t n) =
 
 zipWith3S :: (a -> b -> c -> d) -> Stream a -> Stream b -> Stream c -> Stream d
 {-# INLINE_STREAM zipWith3S #-}
-zipWith3S f (Stream next1 s1 n) (Stream next2 s2 _) (Stream next3 s3 _) =
-  Stream next (s1 :*: s2 :*: s3) n
+zipWith3S f (Stream next1 s1 n c1) (Stream next2 s2 _ c2) (Stream next3 s3 _ c3)
+  = Stream next (s1 :*: s2 :*: s3) n ("zipWith3S" `sArgs` (c1,c2,c3))
   where
     {-# INLINE next #-}
     next (s1 :*: s2 :*: s3) =

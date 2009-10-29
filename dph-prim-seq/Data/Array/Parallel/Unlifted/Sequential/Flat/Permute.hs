@@ -27,8 +27,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Permute (
 
 import Data.Array.Parallel.Base (
   ST, runST, (:*:)(..), Rebox(..))
+import Data.Array.Parallel.Base.DTrace
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..), mapS)
+  Step(..), Stream(..), mapS, sArgs)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, MUArr,
   lengthU, newU, newDynU, newMU, unsafeFreezeAllMU, writeMU,
@@ -107,7 +108,8 @@ atomicUpdateMU marr upd = updateM writeMU marr (streamU upd)
 updateM :: UA e => (MUArr e s -> Int -> e -> ST s ())
                 -> MUArr e s -> Stream (Int :*: e) -> ST s ()
 {-# INLINE_STREAM updateM #-}
-updateM write marr (Stream next s _) = upd s
+updateM write marr (Stream next s _ c)
+  = traceLoopST ("updateM" `sArgs` c) $ upd s
   where
     upd s = case next s of
               Done               -> return ()
@@ -125,7 +127,7 @@ updateU arr upd = update (streamU arr) (streamU upd)
 
 update :: UA e => Stream e -> Stream (Int :*: e) -> UArr e
 {-# INLINE_STREAM update #-}
-update s1@(Stream _ _ n) !s2 = newDynU n (\marr ->
+update s1@(Stream _ _ n _) !s2 = newDynU n (\marr ->
   do
     i <- unstreamMU marr s1
     updateM writeMU marr s2
@@ -141,10 +143,10 @@ reverseU = rev . streamU
 
 rev :: UA e => Stream e -> UArr e
 {-# INLINE_STREAM rev #-}
-rev (Stream next s n) =
+rev (Stream next s n c) =
   runST (do
     marr <- newMU n
-    i <- fill marr
+    i <- traceLoopST ("rev" `sArgs` c) $ fill marr
     a <- unsafeFreezeAllMU marr
     return $ sliceU a i (n-i)
   )

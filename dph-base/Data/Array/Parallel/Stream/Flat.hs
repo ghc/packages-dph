@@ -25,7 +25,9 @@ module Data.Array.Parallel.Stream.Flat (
 
   findS, findIndexS,
 
-  randomS, randomRS
+  randomS, randomRS,
+
+  SArgs(..), sNoArgs
 ) where
 
 import Data.Array.Parallel.Stream.Flat.Stream

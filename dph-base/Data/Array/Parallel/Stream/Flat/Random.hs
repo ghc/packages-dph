@@ -27,7 +27,7 @@ import System.Random
 
 randomS :: (RandomGen g, Random a) => Int -> g -> Stream a
 {-# INLINE_STREAM randomS #-}
-randomS n g = Stream step (Lazy g :*: n) n
+randomS n g = Stream step (Lazy g :*: n) n (sNoArgs "randomS")
   where
     {-# INLINE step #-}
     step (Lazy g :*: 0) = Done
@@ -36,7 +36,7 @@ randomS n g = Stream step (Lazy g :*: n) n
 
 randomRS :: (RandomGen g, Random a) => Int -> (a,a) -> g -> Stream a
 {-# INLINE_STREAM randomRS #-}
-randomRS n r g = Stream step (Lazy g :*: n) n
+randomRS n r g = Stream step (Lazy g :*: n) n (sNoArgs "randomRS")
   where
     {-# INLINE step #-}
     step (Lazy g :*: 0) = Done

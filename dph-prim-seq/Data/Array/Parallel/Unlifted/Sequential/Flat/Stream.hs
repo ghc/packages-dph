@@ -22,9 +22,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, ST, Rebox(..))
+  (:*:)(..), fstS, sndS, ST, Rebox(..), traceLoopST)
 import Data.Array.Parallel.Stream (
-  Step(..), Stream(..), mapS, zipS)
+  Step(..), Stream(..), mapS, zipS, sNoArgs, sArgs)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UArr, MUArr, UA, indexU, lengthU, zipU, fstU, sndU, newDynU, writeMU)
 
@@ -32,7 +32,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
 --
 streamU :: UA a => UArr a -> Stream a
 {-# INLINE_STREAM streamU #-}
-streamU !arr = Stream next 0 n
+streamU !arr = Stream next 0 n (sNoArgs "streamU")
   where
     n = lengthU arr
     {-# INLINE next #-}
@@ -43,14 +43,15 @@ streamU !arr = Stream next 0 n
 --
 unstreamU :: UA a => Stream a -> UArr a
 {-# INLINE_STREAM unstreamU #-}
-unstreamU st@(Stream next s n) = newDynU n (\marr -> unstreamMU marr st)
+unstreamU st@(Stream next s n _) = newDynU n (\marr -> unstreamMU marr st)
 
 -- | Fill a mutable array from a stream from left to right and yield
 -- the number of elements written.
 --
 unstreamMU :: UA a => MUArr a s -> Stream a -> ST s Int
 {-# INLINE_U unstreamMU #-}
-unstreamMU marr (Stream next s n) = fill s 0
+unstreamMU marr (Stream next s n c)
+  = traceLoopST ("unstreamMU" `sArgs` c) $ fill s 0
   where
     fill s i = i `seq`
                case next s of

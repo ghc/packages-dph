@@ -396,7 +396,7 @@ instance UAE Double where
 --
 streamBU :: UAE e => BUArr e -> Stream e
 {-# INLINE [1] streamBU #-}
-streamBU arr = Stream next 0 (lengthBU arr)
+streamBU arr = Stream next 0 (lengthBU arr) (sNoArgs "streamBU")
   where
     n = lengthBU arr
     --
@@ -407,10 +407,11 @@ streamBU arr = Stream next 0 (lengthBU arr)
 --
 unstreamBU :: UAE e => Stream e -> BUArr e
 {-# INLINE [1] unstreamBU #-}
-unstreamBU (Stream next s n) =
+unstreamBU (Stream next s n c) =
   runST (do
     marr <- newMBU n
-    n'   <- fill0 marr
+    n'   <- traceLoopST ("unstreamBU" `sArgs` c)
+          $ fill0 marr
     unsafeFreezeMBU marr n'
   )
   where
@@ -525,7 +526,7 @@ extractMBU arr i n = do
 --
 copyMBU :: UAE e => MBUArr s e -> Int -> BUArr e -> ST s ()
 {-# INLINE copyMBU #-}
-copyMBU marr i arr = ins i 0
+copyMBU marr i arr = traceLoopST "copyMBU" $ ins i 0
   where
     n = lengthBU arr
     --

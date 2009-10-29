@@ -33,13 +33,13 @@ import Data.Array.Parallel.Stream.Flat.Stream
 -- | Empty stream
 --
 emptyS :: Stream a
-emptyS = Stream (const Done) () 0
+emptyS = Stream (const Done) () 0 (sNoArgs "emptyS")
 
 -- | Singleton stream
 --
 singletonS :: a -> Stream a
 {-# INLINE_STREAM singletonS #-}
-singletonS x = Stream next True 1
+singletonS x = Stream next True 1 (sNoArgs "singletonS")
   where
     {-# INLINE next #-}
     next True  = Yield x False
@@ -49,7 +49,7 @@ singletonS x = Stream next True 1
 --
 consS :: a -> Stream a -> Stream a
 {-# INLINE_STREAM consS #-}
-consS x (Stream next s n) = Stream next' (JustS (Box x) :*: s) (n+1)
+consS x (Stream next s n c) = Stream next' (JustS (Box x) :*: s) (n+1) ("consS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (JustS (Box x) :*: s) = Yield x (NothingS :*: s)
@@ -62,7 +62,7 @@ consS x (Stream next s n) = Stream next' (JustS (Box x) :*: s) (n+1)
 --
 replicateS :: Int -> a -> Stream a
 {-# INLINE_STREAM replicateS #-}
-replicateS n x = Stream next 0 n
+replicateS n x = Stream next 0 n (sNoArgs "replicateS")
   where
     {-# INLINE next #-}
     next i | i == n    = Done
@@ -73,8 +73,8 @@ replicateS n x = Stream next 0 n
 --
 replicateEachS :: Int -> Stream (Int :*: a) -> Stream a
 {-# INLINE_STREAM replicateEachS #-}
-replicateEachS n (Stream next s _) =
-  Stream next' (0 :*: NothingS :*: s) n
+replicateEachS n (Stream next s _ c) =
+  Stream next' (0 :*: NothingS :*: s) n ("replicateEachS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (0 :*: _ :*: s) =
@@ -90,8 +90,8 @@ replicateEachS n (Stream next s _) =
 --
 replicateEachRS :: Int -> Stream a -> Stream a
 {-# INLINE_STREAM replicateEachRS #-}
-replicateEachRS !n (Stream next s m)
-  = Stream next' (0 :*: NothingS :*: s) (m * n)
+replicateEachRS !n (Stream next s m c)
+  = Stream next' (0 :*: NothingS :*: s) (m * n) ("replicateEachRS" `sArgs` c)
   where
     next' (0 :*: _ :*: s) =
       case next s of
@@ -105,7 +105,8 @@ replicateEachRS !n (Stream next s m)
 --
 (+++) :: Stream a -> Stream a -> Stream a
 {-# INLINE_STREAM (+++) #-}
-Stream next1 s1 n1 +++ Stream next2 s2 n2 = Stream next (LeftS s1) (n1 + n2)
+Stream next1 s1 n1 c1 +++ Stream next2 s2 n2 c2
+  = Stream next (LeftS s1) (n1 + n2) ("(+++)" `sArgs` (c1,c2))
   where
     {-# INLINE next #-}
     next (LeftS s1) =
@@ -124,7 +125,7 @@ Stream next1 s1 n1 +++ Stream next2 s2 n2 = Stream next (LeftS s1) (n1 + n2)
 --
 indexedS :: Stream a -> Stream (Int :*: a)
 {-# INLINE_STREAM indexedS #-}
-indexedS (Stream next s n) = Stream next' (0 :*: s) n
+indexedS (Stream next s n c) = Stream next' (0 :*: s) n ("indexedS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (i :*: s) = case next s of
@@ -136,7 +137,7 @@ indexedS (Stream next s n) = Stream next' (0 :*: s) n
 --
 tailS :: Stream a -> Stream a
 {-# INLINE_STREAM tailS #-}
-tailS (Stream next s n) = Stream next' (False :*: s) (n-1)
+tailS (Stream next s n c) = Stream next' (False :*: s) (n-1) ("tailS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (False :*: s) = case next s of
@@ -153,7 +154,7 @@ tailS (Stream next s n) = Stream next' (False :*: s) (n-1)
 --
 toStream :: [a] -> Stream a
 {-# INLINE_STREAM toStream #-}
-toStream xs = Stream gen (Box xs) (length xs)
+toStream xs = Stream gen (Box xs) (length xs) (sNoArgs "toStream")
   where
     {-# INLINE gen #-}
     gen (Box [])     = Done
@@ -163,7 +164,7 @@ toStream xs = Stream gen (Box xs) (length xs)
 --
 fromStream :: Stream a -> [a]
 {-# INLINE_STREAM fromStream #-}
-fromStream (Stream next s _) = gen s
+fromStream (Stream next s _ _) = gen s
   where
     gen s = case next s of
               Done       -> []

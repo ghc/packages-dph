@@ -40,7 +40,7 @@ import Data.Array.Parallel.Stream.Flat.Combinators (
 enumFromToS :: Int -> Int -> Stream Int
 {-# INLINE_STREAM enumFromToS #-}
 enumFromToS start end
-  = Stream step start (max 0 (end - start + 1))
+  = Stream step start (max 0 (end - start + 1)) (sNoArgs "enumFromToS")
   where
     {-# INLINE step #-}
     step s | s > end   = Done
@@ -63,7 +63,7 @@ enumFromThenToS start next end
 
 enumFromStepLenS :: Int -> Int -> Int -> Stream Int
 {-# INLINE_STREAM enumFromStepLenS #-}
-enumFromStepLenS s !d n = Stream step (s :*: n) n
+enumFromStepLenS s !d n = Stream step (s :*: n) n (sNoArgs "enumFromStepLenS")
   where
     step (s :*: 0) = Done
     step (s :*: n) = Yield s ((s+d) :*: (n-1))
@@ -74,7 +74,8 @@ enumFromStepLenS s !d n = Stream step (s :*: n) n
 --
 enumFromToEachS :: Int -> Stream (Int :*: Int) -> Stream Int
 {-# INLINE_STREAM enumFromToEachS #-}
-enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
+enumFromToEachS n (Stream next s _ c)
+  = Stream next' (NothingS :*: s) n ("enumFromToEachS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (NothingS :*: s)
@@ -91,7 +92,8 @@ enumFromToEachS n (Stream next s _) = Stream next' (NothingS :*: s) n
 --
 enumFromStepLenEachS :: Int -> Stream (Int :*: Int :*: Int) -> Stream Int 
 {-# INLINE_STREAM enumFromStepLenEachS #-}
-enumFromStepLenEachS len (Stream next s n) = Stream next' (NothingS :*: s) len
+enumFromStepLenEachS len (Stream next s n c)
+  = Stream next' (NothingS :*: s) len ("enumFromStepLenEachS" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (NothingS :*: s) 

@@ -22,12 +22,12 @@ module Data.Array.Parallel.Stream.Segmented (
 import Data.Array.Parallel.Base (
   (:*:)(..), Box(..), MaybeS(..))
 import Data.Array.Parallel.Stream.Flat (
-  Step(..), Stream(..))
+  Step(..), Stream(..), SArgs(..))
 
 foldSS :: (a -> b -> a) -> a -> Stream Int -> Stream b -> Stream a
 {-# INLINE_STREAM foldSS #-}
-foldSS f z (Stream nexts ss ns) (Stream nextv vs nv) =
-  Stream next (NothingS :*: Box z :*: ss :*: vs) ns
+foldSS f z (Stream nexts ss ns c1) (Stream nextv vs nv c2) =
+  Stream next (NothingS :*: Box z :*: ss :*: vs) ns ("foldSS" `sArgs` (c1,c2))
   where
     {-# INLINE next #-}
     next (NothingS :*: Box x :*: ss :*: vs) =
@@ -49,11 +49,11 @@ foldSS f z (Stream nexts ss ns) (Stream nextv vs nv) =
 
 fold1SS :: (a -> a -> a) -> Stream Int -> Stream a -> Stream a
 {-# INLINE_STREAM fold1SS #-}
-fold1SS f (Stream nexts ss ns) (Stream nextv vs nv) =
-  Stream next (NothingS :*: NothingS :*: ss :*: vs) ns
+fold1SS f (Stream nexts ss ns c1) (Stream nextv vs nv c2) =
+  Stream next (NothingS :*: NothingS :*: ss :*: vs) ns ("fold1SS" `sArgs` (c1,c2))
   where
     {-# INLINE next #-}
-    next (NothingS :*: _ :*: ss :*: vs) =
+    next (NothingS :*: NothingS :*: ss :*: vs) =
       case nexts ss of
         Done        -> Done
         Skip    ss' -> Skip (NothingS :*: NothingS :*: ss' :*: vs)
@@ -78,11 +78,12 @@ fold1SS f (Stream nexts ss ns) (Stream nextv vs nv) =
 combineSS:: Stream Bool -> Stream Int -> Stream a
                         -> Stream Int -> Stream a -> Stream a
 {-# INLINE_STREAM combineSS #-}
-combineSS (Stream nextf sf nf) 
-          (Stream nexts1 ss1 ns1) (Stream nextv1 vs1 nv1)
-          (Stream nexts2 ss2 ns2) (Stream nextv2 vs2 nv2)
+combineSS (Stream nextf sf nf cf) 
+          (Stream nexts1 ss1 ns1 c1) (Stream nextv1 vs1 nv1 cv1)
+          (Stream nexts2 ss2 ns2 c2) (Stream nextv2 vs2 nv2 cv2)
   = Stream next (NothingS :*: True :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2)
                 (nv1+nv2)
+                ("combineSS" `sArgs` (cf,c1,cv1,c2,cv2))
   where
     {-# INLINE next #-}
     next (NothingS :*: f :*: sf :*: ss1 :*: vs1 :*: ss2 :*: vs2) =
@@ -113,9 +114,10 @@ combineSS (Stream nextf sf nf)
 
 appendSS :: Stream Int -> Stream a -> Stream Int -> Stream a -> Stream a
 {-# INLINE_STREAM appendSS #-}
-appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
-         (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
+appendSS (Stream nexts1 ss1 ns1 c1) (Stream nextv1 sv1 nv1 cv1)
+         (Stream nexts2 ss2 ns2 c2) (Stream nextv2 sv2 nv2 cv2)
   = Stream next (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2) (nv1 + nv2)
+                ("appendSS" `sArgs` (c1,cv1,c2,cv2))
   where
     {-# INLINE next #-}
     next (True :*: NothingS :*: ss1 :*: sv1 :*: ss2 :*: sv2)
@@ -159,8 +161,8 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
 
 foldValuesR :: (a -> b -> a) -> a -> Int -> Int -> Stream b -> Stream a
 {-# INLINE_STREAM foldValuesR #-}
-foldValuesR f z noOfSegs segSize (Stream nextv vs nv) =
-  Stream next (segSize :*: Box z :*: vs) noOfSegs
+foldValuesR f z noOfSegs segSize (Stream nextv vs nv c) =
+  Stream next (segSize :*: Box z :*: vs) noOfSegs ("foldValuesR" `sArgs` c)
   where
     {-# INLINE next #-}  
     next (0 :*: Box x :*: vs) =

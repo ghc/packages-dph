@@ -51,7 +51,7 @@ Library
   if flag(DTrace)
     CPP-Options: -DDPH_ENABLE_DTRACE
     Extra-Libraries: dph-trace
-    Extra-Lib-Dirs: /Users/rl/projects/ndp/dtrace
+    Extra-Lib-Dirs: /Users/rl/projects/ndp/ghc-inline/libraries/dph/dtrace
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
