@@ -24,6 +24,8 @@ Library
 
   Exposed: False
 
+  Extensions: BangPatterns
+
   GHC-Options: -funbox-strict-fields -haddock -fcpr-off
   if impl(ghc >= 6.9)
     GHC-Options: -Odph

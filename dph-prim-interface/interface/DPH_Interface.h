@@ -238,19 +238,19 @@ selectorToIndices2 sel
 
 packByTag :: Elt a => Array a -> Array Int -> Int -> Array a
 {-# INLINE_BACKEND packByTag #-}
-packByTag xs tags tag = fsts (filter (\p -> sndS p == tag) (zip xs tags))
+packByTag xs tags !tag = fsts (filter (\p -> sndS p == tag) (zip xs tags))
 
 pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
 {-# INLINE pick #-}
-pick xs x = map (x==) xs
+pick xs !x = map (x==) xs
 
 count :: (Elt a, Eq a) => Array a -> a -> Int
 {-# INLINE_BACKEND count #-}
-count xs x = sum (map (fromBool . (==) x) xs)
+count xs !x = sum (map (fromBool . (==) x) xs)
 
 count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
 {-# INLINE_BACKEND count_s #-}
-count_s segd xs x = sum_s segd (map (fromBool . (==) x) xs)
+count_s segd xs !x = sum_s segd (map (fromBool . (==) x) xs)
 
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
