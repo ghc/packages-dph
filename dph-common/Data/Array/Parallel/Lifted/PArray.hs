@@ -25,13 +25,10 @@ import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Lifted.Selector
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
 import GHC.Exts (Int#, Int(..), (+#), (*#))
-import SpecConstr
 
 -- |Lifted parallel arrays
 --
-{-# ANN type PArray NoSpecConstr #-}
 data PArray a = PArray Int# (PData a)
-{-# ANN type PData NoSpecConstr #-}
 data family PData a
 
 -- |Representation types
