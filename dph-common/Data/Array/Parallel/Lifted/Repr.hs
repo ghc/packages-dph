@@ -22,20 +22,12 @@ import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ((:*:)(..), fromBool)
+import Data.Array.Parallel.Base.DTrace ( traceFn, traceArg )
 
 import qualified Data.List as L
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import GHC.Word  ( Word8 )
-import Debug.Trace
 
-
-traceFn :: String -> String -> a -> a
--- traceFn fn ty x = trace (fn ++ "<" ++ ty ++ ">") x
-traceFn _ _ x = x
-
-traceArg :: Show a => String -> a -> b -> b
--- traceArg name arg x = trace ("    " ++ name ++ " = " ++ show arg) x
-traceArg _ _ x = x
 
 ---------------------
 -- Primitive types --
