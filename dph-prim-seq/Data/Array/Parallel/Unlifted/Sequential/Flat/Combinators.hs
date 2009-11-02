@@ -79,7 +79,7 @@ packU xs = fstU . filterU sndS . zipU xs
 
 -- |Array reduction proceeding from the left
 --
-foldlU :: UA a => (b -> a -> b) -> b -> UArr a -> b
+foldlU :: (UA a, Rebox b) => (b -> a -> b) -> b -> UArr a -> b
 {-# INLINE_U foldlU #-}
 foldlU f z xs = foldS f z (streamU xs)
 
@@ -168,7 +168,7 @@ unstreamScanM marr f z (Stream next s n c)
 --
 -- FIXME: Naming inconsistent with lists.
 --
-mapAccumLU :: (UA a, UA b) => (c -> a -> c :*: b) -> c -> UArr a -> UArr b
+mapAccumLU :: (UA a, UA b, Rebox c) => (c -> a -> c :*: b) -> c -> UArr a -> UArr b
 {-# INLINE_U mapAccumLU #-}
 mapAccumLU f z = unstreamU . mapAccumS f z . streamU
 

@@ -27,7 +27,7 @@ module Data.Array.Parallel.Stream.Flat.Basics (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), EitherS(..), Box(..))
+  (:*:)(..), MaybeS(..), EitherS(..), Box(..), Strict(..))
 import Data.Array.Parallel.Stream.Flat.Stream
 
 -- | Empty stream
@@ -49,14 +49,14 @@ singletonS x = Stream next True 1 (sNoArgs "singletonS")
 --
 consS :: a -> Stream a -> Stream a
 {-# INLINE_STREAM consS #-}
-consS x (Stream next s n c) = Stream next' (JustS (Box x) :*: s) (n+1) ("consS" `sArgs` c)
+consS x (Stream next s n c) = Stream next' (JustS (Strict x) :*: s) (n+1) ("consS" `sArgs` c)
   where
     {-# INLINE next' #-}
-    next' (JustS (Box x) :*: s) = Yield x (NothingS :*: s)
-    next' (NothingS      :*: s) = case next s of
-                                    Yield y s' -> Yield y (NothingS :*: s')
-                                    Skip    s' -> Skip    (NothingS :*: s')
-                                    Done       -> Done
+    next' (JustS (Strict x) :*: s) = Yield x (NothingS :*: s)
+    next' (NothingS :*: s) = case next s of
+                               Yield y s' -> Yield y (NothingS :*: s')
+                               Skip    s' -> Skip    (NothingS :*: s')
+                               Done       -> Done
 
 -- | Replication
 --
@@ -81,10 +81,10 @@ replicateEachS n (Stream next s _ c) =
       case next s of
         Done -> Done
         Skip s' -> Skip (0 :*: NothingS :*: s')
-        Yield (k :*: x) s' -> Skip (k :*: JustS (Box x) :*: s')
+        Yield (k :*: x) s' -> Skip (k :*: JustS (Strict x) :*: s')
     next' (k :*: NothingS :*: s) = Done   -- FIXME: unreachable
-    next' (k :*: JustS (Box x) :*: s) =
-      Yield x (k-1 :*: JustS (Box x) :*: s)
+    next' (k :*: JustS (Strict x) :*: s) =
+      Yield x (k-1 :*: JustS (Strict x) :*: s)
 
 -- | Repeat each element in the stream n times
 --
@@ -97,9 +97,9 @@ replicateEachRS !n (Stream next s m c)
       case next s of
         Done       -> Done
         Skip    s' -> Skip (0 :*: NothingS      :*: s')
-        Yield x s' -> Skip (n :*: JustS (Box x) :*: s')
+        Yield x s' -> Skip (n :*: JustS (Strict x) :*: s')
     next' (i :*: NothingS :*: s) = Done -- unreachable
-    next' (i :*: JustS (Box x) :*: s) = Yield x (i-1 :*: JustS (Box x) :*: s)
+    next' (i :*: JustS (Strict x) :*: s) = Yield x (i-1 :*: JustS (Strict x) :*: s)
 
 -- | Concatenation
 --

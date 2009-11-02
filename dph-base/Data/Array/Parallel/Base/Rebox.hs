@@ -14,13 +14,14 @@
 
 
 module Data.Array.Parallel.Base.Rebox (
-  Rebox(..), Box(..)
+  Rebox(..), Box(..), Strict(..)
 ) where
 
 import Data.Array.Parallel.Base.Hyperstrict
 
 import GHC.Base   (Int(..), Char(..))
 import GHC.Float  (Float(..), Double(..))
+import GHC.Word   (Word8(..))
 
 class Rebox a where
   rebox :: a -> a
@@ -69,6 +70,10 @@ instance Rebox Double where
   {-# INLINE [0] dseq #-}
   dseq = seq
 
+instance Rebox Word8 where
+  rebox = id
+  dseq = seq
+
 instance (Rebox a, Rebox b) => Rebox (a :*: b) where
   {-# INLINE [0] rebox #-}
   rebox (x :*: y) = rebox x :*: rebox y
@@ -109,4 +114,10 @@ instance Rebox (Lazy a) where
 
   {-# INLINE [0] dseq #-}
   dseq (Lazy a) x = x
+
+data Strict a = Strict a
+
+instance Rebox (Strict a) where
+  rebox = id
+  dseq = seq
 

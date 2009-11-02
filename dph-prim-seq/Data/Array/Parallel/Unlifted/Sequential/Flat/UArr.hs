@@ -69,7 +69,7 @@ infixl 9 `indexU`, `readMU`
 -- of an associated type.  All representation-dependent functions are methods
 -- of this class.
 --
-class HS e => UA e where
+class (HS e, Rebox e) => UA e where
   data UArr  e
   data MUArr e :: * -> * 
 

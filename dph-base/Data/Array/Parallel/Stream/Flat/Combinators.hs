@@ -22,7 +22,7 @@ module Data.Array.Parallel.Stream.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), Rebox(..), Box(..))
+  (:*:)(..), MaybeS(..), Rebox(..) )
 import Data.Array.Parallel.Base.DTrace
 import Data.Array.Parallel.Stream.Flat.Stream
 
@@ -56,20 +56,21 @@ filterS f (Stream next s n c) = Stream next' s n ("filterS" `sArgs` c)
 
 -- | Folding
 -- 
-foldS :: (b -> a -> b) -> b -> Stream a -> b
+foldS :: Rebox b => (b -> a -> b) -> b -> Stream a -> b
 {-# INLINE_STREAM foldS #-}
 foldS f z (Stream next s _ c) = traceLoopEntry c' $ fold z s
   where
     fold z s = case next s of
                  Done       -> traceLoopExit c' z
-                 Skip    s' -> s' `dseq` fold z s'
-                 Yield x s' -> s' `dseq` fold (f z x) s'
+                 Skip    s' -> z `dseq` s' `dseq` fold z s'
+                 Yield x s' -> let z' = f z x
+                               in s' `dseq` z' `dseq` fold z' s'
 
     c' = "foldS" `sArgs` c
 
 -- | Yield 'NothingS' if the 'Stream' is empty and fold it otherwise.
 --
-fold1MaybeS :: (a -> a -> a) -> Stream a -> MaybeS a
+fold1MaybeS :: Rebox a => (a -> a -> a) -> Stream a -> MaybeS a
 {-# INLINE_STREAM fold1MaybeS #-}
 fold1MaybeS f (Stream next s _ c) = traceLoopEntry c' $ fold0 s
   where
@@ -79,54 +80,55 @@ fold1MaybeS f (Stream next s _ c) = traceLoopEntry c' $ fold0 s
                   Yield x s' -> s' `dseq` fold1 x s'
     fold1 z s = case next s of
                   Done       -> traceLoopExit c' $ JustS z
-                  Skip    s' -> s' `dseq` fold1 z s'
-                  Yield x s' -> s' `dseq` fold1 (f z x) s'
+                  Skip    s' -> s' `dseq` z `dseq` fold1 z s'
+                  Yield x s' -> let z' = f z x
+                                in s' `dseq` z' `dseq` fold1 z' s'
 
     c' = "fold1MaybeS" `sArgs` c
 
 -- | Scanning
 --
-scanS :: (b -> a -> b) -> b -> Stream a -> Stream b
+scanS :: Rebox b => (b -> a -> b) -> b -> Stream a -> Stream b
 {-# INLINE_STREAM scanS #-}
-scanS f z (Stream next s n c) = Stream next' (Box z :*: s) n ("scanS" `sArgs` c)
+scanS f z (Stream next s n c) = Stream next' (z :*: s) n ("scanS" `sArgs` c)
   where
     {-# INLINE next' #-}
-    next' (Box z :*: s) = case next s of
+    next' (z :*: s) = case next s of
                         Done -> Done
-                        Skip s' -> Skip (Box z :*: s')
-                        Yield x s'  -> Yield z (Box (f z x) :*: s')
+                        Skip s' -> Skip (z :*: s')
+                        Yield x s'  -> Yield z (f z x :*: s')
 
 -- | Scan over a non-empty 'Stream'
 --
-scan1S :: (a -> a -> a) -> Stream a -> Stream a
+scan1S :: Rebox a => (a -> a -> a) -> Stream a -> Stream a
 {-# INLINE_STREAM scan1S #-}
 scan1S f (Stream next s n c) = Stream next' (NothingS :*: s) n ("scan1S" `sArgs` c)
   where
     {-# INLINE next' #-}
     next' (NothingS :*: s) =
       case next s of
-        Yield x s' -> Yield x (JustS (Box x) :*: s')
+        Yield x s' -> Yield x (JustS x :*: s')
         Skip    s' -> Skip    (NothingS :*: s')
         Done       -> Done
 
-    next' (JustS (Box z) :*: s) =
+    next' (JustS z :*: s) =
       case next s of
         Yield x s' -> let y = f z x
                       in
-                      Yield y (JustS (Box y) :*: s')
-        Skip    s' -> Skip (JustS (Box z) :*: s)
+                      Yield y (JustS y :*: s')
+        Skip    s' -> Skip (JustS z :*: s)
         Done       -> Done
 
-mapAccumS :: (acc -> a -> acc :*: b) -> acc -> Stream a -> Stream b
+mapAccumS :: Rebox acc => (acc -> a -> acc :*: b) -> acc -> Stream a -> Stream b
 {-# INLINE_STREAM mapAccumS #-}
-mapAccumS f acc (Stream step s n c) = Stream step' (s :*: Box acc) n ("mapAccumS" `sArgs` c)
+mapAccumS f acc (Stream step s n c) = Stream step' (s :*: acc) n ("mapAccumS" `sArgs` c)
   where
-    step' (s :*: Box acc) = case step s of
+    step' (s :*: acc) = case step s of
                           Done -> Done
-                          Skip s' -> Skip (s' :*: Box acc)
+                          Skip s' -> Skip (s' :*: acc)
                           Yield x s' -> let acc' :*: y = f acc x
                                         in
-                                        Yield y (s' :*: Box acc')
+                                        Yield y (s' :*: acc')
 
 
 combineS:: Stream Bool -> Stream a -> Stream a -> Stream a

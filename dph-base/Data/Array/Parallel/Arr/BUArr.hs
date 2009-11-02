@@ -129,7 +129,7 @@ lengthMBU (MBUArr n _) = n
 
 
 -- | Class of elements that can be stored in unboxed arrays
-class HS e => UAE e where
+class (HS e, Rebox e) => UAE e where
   -- | Compute the size of an unboxed array with @n@ elements. The second
   -- argument is just for type inference and will not be inspected.
   --
@@ -485,7 +485,7 @@ mapBU f = unstreamBU . mapS f . streamBU
 
 -- |Reduce an unboxed array
 --
-foldlBU :: UAE b => (a -> b -> a) -> a -> BUArr b -> a
+foldlBU :: (Rebox a, UAE b) => (a -> b -> a) -> a -> BUArr b -> a
 {-# INLINE foldlBU #-}
 foldlBU f z = foldS f z . streamBU
 
