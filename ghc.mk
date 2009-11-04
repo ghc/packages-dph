@@ -11,7 +11,7 @@ define dph_create
 
 ifneq "$(BINDIST)" "YES"
 ifneq "$(CLEANING)" "YES"
-$(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-common/ghc.mk $(DPH_DIR)/dph-common/GNUmakefile
+$(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile $(DPH_DIR)/dph-$1/dph-$1.cabal: $(DPH_DIR)/dph-common/ghc.mk $(DPH_DIR)/dph-common/GNUmakefile $(DPH_DIR)/dph-common/dph-common.cabal
 	rm -rf $(DPH_DIR)/dph-$1 $(DPH_DIR)/dph-$1.tmp
 	mkdir $(DPH_DIR)/dph-$1.tmp
 	cp $(DPH_DIR)/dph-common/Setup.hs $(DPH_DIR)/dph-$1.tmp/Setup.hs
