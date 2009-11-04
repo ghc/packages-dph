@@ -10,7 +10,7 @@ DPH_PACKAGES = $(DPH_BASE_PACKAGES) \
 define dph_create
 
 ifneq "$(BINDIST)" "YES"
-
+ifneq "$(CLEANING)" "YES"
 $(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-common/ghc.mk $(DPH_DIR)/dph-common/GNUmakefile
 	rm -rf $(DPH_DIR)/dph-$1 $(DPH_DIR)/dph-$1.tmp
 	mkdir $(DPH_DIR)/dph-$1.tmp
@@ -20,7 +20,7 @@ $(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-common/g
 	sed "s/common/$1/g" $(DPH_DIR)/dph-common/ghc.mk > $(DPH_DIR)/dph-$1.tmp/ghc.mk
 	sed "s/common/$1/g" $(DPH_DIR)/dph-common/GNUmakefile > $(DPH_DIR)/dph-$1.tmp/GNUmakefile
 	mv $(DPH_DIR)/dph-$1.tmp $(DPH_DIR)/dph-$1
-
+endif
 endif
 
 endef
@@ -38,8 +38,10 @@ clean_$(DPH_DIR) : $(foreach pkg, $(DPH_BASE_PACKAGES), clean_$(DPH_DIR)/$(pkg))
 distclean : clean_$(DPH_DIR)
 
 define dph_package
+ifneq "$(CLEANING)" "YES"
 .PHONY: $(DPH_DIR)/$1
 $(DPH_DIR)/$1 : all_$(DPH_DIR)/$1
+endif
 endef
 
 $(foreach pkg, $(DPH_PACKAGES), $(eval $(call dph_package,$(pkg))))
