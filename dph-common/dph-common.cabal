@@ -30,6 +30,7 @@ Library
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Unboxed
         Data.Array.Parallel.Lifted.Scalar
+        Data.Array.Parallel.Lifted.TH.Repr
         Data.Array.Parallel.Lifted.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Instances
@@ -54,7 +55,7 @@ Library
   else
     GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
 
-  Build-Depends:  base >= 3 && < 5, array, random, ghc
+  Build-Depends:  base >= 3 && < 5, array, random, ghc, template-haskell
   if impl(ghc >= 6.9)
     Build-Depends: ghc-prim
   Build-Depends: dph-base
