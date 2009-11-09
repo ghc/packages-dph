@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types #-}
 module Data.Array.Parallel.Lifted.TH.Repr (
-  primInstances, tupleInstances
+  primInstances, tupleInstances, voidPRInstance
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -258,6 +258,27 @@ primitiveMethod ty meth avs res
     result UnitVal   e = varE 'seq `appEs` [e, varE '()]
     result OtherVal  e = e
 -}
+
+-- ----
+-- Void
+-- ----
+
+voidPRInstance :: Name -> Name -> Name -> Q [Dec]
+voidPRInstance ty void pvoid
+  = do
+      methods <- genPR_methods (voidMethod void pvoid)
+      return [InstanceD []
+                        (ConT ''PR `AppT` ConT ty)
+                        methods]
+
+voidMethod :: Name -> Name -> Name -> [ArgVal] -> Val -> DecQ
+voidMethod void pvoid meth avs res
+  = simpleFunD (mkName $ nameBase meth) (map (const wildP) avs)
+  $ result res
+  where
+    result ScalarVal = varE void
+    result PDataVal  = varE pvoid
+    result UnitVal   = conE '()
 
 -- ------
 -- Tuples

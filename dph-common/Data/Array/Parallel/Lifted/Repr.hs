@@ -63,51 +63,7 @@ data instance PData Void
 pvoid :: PData Void
 pvoid = error "Data.Array.Parallel.PData Void"
 
-instance PR Void where
-  {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR" "Void" $ pvoid
-
-  {-# INLINE replicatePR #-}
-  replicatePR _ _ = traceFn "replicatePR" "Void" $ pvoid
-
-  {-# INLINE replicatelPR #-}
-  replicatelPR segd _ = traceFn "replicatelPR" "Void" $ pvoid
-
-  {-# INLINE repeatPR #-}
-  repeatPR _ _ _ = traceFn "repeatPR" "Void" $ pvoid
-
-  {-# INLINE repeatcPR #-}
-  repeatcPR _ _ _ _ = traceFn "repeatcPR" "Void" $ pvoid
-
-  {-# INLINE indexPR #-}
-  indexPR _ _ = traceFn "indexPR" "Void" $ void
-
-  {-# INLINE extractPR #-}
-  extractPR  _ _ _ = traceFn "extractPR" "Void" $ pvoid
-
-  {-# INLINE bpermutePR #-}
-  bpermutePR _ _ _ = traceFn "bpermutePR" "Void" $ pvoid
-
-  {-# INLINE appPR #-}
-  appPR  _ _ = traceFn "appPR" "Void" $ pvoid
-
-  {-# INLINE applPR #-}
-  applPR _ _ _ _ = traceFn "applPR" "Void" $ pvoid
-
-  {-# INLINE packPR #-}
-  packPR _ _ _ = traceFn "packPR" "Void" $ pvoid
-
-  {-# INLINE packByTagPR #-}
-  packByTagPR _ _ _ _ = traceFn "packByTagPR" "Void" $ pvoid
-
-  {-# INLINE combine2PR #-}
-  combine2PR _ _ _ _ = traceFn "combine2PR" "Void" $ pvoid
-
-  {-# INLINE fromListPR #-}
-  fromListPR _ _ = pvoid
-
-  {-# INLINE nfPR #-}
-  nfPR _ = ()
+$(voidPRInstance ''Void 'void 'pvoid)
 
 ----------
 -- Unit --
