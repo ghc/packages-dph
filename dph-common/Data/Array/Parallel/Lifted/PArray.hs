@@ -16,11 +16,11 @@ module Data.Array.Parallel.Lifted.PArray (
 
   PRepr, PR(..),
 
-  Prim(..),
-  replicatePRPrim, replicatelPRPrim, repeatPRPrim, repeatcPRPrim, emptyPRPrim,
-  indexPRPrim, extractPRPrim, bpermutePRPrim, appPRPrim, applPRPrim,
-  packPRPrim, packByTagPRPrim, combine2PRPrim, fromListPRPrim, fromListPRPrim,
-  nfPRPrim,
+  Scalar(..),
+  replicatePRScalar, replicatelPRScalar, repeatPRScalar, repeatcPRScalar, emptyPRScalar,
+  indexPRScalar, extractPRScalar, bpermutePRScalar, appPRScalar, applPRScalar,
+  packPRScalar, packByTagPRScalar, combine2PRScalar, fromListPRScalar, fromListPRScalar,
+  nfPRScalar,
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -270,83 +270,83 @@ nfPA :: PA a => PArray a -> ()
 nfPA (PArray _ xs) = nfPD xs
 
 
-class U.Elt a => Prim a where
-  fromPrimPData :: PData a -> U.Array a
-  toPrimPData   :: U.Array a -> PData a
+class U.Elt a => Scalar a where
+  fromScalarPData :: PData a -> U.Array a
+  toScalarPData   :: U.Array a -> PData a
 
-emptyPRPrim :: Prim a => T_emptyPR a
-{-# INLINE emptyPRPrim #-}
-emptyPRPrim = toPrimPData U.empty
+emptyPRScalar :: Scalar a => T_emptyPR a
+{-# INLINE emptyPRScalar #-}
+emptyPRScalar = toScalarPData U.empty
 
-replicatePRPrim :: Prim a => T_replicatePR a
-{-# INLINE replicatePRPrim #-}
-replicatePRPrim n# x = toPrimPData (U.replicate (I# n#) x)
+replicatePRScalar :: Scalar a => T_replicatePR a
+{-# INLINE replicatePRScalar #-}
+replicatePRScalar n# x = toScalarPData (U.replicate (I# n#) x)
 
-replicatelPRPrim :: Prim a => T_replicatelPR a
-{-# INLINE replicatelPRPrim #-}
-replicatelPRPrim segd xs = toPrimPData
+replicatelPRScalar :: Scalar a => T_replicatelPR a
+{-# INLINE replicatelPRScalar #-}
+replicatelPRScalar segd xs = toScalarPData
                          $ U.replicate_s segd 
-                         $ fromPrimPData xs
+                         $ fromScalarPData xs
 
-repeatPRPrim :: Prim a => T_repeatPR a
-{-# INLINE repeatPRPrim #-}
-repeatPRPrim n# len# xs = toPrimPData
+repeatPRScalar :: Scalar a => T_repeatPR a
+{-# INLINE repeatPRScalar #-}
+repeatPRScalar n# len# xs = toScalarPData
                         $ U.repeat (I# n#) (I# len#)
-                        $ fromPrimPData xs
+                        $ fromScalarPData xs
 
-repeatcPRPrim :: Prim a => T_repeatcPR a
-{-# INLINE repeatcPRPrim #-}
-repeatcPRPrim n# ns segd xs = toPrimPData
+repeatcPRScalar :: Scalar a => T_repeatcPR a
+{-# INLINE repeatcPRScalar #-}
+repeatcPRScalar n# ns segd xs = toScalarPData
                             $ U.repeat_c (I# n#) ns segd
-                            $ fromPrimPData xs
+                            $ fromScalarPData xs
 
-indexPRPrim :: Prim a => T_indexPR a
-{-# INLINE indexPRPrim #-}
-indexPRPrim xs i# = fromPrimPData xs U.!: I# i#
+indexPRScalar :: Scalar a => T_indexPR a
+{-# INLINE indexPRScalar #-}
+indexPRScalar xs i# = fromScalarPData xs U.!: I# i#
 
-extractPRPrim :: Prim a => T_extractPR a
-{-# INLINE extractPRPrim #-}
-extractPRPrim xs i# n# = toPrimPData
-                       $ U.extract (fromPrimPData xs) (I# i#) (I# n#)
+extractPRScalar :: Scalar a => T_extractPR a
+{-# INLINE extractPRScalar #-}
+extractPRScalar xs i# n# = toScalarPData
+                       $ U.extract (fromScalarPData xs) (I# i#) (I# n#)
 
-bpermutePRPrim :: Prim a => T_bpermutePR a
-{-# INLINE bpermutePRPrim #-}
-bpermutePRPrim xs _ is = toPrimPData
-                       $ U.bpermute (fromPrimPData xs) is
+bpermutePRScalar :: Scalar a => T_bpermutePR a
+{-# INLINE bpermutePRScalar #-}
+bpermutePRScalar xs _ is = toScalarPData
+                       $ U.bpermute (fromScalarPData xs) is
 
-appPRPrim :: Prim a => T_appPR a
-{-# INLINE appPRPrim #-}
-appPRPrim xs ys = toPrimPData
-                $ fromPrimPData xs U.+:+ fromPrimPData ys
+appPRScalar :: Scalar a => T_appPR a
+{-# INLINE appPRScalar #-}
+appPRScalar xs ys = toScalarPData
+                $ fromScalarPData xs U.+:+ fromScalarPData ys
 
-applPRPrim :: Prim a => T_applPR a
-{-# INLINE applPRPrim #-}
-applPRPrim xsegd xs ysegd ys = toPrimPData
-                             $ U.append_s xsegd (fromPrimPData xs)
-                                          ysegd (fromPrimPData ys)
+applPRScalar :: Scalar a => T_applPR a
+{-# INLINE applPRScalar #-}
+applPRScalar xsegd xs ysegd ys = toScalarPData
+                             $ U.append_s xsegd (fromScalarPData xs)
+                                          ysegd (fromScalarPData ys)
                         
-packPRPrim :: Prim a => T_packPR a
-{-# INLINE packPRPrim #-}
-packPRPrim xs _ bs = toPrimPData
-                   $ U.pack (fromPrimPData xs) bs
+packPRScalar :: Scalar a => T_packPR a
+{-# INLINE packPRScalar #-}
+packPRScalar xs _ bs = toScalarPData
+                   $ U.pack (fromScalarPData xs) bs
 
-packByTagPRPrim :: Prim a => T_packByTagPR a
-{-# INLINE packByTagPRPrim #-}
-packByTagPRPrim xs _ tags t# = toPrimPData
-                             $ U.packByTag (fromPrimPData xs) tags (I# t#)
+packByTagPRScalar :: Scalar a => T_packByTagPR a
+{-# INLINE packByTagPRScalar #-}
+packByTagPRScalar xs _ tags t# = toScalarPData
+                             $ U.packByTag (fromScalarPData xs) tags (I# t#)
 
-combine2PRPrim :: Prim a => T_combine2PR a
-{-# INLINE combine2PRPrim #-}
-combine2PRPrim _ sel xs ys = toPrimPData
+combine2PRScalar :: Scalar a => T_combine2PR a
+{-# INLINE combine2PRScalar #-}
+combine2PRScalar _ sel xs ys = toScalarPData
                            $ U.combine (U.pick (tagsSel2 sel) 0)
-                                       (fromPrimPData xs)
-                                       (fromPrimPData ys)
+                                       (fromScalarPData xs)
+                                       (fromScalarPData ys)
 
-fromListPRPrim :: Prim a => T_fromListPR a
-{-# INLINE fromListPRPrim #-}
-fromListPRPrim _ xs = toPrimPData (U.fromList xs)
+fromListPRScalar :: Scalar a => T_fromListPR a
+{-# INLINE fromListPRScalar #-}
+fromListPRScalar _ xs = toScalarPData (U.fromList xs)
 
-nfPRPrim :: Prim a => T_nfPR a
-{-# INLINE nfPRPrim #-}
-nfPRPrim xs = fromPrimPData xs `seq` ()
+nfPRScalar :: Scalar a => T_nfPR a
+{-# INLINE nfPRScalar #-}
+nfPRScalar xs = fromScalarPData xs `seq` ()
 

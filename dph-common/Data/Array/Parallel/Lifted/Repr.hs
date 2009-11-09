@@ -31,21 +31,21 @@ import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import GHC.Word  ( Word8 )
 
 
----------------------
--- Primitive types --
+------------------
+-- Scalar types --
 
 -- Generate
 --
 -- newtype instance PData Int = PInt (U.Array Int)
 --
--- instance Prim Int where
---   fromPrimPData (PInt xs) = xs
---   toPrimPData = PInt
+-- instance Scalar Int where
+--   fromScalarPData (PInt xs) = xs
+--   toScalarPData = PInt
 --
 -- instance PR Int where
---   <forward to *PRPrim methods>
+--   <forward to *PRScalar methods>
 
-$(primInstances [''Int, ''Double, ''Word8])
+$(scalarInstances [''Int, ''Double, ''Word8])
 
 ----------
 -- Void --

@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types #-}
 module Data.Array.Parallel.Lifted.TH.Repr (
-  primInstances, tupleInstances, voidPRInstance, unitPRInstance, wrapPRInstance
+  scalarInstances, tupleInstances,
+  voidPRInstance, unitPRInstance, wrapPRInstance
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -187,55 +188,55 @@ nameGens =
   ]
 
 -- ---------------
--- Primitive types
+-- Scalar types
 -- ---------------
 
-primInstances :: [Name] -> Q [Dec]
-primInstances tys
+scalarInstances :: [Name] -> Q [Dec]
+scalarInstances tys
   = do
-      pdatas <- mapM instance_PData_prim tys
-      prims  <- mapM instance_Prim_prim tys
-      prs    <- mapM instance_PR_prim tys
-      return $ pdatas ++ prims ++ prs
+      pdatas <- mapM instance_PData_scalar tys
+      scalars  <- mapM instance_Scalar_scalar tys
+      prs    <- mapM instance_PR_scalar tys
+      return $ pdatas ++ scalars ++ prs
 
-pdataPrimCon :: Name -> Name
-pdataPrimCon n = mkName ("P" ++ nameBase n)
+pdataScalarCon :: Name -> Name
+pdataScalarCon n = mkName ("P" ++ nameBase n)
 
-instance_PData_prim :: Name -> DecQ
-instance_PData_prim tycon
-  = newtype_instance_PData tycon [] (pdataPrimCon tycon)
+instance_PData_scalar :: Name -> DecQ
+instance_PData_scalar tycon
+  = newtype_instance_PData tycon [] (pdataScalarCon tycon)
                                     (conT ''U.Array `appT` conT tycon)
 
-instance_Prim_prim :: Name -> DecQ
-instance_Prim_prim ty
+instance_Scalar_scalar :: Name -> DecQ
+instance_Scalar_scalar ty
   = instanceD (cxt [])
-              (conT ''Prim `appT` conT ty)
+              (conT ''Scalar `appT` conT ty)
               (map (inlineD . mkName . fst) methods ++ map snd methods)
   where
-    pcon = pdataPrimCon ty
+    pcon = pdataScalarCon ty
     xs   = mkName "xs"
 
-    methods = [("fromPrimPData", mk_fromPrimPData),
-               ("toPrimPData",   mk_toPrimPData)]
+    methods = [("fromScalarPData", mk_fromScalarPData),
+               ("toScalarPData",   mk_toScalarPData)]
 
-    mk_fromPrimPData = simpleFunD (mkName "fromPrimPData")
+    mk_fromScalarPData = simpleFunD (mkName "fromScalarPData")
                                   [conP pcon [varP xs]]
                                   (varE xs)
-    mk_toPrimPData = simpleFunD (mkName "toPrimPData") [] (conE pcon)
+    mk_toScalarPData = simpleFunD (mkName "toScalarPData") [] (conE pcon)
 
-instance_PR_prim :: Name -> DecQ
-instance_PR_prim ty
+instance_PR_scalar :: Name -> DecQ
+instance_PR_scalar ty
   = do
-      methods <- genPR_methods (primitiveMethod ty)
+      methods <- genPR_methods (scalarMethod ty)
       return $ InstanceD []
                          (ConT ''PR `AppT` ConT ty)
                          methods
 
-primitiveMethod :: Name -> Name -> [ArgVal] -> Val -> DecQ
-primitiveMethod ty meth avs res
+scalarMethod :: Name -> Name -> [ArgVal] -> Val -> DecQ
+scalarMethod ty meth avs res
   = simpleFunD (mkName $ nameBase meth) []
   $ varE
-  $ mkName (nameBase meth ++ "Prim")
+  $ mkName (nameBase meth ++ "Scalar")
 
 {-
   = simpleFunD (mkName $ nameBase meth) pats

@@ -19,17 +19,13 @@ import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS,
 import GHC.Exts ( Int(..), (-#) )
 import GHC.Word ( Word8 )
 
-class (U.Elt a, PA a)  => Scalar a where
-  fromUArrPD :: U.Array a -> PData a
-  toUArrPD   :: PData a -> U.Array a
-
 fromUArrPA :: Scalar a => Int -> U.Array a -> PArray a
 {-# INLINE fromUArrPA #-}
-fromUArrPA (I# n#) xs = PArray n# (fromUArrPD xs)
+fromUArrPA (I# n#) xs = PArray n# (toScalarPData xs)
 
 toUArrPA :: Scalar a => PArray a -> U.Array a
 {-# INLINE toUArrPA #-}
-toUArrPA (PArray _ xs) = toUArrPD xs
+toUArrPA (PArray _ xs) = fromScalarPData xs
 
 prim_lengthPA :: Scalar a => PArray a -> Int
 {-# INLINE prim_lengthPA #-}
@@ -108,29 +104,19 @@ scalar_fold1sIndex f xss = fromUArrPA n
 
     segd = segdPA# xss
 
-instance Scalar Int where
-  fromUArrPD xs        = PInt xs
-  toUArrPD   (PInt xs) = xs
-
-instance Scalar Word8 where
-  fromUArrPD  xs         = PWord8 xs
-  toUArrPD   (PWord8 xs) = xs
-
-instance Scalar Double where
-  fromUArrPD  xs          = PDouble xs
-  toUArrPD   (PDouble xs) = xs
-
+-- FIXME: hack!
+--
 instance Scalar Bool where
-  {-# INLINE fromUArrPD #-}
-  fromUArrPD bs
+  {-# INLINE toScalarPData #-}
+  toScalarPData bs
     = PBool (tagsToSel2 (U.map fromBool bs))
 
-  {-# INLINE toUArrPD #-}
-  toUArrPD (PBool sel) = U.map toBool (tagsSel2 sel)
+  {-# INLINE fromScalarPData #-}
+  fromScalarPData (PBool sel) = U.map toBool (tagsSel2 sel)
 
 fromUArrPA_2 :: (Scalar a, Scalar b) => Int -> U.Array (a :*: b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}
-fromUArrPA_2 (I# n#) ps = PArray n# (P_2 (fromUArrPD xs) (fromUArrPD  ys))
+fromUArrPA_2 (I# n#) ps = PArray n# (P_2 (toScalarPData xs) (toScalarPData  ys))
   where
     xs :*: ys = U.unzip ps
 
@@ -141,9 +127,9 @@ fromUArrPA_2' ps = fromUArrPA_2 (U.length ps) ps
 fromUArrPA_3 :: (Scalar a, Scalar b, Scalar c)
              => Int -> U.Array (a :*: b :*: c) -> PArray (a,b,c)
 {-# INLINE fromUArrPA_3 #-}
-fromUArrPA_3 (I# n#) ps = PArray n# (P_3 (fromUArrPD xs)
-                                         (fromUArrPD ys)
-                                         (fromUArrPD zs))
+fromUArrPA_3 (I# n#) ps = PArray n# (P_3 (toScalarPData xs)
+                                         (toScalarPData ys)
+                                         (toScalarPData zs))
   where
     xs :*: ys :*: zs = U.unzip3 ps
 
