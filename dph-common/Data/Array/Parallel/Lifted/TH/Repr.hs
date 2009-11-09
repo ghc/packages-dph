@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types #-}
 module Data.Array.Parallel.Lifted.TH.Repr (
-  primInstances, tupleInstances, voidPRInstance, unitPRInstance
+  primInstances, tupleInstances, voidPRInstance, unitPRInstance, wrapPRInstance
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -126,15 +126,16 @@ data Arg = RecArg   [ExpQ] [ExpQ]
 
 data Gen = Gen {
              recursiveCalls :: Int
+           , recursiveName  :: Name -> Name
            , split          :: ArgVal -> (Split, Arg)
-           , join           :: Name -> [Arg] -> Val -> [ExpQ] -> ExpQ
+           , join           :: Val -> [ExpQ] -> ExpQ
            }
 
 recursiveMethod :: Gen -> Name -> [ArgVal] -> Val -> DecQ
-recursiveMethod gen meth avs res
-  = simpleFunD (mkName $ nameBase meth) (map pat splits)
+recursiveMethod gen name avs res
+  = simpleFunD (mkName $ nameBase name) (map pat splits)
   $ foldr mk_case
-    (join gen meth args res
+    (join gen res
      . recurse (recursiveCalls gen)
      . trans
      $ map expand args)
@@ -161,8 +162,10 @@ recursiveMethod gen meth avs res
     trans (xs : yss) = zipWith (:) xs (trans yss)
 
     recurse 0 _ = []
-    recurse n [] = replicate n (varE meth)
-    recurse n args = [varE meth `appEs` es| es <- take n args]
+    recurse n [] = replicate n (varE rec_name)
+    recurse n args = [varE rec_name `appEs` es| es <- take n args]
+
+    rec_name = recursiveName gen name
 
 nameGens =
   [
@@ -314,7 +317,49 @@ unitMethod punit meth avs res
     seq_val Nothing  e = e
     seq_val (Just f) e = f e
 
+-- ----
+-- Wrap
+-- ----
 
+wrapPRInstance :: Name -> Name -> Name -> Name -> Q [Dec]
+wrapPRInstance ty wrap unwrap pwrap
+  = do
+      methods <- genPR_methods (recursiveMethod (wrapGen wrap unwrap pwrap))
+      return [InstanceD [ClassP ''PA [a]]
+                        (ConT ''PR `AppT` (ConT ty `AppT` a))
+                        methods]
+  where
+    a = VarT (mkName "a")
+
+wrapGen :: Name -> Name -> Name -> Gen
+wrapGen wrap unwrap pwrap = Gen { recursiveCalls = 1
+                                , recursiveName  = recursiveName
+                                , split          = split
+                                , join           = join }
+  where
+    recursiveName = mkName . replace . nameBase
+      where
+        replace s = init s ++ "D"
+
+    split (ScalarVal, gen)
+      = (PatSplit (conP wrap [varP x]), RecArg [] [varE x])
+      where
+        x = mkName (gen "x")
+
+    split (PDataVal, gen)
+      = (PatSplit (conP pwrap [varP xs]), RecArg [] [varE xs])
+      where
+        xs = mkName (gen "xs")
+
+    split (ListVal, gen)
+      = (PatSplit (varP xs),
+         RecArg [] [varE 'map `appEs` [varE unwrap, varE xs]])
+      where
+        xs = mkName (gen "xs")
+
+    join ScalarVal [x]  = conE wrap `appE` x
+    join PDataVal  [xs] = conE pwrap `appE` xs
+    join UnitVal   [x]  = x
 
 -- ------
 -- Tuples
@@ -350,6 +395,7 @@ instance_PR_tup arity
 
 tupGen :: Int -> Gen
 tupGen arity = Gen { recursiveCalls = arity
+                   , recursiveName  = id
                    , split          = split
                    , join           = join }
   where
@@ -375,9 +421,9 @@ tupGen arity = Gen { recursiveCalls = arity
         unzip | arity == 2 = mkName "unzip"
               | otherwise  = mkName ("unzip" ++ show arity)
 
-    join _ _ ScalarVal xs = tupE xs
-    join _ _ PDataVal  xs = conE (pdataTupCon arity) `appEs` xs
-    join _ _ UnitVal   xs = foldl1 (\x y -> varE 'seq `appEs` [x,y]) xs
+    join ScalarVal xs = tupE xs
+    join PDataVal  xs = conE (pdataTupCon arity) `appEs` xs
+    join UnitVal   xs = foldl1 (\x y -> varE 'seq `appEs` [x,y]) xs
 
     vs  = take arity [[c] | c <- ['a' ..]]
     pvs = take arity [c : "s" | c <- ['a' ..]]

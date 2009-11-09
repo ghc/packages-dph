@@ -82,53 +82,7 @@ newtype Wrap a = Wrap { unWrap :: a }
 
 newtype instance PData (Wrap a) = PWrap (PData a)
 
-instance PA a => PR (Wrap a) where
-  {-# INLINE emptyPR #-}
-  emptyPR = PWrap emptyPD
-
-  {-# INLINE replicatePR #-}
-  replicatePR n# (Wrap x) = PWrap (replicatePD n# x)
-
-  {-# INLINE replicatelPR #-}
-  replicatelPR segd (PWrap xs) = PWrap (replicatelPD segd xs)
-
-  {-# INLINE repeatPR #-}
-  repeatPR m# n# (PWrap xs) = PWrap (repeatPD m# n# xs)
-
-  {-# INLINE repeatcPR #-}
-  repeatcPR n# ns segd (PWrap xs) = PWrap (repeatcPD n# ns segd xs)
-
-  {-# INLINE indexPR #-}
-  indexPR (PWrap xs) i# = Wrap (indexPD xs i#)
-
-  {-# INLINE extractPR #-}
-  extractPR (PWrap xs) i# n# = PWrap (extractPD xs i# n#)
-
-  {-# INLINE bpermutePR #-}
-  bpermutePR (PWrap xs) n# is = PWrap (bpermutePD xs n# is)
-
-  {-# INLINE appPR #-}
-  appPR (PWrap xs) (PWrap ys) = PWrap (appPD xs ys)
-
-  {-# INLINE applPR #-}
-  applPR xsegd (PWrap xs) ysegd (PWrap ys)
-    = PWrap (applPD xsegd xs ysegd ys)
-
-  {-# INLINE packPR #-}
-  packPR (PWrap xs) n# bs = PWrap (packPD xs n# bs)
-
-  {-# INLINE packByTagPR #-}
-  packByTagPR (PWrap xs) n# tags t# = PWrap (packByTagPD xs n# tags t#)
-
-  {-# INLINE combine2PR #-}
-  combine2PR n# sel (PWrap xs) (PWrap ys)
-    = PWrap (combine2PD n# sel xs ys)
-
-  {-# INLINE fromListPR #-}
-  fromListPR n# xs = PWrap (fromListPD n# (map unWrap xs))
-
-  {-# INLINE nfPR #-}
-  nfPR (PWrap xs) = nfPD xs
+$(wrapPRInstance ''Wrap 'Wrap 'unWrap 'PWrap)
 
 ------------
 -- Tuples --
