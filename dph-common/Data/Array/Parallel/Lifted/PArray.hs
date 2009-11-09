@@ -14,11 +14,13 @@ module Data.Array.Parallel.Lifted.PArray (
   indexPD, extractPD, bpermutePD, appPD, applPD,
   packPD, packByTagPD, combine2PD, fromListPD, fromListPD, nfPD,
 
-  PRepr, PR(..), -- mkPR, mkReprPA,
+  PRepr, PR(..),
 
-  T_replicatePR, T_replicatelPR, T_repeatPR, T_repeatcPR, T_emptyPR,
-  T_indexPR, T_extractPR, T_bpermutePR, T_appPR, T_applPR,
-  T_packPR, T_packByTagPR, T_combine2PR, T_fromListPR, T_fromListPR, T_nfPR
+  Prim(..),
+  replicatePRPrim, replicatelPRPrim, repeatPRPrim, repeatcPRPrim, emptyPRPrim,
+  indexPRPrim, extractPRPrim, bpermutePRPrim, appPRPrim, applPRPrim,
+  packPRPrim, packByTagPRPrim, combine2PRPrim, fromListPRPrim, fromListPRPrim,
+  nfPRPrim,
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -267,33 +269,84 @@ nfPA :: PA a => PArray a -> ()
 {-# INLINE nfPA #-}
 nfPA (PArray _ xs) = nfPD xs
 
-{-
-mkPR :: PA a => PR a
-{-# INLINE mkPR #-}
-mkPR pa = PR {
-            emptyPR      = emptyPD pa
-          , replicatePR  = replicatePD pa
-          , replicatelPR = replicatelPD pa
-          , repeatPR     = repeatPD pa
-          , repeatcPR    = repeatcPD pa
-          , indexPR      = indexPD pa
-          , bpermutePR   = bpermutePD pa
-          , appPR        = appPD pa
-          , applPR       = applPD pa
-          , packPR       = packPD pa
-          , combine2PR   = combine2PD pa
-          , fromListPR   = fromListPD pa
-          , nfPR         = nfPD pa
-          }
 
-mkReprPA :: (a ~ PRepr a) => PR a -> PA a
-{-# INLINE mkReprPA #-}
-mkReprPA pr = PA {
-                toPRepr      = id
-              , fromPRepr    = id
-              , toArrPRepr   = id
-              , fromArrPRepr = id
-              , dictPRepr    = pr
-              }
--}
+class U.Elt a => Prim a where
+  fromPrimPData :: PData a -> U.Array a
+  toPrimPData   :: U.Array a -> PData a
+
+emptyPRPrim :: Prim a => T_emptyPR a
+{-# INLINE emptyPRPrim #-}
+emptyPRPrim = toPrimPData U.empty
+
+replicatePRPrim :: Prim a => T_replicatePR a
+{-# INLINE replicatePRPrim #-}
+replicatePRPrim n# x = toPrimPData (U.replicate (I# n#) x)
+
+replicatelPRPrim :: Prim a => T_replicatelPR a
+{-# INLINE replicatelPRPrim #-}
+replicatelPRPrim segd xs = toPrimPData
+                         $ U.replicate_s segd 
+                         $ fromPrimPData xs
+
+repeatPRPrim :: Prim a => T_repeatPR a
+{-# INLINE repeatPRPrim #-}
+repeatPRPrim n# len# xs = toPrimPData
+                        $ U.repeat (I# n#) (I# len#)
+                        $ fromPrimPData xs
+
+repeatcPRPrim :: Prim a => T_repeatcPR a
+{-# INLINE repeatcPRPrim #-}
+repeatcPRPrim n# ns segd xs = toPrimPData
+                            $ U.repeat_c (I# n#) ns segd
+                            $ fromPrimPData xs
+
+indexPRPrim :: Prim a => T_indexPR a
+{-# INLINE indexPRPrim #-}
+indexPRPrim xs i# = fromPrimPData xs U.!: I# i#
+
+extractPRPrim :: Prim a => T_extractPR a
+{-# INLINE extractPRPrim #-}
+extractPRPrim xs i# n# = toPrimPData
+                       $ U.extract (fromPrimPData xs) (I# i#) (I# n#)
+
+bpermutePRPrim :: Prim a => T_bpermutePR a
+{-# INLINE bpermutePRPrim #-}
+bpermutePRPrim xs _ is = toPrimPData
+                       $ U.bpermute (fromPrimPData xs) is
+
+appPRPrim :: Prim a => T_appPR a
+{-# INLINE appPRPrim #-}
+appPRPrim xs ys = toPrimPData
+                $ fromPrimPData xs U.+:+ fromPrimPData ys
+
+applPRPrim :: Prim a => T_applPR a
+{-# INLINE applPRPrim #-}
+applPRPrim xsegd xs ysegd ys = toPrimPData
+                             $ U.append_s xsegd (fromPrimPData xs)
+                                          ysegd (fromPrimPData ys)
+                        
+packPRPrim :: Prim a => T_packPR a
+{-# INLINE packPRPrim #-}
+packPRPrim xs _ bs = toPrimPData
+                   $ U.pack (fromPrimPData xs) bs
+
+packByTagPRPrim :: Prim a => T_packByTagPR a
+{-# INLINE packByTagPRPrim #-}
+packByTagPRPrim xs _ tags t# = toPrimPData
+                             $ U.packByTag (fromPrimPData xs) tags (I# t#)
+
+combine2PRPrim :: Prim a => T_combine2PR a
+{-# INLINE combine2PRPrim #-}
+combine2PRPrim _ sel xs ys = toPrimPData
+                           $ U.combine (U.pick (tagsSel2 sel) 0)
+                                       (fromPrimPData xs)
+                                       (fromPrimPData ys)
+
+fromListPRPrim :: Prim a => T_fromListPR a
+{-# INLINE fromListPRPrim #-}
+fromListPRPrim _ xs = toPrimPData (U.fromList xs)
+
+nfPRPrim :: Prim a => T_nfPR a
+{-# INLINE nfPRPrim #-}
+nfPRPrim xs = fromPrimPData xs `seq` ()
 
