@@ -338,9 +338,9 @@ packByTagPRScalar xs _ tags t# = toScalarPData
 combine2PRScalar :: Scalar a => T_combine2PR a
 {-# INLINE combine2PRScalar #-}
 combine2PRScalar _ sel xs ys = toScalarPData
-                           $ U.combine (U.pick (tagsSel2 sel) 0)
-                                       (fromScalarPData xs)
-                                       (fromScalarPData ys)
+                             $ U.combine2ByTag (tagsSel2 sel)
+                                               (fromScalarPData xs)
+                                               (fromScalarPData ys)
 
 fromListPRScalar :: Scalar a => T_fromListPR a
 {-# INLINE fromListPRScalar #-}
