@@ -1,15 +1,19 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types #-}
 module Data.Array.Parallel.Lifted.TH.Repr (
-  tupleInstances
+  primInstances, tupleInstances
 ) where
 
+import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Lifted.PArray
 
 import Language.Haskell.TH
 import Data.List (transpose)
 
-pdataTupCon :: Int -> Name
-pdataTupCon n = mkName ("P_" ++ show n)
+tyBndrVar :: TyVarBndr -> Name
+tyBndrVar (PlainTV  n)   = n
+tyBndrVar (KindedTV n _) = n
+
+mkAppTs = foldl AppT
 
 varTs = map varT
 appTs = foldl appT
@@ -18,6 +22,7 @@ varEs = map varE
 appEs = foldl appE
 
 patLetE pat exp body = letE [valD pat (normalB exp) []] body
+normalMatch pat exp = match pat (normalB exp) []
 
 varPs = map varP
 
@@ -35,6 +40,228 @@ instance_PData tycon tyargs con tys
                                [vanillaC con tys]
                                []
 
+newtype_instance_PData :: Name -> [Name] -> Name -> TypeQ -> DecQ
+newtype_instance_PData tycon tyargs con ty
+  = newtypeInstD (cxt []) ''PData [conT tycon `appTs` varTs tyargs]
+                                  (vanillaC con [ty])
+                                  []
+
+splitConAppTy :: Type -> Maybe (Type, [Type])
+splitConAppTy ty = collect ty []
+  where
+    collect (ConT tycon)  args = Just (ConT tycon, args)
+    collect (TupleT n)    args = Just (TupleT n,   args)
+    collect ArrowT        args = Just (ArrowT,     args)
+    collect (AppT ty arg) args = collect ty (arg:args)
+    collect _ _ = Nothing
+
+normaliseTy :: Type -> Q Type
+normaliseTy ty
+  = case splitConAppTy ty of
+      Just (ConT tycon, args)
+        -> do
+             info <- reify tycon
+             case info of
+               TyConI (TySynD _ bndrs ty)
+                 -> return $ substTy (zip (map tyBndrVar bndrs) args) ty
+               _ -> return ty
+      _ -> return ty
+
+substTy :: [(Name, Type)] -> Type -> Type
+substTy env (ForallT _ _ _) = error "DPH gen: can't substitute in forall ty"
+substTy env (VarT v)   = case lookup v env of
+                           Just ty -> ty
+                           Nothing -> VarT v
+substTy env (AppT t u) = AppT (substTy env t) (substTy env u)
+substTy env (SigT t k) = SigT (substTy env t) k
+substTy env t          = t
+
+splitFunTy :: Type -> ([Type], Type)
+splitFunTy ty = case splitConAppTy ty of
+                  Just (ArrowT, [arg, r]) -> let (args, res) = splitFunTy r
+                                             in (arg:args, res)
+                  _ -> ([], ty)
+
+data Val = ScalarVal
+         | PDataVal
+         | ListVal
+         | UnitVal
+         | OtherVal
+type NameGen = String -> String
+type ArgVal = (Val, NameGen)
+
+genPR_methods :: (Name -> [ArgVal] -> Val -> DecQ) -> Q [Dec]
+genPR_methods mk_method
+  = do
+      ClassI (ClassD _ _ _ _ decs) <- reify ''PR
+      inls <- sequence [inlineD $ mkName $ nameBase name | SigD name _ <- decs]
+      defs <- mapM gen [(name, ty) | SigD name ty <- decs]
+      return $ inls ++ defs
+  where
+    gen (name, ty)
+      = case lookup name nameGens of
+          Just gs -> do
+                       (args, res) <- methodVals ty
+                       mk_method name (zip args gs) res
+          Nothing -> error $ "DPH gen: no name generator for " ++ show name
+
+methodVals :: Type -> Q ([Val], Val)
+methodVals (ForallT (PlainTV v : _) _ ty)
+  = do
+      ty' <- normaliseTy ty
+      let (args, res) = splitFunTy ty'
+      return (map (val v) args, val v res)
+  where
+    val v (VarT n) | v == n = ScalarVal
+    val v (AppT (ConT c) (VarT n)) | c == ''PData && v == n = PDataVal
+                                   | c == ''[]    && v == n = ListVal
+    val v (ConT c) | c == ''() = UnitVal
+    val _ t = OtherVal
+
+data Split = PatSplit  PatQ
+           | CaseSplit PatQ ExpQ PatQ
+
+data Arg = RecArg   [ExpQ] [ExpQ]
+         | OtherArg ExpQ
+
+data Gen = Gen {
+             recursiveCalls :: Int
+           , split          :: ArgVal -> (Split, Arg)
+           , join           :: Name -> [Arg] -> Val -> [ExpQ] -> ExpQ
+           }
+
+recursiveMethod :: Gen -> Name -> [ArgVal] -> Val -> DecQ
+recursiveMethod gen meth avs res
+  = simpleFunD (mkName $ nameBase meth) (map pat splits)
+  $ foldr mk_case
+    (join gen meth args res
+     . recurse (recursiveCalls gen)
+     . trans
+     $ map expand args)
+    splits
+  where
+    (splits, args) = unzip (map split_arg avs)
+
+    pat (PatSplit  p)     = p
+    pat (CaseSplit p _ _) = p
+
+    split_arg (OtherVal,  g) = let v = mkName (g "")
+                               in
+                               (PatSplit (varP v), OtherArg (varE v))
+    split_arg arg = split gen arg
+
+    mk_case (PatSplit  _)           exp = exp
+    mk_case (CaseSplit _ scrut pat) exp = caseE scrut [normalMatch pat exp]
+
+    expand (RecArg _ es) = es
+    expand (OtherArg  e) = repeat e
+
+    trans [] = []
+    trans [xs] = [[x] | x <- xs]
+    trans (xs : yss) = zipWith (:) xs (trans yss)
+
+    recurse 0 _ = []
+    recurse n [] = replicate n (varE meth)
+    recurse n args = [varE meth `appEs` es| es <- take n args]
+
+nameGens =
+  [
+    ('emptyPR,          [])
+  , ('replicatePR,      [const "n#", id])
+  , ('replicatelPR,     [const "segd", id])
+  , ('repeatPR,         [const "n#", const "len#", id])
+  , ('repeatcPR,        [const "n#", const "ns", const "segd", id])
+  , ('indexPR,          [id, const "i#"])
+  , ('extractPR,        [id, const "i#", const "n#"])
+  , ('bpermutePR,       [id, const "n#", const "is"])
+  , ('appPR,            [(++"1"), (++"2")])
+  , ('applPR,           [const "is", (++"1"), const "js", (++"2")])
+  , ('packPR,           [id, const "n#", const "sel"])
+  , ('packByTagPR,      [id, const "n#", const "tags", const "t#"])
+  , ('combine2PR,       [const "n#", const "sel", (++"1"), (++"2")])
+  , ('fromListPR,       [const "n#", id])
+  , ('nfPR,             [id])
+  ]
+
+-- ---------------
+-- Primitive types
+-- ---------------
+
+primInstances :: [Name] -> Q [Dec]
+primInstances tys
+  = do
+      pdatas <- mapM instance_PData_prim tys
+      prims  <- mapM instance_Prim_prim tys
+      prs    <- mapM instance_PR_prim tys
+      return $ pdatas ++ prims ++ prs
+
+pdataPrimCon :: Name -> Name
+pdataPrimCon n = mkName ("P" ++ nameBase n)
+
+instance_PData_prim :: Name -> DecQ
+instance_PData_prim tycon
+  = newtype_instance_PData tycon [] (pdataPrimCon tycon)
+                                    (conT ''U.Array `appT` conT tycon)
+
+instance_Prim_prim :: Name -> DecQ
+instance_Prim_prim ty
+  = instanceD (cxt [])
+              (conT ''Prim `appT` conT ty)
+              (map (inlineD . mkName . fst) methods ++ map snd methods)
+  where
+    pcon = pdataPrimCon ty
+    xs   = mkName "xs"
+
+    methods = [("fromPrimPData", mk_fromPrimPData),
+               ("toPrimPData",   mk_toPrimPData)]
+
+    mk_fromPrimPData = simpleFunD (mkName "fromPrimPData")
+                                  [conP pcon [varP xs]]
+                                  (varE xs)
+    mk_toPrimPData = simpleFunD (mkName "toPrimPData") [] (conE pcon)
+
+instance_PR_prim :: Name -> DecQ
+instance_PR_prim ty
+  = do
+      methods <- genPR_methods (primitiveMethod ty)
+      return $ InstanceD []
+                         (ConT ''PR `AppT` ConT ty)
+                         methods
+
+primitiveMethod :: Name -> Name -> [ArgVal] -> Val -> DecQ
+primitiveMethod ty meth avs res
+  = simpleFunD (mkName $ nameBase meth) []
+  $ varE
+  $ mkName (nameBase meth ++ "Prim")
+
+{-
+  = simpleFunD (mkName $ nameBase meth) pats
+  $ result res
+  $ varE impl `appEs` vals
+  where
+    pcon = pdataPrimCon ty
+    impl = mkName
+         $ nameBase meth ++ "Prim"
+
+    (pats, vals) = unzip [arg v g | (v,g) <- avs]
+
+    arg ScalarVal g = var (g "x")
+    arg PDataVal  g = let v = mkName (g "xs")
+                      in (conP pcon [varP v], varE v)
+    arg ListVal   g = var (g "xs")
+    arg OtherVal  g = var (g "")
+
+    var s = let v = mkName s in (varP v, varE v)
+
+    result ScalarVal e = e
+    result PDataVal  e = conE pcon `appE` e
+    result UnitVal   e = varE 'seq `appEs` [e, varE '()]
+    result OtherVal  e = e
+-}
+
+-- ------
+-- Tuples
+-- ------
 
 tupleInstances :: [Int] -> Q [Dec]
 tupleInstances ns
@@ -42,6 +269,9 @@ tupleInstances ns
       pdatas <- mapM instance_PData_tup ns
       prs    <- mapM instance_PR_tup ns
       return $ pdatas ++ prs
+
+pdataTupCon :: Int -> Name
+pdataTupCon n = mkName ("P_" ++ show n)
 
 instance_PData_tup :: Int -> DecQ
 instance_PData_tup arity
@@ -53,104 +283,46 @@ instance_PData_tup arity
 
 instance_PR_tup :: Int -> DecQ
 instance_PR_tup arity
-  = instanceD (cxt [classP ''PR [ty] | ty <- tys])
-              (conT ''PR `appT` (tupleT arity `appTs` tys))
-              (map (inlineD . mkName . fst) methods ++ map snd methods)
+  = do
+      methods <- genPR_methods (recursiveMethod (tupGen arity))
+      return $ InstanceD [ClassP ''PR [ty] | ty <- tys]
+                         (ConT ''PR `AppT` (TupleT arity `mkAppTs` tys))
+                         methods
   where
-    tyvars = take arity $ [mkName [c] | c <- ['a' .. ]]
-    tys    = map varT tyvars
+    tys = take arity $ [VarT $ mkName [c] | c <- ['a' .. ]]
 
-    pcon   = pdataTupCon arity
-
-    pconApp = appEs (conE pcon)
-    pconPat = conP pcon
-
-    vars   = take arity $ [mkName [c] | c <- ['a' .. ]]
-    pvars  = take arity $ [mkName (c : "s") | c <- ['a' .. ]]
-    pvars1 = take arity $ [mkName (c : "s1") | c <- ['a' .. ]]
-    pvars2 = take arity $ [mkName (c : "s2") | c <- ['a' .. ]]
-
-    methods = [ ("emptyPR",             m_empty                 )
-              , ("replicatePR",         m_replicate             )
-              , ("replicatelPR",        m_replicatel            )
-              , ("repeatPR",            m_repeat                )
-              , ("repeatcPR",           m_repeatc               )
-              , ("indexPR",             m_index                 )
-              , ("extractPR",           m_extract               )
-              , ("bpermutePR",          m_bpermute              )
-              , ("appPR",               m_app                   )
-              , ("applPR",              m_appl                  )
-              , ("packPR",              m_pack                  )
-              , ("packByTagPR",         m_packByTag             )
-              , ("combine2PR",          m_combine2              )
-              , ("fromListPR",          m_fromList              )
-              , ("nfPR",                m_nf                    )
-              ]
-
-    method :: String -> [String] -> [[Name]]
-            -> ([PatQ] -> PatQ) -> ([ExpQ] -> ExpQ)
-            -> (forall a. [a] -> [a] -> [a]) -> DecQ
-    method s args vs mk_pat mk_con insert 
-      = simpleFunD (mkName s)
-                   (insert (varPs args') (map (mk_pat . varPs) vs))
-        $ mk_con 
-            [varE (mkName s) `appEs` insert (varEs args') (map varE v)
-                | v <- transpose vs]
+tupGen :: Int -> Gen
+tupGen arity = Gen { recursiveCalls = arity
+                   , split          = split
+                   , join           = join }
+  where
+    split (ScalarVal, gen)
+      = (PatSplit (tupP $ varPs names), RecArg [] (varEs names))
       where
-        args' = map mkName args
+        names = map (mkName . gen) vs
 
-    m_empty = simpleFunD (mkName "emptyPR") []
-            $ conE pcon `appEs` replicate arity (varE 'emptyPR)
-
-    m_replicate = method "replicatePR" ["n#"] [vars] tupP pconApp
-                $ \[n] [x] -> [n,x]
-
-    m_replicatel = method "replicatelPR" ["segd"] [pvars] pconPat pconApp
-                $ \[segd] [x] -> [segd,x]
-
-    m_repeat = method "repeatPR" ["n#", "len#"] [pvars] pconPat pconApp
-                $ \[n,len] [x] -> [n,len,x]
-
-    m_repeatc = method "repeatcPR" ["n#","ns","segd"] [pvars] pconPat pconApp
-                $ \[n,ns,segd] [x] -> [n,ns,segd,x]
-
-    m_index = method "indexPR" ["i#"] [pvars] pconPat tupE
-                $ \[i] [x] -> [x,i]
-
-    m_extract = method "extractPR" ["i#","n#"] [pvars] pconPat pconApp
-                $ \[i,n] [x] -> [x,i,n]
-
-    m_bpermute = method "bpermutePR" ["n#","is"] [pvars] pconPat pconApp
-                $ \[n,is] [x] -> [x,n,is]
-
-    m_app = method "appPR" [] [pvars1, pvars2] pconPat pconApp
-                $ \[] [x,y] -> [x,y]
-
-    m_appl = method "applPR" ["is","js"] [pvars1, pvars2] pconPat pconApp
-                $ \[is,js] [x,y] -> [is,x,js,y]
-
-    m_pack = method "packPR" ["n#","sel"] [pvars] pconPat pconApp
-                $ \[n,sel] [x] -> [x,n,sel]
-
-    m_packByTag = method "packByTagPR" ["n#","tags","t#"] [pvars] pconPat pconApp
-                $ \[n,tags,t] [x] -> [x,n,tags,t]
-
-    m_combine2 = method "combine2PR" ["n#","sel"] [pvars1,pvars2] pconPat pconApp
-                $ \[n,sel] [x,y] -> [n,sel,x,y]
-
-    m_fromList = method "fromListPR" ["n#"] [pvars] (const $ varP xs) mk_body
-                $ \[n] [x] -> [n,x]
+    split (PDataVal, gen)
+      = (PatSplit (conP (pdataTupCon arity) $ varPs names),
+         RecArg [] (varEs names))
       where
-        mk_body = patLetE (tupP $ varPs pvars) (varE unzip `appE` varE xs)
-                . pconApp
+        names = map (mkName . gen) pvs
 
-        xs = mkName "xs"
+    split (ListVal, gen)
+      = (CaseSplit (varP xs) (varE unzip `appE` varE xs)
+                             (tupP $ varPs names),
+         RecArg [] (varEs names))
+      where
+        xs = mkName (gen "xs")
+        names = map (mkName . gen) pvs
 
         unzip | arity == 2 = mkName "unzip"
               | otherwise  = mkName ("unzip" ++ show arity)
 
-    m_nf = method "nfPR" [] [pvars] pconPat mk_body
-                $ \[] [x] -> [x]
-      where
-        mk_body = foldl1 (\e1 e2 -> varE 'seq `appEs` [e1,e2])
+    join _ _ ScalarVal xs = tupE xs
+    join _ _ PDataVal  xs = conE (pdataTupCon arity) `appEs` xs
+    join _ _ UnitVal   xs = foldl1 (\x y -> varE 'seq `appEs` [x,y]) xs
+
+    vs  = take arity [[c] | c <- ['a' ..]]
+    pvs = take arity [c : "s" | c <- ['a' ..]]
+
 
