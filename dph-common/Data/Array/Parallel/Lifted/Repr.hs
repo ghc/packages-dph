@@ -73,55 +73,7 @@ data instance PData () = PUnit
 punit :: PData ()
 punit = PUnit
 
-instance PR () where
-  {-# INLINE emptyPR #-}
-  emptyPR = traceFn "emptyPR" "()" $ PUnit
-
-  {-# INLINE replicatePR #-}
-  replicatePR n# () = traceFn "replicatePR" "()"
-                    $ traceArg "n#" (I# n#)
-                    $ PUnit
-
-  {-# INLINE replicatelPR #-}
-  replicatelPR segd u = traceFn "replicatelPR" "()" 
-                      $ traceArg "elementsSegd segd" (U.elementsSegd segd)
-                      $ u
-
-  {-# INLINE repeatPR #-}
-  repeatPR _ _ u = traceFn "repeatPR" "()" $ u
-
-  {-# INLINE repeatcPR #-}
-  repeatcPR _ _ _ u = traceFn "repeatcPR" "()" $ u
-
-  {-# INLINE indexPR #-}
-  indexPR PUnit _ = traceFn "indexPR" "()" $ ()
-
-  {-# INLINE extractPR #-}
-  extractPR u _ _ = traceFn "extractPR" "()" $ u
-
-  {-# INLINE bpermutePR #-}
-  bpermutePR u _ _ = traceFn "bpermutePR" "()" $ u
-
-  {-# INLINE appPR #-}
-  appPR u v = traceFn "appPR" "()" (u `seq` v)
-
-  {-# INLINE applPR #-}
-  applPR _ u _ v = traceFn "applPR" "()" (u `seq` v)
-
-  {-# INLINE packPR #-}
-  packPR u _ _ = traceFn "packPR" "()" $ u
-
-  {-# INLINE packByTagPR #-}
-  packByTagPR u _ _ _ = u
-
-  {-# INLINE combine2PR #-}
-  combine2PR _ _ u v = traceFn "combine2PR" "()" (u `seq` v)
-
-  {-# INLINE fromListPR #-}
-  fromListPR _ xs = foldr seq PUnit xs
-
-  {-# INLINE nfPR #-}
-  nfPR PUnit = ()
+$(unitPRInstance 'PUnit)
 
 ----------
 -- Wrap --

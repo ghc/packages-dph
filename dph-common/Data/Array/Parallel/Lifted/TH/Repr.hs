@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types #-}
 module Data.Array.Parallel.Lifted.TH.Repr (
-  primInstances, tupleInstances, voidPRInstance
+  primInstances, tupleInstances, voidPRInstance, unitPRInstance
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -279,6 +279,42 @@ voidMethod void pvoid meth avs res
     result ScalarVal = varE void
     result PDataVal  = varE pvoid
     result UnitVal   = conE '()
+
+-- --
+-- ()
+-- --
+
+unitPRInstance :: Name -> Q [Dec]
+unitPRInstance punit
+  = do
+      methods <- genPR_methods (unitMethod punit)
+      return [InstanceD []
+                        (ConT ''PR `AppT` ConT ''())
+                        methods]
+
+unitMethod :: Name -> Name -> [ArgVal] -> Val -> DecQ
+unitMethod punit meth avs res
+  = simpleFunD (mkName $ nameBase meth) pats
+  $ foldr seq_val (result res) es
+  where
+    (pats, es) = unzip [pat v g | (v,g) <- avs]
+
+    pat ScalarVal _ = (conP '() [], Nothing)
+    pat PDataVal  _ = (conP punit [], Nothing)
+    pat ListVal   g = let xs = mkName (g "xs")
+                      in
+                      (varP xs, Just $
+                        \e -> varE 'foldr `appEs` [varE 'seq, e, varE xs])
+    pat OtherVal  _ = (wildP, Nothing)
+
+    result ScalarVal = conE '()
+    result PDataVal  = conE punit
+    result UnitVal   = conE '()
+
+    seq_val Nothing  e = e
+    seq_val (Just f) e = f e
+
+
 
 -- ------
 -- Tuples
