@@ -16,6 +16,7 @@ Library
         Data.Array.Parallel.Unlifted.Distributed
         Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Unlifted
+        Data.Array.Parallel.Unlifted.Gabi
   Other-Modules:
         Data.Array.Parallel.Unlifted.Distributed.Gang
         Data.Array.Parallel.Unlifted.Distributed.TheGang
