@@ -63,6 +63,9 @@ pack :: Elt a => Array a -> Array Bool -> Array a
 combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine #-}
 
+combine2ByTag :: Elt a => Array Int -> Array a -> Array a -> Array a
+{-# INLINE_BACKEND combine2ByTag #-}
+
 map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
 {-# INLINE_BACKEND map #-}
 

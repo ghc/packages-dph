@@ -28,6 +28,7 @@ update = updateU
 (+:+) = (U.+:+)
 pack = packU
 combine = combineU
+combine2ByTag = combine2ByTagU
 map = mapU
 filter = filterU
 zip = zipU

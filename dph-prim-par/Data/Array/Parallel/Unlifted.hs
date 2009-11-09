@@ -30,6 +30,7 @@ update = updateUP
 (+:+) = (U.+:+)
 pack = packUP
 combine = combineUP
+combine2ByTag = combine2ByTagUP
 map = mapUP
 filter = filterUP
 zip = zipU
