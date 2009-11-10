@@ -18,7 +18,7 @@
 
 module Data.Array.Parallel.Unlifted.Distributed.Types (
   -- * Distributed types
-  DT, Dist, MDist,
+  DT, Dist, MDist, DPrim(..),
 
   -- * Operations on immutable distributed types
   indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,

@@ -29,13 +29,15 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, ST, runST)
+import Data.Array.Parallel.Arr (
+  replicateBU, appBU )
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
   stToDistST)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, indexD, lengthD, newD, writeMD, zipD, unzipD, fstD, sndD,
+  DT, Dist, mkDPrim, indexD, lengthD, newD, writeMD, zipD, unzipD, fstD, sndD,
   elementsUSegdD,
   checkGangD)
 import Data.Array.Parallel.Unlifted.Distributed.Basics
@@ -65,17 +67,11 @@ splitLengthD g = splitLenD g . lengthU
 -- | Distribute the given array length over a 'Gang'.
 splitLenD :: Gang -> Int -> Dist Int
 {-# NOINLINE splitLenD #-}
-splitLenD g !n = newD g (`fill` 0)
+splitLenD g !n = mkDPrim (replicateBU m (l+1) `appBU` replicateBU (p-m) l)
   where
     p = gangSize g
     l = n `div` p
     m = n `mod` p
-    --
-    fill md i | i < m     = writeMD md i (l+1) >> fill md (i+1)
-              | i < p     = writeMD md i l     >> fill md (i+1)
-              | otherwise = return ()
-
-
 
 -- | Distribute an array over a 'Gang' such that each threads gets the given
 -- number of elements.
