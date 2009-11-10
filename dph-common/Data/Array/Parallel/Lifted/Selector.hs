@@ -47,7 +47,7 @@ elementsSel2_0 :: Sel2 -> Int
 elementsSel2_0 (Sel2 tags idxs na nb) = na
 
 elementsSel2_0# :: Sel2 -> Int#
-{-# INLINE elementsSel2_0# #-}
+{-# INLINE_BACKEND elementsSel2_0# #-}
 elementsSel2_0# (Sel2 _ _ (I# na#) _) = na#
 
 elementsSel2_1 :: Sel2 -> Int
@@ -55,7 +55,7 @@ elementsSel2_1 :: Sel2 -> Int
 elementsSel2_1 (Sel2 tags idxs na nb) = nb
 
 elementsSel2_1# :: Sel2 -> Int#
-{-# INLINE elementsSel2_1# #-}
+{-# INLINE_BACKEND elementsSel2_1# #-}
 elementsSel2_1# (Sel2 _ _ _ (I# nb#)) = nb#
 
 empty2 :: Sel2
@@ -75,4 +75,23 @@ replicate2 n# tag# = mkSel2 (U.replicate n tag)
 pick2 :: Sel2 -> Int# -> U.Array Bool
 {-# INLINE pick2 #-}
 pick2 sel tag# = U.pick (tagsSel2 sel) (I# tag#)
-                 
+
+{-# RULES
+
+"tagsSel2/mkSel2"
+  forall ts is n0 n1. tagsSel2 (mkSel2 ts is n0 n1) = ts
+"indicesSel2/mkSel2"
+  forall ts is n0 n1. indicesSel2 (mkSel2 ts is n0 n1) = is
+"elementsSel2_0/mkSel2"
+  forall ts is n0 n1. elementsSel2_0 (mkSel2 ts is n0 n1) = n0
+"elementsSel2_1/mkSel2"
+  forall ts is n0 n1. elementsSel2_1 (mkSel2 ts is n0 n1) = n1
+"elementsSel2_0#/mkSel2"
+  forall ts is n0 n1. elementsSel2_0# (mkSel2 ts is n0 n1)
+                        = case n0 of { I# n# -> n# }
+"elementsSel2_1#/mkSel2"
+  forall ts is n0 n1. elementsSel2_1# (mkSel2 ts is n0 n1)
+                        = case n1 of { I# n# -> n# }
+  #-}
+
+
