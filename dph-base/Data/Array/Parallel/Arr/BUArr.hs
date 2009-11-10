@@ -58,7 +58,7 @@ module Data.Array.Parallel.Arr.BUArr (
 
   -- * Operations on immutable arrays
   -- ** Basic operations
-  lengthBU, emptyBU, replicateBU, indexBU, sliceBU, extractBU,
+  lengthBU, emptyBU, replicateBU, indexBU, sliceBU, extractBU, appBU,
 
   -- ** Streaming
   streamBU, unstreamBU,
@@ -443,6 +443,10 @@ unstreamBU (Stream next s n c) =
 replicateBU :: UAE e => Int -> e -> BUArr e
 {-# INLINE replicateBU #-}
 replicateBU n = unstreamBU . replicateS n
+
+appBU :: UAE e => BUArr e -> BUArr e -> BUArr e
+{-# INLINE appBU #-}
+appBU xs ys = unstreamBU (streamBU xs +++ streamBU ys)
 
 
 -- |Extract a slice from an array (given by its start index and length)
