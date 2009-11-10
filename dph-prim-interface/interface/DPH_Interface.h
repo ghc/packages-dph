@@ -252,6 +252,12 @@ count :: (Elt a, Eq a) => Array a -> a -> Int
 {-# INLINE_BACKEND count #-}
 count xs !x = sum (map (fromBool . (==) x) xs)
 
+{-# RULES
+
+"count/seq" forall xs x y. seq (count xs x) y = seq xs (seq x y)
+
+  #-}
+
 count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
 {-# INLINE_BACKEND count_s #-}
 count_s segd xs !x = sum_s segd (map (fromBool . (==) x) xs)
