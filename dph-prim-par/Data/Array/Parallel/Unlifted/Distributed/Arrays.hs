@@ -246,33 +246,3 @@ splitSD g dsegd xs = splitAsD g (elementsUSegdD dsegd) xs
 
   #-}
 
-
-
-{- RULES
-
-"splitSD[unbalanced]/joinSD" forall g b da.
-  splitSD g unbalanced (joinSD g b da) = da
-
-"splitSD[balanced]/joinSD" forall g da.
-  splitSD g balanced (joinSD g balanced da) = da
-
-"splitSD/splitJoinSD" forall g b f xs.
-  splitSD g b (splitJoinSD g f xs) = f (splitSD g b xs)
-
-"splitJoinSD/joinSD" forall g b f da.
-  splitJoinSD g f (joinSD g b da) = joinSD g b (f da)
-
-"splitJoinSD/splitJoinSD" forall g f1 f2 xs.
-  splitJoinSD g f1 (splitJoinSD g f2 xs) = splitJoinSD g (f1 . f2) xs
-
-"fstSU/joinSD" forall g b xs.
-  fstSU (joinSD g b xs) = joinSD g b (mapD g fstSU xs)
-
-"sndSU/joinSD" forall g b xs.
-  sndSU (joinSD g b xs) = joinSD g b (mapD g sndSU xs)
-
-"splitSD/SUArr" forall g b segd xss.
-  splitSD g b (SUArr segd xss) = splitSD' g b segd xss
-
-  -}
-
