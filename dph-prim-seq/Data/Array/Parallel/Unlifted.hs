@@ -62,7 +62,6 @@ lengthSegd = lengthUSegd
 lengthsSegd = lengthsUSegd
 indicesSegd = indicesUSegd
 elementsSegd = elementsUSegd
-lengthsToSegd  = lengthsToUSegd
 mkSegd = mkUSegd
 randoms = randomU
 randomRs = randomRU

@@ -200,6 +200,7 @@ elementsSegd :: Segd -> Int
 
 lengthsToSegd :: Array Int -> Segd
 {-# INLINE CONLIKE PHASE_BACKEND lengthsToSegd #-}
+lengthsToSegd ns = mkSegd ns (scan (+) 0 ns) (sum ns)
 
 mkSegd :: Array Int -> Array Int -> Int -> Segd
 {-# INLINE CONLIKE PHASE_BACKEND mkSegd #-}

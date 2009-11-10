@@ -111,7 +111,6 @@ lengthSegd = length . lengthsSegd
 lengthsSegd = segd_lengths
 indicesSegd = segd_indices
 elementsSegd = segd_elements
-lengthsToSegd lens = Segd lens (scan (+) 0 lens) (sum lens)
 mkSegd = Segd
 
 class Elt a => IOElt a
