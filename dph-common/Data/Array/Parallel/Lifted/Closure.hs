@@ -117,9 +117,6 @@ instance PR (a :-> b) where
   {-# INLINE bpermutePR #-}
   bpermutePR (AClo f f' es) n# is = AClo f f' (bpermutePD es n# is)
 
-  {-# INLINE packPR #-}
-  packPR (AClo f f' es) n# sel = AClo f f' (packPD es n# sel)
-
   {-# INLINE packByTagPR #-}
   packByTagPR (AClo f f' es) n# tags t# = AClo f f' (packByTagPD es n# tags t#)
 

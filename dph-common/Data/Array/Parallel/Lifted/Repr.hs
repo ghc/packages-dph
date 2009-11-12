@@ -143,11 +143,6 @@ instance (PR a, PR b) => PR (a,b) where
       P_2 (applPR is as1 js as2)
           (applPR is bs1 js bs2)
 
-  {-# INLINE packPR #-}
-  packPR (P_2 as bs) n# sel# =
-      P_2 (packPR as n# sel#)
-          (packPR bs n# sel#)
-
   {-# INLINE packByTagPR #-}
   packByTagPR (P_2 as bs) n# tags t# =
       P_2 (packByTagPR as n# tags t#)
@@ -257,21 +252,6 @@ instance (PR a, PR b) => PR (Sum2 a b) where
     where
       sel = tagsToSel2
           $ tagsSel2 sel1 U.+:+ tagsSel2 sel2
-
-  {-# INLINE packPR #-}
-  packPR (PSum2 sel as bs) m# flags
-    = traceFn "packPR" "(Sum2 a b)" $
-      PSum2 sel' as' bs'
-    where
-      tags   = tagsSel2 sel
-      tags'  = U.pack tags flags
-      sel'   = tagsToSel2 tags'
-
-      aFlags = U.pack flags (U.pick tags 0)
-      bFlags = U.pack flags (U.pick tags 1)
-
-      as'    = packPR as (elementsSel2_0# sel') aFlags
-      bs'    = packPR bs (elementsSel2_1# sel') bFlags
 
   {-# INLINE packByTagPR #-}
   packByTagPR (PSum2 sel as bs) n# tags t#
@@ -384,16 +364,6 @@ instance PR a => PR (PArray a) where
       xs'    = repeatcPR (elementsSegd# xsegd')
                             (U.lengthsSegd segd)
                             xsegd xs
-
-  {-# INLINE packPR #-}
-  packPR (PNested segd xs) n# flags
-    = traceFn "packPR" "(PArray a)" $
-    PNested segd' xs'
-    where
-      segd' = U.lengthsToSegd
-            $ U.pack (U.lengthsSegd segd) flags
-
-      xs'   = packPR xs (elementsSegd# segd') (U.replicate_s segd flags)
 
   {-# INLINE packByTagPR #-}
   packByTagPR (PNested segd xs) n# tags t#

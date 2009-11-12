@@ -8,18 +8,18 @@ module Data.Array.Parallel.Lifted.PArray (
   PA(..),
   lengthPA#, dataPA#, replicatePA#, replicatelPA#, repeatPA#, repeatcPA#,
   emptyPA, indexPA#, extractPA#, bpermutePA#, appPA#, applPA#,
-  packPA#, packByTagPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
+  packByTagPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
 
   replicatePD, replicatelPD, repeatPD, repeatcPD, emptyPD,
   indexPD, extractPD, bpermutePD, appPD, applPD,
-  packPD, packByTagPD, combine2PD, fromListPD, fromListPD, nfPD,
+  packByTagPD, combine2PD, fromListPD, fromListPD, nfPD,
 
   PRepr, PR(..),
 
   Scalar(..),
   replicatePRScalar, replicatelPRScalar, repeatPRScalar, repeatcPRScalar, emptyPRScalar,
   indexPRScalar, extractPRScalar, bpermutePRScalar, appPRScalar, applPRScalar,
-  packPRScalar, packByTagPRScalar, combine2PRScalar, fromListPRScalar, fromListPRScalar,
+  packByTagPRScalar, combine2PRScalar, fromListPRScalar, fromListPRScalar,
   nfPRScalar,
 ) where
 
@@ -84,11 +84,6 @@ type T_applPR       a =  U.Segd -> PData a   -- src segd/data 1
                       -> U.Segd -> PData a   -- src segd/data 2
                       -> PData a
 
-type T_packPR       a =  PData a
-                      -> Int#              -- result length
-                      -> U.Array Bool      -- flags
-                      -> PData a
-
 type T_packByTagPR  a = PData a
                       -> Int#              -- result length
                       -> U.Array Int       -- tags
@@ -114,7 +109,6 @@ class PR a where
   bpermutePR   :: T_bpermutePR a
   appPR        :: T_appPR a
   applPR       :: T_applPR a
-  packPR       :: T_packPR a
   packByTagPR  :: T_packByTagPR a
   combine2PR   :: T_combine2PR a
   fromListPR   :: T_fromListPR a
@@ -167,10 +161,6 @@ appPD xs ys = fromArrPRepr $ appPR (toArrPRepr xs) (toArrPRepr ys)
 applPD :: PA a => T_applPR a
 {-# INLINE_PA applPD #-}
 applPD is xs js ys = fromArrPRepr $ applPR is (toArrPRepr xs) js (toArrPRepr ys)
-
-packPD :: PA a => T_packPR a
-{-# INLINE_PA packPD #-}
-packPD xs n# bs = fromArrPRepr $ packPR (toArrPRepr xs) n# bs
 
 packByTagPD :: PA a => T_packByTagPR a
 {-# INLINE_PA packByTagPD #-}
@@ -242,10 +232,6 @@ applPA# :: PA a => U.Segd -> PArray a -> U.Segd -> PArray a -> PArray a
 {-# INLINE_PA applPA# #-}
 applPA# is (PArray m# xs) js (PArray n# ys)
   = PArray (m# +# n#) (applPD is xs js ys)
-
-packPA# :: PA a => PArray a -> Int# -> U.Array Bool -> PArray a
-{-# INLINE_PA packPA# #-}
-packPA# (PArray _ xs) n# bs = PArray n# (packPD xs n# bs)
 
 packByTagPA# :: PA a => PArray a -> Int# -> U.Array Int -> Int# -> PArray a
 {-# INLINE_PA packByTagPA# #-}
@@ -325,11 +311,6 @@ applPRScalar xsegd xs ysegd ys = toScalarPData
                              $ U.append_s xsegd (fromScalarPData xs)
                                           ysegd (fromScalarPData ys)
                         
-packPRScalar :: Scalar a => T_packPR a
-{-# INLINE packPRScalar #-}
-packPRScalar xs _ bs = toScalarPData
-                   $ U.pack (fromScalarPData xs) bs
-
 packByTagPRScalar :: Scalar a => T_packByTagPR a
 {-# INLINE packByTagPRScalar #-}
 packByTagPRScalar xs _ tags t# = toScalarPData
