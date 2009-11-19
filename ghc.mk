@@ -46,5 +46,17 @@ endef
 
 $(foreach pkg, $(DPH_PACKAGES), $(eval $(call dph_package,$(pkg))))
 
+# When compiling modules that use TH.Repr, we will try to run some TH,
+# which means using the vanilla TH.Repr object files. If we are not
+# building in the vanilla way then we need to be sure that the vanilla
+# object files exist. These deps take care of that for us.
+define dph_th_deps
+# $1 = way
+ifneq "$1" "v"
+libraries/dph/dph-seq/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-seq/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.o
+libraries/dph/dph-par/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-par/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.o
+endif
+endef
 
+$(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way))))
 
