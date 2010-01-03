@@ -50,13 +50,22 @@ $(foreach pkg, $(DPH_PACKAGES), $(eval $(call dph_package,$(pkg))))
 # which means using the vanilla TH.Repr object files. If we are not
 # building in the vanilla way then we need to be sure that the vanilla
 # object files exist. These deps take care of that for us.
+#
+# We also need to make sure that the HSdph-prim-seq/par .o library
+# exists, so that GHC can load it.  The other libs already exist, because
+# we are building with stage 2 which is linked against them.
+#
 define dph_th_deps
-# $1 = way
+# $1 = way  $2 = par/seq
 ifneq "$1" "v"
-libraries/dph/dph-seq/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-seq/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.o
-libraries/dph/dph-par/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-par/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.o
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.o
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${v_osuf}
 endif
+
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): $$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : $$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
 endef
 
-$(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way))))
+$(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),seq)))
+$(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),par)))
 
