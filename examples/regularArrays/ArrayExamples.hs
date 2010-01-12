@@ -83,10 +83,10 @@ relaxShift arr =
     (Array.zipWith (+) (Array.zipWith (+) shiftu arr) shiftl) (Array.zipWith (+) shiftr shiftd)
   where
     s@((() :*: n) :*: m) = arrayShape arr
-    shiftu = shift arr 0 (():*: 1   :*:0)
-    shiftd = shift arr 0 (():*:(-1) :*:0)
-    shiftl = shift arr 0 (():*: 0   :*:1)
-    shiftr = shift arr 0 (():*: 0   :*:(-1))
+    shiftu = shift arr 0 ((():*: 1   :*:0)::DIM2)
+    shiftd = shift arr 0 ((():*:(-1) :*:0)::DIM2)
+    shiftl = shift arr 0 ((():*: 0   :*:1)::DIM2)
+    shiftr = shift arr 0 ((():*: 0   :*:(-1))::DIM2)
 
 
 

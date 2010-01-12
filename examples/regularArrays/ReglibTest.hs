@@ -44,6 +44,7 @@ algs = [ ("1", transposeTest1)
        , ("10", hmSplitJoinTest)
        , ("11", mfTest)
        , ("12", toHMTest)
+       , ("13", mapRangeTest)
 --       , ("4", relaxT)
 --       , ("5", relaxShiftT)
 --        , ("4", backpermuteDftT)
@@ -62,8 +63,6 @@ transposeTest1 (n, arrData) = trace (
       else "Error:  transpose . transpose /= id")
   res
   where  
-    i = ((() :*:  3 :*: 4 ):*:7) :: A.DIM3
-    i' = ((() :*: 1 :*: 1):*:5) :: A.DIM3
     res = A.arrayData $ AE.transpose $ AE.transpose arr
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int))  arrData
  
@@ -119,7 +118,7 @@ appendTest2 _ = trace (
 tileTest::  (Int, U.Array Double) -> U.Array Double
 tileTest _ = trace (show res) res
   where 
-    res = A.arrayData $ DA.fromDArray $ DA.tile arr1 (() :*: 0 :*: 0)     (() :*: 2 :*: 2)
+    res = A.arrayData $ DA.fromDArray $ DA.tile arr1 ((() :*: 0 :*: 0)::A.DIM2)     ((() :*: 2 :*: 2)::A.DIM2)
     arr1 = DA.toDArray $ A.toArray ((() :*: (4::Int)):*: (4::Int)) $ U.fromList [1..16]
 
   
@@ -287,6 +286,30 @@ lmmT n = -- trace (show res)
   a1 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   a2 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   -}
+
+mapRangeTest:: (Int, U.Array Double) -> U.Array Double
+mapRangeTest (n, arr) = trace (  
+  if  (res == arr)
+    then ("mapRangeTest ok\n" ++
+          "\t arr = " ++ (show arr) ++ "\n" ++
+          "\t res = " ++ (show res))
+    else ("mapRangeTest not ok\n" 
+         ++  "\t arr = \n" ++ (show r) ++ "\n" 
+         ++  "\t res = \ntoU " ++ (show l) 
+          ))
+  res
+  where   
+    res =  A.arrayData $ DA.fromDArray arr1
+    arr1 = DA.toDArray $ A.toArray (() :*: (4::Int) :*: (4::Int)) arr
+    arr  = U.fromList [1..16]
+    r =  A.range (() :*:(2::Int) :*: (4:: Int)) 
+    l =  iter (() :*: (0::Int) :*: (0 :: Int)) (() :*: (2::Int) :*: (4 :: Int))
+   
+    iter c m = case A.next c m of
+                 Nothing -> if (c == m) 
+                               then []
+                               else iter m m
+                 Just r  -> c : (iter r m)
  
 main = ndpMain "RArray Test"
                "[OPTION] ... SIZES ..."

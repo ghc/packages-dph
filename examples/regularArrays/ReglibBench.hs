@@ -22,7 +22,7 @@ import  Data.Array.Parallel.Unlifted  ((:*:)(..))
 import qualified Data.Array.Parallel.Unlifted as U
 
 import Control.Exception (evaluate)
-
+import Debug.Trace
 
 import Bench.Benchmark
 import Bench.Options
@@ -39,7 +39,7 @@ algs = [ ("0", transposeT)
        , ("6", relaxDT) 
        , ("7", relaxDMS) 
        , ("8", mmT) 
-       , ("9", mmDT) 
+       , ("9", mmDT)
        , ("10", hmDT) 
        , ("11", hhmDT)
        , ("12", fft3d)]
@@ -79,7 +79,7 @@ transposePDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
 transposePDT (n,(arrData,_)) = 
   res
   where  
-    res = U.map  (\i -> (arrData U.!: (A.index sh (flip i)))) (A.range sh)
+    res = U.map  (\i -> (arrData U.!: (A.toIndex sh (flip i)))) (A.range sh)
     arr = A.toArray (() :*: (n:: Int) :*: (n::Int)) arrData
     sh = (() :*: (n:: Int) :*: (n::Int))
     flip (() :*: (i) :*: (j)) = (() :*: (j) :*: (i))
@@ -145,7 +145,7 @@ sumT n = -- trace (show res)
 
 mmT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
 mmT (n,(arrData1,arrData2)) = 
-  res 
+  res
   where
   res = A.arrayData arr
   arr = AE.mmMult  a1 a2
@@ -154,7 +154,7 @@ mmT (n,(arrData1,arrData2)) =
 
 mmDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
 mmDT (n,(arrData1,arrData2)) = 
-  res 
+  res
   where
   res = A.arrayData arr
   arr = DAE.mmMult'  a1 a2
@@ -183,13 +183,34 @@ fft3d:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
 fft3d _ =  res
   where
     size = 64
-    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3d 6 rofu arr
-    arr = DA.toDArray $ A.map (\x -> (x :*: x)) $ 
-             A.toArray (() :*: size :*: size :*: size) $ U.fromList $ take (size*size*size) [1.0,1.05..]
-    rofu = DA.toDArray $ A.map (\x -> (x :*: x)) $ 
-             A.toArray (() :*: (size `div` 2)) $ U.fromList $ take (size*size*size) [1.0,1.05..]
+{-
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft2D 1 arr
+    arr = DA.toDArray $ A.toArray (() :*: size :*: size) $ 
+             U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size) [1.0,1.05..]
+-}
+
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3D 6 arr
+    arr = DA.toDArray $ A.toArray (() :*: size :*: size :*: size) $ 
+             U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size*size) [1.0,1.05..]
+
+{-
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fftRofu arr  
+    arr = DA.toDArray $ A.toArray (() :*: size) $ U.fromList $ 
+             Prelude.map (\x -> (x :*: x)) $ take (size) ([1.0,1.05..]::[Double])
+ -}
 
 
+
+redBlack:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double 
+redBlack (n, (arrData1, arrData2)) 
+  | n `mod` 4 /= 0 = error "redBlack : n size needs to be muliple of 4\n"
+  | otherwise      =  
+      A.arrayData $ DA.fromDArray $ DAE.redBlack 0.25 0.123 a1 a2
+  where
+    n' = n `div` 2
+    a1  = DA.toDArray $ A.toArray (() :*: n :*: n :*: 4) arrData1
+    a2  = DA.toDArray $ A.toArray (() :*: n :*: n :*: 4) arrData2
+    
 generatePoints :: Int -> IO (Point (Int, (U.Array Double, U.Array Double)))
 generatePoints n =
   do 
