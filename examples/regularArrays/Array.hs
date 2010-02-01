@@ -110,7 +110,7 @@ class (Show sh, U.Elt sh, Eq sh, Rebox sh) => Shape sh where
   -- ^all the valid indices in a shape. The following equality should hold: 
   -- map (toIndex sh) (range sh) = [:0..(size sh)-1:]
   
-  inRange      :: sh -> sh -> Bool
+  inRange      :: sh -> sh -> sh -> Bool
   -- ^Checks if a given index is in the range of an array shape. I.e.,
   -- inRange sh ind == elem ind (range sh)
 
@@ -132,7 +132,7 @@ instance Shape () where
 
   {-# INLINE range #-}
   range sh         = U.fromList [()]
-  inRange () ()    = True
+  inRange () () () = True
   zeroDim          = ()
   intersectDim _ _ = ()
 
@@ -152,7 +152,7 @@ instance Shape sh => Shape (sh :*: Int) where
     (U.replicate_s (U.lengthsToSegd  $ U.replicate (size sh) n) (range sh))
     (U.repeat (size sh) n (U.enumFromTo 0 (n-1)))
 
-  inRange (sh1 :*: n1) (sh2 :*: n2) = (n2 >= 0) && (n2 < n1) && (inRange sh1 sh2)
+  inRange (zs :*: z) (sh1 :*: n1) (sh2 :*: n2) = (n2 >= z) && (n2 < n1) && (inRange zs sh1 sh2)
   zeroDim = (zeroDim :*: 0)
   intersectDim (sh1 :*: n1) (sh2 :*: n2) = (intersectDim sh1 sh2 :*: (min n1 n2))
 
@@ -291,6 +291,12 @@ mapFold f n arr =
     (sh :*: segSize) = arrayShape arr
     noOfSegs = size sh
 
+sum :: (U.Elt e, Num e, Shape dim) => 
+ Array (dim :*: Int)  e  -> Array dim e
+{-# INLINE sum #-}
+sum arr@(Array sh@(sh' :*: segSize) arrD) = Array
+  { arrayShape = sh'
+  , arrayData  = U.sum_r (size sh') segSize arrD}
 
 zip:: (U.Elt a, U.Elt b, Shape dim) => Array dim a -> Array dim b-> Array dim (a :*: b)
 {-# INLINE zip #-}
@@ -307,7 +313,7 @@ reshape arr newShape = assert (size newShape == size (arrayShape arr)) $
 shift:: (Shape dim, Subshape dim dim', U.Elt e) => Array dim e -> e -> dim' -> Array dim e
 {-# INLINE shift #-}
 shift arr e shiftOffset = backpermuteDft arr  e sh
-  (\d -> if (inRange sh (addDim d shiftOffset)) then Just (addDim d shiftOffset) else Nothing)
+  (\d -> if (inRange zeroDim sh (addDim d shiftOffset)) then Just (addDim d shiftOffset) else Nothing)
   where
     sh = arrayShape arr
 
@@ -322,7 +328,7 @@ rotate arr e shiftOffset = backpermute arr  sh
 tile::  (Shape dim, Subshape dim dim, U.Elt e) => Array dim e -> dim -> dim -> Array dim e
 {-# INLINE tile #-}
 tile arr start size = 
-  assert (inRange (arrayShape arr) (addDim start size)) $
+  assert (inRange zeroDim (arrayShape arr) (addDim start size)) $
      backpermute arr size 
      (\d -> addDim d start)
 

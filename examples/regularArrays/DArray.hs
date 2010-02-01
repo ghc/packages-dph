@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs, TypeFamilies, FlexibleInstances, FlexibleContexts, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 
 module DArray ( 
     DArray (..)
@@ -13,8 +14,6 @@ module DArray (
   , zip
   , zipWith
   , fold
-  , mapFold
-  , mapStencil
   , shift
   , reshape
   , rotate
@@ -23,8 +22,6 @@ module DArray (
   , select
   , replicate
   , index
-  , splitDArray
-  , joinDArray
   ) where
          
 import qualified Data.Array.Parallel.Unlifted as U
@@ -34,7 +31,7 @@ import Data.Array.Parallel.Base (Rebox)
 import Data.Array.Parallel.Unlifted.Gabi (mapU,foldU,enumFromToU)
 
 import qualified Array as A
-import Prelude hiding (map, zip, zipWith, replicate)
+import Prelude hiding (map, zip, zipWith, replicate, sum)
 
 import Debug.Trace
 
@@ -45,6 +42,26 @@ instance (U.Elt e, A.Shape dim, Show e) => Show (DArray dim e) where
   show darr = show $ fromDArray darr
 
 assert a b = b
+
+
+--  Instances
+-- ===========
+
+instance (U.Elt e, Num e, A.Shape dim) => Num (DArray dim e) where
+  (+) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) + f2 sh)
+  (-) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) - f2 sh)
+  (*) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) * f2 sh)
+  negate (DArray sh1 f1) = DArray sh1 (\sh -> negate (f1 sh))
+  abs (DArray sh1 f1) = DArray sh1 (\sh -> abs (f1 sh))
+  signum (DArray sh1 f1) = DArray sh1 (\sh -> signum (f1 sh))
+  fromInteger n = DArray undefined (\_ -> fromInteger n)
+
+                  
+instance (U.Elt e, Eq e, A.Shape sh) => Eq (DArray sh e) where
+  (==) arr1@(DArray sh _)  arr2 = 
+    toScalar $ fold (&&) True $ (flip reshape) (() :*: (A.size sh)) $ zipWith (==) arr1 arr2
+  (/=) a1 a2 = not $ (==) a1 a2
+
 
 
 --  Constructors
@@ -97,14 +114,14 @@ backpermute (DArray shape fn) newSh fn' =
   DArray newSh (fn.fn') 
 
 backpermuteDft::(U.Elt e, A.Shape dim, A.Shape dim') => 
-  DArray dim e -> e -> dim' -> (dim' -> Maybe dim) -> DArray dim' e
+  DArray dim e -> DArray dim' e -> (dim' -> Maybe dim) -> DArray dim' e
 {-# INLINE backpermuteDft #-}
-backpermuteDft srcArr@(DArray sh fn) e newSh fn' = e `seq` 
-  DArray newSh fn''
+backpermuteDft srcArr@(DArray sh fn) dftArr@(DArray dsh dfn)  fn' = 
+  DArray dsh fn''
   where
     fn'' i = case (fn' i) of
                Just i' -> fn i'
-               Nothing -> e  
+               Nothing -> dfn i
 
 --  Computations
 --  ============
@@ -135,41 +152,21 @@ zip (DArray shape1 fn1) (DArray shape2 fn2) =
   DArray (A.intersectDim shape1 shape2) (\i -> (fn1 i) :*: (fn2 i))
          
 
-{-
-fold :: (U.Elt e, A.Shape dim) => (e -> e-> e) -> e -> DArray dim e  -> e
-{-# INLINE fold #-}
-fold f n arr = 
-  A.fold f n  $ fromDArray arr
--}
+
 -- | folds the innermost dimension. Combine with `transpose to fold any other dimension.
 fold :: (U.Elt e, A.Shape dim) => 
  (e -> e-> e) -> e -> DArray (dim :*: Int)  e  -> DArray dim e
 {-# INLINE fold #-}
-fold f n arr@(DArray sh@(sh' :*: segSize) fn) = toDArray $ A.mapFold f n $ fromDArray arr
-
-
-
--- | folds the innermost dimension. Combine with `transpose to fold any other dimension.
-mapFold:: (U.Elt e, A.Shape dim) => (e -> e-> e) -> e -> DArray (dim :*: Int) e  -> DArray dim  e
-{-# INLINE mapFold #-}
-mapFold f n arr@(DArray sh@(sh' :*: s) fn) = 
+fold f n arr@(DArray sh@(sh' :*: s) fn) = 
   DArray sh' f'
   where
     f' i = foldU f n (mapU (\s -> fn (i:*:s)) (enumFromToU 0 (s-1)))
 
--- | mapStencil isBorder stencilShape proj broderFn stencilFn arr: 
---    works only in the sequential version at the moment
-mapStencil:: (A.Shape dim, A.Shape dim', U.Elt e) =>
-   (dim -> Bool) -> dim' -> (dim -> dim' -> dim) -> (e -> e') -> (DArray dim' e -> e') -> DArray dim e -> DArray dim e'
-{-# INLINE mapStencil #-}
-mapStencil border stencilSize stencil g f arr@(DArray sh arrFn) =
-  DArray sh resFn
-  where
-    resFn d = 
-      if (border d)
-        then g $ arrFn d
-        else let df' = \d' -> arrFn (stencil d  d')
-             in f (DArray stencilSize df')           
+{-
+scan:: (U.Elt e, A.Shape dim) => 
+ (e -> e-> e) --> DArray (dim :*: Int)  e  -> DArray (dim :*: Int)  e 
+scan (DArray (sh :*: n) f) = 
+-}
 
 
 ----  Non-primitive functions 
@@ -177,8 +174,8 @@ mapStencil border stencilSize stencil g f arr@(DArray sh arrFn) =
 
 shift:: (A.Subshape dim dim', U.Elt e) => DArray dim e -> e -> dim' -> DArray dim e
 {-# INLINE shift #-}
-shift arr@(DArray sh _) e shiftOffset = backpermuteDft arr  e sh
-  (\d -> if (A.inRange sh (A.addDim d shiftOffset)) 
+shift arr@(DArray sh _) e shiftOffset = backpermuteDft arr  (DArray sh (\_ -> e))
+  (\d -> if (A.inRange A.zeroDim sh (A.addDim d shiftOffset)) 
            then Just (A.addDim d shiftOffset) 
            else Nothing)
 
@@ -198,7 +195,7 @@ rotate arr@(DArray sh _) e shiftOffset = backpermute arr  sh
   (\d -> A.addModDim sh d shiftOffset)
 
 
--- todo: generalise
+
 tile::  (A.Subshape dim dim', U.Elt e) => DArray dim e -> dim' -> dim' -> DArray dim e
 {-# INLINE tile #-}
 tile arr@(DArray sh _) start size = 
@@ -206,6 +203,14 @@ tile arr@(DArray sh _) start size =
      backpermute arr (A.inject sh size)
      (\d -> A.addDim d start)
 
+
+insertTile:: (A.Subshape dim dim, U.Elt e) => DArray dim e -> DArray dim e  -> dim -> DArray dim e
+insertTile arr@(DArray sh f) tile@(DArray shTile fTile) offset = 
+  DArray sh f'
+  where
+    f' d = if (A.inRange offset (A.addDim sh shTile) d)
+             then fTile d
+             else f d
 
 --  Combining arrays
 -- 
@@ -217,7 +222,7 @@ append:: (A.Subshape dim dim, U.Elt e) => DArray dim e -> DArray dim e -> dim ->
 append arr1@(DArray sh1 fn1) arr2@(DArray sh2 fn2) newSh =
   DArray newSh appFn
   where
-    appFn i = if (A.inRange sh1 i) 
+    appFn i = if (A.inRange A.zeroDim sh1 i) 
                 then fn1 i
                 else fn2 (A.modDim i sh1)
   
@@ -254,34 +259,5 @@ index arr@(DArray _ fn) i =
     fn i  
 
 
---  Split and Joins should result in irregular arrays with regular element type. For now, though, 
---  it's implemented using lists
 
-splitDArray:: (U.Elt e, A.Shape dim) => 
-  DArray dim e -> A.MapIndex dim dim' ->  [DArray dim' e]
-splitDArray _ =
-  error "splitDArray: not yet implemented"
-
-joinDArray:: (U.Elt e, A.Shape dim) => [DArray dim e] -> DArray (dim :*: Int) e 
-joinDArray _ = 
-  error "joinDArray: not yet implemented"
-
-
-
--- Class instances for arithmetic operations
--- =========================================
-
-instance (U.Elt e, Eq e, A.Shape sh) => Eq (DArray sh e) where
-  (==) arr1@(DArray sh _)  arr2 = 
-    toScalar $ mapFold (&&) True $ (flip reshape) (() :*: (A.size sh)) $ zipWith (==) arr1 arr2
-  (/=) a1 a2 = not $ (==) a1 a2
-
-instance (U.Elt e, Num e, A.Shape sh) => Num (DArray sh e) where
-  (+) = zipWith (+) 
-  (*) = zipWith (*)
-  (-) = zipWith (-)
-  negate = map negate
-  abs    = map abs
-  signum = map signum
-  fromInteger n = DArray A.zeroDim (\_ -> fromInteger n)
 

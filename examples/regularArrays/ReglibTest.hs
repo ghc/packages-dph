@@ -45,6 +45,8 @@ algs = [ ("1", transposeTest1)
        , ("11", mfTest)
        , ("12", toHMTest)
        , ("13", mapRangeTest)
+       , ("14",  redBlack)
+       , ("15",  sumT)
 --       , ("4", relaxT)
 --       , ("5", relaxShiftT)
 --        , ("4", backpermuteDftT)
@@ -160,10 +162,10 @@ lmMultTest:: (Int, U.Array Double) -> U.Array Double
 lmMultTest (n, arr) = trace( 
   if (res == arr)
     then ("lmMult test ok, m * id = m\n")
-    else ("lmMult test error, m * id /= m\n"))
+    else ("lmMult test error, m * id /= m\n")) 
   res
   where   
-    res = A.arrayData $ DA.fromDArray $ DAE.mmMult arr1 arr2
+    res = A.arrayData $ DAE.mmMult' arr1 arr2
     arr1 = DA.toDArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
     arr2 = DA.DArray ((() :*: (n::Int)):*: (n::Int)) 
                 (\(() :*: i :*: j) -> if (i==j) then 1 else 0)
@@ -184,9 +186,18 @@ mmMultTest (n, arr) = trace(
 mfTest:: (Int, U.Array Double) -> U.Array Double
 mfTest _ = trace (show res) res
   where 
-    res = A.arrayData $ DA.fromDArray $ DA.mapFold (+) 0 arr1
+    res = A.arrayData $ DA.fromDArray $ DA.fold (+) 0 arr1
     arr1 = DA.toDArray $ A.toArray ((() :*: (2::Int)):*: (8::Int)) $ U.fromList [1..16]
     
+
+sumT:: (Int, U.Array Double)  -> U.Array Double
+sumT n = trace (show res)
+  res
+  where
+    res = A.arrayData arr
+    arr:: A.Array (() :*: Int) Double
+    arr = A.sum  (A.toArray ((() :*: 5) :*: 2) (U.fromList ([1..10]::[Double])))
+
 
 {-
 transposePT:: (Int, U.Array Int) -> U.Array Int
@@ -286,6 +297,16 @@ lmmT n = -- trace (show res)
   a1 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   a2 = A.toArray (() :*: n :*: n) (U.fromList [1..n])
   -}
+
+
+redBlack:: (Int, U.Array Double) -> U.Array Double 
+redBlack _ =
+  trace (show result) result
+  where
+    result = A.arrayData $ DA.fromDArray $ DAE.redBlack 1 0 a1 a2
+    a1  = DA.DArray (() :*: 4 :*: 4 :*: 4) (\_ -> 1)
+    a2  = DA.DArray (() :*: 4 :*: 4 :*: 4) (\_ -> 1)
+
 
 mapRangeTest:: (Int, U.Array Double) -> U.Array Double
 mapRangeTest (n, arr) = trace (  

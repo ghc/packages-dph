@@ -40,9 +40,12 @@ algs = [ ("0", transposeT)
        , ("7", relaxDMS) 
        , ("8", mmT) 
        , ("9", mmDT)
-       , ("10", hmDT) 
-       , ("11", hhmDT)
-       , ("12", fft3d)]
+       , ("10", mmDPT)
+       , ("11", hmDT) 
+       , ("12", hhmDT)
+       , ("13", fft3d)
+       , ("14", redBlack)
+       ]
   
 
   
@@ -161,6 +164,15 @@ mmDT (n,(arrData1,arrData2)) =
   a1  = DA.toDArray $ A.toArray (() :*: n :*: n) arrData1
   a2  = DA.toDArray $ A.toArray (() :*: n :*: n) arrData2
 
+mmDPT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+mmDPT (n,(arrData1,arrData2)) = 
+  res
+  where
+  res = A.arrayData arr
+  arr = DAE.mmMultP'  a1 a2
+  a1  = DA.toDArray $ A.toArray (() :*: n :*: n) arrData1
+  a2  = DA.toDArray $ A.toArray (() :*: n :*: n) arrData2
+
 hmDT:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
 hmDT (n,(arrData,_)) = 
   res 
@@ -189,7 +201,7 @@ fft3d _ =  res
              U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size) [1.0,1.05..]
 -}
 
-    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3D 6 arr
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3D 1 arr
     arr = DA.toDArray $ A.toArray (() :*: size :*: size :*: size) $ 
              U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size*size) [1.0,1.05..]
 
@@ -203,20 +215,19 @@ fft3d _ =  res
 
 redBlack:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double 
 redBlack (n, (arrData1, arrData2)) 
-  | n `mod` 4 /= 0 = error "redBlack : n size needs to be muliple of 4\n"
+  | False = error "redBlack : n size needs to be muliple of 4\n"
   | otherwise      =  
       A.arrayData $ DA.fromDArray $ DAE.redBlack 0.25 0.123 a1 a2
   where
-    n' = n `div` 2
-    a1  = DA.toDArray $ A.toArray (() :*: n :*: n :*: 4) arrData1
-    a2  = DA.toDArray $ A.toArray (() :*: n :*: n :*: 4) arrData2
+    a1  = DA.toDArray $ A.toArray (() :*: n :*: n :*: n) arrData1
+    a2  = DA.toDArray $ A.toArray (() :*: n :*: n :*: n) arrData2
     
 generatePoints :: Int -> IO (Point (Int, (U.Array Double, U.Array Double)))
 generatePoints n =
   do 
-    let pts1 = (U.fromList [1.0..(fromIntegral (n*n))])
+    let pts1 = (U.fromList [1.0..(fromIntegral (n*n*n))])
     evaluate $ force pts1     
-    let pts2 = (U.fromList [1.0..(fromIntegral (n*n))])
+    let pts2 = (U.fromList [1.0..(fromIntegral (n*n*n))])
     evaluate $ force pts2 
     return $  ("N = " ++ show n) `mkPoint` (n, (pts1, pts2))
   where

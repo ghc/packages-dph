@@ -5,6 +5,7 @@ module DArrayExamples (
     transpose
   , mmMult
   , mmMult'
+  , mmMultP'
   , relaxMS
   , relaxShift
   , redBlack
@@ -17,8 +18,8 @@ import Data.Array.Parallel.Unlifted ((:*:)(..))
 import qualified Array 
 import DArray
 
-import Prelude hiding (map, zip, zipWith, replicate)
-import qualified Prelude (map)
+import Prelude hiding (map, zip, zipWith, replicate, sum)
+import qualified Prelude (map, sum)
 
 import Debug.Trace
 import Control.Exception (assert)
@@ -34,6 +35,7 @@ transpose arr@(DArray (sh :*:n :*: m) fn) =
 
 
 mmMult' m1 m2 = fromDArray $ mmMult m1 m2 
+mmMultP' m1 m2 = fromDArray $ mmMultP m1 m2 
 
 
 -- the polymorhic version is significantly slower (not surprisingly), but so is the (pragma) specialised version. Why???
@@ -46,8 +48,8 @@ mmMult::
    DArray (() :*: Int :*: Int)  Double -> DArray (() :*: Int :*: Int)  Double -> DArray (() :*: Int :*: Int)  Double  
 mmMult arr1@(DArray (sh :*: m1 :*: n1) fn1) arr2@(DArray (sh' :*: m2 :*: n2) fn2) = 
   assert ((m1 == n2) && (sh == sh')) $ 
-    mapFold (+) 0 (arr1Ext * arr2Ext)
---  'fold' doesn't fuse at the moment, so mapFold is significantly faster
+    fold (+) 0 (arr1Ext * arr2Ext)
+--  'fold' doesn't fuse at the moment, so fold is significantly faster
 --  fold (+) 0 $ zipWith (*) arr1Ext arr2Ext
   where
     arr2T   = forceDArray $ transpose arr2  -- forces evaluation of 'transpose'
@@ -57,12 +59,20 @@ mmMult arr1@(DArray (sh :*: m1 :*: n1) fn1) arr2@(DArray (sh' :*: m2 :*: n2) fn2
 
 
 
+mmMultP:: 
+  DArray (() :*: Int :*: Int)  Double -> DArray (() :*: Int :*: Int)  Double -> DArray (() :*: Int :*: Int)  Double  
+mmMultP arr1@(DArray (sh :*: m1 :*: n1) fn1) arr2@(DArray (sh' :*: m2 :*: n2) fn2) = 
+  fold (+) 0 arr'
+  where 
+    arrT = forceDArray $ transpose arr2
+    arr' = DArray (sh :*: m1 :*: n2 :*:n1) 
+       (\(sh :*: i :*: j :*: k) -> (index arr1 (sh :*: i :*: k)) * (index arrT (sh :*: j :*: k)))
+
 relaxShift:: DArray Array.DIM2 Double -> Array.Array Array.DIM2 Double
 {-# INLINE relaxShift #-}
 relaxShift arr =  fromDArray $ map (\(a :*: b :*: c :*: d :*: e) -> (a+b+c+d+e)/5) $ 
     zip (zip (zip (zip shiftu shiftd) shiftl) shiftr) arr
   where
---    arr = toDArray arr'
     s@(DArray ((() :*: n) :*: m) _) = arr
     shiftu = shift arr 0 ((():*: 1   :*:0)::Array.DIM2)
     shiftd = shift arr 0 ((():*:(-1) :*:0)::Array.DIM2)
@@ -72,10 +82,11 @@ relaxShift arr =  fromDArray $ map (\(a :*: b :*: c :*: d :*: e) -> (a+b+c+d+e)/
 
 relaxMS:: Array.Shape dim => DArray (dim :*: Int :*: Int) Double -> DArray (dim :*: Int :*: Int) Double
 {-# INLINE relaxMS #-}
-relaxMS arr@(DArray (sh :*: n :*:m) fn) = 
+relaxMS arr@(DArray (sh :*: n :*:m) fn) =  arr 
+{-
   mapStencil border (() :*: 5) stencil id sumD arr
   where
-    sumD arr = (toScalar $ (mapFold (+) 0 arr))/5
+    sumD arr = (toScalar $ (fold (+) 0 arr))/5
 --    border:: Array.DIM2 -> Bool
     border  (_ :*: n' :*: m') = (n' == 0) || (n' >= n) ||
                                 (m' == 0) || (m' >= m) 
@@ -86,22 +97,13 @@ relaxMS arr@(DArray (sh :*: n :*:m) fn) =
     stencil (sh :*: i :*:j) (sh' :*: 2) = (sh :*: (i+1) :*: j)
     stencil (sh :*: i :*:j) (sh' :*: 3) = (sh :*: i :*: (j+1))
     stencil (sh :*: i :*:j) (sh' :*: 4) = (sh :*: i :*: j)
-    
+  -}  
 
 
 --  Red/Black 3d relaxation
 --  -----------------------
 
-
-combineDArrays:: (U.Elt e, Array.Shape dim) => DArray dim Bool -> DArray dim e -> DArray dim e -> DArray dim e
-{-# INLINE combineDArrays #-}
-combineDArrays mask as bs = 
-  map (\(m :*: (a :*: b)) -> if m then a else b)  $ zip mask (zip as bs)
-
---  Red-Black relaxation
--- ----------------------
-
-
+{-
 redBlack:: Array.Shape dim => Double -> Double -> DArray (dim :*: Int :*: Int :*: Int) Double ->
              DArray  (dim :*: Int :*: Int :*: Int) Double -> DArray (dim :*: Int :*: Int :*: Int) Double
 redBlack factor hsq f arr@(DArray (d :*: l :*: n :*:m) fn)  = 
@@ -112,11 +114,11 @@ redBlack factor hsq f arr@(DArray (d :*: l :*: n :*:m) fn)  =
   where
     (&.) p1 p2 x = (p1 x) && (p2 x)
 
---    applyFactor:: DArray Array.DIM3 Double -> DArray Array.DIM3 Double
+    applyFactor:: DArray Array.DIM3 Double -> DArray Array.DIM3 Double
     applyFactor = zipWith (\fi -> \si -> factor *  (hsq * fi + si)) f
     
     sumD:: DArray (() :*: Int) Double ->  Double
-    sumD arr = toScalar $ mapFold (+) 0 arr 
+    sumD arr = toScalar $ fold (+) 0 arr 
  
 --    isRed:: Array.DIM3 -> Bool
     isRed (_ :*: j) = even j
@@ -132,6 +134,30 @@ redBlack factor hsq f arr@(DArray (d :*: l :*: n :*:m) fn)  =
     stencil (d :*: h :*: i :*:j) (_ :*: 3) = (d :*: h :*: i :*: (j+1))
     stencil (d :*: h :*: i :*:j) (_ :*: 4) = (d :*: (h-1) :*: i :*: j)
     stencil (d :*: h :*: i :*:j) (_ :*: 5) = (d :*: (h+1) :*: i :*: j)
+-}
+
+redBlack:: Double -> Double -> DArray (() :*: Int :*: Int :*: Int) Double ->
+             DArray  (() :*: Int :*: Int :*: Int) Double -> DArray (() :*: Int :*: Int :*: Int) Double
+{-
+redBlack:: Array.Shape dim => Double -> Double -> DArray (dim :*: Int :*: Int :*: Int) Double ->
+             DArray  (dim :*: Int :*: Int :*: Int) Double -> DArray (dim :*: Int :*: Int :*: Int) Double -}
+redBlack factor hsq f arr@(DArray (d :*: l :*: n :*: m) fn)  = 
+    applyFactor $ stencilFn odd $ forceDArray $ applyFactor $ stencilFn even arr 
+  where
+    applyFactor = zipWith (\fi -> \si -> factor *  (hsq * fi + si)) f
+    
+    isBorder (d :*: h :*: i :*: j) = ((h * i * j) == 0)  || 
+      (h >= (l-1)) || (i >= (m-1)) || (j >= (n-1))
+
+    stencilFn p (DArray sh f)   = 
+        DArray sh (\d@(sh :*: k :*: n :*: m) -> if (p m || isBorder d)
+                                                 then f d 
+                                                 else (f (sh :*: k :*: n :*: m+1) + 
+                                                         f (sh :*: k  :*: n :*: m-1) +
+                                                           f (sh :*: k :*: n+1 :*: m) +
+                                                             f (sh :*: k :*: n-1 :*: m) +
+                                                               f (sh :*: k+1 :*: n :*: m) +
+                                                                 f (sh :*: k-1 :*: n :*: m)))
 
 
 --  FFT example
@@ -163,22 +189,21 @@ fft3D it m@(DArray (sh :*: n) _) =
     size ::  Int
     size = n `div` 2
 
-
-
 fft3d:: Int -> DArray Array.DIM3 Complex -> DArray Array.DIM3 Complex -> DArray Array.DIM3 Complex
 fft3d it rofu  m | it < 1    = m
                 | otherwise = fft3d (it-1) rofu $ fftTrans $ fftTrans $ fftTrans m 
   where
-    fftTrans = forceDArray . (fft rofu) . transpose'
+    fftTrans = (fft rofu) . transpose'
     transpose' darr@(DArray (() :*: k :*: l :*: m) _) = 
       backpermute darr (() :*: m :*: k :*: l)
             (\(() :*: m' :*: k' :*: l') -> (() :*: k' :*: l' :*: m')) 
 
-
-fft:: Array.Subshape dim  dim=> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
+fft:: Array.Subshape dim  dim => 
+  DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
 fft rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f) 
-  | n > 2     = assert (2 * s == n) $ 
-    append (fft_left + fft_right) (fft_left - fft_right) sh
+  | n > 2     = join fft_lr rofu
+--    append (fft_left + fft_right) (fft_left - fft_right) sh
+    
   | n == 2    = assert (2 * s == n) $ 
     DArray sh f'
   where 
@@ -186,11 +211,33 @@ fft rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f)
     f' (sh :*: 1) = f (sh :*: 0) - f (sh :*: 1)
     f' (sh :*: x) = error ("error in fft - f:" ++ (show x) ++ "/" ++ (show sh))
 
-    rofu'     = split rofu (\(sh :*: i) -> (sh :*: 2*i))
+    rofu'  = split' rofu 
+    fft_lr = forceDArray $ fft rofu' (split v)
+
+{-
+    fft_lr :: DArray (dim :*: Int :*: Int) Complex
     fft_left  = forceDArray $ rofu * (fft rofu' (split v (\(sh:*: i) -> (sh :*: 2*i))))
     fft_right = forceDArray $ fft rofu' (split v (\(sh:*: i) -> (sh :*: 2*i+1))) 
-    
-split:: Array.Shape dim => DArray (dim :*: Int) Complex -> ((dim :*: Int) -> (dim :*: Int)) -> DArray (dim :*: Int) Complex
-split arr@(DArray (sh :*: n) fn) sel =
-  (DArray (sh :*: (n `div` 2)) (fn . sel)) 
+  -}
 
+
+split':: Array.Shape dim => 
+  DArray (dim :*: Int) Complex -> DArray (dim :*: Int :*: Int) Complex
+split' arr@(DArray (sh :*: n) fn) =
+  (DArray (sh :*: 2 :*: (n `div` 2)) (\(sh :*: _ :*: i) -> fn (sh :*: 2*i))) 
+ 
+split:: Array.Shape dim => 
+  DArray (dim :*: Int) Complex -> DArray (dim :*: Int :*: Int) Complex
+split arr@(DArray (sh :*: n) fn) =
+  (DArray (sh :*: 2 :*: (n `div` 2))  fn')
+  where 
+    fn' (sh :*: 0 :*: i) = fn (sh :*: 2*i)
+    fn' (sh :*: 1 :*: i) = fn (sh :*: 2*i+1)
+
+join:: Array.Shape dim => 
+  DArray (dim :*: Int :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
+join arr@(DArray (sh :*: 2 :*: n) fn) rofu@(DArray sh' rFn) =
+  DArray (sh :*: 2*n) fn'
+  where
+    fn' (sh :*: i) | i < n     = fn (sh:*: 0 :*: i) + rFn (sh :*: i) + fn (sh :*: 1 :*: i)
+                   | otherwise = fn (sh:*: 0 :*: (i - n)) - fn (sh :*: 1 :*: (i-n))
