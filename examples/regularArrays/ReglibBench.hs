@@ -44,7 +44,8 @@ algs = [ ("0", transposeT)
        , ("11", hmDT) 
        , ("12", hhmDT)
        , ("13", fft3d)
-       , ("14", redBlack)
+       , ("14", fft3dS)
+       , ("15", redBlack)
        ]
   
 
@@ -192,10 +193,11 @@ hhmDT (n,(arrData1,arrData2)) =
   a2  = A.toArray (() :*: n*n) arrData2
 
 fft3d:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
-fft3d _ =  res
+fft3d (size,_) =  res
   where
-    size = 64
+
 {-
+    size = 32
     res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft2D 1 arr
     arr = DA.toDArray $ A.toArray (() :*: size :*: size) $ 
              U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size) [1.0,1.05..]
@@ -210,6 +212,15 @@ fft3d _ =  res
     arr = DA.toDArray $ A.toArray (() :*: size) $ U.fromList $ 
              Prelude.map (\x -> (x :*: x)) $ take (size) ([1.0,1.05..]::[Double])
  -}
+
+fft3dS:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+fft3dS (size,_) =  res
+  where
+
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3DS 1 arr
+    arr = DA.toDArray $ A.toArray (() :*: size :*: size :*: size) $ 
+             U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size*size) [1.0,1.05..]
+
 
 
 

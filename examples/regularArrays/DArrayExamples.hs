@@ -10,6 +10,7 @@ module DArrayExamples (
   , relaxShift
   , redBlack
   , fft3D 
+  , fft3DS
   ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -200,9 +201,59 @@ fft3d it rofu  m | it < 1    = m
 
 fft:: Array.Subshape dim  dim => 
   DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
-fft rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f) 
-  | n > 2     = join fft_lr rofu
---    append (fft_left + fft_right) (fft_left - fft_right) sh
+fft rofu@(DArray (rSh :*: rLen) rFn)  v@(DArray (vSh :*: vLen) vFn) 
+  | vLen > 2     = 
+        join fft_lr  -- (p)
+  | vLen == 2    = assert (2 * rLen == vLen) $ 
+      DArray (vSh :*: vLen) vFn'
+  where 
+
+    vFn' (sh :*: 0) = vFn (sh :*: 0) + vFn (sh :*: 1)
+    vFn' (sh :*: 1) = vFn (sh :*: 0) - vFn (sh :*: 1)
+    vFn' (sh :*: x) = error ("error in fft - f:" ++ (show x) ++ "/" ++ (show sh))
+
+
+    fft_lr = forceDArray $ fft splitRofu splitV -- par
+
+    splitRofu = 
+       (DArray (rSh :*: (2::Int) :*: ((rLen `div` 2)::Int)) (\(sh :*: _ :*: i) -> rFn (sh :*: 2*i))) 
+ 
+    splitV = (DArray (vSh :*: 2 :*: (vLen `div` 2))  vFn')
+       where 
+         vFn' (sh :*: 0 :*: i) = vFn (sh :*: 2*i)
+         vFn' (sh :*: 1 :*: i) = vFn (sh :*: 2*i+1)
+
+    join arr@(DArray (sh :*: 2 :*: n) fn)  =
+        DArray (sh :*: 2*n) fn'
+        where
+            fn' (sh :*: i) | i < n     = fn (sh:*: 0 :*: i) + rFn (sh :*: i) + fn (sh :*: 1 :*: i)
+                           | otherwise = fn (sh:*: 0 :*: (i - n)) - fn (sh :*: 1 :*: (i-n))
+
+
+--
+-- Calculates a vector of unity roots and calls 3D fft
+fft3DS:: Int -> DArray Array.DIM3 Complex -> DArray Array.DIM3 Complex 
+fft3DS it m@(DArray (sh :*: n) _) =
+  fft3dS it (calcRofu (sh :*: size)) m
+  where
+    size ::  Int
+    size = n `div` 2
+
+fft3dS:: Int -> DArray Array.DIM3 Complex -> DArray Array.DIM3 Complex -> DArray Array.DIM3 Complex
+fft3dS it rofu  m | it < 1    = m
+                  | otherwise = fft3d (it-1) rofu $ fftTrans $ fftTrans $ fftTrans m 
+  where
+    fftTrans = (fftS rofu) . transpose'
+    transpose' darr@(DArray (() :*: k :*: l :*: m) _) = 
+      backpermute darr (() :*: m :*: k :*: l)
+            (\(() :*: m' :*: k' :*: l') -> (() :*: k' :*: l' :*: m')) 
+
+
+fftS:: Array.Subshape dim  dim => 
+  DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
+fftS rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f) 
+  | n > 2     = 
+      append (fft_left + fft_right) (fft_left - fft_right) sh -- (s)
     
   | n == 2    = assert (2 * s == n) $ 
     DArray sh f'
@@ -211,33 +262,16 @@ fft rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f)
     f' (sh :*: 1) = f (sh :*: 0) - f (sh :*: 1)
     f' (sh :*: x) = error ("error in fft - f:" ++ (show x) ++ "/" ++ (show sh))
 
-    rofu'  = split' rofu 
-    fft_lr = forceDArray $ fft rofu' (split v)
+    rofu'  = split rofu (\(sh:*: i) -> (sh :*: 2*i))
+    fft_left  = forceDArray $ rofu * (fftS rofu' (split v (\(sh:*: i) -> (sh :*: (2*i)))))
+    fft_right = forceDArray $ fftS rofu' (split v (\(sh:*: i) -> (sh :*: (2*i+1))) )
 
-{-
-    fft_lr :: DArray (dim :*: Int :*: Int) Complex
-    fft_left  = forceDArray $ rofu * (fft rofu' (split v (\(sh:*: i) -> (sh :*: 2*i))))
-    fft_right = forceDArray $ fft rofu' (split v (\(sh:*: i) -> (sh :*: 2*i+1))) 
-  -}
+    split (DArray (sh :*: n) f) sel =
+       DArray (sh :*: (n `div` 2)) (\sh -> f (sel sh)) 
 
 
-split':: Array.Shape dim => 
-  DArray (dim :*: Int) Complex -> DArray (dim :*: Int :*: Int) Complex
-split' arr@(DArray (sh :*: n) fn) =
-  (DArray (sh :*: 2 :*: (n `div` 2)) (\(sh :*: _ :*: i) -> fn (sh :*: 2*i))) 
- 
-split:: Array.Shape dim => 
-  DArray (dim :*: Int) Complex -> DArray (dim :*: Int :*: Int) Complex
-split arr@(DArray (sh :*: n) fn) =
-  (DArray (sh :*: 2 :*: (n `div` 2))  fn')
-  where 
-    fn' (sh :*: 0 :*: i) = fn (sh :*: 2*i)
-    fn' (sh :*: 1 :*: i) = fn (sh :*: 2*i+1)
 
-join:: Array.Shape dim => 
-  DArray (dim :*: Int :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
-join arr@(DArray (sh :*: 2 :*: n) fn) rofu@(DArray sh' rFn) =
-  DArray (sh :*: 2*n) fn'
-  where
-    fn' (sh :*: i) | i < n     = fn (sh:*: 0 :*: i) + rFn (sh :*: i) + fn (sh :*: 1 :*: i)
-                   | otherwise = fn (sh:*: 0 :*: (i - n)) - fn (sh :*: 1 :*: (i-n))
+
+
+
+
