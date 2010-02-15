@@ -9,13 +9,17 @@ import Bench.Options (Options(..))
 import System.IO
 import System.Mem (performGC)
 
+import GHC.Exts (traceEvent)
+
 newtype Timing a = Timing [(a, Time)]
 
 time :: IO a -> IO (a, Time)
 {-# NOINLINE time #-}
 time p = do
            start <- getTime
+           traceEvent "Bench.Benchmark: start timing"
            x     <- p
+           traceEvent "Bench.Benchmark: finished timing"
            end   <- getTime
            return (x, end `T.minus` start)
 
