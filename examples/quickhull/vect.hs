@@ -12,6 +12,7 @@ import Control.Exception (evaluate)
 
 import Bench.Benchmark
 import Bench.Options
+import TestData
 
 
 -- Random points generation

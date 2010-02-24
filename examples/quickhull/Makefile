@@ -1,5 +1,5 @@
 TOPDIR = ..
-BINARIES = quickhull QuickHull
+BINARIES = quickhull quickhullSVG QuickHull
 
 HCCFLAGS = -optc-O3
 
@@ -8,5 +8,9 @@ quickhull_SOURCES = vect.hs QuickHullVect.hs Types.hs
 
 QuickHull_SOURCES = QuickHull.hs
 QuickHull_FLAGS   = -O2
+
+quickhullSVG_DPH = quickhullSVG
+quickhullSVG_SOURCES = vectSVG.hs QuickhullVect.hs Types.hs SVG.hs TestData.hs
+
 
 include $(TOPDIR)/mk/test.mk
