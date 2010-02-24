@@ -2,7 +2,7 @@ module Data.Array.Parallel.PArray (
   PArray, PA, Random(..),
 
   length, empty, replicate, singleton, (!:),
-  zip, unzip, enumFromTo, fromList, nf,
+  zip, unzip, enumFromTo, fromList, toList, nf, 
   fromUArrPA'
 ) where
 
