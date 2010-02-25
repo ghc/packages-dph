@@ -55,9 +55,6 @@ import GHC.Exts ( Int#, Int(..), Word#,
                   Double#, Double(..) )
 import GHC.Word ( Word8(..) )
 
-
-import Debug.Trace
-
 type Segd = U.Segd
 
 {-
@@ -198,15 +195,15 @@ selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
 selectorToIndices2PA# sel
   = U.zipWith pick sel
   . U.scan index (0 :*: 0)
-  $ U.map init sel
+  $ U.map init' sel
   where
-    init 0 = 1 :*: 0
-    init _ = 0 :*: 1
+    init' 0 = 1 :*: 0
+    init' _ = 0 :*: 1
 
     index (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
 
-    pick 0 (i :*: j) = i
-    pick _ (i :*: j) = j
+    pick 0 (i :*: _) = i
+    pick _ (_ :*: j) = j
 {-# INLINE_PA selectorToIndices2PA# #-}
 
 sumPA_Int# :: PArray_Int# -> Int#
