@@ -19,7 +19,7 @@ module Data.Array.Parallel.Unlifted (
 
   repeat_c,
 
-  fold_s, fold1_s, sum_s, indices_s, sum_r,
+  fold_s, fold1_s, fold_r, sum_s, indices_s, sum_r,
   lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd, mkSegd,
 
   selectorToIndices2, packByTag, pick, count, count_s,

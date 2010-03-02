@@ -96,7 +96,7 @@ packCU flags xssArr = segmentArrU newLengths flatData
 -- | Regular arrar reduction 
 --
 
-foldlRU :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> Int -> UArr a -> UArr b
+foldlRU :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> UArr a -> UArr b
 {-# INLINE_U foldlRU #-}
-foldlRU f z noOfSegs segSize = unstreamU . foldValuesR f z noOfSegs segSize . streamU
+foldlRU f z segSize = unstreamU . foldValuesR f z segSize . streamU
 

@@ -56,6 +56,7 @@ replicate_rs = replicateRSU
 append_s = appendSU
 fold_s = foldSU
 fold1_s = fold1SU
+fold_r = foldlRU
 sum_r = sumRU
 
 lengthSegd = lengthUSegd

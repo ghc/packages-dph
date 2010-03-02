@@ -63,6 +63,6 @@ minimumSU = fold1SU min
 
 -- |Compute the segmented sum of an array of numerals
 --
-sumRU :: (Num e, UA e) => Int -> Int ->UArr e -> UArr e
+sumRU :: (Num e, UA e) => Int ->UArr e -> UArr e
 {-# INLINE sumRU #-}
 sumRU = foldlRU (+) 0

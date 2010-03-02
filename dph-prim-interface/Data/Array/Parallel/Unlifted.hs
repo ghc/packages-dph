@@ -105,7 +105,8 @@ append_s xd xs yd ys = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
 
 fold_s  f z segd xs = P.map (P.foldr f z) (nest segd xs)
 fold1_s f   segd xs = P.map (P.foldr1 f)  (nest segd xs)
-sum_r _ segSize xs = P.error "FIXME GABI PLEASE PLEASE PLEASE" 
+fold_r  f z segSize xs = P.error "FIXME GABI PLEASE PLEASE PLEASE"
+sum_r segSize xs = P.error "FIXME GABI PLEASE PLEASE PLEASE" 
 
 lengthSegd = length . lengthsSegd
 lengthsSegd = segd_lengths

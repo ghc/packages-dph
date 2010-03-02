@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  replicateSUP, replicateRSUP, foldlSUP, foldSUP, sumSUP, sumRUP
+  replicateSUP, replicateRSUP, foldlSUP, foldSUP, foldRUP, sumSUP, sumRUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
@@ -88,18 +88,18 @@ sumSUP = foldSUP (+) 0
 
 
 
-sumRUP :: (Num e, UA e) => Int ->  Int -> UArr e -> UArr e
+sumRUP :: (Num e, UA e) => Int -> UArr e -> UArr e
 {-# INLINE sumRUP #-}
 sumRUP = foldRUP (+) 0
 
 
-foldRUP :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> Int -> UArr a -> UArr b
+foldRUP :: (UA a, UA b) => (b -> a -> b) -> b -> Int -> UArr a -> UArr b
 {-# INLINE foldRUP #-}
-foldRUP f z  noOfSegs segSize xs = 
+foldRUP f z !segSize xs = 
    joinD theGang unbalanced
-    (zipWithD theGang 
-              (\noS -> \xss -> foldlRU f z noS segSize xss)
-      (splitLenD theGang noOfSegs)
-      (splitAsD theGang 
-                (mapD theGang (*segSize) (splitLenD theGang noOfSegs))
-                xs))
+    (mapD theGang 
+      (foldlRU f z segSize)
+      (splitAsD theGang (mapD theGang (*segSize) dlen) xs))
+  where
+    noOfSegs = lengthU xs `div` segSize
+    dlen = splitLenD theGang noOfSegs

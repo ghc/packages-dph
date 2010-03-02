@@ -169,11 +169,14 @@ fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
 fold1_s :: Elt a => (a -> a -> a) -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold1_s #-}
 
+fold_r :: Elt a => (a -> a -> a) -> a -> Int -> Array a -> Array a
+{-# INLINE_BACKEND fold_r #-}
+
 sum_s :: (Num a, Elt a) => Segd -> Array a -> Array a
 {-# INLINE sum_s #-}
 sum_s = fold_s (Prelude.+) 0
 
-sum_r :: (Num a, Elt a) => Int -> Int ->Array a -> Array a
+sum_r :: (Num a, Elt a) => Int ->Array a -> Array a
 {-# INLINE_BACKEND sum_r #-}
 
 indices_s :: Int    -- ^ number of segments

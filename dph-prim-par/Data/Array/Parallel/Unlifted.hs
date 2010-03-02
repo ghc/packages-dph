@@ -58,6 +58,7 @@ replicate_rs = replicateRSUP
 append_s = U.appendSU
 fold_s = foldSUP
 fold1_s = fold1SU
+fold_r = foldlRU
 sum_r = sumRUP
 
 lengthSegd = lengthUSegd

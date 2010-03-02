@@ -159,10 +159,10 @@ appendSS (Stream nexts1 ss1 ns1 c1) (Stream nextv1 sv1 nv1 cv1)
                                          :*: ss1 :*: sv1 :*: ss2 :*: sv2')
 
 
-foldValuesR :: Rebox a => (a -> b -> a) -> a -> Int -> Int -> Stream b -> Stream a
+foldValuesR :: Rebox a => (a -> b -> a) -> a -> Int -> Stream b -> Stream a
 {-# INLINE_STREAM foldValuesR #-}
-foldValuesR f z noOfSegs segSize (Stream nextv vs nv c) =
-  Stream next (segSize :*: z :*: vs) noOfSegs ("foldValuesR" `sArgs` c)
+foldValuesR f z segSize (Stream nextv vs nv c) =
+  Stream next (segSize :*: z :*: vs) (nv `div` segSize) ("foldValuesR" `sArgs` c)
   where
     {-# INLINE next #-}  
     next (0 :*: x :*: vs) =

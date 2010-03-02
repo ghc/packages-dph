@@ -91,7 +91,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   {-repeatCU,-} replicateSU, replicateRSU, appendSU,
 
   -- * Higher-order operations (segmented)
-  foldlSU, foldSU, fold1SU,
+  foldlSU, foldSU, fold1SU, foldlRU,
   {-scanSU, scan1SU,-}
 
   -- * Higher-order operations (regular)
