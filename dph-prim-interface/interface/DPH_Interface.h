@@ -315,6 +315,9 @@ dph_mult x y = x Prelude.* y
   replicate_s (mkSegd (replicate n m) idxs nm) xs
     = replicate_rs m xs
 
+"replicate_rs/replicate" forall m n x.
+  replicate_rs m (replicate n x) = replicate (m*n) x
+
  #-}
 
 {-# RULES
