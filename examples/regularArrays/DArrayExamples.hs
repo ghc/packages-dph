@@ -161,7 +161,10 @@ calcRofu sh@(_ :*: n) = forceDArray $ mkDArray sh f
     f (_ :*: n) = ((cos (2 * pi/ ((fromIntegral n)+1))) :*: (sin  (2 * pi / ((fromIntegral n)+1))))
 
 
-
+--  Three versions of fft, which only differ in the degree to which the main fft function exploits parallelism
+-- fftS: only intra-function parallelism
+-- fft: intra and inter (recursive calls to fft done in par)
+-- fftC: switches between the former and the latte depending on the size of the input vector
 
 -- Calculates a vector of unity roots and calls 3D fft
 fft3D:: Int -> DArray Array.DIM3 Complex -> DArray Array.DIM3 Complex 
@@ -188,9 +191,7 @@ fft rofu   v
   | vLen > 2     = 
       append fft_l fft_r  (darrayShape v)
   | vLen == 2    = assert (2 * rLen == vLen) $ 
-        v
--- this causes a core lindt error
---      traverseDArray v id vFn'
+        traverseDArray v id vFn'
   where 
     (_ :*: vLen) = darrayShape v
     (_ :*: rLen) = darrayShape rofu
