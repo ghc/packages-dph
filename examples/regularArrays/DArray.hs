@@ -8,6 +8,9 @@ module DArray (
   , toScalar
   , fromDArray
   , forceDArray
+  , mkDArray
+  , traverseDArray
+  , traverse2DArray
   , backpermute
   , backpermuteDft
   , map
@@ -36,7 +39,10 @@ import Prelude hiding (map, zip, zipWith, replicate, sum)
 import Debug.Trace
 
 data DArray dim e where 
-  DArray :: dim -> (dim -> e) -> DArray dim e
+  DArray:: 
+    { darrayShape :: dim
+    , darrayFn   :: (dim -> e) 
+    } -> DArray dim e
 
 instance (U.Elt e, A.Shape dim, Show e) => Show (DArray dim e) where
   show darr = show $ fromDArray darr
@@ -86,8 +92,6 @@ fromDArray (DArray shape fn)
                      -- relative performance of these implementations differs
                      -- depending on ghc optimisations (fusion, inline patch)
                      U.map (fn . i) (U.enumFromTo (0::Int) ((A.size shape) - 1))  
-                     -- U.mapRange fn A.next A.zeroDim shape (A.size shape)
-                     -- U.map fn (A.range shape)
              , A.arrayShape = shape}
      where
        i = A.fromIndex shape
@@ -96,10 +100,28 @@ fromDArray (DArray shape fn)
 -- is a simple look up
 forceDArray:: (U.Elt e, A.Shape dim) => DArray dim e -> DArray dim e
 {-# INLINE forceDArray #-}
-forceDArray arr@(DArray d _) = A.arrayData arr' `seq` (toDArray arr')
+forceDArray arr@(DArray d _) = 
+  A.arrayData arr' `seq` (toDArray arr')
       where  
         arr' = fromDArray arr
 
+mkDArray:: (U.Elt e, A.Shape dim) => dim -> (dim -> e) -> DArray dim e 
+{-# INLINE mkDArray #-}
+mkDArray d fn = DArray d fn
+
+traverseDArray:: (U.Elt e, U.Elt f, A.Shape dim, A.Shape dim') => 
+  DArray dim e -> (dim -> dim') -> ((dim -> e) -> dim' -> f) -> DArray dim' f
+{-# INLINE traverseDArray #-}
+traverseDArray (DArray d f) dFn fTrafo = 
+  DArray (dFn d) (fTrafo f)
+
+
+traverse2DArray:: (U.Elt e, U.Elt f, U.Elt g, A.Shape dim, A.Shape dim', A.Shape dim'') => 
+  DArray dim e -> DArray dim' f -> 
+  (dim -> dim' -> dim'') -> ((dim -> e) -> (dim' -> f) -> (dim'' -> g)) -> DArray dim'' g
+{-# INLINE traverse2DArray #-}
+traverse2DArray (DArray d f1) (DArray d' f2) dFn fTrafo = 
+  DArray (dFn d d') (fTrafo f1 f2)
 
 --  Basic operations
 --  =================

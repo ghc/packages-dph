@@ -45,7 +45,8 @@ algs = [ ("0", transposeT)
        , ("12", hhmDT)
        , ("13", fft3d)
        , ("14", fft3dS)
-       , ("15", redBlack)
+       , ("15", fft3dC)
+       , ("16", redBlack)
        ]
   
 
@@ -193,36 +194,26 @@ hhmDT (n,(arrData1,arrData2)) =
   a2  = A.toArray (() :*: n*n) arrData2
 
 fft3d:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
-fft3d (size,_) =  res
+fft3d (size, (arr1, arr2)) =  res
   where
-
-{-
-    size = 32
-    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft2D 1 arr
-    arr = DA.toDArray $ A.toArray (() :*: size :*: size) $ 
-             U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size) [1.0,1.05..]
--}
-
     res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3D 1 arr
-    arr = DA.toDArray $ A.toArray (() :*: size :*: size :*: size) $ 
-             U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size*size) [1.0,1.05..]
-
-{-
-    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fftRofu arr  
-    arr = DA.toDArray $ A.toArray (() :*: size) $ U.fromList $ 
-             Prelude.map (\x -> (x :*: x)) $ take (size) ([1.0,1.05..]::[Double])
- -}
+    (DA.DArray _ fn) = DA.toDArray $ A.zip (A.toArray (() :*: size) arr1) (A.toArray (() :*: size) arr2)  
+    arr =  DA.DArray (() :*: size :*: size :*: size) (\(() :*: i :*: j :*: k) -> fn (() :*: k))
 
 fft3dS:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
-fft3dS (size,_) =  res
+fft3dS (size,(arr1, arr2)) =  res
   where
-
     res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3DS 1 arr
-    arr = DA.toDArray $ A.toArray (() :*: size :*: size :*: size) $ 
-             U.fromList $  Prelude.map (\x -> (x :*: x)) $ take (size*size*size) [1.0,1.05..]
+    (DA.DArray _ fn) = DA.toDArray $ A.zip (A.toArray (() :*: size) arr1) (A.toArray (() :*: size) arr2)  
+    arr =  DA.DArray (() :*: size :*: size :*: size) (\(() :*: i :*: j :*: k) -> fn (() :*: k))
 
 
-
+fft3dC:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
+fft3dC (size,(arr1, arr2)) =  res
+  where
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(_ :*: x) -> x) $ DAE.fft3DC 1 arr
+    (DA.DArray _ fn) = DA.toDArray $ A.zip (A.toArray (() :*: size) arr1) (A.toArray (() :*: size) arr2)  
+    arr =  DA.DArray (() :*: size :*: size :*: size) (\(() :*: i :*: j :*: k) -> fn (() :*: k))
 
 redBlack:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double 
 redBlack (n, (arrData1, arrData2)) 
@@ -236,9 +227,9 @@ redBlack (n, (arrData1, arrData2))
 generatePoints :: Int -> IO (Point (Int, (U.Array Double, U.Array Double)))
 generatePoints n =
   do 
-    let pts1 = (U.fromList [1.0..(fromIntegral (n*n*n))])
+    let pts1 = (U.fromList [1.0..(fromIntegral (n*n))])
     evaluate $ force pts1     
-    let pts2 = (U.fromList [1.0..(fromIntegral (n*n*n))])
+    let pts2 = (U.fromList [1.0..(fromIntegral (n*n))])
     evaluate $ force pts2 
     return $  ("N = " ++ show n) `mkPoint` (n, (pts1, pts2))
   where
