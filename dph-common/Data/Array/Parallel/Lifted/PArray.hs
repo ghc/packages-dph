@@ -2,6 +2,14 @@
 
 #include "fusion-phases.h"
 
+-- |Underlying data types and type classes for parallel arrays.
+--
+--	For motivational material see:
+--	   "An Approach to Fast Arrays in Haskell", Chakravarty and Keller, 2003
+--
+--	For discussion of how the mapping to generic types works see:
+--         "Instant Generics: Fast and Easy", Chakravarty, Ditu and Keller, 2009
+--
 module Data.Array.Parallel.Lifted.PArray (
   PArray(..), PData,
 
@@ -12,14 +20,14 @@ module Data.Array.Parallel.Lifted.PArray (
 
   replicatePD, replicatelPD, repeatPD, repeatcPD, emptyPD,
   indexPD, extractPD, bpermutePD, appPD, applPD,
-  packByTagPD, combine2PD, fromListPD, fromListPD, nfPD,
+  packByTagPD, combine2PD, fromListPD, nfPD,
 
   PRepr, PR(..),
 
   Scalar(..),
   replicatePRScalar, replicatelPRScalar, repeatPRScalar, repeatcPRScalar, emptyPRScalar,
   indexPRScalar, extractPRScalar, bpermutePRScalar, appPRScalar, applPRScalar,
-  packByTagPRScalar, combine2PRScalar, fromListPRScalar, fromListPRScalar,
+  packByTagPRScalar, combine2PRScalar, fromListPRScalar,
   nfPRScalar,
 ) where
 
@@ -29,75 +37,59 @@ import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
 import GHC.Exts (Int#, Int(..), (+#), (*#))
 import SpecConstr
 
--- |Lifted parallel arrays
+
+-- |Lifted\/bulk parallel arrays
+--   A parallel array with elements of type a.
 --
 {-# ANN type PArray NoSpecConstr #-}
 data PArray a = PArray Int# (PData a)
+
+
+-- |Parallel array data.
+--
+--   The family of types that store parallel array data.
+--   PData takes the type of an element and produces the type we use to store
+--   an array of those elements. 
+--
+--   For example, for performance reasons we store an array of pairs of ints
+--   as a pair of two arrays of ints.
+--
+--   Instances for simple types are defined in Data.Array.Parallel.Lifted.Repr 
+--
 {-# ANN type PData NoSpecConstr #-}
 data family PData a
 
--- |Representation types
+
+-- |Representable types.
+--
+--   The family of types that we know how to represent generically.
+--   PRepr takes an arbitrary type and produces the generic type we use to 
+--   represent it.
+--
+--   Instances for simple types are defined in Data.Array.Parallel.Lifted.Instances.
+--   For algebraic types, it's up to the client module to provide a suitable instance.
 --
 type family PRepr a
 
--- |Dictionaries
---
 
+-- Dictionaries -----------------------------------------------------------------------------------
+
+-- |A PA dictionary contains the functions that we use to convert a
+--   representable type to its representation, and back.
+--
 class PR (PRepr a) => PA a where
   toPRepr      :: a -> PRepr a
   fromPRepr    :: PRepr a -> a
   toArrPRepr   :: PData a -> PData (PRepr a)
   fromArrPRepr :: PData (PRepr a) -> PData a
 
-type T_emptyPR      a =  PData a
 
-type T_replicatePR  a =  Int# -> a -> PData a
-
-type T_replicatelPR a =  U.Segd            -- segd of result array
-                      -> PData a -> PData a
-
-type T_repeatPR     a =  Int#              -- number of times to repeat
-                      -> Int#              -- length of src array
-                      -> PData a -> PData a
-
-type T_repeatcPR    a =  Int#              -- length of result array
-                      -> U.Array Int       -- number of times each segment
-                                           -- is repeated
-                      -> U.Segd            -- src segd
-                      -> PData a -> PData a
-
-type T_indexPR      a =  PData a -> Int# -> a
-
-type T_extractPR    a =  PData a
-                      -> Int#              -- starting index
-                      -> Int#              -- length of result array
-                      -> PData a
-
-type T_bpermutePR   a =  PData a
-                      -> Int#              -- result length
-                      -> U.Array Int       -- indices
-                      -> PData a
-
-type T_appPR        a = PData a -> PData a -> PData a
-
-type T_applPR       a =  U.Segd -> PData a   -- src segd/data 1
-                      -> U.Segd -> PData a   -- src segd/data 2
-                      -> PData a
-
-type T_packByTagPR  a = PData a
-                      -> Int#              -- result length
-                      -> U.Array Int       -- tags
-                      -> Int#              -- tag value
-                      -> PData a
-
-type T_combine2PR   a =  Int#              -- result length
-                      -> Sel2              -- selector
-                      -> PData a -> PData a -> PData a
-
-type T_fromListPR a = Int# -> [a] -> PData a
-
-type T_nfPR a = PData a -> ()
-
+-- |A PR dictionary contains the primitive functions that operate directly
+--    on parallel array data.
+-- 
+--    It's called PR because the functions work on our internal Representation
+--    of the user-level array.
+--
 class PR a where
   emptyPR      :: T_emptyPR a
   replicatePR  :: T_replicatePR a
@@ -114,6 +106,103 @@ class PR a where
   fromListPR   :: T_fromListPR a
   nfPR         :: T_nfPR a
 
+
+-- |An empty array.
+type T_emptyPR      a =  PData a
+
+
+-- |Produce an array containing copies of a given element.
+type T_replicatePR  a =  Int#              -- number of copies \/ elements in resulting array
+                      -> a                 -- element to replicate
+                      -> PData a
+
+
+type T_replicatelPR a =  U.Segd            -- segment descriptor of result array
+                      -> PData a 
+                      -> PData a
+
+
+-- |Produce an array containing copies of some other array.
+type T_repeatPR     a =  Int#              -- number of times to repeat
+                      -> Int#              -- length of source array
+                      -> PData a           -- source array
+                      -> PData a
+
+type T_repeatcPR    a =  Int#              -- length of result array
+                      -> U.Array Int       -- number of times each segment is repeated
+                      -> U.Segd            -- source segment descriptor 
+                      -> PData a           -- source array
+                      -> PData a
+
+
+-- |Retrieve a numbered element from an array.
+type T_indexPR      a =  PData a           -- source array
+                      -> Int#              -- index of desired element
+                      -> a
+
+
+-- |Extract a subrange of elements from an array.
+--   eg extract [:23, 42, 93, 50, 27:] 1 3  = [:42, 93, 50:]
+-- 
+type T_extractPR    a =  PData a           -- source array
+                      -> Int#              -- starting index
+                      -> Int#              -- length of result array
+                      -> PData a
+
+
+-- |Construct a new array by selecting elements from a source array.
+--   eg  bpermute [:50, 60, 20, 30:] 3 [:0, 3, 2:]  = [:50, 30, 20:]
+--
+type T_bpermutePR   a =  PData a           -- source array
+                      -> Int#              -- length of resulting array
+                      -> U.Array Int       -- indices of elements in source array
+                      -> PData a          
+
+
+-- |Append two arrays.
+type T_appPR        a = PData a -> PData a -> PData a
+
+type T_applPR       a =  U.Segd -> PData a   -- src segd/data 1
+                      -> U.Segd -> PData a   -- src segd/data 2
+                      -> PData a
+
+
+-- |Select some elements from an array that correspond to a particular tag value
+--	and pack them into a new array.
+--   eg  packByTag [:23, 42, 95, 50, 27, 49:]  3 [:1, 2, 1, 2, 3, 2:] 2 = [:42, 50, 49:]
+--
+type T_packByTagPR  a = PData a            -- source array
+                      -> Int#              -- length of resulting array
+                      -> U.Array Int       -- tag values of elements in source array
+                      -> Int#              -- tag value of the elements to select
+                      -> PData a
+
+
+-- |Combine two arrays based on a selector
+--     The selector says which source array to choose for each element of the
+--     resulting array.
+type T_combine2PR   a =  Int#              -- length of resulting array
+                      -> Sel2              -- selector
+                      -> PData a           -- first source array
+                      -> PData a           -- second source array
+                      -> PData a
+
+
+-- |Convert a list to an array.
+type T_fromListPR a = Int#                 -- length of resulting array
+                    -> [a]                 -- source list
+                    -> PData a
+
+
+-- |Force an array to normal form.
+type T_nfPR a = PData a -> ()
+
+
+-- PD Wrappers ------------------------------------------------------------------------------------
+--
+--   Given some data that has a PA dictionary, we can convert it to its representation
+--   type, perform the requested operation, then convert it back.
+--
 emptyPD :: PA a => T_emptyPR a
 {-# INLINE_PA emptyPD #-}
 emptyPD = fromArrPRepr emptyPR
@@ -181,14 +270,26 @@ nfPD :: PA a => T_nfPR a
 nfPD xs = nfPR (toArrPRepr xs)
 
 
+-- PA Wrappers ------------------------------------------------------------------------------------
+--
+-- These functions operate on whole PArrays.
+--   For most of these we can just take the parallel array data (PData) from the 
+--   array structure then apply the corresponding PD wrapper. Depending on
+--   the function we may also need to calculuate the length of the resulting array.
+--
+
+-- Simple projections
+-- | Take the length field of a PArray.
 lengthPA# :: PArray a -> Int#
 {-# INLINE_PA lengthPA# #-}
 lengthPA# (PArray n# _) = n#
 
+-- | Take the data field of a PArray.
 dataPA# :: PArray a -> PData a
 {-# INLINE_PA dataPA# #-}
 dataPA# (PArray _ d) = d
 
+-- Wrappers
 emptyPA :: PA a => PArray a
 {-# INLINE_PA emptyPA #-}
 emptyPA = PArray 0# emptyPD
@@ -256,6 +357,17 @@ nfPA :: PA a => PArray a -> ()
 nfPA (PArray _ xs) = nfPD xs
 
 
+-- PRScalar Operators -----------------------------------------------------------------------------
+--
+-- These operators are used when the array elements are known to be scalar values.
+--	In this case we can use the "real" functions that operate on unboxed vector data.
+--	The vector data may be processed in parallel or sequentially, depending on 
+--	what vector primitive library has been linked in.
+--
+
+-- |Class of types that are known to be scalar values.
+--	Holds functions to convert the PData to flat scalar vectors, and back.
+--
 class U.Elt a => Scalar a where
   fromScalarPData :: PData a -> U.Array a
   toScalarPData   :: U.Array a -> PData a
