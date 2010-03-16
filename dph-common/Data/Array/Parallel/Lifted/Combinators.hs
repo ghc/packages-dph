@@ -9,6 +9,7 @@ module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
   zipWithPA, zipPA, unzipPA, 
   packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
+  slicePA,
 
   lengthPA_v, replicatePA_v, singletonPA_v, zipPA_v, unzipPA_v,
   indexPA_v, appPA_v, enumFromToPA_v
@@ -330,4 +331,17 @@ enumFromToPA_l ms ns
 enumFromToPA_Int :: Int :-> Int :-> PArray Int
 {-# INLINE enumFromToPA_Int #-}
 enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
+
+
+-- slice ----------------------------------------------------------------------
+slicePA_v :: PA a => Int -> Int -> PArray a -> PArray a
+slicePA_v (I# from) (I# to) xs 
+  = extractPA# xs from (to -# from) 
+
+-- TODO: Can we define this in terms of extractPA?
+slicePA_l 
+  = error "dph-common: slicePA has no lifted version yet"
+
+slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
+slicePA = closure3 slicePA_v slicePA_l
 
