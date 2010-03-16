@@ -13,7 +13,8 @@ import Data.Array.Parallel.Lifted.Closure
 
 fromPArrayP :: PArray a -> [:a:]
 {-# NOINLINE fromPArrayP #-}
-fromPArrayP _ = singletonP undefined
+fromPArrayP _ 
+    = singletonP (error "dph-common uses of fromPArrayP must be vectorised")
 
 fromPArrayPA :: PA a => PArray a :-> PArray a
 {-# INLINE fromPArrayPA #-}
@@ -21,7 +22,8 @@ fromPArrayPA = closure1 (\x -> x) (\xs -> xs)
 
 toPArrayP :: [:a:] -> PArray a
 {-# NOINLINE toPArrayP #-}
-toPArrayP _ = error "toPArray"
+toPArrayP _ 
+    = error "dph-common: uses of toPArrayP must be vectorised"
 
 toPArrayPA :: PA a => PArray a :-> PArray a
 {-# INLINE toPArrayPA #-}
@@ -29,7 +31,8 @@ toPArrayPA = closure1 (\x -> x) (\xs -> xs)
 
 fromNestedPArrayP :: PArray (PArray a) -> [:[:a:]:]
 {-# NOINLINE fromNestedPArrayP #-}
-fromNestedPArrayP _ = singletonP undefined
+fromNestedPArrayP _ 
+    = singletonP (error "dph-common: uses of fromNestedPArrayP must be vectorised")
 
 fromNestedPArrayPA :: PA a => (PArray (PArray a) :-> PArray (PArray a))
 {-# INLINE fromNestedPArrayPA #-}
