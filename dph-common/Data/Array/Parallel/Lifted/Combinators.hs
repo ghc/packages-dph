@@ -2,6 +2,9 @@
 
 #include "fusion-phases.h"
 
+-- | Array combinators that do not have corresponding primitive operators
+--	in dph-common Data.Array.Parallel.Lifted.Combinators are defined here.
+--
 module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
   zipWithPA, zipPA, unzipPA, 
@@ -24,6 +27,8 @@ import Data.Array.Parallel.Base ( fromBool )
 
 import GHC.Exts (Int(..), (+#), (-#), Int#, (<#))
 
+
+-- length ---------------------------------------------------------------------
 lengthPA_v :: PA a => PArray a -> Int
 {-# INLINE_PA lengthPA_v #-}
 lengthPA_v xs = I# (lengthPA# xs)
@@ -38,6 +43,8 @@ lengthPA :: PA a => PArray a :-> Int
 {-# INLINE lengthPA #-}
 lengthPA = closure1 lengthPA_v lengthPA_l
 
+
+-- replicate ------------------------------------------------------------------
 replicatePA_v :: PA a => Int -> a -> PArray a
 {-# INLINE_PA replicatePA_v #-}
 replicatePA_v (I# n#) x = replicatePA# n# x
@@ -51,6 +58,8 @@ replicatePA :: PA a => Int :-> a :-> PArray a
 {-# INLINE replicatePA #-}
 replicatePA = closure2 replicatePA_v replicatePA_l
 
+
+-- singleton ------------------------------------------------------------------
 singletonPA_v :: PA a => a -> PArray a
 {-# INLINE_PA singletonPA_v #-}
 singletonPA_v x = replicatePA_v 1 x
@@ -67,6 +76,8 @@ singletonPA :: PA a => a :-> PArray a
 {-# INLINE singletonPA #-}
 singletonPA = closure1 singletonPA_v singletonPA_l
 
+
+-- map ------------------------------------------------------------------------
 mapPA_v :: (PA a, PA b) => (a :-> b) -> PArray a -> PArray b
 {-# INLINE_PA mapPA_v #-}
 mapPA_v f as = replicatePA# (lengthPA# as) f $:^ as
@@ -82,6 +93,8 @@ mapPA :: (PA a, PA b) => (a :-> b) :-> PArray a :-> PArray b
 {-# INLINE mapPA #-}
 mapPA = closure2 mapPA_v mapPA_l
 
+
+-- crossMap -------------------------------------------------------------------
 crossMapPA_v :: (PA a, PA b) => PArray a -> (a :-> PArray b) -> PArray (a,b)
 {-# INLINE_PA crossMapPA_v #-}
 crossMapPA_v as f
@@ -104,6 +117,8 @@ crossMapPA :: (PA a, PA b) => (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
 {-# INLINE crossMapPA #-}
 crossMapPA = closure2 crossMapPA_v crossMapPA_l
 
+
+-- zip ------------------------------------------------------------------------
 zipPA_v :: (PA a, PA b) => PArray a -> PArray b -> PArray (a,b)
 {-# INLINE_PA zipPA_v #-}
 zipPA_v xs ys = zipPA# xs ys
@@ -117,6 +132,8 @@ zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a,b)
 {-# INLINE zipPA #-}
 zipPA = closure2 zipPA_v zipPA_l
 
+
+-- zipWith --------------------------------------------------------------------
 zipWithPA_v :: (PA a, PA b, PA c)
             => (a :-> b :-> c) -> PArray a -> PArray b -> PArray c
 {-# INLINE_PA zipWithPA_v #-}
@@ -135,6 +152,8 @@ zipWithPA :: (PA a, PA b, PA c)
 {-# INLINE zipWithPA #-}
 zipWithPA = closure3 zipWithPA_v zipWithPA_l
 
+
+-- unzip ----------------------------------------------------------------------
 unzipPA_v:: (PA a, PA b) => PArray (a,b) -> (PArray a, PArray b)
 {-# INLINE_PA unzipPA_v #-}
 unzipPA_v abs = unzipPA# abs
@@ -154,6 +173,7 @@ boolSel :: PArray Bool -> Sel2
 {-# INLINE boolSel #-}
 boolSel (PArray _ (PBool sel)) = sel
 
+-- packPA ---------------------------------------------------------------------
 packPA_v :: PA a => PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
 packPA_v xs bs
@@ -189,6 +209,7 @@ packPA = closure2 packPA_v packPA_l
 
 
 
+-- combine --------------------------------------------------------------------
 -- TODO: should the selector be a boolean array?
 combine2PA_v:: PA a => PArray a -> PArray a -> PArray Int -> PArray a
 {-# INLINE_PA combine2PA_v #-}
@@ -209,6 +230,7 @@ combine2PA:: PA a => PArray a :-> PArray a :-> PArray Int :-> PArray a
 combine2PA = closure3 combine2PA_v combine2PA_l
 
 
+-- filter ---------------------------------------------------------------------
 filterPA_v :: PA a => (a :-> Bool) -> PArray a -> PArray a
 {-# INLINE_PA filterPA_v #-}
 filterPA_v p xs = packPA_v xs (mapPA_v p xs)
@@ -226,6 +248,8 @@ indexPA_v :: PA a => PArray a -> Int -> a
 {-# INLINE_PA indexPA_v #-}
 indexPA_v xs (I# i#) = indexPA# xs i#
 
+
+-- index ----------------------------------------------------------------------
 indexPA_l :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 {-# INLINE_PA indexPA_l #-}
 indexPA_l xss is
@@ -237,6 +261,8 @@ indexPA :: PA a => PArray a :-> Int :-> a
 {-# INLINE indexPA #-}
 indexPA = closure2 indexPA_v indexPA_l
 
+
+-- concat ---------------------------------------------------------------------
 concatPA_v :: PA a => PArray (PArray a) -> PArray a
 {-# INLINE_PA concatPA_v #-}
 concatPA_v xss = concatPA# xss
@@ -254,6 +280,8 @@ concatPA :: PA a => PArray (PArray a) :-> PArray a
 {-# INLINE concatPA #-}
 concatPA = closure1 concatPA_v concatPA_l
 
+
+-- app (append) ---------------------------------------------------------------
 appPA_v :: PA a => PArray a -> PArray a -> PArray a
 {-# INLINE_PA appPA_v #-}
 appPA_v xs ys = appPA# xs ys
@@ -279,6 +307,7 @@ appPA :: PA a => PArray a :-> PArray a :-> PArray a
 appPA = closure2 appPA_v appPA_l
 
 
+-- enumFromTo -----------------------------------------------------------------
 enumFromToPA_v :: Int -> Int -> PArray Int
 {-# INLINE_PA enumFromToPA_v #-}
 enumFromToPA_v m n = fromUArrPA (distance m n) (U.enumFromTo m n)
