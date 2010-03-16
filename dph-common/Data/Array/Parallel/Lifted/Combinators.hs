@@ -170,11 +170,11 @@ unzipPA:: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
 unzipPA = closure1 unzipPA_v unzipPA_l
 
 
+-- packPA ---------------------------------------------------------------------
 boolSel :: PArray Bool -> Sel2
 {-# INLINE boolSel #-}
 boolSel (PArray _ (PBool sel)) = sel
 
--- packPA ---------------------------------------------------------------------
 packPA_v :: PA a => PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
 packPA_v xs bs
