@@ -53,8 +53,8 @@ main
 		putStr 	$ unlines
 			[ "Usage: laplace <solver name> <matrix dim> <iterations> <output file.ppm>"
 			, "  solver names: " ++ (concat $ intersperse ", " $ L.map fst algorithms)
-			, "  matrix dim  :: Int"
-			, "  iterations  :: Int"
+			, "  matrix dim  :: Int     Both the width and height of the matrix"
+			, "  iterations  :: Int     Number of iterations to use in the solver"
 			, "" ]
 			
 		return ()

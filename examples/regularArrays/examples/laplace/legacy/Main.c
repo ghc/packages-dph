@@ -3,7 +3,6 @@
 //	Uses a square matrix.
 //	Boundary conditions are fixed on the edge of the square.
 //
-//	Intial matrix starts off with zero values everywhere.	
 //	This method is very slow to converge for large matrices.
 //	If we were going to do it properly we'd start with a matrix a fraction of the size
 //	of the final result, solve that, then use those values to tile a larger initial 
@@ -16,13 +15,6 @@
 
 // Represent our matrices as arrays of rows.
 typedef double** Matrix;
-
-
-// Initial Value ----------------------------------------------------------------------------------
-double mkInitialValue (int size, int x, int y)
-{
-	return 0;
-}
 
 
 // Boundary Conditions ----------------------------------------------------------------------------
@@ -121,26 +113,47 @@ void relaxLaplace
 
 
 // Solver -----------------------------------------------------------------------------------------
-void solve
+// Main solver loop.
+//	Relax the matrix, then apply boundary conditions, for some number of iterations.
+//	The values for the next iteration are written to matDest, 
+//	then the matInitial and matDest buffers are swapped. 
+//
+//	Returns either matInitial or matDest, depending on how many iterations we took.
+//
+Matrix 	solve
 	( int size
-	, int steps
+	, int iterations
 	, Matrix matBoundMask
 	, Matrix matBoundValue
-	, Matrix matDest)
+	, Matrix matInitial
+	, Matrix matDest)	// Where to write the result of the first iteration.
 {
-	for (int i = 0; i < steps; i++) {
-		relaxLaplace  (size, matDest, matDest);
+	Matrix matTmp	= 0;
+
+	for (int i = 0; i < iterations; i++) {
+		relaxLaplace  (size, matDest, matInitial);
 		applyBoundary (size, matDest, matBoundMask, matBoundValue);
+
+		matTmp		= matDest;
+		matDest		= matInitial;
+		matInitial	= matTmp;
 	}
+
+	// Return result of last iteration.
+	return	matTmp;
 }	
 
 
+
 // Color Ramps ------------------------------------------------------------------------------------
+// Standard Hot -> Cold hypsometric color ramp.
+//	Sequence is red, yellow, green, cyan, blue.
+//	All values are clamped to [vmin .. vmax]
 void rampColorHotToCold
 	 (double v
-	, double vmin
+	, double vmin		
 	, double vmax
-	, double* r
+	, double* r		// color component outputs
 	, double* g
 	, double* b)
 {
@@ -173,7 +186,7 @@ void rampColorHotToCold
 	
 // PPM --------------------------------------------------------------------------------------------
 void writeMatrixAsPPM
-	( char* fileName
+	( char*  fileName
 	, int	 size
 	, Matrix mat )
 {
@@ -209,8 +222,8 @@ int main(int argc, char** argv)
 	// Argument parsing
 	if (argc != 4) {
 		printf("Usage: laplace <matrix dim> <iterations> <output file.ppm>\n");
-		printf("  matrix dim :: Int\n");
-		printf("  iterations :: Int\n");
+		printf("  matrix dim :: Int      Both the width and height of the matrix\n");
+		printf("  iterations :: Int      Number of iterations to use in the solver\n");
 		exit(0);
 	}
 	int size	= 0;
@@ -234,17 +247,26 @@ int main(int argc, char** argv)
 	Matrix	matBoundValue	= createMatrix (size, mkBoundaryValue);	
 	
 	// Set the initial matrix to the same as the boundary conditions.
-	Matrix	matDest		= createMatrix (size, mkBoundaryValue);
+	Matrix	matInitial	= createMatrix (size, mkBoundaryValue);
+	
+	// A destination buffer, to write the next iteration into.
+	Matrix 	matDest		= createMatrix (size, mkBoundaryValue);
 	
 	// Run the solver.
-	solve (size, iterations, matBoundMask, matBoundValue, matDest);
+	//	The result is either the matInitial or matBuffer, depending
+	//	on how many iterations we took.
+	Matrix matFinal	
+		= solve ( size, iterations
+			, matBoundMask, matBoundValue
+			, matInitial, matDest);
 	
 	// Write the output to a PPM file.
-	writeMatrixAsPPM(fileName, size, matDest);
+	writeMatrixAsPPM(fileName, size, matFinal);
 	
 	// Cleanup
 	freeMatrix (size, matBoundMask);
 	freeMatrix (size, matBoundValue);
+	freeMatrix (size, matInitial);
 	freeMatrix (size, matDest);
 }
 
