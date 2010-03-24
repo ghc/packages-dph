@@ -24,7 +24,9 @@ main
 	  _ -> do
 		putStr "Usage: laplace <matrix dim> <iterations>\n"
 		return ()
-			
+
+
+laplace :: Int -> Int -> IO ()
 laplace size steps	
  = let
 	-- The width and height of the matrix
@@ -45,9 +47,10 @@ laplace size steps
 				arrInitial
 			
 	-- Write out the matrix as a colorised PPM image	
-   in	writeFile 
-		"out.ppm" 
-		$ matrixToNormalisedPPM (rampColorHotToCold 0.0 1.0) arrFinal
+   in	writeMatrixAsNormalisedPPM
+		"out.ppm"
+		(rampColorHotToCold 0.0 1.0)
+		arrFinal
 
 
 -- | Solver loop.
