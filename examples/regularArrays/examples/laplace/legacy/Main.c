@@ -1,6 +1,20 @@
+
+// Naive solver for the Laplace equation.
+//	Uses a square matrix.
+//	Boundary conditions are fixed on the edge of the square.
+//
+//	Intial matrix starts off with zero values everywhere.	
+//	This method is very slow to converge for large matrices.
+//	If we were going to do it properly we'd start with a matrix a fraction of the size
+//	of the final result, solve that, then use those values to tile a larger initial 
+//	matrix, solve that etc.. working our way up to the final result. Doing this would
+//	help propagate information from the boundary conditions throughout the matrix.
+//
 #include <stdlib.h>
 #include <stdio.h>
 
+
+// Represent our matrices as arrays of rows.
 typedef double** Matrix;
 
 
@@ -44,11 +58,11 @@ double mkBoundaryValue (int size, int x, int y)
 //	The value matrix has the boundary condition value in places where it holds,
 //	and 0 otherwise.
 // 
-void   applyBoundary
-		( int size
-		, Matrix matDest
-		, Matrix matBoundMask
-		, Matrix matBoundValue)
+void applyBoundary
+	( int size
+	, Matrix matDest
+	, Matrix matBoundMask
+	, Matrix matBoundValue)
 {
 	for (int y = 0; y < size; y++)
 	for (int x = 0; x < size; x++) {
@@ -59,14 +73,14 @@ void   applyBoundary
 }
 		
 
-// Create Matrix ----------------------------------------------------------------------------------
+// Matrix Creation and Freeing --------------------------------------------------------------------
 // Given a function that produces each element, 
 //	create a matrix of a given size.
 Matrix createMatrix
-		( int size
-		, double (*mkElem)(int size, int x, int y))
+	( int size
+	, double (*mkElem)(int size, int x, int y))
 {
-	Matrix mat	= (Matrix)malloc (sizeof(double*) * size);
+	Matrix mat	= malloc (sizeof(double*) * size);
 
 	for (int y = 0; y < size; y++) {
 		mat[y]	= malloc (sizeof(double) * size);
@@ -78,10 +92,21 @@ Matrix createMatrix
 	return mat;
 }
 
+void freeMatrix (int size, Matrix mat)
+{
+	for (int y = 0; y < size; y++)
+		free(mat[y]);
+	
+	free(mat);
+}
+
 
 // Relaxation -------------------------------------------------------------------------------------
+// Perform one relaxation cycle with a four point stencil for the Laplace equation.
 void relaxLaplace 
-	(int size, Matrix matDest, Matrix matSrc)
+	( int size
+	, Matrix matDest
+	, Matrix matSrc)
 {
 	for (int x = 1; x < size - 1; x++)
 	for (int y = 1; y < size - 1; y++) {
@@ -181,17 +206,45 @@ void writeMatrixAsPPM
 // Main -------------------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-	int size	= 100;
-	int steps	= 1000;
+	// Argument parsing
+	if (argc != 4) {
+		printf("Usage: laplace <matrix dim> <iterations> <output file.ppm>\n");
+		printf("  matrix dim :: Int\n");
+		printf("  iterations :: Int\n");
+		exit(0);
+	}
+	int size	= 0;
+	int iterations	= 0;
 	
+	if(sscanf(argv[1], "%d", &size) != 1) {
+		printf("laplace: can't parse matrix dim\n");
+		exit(1);
+	}
+
+	if(sscanf(argv[2], "%d", &iterations) != 1) {
+		printf("laplace: can't parse iterations\n");
+		exit(1);
+	}
+		
+	char* fileName	= argv[3];
+	
+
+	// Setup boundary condition matrices
 	Matrix	matBoundMask	= createMatrix (size, mkBoundaryMask);
 	Matrix	matBoundValue	= createMatrix (size, mkBoundaryValue);	
 	
+	// Set the initial matrix to the same as the boundary conditions.
 	Matrix	matDest		= createMatrix (size, mkBoundaryValue);
 	
-	solve (size, steps, matBoundMask, matBoundValue, matDest);
+	// Run the solver.
+	solve (size, iterations, matBoundMask, matBoundValue, matDest);
 	
-	writeMatrixAsPPM("out.ppm", size, matDest);
+	// Write the output to a PPM file.
+	writeMatrixAsPPM(fileName, size, matDest);
+	
+	// Cleanup
+	freeMatrix (size, matBoundMask);
+	freeMatrix (size, matBoundValue);
+	freeMatrix (size, matDest);
 }
-
 

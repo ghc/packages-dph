@@ -36,7 +36,7 @@ main :: IO ()
 main 
  = do	args	<- getArgs
 	case args of
-	  [solverName, size, steps]	
+	  [solverName, size, steps, fileName]	
 	   -> do
 		let badSolver
 			= error 
@@ -47,15 +47,21 @@ main
 			= fromMaybe badSolver						
 			$ lookup solverName algorithms
 			
-		laplace solver (read size) (read steps)
+		laplace solver (read size) (read steps) fileName
 
 	  _ -> do
-		putStr "Usage: laplace <matrix dim> <iterations>\n"
+		putStr 	$ unlines
+			[ "Usage: laplace <solver name> <matrix dim> <iterations> <output file.ppm>"
+			, "  solver names: " ++ (concat $ intersperse ", " $ L.map fst algorithms)
+			, "  matrix dim  :: Int"
+			, "  iterations  :: Int"
+			, "" ]
+			
 		return ()
 
 
-laplace :: Solver -> Int -> Int -> IO ()
-laplace solver size steps	
+laplace :: Solver -> Int -> Int -> FilePath -> IO ()
+laplace solver size steps fileName
  = let
 	-- The width and height of the matrix
 	shape	= () :*: size :*: size
@@ -76,7 +82,7 @@ laplace solver size steps
 			
 	-- Write out the matrix as a colorised PPM image	
    in	writeMatrixAsNormalisedPPM
-		"out.ppm"
+		fileName
 		(rampColorHotToCold 0.0 1.0)
 		arrFinal
 
