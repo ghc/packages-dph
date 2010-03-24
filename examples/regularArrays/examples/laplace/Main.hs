@@ -6,30 +6,56 @@
 --
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted 		((:*:)(..))
-
-import Array					as A
-import SolveArray				as A
-
 import Prelude					as P
 import Data.List				as L
-import PPM
+import Data.Maybe
 import System.Environment
 
+import PPM
+import Array					as A
+import SolveArray				as A
+import DArray					as DA
+import SolveDArray				as DA
 
+
+-- Solvers ----------------------------------------------------------------------------------------
+type Solver
+	= Int 				-- ^ Number of steps to use.
+	-> Array DIM2 Double		-- ^ Boundary condition mask
+	-> Array DIM2 Double		-- ^ Boundary condition value.
+	-> Array DIM2 Double 		-- ^ Initial matrix.
+	-> Array DIM2 Double
+
+algorithms
+  =	[ ("array-shift",	 A.solve  A.relaxLaplace_shift)
+	, ("darray-shift",	DA.solve DA.relaxLaplace_shift) ]
+
+
+-- Main -------------------------------------------------------------------------------------------
 main :: IO ()
 main 
  = do	args	<- getArgs
 	case args of
-	  [size, steps]	
-	   ->	laplace (read size) (read steps)
+	  [solverName, size, steps]	
+	   -> do
+		let badSolver
+			= error 
+			$  "unknown solver: " ++ solverName ++ "\n"
+			++ "choose one of: " ++ show (L.map fst algorithms) ++ "\n"
+
+		let solver	
+			= fromMaybe badSolver						
+			$ lookup solverName algorithms
+			
+		laplace solver (read size) (read steps)
 
 	  _ -> do
 		putStr "Usage: laplace <matrix dim> <iterations>\n"
 		return ()
 
 
-laplace :: Int -> Int -> IO ()
-laplace size steps	
+laplace :: Solver -> Int -> Int -> IO ()
+laplace solver size steps	
  = let
 	-- The width and height of the matrix
 	shape	= () :*: size :*: size
@@ -42,8 +68,8 @@ laplace size steps
 	arrInitial	= arrBoundValue
 		
 	-- Start with the 
-	arrFinal	= A.solve steps 
-				A.relaxLaplace_shift 
+	arrFinal	= solver
+				steps
 				arrBoundMask 
 				arrBoundValue 
 				arrInitial
@@ -54,9 +80,7 @@ laplace size steps
 		(rampColorHotToCold 0.0 1.0)
 		arrFinal
 
-
 	
-
 -- Initial Value ----------------------------------------------------------------------------------
 -- | Make the initial value for the matrix.
 mkInitialValue :: Int -> DIM2 -> Double

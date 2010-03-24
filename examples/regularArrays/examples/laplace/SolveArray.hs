@@ -10,20 +10,20 @@ import Prelude					as P
 
 
 -- | Solver loop.
-solve 	:: Int 						-- ^ Number of steps to use.
-	-> (Array DIM2 Double -> Array DIM2 Double)	-- ^ Relaxation fn to use.
+solve 	:: (Array DIM2 Double -> Array DIM2 Double)	-- ^ Relaxation fn to use.
+	-> Int 						-- ^ Number of steps to use.
 	-> Array DIM2 Double				-- ^ Boundary condition mask
 	-> Array DIM2 Double				-- ^ Boundary condition value.
 	-> Array DIM2 Double 				-- ^ Initial matrix.
 	-> Array DIM2 Double
 	
-solve steps relax arrBoundMask arrBoundValue arr
+solve relaxFn steps arrBoundMask arrBoundValue arr
 	| steps == 0	= arr
 
 	| otherwise
-	= solve (steps - 1) relax arrBoundMask arrBoundValue
+	= solve relaxFn (steps - 1) arrBoundMask arrBoundValue
 	$ applyBoundary arrBoundMask arrBoundValue
-	$ relax arr
+	$ relaxFn arr
 
 
 -- | Perform matrix relaxation for the Laplace equation, using shift.
@@ -60,6 +60,7 @@ applyBoundary
 	-> Array DIM2 Double		-- ^ initial matrix
 	-> Array DIM2 Double		-- ^ matrix with boundary conditions applied
 
+{-# INLINE applyBoundary #-}
 applyBoundary arrBoundMask arrBoundValue arr
  	= A.zipWith (+) arrBoundValue
 	$ A.zipWith (*) arrBoundMask  arr
