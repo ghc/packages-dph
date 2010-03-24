@@ -1,6 +1,6 @@
 # SUBDIRS = barnesHut concomp dotp primes primespj qsort quickhull smvm sumsq
 # we currently don't have all benchmarks working
-SUBDIRS = sumsq dotp smvm
+SUBDIRS = sumsq dotp smvm words
 
 DRIVER = runbench.hs
 
