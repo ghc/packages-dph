@@ -124,7 +124,7 @@ solveLaplace_stencil' steps arrBoundMask arrBoundValue arr
 	| otherwise
 	= solveLaplace_stencil' (steps - 1) arrBoundMask arrBoundValue
 	$ forceDArray
---	$ applyBoundary arrBoundMask arrBoundValue
+	$ applyBoundary arrBoundMask arrBoundValue
 	$ relaxLaplace_stencil arr	
 
 
