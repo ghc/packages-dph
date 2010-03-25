@@ -1,7 +1,8 @@
 
 module SolveDArray
 	( solve
-	, relaxLaplace_shift )
+	, relaxLaplace_shift
+	, relaxLaplace_stencil)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted 		((:*:)(..))
@@ -44,7 +45,9 @@ solve' relaxFn steps arrBoundMask arrBoundValue arr
 	$ relaxFn arr
 
 
--- | Perform matrix relaxation for the Laplace equation, using shift.
+-- | Perform matrix relaxation for the Laplace equation, 
+--	using shift.
+--
 --   Computation fn is
 --	u'(i,j) = (u(i-1,j) + u(i+1,j) + u(i,j-1) + u(i,j+1)) / 4
 --
@@ -63,7 +66,36 @@ relaxLaplace_shift arr
 		(DA.zipWith (+)	
 			(DA.zipWith (+) shiftu shiftl)
 			(DA.zipWith (+) shiftd shiftr))
-			
+
+
+-- | Perform matrix relaxation for the Laplace equation,
+--	using a stencil function.
+--
+--   Computation fn is
+--	u'(i,j) = (u(i-1,j) + u(i+1,j) + u(i,j-1) + u(i,j+1)) / 4
+--
+relaxLaplace_stencil
+	:: DArray DIM2 Double
+	-> DArray DIM2 Double
+
+{-# INLINE relaxLaplace_stencil #-}
+relaxLaplace_stencil arr@(DArray shape@(_ :*: n :*: m) f)
+ = DArray shape
+	$  \d@(sh :*: i :*: j)
+	-> if isBorder d
+		then f d
+		else (f (sh :*: (i-1) :*: j)
+		   +  f (sh :*: i     :*: (j-1))
+		   +  f (sh :*: (i+1) :*: j)
+		   +  f (sh :*: i     :*: (j+1))) / 4
+		
+ where
+	isBorder :: DIM2 -> Bool
+	isBorder  (_ :*: i :*: j) 
+		=  (i == 0) || (i >= n - 1) 
+		|| (j == 0) || (j >= m - 1) 
+
+
 
 -- | Apply the boundary conditions to this matrix.
 --	The mask  matrix has 0 in places where boundary conditions hold

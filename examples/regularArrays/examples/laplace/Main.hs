@@ -30,7 +30,9 @@ type Solver
 algorithms
   =	[ ("array-shift",	 A.solve  A.relaxLaplace_shift)
 	, ("array-backpermute",	 A.solve  A.relaxLaplace_backpermute)
-	, ("darray-shift",	DA.solve DA.relaxLaplace_shift) ]
+	, ("darray-shift",	DA.solve DA.relaxLaplace_shift)
+	, ("darray-stencil",	DA.solve DA.relaxLaplace_stencil)
+	]
 
 
 -- Main -------------------------------------------------------------------------------------------
