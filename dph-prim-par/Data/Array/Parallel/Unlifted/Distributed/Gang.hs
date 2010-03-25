@@ -30,7 +30,7 @@ import GHC.IOBase
 import GHC.ST
 import GHC.Conc                  ( forkOnIO )
 
-import Control.Concurrent.MVar   ( MVar, newEmptyMVar, takeMVar, putMVar )
+import Control.Concurrent.MVar   ( MVar, newEmptyMVar, newMVar, takeMVar, putMVar )
 -- import Control.Monad.ST          ( ST, unsafeIOToST, stToIO )
 import Control.Exception         ( assert )
 import Control.Monad             ( zipWithM, zipWithM_ )
@@ -65,9 +65,11 @@ execReq i (p, s) = p i >> putMVar s ()
 -- | A 'Gang' is a either group of threads which execute arbitrary work
 -- requests. A /sequential/ 'Gang' simulates such a group by executing work
 -- requests sequentially.
-data Gang = Gang !Int [MVar Req] -- ^ The number of 'Gang' threads, and an 
-                                 -- 'MVar' per thread; empty for sequential 
-                                 -- 'Gang's.
+data Gang = Gang !Int           -- Number of 'Gang' threads
+                 [MVar Req]     -- One 'MVar' per thread
+                 (MVar Bool)    -- Indicates whether the 'Gang' is busy
+          | SeqGang !Int        -- Number of simulated 'Gang' threads
+
 -- To get the gang to do work, write Req-uest values to its MVars
 
 -- | The worker thread of a 'Gang'.
@@ -84,11 +86,12 @@ forkGang n = assert (n > 0) $
              do
                mvs <- sequence . replicate n $ newEmptyMVar
                zipWithM_ forkOnIO [0..] (zipWith gangWorker [0 .. n-1] mvs)
-               return $ Gang n mvs
+               busy <- newMVar False
+               return $ Gang n mvs busy
 
 -- | Yield a sequential 'Gang' which simulates the given number of threads.
 sequentialGang :: Int -> Gang
-sequentialGang n = assert (n > 0) $ Gang n []
+sequentialGang n = assert (n > 0) $ SeqGang n
 
 -- | Yield a sequential 'Gang' which simulates the given one.
 seqGang :: Gang -> Gang
@@ -96,12 +99,13 @@ seqGang = sequentialGang . gangSize
 
 -- | The number of threads in the 'Gang'.
 gangSize :: Gang -> Int
-gangSize (Gang n _) = n
+gangSize (Gang n _ _) = n
+gangSize (SeqGang n)  = n
 
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
 gangIO :: Gang -> (Int -> IO ()) -> IO ()
-gangIO (Gang n [])  p = mapM_ p [0 .. n-1]
-gangIO (Gang n mvs) p =
+gangIO (SeqGang n )      p = mapM_ p [0 .. n-1]
+gangIO (Gang n mvs busy) p =
   do
     reqs <- sequence . replicate n $ newReq p
     zipWithM putMVar mvs reqs
@@ -112,12 +116,12 @@ gangST :: Gang -> (Int -> ST s ()) -> ST s ()
 gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
 
 instance Show Gang where
-  showsPrec p (Gang n []) = showString "<<"
-                          . showsPrec p n
-                          . showString " threads (simulated)>>"
-  showsPrec p (Gang n _)  = showString "<<"
-                          . showsPrec p n
-                          . showString " threads>>"
+  showsPrec p (SeqGang n)  = showString "<<"
+                           . showsPrec p n
+                           . showString " threads (simulated)>>"
+  showsPrec p (Gang n _ _) = showString "<<"
+                           . showsPrec p n
+                           . showString " threads>>"
 
 {- Comes from GHC.IOBase now...
 -- | Unsafely embed an 'ST' computation in the 'IO' monad without fixing the
