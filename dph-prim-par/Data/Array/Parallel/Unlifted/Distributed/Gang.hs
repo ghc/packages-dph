@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fglasgow-exts #-}
 
 -----------------------------------------------------------------------------
@@ -20,6 +21,8 @@
 --
 -- * Generalise thread indices?
 
+-- #define SEQ_IF_GANG_BUSY 1
+
 module Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, forkGang, gangSize, gangIO, gangST,
   sequentialGang, seqGang
@@ -30,7 +33,7 @@ import GHC.IOBase
 import GHC.ST
 import GHC.Conc                  ( forkOnIO )
 
-import Control.Concurrent.MVar   ( MVar, newEmptyMVar, newMVar, takeMVar, putMVar )
+import Control.Concurrent.MVar
 -- import Control.Monad.ST          ( ST, unsafeIOToST, stToIO )
 import Control.Exception         ( assert )
 import Control.Monad             ( zipWithM, zipWithM_ )
@@ -105,7 +108,22 @@ gangSize (SeqGang n)  = n
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
 gangIO :: Gang -> (Int -> IO ()) -> IO ()
 gangIO (SeqGang n )      p = mapM_ p [0 .. n-1]
+#if SEQ_IF_GANG_BUSY
 gangIO (Gang n mvs busy) p =
+  do
+    b <- swapMVar busy True
+    if b
+      then mapM_ p [0 .. n-1]
+      else do
+             parIO n mvs p
+             swapMVar busy False
+             return ()
+#else
+gangIO (Gang n mvs busy) p = parIO n mvs p
+#endif
+
+parIO :: Int -> [MVar Req] -> (Int -> IO ()) -> IO ()
+parIO n mvs p =
   do
     reqs <- sequence . replicate n $ newReq p
     zipWithM putMVar mvs reqs
