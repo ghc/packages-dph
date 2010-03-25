@@ -61,7 +61,7 @@ writeMatrixAsPPM fileName colorFn arr
 		++ "\n"
 
    in do
-	file	<- openFile "out.ppm" WriteMode
+	file	<- openFile fileName WriteMode
 	hPutStrLn file $ "P3"
 	hPutStrLn file $ show width ++ " " ++ show height
 	hPutStrLn file $ "255"

@@ -1,6 +1,7 @@
 
 -- | Solver for the Laplace equation
---	Writes a file "out.ppm" of the complete solution.
+--	Writes a PPM file of the completed solution.
+--
 --	You can use the ImageMagick convert program to make a png
 --	with	"convert out.ppm out.png"
 --
@@ -28,6 +29,7 @@ type Solver
 
 algorithms
   =	[ ("array-shift",	 A.solve  A.relaxLaplace_shift)
+	, ("array-backpermute",	 A.solve  A.relaxLaplace_backpermute)
 	, ("darray-shift",	DA.solve DA.relaxLaplace_shift) ]
 
 
@@ -52,7 +54,9 @@ main
 	  _ -> do
 		putStr 	$ unlines
 			[ "Usage: laplace <solver name> <matrix dim> <iterations> <output file.ppm>"
-			, "  solver names: " ++ (concat $ intersperse ", " $ L.map fst algorithms)
+			, ""
+			, "  solver names:\n" 
+				++ concat ["     " ++ name ++ "\n" | (name, _) <- algorithms]
 			, "  matrix dim  :: Int     Both the width and height of the matrix"
 			, "  iterations  :: Int     Number of iterations to use in the solver"
 			, "" ]
