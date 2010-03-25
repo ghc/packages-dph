@@ -57,15 +57,15 @@ relaxLaplace_shift
 
 {-# INLINE relaxLaplace_shift #-}
 relaxLaplace_shift arr
- = let	shiftu = shift arr 0 ((():*: 1   :*:0)	  :: DIM2)
+ = DA.map (/ 4)
+	(DA.zipWith (+)	
+		(DA.zipWith (+) shiftu shiftl)
+		(DA.zipWith (+) shiftd shiftr))
+
+ where	shiftu = shift arr 0 ((():*: 1   :*:0)	  :: DIM2)
 	shiftd = shift arr 0 ((():*:(-1) :*:0)	  :: DIM2)
 	shiftl = shift arr 0 ((():*: 0   :*:1)	  :: DIM2)
  	shiftr = shift arr 0 ((():*: 0   :*:(-1)) :: DIM2)
-
-   in	DA.map (/ 4)
-		(DA.zipWith (+)	
-			(DA.zipWith (+) shiftu shiftl)
-			(DA.zipWith (+) shiftd shiftr))
 
 
 -- | Perform matrix relaxation for the Laplace equation,
