@@ -46,7 +46,7 @@ solveLaplace_stencil' steps arrBoundMask arrBoundValue arr
 	| otherwise
 	= solveLaplace_stencil' (steps - 1) arrBoundMask arrBoundValue
 	$ forceCArray
---	$ applyBoundary arrBoundMask arrBoundValue
+	$ applyBoundary arrBoundMask arrBoundValue
 	$ relaxLaplace_stencil arr	
 
 
@@ -66,14 +66,33 @@ relaxLaplace_stencil arr@(CArray shape@(_ :*: n :*: m) _)
  $ Left 
 	((\d@(sh :*: i :*: j)
 	  -> if isBorder d
-		then arr !: d
-		else (arr !: (sh :*: (i-1) :*: j)
+	     	then arr !: d
+	     	else (arr !: (sh :*: (i-1) :*: j)
 		   +  arr !: (sh :*: i     :*: (j-1))
 		   +  arr !: (sh :*: (i+1) :*: j)
 		   +  arr !: (sh :*: i     :*: (j+1))) / 4))
-		
+
  where
 	isBorder :: DIM2 -> Bool
 	isBorder  (_ :*: i :*: j) 
 		=  (i == 0) || (i >= n - 1) 
 		|| (j == 0) || (j >= m - 1) 
+
+
+-- | Apply the boundary conditions to this matrix.
+--	The mask  matrix has 0 in places where boundary conditions hold
+--	and 1 otherwise.
+--
+--	The value matrix has the boundary condition value in places where it holds,
+--	and 0 otherwise.
+-- 
+applyBoundary
+	:: CArray DIM2 Double		-- ^ boundary condition mask
+	-> CArray DIM2 Double		-- ^ boundary condition values
+	-> CArray DIM2 Double		-- ^ initial matrix
+	-> CArray DIM2 Double		-- ^ matrix with boundary conditions applied
+
+{-# INLINE applyBoundary #-}
+applyBoundary arrBoundMask arrBoundValue arr
+ 	= CA.zipWith (+) arrBoundValue
+	$ CA.zipWith (*) arrBoundMask  arr

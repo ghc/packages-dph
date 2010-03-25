@@ -33,11 +33,11 @@ type Solver
 	-> Array DIM2 Double
 
 algorithms
-  =	[ ("array-shift",		 A.solve  A.relaxLaplace_shift)
-	, ("array-backpermute",		 A.solve  A.relaxLaplace_backpermute)
-	, ("darray-shift",		DA.solve DA.relaxLaplace_shift)
-	, ("darray-stencil",		DA.solve DA.relaxLaplace_stencil)
-	, ("darray-stencil-special",	DA.solveLaplace_stencil)
+  =	[ ("array-shift-poly",		 A.solve  A.relaxLaplace_shift)
+	, ("array-backpermute-poly",	 A.solve  A.relaxLaplace_backpermute)
+	, ("darray-shift-poly",		DA.solve DA.relaxLaplace_shift)
+	, ("darray-stencil-poly",	DA.solve DA.relaxLaplace_stencil)
+	, ("darray-stencil",		DA.solveLaplace_stencil)
 	, ("carray-stencil",		CA.solveLaplace_stencil)
 	]
 

@@ -4,7 +4,8 @@ module CArray
 	, (!:)
 	, toCArray
 	, fromCArray
-	, forceCArray )
+	, forceCArray 
+	, zipWith)
 where
 
 import qualified Data.Array.Parallel.Unlifted 	as U
@@ -72,10 +73,27 @@ forceCArray
 	:: (U.Elt e, A.Shape dim) 
 	=> CArray dim e
 	-> CArray dim e
-
+{-# INLINE forceCArray #-}
 forceCArray arr
  = let	arr'	= fromCArray arr
    in	A.arrayData arr' `seq` (toCArray arr')
 
+
+-- Computations -----------------------------------------------------------------------------------
+-- | If the size of two array arguments differ in a dimension, the resulting
+--   array's shape is the minimum of the two 
+zipWith :: (U.Elt a, U.Elt b, U.Elt c, A.Shape dim) 
+	=> (a -> b -> c) 
+	-> CArray dim a
+	-> CArray dim b
+	-> CArray dim c
+{-# INLINE zipWith #-}
+
+zipWith f arr1 arr2
+	= CArray (A.intersectDim 
+			(carrayShape arr1)
+			(carrayShape arr2))
+		 (Left (\i -> f (arr1 !: i) (arr2 !: i)))
+
 		
-	
+
