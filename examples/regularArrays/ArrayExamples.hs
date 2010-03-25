@@ -61,7 +61,7 @@ transposeDFT arr = assert (n==m) $
 relax:: (U.Elt a, Fractional a) => Array DIM2 a -> Array DIM2 a
 {-# INLINE relax #-}
 relax arr =  
-  Array.map ((/) 5) $ 
+  Array.map (/ 5) $ 
     Array.zipWith (+) 
     (Array.zipWith (+) (Array.zipWith (+) shiftu arr) shiftl) (Array.zipWith (+) shiftr shiftd)
   where
@@ -78,7 +78,7 @@ relax arr =
 relaxShift:: Array DIM2 Double -> Array DIM2 Double
 {-# INLINE relaxShift #-}
 relaxShift arr =  
-  Array.map ( (/) 5) $ 
+  Array.map (/ 5) $ 
     Array.zipWith (+) 
     (Array.zipWith (+) (Array.zipWith (+) shiftu arr) shiftl) (Array.zipWith (+) shiftr shiftd)
   where
