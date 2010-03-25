@@ -13,10 +13,15 @@ import Data.Maybe
 import System.Environment
 
 import PPM
+
 import Array					as A
 import SolveArray				as A
+
 import DArray					as DA
 import SolveDArray				as DA
+
+import CArray					as CA
+import SolveCArray				as CA
 
 
 -- Solvers ----------------------------------------------------------------------------------------
@@ -33,6 +38,7 @@ algorithms
 	, ("darray-shift",		DA.solve DA.relaxLaplace_shift)
 	, ("darray-stencil",		DA.solve DA.relaxLaplace_stencil)
 	, ("darray-stencil-special",	DA.solveLaplace_stencil)
+	, ("carray-stencil",		CA.solveLaplace_stencil)
 	]
 
 

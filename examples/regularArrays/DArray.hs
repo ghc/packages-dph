@@ -41,7 +41,7 @@ import Debug.Trace
 data DArray dim e where 
   DArray:: 
     { darrayShape :: dim
-    , darrayFn   :: (dim -> e) 
+    , darrayFn    :: dim -> e
     } -> DArray dim e
 
 instance (U.Elt e, A.Shape dim, Show e) => Show (DArray dim e) where
@@ -54,13 +54,13 @@ assert a b = b
 -- ===========
 
 instance (U.Elt e, A.Shape dim, Num e) => Num (DArray dim e) where
-  (+) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) + f2 sh)
-  (-) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) - f2 sh)
-  (*) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) * f2 sh)
-  negate (DArray sh1 f1) = DArray sh1 (\sh -> negate (f1 sh))
-  abs (DArray sh1 f1) = DArray sh1 (\sh -> abs (f1 sh))
-  signum (DArray sh1 f1) = DArray sh1 (\sh -> signum (f1 sh))
-  fromInteger n = DArray undefined (\_ -> fromInteger n)
+  (+) (DArray sh1 f1) (DArray sh2 f2) 	= DArray sh1 (\sh -> (f1 sh) + f2 sh)
+  (-) (DArray sh1 f1) (DArray sh2 f2) 	= DArray sh1 (\sh -> (f1 sh) - f2 sh)
+  (*) (DArray sh1 f1) (DArray sh2 f2) 	= DArray sh1 (\sh -> (f1 sh) * f2 sh)
+  negate (DArray sh1 f1) 		= DArray sh1 (\sh -> negate (f1 sh))
+  abs (DArray sh1 f1) 			= DArray sh1 (\sh -> abs (f1 sh))
+  signum (DArray sh1 f1) 		= DArray sh1 (\sh -> signum (f1 sh))
+  fromInteger n 			= DArray undefined (\_ -> fromInteger n)
 
                   
 instance (U.Elt e, Eq e, A.Shape sh) => Eq (DArray sh e) where
