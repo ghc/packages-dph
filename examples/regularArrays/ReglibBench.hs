@@ -47,6 +47,8 @@ algs = [ ("0", transposeT)
        , ("14", fft3dS)
        , ("15", fft3dC)
        , ("16", redBlack)
+       , ("17",  redBlack2D)
+
        ]
   
 
@@ -119,7 +121,7 @@ relaxDMS:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double
 relaxDMS (n,( arrData,_)) = --trace (show res) res
   res
   where
-    res = A.arrayData $ DA.fromDArray $ DAE.relaxMS arr
+    res = A.arrayData $ DA.fromDArray $ DAE.relaxMS 10000 arr
     arr = DA.toDArray $ A.toArray ((() :*: n) :*: n) arrData 
 
 
@@ -224,6 +226,16 @@ redBlack (n, (arrData1, arrData2))
     a1  = DA.toDArray $ A.toArray (() :*: n :*: n :*: n) arrData1
     a2  = DA.toDArray $ A.toArray (() :*: n :*: n :*: n) arrData2
     
+
+redBlack2D:: (Int, (U.Array Double, U.Array Double)) -> U.Array Double 
+redBlack2D (n,(arr1, arr2)) =
+--  trace (show result) result
+  result
+  where
+    result = A.arrayData $ DA.fromDArray $ DAE.redBlackChecker2D 1 1 0 a1 a2
+    a1  = DA.toDArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr1
+    a2  = DA.toDArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr2
+
 generatePoints :: Int -> IO (Point (Int, (U.Array Double, U.Array Double)))
 generatePoints n =
   do 

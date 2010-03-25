@@ -53,7 +53,7 @@ assert a b = b
 --  Instances
 -- ===========
 
-instance (U.Elt e, Num e, A.Shape dim) => Num (DArray dim e) where
+instance (U.Elt e, A.Shape dim, Num e) => Num (DArray dim e) where
   (+) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) + f2 sh)
   (-) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) - f2 sh)
   (*) (DArray sh1 f1) (DArray sh2 f2) = DArray sh1 (\sh -> (f1 sh) * f2 sh)
@@ -109,14 +109,14 @@ mkDArray:: (U.Elt e, A.Shape dim) => dim -> (dim -> e) -> DArray dim e
 {-# INLINE mkDArray #-}
 mkDArray d fn = DArray d fn
 
-traverseDArray:: (U.Elt e, U.Elt f, A.Shape dim, A.Shape dim') => 
+traverseDArray:: 
   DArray dim e -> (dim -> dim') -> ((dim -> e) -> dim' -> f) -> DArray dim' f
 {-# INLINE traverseDArray #-}
 traverseDArray (DArray d f) dFn fTrafo = 
   DArray (dFn d) (fTrafo f)
 
 
-traverse2DArray:: (U.Elt e, U.Elt f, U.Elt g, A.Shape dim, A.Shape dim', A.Shape dim'') => 
+traverse2DArray:: 
   DArray dim e -> DArray dim' f -> 
   (dim -> dim' -> dim'') -> ((dim -> e) -> (dim' -> f) -> (dim'' -> g)) -> DArray dim'' g
 {-# INLINE traverse2DArray #-}
@@ -149,7 +149,7 @@ backpermuteDft srcArr@(DArray sh fn) dftArr@(DArray dsh dfn)  fn' =
 --  ============
 
 -- | Map function over each element of N-dim DArray
-map:: (U.Elt a, U.Elt b, A.Shape dim) => 
+map:: (U.Elt a, U.Elt b) => 
   (a -> b) -> DArray dim a -> DArray dim b
 {-# INLINE map #-}
 map fn' (DArray shape fn) = 

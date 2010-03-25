@@ -10,6 +10,7 @@ module DArrayExamples (
   , relaxMS
   , relaxShift
   , redBlack
+  , redBlackChecker2D
   , fft3D 
   , fft3DS
   , fft3DC
@@ -97,9 +98,27 @@ relaxShift arr =  fromDArray $ map (\(a :*: b :*: c :*: d :*: e) -> (a+b+c+d+e)/
     shiftr = shift arr 0 ((():*: 0   :*:(-1))::Array.DIM2)
 
 
-relaxMS:: Array.Shape dim => DArray (dim :*: Int :*: Int) Double -> DArray (dim :*: Int :*: Int) Double
+relaxMS 0 arr = arr
+relaxMS n arr = relaxMS (n-10) (forceDArray $ relaxMS' arr)
+
+relaxMS':: Array.Shape dim => DArray (dim :*: Int :*: Int) Double -> DArray (dim :*: Int :*: Int) Double
 {-# INLINE relaxMS #-}
-relaxMS arr@(DArray (sh :*: n :*:m) fn) =  arr 
+relaxMS' arr@(DArray (sh :*: n :*:m) fn) = 
+  stencilFn arr 
+  where
+    (d :*:n :*: m)  = darrayShape arr
+    isBorder (d :*: i :*: j) = ((i * j) == 0)  || 
+      (i >= (m-1)) || (j >= (n-1))
+
+    stencilFn (DArray sh f)   = 
+        DArray sh (\d@(sh :*: n :*: m) -> if (isBorder d)
+                                                 then f d 
+                                                 else ((f (sh :*: n :*: m+1) + 
+                                                         f (sh :*: n :*: m-1) +
+                                                           f (sh :*: n+1 :*: m) +
+                                                             f (sh :*: n-1 :*: m)))/4)
+
+
 {-
   mapStencil border (() :*: 5) stencil id sumD arr
   where
@@ -140,6 +159,28 @@ redBlack factor hsq f arr@(DArray (d :*: l :*: n :*: m) fn)  =
                                                                f (sh :*: k+1 :*: n :*: m) +
                                                                  f (sh :*: k-1 :*: n :*: m)))
 
+
+redBlackChecker2D:: Int -> Double -> Double -> DArray (() :*: Int :*: Int) Double ->
+             DArray  (() :*: Int :*: Int) Double -> DArray (() :*: Int :*: Int) Double
+redBlackChecker2D 0 factor hsq f arr =  arr
+redBlackChecker2D n factor hsq f arr = 
+  applyFactor $ stencilFn odd $ forceDArray $ applyFactor $ stencilFn even arr 
+  where
+    (d :*:n :*: m)  = darrayShape arr
+    applyFactor = zipWith (\fi -> \si -> factor *  (hsq * fi + si)) f
+    
+    isBorder (d :*: i :*: j) = ((i * j) == 0)  || 
+      (i >= (m-1)) || (j >= (n-1))
+
+    stencilFn p (DArray sh f)   = 
+        DArray sh (\d@(sh :*: n :*: m) -> if (p (m+n) || isBorder d)
+                                                 then f d 
+                                                 else (f (sh :*: n :*: m+1) + 
+                                                         f (sh :*: n :*: m-1) +
+                                                           f (sh :*: n+1 :*: m) +
+                                                             f (sh :*: n-1 :*: m)))
+
+    
 
 
 --  FFT example
@@ -240,11 +281,12 @@ fft3dS it rofu  m | it < 1    = m
             (\(() :*: m' :*: k' :*: l') -> (() :*: k' :*: l' :*: m')) 
 
 
-fftS:: Array.Subshape dim  dim => 
+fftS:: Array.Shape dim => 
   DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex -> DArray (dim :*: Int) Complex 
 fftS rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f) 
   | n > 2     = 
-      append (fft_left + fft_right) (fft_left - fft_right) sh -- (s)
+      append' (fft_left + fft_right) (fft_left - fft_right) -- (s)
+--      append (fft_left + fft_right) (fft_left - fft_right) sh -- (s)
     
   | n == 2    = assert (2 * s == n) $ 
     DArray sh f'
@@ -295,3 +337,15 @@ fftC rofu@(DArray ( _ :*: s) _ )  v@(DArray sh@(_ :*: n) f)
     split (DArray (sh :*: n) f) sel =
        DArray (sh :*: (n `div` 2)) (\sh -> f (sel sh)) 
 
+
+append':: Array.Shape sh => DArray (sh :*: Int) e -> DArray (sh :*: Int) e -> DArray (sh :*: Int) e 
+append'  arr1 arr2 =
+  traverse2DArray arr1 arr2 shFn f
+  where
+    (_ :*: n) = darrayShape arr1
+    (_ :*: m) = darrayShape arr2
+    shFn = \(sh :*: n) -> \(_  :*: m) -> (sh :*: (n+m)) 
+    f = \f1 -> \f2 -> \(sh :*: i) ->  
+          if (i < n) 
+            then f1 (sh :*: i)
+            else f2 (sh :*: (i-n))

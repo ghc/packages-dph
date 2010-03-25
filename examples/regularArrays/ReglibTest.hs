@@ -46,7 +46,8 @@ algs = [ ("1", transposeTest1)
        , ("12", toHMTest)
        , ("13", mapRangeTest)
        , ("14",  redBlack)
-       , ("15",  sumT)
+       , ("15",  redBlack2D)
+       , ("16",  sumT)
 --       , ("4", relaxT)
 --       , ("5", relaxShiftT)
 --        , ("4", backpermuteDftT)
@@ -306,6 +307,14 @@ redBlack _ =
     result = A.arrayData $ DA.fromDArray $ DAE.redBlack 1 0 a1 a2
     a1  = DA.DArray (() :*: 4 :*: 4 :*: 4) (\_ -> 1)
     a2  = DA.DArray (() :*: 4 :*: 4 :*: 4) (\_ -> 1)
+
+
+redBlack2D:: (Int, U.Array Double) -> U.Array Double 
+redBlack2D (n,arr) =
+  trace (show result) result
+  where
+    result = A.arrayData $ DA.fromDArray $ DAE.redBlackChecker2D 1000 1 0 a a
+    a  = DA.toDArray $ A.toArray ((() :*: (n::Int)):*: (n::Int)) arr
 
 
 mapRangeTest:: (Int, U.Array Double) -> U.Array Double
