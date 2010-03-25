@@ -62,7 +62,7 @@ execReq i (p, s) = p i >> putMVar s ()
 -- ---------------------------------------------------------------------------
 -- Thread gangs and operations on them
 
--- | A 'Gang' is a either group of threads which execute arbitrary work
+-- | A 'Gang' is a group of threads which execute arbitrary work
 -- requests. A /sequential/ 'Gang' simulates such a group by executing work
 -- requests sequentially.
 data Gang = Gang !Int           -- Number of 'Gang' threads
