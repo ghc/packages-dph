@@ -99,7 +99,7 @@ relaxShift arr =  fromDArray $ map (\(a :*: b :*: c :*: d :*: e) -> (a+b+c+d+e)/
 
 
 relaxMS 0 arr = arr
-relaxMS n arr = relaxMS (n-10) (forceDArray $ relaxMS' arr)
+relaxMS n arr = relaxMS (n-1) (forceDArray $ relaxMS' arr)
 
 relaxMS':: Array.Shape dim => DArray (dim :*: Int :*: Int) Double -> DArray (dim :*: Int :*: Int) Double
 {-# INLINE relaxMS #-}

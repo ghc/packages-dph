@@ -1,6 +1,7 @@
 
 module SolveDArray
 	( solve
+	, solveLaplace_stencil
 	, relaxLaplace_shift
 	, relaxLaplace_stencil)
 where
@@ -68,6 +69,65 @@ relaxLaplace_shift arr
  	shiftr = shift arr 0 ((():*: 0   :*:(-1)) :: DIM2)
 
 
+-- | Apply the boundary conditions to this matrix.
+--	The mask  matrix has 0 in places where boundary conditions hold
+--	and 1 otherwise.
+--
+--	The value matrix has the boundary condition value in places where it holds,
+--	and 0 otherwise.
+-- 
+applyBoundary
+	:: DArray DIM2 Double		-- ^ boundary condition mask
+	-> DArray DIM2 Double		-- ^ boundary condition values
+	-> DArray DIM2 Double		-- ^ initial matrix
+	-> DArray DIM2 Double		-- ^ matrix with boundary conditions applied
+
+{-# INLINE applyBoundary #-}
+applyBoundary arrBoundMask arrBoundValue arr
+ 	= DA.zipWith (+) arrBoundValue
+	$ DA.zipWith (*) arrBoundMask  arr
+
+
+-- solveLaplace -----------------------------------------------------------------------------------
+
+-- | Version of the Laplace solver that calls the relaxation and boundary functions
+--	directly, instead of them being passed in as parameters.
+solveLaplace_stencil
+	:: Int
+	-> Array DIM2 Double
+	-> Array DIM2 Double
+	-> Array DIM2 Double
+	-> Array DIM2 Double
+
+solveLaplace_stencil steps arrBoundMask arrBoundValue arr
+	= fromDArray
+	$ solveLaplace_stencil' 
+		steps
+		(toDArray arrBoundMask)
+		(toDArray arrBoundValue)
+		(toDArray arr)
+
+
+-- | Solver for the Laplace equation.
+--
+solveLaplace_stencil'
+	:: Int
+	-> DArray DIM2 Double
+	-> DArray DIM2 Double
+	-> DArray DIM2 Double
+	-> DArray DIM2 Double
+
+solveLaplace_stencil' steps arrBoundMask arrBoundValue arr
+	| steps == 0	
+	= arr
+	
+	| otherwise
+	= solveLaplace_stencil' (steps - 1) arrBoundMask arrBoundValue
+	$ forceDArray
+--	$ applyBoundary arrBoundMask arrBoundValue
+	$ relaxLaplace_stencil arr	
+
+
 -- | Perform matrix relaxation for the Laplace equation,
 --	using a stencil function.
 --
@@ -95,22 +155,3 @@ relaxLaplace_stencil arr@(DArray shape@(_ :*: n :*: m) f)
 		=  (i == 0) || (i >= n - 1) 
 		|| (j == 0) || (j >= m - 1) 
 
-
-
--- | Apply the boundary conditions to this matrix.
---	The mask  matrix has 0 in places where boundary conditions hold
---	and 1 otherwise.
---
---	The value matrix has the boundary condition value in places where it holds,
---	and 0 otherwise.
--- 
-applyBoundary
-	:: DArray DIM2 Double		-- ^ boundary condition mask
-	-> DArray DIM2 Double		-- ^ boundary condition values
-	-> DArray DIM2 Double		-- ^ initial matrix
-	-> DArray DIM2 Double		-- ^ matrix with boundary conditions applied
-
-{-# INLINE applyBoundary #-}
-applyBoundary arrBoundMask arrBoundValue arr
- 	= DA.zipWith (+) arrBoundValue
-	$ DA.zipWith (*) arrBoundMask  arr
