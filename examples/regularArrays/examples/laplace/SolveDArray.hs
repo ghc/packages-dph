@@ -121,10 +121,29 @@ solveLaplace_stencil'
 solveLaplace_stencil' steps !arrBoundMask !arrBoundValue arr
  = go steps arr
  where	go s !arr
-	 = (if s == 0 then id else go (s - 1))
-	 	$! (forceDArray
-		$ applyBoundary arrBoundMask arrBoundValue
-		$ relaxLaplace_stencil arr)
+		= (if s == 0 then id else go (s - 1))
+		$! (forceDArray
+			$ applyBoundary arrBoundMask arrBoundValue
+			$ relaxLaplace_stencil 
+			$ arr)
+
+
+{- Converting back and forth to a regular Array means the indexing
+   fn that reads the forced array data at the start of each iteration
+   can be inlined, so it fuese with the stencil fn.
+
+   This is the same as what CArray does, though that one also avoids the
+   change in types from DArray <-> Array.
+ 
+solveLaplace_stencil' steps !arrBoundMask !arrBoundValue arr
+ = toDArray (go steps (fromDArray arr))
+ where	go s !arr
+		= (if s == 0 then id else go (s - 1))
+		$! (fromDArray
+			$ applyBoundary arrBoundMask arrBoundValue
+			$ relaxLaplace_stencil 
+			$ toDArray arr)
+-}
 
 
 -- | Perform matrix relaxation for the Laplace equation,
