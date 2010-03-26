@@ -1,3 +1,5 @@
+{-# OPTIONS -fglasgow-exts #-}
+{-# LANGUAGE BangPatterns #-}
 
 module SolveDArray
 	( solve
@@ -109,7 +111,6 @@ solveLaplace_stencil steps arrBoundMask arrBoundValue arr
 
 
 -- | Solver for the Laplace equation.
---
 solveLaplace_stencil'
 	:: Int
 	-> DArray DIM2 Double
@@ -117,15 +118,13 @@ solveLaplace_stencil'
 	-> DArray DIM2 Double
 	-> DArray DIM2 Double
 
-solveLaplace_stencil' steps arrBoundMask arrBoundValue arr
-	| steps == 0	
-	= arr
-	
-	| otherwise
-	= solveLaplace_stencil' (steps - 1) arrBoundMask arrBoundValue
-	$ forceDArray
-	$ applyBoundary arrBoundMask arrBoundValue
-	$ relaxLaplace_stencil arr	
+solveLaplace_stencil' steps !arrBoundMask !arrBoundValue arr
+ = go steps arr
+ where	go s !arr
+	 = (if s == 0 then id else go (s - 1))
+	 	$! (forceDArray
+		$ applyBoundary arrBoundMask arrBoundValue
+		$ relaxLaplace_stencil arr)
 
 
 -- | Perform matrix relaxation for the Laplace equation,

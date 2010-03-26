@@ -20,9 +20,11 @@ import SolveArray				as A
 import DArray					as DA
 import SolveDArray				as DA
 
-import CArray					as CA
-import SolveCArray				as CA
+import qualified CArray				as CA
+import qualified SolveCArray			as CA
 
+import qualified CArrayFlatDim			as CAF
+import qualified SolveCArrayFlatDim		as CAF
 
 -- Solvers ----------------------------------------------------------------------------------------
 type Solver
@@ -39,6 +41,7 @@ algorithms
 	, ("darray-stencil-poly",	DA.solve DA.relaxLaplace_stencil)
 	, ("darray-stencil",		DA.solveLaplace_stencil)
 	, ("carray-stencil",		CA.solveLaplace_stencil)
+	, ("carray-stencil-flatdim",	CAF.solveLaplace_stencil)
 	]
 
 

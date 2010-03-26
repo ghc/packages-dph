@@ -1,24 +1,25 @@
-
-module CArray
-	( CArray(..)
+{-# OPTIONS -fglasgow-exts #-}
+module CArrayFlatDim
+	( Array 	(..)
+	, CArray	(..)
 	, (!:)
-	, toCArray
-	, fromCArray
+	, takeCArrayOfArray
+	, takeArrayOfCArray
 	, forceCArray 
 	, zipWith)
 where
 
 import qualified Data.Array.Parallel.Unlifted 	as U
-import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
-
-import qualified Array 				as A
+import Array					(Array(..))
 import Prelude 					hiding (map, zip, zipWith, replicate, sum)
+import FlatDim
 import Data.Maybe
 import Data.Either
+import GHC.Exts
 
-
--- CArray -----------------------------------------------------------------------------------------
+	
+-- CArray (cache array) --------------------------------------------------------------------------
 data CArray dim e 
 	= CArray
 	{ carrayShape	:: dim
@@ -27,71 +28,75 @@ data CArray dim e
 
 -- Primitive functions ----------------------------------------------------------------------------
 -- | Lookup the value in an array.
-(!:) 	:: (A.Shape dim, U.Elt e)
+(!:) 	:: (FShape dim, U.Elt e)
 	=> CArray dim e -> dim -> e
 
+{-# INLINE (!:) #-}
 (!:) arr ix
  = case carrayCache arr of
-	Right uarr	-> uarr U.!: (A.toIndex (carrayShape arr) ix)
+	Right uarr	-> uarr U.!: (toIndex (carrayShape arr) ix)
 	Left  fn	-> fn ix
 	
 	
--- Conversions ------------------------------------------------------------------------------------
+-- Conversion -------------------------------------------------------------------------------------
 -- | Convert a strict array into a cached array.
-toCArray :: (U.Elt e, A.Shape dim) => A.Array dim e -> CArray dim e
-{-# INLINE toCArray #-}
-toCArray arr
- 	=     A.arrayShape arr 
-	`seq` A.arrayData arr 
+takeCArrayOfArray :: (U.Elt e, FShape dim) => Array dim e -> CArray dim e
+{-# INLINE takeCArrayOfArray #-}
+takeCArrayOfArray arr
+ 	=     arrayShape arr 
+	`seq` arrayData arr 
 	`seq` CArray
-		{ carrayShape	= A.arrayShape arr
-		, carrayCache	= Right (A.arrayData arr) }
+		{ carrayShape	= arrayShape arr
+		, carrayCache	= Right (arrayData arr) }
 		
 
 -- | Convert a cache array into a strict array
-fromCArray :: (U.Elt e, A.Shape dim) => CArray dim e -> A.Array dim e
-{-# INLINE fromCArray #-}
-fromCArray arr	
- = A.Array
-	{ A.arrayData
+takeArrayOfCArray :: (U.Elt e, FShape dim) => CArray dim e -> Array dim e
+{-# INLINE takeArrayOfCArray #-}
+takeArrayOfCArray arr	
+ 	= Array
+	{ arrayData
 		= case carrayCache arr of
 			Left fn
-			 -> U.map (fn . A.fromIndex (carrayShape arr))
+			 -> U.map (fn . fromIndex (carrayShape arr))
 			  $ U.enumFromTo 
 				(0 :: Int)
-				((A.size $ carrayShape arr) - 1)
+				((size $ carrayShape arr) - 1)
 				
 			Right uarr -> uarr
 			
-	, A.arrayShape
+	, arrayShape
 		= carrayShape arr }
 		
 
 -- Forcing ----------------------------------------------------------------------------------------
 forceCArray 
-	:: (U.Elt e, A.Shape dim) 
+	:: (U.Elt e, FShape dim) 
 	=> CArray dim e
 	-> CArray dim e
+
 {-# INLINE forceCArray #-}
-forceCArray arr
- = let	arr'	= fromCArray arr
-   in	A.arrayData arr' `seq` (toCArray arr')
+forceCArray carr
+ = let	farr	= takeArrayOfCArray carr
+   in	arrayData farr `seq` (takeCArrayOfArray farr)
 
 
 -- Computations -----------------------------------------------------------------------------------
 -- | If the size of two array arguments differ in a dimension, the resulting
 --   array's shape is the minimum of the two 
-zipWith :: (U.Elt a, U.Elt b, U.Elt c, A.Shape dim) 
+zipWith :: (U.Elt a, U.Elt b, U.Elt c, FShape dim) 
 	=> (a -> b -> c) 
 	-> CArray dim a
 	-> CArray dim b
 	-> CArray dim c
-{-# INLINE zipWith #-}
 
+{-# INLINE zipWith #-}
 zipWith f arr1 arr2
-	= CArray (A.intersectDim 
+	= CArray (carrayShape arr1) 
+		{-(A.intersectDim 		-- TODO: intersection on FDIM isn't implemented yet.
 			(carrayShape arr1)
-			(carrayShape arr2))
+			(carrayShape arr2)) -}
 		 (Left (\i -> f (arr1 !: i) (arr2 !: i)))
 
+		
 
