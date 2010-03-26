@@ -36,6 +36,7 @@ data Array dim e where
            }  -> Array dim e
   deriving Show
 
+
 -- |Shorthand for various dimensions
 --
 type DIM0 = ()
@@ -122,6 +123,7 @@ class (Show sh, U.Elt sh, Eq sh, Rebox sh) => Shape sh where
 
   next:: sh -> sh -> Maybe sh
   -- ^shape of an array of size zero of the particular dimensionality    
+
   
 instance Shape () where
   dim n          = 0
@@ -129,20 +131,28 @@ instance Shape () where
   toIndex sh n   = 0
   fromIndex sh _ = ()
 
-
   {-# INLINE range #-}
   range sh         = U.fromList [()]
   inRange () () () = True
   zeroDim          = ()
   intersectDim _ _ = ()
-
-  next _ _ = Nothing
+  next _ _         = Nothing
 
 
 instance Shape sh => Shape (sh :*: Int) where
-  dim   (sh  :*: _)                 = dim sh + 1
-  size  (sh1 :*: n)                 = size sh1 * n
-  toIndex (sh1 :*: sh2) (sh1' :*: sh2') = toIndex sh1 sh1' * sh2 + sh2'
+  {-# INLINE dim #-}
+  dim   (sh  :*: _)
+	= dim sh + 1
+
+  {-# INLINE size #-}
+  size  (sh1 :*: n)
+	= size sh1 * n
+
+  {-# INLINE toIndex #-}
+  toIndex (sh1 :*: sh2) (sh1' :*: sh2') 
+	= toIndex sh1 sh1' * sh2 + sh2'
+
+  {-# INLINE fromIndex #-}
   fromIndex (ds :*: d) n =
     let (r,i) = n `divMod` d 
     in (fromIndex ds r) :*: i
@@ -152,9 +162,16 @@ instance Shape sh => Shape (sh :*: Int) where
     (U.replicate_s (U.lengthsToSegd  $ U.replicate (size sh) n) (range sh))
     (U.repeat (size sh) n (U.enumFromTo 0 (n-1)))
 
-  inRange (zs :*: z) (sh1 :*: n1) (sh2 :*: n2) = (n2 >= z) && (n2 < n1) && (inRange zs sh1 sh2)
+  {-# INLINE inRange #-}
+  inRange (zs :*: z) (sh1 :*: n1) (sh2 :*: n2) 
+	= (n2 >= z) && (n2 < n1) && (inRange zs sh1 sh2)
+
+  {-# INLINE zeroDim #-}
   zeroDim = (zeroDim :*: 0)
-  intersectDim (sh1 :*: n1) (sh2 :*: n2) = (intersectDim sh1 sh2 :*: (min n1 n2))
+
+  {-# INLINE intersectDim #-}
+  intersectDim (sh1 :*: n1) (sh2 :*: n2) 
+	= (intersectDim sh1 sh2 :*: (min n1 n2))
 
   next  sh@(sh' :*: s) msh@(msh' :*: ms) 
     | sh == msh     = Nothing
@@ -164,38 +181,43 @@ instance Shape sh => Shape (sh :*: Int) where
                     Nothing     -> Nothing
            
 
-
-
 class (Shape sh, Shape sh') => Subshape sh sh' where
   addDim     :: sh -> sh' -> sh    
   modDim     :: sh -> sh' -> sh    
   addModDim  :: sh -> sh  -> sh' -> sh
   inject     :: sh -> sh' -> sh
 
+
 instance Shape sh => Subshape sh () where
   {-# INLINE addDim #-}
   addDim sh ()  = sh
+
   {-# INLINE modDim #-}
   modDim sh ()  = sh
-  {- INLINE addModDim -}
-  addModDim sh _ _ = sh
-  {- INLINE inject -}
-  inject sh () = sh
 
+  {-# INLINE addModDim #-}
+  addModDim sh _ _ = sh
+
+  {-# INLINE inject #-}
+  inject sh () = sh
 
 
 instance (Subshape sh sh') => Subshape (sh :*: Int) (sh' :*: Int) where
   {-# INLINE addDim #-}
-  addDim (sh1 :*: n1) (sh2 :*: n2) = ((addDim sh1 sh2) :*: (n1 + n2))
+  addDim (sh1 :*: n1) (sh2 :*: n2) 
+	= ((addDim sh1 sh2) :*: (n1 + n2))
 
   {-# INLINE addModDim #-}
-  addModDim (aSh :*: a) (bSh :*: b) (cSh :*: m) =
-    (addModDim aSh bSh cSh :*: ((a + b + 1) `mod` m) -1)
+  addModDim (aSh :*: a) (bSh :*: b) (cSh :*: m) 
+	= (addModDim aSh bSh cSh :*: ((a + b + 1) `mod` m) -1)
 
-  modDim (sh1 :*: n1) (sh2 :*: n2) = (modDim sh1 sh2 :*: (n1 `mod` n2))
+  {-# INLINE modDim #-}
+  modDim (sh1 :*: n1) (sh2 :*: n2) 
+	= (modDim sh1 sh2 :*: (n1 `mod` n2))
 
-  {- INLINE inject -}
-  inject (sh :*: _) (sh' :*: n) = (inject sh sh' :*: n)
+  {-# INLINE inject #-}
+  inject (sh :*: _) (sh' :*: n) 
+	= (inject sh sh' :*: n)
   
 
 --  Basic structural operations
@@ -307,6 +329,7 @@ zip arr1 arr2 = arr1{arrayData = U.zip (arrayData arr1) (arrayData arr2)}
 
 
 reshape:: (Shape dim', Shape dim, U.Elt e) => Array dim e -> dim' -> Array dim' e
+{-# INLINE reshape #-}
 reshape arr newShape = assert (size newShape == size (arrayShape arr)) $
   arr{arrayShape = newShape}
 

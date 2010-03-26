@@ -34,6 +34,7 @@ solveLaplace_stencil steps arrBoundMask arrBoundValue arr
 
 -- | Flatten the representation of the dimentionality of this array.
 flattenDimOfArray :: A.Array A.DIM2 Double -> Array FDIM2 Double
+{-# INLINE flattenDimOfArray #-}
 flattenDimOfArray arr
 	= Array
 	{ arrayShape	= FDIM2 m n
@@ -45,6 +46,7 @@ flattenDimOfArray arr
 
 -- | Unflatten the representation of the dimentionality of this array.
 unflattenDimOfArray :: Array FDIM2 Double -> A.Array A.DIM2 Double
+{-# INLINE unflattenDimOfArray #-}
 unflattenDimOfArray farr
 	= A.Array
 	{ A.arrayShape	= () :*: (I# m) :*: (I# n)

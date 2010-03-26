@@ -207,15 +207,10 @@ reshape arr@(DArray sh fn) newShape = assert (A.size newShape == A.size sh) $
   DArray newShape (fn .  (A.fromIndex sh). (A.toIndex newShape))
 
 
-
-
-
-
 rotate:: (A.Subshape dim dim', U.Elt e) => DArray dim e -> e -> dim' -> DArray dim e
 {-# INLINE rotate #-}
 rotate arr@(DArray sh _) e shiftOffset = backpermute arr  sh
   (\d -> A.addModDim sh d shiftOffset)
-
 
 
 tile::  (A.Subshape dim dim', U.Elt e) => DArray dim e -> dim' -> dim' -> DArray dim e
@@ -236,9 +231,6 @@ insertTile arr@(DArray sh f) tile@(DArray shTile fTile) offset =
 
 --  Combining arrays
 -- 
-
---   
-
 append:: (A.Subshape dim dim, U.Elt e) => DArray dim e -> DArray dim e -> dim -> DArray dim e
 {-# INLINE append #-}
 append arr1@(DArray sh1 fn1) arr2@(DArray sh2 fn2) newSh =
@@ -252,7 +244,6 @@ append arr1@(DArray sh1 fn1) arr2@(DArray sh2 fn2) newSh =
 --  Shape polymorphic ops based on Index
 --  ====================================
 
-
 select:: (U.Elt e, A.Shape dim, A.Shape dim') => 
   DArray dim e -> A.SelectIndex dim dim'  -> DArray dim' e
 {-# INLINE select #-}
@@ -265,8 +256,6 @@ select arr@(DArray shape _ ) ind =
     selectFun (A.IndexFixed n rsh) shs     = (selectFun rsh shs) :*: n
 
 
-
-
 replicate:: (U.Elt e, A.Shape dim, A.Shape dim', A.InitShape dim, A.RepFun dim) => 
   DArray dim' e -> A.SelectIndex dim dim'  -> DArray dim e
 {-# INLINE replicate #-}
@@ -274,12 +263,9 @@ replicate arr@(DArray shape _ ) ind =
   backpermute arr (A.initShape ind shape) (A.repFun ind)
 
 
-
 index::(U.Elt e, A.Shape dim) => DArray dim e -> dim -> e
 {-# INLINE index #-}
 index arr@(DArray _ fn) i =
     fn i  
-
-
 
 

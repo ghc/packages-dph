@@ -31,11 +31,15 @@ data FDIM2
 
 
 instance FShape FDIM2 where
+
+	{-# INLINE size #-}
 	size  (FDIM2 n m)
 		= I# (n *# m)
 
+	{-# INLINE toIndex #-}
 	toIndex (FDIM2 n m) (FDIM2 i j)	
 		= I# (i *# m +# j)
 
+	{-# INLINE fromIndex #-}
 	fromIndex (FDIM2 n m) (I# ix)
 		= FDIM2 (ix `quotInt#` m) (ix `remInt#` n)

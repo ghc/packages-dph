@@ -8,7 +8,6 @@ module CArrayFlatDim
 	, forceCArray 
 	, zipWith)
 where
-
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
 import Array					(Array(..))

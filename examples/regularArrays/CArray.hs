@@ -7,7 +7,6 @@ module CArray
 	, forceCArray 
 	, zipWith)
 where
-
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
@@ -30,6 +29,7 @@ data CArray dim e
 (!:) 	:: (A.Shape dim, U.Elt e)
 	=> CArray dim e -> dim -> e
 
+{-# INLINE (!:) #-}
 (!:) arr ix
  = case carrayCache arr of
 	Right uarr	-> uarr U.!: (A.toIndex (carrayShape arr) ix)
@@ -72,6 +72,7 @@ forceCArray
 	:: (U.Elt e, A.Shape dim) 
 	=> CArray dim e
 	-> CArray dim e
+
 {-# INLINE forceCArray #-}
 forceCArray arr
  = let	arr'	= fromCArray arr
@@ -86,8 +87,8 @@ zipWith :: (U.Elt a, U.Elt b, U.Elt c, A.Shape dim)
 	-> CArray dim a
 	-> CArray dim b
 	-> CArray dim c
-{-# INLINE zipWith #-}
 
+{-# INLINE zipWith #-}
 zipWith f arr1 arr2
 	= CArray (A.intersectDim 
 			(carrayShape arr1)
