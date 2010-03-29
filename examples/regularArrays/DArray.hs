@@ -77,9 +77,8 @@ instance (U.Elt e, Eq e, A.Shape sh) => Eq (DArray sh e) where
 -- |Convert a strict array into a delayed array
 toDArray:: (U.Elt e, A.Shape dim) => A.Array dim e -> DArray dim e
 {-# INLINE toDArray #-}
-toDArray arr = A.arrayShape arr `seq` A.arrayData arr `seq`
-  DArray (A.arrayShape arr) 
-         (\i -> ((A.arrayData arr) U.!: (A.toIndex (A.arrayShape arr) i)))
+toDArray (A.Array sh xs) = sh `A.deepSeq` xs `seq`
+  DArray sh (\i -> (xs U.!: A.toIndex sh i))
 
 -- |Convert a zer dimensional array into a scalar value
 toScalar :: U.Elt e => DArray () e -> e
@@ -89,7 +88,8 @@ toScalar (DArray _ fn) = fn ()
 fromDArray:: (U.Elt e, A.Shape dim) => DArray dim e -> A.Array dim e
 {-# INLINE fromDArray #-}
 fromDArray (DArray shape fn)
-   = A.Array { A.arrayData = 
+   = shape `A.deepSeq`
+     A.Array { A.arrayData = 
                      -- relative performance of these implementations differs
                      -- depending on ghc optimisations (fusion, inline patch)
                      U.map (fn . i) (U.enumFromTo (0::Int) ((A.size shape) - 1))  
