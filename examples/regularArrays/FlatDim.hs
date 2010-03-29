@@ -42,4 +42,4 @@ instance FShape FDIM2 where
 
 	{-# INLINE fromIndex #-}
 	fromIndex (FDIM2 n m) (I# ix)
-		= FDIM2 (ix `quotInt#` m) (ix `remInt#` m)
+		= FDIM2 (ix `quotInt#` m) (ix `remInt#` n)

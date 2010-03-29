@@ -43,8 +43,8 @@ solveLaplace_stencil' steps !arrBoundMask !arrBoundValue arr
           | s == 0    = arr
           | otherwise = go (s-1)
 		$! forceCArray
-		$  applyBoundary arrBoundMask arrBoundValue
-		$  relaxLaplace_stencil arr
+			(applyBoundary arrBoundMask arrBoundValue
+			$  relaxLaplace_stencil  arr)
 
 
 -- | Perform matrix relaxation for the Laplace equation,
@@ -61,20 +61,23 @@ relaxLaplace_stencil
 relaxLaplace_stencil arr@(CArray shape@(_ :. n :. m) _)
  = CArray shape
  $ Left 
-	((\d@(sh :. i :. j)
+	(\d@(sh :. i :. j)
 	  -> if isBorder d
 	     	then arr !: d
 	     	else (arr !: (sh :. (i-1) :. j)
 		   +  arr !: (sh :. i     :. (j-1))
 		   +  arr !: (sh :. (i+1) :. j)
-		   +  arr !: (sh :. i     :. (j+1))) / 4))
+		   +  arr !: (sh :. i     :. (j+1))) / 4) 
 
  where
+
+	-- | Check if this element is on the border of the matrix.
+	--	We can't apply the stencil function here because we don't have the right neighbours.
 	isBorder :: DIM2 -> Bool
 	isBorder  (_ :. i :. j) 
 		=  (i == 0) || (i >= n - 1) 
 		|| (j == 0) || (j >= m - 1) 
-
+		
 
 -- | Apply the boundary conditions to this matrix.
 --	The mask  matrix has 0 in places where boundary conditions hold
@@ -84,14 +87,14 @@ relaxLaplace_stencil arr@(CArray shape@(_ :. n :. m) _)
 --	and 0 otherwise.
 -- 
 applyBoundary
-	:: CArray DIM2 Double		-- ^ Mask for boundary conditions.
-	-> CArray DIM2 Double		-- ^ Values for boundary conditions.
-	-> CArray DIM2 Double		-- ^ Initial matrix.
-	-> CArray DIM2 Double		-- ^ Matrix with boundary conditions applied.
+	:: CArray DIM2 Double		-- ^ boundary condition mask
+	-> CArray DIM2 Double		-- ^ boundary condition values
+	-> CArray DIM2 Double		-- ^ initial matrix
+	-> CArray DIM2 Double		-- ^ matrix with boundary conditions applied
 
 {-# INLINE applyBoundary #-}
 applyBoundary arrBoundMask arrBoundValue arr
- 	= zipWith (+) arrBoundValue
-	$ zipWith (*) arrBoundMask  arr
+ 	= CA.zipWith (+) arrBoundValue
+	$ CA.zipWith (*) arrBoundMask  arr
 
 

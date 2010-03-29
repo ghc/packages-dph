@@ -214,7 +214,7 @@ void writeMatrixAsPPM
 	fclose(file);
 }
 
-
+	
 
 // Main -------------------------------------------------------------------------------------------
 int main(int argc, char** argv)

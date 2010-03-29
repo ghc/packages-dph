@@ -17,7 +17,7 @@ import Data.Maybe
 import Data.Either
 import GHC.Exts
 
-	
+
 -- CArray (cache array) --------------------------------------------------------------------------
 data CArray dim e 
 	= CArray

@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 
 -- | Solver for the Laplace equation
 --	Writes a PPM file of the completed solution.
@@ -12,6 +13,7 @@ import Data.Maybe
 import System.Environment
 
 import PPM
+import ColorRamp
 
 import Array					as A
 import SolveArray				as A
@@ -49,7 +51,7 @@ main :: IO ()
 main 
  = do	args	<- getArgs
 	case args of
-	  [solverName, size, steps, fileName]	
+	  [solverName, steps, fileInput, fileOutput]	
 	   -> do
 		let badSolver
 			= error 
@@ -60,47 +62,71 @@ main
 			= fromMaybe badSolver						
 			$ lookup solverName algorithms
 			
-		laplace solver (read size) (read steps) fileName
+		laplace solver (read steps) 
+			fileInput
+			fileOutput
 
 	  _ -> do
 		putStr 	$ unlines
-			[ "Usage: laplace <solver name> <matrix dim> <iterations> <output file.ppm>"
+			[ "Usage: laplace <solver> <iterations> <input.ppm> <output.ppm>"
 			, ""
-			, "  solver names:\n" 
+			, "  solvers:\n" 
 				++ concat ["     " ++ name ++ "\n" | (name, _) <- algorithms]
-			, "  matrix dim  :: Int     Both the width and height of the matrix"
-			, "  iterations  :: Int     Number of iterations to use in the solver"
-			, "" ]
+			, "  iterations  :: Int       Number of iterations to use in the solver."
+			, "  input.ppm   :: FileName  ASCII 8 bit RGB PPM file for initial and boundary values."
+			, "  output.ppm  :: FileName  PPM file to write output to."
+			, "" 
+			, "  Format of input file:"
+			, "      Boundary values are indicated in greyscale,"
+			, "        ie from the list [(x, x, x) | x <- [0 .. 255]]"
+			, "      Non-boundary values are indicated in blue,"
+			, "        ie (0, 0, 255)"
+			, "      Any other pixel value is an error." 
+			, ""
+			]
+			
 			
 		return ()
 
 
-laplace :: Solver -> Int -> Int -> FilePath -> IO ()
-laplace solver size steps fileName
- = let
-	-- The width and height of the matrix
-	shape	= () :. size :. size
-	
-	-- Make matricies for boundary conditions
-	arrBoundMask	= createMatrix shape (mkBoundaryMask size)
-	arrBoundValue	= createMatrix shape (mkBoundaryValue size)
+laplace :: Solver
+	-> Int			-- ^ Number of iterations to use.
+	-> FilePath 		-- ^ Input file.
+	-> FilePath		-- ^ Output file
+	-> IO ()
 
-	-- Use the boundary condition values as the initial matrix
-	arrInitial	= arrBoundValue
-		
-	-- Start with the 
-	arrFinal	= solver
+laplace solver steps fileInput fileOutput
+ = do
+	(matBoundMask, matBoundValue)	
+			<- readPPMAsMatrix2 loadPixel fileInput
+
+	let matInitial	= matBoundValue
+	let matFinal	= solver
 				steps
-				arrBoundMask 
-				arrBoundValue 
-				arrInitial
-			
-	-- Write out the matrix as a colorised PPM image	
-   in	writeMatrixAsNormalisedPPM
-		fileName
-		(rampColorHotToCold 0.0 1.0)
-		arrFinal
+				matBoundMask 
+				matBoundValue 
+				matInitial
 
+	-- Write out the matrix as a colorised PPM image	
+	writeMatrixAsNormalisedPPM
+		fileOutput
+		(rampColorHotToCold 0.0 1.0)
+		matFinal
+
+
+loadPixel :: Int -> Int -> Int -> (Double, Double)
+loadPixel r g b
+	-- A non-boundary value.
+ 	| r == 0 && g == 0 && b == 255	
+	= (1, 0)
+
+	-- A boundary value.
+	| (r == g) && (r == b) 
+	= (0, (fromIntegral r) / 255)
+	
+	| otherwise
+	= error $ "Unhandled pixel value in input " ++ show (r, g, b)
+	
 	
 -- Initial Value ----------------------------------------------------------------------------------
 -- | Make the initial value for the matrix.
