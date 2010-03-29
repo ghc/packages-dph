@@ -19,7 +19,7 @@ import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Unlifted ((:*:)(..))
 import Data.Array.Parallel.Base (Rebox)
 
-import GHC.Num ( quotRemInt )
+import GHC.Base ( quotInt, remInt )
 
 
 import Debug.Trace
@@ -128,7 +128,7 @@ class (Show sh, Eq sh) => Shape sh where
 
   infixr 0 `deepSeq`
   deepSeq :: sh -> a -> a
-  
+
 instance Shape () where
   dim n          = 0
   size n         = 1
@@ -157,8 +157,14 @@ instance Shape sh => Shape (sh :. Int) where
 
   {-# INLINE fromIndex #-}
   fromIndex (ds :. d) n =
-    let (r,i) = n `quotRemInt` d 
-    in (fromIndex ds r) :. i
+    fromIndex ds (n `quotInt` d) :. r
+    where
+      -- If we assume that the index is in range, there is no point
+      -- in computing the remainder for the highest dimension since
+      -- n < d must hold. This saves one remInt per element access which
+      -- is quite a big deal.
+      r | dim ds == 0 = n
+        | otherwise   = n `remInt` d
 
   {-# INLINE inRange #-}
   inRange (zs :. z) (sh1 :. n1) (sh2 :. n2) 
