@@ -24,8 +24,8 @@
 -- #define SEQ_IF_GANG_BUSY 1
 
 module Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, forkGang, gangSize, gangIO, gangST,
-  sequentialGang, seqGang
+  Gang, forkGang, gangSize, gangIO, gangST -- ,
+  -- sequentialGang, seqGang
 ) where
 
 --import GHC.Prim                  ( unsafeCoerce# )
@@ -71,7 +71,6 @@ execReq i (p, s) = p i >> putMVar s ()
 data Gang = Gang !Int           -- Number of 'Gang' threads
                  [MVar Req]     -- One 'MVar' per thread
                  (MVar Bool)    -- Indicates whether the 'Gang' is busy
-          | SeqGang !Int        -- Number of simulated 'Gang' threads
 
 -- To get the gang to do work, write Req-uest values to its MVars
 
@@ -92,6 +91,7 @@ forkGang n = assert (n > 0) $
                busy <- newMVar False
                return $ Gang n mvs busy
 
+{-
 -- | Yield a sequential 'Gang' which simulates the given number of threads.
 sequentialGang :: Int -> Gang
 sequentialGang n = assert (n > 0) $ SeqGang n
@@ -99,15 +99,16 @@ sequentialGang n = assert (n > 0) $ SeqGang n
 -- | Yield a sequential 'Gang' which simulates the given one.
 seqGang :: Gang -> Gang
 seqGang = sequentialGang . gangSize
+-}
 
 -- | The number of threads in the 'Gang'.
 gangSize :: Gang -> Int
 gangSize (Gang n _ _) = n
-gangSize (SeqGang n)  = n
+-- gangSize (SeqGang n)  = n
 
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
 gangIO :: Gang -> (Int -> IO ()) -> IO ()
-gangIO (SeqGang n )      p = mapM_ p [0 .. n-1]
+-- gangIO (SeqGang n )      p = mapM_ p [0 .. n-1]
 #if SEQ_IF_GANG_BUSY
 gangIO (Gang n mvs busy) p =
   do
@@ -134,9 +135,6 @@ gangST :: Gang -> (Int -> ST s ()) -> ST s ()
 gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
 
 instance Show Gang where
-  showsPrec p (SeqGang n)  = showString "<<"
-                           . showsPrec p n
-                           . showString " threads (simulated)>>"
   showsPrec p (Gang n _ _) = showString "<<"
                            . showsPrec p n
                            . showString " threads>>"

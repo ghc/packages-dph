@@ -33,7 +33,7 @@ import Data.Array.Parallel.Arr (
   replicateBU, appBU )
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, gangSize, seqGang)
+  Gang, gangSize)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
   stToDistST)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
@@ -77,14 +77,14 @@ splitLenD g !n = mkDPrim (replicateBU m (l+1) `appBU` replicateBU (p-m) l)
 -- number of elements.
 splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
 {-# INLINE_DIST splitAsD #-}
-splitAsD g dlen !arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitAsD g dlen !arr = zipWithD g (sliceU arr) is dlen
   where
     is = fstS $ scanD g (+) 0 dlen
 
 -- | Distribute an array over a 'Gang'.
 splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
 {-# INLINE_DIST splitD #-}
-splitD g _ !arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitD g _ !arr = zipWithD g (sliceU arr) is dlen
   where
     dlen = splitLengthD g arr
     is   = fstS $ scanD g (+) 0 dlen
@@ -229,7 +229,7 @@ joinSegD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegD #-}
 joinSegD g = lengthsToUSegd
            . joinD g unbalanced
-           . mapD (seqGang g) lengthsUSegd
+           . mapD g lengthsUSegd
 
 splitSD :: UA a => Gang -> Dist USegd -> UArr a -> Dist (UArr a)
 {-# INLINE_DIST splitSD #-}

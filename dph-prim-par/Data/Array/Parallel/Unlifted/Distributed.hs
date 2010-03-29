@@ -13,7 +13,7 @@
 
 module Data.Array.Parallel.Unlifted.Distributed (
   -- * Gang operations
-  Gang, forkGang, gangSize, sequentialGang, seqGang,
+  Gang, forkGang, gangSize,
 
   -- * Gang hacks
   theGang,
@@ -49,7 +49,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
 ) where
 
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, forkGang, gangSize, sequentialGang, seqGang)
+  Gang, forkGang, gangSize)
 import Data.Array.Parallel.Unlifted.Distributed.TheGang
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Combinators

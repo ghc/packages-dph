@@ -18,7 +18,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Scalars (
 ) where
 
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, seqGang)
+  Gang)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, unitD)
 import Data.Array.Parallel.Unlifted.Distributed.Combinators (
@@ -28,7 +28,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Combinators (
 
 -- | Distribute a scalar.
 scalarD :: DT a => Gang -> a -> Dist a
-scalarD g x = mapD (seqGang g) (const x) (unitD g)
+scalarD g x = mapD g (const x) (unitD g)
 
 -- |
 --
