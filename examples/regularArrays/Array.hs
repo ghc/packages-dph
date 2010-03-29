@@ -96,7 +96,7 @@ instance InitShape dim => InitShape (dim :*: Int) where
 
 -- |Our index class
 --
-class (Show sh, U.Elt sh, Eq sh, Rebox sh) => Shape sh where
+class (Show sh, Eq sh) => Shape sh where
   dim   :: sh -> Int           
   -- ^number of dimensions (>= 0)
   size  :: sh -> Int           
