@@ -1,6 +1,5 @@
 
 // Naive solver for the Laplace equation.
-//	Uses a square matrix.
 //	Boundary conditions are fixed on the edge of the square.
 //
 //	This method is very slow to converge for large matrices.
@@ -11,34 +10,86 @@
 //
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+
+// A matrix represented as an array of rows.
+typedef struct {
+	int 	 width;
+	int 	 height;
+	double** data;
+} Matrix;
 
 
-// Represent our matrices as arrays of rows.
-typedef double** Matrix;
+// Matrix Creation and Freeing --------------------------------------------------------------------
+// Given a function that produces each element, 
+//	create a matrix of a given size.
+Matrix* createMatrix
+	( int width
+	, int height
+	, double (*mkElem)(int width, int height, int x, int y))
+{
+	double** data	= malloc (sizeof(double*) * height);
+
+	for (int y = 0; y < height; y++) {
+		data[y]	= malloc (sizeof(double) * width);
+		
+		for (int x = 0; x < width; x++)
+			data[y][x] = mkElem(width, height, x, y);
+	}
+	
+	Matrix* mat	= malloc (sizeof(Matrix));
+	mat->width	= width;
+	mat->height	= height;
+	mat->data	= data;
+	return mat;
+}
+
+
+void freeMatrix (Matrix* mat)
+{
+	for (int y = 0; y < mat->height; y++)
+		free(mat->data[y]);
+	
+	free(mat->data);
+	free(mat);
+}
+
+
+// Check whether these matrices have the same width and height.
+int matricesHaveSameShape (Matrix* mat1, Matrix* mat2)
+{
+	return	(mat1->width  == mat2->width)
+	    &&  (mat1->height == mat2->height);
+}
 
 
 // Boundary Conditions ----------------------------------------------------------------------------
 // Make the mask for the boundary conditions.
 //	Should return 0 when the point is part of the boundary, and 1 otherwise.
-double mkBoundaryMask (int size, int x, int y)
+double mkBoundaryMask (int width, int height, int x, int y)
 {
+	int w 	= width  - 1;
+	int h	= height - 1;
+	
 	if      (x == 0)			return 0;
 	else if (y == 0)			return 0;
-	else if (x >= size - 1)			return 0;
-	else if (y >= size - 1)			return 0;
+	else if (x >= w)			return 0;
+	else if (y >= h)			return 0;
 	else					return 1;
 }
 
 
 // Make the values for the boundary conditions.
 //	Should return 0 where the point is not part of the boundary.
-double mkBoundaryValue (int size, int x, int y)
+double mkBoundaryValue (int width, int height, int x, int y)
 {
-	int n = size - 1;
-	if 	(x == 0 && y > 0 && y < n)	return 80;
-	else if (y == 0 && x > 0 && x < n)	return 20;
-	else if (x == n && y > 0 && y < n)	return 0;
-	else if	(y == n && x > 0 && x < n)	return 180;
+	int w 	= width  - 1;
+	int h	= height - 1;
+	
+	if 	(x == 0 && y > 0 && y < h)	return 80;
+	else if (y == 0 && x > 0 && x < w)	return 20;
+	else if (x == w && y > 0 && y < h)	return 0;
+	else if	(y == h && x > 0 && x < w)	return 180;
 	else					return 0;
 }
 
@@ -51,63 +102,38 @@ double mkBoundaryValue (int size, int x, int y)
 //	and 0 otherwise.
 // 
 void applyBoundary
-	( int size
-	, Matrix matDest
-	, Matrix matBoundMask
-	, Matrix matBoundValue)
+	( Matrix* matDest
+	, Matrix* matBoundMask
+	, Matrix* matBoundValue)
 {
-	for (int y = 0; y < size; y++)
-	for (int x = 0; x < size; x++) {
-		matDest[y][x]
-			= (matDest[y][x] * matBoundMask[y][x]) 
-			+ matBoundValue[y][x];
+	assert(matricesHaveSameShape(matDest, matBoundMask));
+	assert(matricesHaveSameShape(matDest, matBoundValue));
+
+	for (int y = 0; y < matDest->height; y++)
+	for (int x = 0; x < matDest->width; x++) {
+		matDest->data[y][x]
+			= (matDest->data[y][x] * matBoundMask->data[y][x]) 
+			+ matBoundValue->data[y][x];
 	}
 }
 		
-
-// Matrix Creation and Freeing --------------------------------------------------------------------
-// Given a function that produces each element, 
-//	create a matrix of a given size.
-Matrix createMatrix
-	( int size
-	, double (*mkElem)(int size, int x, int y))
-{
-	Matrix mat	= malloc (sizeof(double*) * size);
-
-	for (int y = 0; y < size; y++) {
-		mat[y]	= malloc (sizeof(double) * size);
-		
-		for (int x = 0; x < size; x++)
-			mat[y][x] = mkElem(size, x, y);
-	}
-	
-	return mat;
-}
-
-void freeMatrix (int size, Matrix mat)
-{
-	for (int y = 0; y < size; y++)
-		free(mat[y]);
-	
-	free(mat);
-}
-
 
 // Relaxation -------------------------------------------------------------------------------------
 // Perform one relaxation cycle with a four point stencil for the Laplace equation.
 void relaxLaplace 
-	( int size
-	, Matrix matDest
-	, Matrix matSrc)
+	( Matrix* matDest
+	, Matrix* matSrc)
 {
-	for (int x = 1; x < size - 1; x++)
-	for (int y = 1; y < size - 1; y++) {
-		double left	= matSrc[y]  [x-1];
-		double right	= matSrc[y]  [x+1];
-		double up	= matSrc[y+1][x];
-		double down	= matSrc[y-1][x];
+	assert(matricesHaveSameShape(matDest, matSrc));
+	
+	for (int y = 1; y < matDest->height - 1; y++) 
+	for (int x = 1; x < matDest->width  - 1; x++) {
+		double left	= matSrc->data[y]  [x-1];
+		double right	= matSrc->data[y]  [x+1];
+		double up	= matSrc->data[y+1][x];
+		double down	= matSrc->data[y-1][x];
 		
-		matDest[y][x]	= (left + right + up + down) / 4;
+		matDest->data[y][x] = (left + right + up + down) / 4;
 	}	
 }
 
@@ -120,19 +146,22 @@ void relaxLaplace
 //
 //	Returns either matInitial or matDest, depending on how many iterations we took.
 //
-Matrix 	solve
-	( int size
-	, int iterations
-	, Matrix matBoundMask
-	, Matrix matBoundValue
-	, Matrix matInitial
-	, Matrix matDest)	// Where to write the result of the first iteration.
+Matrix* solve
+	( int iterations
+	, Matrix* matBoundMask
+	, Matrix* matBoundValue
+	, Matrix* matInitial
+	, Matrix* matDest)	// Where to write the result of the first iteration.
 {
-	Matrix matTmp	= 0;
+	assert(matricesHaveSameShape(matDest, matInitial));
+	assert(matricesHaveSameShape(matDest, matBoundValue));
+	assert(matricesHaveSameShape(matDest, matBoundMask));
+
+	Matrix* matTmp	= 0;
 
 	for (int i = 0; i < iterations; i++) {
-		relaxLaplace  (size, matDest, matInitial);
-		applyBoundary (size, matDest, matBoundMask, matBoundValue);
+		relaxLaplace  (matDest, matInitial);
+		applyBoundary (matDest, matBoundMask, matBoundValue);
 
 		matTmp		= matDest;
 		matDest		= matInitial;
@@ -186,18 +215,17 @@ void rampColorHotToCold
 	
 // PPM --------------------------------------------------------------------------------------------
 void writeMatrixAsPPM
-	( char*  fileName
-	, int	 size
-	, Matrix mat )
+	( char*  	fileName
+	, Matrix* 	mat )
 {
 	FILE* file	= fopen(fileName, "w+");
 	fprintf(file, "P3\n");
-	fprintf(file, "%d %d\n", size, size);
+	fprintf(file, "%d %d\n", mat->width, mat->height);
 	fprintf(file, "255\n");
 	
-	for (int y = 0; y < size; y++)
-	for (int x = 0; x < size; x++) {
-		double v = mat[y][x];
+	for (int y = 0; y < mat->height; y++)
+	for (int x = 0; x < mat->width; x++) {
+		double v = mat->data[y][x];
 
 		double r = 0;
 		double g = 0;
@@ -220,53 +248,59 @@ void writeMatrixAsPPM
 int main(int argc, char** argv)
 {
 	// Argument parsing
-	if (argc != 4) {
-		printf("Usage: laplace <matrix dim> <iterations> <output file.ppm>\n");
-		printf("  matrix dim :: Int      Both the width and height of the matrix\n");
-		printf("  iterations :: Int      Number of iterations to use in the solver\n");
+	if (argc != 5) {
+		printf("Usage: laplace <width> <height> <iterations> <output file.ppm>\n");
+		printf("  width, height  :: Int      The width and height of the matrix\n");
+		printf("  iterations     :: Int      Number of iterations to use in the solver\n");
 		exit(0);
 	}
-	int size	= 0;
+	int width	= 0;
+	int height	= 0;
 	int iterations	= 0;
 	
-	if(sscanf(argv[1], "%d", &size) != 1) {
-		printf("laplace: can't parse matrix dim\n");
+	if(sscanf(argv[1], "%d", &width) != 1) {
+		printf("laplace: can't parse matrix width\n");
 		exit(1);
 	}
 
-	if(sscanf(argv[2], "%d", &iterations) != 1) {
+	if(sscanf(argv[2], "%d", &height) != 1) {
+		printf("laplace: can't parse matrix height\n");
+		exit(1);
+	}
+
+	if(sscanf(argv[3], "%d", &iterations) != 1) {
 		printf("laplace: can't parse iterations\n");
 		exit(1);
 	}
 		
-	char* fileName	= argv[3];
-	
+	char* fileName	= argv[4];
 
+	
 	// Setup boundary condition matrices
-	Matrix	matBoundMask	= createMatrix (size, mkBoundaryMask);
-	Matrix	matBoundValue	= createMatrix (size, mkBoundaryValue);	
+	Matrix*	matBoundMask	= createMatrix (width, height, mkBoundaryMask);
+	Matrix*	matBoundValue	= createMatrix (width, height, mkBoundaryValue);	
 	
 	// Set the initial matrix to the same as the boundary conditions.
-	Matrix	matInitial	= createMatrix (size, mkBoundaryValue);
+	Matrix*	matInitial	= createMatrix (width, height, mkBoundaryValue);
 	
 	// A destination buffer, to write the next iteration into.
-	Matrix 	matDest		= createMatrix (size, mkBoundaryValue);
+	Matrix* matDest		= createMatrix (width, height, mkBoundaryValue);
 	
 	// Run the solver.
 	//	The result is either the matInitial or matBuffer, depending
 	//	on how many iterations we took.
-	Matrix matFinal	
-		= solve ( size, iterations
+	Matrix* matFinal	
+		= solve ( iterations
 			, matBoundMask, matBoundValue
 			, matInitial, matDest);
 	
 	// Write the output to a PPM file.
-	writeMatrixAsPPM(fileName, size, matFinal);
+	writeMatrixAsPPM(fileName, matFinal);
 	
 	// Cleanup
-	freeMatrix (size, matBoundMask);
-	freeMatrix (size, matBoundValue);
-	freeMatrix (size, matInitial);
-	freeMatrix (size, matDest);
+	freeMatrix (matBoundMask);
+	freeMatrix (matBoundValue);
+	freeMatrix (matInitial);
+	freeMatrix (matDest);
 }
 
