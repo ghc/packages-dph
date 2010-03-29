@@ -126,6 +126,7 @@ class (Show sh, Eq sh) => Shape sh where
   next:: sh -> sh -> Maybe sh
   -- ^shape of an array of size zero of the particular dimensionality    
 
+  infixr 0 `deepSeq`
   deepSeq :: sh -> a -> a
   
 instance Shape () where
