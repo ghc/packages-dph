@@ -19,6 +19,8 @@ import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Unlifted ((:*:)(..))
 import Data.Array.Parallel.Base (Rebox)
 
+import GHC.Num ( quotRemInt )
+
 
 import Debug.Trace
 
@@ -154,7 +156,7 @@ instance Shape sh => Shape (sh :*: Int) where
 
   {-# INLINE fromIndex #-}
   fromIndex (ds :*: d) n =
-    let (r,i) = n `divMod` d 
+    let (r,i) = n `quotRemInt` d 
     in (fromIndex ds r) :*: i
 
   {-# INLINE range #-}
