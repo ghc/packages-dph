@@ -109,10 +109,6 @@ class (Show sh, U.Elt sh, Eq sh, Rebox sh) => Shape sh where
   -- ^given index into linear row major representation, calculates 
   -- index into array                               
 
-  range      :: sh -> U.Array sh  
-  -- ^all the valid indices in a shape. The following equality should hold: 
-  -- map (toIndex sh) (range sh) = [:0..(size sh)-1:]
-  
   inRange      :: sh -> sh -> sh -> Bool
   -- ^Checks if a given index is in the range of an array shape. I.e.,
   -- inRange sh ind == elem ind (range sh)
@@ -134,8 +130,6 @@ instance Shape () where
   toIndex sh n   = 0
   fromIndex sh _ = ()
 
-  {-# INLINE range #-}
-  range sh         = U.fromList [()]
   inRange () () () = True
   zeroDim          = ()
   intersectDim _ _ = ()
@@ -160,11 +154,6 @@ instance Shape sh => Shape (sh :*: Int) where
   fromIndex (ds :*: d) n =
     let (r,i) = n `quotRemInt` d 
     in (fromIndex ds r) :*: i
-
-  {-# INLINE range #-}
-  range (sh :*: n) = U.zipWith (\r -> \t -> (r :*: t)) 
-    (U.replicate_s (U.lengthsToSegd  $ U.replicate (size sh) n) (range sh))
-    (U.repeat (size sh) n (U.enumFromTo 0 (n-1)))
 
   {-# INLINE inRange #-}
   inRange (zs :*: z) (sh1 :*: n1) (sh2 :*: n2) 
@@ -243,25 +232,36 @@ fromArray = arrayData
 backpermute:: (U.Elt e, Shape dim, Shape dim') => 
   Array dim e -> dim' -> (dim' -> dim) -> Array dim' e
 {-# INLINE backpermute #-}
-backpermute arr newSh fn = 
-  Array newSh $ U.bpermute (arrayData arr) $ (U.map (toIndex $ arrayShape arr)) $ U.map fn $ range newSh
+backpermute arr newSh fn =
+    deepSeq sh
+  $ deepSeq newSh
+  $ Array newSh
+  $ U.bpermute (arrayData arr)
+  $ U.map (toIndex sh . fn . fromIndex newSh)
+  $ U.enumFromTo 0 (size newSh - 1)
+  where
+    sh = arrayShape arr
 
 backpermuteDft::(U.Elt e, Shape dim, Shape dim') => 
   Array dim e -> e -> dim' -> (dim' -> Maybe dim) -> Array dim' e
 {-# INLINE backpermuteDft #-}
-backpermuteDft srcArr e newSh fn = 
-  Array newSh $ U.bpermuteDft (size newSh) init inds 
+backpermuteDft srcArr e newSh fn =
+    deepSeq sh
+  $ deepSeq newSh
+  $ Array newSh
+  $ U.bpermuteDft (size newSh) init inds 
   where
     sh = arrayShape srcArr
     init = const e
-    inds = (uncurry U.zip) $ (\(di :*: si) -> (di,  U.bpermute (arrayData srcArr) si)) $  
-                             U.unzip $ 
-                             U.filter (\(dstInd :*: srcInd) -> srcInd > -1) $ 
-                             U.map fn' $ range newSh
+    inds = (uncurry U.zip)
+         $ (\(di :*: si) -> (di,  U.bpermute (arrayData srcArr) si))
+         $ U.unzip 
+         $ U.filter (\(dstInd :*: srcInd) -> srcInd > -1)
+         $ U.map fn' $ U.enumFromTo 0  (size newSh - 1)
 
-    fn' d = case fn d of
-              Just a  -> (toIndex newSh d) :*: (toIndex sh a)
-              Nothing -> (toIndex newSh d) :*: (-1) 
+    fn' i = case fn (fromIndex newSh i) of
+              Just a  -> i :*: toIndex sh a
+              Nothing -> i :*: (-1) 
 
 --  Shape polymorphic ops based on Index
 --  ====================================
