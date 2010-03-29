@@ -40,32 +40,30 @@ data CArray dim e
 -- | Convert a strict array into a cached array.
 toCArray :: (U.Elt e, A.Shape dim) => A.Array dim e -> CArray dim e
 {-# INLINE toCArray #-}
-toCArray arr
- 	=     A.arrayShape arr 
-	`seq` A.arrayData arr 
-	`seq` CArray
-		{ carrayShape	= A.arrayShape arr
-		, carrayCache	= Right (A.arrayData arr) }
+toCArray (A.Array sh dat)
+  = sh `A.deepSeq` dat `seq`
+    CArray { carrayShape = sh
+	   , carrayCache = Right dat }
 		
 
 -- | Convert a cache array into a strict array
 fromCArray :: (U.Elt e, A.Shape dim) => CArray dim e -> A.Array dim e
 {-# INLINE fromCArray #-}
-fromCArray arr	
- = A.Array
+fromCArray (CArray shape cache)
+ = shape `A.deepSeq`
+   A.Array
 	{ A.arrayData
-		= case carrayCache arr of
+		= case cache of
 			Left fn
-			 -> U.map (fn . A.fromIndex (carrayShape arr))
+			 -> U.map (fn . A.fromIndex shape)
 			  $ U.enumFromTo 
 				(0 :: Int)
-				((A.size $ carrayShape arr) - 1)
+				((A.size shape) - 1)
 				
 			Right uarr -> uarr
 			
-	, A.arrayShape
-		= carrayShape arr }
-		
+	, A.arrayShape = shape }
+
 
 -- Forcing ----------------------------------------------------------------------------------------
 forceCArray 
@@ -74,10 +72,7 @@ forceCArray
 	-> CArray dim e
 
 {-# INLINE forceCArray #-}
-forceCArray arr
- = let	arr'	= fromCArray arr
-   in	A.arrayData arr' `seq` (toCArray arr')
-
+forceCArray arr = toCArray (fromCArray arr)
 
 -- Computations -----------------------------------------------------------------------------------
 -- | If the size of two array arguments differ in a dimension, the resulting
