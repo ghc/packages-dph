@@ -308,17 +308,16 @@ mapFold:: (U.Elt e, Shape dim) => (e -> e-> e) -> e -> Array (dim :*: Int) e  ->
 {-# INLINE mapFold #-}
 mapFold f n arr = 
   Array{ arrayShape = sh
-       , arrayData  = U.fold_s f n  (U.lengthsToSegd $ U.replicate noOfSegs segSize) (arrayData arr)}
+       , arrayData  = U.fold_r f n segSize (arrayData arr)}
   where
     (sh :*: segSize) = arrayShape arr
-    noOfSegs = size sh
 
 sum :: (U.Elt e, Num e, Shape dim) => 
  Array (dim :*: Int)  e  -> Array dim e
 {-# INLINE sum #-}
 sum arr@(Array sh@(sh' :*: segSize) arrD) = Array
   { arrayShape = sh'
-  , arrayData  = U.sum_r (size sh') segSize arrD}
+  , arrayData  = U.sum_r segSize arrD}
 
 zip:: (U.Elt a, U.Elt b, Shape dim) => Array dim a -> Array dim b-> Array dim (a :*: b)
 {-# INLINE zip #-}
