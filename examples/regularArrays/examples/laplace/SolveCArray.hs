@@ -5,10 +5,9 @@ module SolveCArray
 	, relaxLaplace_stencil)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
-import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Prelude					as P	hiding (zipWith)
 import CArray					as CA
-import Array					(Array, DIM2)
+import Array					(Array, DIM2, (:.)(..))
 
 
 -- | Version of the Laplace solver that calls the relaxation and boundary functions
@@ -58,20 +57,20 @@ relaxLaplace_stencil
 	-> CArray DIM2 Double
 
 {-# INLINE relaxLaplace_stencil #-}
-relaxLaplace_stencil arr@(CArray shape@(_ :*: n :*: m) _)
+relaxLaplace_stencil arr@(CArray shape@(_ :. n :. m) _)
  = CArray shape
  $ Left 
-	((\d@(sh :*: i :*: j)
+	((\d@(sh :. i :. j)
 	  -> if isBorder d
 	     	then arr !: d
-	     	else (arr !: (sh :*: (i-1) :*: j)
-		   +  arr !: (sh :*: i     :*: (j-1))
-		   +  arr !: (sh :*: (i+1) :*: j)
-		   +  arr !: (sh :*: i     :*: (j+1))) / 4))
+	     	else (arr !: (sh :. (i-1) :. j)
+		   +  arr !: (sh :. i     :. (j-1))
+		   +  arr !: (sh :. (i+1) :. j)
+		   +  arr !: (sh :. i     :. (j+1))) / 4))
 
  where
 	isBorder :: DIM2 -> Bool
-	isBorder  (_ :*: i :*: j) 
+	isBorder  (_ :. i :. j) 
 		=  (i == 0) || (i >= n - 1) 
 		|| (j == 0) || (j >= m - 1) 
 

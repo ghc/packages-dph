@@ -29,6 +29,10 @@ type ElemT = Double
 assert a b = b
 instance U.Elt ()
 
+infixl 2 :.
+data a :. b = a :. b deriving( Show, Eq, Ord )
+
+
 
 -- |Arrays
 -- -------
@@ -42,20 +46,20 @@ data Array dim e where
 -- |Shorthand for various dimensions
 --
 type DIM0 = ()
-type DIM1 = (DIM0 :*: Int)
-type DIM2 = (DIM1 :*: Int)
-type DIM3 = (DIM2 :*: Int)
-type DIM4 = (DIM3 :*: Int)
-type DIM5 = (DIM4 :*: Int)
+type DIM1 = (DIM0 :. Int)
+type DIM2 = (DIM1 :. Int)
+type DIM3 = (DIM2 :. Int)
+type DIM4 = (DIM3 :. Int)
+type DIM5 = (DIM4 :. Int)
 
 
 
 data Index a initialDim projectedDim where
   IndexNil   :: Index a initialDim initialDim
   IndexAll   :: (Shape init, Shape proj) =>      
-                   Index a init proj -> Index a (init :*: Int) (proj :*: Int)
+                   Index a init proj -> Index a (init :. Int) (proj :. Int)
   IndexFixed :: (Shape init, Shape proj) => a -> 
-                   Index a init proj -> Index a (init :*: Int)  proj
+                   Index a init proj -> Index a (init :. Int)  proj
   
 
 
@@ -64,7 +68,7 @@ type MapIndex    = Index ()
 
 type family (:-:) init proj
 type instance (:-:) init () = init
-type instance (:-:) (init :*: Int) (proj :*: Int) = ((:-:) init proj) 
+type instance (:-:) (init :. Int) (proj :. Int) = ((:-:) init proj) 
 
 
 class RepFun dim1 where
@@ -74,11 +78,11 @@ instance RepFun () where
   {-# INLINE repFun #-}
   repFun IndexNil () = () 
 
-instance RepFun dim1  => RepFun (dim1 :*: Int)  where
+instance RepFun dim1  => RepFun (dim1 :. Int)  where
   {-# INLINE repFun #-}
   repFun IndexNil   sh' = sh'
-  repFun (IndexAll rsh) (shs :*: s)     = (repFun rsh shs) :*: s
-  repFun (IndexFixed _ rsh) (shs :*: _) = repFun rsh shs
+  repFun (IndexAll rsh) (shs :. s)     = (repFun rsh shs) :. s
+  repFun (IndexFixed _ rsh) (shs :. _) = repFun rsh shs
 
 class InitShape dim where
   {-# INLINE initShape #-}
@@ -88,11 +92,11 @@ instance InitShape () where
   {-# INLINE initShape #-}
   initShape IndexNil () = ()
 
-instance InitShape dim => InitShape (dim :*: Int) where
+instance InitShape dim => InitShape (dim :. Int) where
   {-# INLINE initShape #-}
   initShape IndexNil       sh'       = sh'
-  initShape (IndexFixed n rsh) shs       = (initShape rsh shs) :*: n
-  initShape (IndexAll rsh) (shs :*: s)   = (initShape rsh shs) :*: s
+  initShape (IndexFixed n rsh) shs       = (initShape rsh shs) :. n
+  initShape (IndexAll rsh) (shs :. s)   = (initShape rsh shs) :. s
 
 -- |Our index class
 --
@@ -137,44 +141,44 @@ instance Shape () where
 
   deepSeq () x = x
 
-instance Shape sh => Shape (sh :*: Int) where
+instance Shape sh => Shape (sh :. Int) where
   {-# INLINE dim #-}
-  dim   (sh  :*: _)
+  dim   (sh  :. _)
 	= dim sh + 1
 
   {-# INLINE size #-}
-  size  (sh1 :*: n)
+  size  (sh1 :. n)
 	= size sh1 * n
 
   {-# INLINE toIndex #-}
-  toIndex (sh1 :*: sh2) (sh1' :*: sh2') 
+  toIndex (sh1 :. sh2) (sh1' :. sh2') 
 	= toIndex sh1 sh1' * sh2 + sh2'
 
   {-# INLINE fromIndex #-}
-  fromIndex (ds :*: d) n =
+  fromIndex (ds :. d) n =
     let (r,i) = n `quotRemInt` d 
-    in (fromIndex ds r) :*: i
+    in (fromIndex ds r) :. i
 
   {-# INLINE inRange #-}
-  inRange (zs :*: z) (sh1 :*: n1) (sh2 :*: n2) 
+  inRange (zs :. z) (sh1 :. n1) (sh2 :. n2) 
 	= (n2 >= z) && (n2 < n1) && (inRange zs sh1 sh2)
 
   {-# INLINE zeroDim #-}
-  zeroDim = (zeroDim :*: 0)
+  zeroDim = (zeroDim :. 0)
 
   {-# INLINE intersectDim #-}
-  intersectDim (sh1 :*: n1) (sh2 :*: n2) 
-	= (intersectDim sh1 sh2 :*: (min n1 n2))
+  intersectDim (sh1 :. n1) (sh2 :. n2) 
+	= (intersectDim sh1 sh2 :. (min n1 n2))
 
-  next  sh@(sh' :*: s) msh@(msh' :*: ms) 
+  next  sh@(sh' :. s) msh@(msh' :. ms) 
     | sh == msh     = Nothing
-    | s  < (ms-1)   = Just (sh' :*: (s+1))    
+    | s  < (ms-1)   = Just (sh' :. (s+1))    
     | otherwise = case next sh' msh' of
-                    Just shNext -> Just (shNext :*: 0)
+                    Just shNext -> Just (shNext :. 0)
                     Nothing     -> Nothing
            
   {-# INLINE deepSeq #-} 
-  deepSeq (sh :*: n) x = deepSeq sh (n `seq` x)
+  deepSeq (sh :. n) x = deepSeq sh (n `seq` x)
 
 class (Shape sh, Shape sh') => Subshape sh sh' where
   addDim     :: sh -> sh' -> sh    
@@ -197,22 +201,22 @@ instance Shape sh => Subshape sh () where
   inject sh () = sh
 
 
-instance (Subshape sh sh') => Subshape (sh :*: Int) (sh' :*: Int) where
+instance (Subshape sh sh') => Subshape (sh :. Int) (sh' :. Int) where
   {-# INLINE addDim #-}
-  addDim (sh1 :*: n1) (sh2 :*: n2) 
-	= ((addDim sh1 sh2) :*: (n1 + n2))
+  addDim (sh1 :. n1) (sh2 :. n2) 
+	= ((addDim sh1 sh2) :. (n1 + n2))
 
   {-# INLINE addModDim #-}
-  addModDim (aSh :*: a) (bSh :*: b) (cSh :*: m) 
-	= (addModDim aSh bSh cSh :*: ((a + b + 1) `mod` m) -1)
+  addModDim (aSh :. a) (bSh :. b) (cSh :. m) 
+	= (addModDim aSh bSh cSh :. ((a + b + 1) `mod` m) -1)
 
   {-# INLINE modDim #-}
-  modDim (sh1 :*: n1) (sh2 :*: n2) 
-	= (modDim sh1 sh2 :*: (n1 `mod` n2))
+  modDim (sh1 :. n1) (sh2 :. n2) 
+	= (modDim sh1 sh2 :. (n1 `mod` n2))
 
   {-# INLINE inject #-}
-  inject (sh :*: _) (sh' :*: n) 
-	= (inject sh sh' :*: n)
+  inject (sh :. _) (sh' :. n) 
+	= (inject sh sh' :. n)
   
 
 --  Basic structural operations
@@ -274,8 +278,8 @@ select arr ind =
   where
     selectFun:: SelectIndex dim1 dim2 -> dim2 -> dim1
     selectFun IndexNil sh = sh
-    selectFun (IndexAll rsh) (shs :*: s) = (selectFun rsh shs) :*: s
-    selectFun (IndexFixed n rsh) shs     = (selectFun rsh shs) :*: n
+    selectFun (IndexAll rsh) (shs :. s) = (selectFun rsh shs) :. s
+    selectFun (IndexFixed n rsh) shs     = (selectFun rsh shs) :. n
 
 replicate:: (U.Elt e, Shape dim, Shape dim', RepFun dim, InitShape dim) => 
   Array dim' e ->SelectIndex dim dim'  -> Array dim e
@@ -290,8 +294,8 @@ replicate arr ind = -- trace (show $ (initShape ind (arrayShape arr))) $
 -- the resulting projection 
 projShape:: (Shape dim, Shape dim') => SelectIndex dim dim' -> dim -> dim'
 projShape IndexNil sh = sh
-projShape (IndexAll ixs)     (shs :*: s) = (projShape ixs shs) :*: s
-projShape (IndexFixed _ ixs) (shs   :*: s) = projShape ixs shs
+projShape (IndexAll ixs)     (shs :. s) = (projShape ixs shs) :. s
+projShape (IndexFixed _ ixs) (shs   :. s) = projShape ixs shs
 
 
 -- Computations
@@ -310,18 +314,18 @@ zipWith f arr1 arr2 = arr1{arrayData = U.zipWith f (arrayData arr1) (arrayData a
 
 
 -- folds the innermost dimension
-mapFold:: (U.Elt e, Shape dim) => (e -> e-> e) -> e -> Array (dim :*: Int) e  -> Array dim  e
+mapFold:: (U.Elt e, Shape dim) => (e -> e-> e) -> e -> Array (dim :. Int) e  -> Array dim  e
 {-# INLINE mapFold #-}
 mapFold f n arr = 
   Array{ arrayShape = sh
        , arrayData  = U.fold_r f n segSize (arrayData arr)}
   where
-    (sh :*: segSize) = arrayShape arr
+    (sh :. segSize) = arrayShape arr
 
 sum :: (U.Elt e, Num e, Shape dim) => 
- Array (dim :*: Int)  e  -> Array dim e
+ Array (dim :. Int)  e  -> Array dim e
 {-# INLINE sum #-}
-sum arr@(Array sh@(sh' :*: segSize) arrD) = Array
+sum arr@(Array sh@(sh' :. segSize) arrD) = Array
   { arrayShape = sh'
   , arrayData  = U.sum_r segSize arrD}
 

@@ -7,7 +7,7 @@ where
 import Data.Array.Parallel.Unlifted 	((:*:)(..))
 import Prelude				as P	hiding (zipWith)
 import CArrayFlatDim
-import Array				(Array(..))
+import Array				(Array(..), (:.)(..))
 import qualified Array			as A
 import FlatDim
 import GHC.Exts
@@ -40,7 +40,7 @@ flattenDimOfArray arr
 	{ arrayShape	= FDIM2 m n
 	, arrayData	= A.arrayData arr }
 	
-	where	!(_ :*: (I# m) :*: (I# n))
+	where	!(_ :. (I# m) :. (I# n))
 			= A.arrayShape arr
 
 
@@ -49,7 +49,7 @@ unflattenDimOfArray :: Array FDIM2 Double -> A.Array A.DIM2 Double
 {-# INLINE unflattenDimOfArray #-}
 unflattenDimOfArray farr
 	= A.Array
-	{ A.arrayShape	= () :*: (I# m) :*: (I# n)
+	{ A.arrayShape	= () :. (I# m) :. (I# n)
 	, A.arrayData	= arrayData farr }
 	
 	where	!(FDIM2 m n)	

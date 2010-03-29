@@ -6,7 +6,6 @@ module PPM
 	, rampColorHotToCold )
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
-import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Data.List				as L
 import Array					as A
 import Prelude					as P
@@ -46,7 +45,7 @@ writeMatrixAsPPM
 writeMatrixAsPPM fileName colorFn arr
  = let		
 	-- Break flat array data into individual rows
-	() :*: width :*: height	 
+	() :. width :. height	 
 		= arrayShape arr
 
 	-- PPM header for pixmap image

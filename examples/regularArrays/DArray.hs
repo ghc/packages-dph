@@ -33,6 +33,7 @@ import Data.Array.Parallel.Base (Rebox)
 
 import Data.Array.Parallel.Unlifted.Gabi (mapU,foldU,enumFromToU)
 
+import Array ((:.)(..))
 import qualified Array as A
 import Prelude hiding (map, zip, zipWith, replicate, sum)
 
@@ -65,7 +66,7 @@ instance (U.Elt e, A.Shape dim, Num e) => Num (DArray dim e) where
                   
 instance (U.Elt e, Eq e, A.Shape sh) => Eq (DArray sh e) where
   (==) arr1@(DArray sh _)  arr2 = 
-    toScalar $ fold (&&) True $ (flip reshape) (() :*: (A.size sh)) $ zipWith (==) arr1 arr2
+    toScalar $ fold (&&) True $ (flip reshape) (() :. (A.size sh)) $ zipWith (==) arr1 arr2
   (/=) a1 a2 = not $ (==) a1 a2
 
 
@@ -177,12 +178,12 @@ zip (DArray shape1 fn1) (DArray shape2 fn2) =
 
 -- | folds the innermost dimension. Combine with `transpose to fold any other dimension.
 fold :: (U.Elt e, A.Shape dim) => 
- (e -> e-> e) -> e -> DArray (dim :*: Int)  e  -> DArray dim e
+ (e -> e-> e) -> e -> DArray (dim :. Int)  e  -> DArray dim e
 {-# INLINE fold #-}
-fold f n arr@(DArray sh@(sh' :*: s) fn) = 
+fold f n arr@(DArray sh@(sh' :. s) fn) = 
   DArray sh' f'
   where
-    f' i = foldU f n (mapU (\s -> fn (i:*:s)) (enumFromToU 0 (s-1)))
+    f' i = foldU f n (mapU (\s -> fn (i:.s)) (enumFromToU 0 (s-1)))
 
 {-
 scan:: (U.Elt e, A.Shape dim) => 
@@ -252,8 +253,8 @@ select arr@(DArray shape _ ) ind =
   where
     selectFun:: A.SelectIndex dim1 dim2 -> dim2 -> dim1
     selectFun A.IndexNil sh = sh
-    selectFun (A.IndexAll rsh) (shs :*: s) = (selectFun rsh shs) :*: s
-    selectFun (A.IndexFixed n rsh) shs     = (selectFun rsh shs) :*: n
+    selectFun (A.IndexAll rsh) (shs :. s) = (selectFun rsh shs) :. s
+    selectFun (A.IndexFixed n rsh) shs     = (selectFun rsh shs) :. n
 
 
 replicate:: (U.Elt e, A.Shape dim, A.Shape dim', A.InitShape dim, A.RepFun dim) => 

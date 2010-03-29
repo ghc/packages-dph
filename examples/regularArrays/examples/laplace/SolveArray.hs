@@ -5,7 +5,6 @@ module SolveArray
 	, relaxLaplace_backpermute)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
-import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Array					as A
 import Prelude					as P
 
@@ -42,10 +41,10 @@ relaxLaplace_shift arr
 		(A.zipWith (+) shiftu shiftl)
 		(A.zipWith (+) shiftd shiftr))
 
-  where	shiftu = shift arr 0 ((():*: 1   :*:0)	  :: DIM2)
-	shiftd = shift arr 0 ((():*:(-1) :*:0)	  :: DIM2)
-	shiftl = shift arr 0 ((():*: 0   :*:1)	  :: DIM2)
- 	shiftr = shift arr 0 ((():*: 0   :*:(-1)) :: DIM2)
+  where	shiftu = shift arr 0 ((():. 1   :.0)	  :: DIM2)
+	shiftd = shift arr 0 ((():.(-1) :.0)	  :: DIM2)
+	shiftl = shift arr 0 ((():. 0   :.1)	  :: DIM2)
+ 	shiftr = shift arr 0 ((():. 0   :.(-1)) :: DIM2)
 
 
 -- | Perform matrix relaxation for the Laplce equation,
@@ -61,15 +60,15 @@ relaxLaplace_backpermute arr
 		(A.zipWith (+) shiftu shiftl) 
 		(A.zipWith (+) shiftr shiftd))
  
- where	s@((() :*: n) :*: m) = arrayShape arr
+ where	s@((() :. n) :. m) = arrayShape arr
 	shiftu = backpermuteDft arr 0 s  fu 
 	shiftd = backpermuteDft arr 0 s  fd 
 	shiftl = backpermuteDft arr 0 s  fl 
 	shiftr = backpermuteDft arr 0 s  fr 
-	fu = \((() :*: i) :*: j) -> if (i < (n-1)) then Just (() :*: (i+1) :*: j) else Nothing
-	fd = \((() :*: i) :*: j) -> if (i > 0)     then Just (() :*: (i-1) :*: j) else Nothing
-	fl = \((() :*: i) :*: j) -> if (j < (m-1)) then Just (() :*: i :*: (j+1)) else Nothing
-	fr = \((() :*: i) :*: j) -> if (j > 0)     then Just (() :*: i :*: (j-1)) else Nothing
+	fu = \((() :. i) :. j) -> if (i < (n-1)) then Just (() :. (i+1) :. j) else Nothing
+	fd = \((() :. i) :. j) -> if (i > 0)     then Just (() :. (i-1) :. j) else Nothing
+	fl = \((() :. i) :. j) -> if (j < (m-1)) then Just (() :. i :. (j+1)) else Nothing
+	fr = \((() :. i) :. j) -> if (j > 0)     then Just (() :. i :. (j-1)) else Nothing
 			
 
 -- | Apply the boundary conditions to this matrix.

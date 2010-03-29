@@ -6,7 +6,6 @@
 --	with	"convert out.ppm out.png"
 --
 import qualified Data.Array.Parallel.Unlifted 	as U
-import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Prelude					as P
 import Data.List				as L
 import Data.Maybe
@@ -80,7 +79,7 @@ laplace :: Solver -> Int -> Int -> FilePath -> IO ()
 laplace solver size steps fileName
  = let
 	-- The width and height of the matrix
-	shape	= () :*: size :*: size
+	shape	= () :. size :. size
 	
 	-- Make matricies for boundary conditions
 	arrBoundMask	= createMatrix shape (mkBoundaryMask size)
@@ -114,7 +113,7 @@ mkInitialValue _ _
 -- | Make the mask for the boundary conditions.
 --	Should return 0 when the point is part of the boundary, and 1 otherwise.
 mkBoundaryMask :: Int -> DIM2 -> Double
-mkBoundaryMask size (() :*: x :*: y)	
+mkBoundaryMask size (() :. x :. y)	
 	| x == 0		= 0
 	| y == 0		= 0
 	| x >= (size - 1)	= 0
@@ -125,7 +124,7 @@ mkBoundaryMask size (() :*: x :*: y)
 -- | Make the values for the boundary conditions.
 --	Should return 0 where the point is not part of the boundary.
 mkBoundaryValue :: Int -> DIM2 -> Double
-mkBoundaryValue size (() :*: x :*: y)
+mkBoundaryValue size (() :. x :. y)
 	| x == 0 && y > 0 && y < n 	= 80
 	| y == 0 && x > 0 && x < n	= 20
 	| x == n && y > 0 && y < n 	= 0
@@ -144,8 +143,8 @@ createMatrix
 	-> Array DIM2 Double
 
 createMatrix dim mkElem
- = let	() :*: width :*: height	= dim
-	arrList	= [mkElem (() :*: x :*: y)
+ = let	() :. width :. height	= dim
+	arrList	= [mkElem (() :. x :. y)
 			| y <- [0 .. (width - 1)]
 			, x <- [0 .. (height - 1)]]
    in	toArray dim $ U.fromList arrList
