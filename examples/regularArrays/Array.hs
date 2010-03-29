@@ -126,6 +126,7 @@ class (Show sh, U.Elt sh, Eq sh, Rebox sh) => Shape sh where
   next:: sh -> sh -> Maybe sh
   -- ^shape of an array of size zero of the particular dimensionality    
 
+  deepSeq :: sh -> a -> a
   
 instance Shape () where
   dim n          = 0
@@ -140,6 +141,7 @@ instance Shape () where
   intersectDim _ _ = ()
   next _ _         = Nothing
 
+  deepSeq () x = x
 
 instance Shape sh => Shape (sh :*: Int) where
   {-# INLINE dim #-}
@@ -182,6 +184,8 @@ instance Shape sh => Shape (sh :*: Int) where
                     Just shNext -> Just (shNext :*: 0)
                     Nothing     -> Nothing
            
+  {-# INLINE deepSeq #-} 
+  deepSeq (sh :*: n) x = deepSeq sh (n `seq` x)
 
 class (Shape sh, Shape sh') => Subshape sh sh' where
   addDim     :: sh -> sh' -> sh    
