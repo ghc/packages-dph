@@ -40,10 +40,11 @@ solveLaplace_stencil'
 solveLaplace_stencil' steps !arrBoundMask !arrBoundValue arr
  = go steps arr
  where	go s !arr
-	 = (if s == 0 then id else go (s - 1))
-		$! (forceCArray
+          | s == 0    = arr
+          | otherwise = go (s-1)
+		$! forceCArray
 		$  applyBoundary arrBoundMask arrBoundValue
-		$  relaxLaplace_stencil arr)
+		$  relaxLaplace_stencil arr
 
 
 -- | Perform matrix relaxation for the Laplace equation,
