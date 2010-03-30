@@ -5,6 +5,7 @@ module CArray
 	, toCArray
 	, fromCArray
 	, forceCArray 
+	, traverseCArray
 	, zipWith)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
@@ -73,6 +74,34 @@ forceCArray
 
 {-# INLINE forceCArray #-}
 forceCArray arr = toCArray (fromCArray arr)
+
+
+-- Traversing -------------------------------------------------------------------------------------
+
+-- | Transform and traverse all the elements of an array.
+traverseCArray
+	:: (U.Elt e, A.Shape dim)
+	=> CArray dim e				-- ^ Source array.
+	-> (dim  -> dim')			-- ^ Fn to transform the shape of the array.
+	-> (dim' -> dim' -> f)			-- ^ Fn to produce elements of the result array.
+						--	It is given the new array shape, and the
+						--	index of each element.
+	-> CArray dim' f
+	
+{-# INLINE traverseCArray #-}
+traverseCArray arr dFn trafoFn
+ = case arr of
+	CArray d (Left elemFn)
+	 -> CArray 
+		(dFn d) 
+		(Left $ trafoFn (dFn d))
+	
+	CArray d (Right uarr)
+	 -> CArray 
+		(dFn d) 
+		(Left $ trafoFn (dFn d))
+
+
 
 -- Computations -----------------------------------------------------------------------------------
 -- | If the size of two array arguments differ in a dimension, the resulting

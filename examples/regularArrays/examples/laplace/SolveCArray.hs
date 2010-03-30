@@ -58,26 +58,23 @@ relaxLaplace_stencil
 	-> CArray DIM2 Double
 
 {-# INLINE relaxLaplace_stencil #-}
-relaxLaplace_stencil arr@(CArray shape@(_ :. n :. m) _)
- = CArray shape
- $ Left 
-	(\d@(sh :. i :. j)
-	  -> if isBorder d
-	     	then arr !: d
-	     	else (arr !: (sh :. (i-1) :. j)
-		   +  arr !: (sh :. i     :. (j-1))
-		   +  arr !: (sh :. (i+1) :. j)
-		   +  arr !: (sh :. i     :. (j+1))) / 4) 
-
+relaxLaplace_stencil arr
+ = traverseCArray arr id elemFn
  where
+	elemFn (_ :. height :. width) d@(sh :. i :. j)
+	 = let	
+		-- Check if this element is on the border of the matrix.
+		-- If so we can't apply the stencil because we don't have all the neighbours.
+		isBorder	=  (i == 0) || (i >= width  - 1) 
+				|| (j == 0) || (j >= height - 1) 
 
-	-- | Check if this element is on the border of the matrix.
-	--	We can't apply the stencil function here because we don't have the right neighbours.
-	isBorder :: DIM2 -> Bool
-	isBorder  (_ :. i :. j) 
-		=  (i == 0) || (i >= n - 1) 
-		|| (j == 0) || (j >= m - 1) 
-		
+	   in if isBorder
+		 then  arr !: d
+		 else (arr !: (sh :. (i-1) :. j)
+		   +   arr !: (sh :. i     :. (j-1))
+		   +   arr !: (sh :. (i+1) :. j)
+	 	   +   arr !: (sh :. i     :. (j+1))) / 4
+
 
 -- | Apply the boundary conditions to this matrix.
 --	The mask  matrix has 0 in places where boundary conditions hold
