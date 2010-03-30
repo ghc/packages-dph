@@ -65,18 +65,18 @@ relaxLaplace_stencil arr
 		= carrayShape arr
 
 	elemFn d@(sh :. i :. j)
-	 = let	
-		-- Check if this element is on the border of the matrix.
-		-- If so we can't apply the stencil because we don't have all the neighbours.
-		isBorder	=  (i == 0) || (i >= width  - 1) 
-				|| (j == 0) || (j >= height - 1) 
-
-	   in if isBorder
+	 = if isBorder i j
 		 then  arr !: d
 		 else (arr !: (sh :. (i-1) :. j)
 		   +   arr !: (sh :. i     :. (j-1))
 		   +   arr !: (sh :. (i+1) :. j)
 	 	   +   arr !: (sh :. i     :. (j+1))) / 4
+
+	-- Check if this element is on the border of the matrix.
+	-- If so we can't apply the stencil because we don't have all the neighbours.
+	isBorder i j
+	 	=  (i == 0) || (i >= width  - 1) 
+	 	|| (j == 0) || (j >= height - 1) 
 
 
 -- | Apply the boundary conditions to this matrix.
