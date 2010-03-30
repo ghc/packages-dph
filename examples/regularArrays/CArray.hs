@@ -81,26 +81,15 @@ forceCArray arr = toCArray (fromCArray arr)
 -- | Transform and traverse all the elements of an array.
 traverseCArray
 	:: (U.Elt e, A.Shape dim)
-	=> CArray dim e				-- ^ Source array.
-	-> (dim  -> dim')			-- ^ Fn to transform the shape of the array.
-	-> (dim' -> dim' -> f)			-- ^ Fn to produce elements of the result array.
-						--	It is given the new array shape, and the
-						--	index of each element.
+	=> CArray dim e			-- ^ Source array.
+	-> (dim  -> dim')		-- ^ Fn to transform the shape of the array.
+	-> (dim' -> f)			-- ^ Fn to produce elements of the result array.
 	-> CArray dim' f
 	
 {-# INLINE traverseCArray #-}
 traverseCArray arr dFn trafoFn
  = case arr of
-	CArray d (Left elemFn)
-	 -> CArray 
-		(dFn d) 
-		(Left $ trafoFn (dFn d))
-	
-	CArray d (Right uarr)
-	 -> CArray 
-		(dFn d) 
-		(Left $ trafoFn (dFn d))
-
+	CArray d _	-> CArray (dFn d) (Left trafoFn)
 
 
 -- Computations -----------------------------------------------------------------------------------

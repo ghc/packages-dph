@@ -61,7 +61,10 @@ relaxLaplace_stencil
 relaxLaplace_stencil arr
  = traverseCArray arr id elemFn
  where
-	elemFn (_ :. height :. width) d@(sh :. i :. j)
+	_ :. height :. width	
+		= carrayShape arr
+
+	elemFn d@(sh :. i :. j)
 	 = let	
 		-- Check if this element is on the border of the matrix.
 		-- If so we can't apply the stencil because we don't have all the neighbours.
