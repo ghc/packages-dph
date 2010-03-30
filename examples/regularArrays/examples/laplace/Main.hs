@@ -27,6 +27,9 @@ import qualified SolveCArray			as CA
 import qualified CArrayFlatDim			as CAF
 import qualified SolveCArrayFlatDim		as CAF
 
+import qualified SolveMArray			as MA
+
+
 -- Solvers ----------------------------------------------------------------------------------------
 type Solver
 	= Int 				-- ^ Number of steps to use.
@@ -36,13 +39,14 @@ type Solver
 	-> Array DIM2 Double
 
 algorithms
-  =	[ ("array-shift-poly",		 A.solve  A.relaxLaplace_shift)
-	, ("array-backpermute-poly",	 A.solve  A.relaxLaplace_backpermute)
-	, ("darray-shift-poly",		DA.solve DA.relaxLaplace_shift)
-	, ("darray-stencil-poly",	DA.solve DA.relaxLaplace_stencil)
-	, ("darray-stencil",		DA.solveLaplace_stencil)
-	, ("carray-stencil",		CA.solveLaplace_stencil)
+  =	[ ("array-shift-poly",		  A.solve  A.relaxLaplace_shift)
+	, ("array-backpermute-poly",	  A.solve  A.relaxLaplace_backpermute)
+	, ("darray-shift-poly",		 DA.solve DA.relaxLaplace_shift)
+	, ("darray-stencil-poly",	 DA.solve DA.relaxLaplace_stencil)
+	, ("darray-stencil",		 DA.solveLaplace_stencil)
+	, ("carray-stencil",		 CA.solveLaplace_stencil)
 	, ("carray-stencil-flatdim",	CAF.solveLaplace_stencil)
+	, ("marray-stencil",		 MA.solveLaplace_stencil)
 	]
 
 

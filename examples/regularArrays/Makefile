@@ -37,7 +37,7 @@ laplace_SOURCES	= \
 	examples/laplace/SolveCArrayFlatDim.hs \
 	examples/lib/PPM.hs \
 
-laplace_seq_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base 
+laplace_seq_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
 laplace_par_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
 	
 
