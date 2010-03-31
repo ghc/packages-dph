@@ -12,6 +12,8 @@ import Data.List				as L
 import Data.Maybe
 import System.Environment
 
+import Bench.Benchmark ( time, showTime )
+
 import PPM
 import ColorRamp
 
@@ -105,17 +107,27 @@ laplace solver steps fileInput fileOutput
 			<- readPPMAsMatrix2 loadPixel fileInput
 
 	let matInitial	= matBoundValue
-	let matFinal	= solver
+
+        matBoundMask
+          `deepSeqArray` matBoundValue
+          `deepSeqArray` return ()
+
+        (matFinal, t) <- time
+                       $ let matFinal	= solver
 				steps
 				matBoundMask 
 				matBoundValue 
 				matInitial
+                         in
+                         matFinal `deepSeqArray` return matFinal
 
 	-- Write out the matrix as a colorised PPM image	
 	writeMatrixAsNormalisedPPM
 		fileOutput
 		(rampColorHotToCold 0.0 1.0)
 		matFinal
+
+        putStrLn (showTime t)
 
 
 loadPixel :: Int -> Int -> Int -> (Double, Double)
