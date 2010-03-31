@@ -28,7 +28,7 @@ module DArray (
   ) where
          
 import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Unlifted ((:*:)(..))
+import  Data.Array.Parallel.Unlifted ((:*:)(..))
 import Data.Array.Parallel.Base (Rebox)
 
 import Data.Array.Parallel.Unlifted.Gabi (mapU,foldU,enumFromToU)
@@ -187,8 +187,8 @@ fold f n arr@(DArray sh@(sh' :. s) fn) =
 
 {-
 scan:: (U.Elt e, A.Shape dim) => 
- (e -> e-> e) --> DArray (dim :*: Int)  e  -> DArray (dim :*: Int)  e 
-scan (DArray (sh :*: n) f) = 
+ (e -> e-> e) --> DArray (dim :. Int)  e  -> DArray (dim :. Int)  e 
+scan (DArray (sh :. n) f) = 
 -}
 
 
