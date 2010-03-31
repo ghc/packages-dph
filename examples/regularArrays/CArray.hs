@@ -2,15 +2,24 @@
 
 module CArray
 	( CArray(..)
-	, (!:)
+
+	-- * Conversions
 	, toCArray
 	, fromCArray
+
 	, forceCArray 
+	, toScalar
+	, (!:)
 	, traverseCArray
+	, reshape
 	, transpose
 	, backpermute
 	, replicateSlice
-	, zipWith)
+	
+	-- * Computations
+	, map
+	, zipWith
+	, fold)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
@@ -27,20 +36,39 @@ data CArray dim e
 	= CArray
 	{ carrayShape	:: dim
 	, carrayCache	:: Either (dim -> e) (U.Array e) }
-	
 
--- Primitive functions ----------------------------------------------------------------------------
--- | Lookup the value in an array.
-(!:) 	:: (A.Shape dim, U.Elt e)
-	=> CArray dim e -> dim -> e
 
-{-# INLINE (!:) #-}
-(!:) arr ix
- = case carrayCache arr of
-	Right uarr	-> uarr U.!: (A.toIndex (carrayShape arr) ix)
-	Left  fn	-> fn ix
-	
-	
+-- Instances --------------------------------------------------------------------------------------
+
+-- Show
+instance (U.Elt e, A.Shape dim, Show e) => Show (CArray dim e) where
+ 	show arr = show $ fromCArray arr
+
+-- Eq
+instance (U.Elt e, Eq e, A.Shape sh) => Eq (CArray sh e) where
+	(==) arr1@(CArray sh _)  arr2 
+		= toScalar 
+		$ fold (&&) True 
+		$ (flip reshape) (() :. (A.size sh)) 
+		$ zipWith (==) arr1 arr2
+		
+	(/=) a1 a2 
+		= not $ (==) a1 a2
+
+-- Num
+-- All operators apply elementwise.
+instance (U.Elt e, A.Shape dim, Num e) => Num (CArray dim e) where
+	(+)		= zipWith (+)
+	(-)		= zipWith (-)
+	(*)		= zipWith (*)
+	negate  	= map negate
+	abs		= map abs
+	signum 		= map signum
+
+	fromInteger n	= CArray fail $ Left $ (\_ -> fromInteger n) 
+	 where fail	= error "CArray.fromInteger: Constructed array has no shape"
+
+
 -- Conversions ------------------------------------------------------------------------------------
 -- | Convert a strict array into a cached array.
 toCArray :: (U.Elt e, A.Shape dim) => A.Array dim e -> CArray dim e
@@ -80,6 +108,27 @@ forceCArray
 forceCArray arr = toCArray (fromCArray arr)
 
 
+-- Constructors -----------------------------------------------------------------------------------
+-- | Convert a zero dimensional array into a scalar value.
+toScalar :: U.Elt e => CArray () e -> e
+toScalar (CArray _ m) 
+	= case m of
+		Left fn 	-> fn ()
+		Right _		-> error "CArray.toScalar: array holds forced data, and is not scalar"
+	
+
+-- Primitive functions ----------------------------------------------------------------------------
+-- | Lookup the value in an array.
+(!:) 	:: (A.Shape dim, U.Elt e)
+	=> CArray dim e -> dim -> e
+
+{-# INLINE (!:) #-}
+(!:) arr ix
+ = case carrayCache arr of
+	Right uarr	-> uarr U.!: (A.toIndex (carrayShape arr) ix)
+	Left  fn	-> fn ix
+
+
 -- Traversing -------------------------------------------------------------------------------------
 -- | Transform and traverse all the elements of an array.
 traverseCArray
@@ -93,8 +142,23 @@ traverseCArray
 {-# INLINE traverseCArray #-}
 traverseCArray arr@(CArray sh _) dFn trafoFn
 	= CArray (dFn sh) (Left $ trafoFn (arr !:))
-		
 
+
+-- Reshaping -------------------------------------------------------------------------------------
+reshape	:: (A.Shape dim, A.Shape dim', U.Elt e) 
+	=> CArray dim e 		-- ^ Source Array.
+	-> dim'				-- ^ New Shape.
+	-> CArray dim' e
+
+{-# INLINE reshape #-}
+reshape arr@(CArray shape fn) newShape
+	| not $ A.size newShape == A.size shape
+	= error "CArray.reshape: reshaped array will not match size of the original"
+	
+	| otherwise
+	= CArray newShape $ Left $ ((arr !:) . (A.fromIndex shape) . (A.toIndex newShape))
+
+	
 -- Transposing -----------------------------------------------------------------------------------
 -- | Transpose the lowest two dimensions of a matrix.
 transpose 
@@ -110,7 +174,7 @@ transpose arr
 
 
 -- Permutation ------------------------------------------------------------------------------------
--- |Generalised array backpermutation.
+-- | Generalised array backpermutation.
 backpermute
 	:: (U.Elt e, A.Shape dim, A.Shape dim') 
 	=> CArray dim e 		-- ^ Source array.
@@ -139,6 +203,18 @@ replicateSlice arr@(CArray shape _ ) sl
 
 
 -- Computations -----------------------------------------------------------------------------------
+
+-- | Map a worker function over each element of n-dim CArray.
+map	:: (U.Elt a, U.Elt b, A.Shape dim) 
+	=> (a -> b) 			-- ^ Worker function.
+	-> CArray dim a			-- ^ Source array.
+	-> CArray dim b
+
+{-# INLINE map #-}
+map f arr@(CArray shape _) 
+	= CArray shape $ Left $ (f . (arr !:))
+
+
 -- | If the size of two array arguments differ in a dimension, the resulting
 --   array's shape is the minimum of the two 
 zipWith :: (U.Elt a, U.Elt b, U.Elt c, A.Shape dim) 
@@ -153,5 +229,22 @@ zipWith f arr1 arr2
 			(carrayShape arr1)
 			(carrayShape arr2))
 		 (Left (\i -> f (arr1 !: i) (arr2 !: i)))
+
+
+-- | Fold the innermost dimension. 
+--	Combine with `transpose` to fold any other dimension.
+fold 	:: (U.Elt e, A.Shape dim) 
+	=> (e -> e -> e) 
+	-> e 
+	-> CArray (dim :. Int)  e 
+	-> CArray dim e
+
+{-# INLINE fold #-}
+fold f n arr@(CArray sh@(sh' :. s) _) 
+	= CArray sh' $ Left elemFn
+	where	elemFn i = foldU f n (mapU (\s -> arr !: (i :. s)) (enumFromToU 0 (s - 1)))
+
+
+
 
 

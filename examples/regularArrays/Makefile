@@ -1,5 +1,5 @@
 TOPDIR = ..
-BINARIES = raBench raTest saBench laplace
+BINARIES = raBench raTest saBench laplace mmult
 
 # -----------------
 raBench_DPH 	= raBench
@@ -40,5 +40,14 @@ laplace_SOURCES	= \
 laplace_seq_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
 laplace_par_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
 	
+
+# -----------------
+mmult_DPH	= mmult
+mmult_SOURCES	= \
+	examples/mmult/Main.hs
+	
+mmult_seq_FLAGS = -iexamples/mmult -fsimplifier-phases=3 -package dph-base
+mmult_par_FLAGS = -iexamples/mmult -fsimplifier-phases=3 -package dph-base
+
 
 include $(TOPDIR)/mk/test.mk
