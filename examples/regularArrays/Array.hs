@@ -66,6 +66,33 @@ data Index a initialDim projectedDim where
                    Index a init proj -> Index a (init :. Int)  proj
   
 
+data All = All
+
+type family FullShape sl
+type instance FullShape () = ()
+type instance FullShape (sl :. Int) = FullShape sl :. Int
+type instance FullShape (sl:. All)  = FullShape sl :. Int
+
+type family SliceShape sl
+type instance SliceShape () = ()
+type instance SliceShape (sl :. Int) = SliceShape sl
+type instance SliceShape (sl:. All) = SliceShape sl :. Int
+
+class Slice sl where
+  repInd:: sl -> FullShape sl -> SliceShape sl
+  repShape:: sl -> SliceShape sl -> FullShape sl
+
+instance Slice () where
+  repInd () () = ()
+  repShape () () = ()
+  
+instance Slice sl => Slice (sl :. All) where
+  repInd (rsl :. All) (ssl :. s) = (repInd rsl ssl) :. s
+  repShape (rsl :. All) (ssl :. s) = (repShape rsl ssl) :. s
+
+instance Slice sl => Slice (sl :. Int) where
+  repInd (rsl :. _) (ssl :. s) = (repInd rsl ssl) 
+  repShape (rsl :. n) ssl  = (repShape rsl ssl) :. n
 
 type SelectIndex = Index Int
 type MapIndex    = Index ()

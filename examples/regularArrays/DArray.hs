@@ -264,6 +264,13 @@ replicate arr@(DArray shape _ ) ind =
   backpermute arr (A.initShape ind shape) (A.repFun ind)
 
 
+replicateSlice:: (U.Elt e, A.Slice sl, A.Shape (A.FullShape sl), A.Shape (A.SliceShape sl)) => 
+  DArray (A.SliceShape sl) e -> sl  -> DArray (A.FullShape sl) e
+{-# INLINE replicateSlice #-}
+replicateSlice arr@(DArray shape _ ) sl = 
+  backpermute arr (A.repShape sl shape) (A.repInd sl)
+
+
 index::(U.Elt e, A.Shape dim) => DArray dim e -> dim -> e
 {-# INLINE index #-}
 index arr@(DArray _ fn) i =
