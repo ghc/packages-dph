@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, TypeOperators #-}
+{-# LANGUAGE BangPatterns, TypeOperators, FlexibleContexts #-}
 
 module CArray
 	( CArray(..)
@@ -7,6 +7,9 @@ module CArray
 	, fromCArray
 	, forceCArray 
 	, traverseCArray
+	, transpose
+	, backpermute
+	, replicateSlice
 	, zipWith)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
@@ -119,6 +122,20 @@ backpermute
 {-# INLINE backpermute #-}
 backpermute arr@(CArray shape _) newSh fn' 
 	= CArray newSh $ Left ((arr !:) . fn')
+
+
+-- Replication ------------------------------------------------------------------------------------
+replicateSlice
+	:: ( U.Elt e, A.Slice sl
+	   , A.Shape (A.FullShape sl)
+	   , A.Shape (A.SliceShape sl)) 
+	=> CArray (A.SliceShape sl) e 	-- ^ Source array.
+	-> sl  				-- ^ Slice to replicate.
+	-> CArray (A.FullShape sl) e
+
+{-# INLINE replicateSlice #-}
+replicateSlice arr@(CArray shape _ ) sl
+	= backpermute arr (A.repShape sl shape) (A.repInd sl)
 
 
 -- Computations -----------------------------------------------------------------------------------
