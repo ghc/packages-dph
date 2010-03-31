@@ -53,40 +53,6 @@ solveLaplace_stencil' steps !arrBoundMask !arrBoundValue arr
 --   Computation fn is
 --	u'(i,j) = (u(i-1,j) + u(i+1,j) + u(i,j-1) + u(i,j+1)) / 4
 --
-{-
-relaxLaplace_stencil
-	:: CArray DIM2 Double
-	-> CArray DIM2 Double
-
-{-# INLINE relaxLaplace_stencil #-}
-relaxLaplace_stencil arr
- = traverseCArray arr id elemFn
- where
-	_ :. height :. width	
-		= carrayShape arr
-
-	elemFn d@(sh :. i :. j)
-	 = if isBorder i j
-		 then  arr !: d
-		 else (arr !: (sh :. (i-1) :. j)
-		   +   arr !: (sh :. i     :. (j-1))
-		   +   arr !: (sh :. (i+1) :. j)
-	 	   +   arr !: (sh :. i     :. (j+1))) / 4
-
-	-- Check if this element is on the border of the matrix.
-	-- If so we can't apply the stencil because we don't have all the neighbours.
-	isBorder i j
-	 	=  (i == 0) || (i >= width  - 1) 
-	 	|| (j == 0) || (j >= height - 1) 
--}
-
-
--- | Perform matrix relaxation for the Laplace equation,
---	using a stencil function.
---
---   Computation fn is
---	u'(i,j) = (u(i-1,j) + u(i+1,j) + u(i,j-1) + u(i,j+1)) / 4
---
 relaxLaplace_stencil
 	:: CArray DIM2 Double
 	-> CArray DIM2 Double
@@ -99,7 +65,7 @@ relaxLaplace_stencil !arr
 		= carrayShape arr
 
 	{-# INLINE elemFn #-}
-	elemFn !get !d@(sh :. i :. j)
+	elemFn get d@(sh :. i :. j)
 	 = if isBorder i j
 		 then  get d
 		 else (get (sh :. (i-1) :. j)
