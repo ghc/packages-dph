@@ -5,6 +5,8 @@ module CArray
 
 	-- * Conversions
         , genCArray
+        , mkCArray
+        , carrayData
 	, toCArray
 	, fromCArray
 
@@ -51,6 +53,15 @@ deepSeqCArray (CArray sh r) x = sh `A.deepSeq`
 genCArray :: A.Shape dim => dim -> (dim -> a) -> CArray dim a
 {-# INLINE genCArray #-}
 genCArray sh f = sh `A.deepSeq` CArray sh (Left f)
+
+mkCArray :: A.Shape dim => dim -> U.Array a -> CArray dim a
+{-# INLINE mkCArray #-}
+mkCArray sh arr = CArray sh (Right arr)
+
+carrayData :: (A.Shape dim, U.Elt a) => CArray dim a -> U.Array a
+{-# INLINE carrayData #-}
+carrayData arr = case forceCArray arr of
+                   CArray _ (Right xs) -> xs
 	
 
 -- Instances --------------------------------------------------------------------------------------
