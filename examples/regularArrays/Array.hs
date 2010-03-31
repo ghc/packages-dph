@@ -42,6 +42,10 @@ data Array dim e where
            }  -> Array dim e
   deriving Show
 
+infixr 0 `deepSeqArray`
+deepSeqArray :: Shape sh => Array sh e -> a -> a
+deepSeqArray (Array sh arr) x = sh `deepSeq` arr `seq` x
+
 
 -- |Shorthand for various dimensions
 --
