@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 
 module CArray
 	( CArray(..)
@@ -79,17 +80,37 @@ forceCArray arr = toCArray (fromCArray arr)
 -- Traversing -------------------------------------------------------------------------------------
 
 -- | Transform and traverse all the elements of an array.
-traverseCArray
+traverseCArray_simple
 	:: (U.Elt e, A.Shape dim)
 	=> CArray dim e			-- ^ Source array.
 	-> (dim  -> dim')		-- ^ Fn to transform the shape of the array.
 	-> (dim' -> f)			-- ^ Fn to produce elements of the result array.
 	-> CArray dim' f
 	
+{-# INLINE traverseCArray_simple #-}
+traverseCArray_simple arr dFn trafoFn
+ = case arr of
+	CArray d _	-> CArray (dFn d) (Left $ trafoFn)
+
+
+-- | Transform and traverse all the elements of an array.
+traverseCArray
+	:: (U.Elt a, A.Shape dim)
+	=> CArray dim a			-- ^ Source array.
+	-> (dim  -> dim')		-- ^ Fn to transform the shape of the array.
+	-> ((dim -> a) -> dim' -> b)	-- ^ Fn to produce elements of the result array.
+	-> CArray dim' b
+	
 {-# INLINE traverseCArray #-}
 traverseCArray arr dFn trafoFn
  = case arr of
-	CArray d _	-> CArray (dFn d) (Left trafoFn)
+	CArray sh (Left f)	
+	 -> CArray (dFn sh) (Left $ trafoFn f)
+
+	CArray sh (Right uarr)
+	 -> CArray 
+		(dFn sh) 
+		(Left $ trafoFn $ (\i -> uarr U.!: (A.toIndex sh i)))
 
 
 -- Computations -----------------------------------------------------------------------------------
