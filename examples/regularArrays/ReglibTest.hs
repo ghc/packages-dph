@@ -10,6 +10,7 @@ import qualified System.Random as R
 
 
 import qualified Data.Array.Parallel.Unlifted as U
+import  Data.Array.Parallel.Unlifted  ((:*:)(..))
 
 
 import qualified Array as A
@@ -17,6 +18,7 @@ import Array ((:.)(..))
 import qualified ArrayExamples as AE 
 import qualified DArray as DA
 import qualified DArrayExamples as DAE
+import  DArrayExamples  (Complex (..))
 
 
 
@@ -43,6 +45,7 @@ algs = [ ("1", transposeTest1)
        , ("6", tileTest)
        , ("7", mmMultTest)
        , ("8", lmMultTest)
+       , ("9", fft3d)
        , ("11", mfTest)
        , ("14",  redBlack)
        , ("15",  redBlack2D)
@@ -83,7 +86,7 @@ transposeTest3:: (Int, U.Array Double) -> U.Array Double
 transposeTest3 (n, arrData) = trace (
     if (res == arrData) 
       then "OK: transposePrim . transposePrim = id"
-      else "Error:  transposePrim . transposePrim /= id")
+      else "Error:  trans`posePrim . transposePrim /= id")
   res 
   where  
     res = A.arrayData $ AE.transposeDFT $ AE.transposeDFT arr
@@ -278,6 +281,41 @@ redBlack2D (n,arr) =
     a  = DA.toDArray $ A.toArray ((() :. (n::Int)):. (n::Int)) arr
 
 
+fft3d:: (Int, (U.Array Double)) -> U.Array Double
+fft3d (size, (arr2)) =  trace ("\n res= " ++  
+     (show res)  ++ "\n arg = " ++ 
+     (show arr)++ "\n rofu =" ++
+     (show rofu)++ "\n resList =" ++
+      (show $ map (\(r :*: _) -> r) $ fftList arrList rofuList )++ "\n  res =" ++
+     (show $ A.arrayData $ DA.fromDArray rofu) ) res
+  where
+    rofuList = U.toList $ A.arrayData $ DA.fromDArray rofu
+    arrList = U.toList $ A.arrayData $ DA.fromDArray arr
+
+    res = A.arrayData $ DA.fromDArray $ DA.map (\(r :*: i) -> r) $ DAE.fft rofu arr
+    rofu = (DAE.calcRofu (() :. (size `div`2)))
+    arr =  DA.toDArray $ A.toArray (() :. size) (sinSeq size)
+
+
+sinSeq:: Int -> U.Array (Double :*: Double)
+sinSeq n = U.fromList $ map (\x -> (sin (x * (2 * pi)/nD) :*: 0.0)) [1.0..nD]
+  where nD = fromIntegral n
+
+
+fftList:: [Complex] -> [Complex] -> [Complex] 
+fftList (c1 : c2 : []) (r:[]) = [c1 + c2, c1 - c2]
+fftList cs rofu =  (zipWith (+) fftL fftR) ++ (zipWith (-) fftL fftR)
+  where
+    fftL = (fftList cL rofu')
+    fftR = zipWith (*) rofu (fftList cR rofu')
+    rofu' = splitRofu rofu
+    (cL, cR) = split cs
+    split [] = ([],[])
+    split (x:y:rs) = (x:rsL, y :rsR) 
+       where (rsL, rsR) = split (rs)
+    splitRofu [] = []
+    splitRofu (r1:r2:rs) = r1 : (splitRofu rs) 
+
 replicateT:: (Int, U.Array Double) -> U.Array Double 
 replicateT (n, arr) = trace (show res)
   res 
@@ -295,6 +333,9 @@ main = ndpMain "RArray Test"
                run [Option ['a'] ["algo"] (ReqArg const "ALGORITHM")
                      "use the specified algorithm"]
                    "seq" 
+
+
+
 
 run opts alg sizes =
   case Prelude.map read sizes of

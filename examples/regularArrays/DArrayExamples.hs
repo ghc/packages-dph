@@ -11,9 +11,12 @@ module DArrayExamples (
   , relaxShift
   , redBlack
   , redBlackChecker2D
+  , calcRofu
+  , fft
   , fft3D 
   , fft3DS
   , fft3DC
+  , Complex (..)
   ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
@@ -56,8 +59,10 @@ mmMultP' m1 m2 = fromDArray $ mmMultP m1 m2
 {-# SPECIALIZE mmMult::
    DArray (() :. Int :. Int)  Double -> DArray (() :. Int :. Int)  Double -> DArray (() :. Int :. Int)  Double  
   #-}
--- mmMult:: (Array.RepFun dim, Array.InitShape dim, Array.Shape dim) => 
---   DArray (dim :. Int :. Int)  Double -> DArray (dim :. Int :. Int)  Double -> DArray (dim :. Int :. Int)  Double  
+
+
+--mmMult:: (Array.Shape dim) => 
+--  DArray (dim :. Int :. Int)  Double -> DArray (dim :. Int :. Int)  Double -> DArray (dim :. Int :. Int)  Double  
 mmMult::
    DArray (() :. Int :. Int)  Double -> DArray (() :. Int :. Int)  Double -> DArray (() :. Int :. Int)  Double  
 mmMult arr1@(DArray (sh :. m1 :. n1) fn1) arr2@(DArray (sh' :. m2 :. n2) fn2) = 
@@ -65,8 +70,8 @@ mmMult arr1@(DArray (sh :. m1 :. n1) fn1) arr2@(DArray (sh' :. m2 :. n2) fn2) =
     fold (+) 0 (arr1Ext * arr2Ext)
   where
     arr2T   = forceDArray $ transpose arr2  -- forces evaluation of 'transpose'
-    arr1Ext = replicateSlice arr1 (() :. Array.All :. m2 :. Array.All)
-    arr2Ext = replicateSlice arr2T (() :. n1 :. Array.All :. Array.All)
+    arr1Ext = replicateSlice arr1 ((Array.Any sh) :. Array.All :. m2 :. Array.All)
+    arr2Ext = replicateSlice arr2T ((Array.Any sh) :. n1 :. Array.All :. Array.All)
 
 
 
@@ -236,6 +241,7 @@ fft rofu   v
       append fft_l fft_r  (darrayShape v)
   | vLen == 2    = assert (2 * rLen == vLen) $ 
         traverseDArray v id vFn'
+  | otherwise =  error ("error in fft  - length < 2" ++ (show vLen) ++ " \n")
   where 
     (_ :. vLen) = darrayShape v
     (_ :. rLen) = darrayShape rofu

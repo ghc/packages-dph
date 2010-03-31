@@ -67,24 +67,34 @@ data Index a initialDim projectedDim where
   
 
 data All = All
+data Any sh = Any sh
 
 type family FullShape sl
 type instance FullShape () = ()
 type instance FullShape (sl :. Int) = FullShape sl :. Int
 type instance FullShape (sl:. All)  = FullShape sl :. Int
+type instance FullShape (Any sh) = sh
 
 type family SliceShape sl
 type instance SliceShape () = ()
+type instance SliceShape (Any sh) = sh
 type instance SliceShape (sl :. Int) = SliceShape sl
 type instance SliceShape (sl:. All) = SliceShape sl :. Int
+type instance SliceShape (Any sh) = sh
 
 class Slice sl where
   repInd:: sl -> FullShape sl -> SliceShape sl
   repShape:: sl -> SliceShape sl -> FullShape sl
 
+
 instance Slice () where
   repInd () () = ()
   repShape () () = ()
+
+instance Slice (Any sh) where
+  repInd _ ind = ind
+  repShape _ sh = sh
+
   
 instance Slice sl => Slice (sl :. All) where
   repInd (rsl :. All) (ssl :. s) = (repInd rsl ssl) :. s
