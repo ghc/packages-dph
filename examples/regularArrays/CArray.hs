@@ -104,13 +104,12 @@ traverseCArray
 {-# INLINE traverseCArray #-}
 traverseCArray arr dFn trafoFn
  = case arr of
-	CArray sh (Left f)	
-	 -> CArray (dFn sh) (Left $ trafoFn f)
-
-	CArray sh (Right uarr)
-	 -> CArray 
-		(dFn sh) 
-		(Left $ trafoFn $ (\i -> uarr U.!: (A.toIndex sh i)))
+	CArray sh m
+	 -> CArray (dFn sh)
+	 $ Left	$ trafoFn 
+		$ case m of 
+			Left f 		-> f
+			Right uarr 	-> \i -> uarr U.!: A.toIndex sh i
 
 
 -- Computations -----------------------------------------------------------------------------------
