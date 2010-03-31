@@ -245,6 +245,3 @@ fold f n arr@(CArray sh@(sh' :. s) _)
 	where	elemFn i = foldU f n (mapU (\s -> arr !: (i :. s)) (enumFromToU 0 (s - 1)))
 
 
-
-
-
