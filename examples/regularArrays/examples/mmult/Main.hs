@@ -1,49 +1,117 @@
-
+{-# OPTIONS -fglasgow-exts #-}
 
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Array					as A
-import CArray					as CA
+import qualified SolveCArray			as CA
+import Data.List				as L
+import Data.Maybe
+import Bench.Benchmark ( time, showTime )
+import Matrix
+import System.Environment
+import Control.Monad
 
+
+-- Solvers ----------------------------------------------------------------------------------------
+type Solver
+	=  Array DIM2 Double		-- ^ First matrix.
+	-> Array DIM2 Double		-- ^ Second matrix.
+	-> Array DIM2 Double 		-- ^ Product matrix.
+
+algorithms :: [(String, Solver)]
+algorithms
+  =	[ ("carray-replicate",		  CA.wrapCArraySolver CA.mmMult_replicate) ]
+
+
+-- Arg Parsing ------------------------------------------------------------------------------------
+data Arg
+	= ArgSolver       String
+	| ArgMatrixRandom Int Int
+	| ArgMatrixFile   FilePath
+	deriving Show
+
+isArgMatrix arg
+ = case arg of
+	ArgMatrixRandom{}	-> True
+	ArgMatrixFile{}		-> True
+	_			-> False
+
+parseArgs []		= []
+parseArgs (flag:xx)
+	| "-solver"	<- flag
+	, s:rest	<- xx
+	= ArgSolver s	: parseArgs rest
 	
+	| "-file"	<- flag
+	, f:rest	<- xx
+	= ArgMatrixFile f : parseArgs rest
+	
+	| "-random"	<- flag
+	, x:y:rest	<- xx
+	= ArgMatrixRandom (read x) (read y) : parseArgs rest
+	
+	| otherwise	
+	= error $ "bad arg " ++ flag ++ "\n"
+
+
+-- Get Matrices -----------------------------------------------------------------------------------
+getMatrix arg
+ = case arg of
+	ArgMatrixFile   fileName	-> readMatrixFromTextFile fileName
+	ArgMatrixRandom height width	-> genRandomMatrix (() :. height :. width)
+
+			
+-- Main -------------------------------------------------------------------------------------------
+main :: IO ()
 main 
  = do	
-	let result	= mmult
-	print	$ U.toList $ A.fromArray $ CA.fromCArray result
+	(args :: [Arg])	<- liftM parseArgs $ getArgs
 
+	-- get solver
+	let [solverName] = [s | ArgSolver s <- args]
+	let (solver :: Solver)	
+		= fromMaybe (badSolver solverName)
+		$ lookup solverName algorithms
+			
+	-- get matrices
+	let [argMat1, argMat2]	= filter isArgMatrix args
+	mat1		<- getMatrix argMat1
+	mat2		<- getMatrix argMat2
 
-
-mmMult	:: CArray DIM2  Double 
-	-> CArray DIM2  Double 
-	-> CArray DIM2  Double  
-
-mmMult	arr1@(CArray (sh :. m1 :. n1) fn1) 
-	arr2@(CArray (sh' :. m2 :. n2) fn2) 
-
-	| not $ (m1 == n2) && (sh == sh')
-	= error "mmMult: invalid matrix sizes"
+        mat1
+          `deepSeqArray` mat2
+          `deepSeqArray` return ()
 	
-	| otherwise
-	= fold (+) 0 (arr1Ext * arr2Ext)
-	where
-		arr2T   = forceCArray $ transpose arr2
-		arr1Ext = replicateSlice arr1  (() :. A.All :. m2 :. A.All)
-		arr2Ext = replicateSlice arr2T (() :. n1 :. A.All :. A.All)
+	(matResult, t)	<- time
+			$  let matResult = solver mat1 mat2
+			   in  matResult `deepSeqArray` return matResult
 
-
-mmult 
- = let	mat1_list	= [1, 2, 3, 4, 5, 6, 7, 8, 9]
-	mat2_list	= [2, 0, 0, 0, 2, 0, 0, 0, 2]
+	putStrLn (showTime t)
+			
+--	print	$ U.toList $ A.fromArray matResult
+--	print 	$ "wibble\n"
 	
-	dim :: DIM2
-	dim 	= () :. 3 :. 3
 	
-	mat1 :: CArray DIM2 Double
-	mat1	= CA.toCArray $ A.toArray dim $ U.fromList mat1_list
+printHelp
+ =	putStr 	$ unlines
+		[ "Usage: mmult <solver> <matrix1.mat> <matrix2.mat> <output.mat>"
+		, ""
+		, "  solvers:\n" 
+		  ++ (concat $ intersperse "\n" ["     " ++ name | (name, _) <- algorithms])
+		, "" 
+		, "  Format of matrix file:"
+		, "    MATRIX"
+		, "    <width> <height>"
+		, "    <whitespace separated values..>"
+		, "" ]
+		
+badSolver solverName
+	= error 
+	$ unlines
+	[ "unknown solver: " ++ solverName
+	, "choose one of: "  ++ show (L.map fst algorithms) ]
 
-	
-	mat2 :: CArray DIM2 Double
-	mat2	= CA.toCArray $ A.toArray dim $ U.fromList mat2_list
 
-	matResult = mmMult mat1 mat2
 
-   in	matResult
+
+
+

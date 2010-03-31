@@ -46,8 +46,8 @@ mmult_DPH	= mmult
 mmult_SOURCES	= \
 	examples/mmult/Main.hs
 	
-mmult_seq_FLAGS = -iexamples/mmult -fsimplifier-phases=3 -package dph-base
-mmult_par_FLAGS = -iexamples/mmult -fsimplifier-phases=3 -package dph-base
+mmult_seq_FLAGS = -iexamples/mmult -iexamples/lib -fsimplifier-phases=3 -package dph-base
+mmult_par_FLAGS = -iexamples/mmult -iexamples/lib -fsimplifier-phases=3 -package dph-base
 
 # -----------------
 fft_DPH		= fft
