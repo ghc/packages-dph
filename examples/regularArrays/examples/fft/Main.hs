@@ -1,7 +1,7 @@
 module Main
 where
 
-import FFTCArray ( fft3DC )
+import FFTCArray
 
 import CArray
 import Array ( (:.)(..) )
@@ -9,24 +9,34 @@ import Array ( (:.)(..) )
 import qualified Data.Array.Parallel.Unlifted as U
 
 import Bench.Benchmark ( timeFn_, showTime )
-
+import Data.Char ( toLower )
 import System.Environment ( getArgs )
 
 
-fft :: (Int, U.Array Double, U.Array Double) -> U.Array Double
+fft :: (Int -> CArray DIM3 Complex -> CArray DIM3 Complex)
+    -> (Int, U.Array Double, U.Array Double) -> U.Array Double
 {-# NOINLINE fft #-}
-fft (n, xs, ys) = U.snds
-                $ carrayData
-                $ fft3DC 1
-                $ mkCArray (() :. n :. n :. n)
-                $ U.zip xs ys
+fft f (n, xs, ys) = U.snds
+                  $ carrayData
+                  $ f 1
+                  $ mkCArray (() :. n :. n :. n)
+                  $ U.zip xs ys
+
+algs = [('d', fft3D),
+        ('s', fft3DS),
+        ('c', fft3DC)]
+
+
 
 main = do
-         [s] <- getArgs
+         [[c],s] <- getArgs
          let n = read s
              xs = U.map fromIntegral
                 $ U.enumFromTo 1 (n*n*n)
-         xs `seq` return ()
-         t <- timeFn_ fft (`seq` ()) (n,xs,xs)
+             fn = case lookup (toLower c) algs of
+                    Just f  -> f
+                    Nothing -> error $ "Unknown algorithm " ++ [c]
+         xs `seq` fn `seq` return ()
+         t <- timeFn_ (fft fn) (`seq` ()) (n,xs,xs)
          putStrLn (showTime t)
          
