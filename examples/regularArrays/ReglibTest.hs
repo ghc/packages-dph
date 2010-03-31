@@ -33,6 +33,8 @@ import Bench.Options
   
 import Debug.Trace
 
+default (Int, Float)
+
 algs = [ ("1", transposeTest1)
        , ("2", transposeTest2)
        , ("3", transposeTest3)
@@ -45,6 +47,7 @@ algs = [ ("1", transposeTest1)
        , ("14",  redBlack)
        , ("15",  redBlack2D)
        , ("16",  sumT)
+       , ("17",  replicateT)
 --       , ("4", relaxT)
 --       , ("5", relaxShiftT)
 --        , ("4", backpermuteDftT)
@@ -216,13 +219,6 @@ selectT n =
     arr = A.select (A.toArray ((() :. n) :. n) (U.fromList ([1..(n*n)]::[Int])))
                  (A.IndexFixed 0 (A.IndexFixed (n-1) A.IndexNil))
 
-replicateT:: Int -> U.Array Int
-replicateT n = trace (show res)
-  res 
-  where
-    res = A.arrayData arr
-    arr = A.replicate  (A.toArray (() :. n) (U.fromList ([1..n]::[Int])))
-                 (A.IndexFixed 3 (A.IndexAll (A.IndexNil)))
 
 sumT:: Int -> U.Array Int
 sumT n = trace (show res)
@@ -282,6 +278,17 @@ redBlack2D (n,arr) =
     a  = DA.toDArray $ A.toArray ((() :. (n::Int)):. (n::Int)) arr
 
 
+replicateT:: (Int, U.Array Double) -> U.Array Double 
+replicateT (n, arr) = trace (show res)
+  res 
+  where
+    res = A.arrayData $ DA.fromDArray arr
+    arr = DA.replicateSlice  (DA.toDArray $ (A.toArray (() :. 10) (U.fromList ([1.0..10.0]::[Double]))))
+                 (() :. A.All :. (3::Int))
+{-
+    Arr = A.replicate  (A.toArray (() :. 10) (U.fromList ([1.0..10.0]::[Double])))
+                 (A.IndexFixed 3 (A.IndexAll (A.IndexNil)))
+  -}
  
 main = ndpMain "RArray Test"
                "[OPTION] ... SIZES ..."

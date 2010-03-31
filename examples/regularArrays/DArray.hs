@@ -24,6 +24,7 @@ module DArray (
   , append
   , select
   , replicate
+  , replicateSlice
   , index
   ) where
          

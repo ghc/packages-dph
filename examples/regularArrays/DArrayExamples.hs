@@ -65,9 +65,8 @@ mmMult arr1@(DArray (sh :. m1 :. n1) fn1) arr2@(DArray (sh' :. m2 :. n2) fn2) =
     fold (+) 0 (arr1Ext * arr2Ext)
   where
     arr2T   = forceDArray $ transpose arr2  -- forces evaluation of 'transpose'
-    arr1Ext = replicate arr1 (Array.IndexAll (Array.IndexFixed m2 (Array.IndexAll Array.IndexNil)))
-    arr2Ext = replicate arr2T
-                 (Array.IndexAll (Array.IndexAll (Array.IndexFixed n1 Array.IndexNil)))
+    arr1Ext = replicateSlice arr1 (() :. Array.All :. m2 :. Array.All)
+    arr2Ext = replicateSlice arr2T (() :. n1 :. Array.All :. Array.All)
 
 
 
