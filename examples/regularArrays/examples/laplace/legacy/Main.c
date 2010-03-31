@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 // A matrix represented as an array of rows.
 typedef struct {
@@ -242,7 +244,36 @@ void writeMatrixAsPPM
 	fclose(file);
 }
 
-	
+// Timing
+
+void
+add_timeval( struct timeval *x, const struct timeval *y )
+{
+  x->tv_sec += y->tv_sec;
+  x->tv_usec += y->tv_usec;
+  if( x->tv_usec > 1000000 ) {
+    ++x->tv_sec;
+    x->tv_usec -= 1000000;
+  }
+}
+
+void
+sub_timeval( struct timeval *x, const struct timeval *y )
+{
+  x->tv_sec -= y->tv_sec;
+  if( x->tv_usec < y->tv_usec ) {
+    --x->tv_sec;
+    x->tv_usec = x->tv_usec + (1000000 - y->tv_usec);
+  } else
+    x->tv_usec -= y->tv_usec;
+}
+
+void
+print_timeval( const struct timeval *t )
+{
+  printf( "%ld", (long int) t->tv_sec * 1000 + (long int) t->tv_usec / 1000 );
+}
+
 
 // Main -------------------------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -289,11 +320,20 @@ int main(int argc, char** argv)
 	// Run the solver.
 	//	The result is either the matInitial or matBuffer, depending
 	//	on how many iterations we took.
+        struct timeval start, finish;
+        struct rusage start_ru, finish_ru;
+
+        gettimeofday( &start, NULL );
+        getrusage( RUSAGE_SELF, &start_ru );
+
 	Matrix* matFinal	
 		= solve ( iterations
 			, matBoundMask, matBoundValue
 			, matInitial, matDest);
-	
+
+        gettimeofday( &finish, NULL );
+        getrusage( RUSAGE_SELF, &finish_ru );
+
 	// Write the output to a PPM file.
 	writeMatrixAsPPM(fileName, matFinal);
 	
@@ -302,5 +342,13 @@ int main(int argc, char** argv)
 	freeMatrix (matBoundValue);
 	freeMatrix (matInitial);
 	freeMatrix (matDest);
+
+        sub_timeval( &finish, &start );
+        sub_timeval( &finish_ru.ru_utime, &start_ru.ru_utime );
+        sub_timeval( &finish_ru.ru_stime, &start_ru.ru_stime );
+        add_timeval( &finish_ru.ru_utime, &finish_ru.ru_stime );
+
+        print_timeval( &finish ); putchar( '/' );
+        print_timeval( &finish_ru.ru_utime); putchar( '\n' );
 }
 
