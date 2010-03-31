@@ -1,5 +1,5 @@
 TOPDIR = ..
-BINARIES = raBench raTest saBench laplace mmult
+BINARIES = raBench raTest saBench laplace mmult fft
 
 # -----------------
 raBench_DPH 	= raBench
@@ -49,5 +49,13 @@ mmult_SOURCES	= \
 mmult_seq_FLAGS = -iexamples/mmult -fsimplifier-phases=3 -package dph-base
 mmult_par_FLAGS = -iexamples/mmult -fsimplifier-phases=3 -package dph-base
 
+# -----------------
+fft_DPH		= fft
+fft_SOURCES	= \
+	examples/fft/Main.hs \
+	examples/fft/FFTCArray.hs
+
+fft_seq_FLAGS = -iexamples/fft
+fft_par_FLAGS = -iexamples/fft -rtsopts
 
 include $(TOPDIR)/mk/test.mk
