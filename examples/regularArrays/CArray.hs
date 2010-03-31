@@ -4,6 +4,7 @@ module CArray
 	( CArray(..)
 
 	-- * Conversions
+        , genCArray
 	, toCArray
 	, fromCArray
 
@@ -11,9 +12,11 @@ module CArray
 	, toScalar
 	, (!:)
 	, traverseCArray
+        , traverse2CArray
 	, reshape
 	, transpose
 	, backpermute
+        , append
 	, replicateSlice
 	
 	-- * Computations
@@ -37,6 +40,18 @@ data CArray dim e
 	{ carrayShape	:: dim
 	, carrayCache	:: Either (dim -> e) (U.Array e) }
 
+infixr 0 `deepSeqCArray`
+deepSeqCArray :: A.Shape dim => CArray dim e -> a -> a
+{-# INLINE deepSeqCArray #-}
+deepSeqCArray (CArray sh r) x = sh `A.deepSeq`
+                                case r of
+                                  Left _    -> x
+                                  Right arr -> arr `seq` x
+
+genCArray :: A.Shape dim => dim -> (dim -> a) -> CArray dim a
+{-# INLINE genCArray #-}
+genCArray sh f = sh `A.deepSeq` CArray sh (Left f)
+	
 
 -- Instances --------------------------------------------------------------------------------------
 
@@ -130,6 +145,7 @@ toScalar (CArray _ m)
 
 
 -- Traversing -------------------------------------------------------------------------------------
+
 -- | Transform and traverse all the elements of an array.
 traverseCArray
 	:: (U.Elt a, A.Shape dim)
@@ -143,6 +159,17 @@ traverseCArray
 traverseCArray arr@(CArray sh _) dFn trafoFn
 	= CArray (dFn sh) (Left $ trafoFn (arr !:))
 
+
+traverse2CArray :: (A.Shape dim, A.Shape dim', A.Shape dim'',
+                    U.Elt e, U.Elt f, U.Elt g)
+                => CArray dim e -> CArray dim' f
+                -> (dim -> dim' -> dim'')
+                -> ((dim -> e) -> (dim' -> f) -> (dim'' -> g))
+                -> CArray dim'' g 
+{-# INLINE traverse2CArray #-}
+traverse2CArray xs@(CArray sh1 _) ys@(CArray sh2 _) f g
+  = xs `deepSeqCArray` ys `deepSeqCArray`
+    CArray (f sh1 sh2) (Left $ g ((!:) xs) ((!:) ys))
 
 -- Reshaping -------------------------------------------------------------------------------------
 reshape	:: (A.Shape dim, A.Shape dim', U.Elt e) 
@@ -186,6 +213,18 @@ backpermute
 {-# INLINE backpermute #-}
 backpermute arr@(CArray shape _) newSh fn' 
 	= CArray newSh $ Left ((arr !:) . fn')
+
+
+append :: (U.Elt e, A.Subshape dim dim)
+       => CArray dim e -> CArray dim e -> dim -> CArray dim e
+{-# INLINE append #-}
+append xs@(CArray sh1 _) ys@(CArray sh2 _) newSh
+  = sh1 `A.deepSeq` sh2 `A.deepSeq`
+    CArray newSh appFn
+  where
+    appFn = Left $ \i ->
+            if A.inRange A.zeroDim sh1 i then xs !: i
+                                         else ys !: i
 
 
 -- Replication ------------------------------------------------------------------------------------
