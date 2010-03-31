@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, TypeOperators #-}
 
 module CArray
 	( CArray(..)
@@ -10,10 +10,10 @@ module CArray
 	, zipWith)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
-import Data.Array.Parallel.Unlifted 		((:*:)(..))
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
 
 import qualified Array 				as A
+import Array					((:.)(..))
 import Prelude 					hiding (map, zip, zipWith, replicate, sum)
 import Data.Maybe
 import Data.Either
@@ -88,14 +88,37 @@ traverseCArray
 	-> CArray dim' b
 	
 {-# INLINE traverseCArray #-}
-traverseCArray arr dFn trafoFn
- = case arr of
-	CArray sh m
-	 -> CArray (dFn sh)
-	 $ Left	$ trafoFn 
-		$ case m of 
-			Left f 		-> f
-			Right uarr 	-> \i -> uarr U.!: A.toIndex sh i
+traverseCArray arr@(CArray sh _) dFn trafoFn
+	= CArray (dFn sh) (Left $ trafoFn (arr !:))
+		
+
+-- Transposing -----------------------------------------------------------------------------------
+-- | Transpose the lowest two dimensions of a matrix.
+transpose 
+	:: (A.Shape dim, U.Elt a) 
+	=> CArray (dim :. Int :. Int) a
+	-> CArray (dim :. Int :. Int) a
+
+{-# INLINE transpose #-}
+transpose arr 
+ = traverseCArray arr
+	(\(sh :. m :. n) 	-> (sh :. n :.m))
+	(\f -> \(sh :. i :. j) 	-> f (sh :. j :. i))
+
+
+-- Permutation ------------------------------------------------------------------------------------
+-- |Generalised array backpermutation.
+backpermute
+	:: (U.Elt e, A.Shape dim, A.Shape dim') 
+	=> CArray dim e 		-- ^ Source array.
+	-> dim' 			-- ^ Target shape.
+	-> (dim' -> dim) 		-- ^ Fn mapping each index in the target shape range
+					--	to an index of the source array range.
+	-> CArray dim' e
+
+{-# INLINE backpermute #-}
+backpermute arr@(CArray shape _) newSh fn' 
+	= CArray newSh $ Left ((arr !:) . fn')
 
 
 -- Computations -----------------------------------------------------------------------------------
