@@ -103,14 +103,14 @@ relaxLaplace !matBoundMask !matBoundValue !matDest !matSrc
 			
 		writeMatrix matDest y x val
 		go y (x + 1)
-			
+
 
 -- Matrix -----------------------------------------------------------------------------------------
 data Matrix e
 	= Matrix
 	{ matrixWidth	:: Int
 	, matrixHeight	:: Int
-	, matrixData	:: IOUArray (Int, Int) e }
+	, matrixData	:: IOUArray Int e }
 		
 
 -- | Convert an array to an IOArray
@@ -124,7 +124,7 @@ convertArrayToMatrix arr
 		= A.arrayShape arr
 
 	ioarr	<- newListArray 
-			((0, 0), (height - 1, width - 1)) 
+			(0, (width * height) - 1) 
 			(U.toList   $ A.arrayData  arr)
 			
 	return	$ Matrix
@@ -137,14 +137,18 @@ convertArrayToMatrix arr
 writeMatrix :: Matrix Double -> Int -> Int -> Double -> IO ()
 {-# INLINE writeMatrix #-}
 writeMatrix mat y x val
-	= writeArray (matrixData mat) (y, x) val
+	= writeArray (matrixData mat) (indexMatrix mat y x) val
 
 
 -- | Read a value from a matrix
 readMatrix :: Matrix Double -> Int -> Int -> IO Double
 {-# INLINE readMatrix #-}
 readMatrix mat y x
-	= readArray (matrixData mat) (y, x)
+	= readArray (matrixData mat) (indexMatrix mat y x)
 
 
+indexMatrix :: Matrix Double -> Int -> Int -> Int
+{-# INLINE indexMatrix #-}
+indexMatrix mat y x
+	= x + (y * matrixWidth mat)
 	
