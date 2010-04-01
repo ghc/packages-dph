@@ -3,6 +3,32 @@
 #include <stdlib.h>
 #include <Matrix.h>
 
+
+void mmult
+	( Matrix* matDest
+	, Matrix* matSrc1
+	, Matrix* matSrc2)
+{
+	int dim1	= matSrc1->width;
+	int dim2	= matSrc2->height;
+	int dim3	= matDest->width;
+
+	for (int i = 0; i < dim1; i++)
+	{
+		for (int j = 0; j < dim3; j++)
+			matDest->data[i][j] = 0.;
+
+		for (int k = 0; k < dim2; k++)
+			for (int j = 0; j < dim3; j++)
+				matDest->data[i][j] 
+					+= matSrc1->data[i][k] 
+					*  matSrc2->data[k][j];
+	}	
+}
+
+
+
+
 // Main -------------------------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
@@ -43,9 +69,7 @@ int main(int argc, char** argv)
 
 	Matrix* mat1	= newRandomMatrix (width1, height1);
 	Matrix* mat2	= newRandomMatrix (width2, height2);
+	Matrix* matDest	= newZeroMatrix   (width2, height1);
 	
-	
-
-
-	printf("foo\n");
+	mmult(matDest, mat1, mat2);
 }
