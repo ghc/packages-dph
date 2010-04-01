@@ -104,3 +104,35 @@ void writeMatrixAsPPM
 
 	fclose(file);
 }
+
+
+void writeMatrixAsTextFile
+	( char*		fileName
+	, Matrix*	mat)
+{
+	FILE* file	= fopen(fileName, "w+");
+	fprintf(file, "MATRIX\n");
+	fprintf(file, "%d %d\n", mat->width, mat->height);
+	
+	for (int y = 0; y < mat->height; y++)
+	for (int x = 0; x < mat->width; x++) {
+		double v = mat->data[y][x];
+		
+		fprintf (file, "%.14f\n", v);	
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

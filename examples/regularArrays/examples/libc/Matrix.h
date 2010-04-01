@@ -34,6 +34,9 @@ void writeMatrixAsPPM
 	( char*  	fileName
 	, Matrix* 	mat );
 
-
+void writeMatrixAsTextFile
+	( char*		fileName
+	, Matrix*	mat);
+	
 
 #endif

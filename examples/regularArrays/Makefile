@@ -67,12 +67,14 @@ include $(TOPDIR)/mk/test.mk
 # C versions --------------------------------------------------------------------------------------
 laplacec_HEADER  = \
 	examples/libc/Matrix.h \
-	examples/libc/ColorRamp.h
+	examples/libc/ColorRamp.h \
+	examples/libc/Timing.h
 
 laplacec_SOURCES = \
 	examples/laplacec/Main.c \
 	examples/libc/Matrix.c  \
-	examples/libc/ColorRamp.c 
+	examples/libc/ColorRamp.c \
+	examples/libc/Timing.c
 	
 seq/laplacec : $(laplacec_SOURCES) $(laplacec_HEADER)
 	gcc -std=c99 -O2 -Iexamples/libc $(laplacec_SOURCES) -o seq/laplacec
@@ -80,12 +82,14 @@ seq/laplacec : $(laplacec_SOURCES) $(laplacec_HEADER)
 
 
 mmultc_HEADER  = \
-	examples/libc/Matrix.h 
+	examples/libc/Matrix.h \
+	examples/libc/Timing.h
 
 mmultc_SOURCES = \
 	examples/mmultc/Main.c \
 	examples/libc/Matrix.c \
-	examples/libc/ColorRamp.c 
+	examples/libc/ColorRamp.c \
+	examples/libc/Timing.c
 		
 seq/mmultc : $(mmultc_SOURCES) $(mmultc_HEADER)
 	gcc -std=c99 -O2 -Iexamples/libc $(mmultc_SOURCES) -o seq/mmultc

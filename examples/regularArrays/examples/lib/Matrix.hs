@@ -59,7 +59,7 @@ readValues cs	= readValues' [] cs
 			then readValues' [] rest
 			else read (reverse acc) : readValues' [] rest
 
-		| isDigit c
+		| isDigit c || c == '.' || c == 'e' || c == '-'
 		= readValues' (c : acc) rest
 
 		| otherwise
