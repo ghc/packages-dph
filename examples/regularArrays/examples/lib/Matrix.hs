@@ -14,6 +14,7 @@
 --
 module Matrix
 	( readMatrixFromTextFile
+	, writeMatrixAsTextFile
 	, genRandomMatrix)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
@@ -28,6 +29,7 @@ import System.Random
 
 
 -- Reading ----------------------------------------------------------------------------------------
+-- | Read a matrix from a text file.
 readMatrixFromTextFile
 	:: (U.Elt a, Num a, Read a)
 	=> FilePath			-- ^ File name of matrix file.
@@ -62,6 +64,44 @@ readValues cs	= readValues' [] cs
 
 		| otherwise
 		= error $ "unexpected char in Matrix file " ++ show (ord c)
+
+-- Writing ----------------------------------------------------------------------------------------
+-- | Write a matrix as a text file.
+writeMatrixAsTextFile 
+	:: (U.Elt a, Show a)
+	=> Array DIM2 a			-- ^ Matrix to write.
+	-> FilePath			-- ^ File name of output file.
+	-> IO ()
+
+writeMatrixAsTextFile arr fileName
+ = do	file	<- openFile fileName WriteMode	
+
+	hPutStrLn file "MATRIX"
+
+	let () :. width :. height	
+		= arrayShape arr
+
+	hPutStrLn file $ show width ++ " " ++ show height
+	
+	hWriteValues file $ U.toList $ fromArray arr
+	hClose file
+	
+
+-- | Write out matrix values to a file.
+hWriteValues
+	:: Show a
+	=> Handle 
+	-> [a] 				-- ^ Data values.
+	-> IO ()
+
+hWriteValues handle xx
+ = go xx
+ where
+	go []		= return ()
+	go (x:xs)
+	 = do	hPutStr handle $ show x
+		hPutStr handle $ "\n"
+		go xs
 
 
 -- Random -----------------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ data Arg
 	= ArgSolver       String
 	| ArgMatrixRandom Int Int
 	| ArgMatrixFile   FilePath
+	| ArgOutFile	  FilePath
 	deriving Show
 
 isArgMatrix arg
@@ -44,6 +45,10 @@ parseArgs (flag:xx)
 	| "-file"	<- flag
 	, f:rest	<- xx
 	= ArgMatrixFile f : parseArgs rest
+
+	| "-out"	<- flag
+	, f:rest	<- xx
+	= ArgOutFile f	: parseArgs rest
 	
 	| "-random"	<- flag
 	, x:y:rest	<- xx
@@ -52,66 +57,86 @@ parseArgs (flag:xx)
 	| otherwise	
 	= error $ "bad arg " ++ flag ++ "\n"
 
-
--- Get Matrices -----------------------------------------------------------------------------------
-getMatrix arg
- = case arg of
-	ArgMatrixFile   fileName	-> readMatrixFromTextFile fileName
-	ArgMatrixRandom height width	-> genRandomMatrix (() :. height :. width)
-
 			
 -- Main -------------------------------------------------------------------------------------------
 main :: IO ()
 main 
- = do	
-	(args :: [Arg])	<- liftM parseArgs $ getArgs
+ = do	args	<- liftM parseArgs $ getArgs
 
-	-- get solver
-	let [solverName] = [s | ArgSolver s <- args]
-	let (solver :: Solver)	
-		= fromMaybe (badSolver solverName)
-		$ lookup solverName algorithms
-			
-	-- get matrices
-	let [argMat1, argMat2]	= filter isArgMatrix args
-	mat1		<- getMatrix argMat1
-	mat2		<- getMatrix argMat2
+	-- | Load up the cmd line args.
+	let result 
+		| [solverName]		<- [s | ArgSolver s <- args]
+		, solver		<- fromMaybe (badSolver solverName)
+					$ lookup solverName algorithms
+		, [argMat1, argMat2]	<- filter isArgMatrix args
+		, mArgOut		<- listToMaybe [s | ArgOutFile s <- args]
+		= do	
 
-        mat1
-          `deepSeqArray` mat2
-          `deepSeqArray` return ()
-	
-	(matResult, t)	<- time
-			$  let matResult = solver mat1 mat2
-			   in  matResult `deepSeqArray` return matResult
+			-- Get matrices from files, or generate random ones we were asked to.
+			mat1		<- getMatrix argMat1
+			mat2		<- getMatrix argMat2
 
-	putStrLn (showTime t)
-			
---	print	$ U.toList $ A.fromArray matResult
---	print 	$ "wibble\n"
+        		mat1
+          		 `deepSeqArray` mat2
+          		 `deepSeqArray` return ()
 	
+			-- Run the solver.
+			(matResult, t)	<- time
+					$  let matResult = solver mat1 mat2
+			   		   in  matResult `deepSeqArray` return matResult
+
+			-- Print how long it took.
+			putStrLn (showTime t)
+
+			-- Write the output to file if requested.
+			case mArgOut of 
+			 Nothing	-> return ()
+			 Just fileOut	
+			  -> 	writeMatrixAsTextFile
+					matResult fileOut
+					
+
+		| otherwise
+		= printHelp
+
+	result
+
+
+getMatrix arg
+ = case arg of
+	ArgMatrixFile   fileName	
+	 -> readMatrixFromTextFile fileName
+
+	ArgMatrixRandom height width	
+	 -> genRandomMatrix (() :. height :. width)
 	
+
 printHelp
- =	putStr 	$ unlines
-		[ "Usage: mmult <solver> <matrix1.mat> <matrix2.mat> <output.mat>"
-		, ""
-		, "  solvers:\n" 
-		  ++ (concat $ intersperse "\n" ["     " ++ name | (name, _) <- algorithms])
-		, "" 
-		, "  Format of matrix file:"
-		, "    MATRIX"
-		, "    <width> <height>"
-		, "    <whitespace separated values..>"
-		, "" ]
+	= putStr 	
+	$ unlines
+	[ "Usage: mmult [args..]"
+	, ""
+	, "  -solver <solver>           Set solver used for multiplication."
+	, "  -random <height> <width>   Use a random matrix of this size."
+	, "  -file   <filename>         Read a matrix from this file."
+	, "  -out    <filename>         Write resulting matrix to this file."
+	, ""
+	, "  solvers:\n" 
+	  ++ (concat $ intersperse "\n" ["     " ++ name | (name, _) <- algorithms])
+	, "" 
+	, "  You must specify at least the solver, and two input matrices."
+	, ""
+	, "  Format of matrix file:"
+	, "    MATRIX"
+	, "    <width> <height>"
+	, "    <whitespace separated values..>"
+	, "" ]
+	
 		
 badSolver solverName
 	= error 
 	$ unlines
 	[ "unknown solver: " ++ solverName
 	, "choose one of: "  ++ show (L.map fst algorithms) ]
-
-
-
-
 
 
