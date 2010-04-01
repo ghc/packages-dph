@@ -19,7 +19,8 @@ type Solver
 
 algorithms :: [(String, Solver)]
 algorithms
-  =	[ ("carray-replicate",		  CA.wrapCArraySolver CA.mmMult_replicate) ]
+  =	[ ("carray-replicate",		  CA.wrapCArraySolver CA.mmMult_replicate) 
+	, ("carray-traverse",		  CA.wrapCArraySolver CA.mmMult_traverse) ]
 
 
 -- Arg Parsing ------------------------------------------------------------------------------------
