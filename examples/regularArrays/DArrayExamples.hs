@@ -33,21 +33,6 @@ import Debug.Trace
 import Control.Exception (assert)
 
 
-
-
-transpose:: (Array.Shape dim, U.Elt e) => 
-  DArray (dim :. Int :. Int) e -> DArray (dim :. Int :. Int) e
-{-# INLINE transpose #-}
-transpose arr =
-  traverseDArray arr
-     (\(sh :. m :. n) -> (sh :. n :.m))
-     (\f -> \(sh :. i :. j) -> f (sh :. j :. i))
-   
-
-
-
-
-
 mmMult' m1 m2 = -- fromDArray $ map (\(x :. y) -> x+y) $ calcRofu ((() :. 1000 :. 5000):: ():. Int :. Int)
     fromDArray $ mmMult m1 m2 
 

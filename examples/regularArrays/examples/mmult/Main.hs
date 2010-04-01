@@ -3,6 +3,7 @@
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Array					as A
 import qualified SolveCArray			as CA
+import qualified SolveDArray			as DA
 import Data.List				as L
 import Data.Maybe
 import Bench.Benchmark ( time, showTime )
@@ -19,8 +20,10 @@ type Solver
 
 algorithms :: [(String, Solver)]
 algorithms
-  =	[ ("carray-replicate",		  CA.wrapCArraySolver CA.mmMult_replicate) 
-	, ("carray-traverse",		  CA.wrapCArraySolver CA.mmMult_traverse) ]
+  =	[ ("carray-replicate",		CA.wrapCArraySolver CA.mmMult_replicate) 
+	, ("carray-traverse",		CA.wrapCArraySolver CA.mmMult_traverse) 
+	, ("darray-replicate",		DA.wrapDArraySolver DA.mmMult_replicate)
+	, ("darray-traverse",		DA.wrapDArraySolver DA.mmMult_traverse)]
 
 
 -- Arg Parsing ------------------------------------------------------------------------------------

@@ -20,6 +20,7 @@ module DArray (
   , shift
   , reshape
   , rotate
+  , transpose
   , tile
   , append
   , select
@@ -213,6 +214,15 @@ rotate:: (A.Subshape dim dim', U.Elt e) => DArray dim e -> e -> dim' -> DArray d
 {-# INLINE rotate #-}
 rotate arr@(DArray sh _) e shiftOffset = backpermute arr  sh
   (\d -> A.addModDim sh d shiftOffset)
+
+
+transpose:: (A.Shape dim, U.Elt e) => 
+  DArray (dim :. Int :. Int) e -> DArray (dim :. Int :. Int) e
+{-# INLINE transpose #-}
+transpose arr =
+  traverseDArray arr
+     (\(sh :. m :. n) -> (sh :. n :.m))
+     (\f -> \(sh :. i :. j) -> f (sh :. j :. i))
 
 
 tile::  (A.Subshape dim dim', U.Elt e) => DArray dim e -> dim' -> dim' -> DArray dim e
