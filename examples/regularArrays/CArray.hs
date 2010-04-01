@@ -24,7 +24,8 @@ module CArray
 	-- * Computations
 	, map
 	, zipWith
-	, fold)
+	, fold
+	, sum)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
@@ -140,8 +141,8 @@ toScalar :: U.Elt e => CArray () e -> e
 toScalar (CArray _ m) 
 	= case m of
 		Left fn 	-> fn ()
-		Right _		-> error "CArray.toScalar: array holds forced data, and is not scalar"
-	
+		Right uarr	-> uarr U.!: 0
+		
 
 -- Primitive functions ----------------------------------------------------------------------------
 -- | Lookup the value in an array.
@@ -294,4 +295,24 @@ fold f n arr@(CArray sh@(sh' :. s) _)
 	= CArray sh' $ Left elemFn
 	where	elemFn i = foldU f n (mapU (\s -> arr !: (i :. s)) (enumFromToU 0 (s - 1)))
 
+
+-- | Sum the innermost dimension.
+sum	:: (U.Elt e, A.Shape dim, Num e)
+	=> CArray (dim :. Int) e
+	-> CArray dim e
+
+sum arr	= fold (*) 0 arr
+
+
+-- | Sum all the elements in the array.
+sumAll	:: (U.Elt e, A.Shape dim, Num e)
+	=> CArray dim e
+	-> e
+
+sumAll arr
+	= U.fold (*) 0
+	$ U.map ((arr !:) . (A.fromIndex (carrayShape arr)))
+	$ U.enumFromTo
+		0
+		((A.size $ carrayShape arr) - 1)
 

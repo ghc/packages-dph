@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <Matrix.h>
 #include <Timing.h>
+
 
 void mmult
 	( Matrix* matDest
@@ -129,6 +131,9 @@ int main(int argc, char** argv)
 
         print_timeval( &finish ); putchar( '/' );
         print_timeval( &finish_ru.ru_utime); putchar( '\n' );
+
+	// Dump checksum
+	printf("sum = %f\n", sumMatrix(matDest));
 }
 
 

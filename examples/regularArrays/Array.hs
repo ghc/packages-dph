@@ -279,7 +279,8 @@ fromArray:: (U.Elt e, Shape dim) => Array dim e -> U.Array e
 {-# INLINE fromArray #-}
 fromArray = arrayData
 
-
+toScalar :: U.Elt e => Array () e -> e
+toScalar (Array _ uarr)		= uarr U.!: 0 
 
 backpermute:: (U.Elt e, Shape dim, Shape dim') => 
   Array dim e -> dim' -> (dim' -> dim) -> Array dim' e

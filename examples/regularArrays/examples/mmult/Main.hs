@@ -92,6 +92,9 @@ main
 			-- Print how long it took.
 			putStrLn (showTime t)
 
+			-- Print a checksum of all the elements
+			putStrLn $ "sum = " ++ show (A.toScalar $ A.sum $ A.sum matResult) ++ "\n"
+
 			-- Write the output to file if requested.
 			case mArgOut of 
 			 Nothing	-> return ()

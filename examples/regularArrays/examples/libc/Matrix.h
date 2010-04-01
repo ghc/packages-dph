@@ -30,6 +30,9 @@ int matricesHaveSameShape
 	( Matrix* mat1
 	, Matrix* mat2);
 
+double	sumMatrix
+	(Matrix* mat);
+
 void writeMatrixAsPPM
 	( char*  	fileName
 	, Matrix* 	mat );

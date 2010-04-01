@@ -76,6 +76,23 @@ Matrix* newZeroMatrix (int width, int height)
 }
 
 
+// Computations -----------------------------------------------------------------------------------
+double	sumMatrix
+	(Matrix* mat)
+{
+	double	totalSum	= 0;
+	for(int j = 0; j < mat->height; j++) {
+		double rowSum	= 0;
+		for(int i = 0; i < mat->width; i++)
+			rowSum	+= mat->data[j][i];
+			
+		totalSum	+= rowSum;
+	}
+	
+	return totalSum;
+}
+
+
 // PPM --------------------------------------------------------------------------------------------
 void writeMatrixAsPPM
 	( char*  	fileName
