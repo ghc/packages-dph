@@ -9,6 +9,7 @@ module CArray
         , carrayData
 	, toCArray
 	, fromCArray
+	, toList
 
 	, forceCArray 
 	, toScalar
@@ -19,13 +20,15 @@ module CArray
 	, transpose
 	, backpermute
         , append
+	, appendWithShape
 	, replicateSlice
 	
 	-- * Computations
 	, map
 	, zipWith
 	, fold
-	, sum)
+	, sum
+	, sumAll)
 where
 import qualified Data.Array.Parallel.Unlifted 	as U
 import Data.Array.Parallel.Unlifted.Gabi	(mapU, foldU, enumFromToU)
@@ -125,6 +128,19 @@ fromCArray (CArray shape cache)
 	, A.arrayShape = shape }
 
 
+-- | Convert a `CArray` to a flat list of its elements.
+toList	:: (U.Elt e, A.Shape dim)
+	=> CArray dim e 
+	-> [e]
+
+toList arr
+	= U.toList
+	$ U.map ((arr !:) . (A.fromIndex $ carrayShape arr))
+	$ U.enumFromTo 
+		(0 :: Int)
+		((A.size $ carrayShape arr) - 1)
+	
+	
 -- Forcing ----------------------------------------------------------------------------------------
 forceCArray 
 	:: (U.Elt e, A.Shape dim) 
@@ -143,6 +159,7 @@ toScalar (CArray _ m)
 		Left fn 	-> fn ()
 		Right uarr	-> uarr U.!: 0
 		
+			
 
 -- Primitive functions ----------------------------------------------------------------------------
 -- | Lookup the value in an array.
@@ -182,6 +199,7 @@ traverse2CArray :: (A.Shape dim, A.Shape dim', A.Shape dim'',
 traverse2CArray xs@(CArray sh1 _) ys@(CArray sh2 _) f g
   = xs `deepSeqCArray` ys `deepSeqCArray`
     CArray (f sh1 sh2) (Left $ g ((!:) xs) ((!:) ys))
+
 
 -- Reshaping -------------------------------------------------------------------------------------
 reshape	:: (A.Shape dim, A.Shape dim', U.Elt e) 
@@ -227,16 +245,48 @@ backpermute arr@(CArray shape _) newSh fn'
 	= CArray newSh $ Left ((arr !:) . fn')
 
 
-append :: (U.Elt e, A.Subshape dim dim)
-       => CArray dim e -> CArray dim e -> dim -> CArray dim e
+
+-- Append -----------------------------------------------------------------------------------------
+
+-- | Append two arrays
+append	:: (U.Elt e, A.Shape sh)
+	=> CArray (sh :. Int) e
+	-> CArray (sh :. Int) e
+	-> CArray (sh :. Int) e
+
 {-# INLINE append #-}
-append xs@(CArray sh1 _) ys@(CArray sh2 _) newSh
-  = sh1 `A.deepSeq` sh2 `A.deepSeq`
-    CArray newSh appFn
+append arr1 arr2 
+  = traverse2CArray arr1 arr2 shFn f
   where
-    appFn = Left $ \i ->
-            if A.inRange A.zeroDim sh1 i then xs !: i
-                                         else ys !: i
+   	(_ :. n) 	= carrayShape arr1
+    	(_ :. m) 	= carrayShape arr2
+
+	shFn (sh :. n) (_  :. m) 
+			= sh :. (n + m)
+
+	f f1 f2 (sh :. i)
+          | i < n	= f1 (sh :. i)
+	  | otherwise	= f2 (sh :. (i - n))
+
+
+appendWithShape
+ 	:: (U.Elt e, A.Shape sh)
+       	=> CArray (sh :. Int) e
+	-> CArray (sh :. Int) e
+	-> (sh :. Int)			-- ^ shape of resulting array
+	-> CArray (sh :. Int) e
+
+{-# INLINE appendWithShape #-}
+appendWithShape arr1@(CArray sh1 _) arr2@(CArray sh2 _) newSh
+  = sh1 `A.deepSeq` sh2 `A.deepSeq` CArray newSh (Left elemFn)
+  where
+	(_ :. n)	= sh1
+	(_ :. m)	= sh2
+
+	elemFn ix@(sh :. i) 
+	 = if A.inRange A.zeroDim sh1 ix
+		then arr1 !: ix
+		else arr2 !: (sh :. (i - n))
 
 
 -- Replication ------------------------------------------------------------------------------------
@@ -254,7 +304,6 @@ replicateSlice arr@(CArray shape _ ) sl
 
 
 -- Computations -----------------------------------------------------------------------------------
-
 -- | Map a worker function over each element of n-dim CArray.
 map	:: (U.Elt a, U.Elt b, A.Shape dim) 
 	=> (a -> b) 			-- ^ Worker function.
@@ -301,7 +350,7 @@ sum	:: (U.Elt e, A.Shape dim, Num e)
 	=> CArray (dim :. Int) e
 	-> CArray dim e
 
-sum arr	= fold (*) 0 arr
+sum arr	= fold (+) 0 arr
 
 
 -- | Sum all the elements in the array.
@@ -310,7 +359,7 @@ sumAll	:: (U.Elt e, A.Shape dim, Num e)
 	-> e
 
 sumAll arr
-	= U.fold (*) 0
+	= U.fold (+) 0
 	$ U.map ((arr !:) . (A.fromIndex (carrayShape arr)))
 	$ U.enumFromTo
 		0

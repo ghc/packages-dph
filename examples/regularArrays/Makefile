@@ -55,10 +55,11 @@ mmult_par_FLAGS = -iexamples/mmult -iexamples/lib -fsimplifier-phases=3 -package
 fft_DPH		= fft
 fft_SOURCES	= \
 	examples/fft/Main.hs \
-	examples/fft/FFTCArray.hs
+	examples/fft/FFTCArray.hs \
+	examples/lib/StrictComplex.hs
 
-fft_seq_FLAGS = -iexamples/fft
-fft_par_FLAGS = -iexamples/fft -rtsopts
+fft_seq_FLAGS = -iexamples/fft -iexamples/lib
+fft_par_FLAGS = -iexamples/fft -iexamples/lib
 
 include $(TOPDIR)/mk/test.mk
 
