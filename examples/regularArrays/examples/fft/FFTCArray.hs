@@ -7,7 +7,7 @@
 module FFTCArray 
 	( CArray, DIM3, Complex
 	, calcRofu
-	, fft3D, fft3DS, fft3DC, fft
+	, fft3D, fft3DS, fft3DC, fft, fftS
 	, dft)
 where
 

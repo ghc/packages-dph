@@ -74,16 +74,18 @@ check
 	arrInput = CA.toCArray $ A.toArray shape $ U.fromList step
 	
 	-- Compute DFT and FFT and to compare.
- 	dftMags	= P.map mag $ CA.toList $ dft roots arrInput
-	fftMags	= P.map mag $ CA.toList $ fft roots arrInput
+ 	dftMags	 = P.map mag $ CA.toList $ dft roots arrInput
+	fftMags	 = P.map mag $ CA.toList $ fft roots arrInput
+	fftSMags = P.map mag $ CA.toList $ fftS roots arrInput
 	
 	str	= P.concat
 		$ L.intersperse "\n"
-		$ [show i ++ " " ++ show s ++ " " ++ show d ++ " " ++ show f
+		$ [show i ++ " " ++ show s ++ " " ++ show d ++ " " ++ show f ++ " " ++ show g
 			| i <- [0..]
 			| s <- step_real
 			| d <- dftMags
-			| f <- fftMags ]
+			| f <- fftMags 
+			| g <- fftSMags ]
 
   in	str
 
