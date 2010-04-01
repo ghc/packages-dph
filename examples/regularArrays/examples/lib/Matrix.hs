@@ -106,17 +106,32 @@ hWriteValues handle xx
 
 -- Random -----------------------------------------------------------------------------------------
 genRandomMatrix 
-	:: (Random a, U.Elt a, Num a)
-	=> DIM2 
-	-> IO (Array DIM2 a)
+	:: DIM2 
+	-> IO (Array DIM2 Double)
 
 genRandomMatrix sh
- = do	stdGen	<- getStdGen
-	let arr	= toArray sh
-			$ U.fromList 
-			$ take (A.size sh)
-			$ randomRs (0, 1) stdGen
-		
-	return arr
+ = do	uarr	<- generateVector (A.size sh)
+	return	$ toArray sh uarr
+			
+
+generateVector :: Int -> IO (U.Array Double)
+generateVector n =
+  do
+    rg <- newStdGen
+    let -- The std random function is too slow to generate really big vectors
+        -- with.  Instead, we generate a short random vector and repeat that.
+        randvec = U.randomRs k (-100, 100) rg
+        vec     = U.map (\i -> randvec U.!: (i `mod` k)) (U.enumFromTo 0 (n-1))
+    return vec
+  where
+    k = 1000
+
+
+
+
+
+
+
+
 
 
