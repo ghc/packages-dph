@@ -48,6 +48,34 @@ int matricesHaveSameShape (Matrix* mat1, Matrix* mat2)
 }
 
 
+
+// Random Matrices --------------------------------------------------------------------------------
+double mkRandom (int width, int height, int x, int y)
+{
+	long xv	= random();
+	long yv	= random();
+	return	(double)xv / (double) yv;
+}
+
+
+Matrix* newRandomMatrix (int width, int height)
+{
+	return createMatrix (width, height, mkRandom);
+}
+
+
+// Zero Matrices ----------------------------------------------------------------------------------
+double mkZero (int width, int height, int x, int y)
+{	
+	return 0;
+}
+
+Matrix* newZeroMatrix (int width, int height)
+{
+	return createMatrix (width, height, mkZero);
+}
+
+
 // PPM --------------------------------------------------------------------------------------------
 void writeMatrixAsPPM
 	( char*  	fileName

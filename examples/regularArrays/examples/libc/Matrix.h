@@ -18,8 +18,17 @@ Matrix* createMatrix
 void freeMatrix 
 	(Matrix* mat);
 
+Matrix* newRandomMatrix
+	( int width
+	, int height);
+
+Matrix* newZeroMatrix
+	( int width
+	, int height);
+	
 int matricesHaveSameShape 
-	(Matrix* mat1, Matrix* mat2);
+	( Matrix* mat1
+	, Matrix* mat2);
 
 void writeMatrixAsPPM
 	( char*  	fileName

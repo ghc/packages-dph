@@ -41,18 +41,6 @@ laplace_seq_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -pac
 laplace_par_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
 
 
-# C version
-laplacec_HEADER  = \
-	examples/libc/Matrix.h \
-	examples/libc/ColorRamp.h
-
-laplacec_SOURCES = \
-	examples/laplacec/Main.c \
-	examples/libc/Matrix.c  \
-	examples/libc/ColorRamp.c 
-	
-seq/laplacec : $(laplacec_SOURCES) $(laplacec_HEADER)
-	gcc -std=c99 -O2 -Iexamples/libc $(laplacec_SOURCES) -o seq/laplacec
 	
 
 # -----------------
@@ -73,3 +61,35 @@ fft_seq_FLAGS = -iexamples/fft
 fft_par_FLAGS = -iexamples/fft -rtsopts
 
 include $(TOPDIR)/mk/test.mk
+
+
+
+# C versions --------------------------------------------------------------------------------------
+laplacec_HEADER  = \
+	examples/libc/Matrix.h \
+	examples/libc/ColorRamp.h
+
+laplacec_SOURCES = \
+	examples/laplacec/Main.c \
+	examples/libc/Matrix.c  \
+	examples/libc/ColorRamp.c 
+	
+seq/laplacec : $(laplacec_SOURCES) $(laplacec_HEADER)
+	gcc -std=c99 -O2 -Iexamples/libc $(laplacec_SOURCES) -o seq/laplacec
+
+
+
+mmultc_HEADER  = \
+	examples/libc/Matrix.h 
+
+mmultc_SOURCES = \
+	examples/mmultc/Main.c \
+	examples/libc/Matrix.c \
+	examples/libc/ColorRamp.c 
+		
+seq/mmultc : $(mmultc_SOURCES) $(mmultc_HEADER)
+	gcc -std=c99 -O2 -Iexamples/libc $(mmultc_SOURCES) -o seq/mmultc
+
+
+
+
