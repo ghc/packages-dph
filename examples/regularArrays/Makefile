@@ -39,6 +39,20 @@ laplace_SOURCES	= \
 
 laplace_seq_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
 laplace_par_FLAGS = -iexamples/laplace -iexamples/lib -fsimplifier-phases=3 -package dph-base
+
+
+# C version
+laplacec_HEADER  = \
+	examples/libc/Matrix.h \
+	examples/libc/ColorRamp.h
+
+laplacec_SOURCES = \
+	examples/laplacec/Main.c \
+	examples/libc/Matrix.c  \
+	examples/libc/ColorRamp.c 
+	
+seq/laplacec : $(laplacec_SOURCES) $(laplacec_HEADER)
+	gcc -std=c99 -O2 -Iexamples/libc $(laplacec_SOURCES) -o seq/laplacec
 	
 
 # -----------------

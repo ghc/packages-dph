@@ -13,57 +13,7 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-
-// A matrix represented as an array of rows.
-typedef struct {
-	int 	 width;
-	int 	 height;
-	double** data;
-} Matrix;
-
-
-// Matrix Creation and Freeing --------------------------------------------------------------------
-// Given a function that produces each element, 
-//	create a matrix of a given size.
-Matrix* createMatrix
-	( int width
-	, int height
-	, double (*mkElem)(int width, int height, int x, int y))
-{
-	double** data	= malloc (sizeof(double*) * height);
-
-	for (int y = 0; y < height; y++) {
-		data[y]	= malloc (sizeof(double) * width);
-		
-		for (int x = 0; x < width; x++)
-			data[y][x] = mkElem(width, height, x, y);
-	}
-	
-	Matrix* mat	= malloc (sizeof(Matrix));
-	mat->width	= width;
-	mat->height	= height;
-	mat->data	= data;
-	return mat;
-}
-
-
-void freeMatrix (Matrix* mat)
-{
-	for (int y = 0; y < mat->height; y++)
-		free(mat->data[y]);
-	
-	free(mat->data);
-	free(mat);
-}
-
-
-// Check whether these matrices have the same width and height.
-int matricesHaveSameShape (Matrix* mat1, Matrix* mat2)
-{
-	return	(mat1->width  == mat2->width)
-	    &&  (mat1->height == mat2->height);
-}
-
+#include <Matrix.h>
 
 // Boundary Conditions ----------------------------------------------------------------------------
 // Make the mask for the boundary conditions.
@@ -173,76 +123,7 @@ Matrix* solve
 	// Return result of last iteration.
 	return	matTmp;
 }	
-
-
-
-// Color Ramps ------------------------------------------------------------------------------------
-// Standard Hot -> Cold hypsometric color ramp.
-//	Sequence is red, yellow, green, cyan, blue.
-//	All values are clamped to [vmin .. vmax]
-void rampColorHotToCold
-	 (double v
-	, double vmin		
-	, double vmax
-	, double* r		// color component outputs
-	, double* g
-	, double* b)
-{
-	if (v < vmin)	v = vmin;
-	if (v > vmax)	v = vmax;
-	double dv = vmax - vmin;
-
-	if (v < (vmin + 0.25 * dv)) {
-		*r = 0;
-		*g = 4 * (v - vmin) / dv;
-		*b = 1;
-	} 
-	else if (v < (vmin + 0.5 * dv)) {
-		*r = 0;
-		*g = 1;
-		*b = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
-	}
-	else if (v < (vmin + 0.75 * dv)) {
-		*r = 4 * (v - vmin - 0.5 * dv) / dv;
-		*g = 1;
-		*b = 0;
-	} 
-	else {
-		*r = 1;
-		*g = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
-		*b = 0;
-	}
-}
 	
-	
-// PPM --------------------------------------------------------------------------------------------
-void writeMatrixAsPPM
-	( char*  	fileName
-	, Matrix* 	mat )
-{
-	FILE* file	= fopen(fileName, "w+");
-	fprintf(file, "P3\n");
-	fprintf(file, "%d %d\n", mat->width, mat->height);
-	fprintf(file, "255\n");
-	
-	for (int y = 0; y < mat->height; y++)
-	for (int x = 0; x < mat->width; x++) {
-		double v = mat->data[y][x];
-
-		double r = 0;
-		double g = 0;
-		double b = 0;
-		rampColorHotToCold(v, 0, 180, &r, &g, &b);
-
-		fprintf	( file
-			, "%d %d %d\n"
-			, (int)(r * 255)
-			, (int)(g * 255)
-			, (int)(b * 255) );		
-	}
-
-	fclose(file);
-}
 
 // Timing
 
