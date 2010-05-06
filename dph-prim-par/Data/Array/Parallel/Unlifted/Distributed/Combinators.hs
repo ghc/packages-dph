@@ -74,7 +74,7 @@ foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
 foldD g f !d = checkGangD ("here foldD") g d $
               fold 1 (d `indexD` 0)
   where
-    n = gangSize g
+    !n = gangSize g
     --
     fold i x | i == n    = x
              | otherwise = fold (i+1) (f x $ d `indexD` i)
@@ -89,7 +89,7 @@ scanD g f z !d = checkGangD (here "scanD") g d $
                    d' <- unsafeFreezeMD md
                    return (d' :*: s))
   where
-    n = gangSize g
+    !n = gangSize g
     --
     scan md i x | i == n    = return x
                 | otherwise = do
@@ -106,7 +106,7 @@ mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
                           d'   <- unsafeFreezeMD md
                           return (acc' :*: d'))
   where
-    n = gangSize g
+    !n = gangSize g
 
     go md i acc | i == n    = return acc
                 | otherwise = case f acc (d `indexD` i) of
