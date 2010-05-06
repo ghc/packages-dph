@@ -81,14 +81,6 @@ splitAsD g dlen !arr = zipWithD g (sliceU arr) is dlen
   where
     is = fstS $ scanD g (+) 0 dlen
 
--- | Distribute an array over a 'Gang'.
-splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
-{-# INLINE_DIST splitD #-}
-splitD g _ !arr = zipWithD g (sliceU arr) is dlen
-  where
-    dlen = splitLengthD g arr
-    is   = fstS $ scanD g (+) 0 dlen
-
 -- lengthD reexported from types
 
 -- | Overall length of a distributed array.
@@ -96,20 +88,41 @@ joinLengthD :: UA a => Gang -> Dist (UArr a) -> Int
 {-# INLINE joinLengthD #-}
 joinLengthD g = sumD g . lengthD
 
--- | Join a distributed array.
-joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
-{-# INLINE_DIST joinD #-}
-joinD g _ !darr = checkGangD (here "joinD") g darr $
-                 newU n (\ma -> zipWithDST_ g (copy ma) di darr)
+
+-- NOTE: We need splitD_impl and joinD_impl to avoid introducing loops through
+-- rules. Without them, splitJoinD would be a loop breaker.
+
+-- | Distribute an array over a 'Gang'.
+splitD_impl :: UA a => Gang -> UArr a -> Dist (UArr a)
+{-# INLINE_DIST splitD_impl #-}
+splitD_impl g !arr = zipWithD g (sliceU arr) is dlen
+  where
+    dlen = splitLengthD g arr
+    is   = fstS $ scanD g (+) 0 dlen
+
+-- | Distribute an array over a 'Gang'.
+splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
+{-# INLINE_DIST splitD #-}
+splitD g _ arr = splitD_impl g arr
+
+joinD_impl :: UA a => Gang -> Dist (UArr a) -> UArr a
+{-# INLINE_DIST joinD_impl #-}
+joinD_impl g !darr = checkGangD (here "joinD") g darr $
+                     newU n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
     di :*: n = scanD g (+) 0 $ lengthD darr
     --
     copy ma i arr = stToDistST (copyMU ma i arr)
 
+-- | Join a distributed array.
+joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
+{-# INLINE_DIST joinD #-}
+joinD g _ darr  = joinD_impl g darr
+
 splitJoinD :: (UA a, UA b)
            => Gang -> (Dist (UArr a) -> Dist (UArr b)) -> UArr a -> UArr b
 {-# INLINE_DIST splitJoinD #-}
-splitJoinD g f !xs = joinD g unbalanced (f (splitD g unbalanced xs))
+splitJoinD g f !xs = joinD_impl g (f (splitD_impl g xs))
 
 -- | Join a distributed array, yielding a mutable global array
 joinDM :: UA a => Gang -> Dist (UArr a) -> ST s (MUArr a s)
