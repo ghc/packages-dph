@@ -12,7 +12,7 @@ define dph_create
 ifneq "$(BINDIST)" "YES"
 ifneq "$(CLEANING)" "YES"
 $(DPH_DIR)/dph-$1/ghc.mk $(DPH_DIR)/dph-$1/GNUmakefile $(DPH_DIR)/dph-$1/dph-$1.cabal: $(DPH_DIR)/dph-common/ghc.mk $(DPH_DIR)/dph-common/GNUmakefile $(DPH_DIR)/dph-common/dph-common.cabal
-	rm -rf $(DPH_DIR)/dph-$1 $(DPH_DIR)/dph-$1.tmp
+	$$(RM) $$(RM_OPTS_REC) $(DPH_DIR)/dph-$1 $(DPH_DIR)/dph-$1.tmp
 	mkdir $(DPH_DIR)/dph-$1.tmp
 	cp $(DPH_DIR)/dph-common/Setup.hs $(DPH_DIR)/dph-$1.tmp/Setup.hs
 	cp $(DPH_DIR)/dph-common/LICENSE $(DPH_DIR)/dph-$1.tmp/LICENSE
@@ -33,7 +33,7 @@ all_$(DPH_DIR) : $(foreach pkg, $(DPH_PACKAGES), all_$(DPH_DIR)/$(pkg))
 clean : clean_$(DPH_DIR)
 .PHONY: clean_$(DPH_DIR)
 clean_$(DPH_DIR) : $(foreach pkg, $(DPH_BASE_PACKAGES), clean_$(DPH_DIR)/$(pkg))
-	$(RM) -rf $(foreach way, $(DPH_WAYS), $(DPH_DIR)/dph-$(way))
+	$(RM) $(RM_OPTS_REC) $(foreach way, $(DPH_WAYS), $(DPH_DIR)/dph-$(way))
 
 distclean : clean_$(DPH_DIR)
 
