@@ -28,7 +28,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 
 mapUP :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b
 {-# INLINE mapUP #-}
-mapUP f = splitJoinD theGang (mapD theGang (mapU f))
+mapUP f xs = splitJoinD theGang (mapD theGang (mapU f)) xs
 
 filterUP :: UA a => (a -> Bool) -> UArr a -> UArr a
 {-# INLINE filterUP #-}
