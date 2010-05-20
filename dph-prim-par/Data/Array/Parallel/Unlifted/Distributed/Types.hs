@@ -385,6 +385,7 @@ newD g init =
 
 -- | Yield a distributed unit.
 unitD :: Gang -> Dist ()
+{-# INLINE_DIST unitD #-}
 unitD = DUnit . gangSize
 
 -- | Pairing of distributed values.
