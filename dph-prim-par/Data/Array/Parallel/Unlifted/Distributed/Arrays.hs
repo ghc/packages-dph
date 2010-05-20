@@ -116,7 +116,7 @@ joinD_impl g !darr = checkGangD (here "joinD") g darr $
 
 -- | Join a distributed array.
 joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
-{-# INLINE_DIST joinD #-}
+{-# INLINE CONLIKE [1] joinD #-}
 joinD g _ darr  = joinD_impl g darr
 
 splitJoinD :: (UA a, UA b)
