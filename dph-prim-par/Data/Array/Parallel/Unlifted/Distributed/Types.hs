@@ -33,7 +33,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
   checkGangD, checkGangMD,
 
   -- * Debugging functions
-  sizeD, sizeMD
+  sizeD, sizeMD, measureD
 ) where
 
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
@@ -84,6 +84,9 @@ class DT a where
   -- | Number of elements in the mutable distributed value. This is for
   -- debugging only.
   sizeMD :: MDist a s -> Int
+
+  measureD :: a -> String
+  measureD _ = "?"
 
 -- Distributing hyperstrict types may not change their strictness.
 instance (HS a, DT a) => HS (Dist a)
@@ -208,6 +211,8 @@ instance DT Int where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
+  measureD n = "int " ++ show n
+
 instance DPrim Word8 where
   mkDPrim            = DWord8
   unDPrim (DWord8 a) = a
@@ -280,6 +285,8 @@ instance (DT a, DT b) => DT (a :*: b) where
   sizeD  (DProd  x _) = sizeD  x
   sizeMD (MDProd x _) = sizeMD x
 
+  measureD (x :*: y) = "(" ++ measureD x ++ "," ++ measureD y ++ ")"
+
 instance DT a => DT (MaybeS a) where
   data Dist  (MaybeS a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
   data MDist (MaybeS a) s = MDMaybe !(MDist Bool s) !(MDist a s)
@@ -301,6 +308,9 @@ instance DT a => DT (MaybeS a) where
   sizeD  (DMaybe  b _) = sizeD  b
   sizeMD (MDMaybe b _) = sizeMD b
 
+  measureD NothingS = "Nothing"
+  measureD (JustS x) = "Just (" ++ measureD x ++ ")"
+
 instance UA a => DT (UArr a) where
   data Dist  (UArr a)   = DUArr  !(Dist  Int)   !(BBArr    (UArr a))
   data MDist (UArr a) s = MDUArr !(MDist Int s) !(MBBArr s (UArr a))
@@ -316,6 +326,8 @@ instance UA a => DT (UArr a) where
                                                 (unsafeFreezeAllMBB a)
   sizeD  (DUArr  _ a) = lengthBB  a
   sizeMD (MDUArr _ a) = lengthMBB a
+
+  measureD xs = "UArr " ++ show (lengthU xs)
 
 instance DT USegd where
   data Dist  USegd   = DUSegd  !(Dist (UArr Int))
@@ -341,6 +353,8 @@ instance DT USegd where
                           (unsafeFreezeMD eles)
   sizeD  (DUSegd  _ _ eles) = sizeD eles
   sizeMD (MDUSegd _ _ eles) = sizeMD eles
+
+  measureD segd = "Segd " ++ show (lengthUSegd segd) ++ "|" ++ show (elementsUSegd segd)
 
 lengthUSegdD :: Dist USegd -> Dist Int
 {-# INLINE_DIST lengthUSegdD #-}
