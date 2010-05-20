@@ -81,7 +81,7 @@ foldD g f !d = checkGangD ("here foldD") g d $
 
 -- | Prefix sum of a distributed value.
 scanD :: DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
-{-# INLINE_DIST scanD #-}
+{-# NOINLINE scanD #-}
 scanD g f z !d = checkGangD (here "scanD") g d $
                  runST (do
                    md <- newMD g
@@ -91,10 +91,10 @@ scanD g f z !d = checkGangD (here "scanD") g d $
   where
     !n = gangSize g
     --
-    scan md i x | i == n    = return x
-                | otherwise = do
-                                writeMD md i x
-                                scan md (i+1) (f x $ d `indexD` i)
+    scan md i !x | i == n    = return x
+                 | otherwise = do
+                                 writeMD md i x
+                                 scan md (i+1) (f x $ d `indexD` i)
 
 mapAccumLD :: (DT a, DT b) => Gang -> (acc -> a -> acc :*: b)
                                    -> acc -> Dist a -> acc :*: Dist b
