@@ -18,9 +18,9 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
-  lengthD, splitLenD, splitLengthD,
+  lengthD, splitLenD, splitLenIdxD,
   splitAsD, splitD, joinLengthD, joinD, splitJoinD,
-  splitSegdD, splitSD,
+  splitSegdD, splitSegdD', splitSD,
 
   permuteD, bpermuteD, atomicUpdateD,
 
@@ -28,24 +28,27 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, ST, runST)
+  (:*:)(..), fstS, sndS, unsafe_pairS, ST, runST)
 import Data.Array.Parallel.Arr (
   replicateBU, appBU )
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, gangSize)
+  Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
-  stToDistST)
+  stToDistST, myIndex )
 import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, mkDPrim, indexD, lengthD, newD, writeMD, zipD, unzipD, fstD, sndD,
   elementsUSegdD,
   checkGangD)
 import Data.Array.Parallel.Unlifted.Distributed.Basics
-import Data.Array.Parallel.Unlifted.Distributed.Combinators (
-  mapD, zipWithD, scanD, mapAccumLD,
-  zipWithDST_, mapDST_)
+import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars (
   sumD)
+
+import Data.Bits ( shiftR )
+import Control.Monad ( when )
+
+import GHC.Base ( quotInt, remInt )
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." ++ s
 
@@ -59,25 +62,37 @@ unbalanced :: Distribution
 {-# NOINLINE unbalanced #-}
 unbalanced = error $ here "unbalanced: touched"
 
--- | Distribute the length of an array over a 'Gang'.
-splitLengthD :: UA a => Gang -> UArr a -> Dist Int
-{-# INLINE splitLengthD #-}
-splitLengthD g = splitLenD g . lengthU
-
 -- | Distribute the given array length over a 'Gang'.
 splitLenD :: Gang -> Int -> Dist Int
-{-# NOINLINE splitLenD #-}
-splitLenD g !n = mkDPrim (replicateBU m (l+1) `appBU` replicateBU (p-m) l)
+{-# INLINE splitLenD #-}
+splitLenD g n = generateD_cheap g len
   where
-    p = gangSize g
-    l = n `div` p
-    m = n `mod` p
+    !p = gangSize g
+    !l = n `quotInt` p
+    !m = n `remInt` p
+
+    {-# INLINE [0] len #-}
+    len i | i < m     = l+1
+          | otherwise = l
+
+splitLenIdxD :: Gang -> Int -> Dist (Int :*: Int)
+{-# INLINE splitLenIdxD #-}
+splitLenIdxD g n = generateD_cheap g len_idx
+  where
+    !p = gangSize g
+    !l = n `quotInt` p
+    !m = n `remInt` p
+
+    {-# INLINE [0] len_idx #-}
+    len_idx i | i < m     = l+1 :*: i*(l+1)
+              | otherwise = l   :*: i*l + m
+                                               
 
 -- | Distribute an array over a 'Gang' such that each threads gets the given
 -- number of elements.
 splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
 {-# INLINE_DIST splitAsD #-}
-splitAsD g dlen !arr = zipWithD g (sliceU arr) is dlen
+splitAsD g dlen !arr = zipWithD (seqGang g) (sliceU arr) is dlen
   where
     is = fstS $ scanD g (+) 0 dlen
 
@@ -95,10 +110,27 @@ joinLengthD g = sumD g . lengthD
 -- | Distribute an array over a 'Gang'.
 splitD_impl :: UA a => Gang -> UArr a -> Dist (UArr a)
 {-# INLINE_DIST splitD_impl #-}
-splitD_impl g !arr = zipWithD g (sliceU arr) is dlen
+splitD_impl g !arr = generateD_cheap g (\i -> sliceU arr (idx i) (len i))
   where
-    dlen = splitLengthD g arr
-    is   = fstS $ scanD g (+) 0 dlen
+    n = lengthU arr
+    !p = gangSize g
+    !l = n `quotInt` p
+    !m = n `remInt` p
+
+    idx i | i < m     = (l+1)*i
+          | otherwise = l*i + m
+
+    len i | i < m     = l+1
+          | otherwise = l
+
+    -- slice i | i < m     = sliceU arr ((l+1)*i) (l+1)
+    --         | otherwise = sliceU arr ((l+1)*m + l*(i-m)) l
+{-
+splitD_impl g !arr = zipWithD (seqGang g) (sliceU arr) is dlen
+  where
+    dlen = splitLengthD (seqGang g) arr
+    is   = fstS $ scanD (seqGang g) (+) 0 dlen
+-}
 
 -- | Distribute an array over a 'Gang'.
 splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
