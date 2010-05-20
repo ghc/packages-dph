@@ -390,7 +390,7 @@ unitD = DUnit . gangSize
 -- | Pairing of distributed values.
 -- /The two values must belong to the same/ 'Gang'.
 zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
-{-# INLINE [1] zipD #-}
+{-# INLINE [0] zipD #-}
 zipD !x !y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
              DProd x y
 
