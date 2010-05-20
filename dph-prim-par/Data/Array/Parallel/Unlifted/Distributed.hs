@@ -37,7 +37,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   -- * Distributed arrays
   lengthD, splitLenD, splitLenIdxD,
   splitD, splitAsD, joinLengthD, joinD, splitJoinD,
-  splitSegdD, splitSD,
+  splitSegdD, splitSegdD', splitSD,
   lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
   Distribution, balanced, unbalanced,
 

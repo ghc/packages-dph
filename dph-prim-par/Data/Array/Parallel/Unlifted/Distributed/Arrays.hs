@@ -283,7 +283,62 @@ splitSegdD g !segd = mapD g lengthsToUSegd
            | otherwise = go (i+1) (k-m)
       where
         m = lens !: i
-    
+
+
+search :: Int -> UArr Int -> Int
+search !x ys = go 0 (lengthU ys)
+  where
+    go i n | n <= 0        = i
+           | (ys!:mid) < x = go (mid+1) (n-half-1)
+           | otherwise     = go i half
+      where
+        half = n `shiftR` 1
+        mid  = i + half
+
+chunk :: USegd -> Int -> Int -> Bool -> (# UArr Int, Int, Int #)
+chunk !segd !di !dn is_last
+  = (# lens', k-left_len, left_off #)
+  where
+    !lens' = runST (do
+                      mlens' <- newMU n'
+                      when (left /= 0) $ writeMU mlens' 0 left
+                      copyMU mlens' left_len (sliceU lens k (k'-k))
+                      when (right /= 0) $ writeMU mlens' (n' - 1) right
+                      unsafeFreezeAllMU mlens')
+
+    lens = lengthsUSegd segd
+    idxs = indicesUSegd segd
+    n    = lengthU lens
+
+    k  = search di idxs
+    k' | is_last   = n
+       | otherwise = search (di+dn) idxs
+
+    left  | k == n    = dn
+          | otherwise = min ((idxs!:k) - di) dn
+
+    right | k' == k   = 0
+          | otherwise = di + dn - (idxs !: (k'-1))
+
+    left_len | left == 0   = 0
+             | otherwise   = 1
+
+    left_off | left == 0   = 0
+             | otherwise   = di - idxs !: (k-1)
+
+    n' = left_len + (k'-k)
+
+splitSegdD' :: Gang -> USegd -> Dist (USegd :*: Int :*: Int)
+{-# INLINE splitSegdD' #-}
+splitSegdD' g !segd = imapD g mk
+                         (splitLenIdxD g
+                         (elementsUSegd segd))
+  where
+    !p = gangSize g
+
+    mk i (dn :*: di) = case chunk segd di dn (i == p-1) of
+                         (# lens, l, o #) -> lengthsToUSegd lens :*: l :*: o
+
 joinSegD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegD #-}
 joinSegD g = lengthsToUSegd
