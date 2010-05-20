@@ -157,11 +157,13 @@ repeat_c :: Elt a => Int          -- ^ length of the result array
 repeat_c k ns segd xs
   = bpermute xs
   . enumFromStepLenEach k
-  $ zip3 (snds ks) (replicate (elementsSegd segd') 1) (fsts ks)
+  $ zip3 is (replicate (elementsSegd segd') 1) ks
   where
     segd' = lengthsToSegd ns
-    ks = replicate_s segd'
-       $ zip (lengthsSegd segd) (indicesSegd segd)
+    is = replicate_s segd' (indicesSegd segd)
+    ks = replicate_s segd' (lengthsSegd segd)
+    -- ks = replicate_s segd'
+    --    $ zip (lengthsSegd segd) (indicesSegd segd)
 
 fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold_s #-}
