@@ -39,6 +39,8 @@ import Data.Array.Parallel.Unlifted.Parallel.Combinators ( mapUP )
 import Data.Array.Parallel.Unlifted.Parallel.Enum        ( enumFromToUP )
 import Data.Array.Parallel.Unlifted.Parallel.Permute     ( bpermuteUP )
 
+import GHC.Base ( remInt )
+
 -- infixl 9 !:
 -- infixr 5 +:+
 
@@ -70,7 +72,7 @@ repeatUP :: UA e => Int -> UArr e -> UArr e
 {-# INLINE_UP repeatUP #-}
 repeatUP n es = seq m
               . bpermuteUP es
-              . mapUP (\i -> i `mod` m)
+              . mapUP (\i -> i `remInt` m)
               $ enumFromToUP 0 (m*n-1)
   where
     m = lengthU es

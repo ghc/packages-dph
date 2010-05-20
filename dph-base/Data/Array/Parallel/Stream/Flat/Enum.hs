@@ -30,6 +30,8 @@ import Data.Array.Parallel.Stream.Flat.Stream
 import Data.Array.Parallel.Stream.Flat.Combinators (
   mapS)
 
+import GHC.Base ( divInt )
+
 -- | Yield an enumerated stream
 --
 
@@ -57,8 +59,8 @@ enumFromThenToS start next end
     delta = next - start
     diff  = end - start
 
-    len | start < next && start <= end = ((end-start) `div` delta) + 1
-        | start > next && start >= end = ((start-end) `div` (start-next)) + 1
+    len | start < next && start <= end = ((end-start) `divInt` delta) + 1
+        | start > next && start >= end = ((start-end) `divInt` (start-next)) + 1
         | otherwise                    = 0
 
 enumFromStepLenS :: Int -> Int -> Int -> Stream Int

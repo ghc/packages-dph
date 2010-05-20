@@ -31,6 +31,8 @@ import Data.Array.Parallel.Unlifted.Distributed (
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP)
 
+import GHC.Base ( divInt )
+
 enumFromToUP :: (UA a, Enum a) => a -> a -> UArr a
 {-# INLINE enumFromToUP #-}
 enumFromToUP start end = enumFromThenToUP start (succ start) end
@@ -44,7 +46,7 @@ enumFromThenToUP start next end =
     next'  = fromEnum next
     end'   = fromEnum end
     delta  = next' - start'
-    len    = abs (end' - start' + delta) `div` abs delta
+    len    = abs (end' - start' + delta) `divInt` abs delta
 
 enumFromStepLenUP :: Int -> Int -> Int -> UArr Int
 {-# INLINE enumFromStepLenUP #-}
