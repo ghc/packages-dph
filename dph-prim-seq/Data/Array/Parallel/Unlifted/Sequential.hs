@@ -110,8 +110,11 @@ module Data.Array.Parallel.Unlifted.Sequential (
   lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd, lengthsToUSegd, mkUSegd,
 
   -- * Mutable arrays
-  MUArr, newU, newMU, copyMU, permuteMU,
+  MUArr, newU, newMU, copyMU, permuteMU, readMU, writeMU,
   hasAtomicWriteMU, atomicUpdateMU, unsafeFreezeAllMU,
+
+  -- * Streams
+  streamU, unstreamU,
 
   -- * Library id
   idstr, name, versnum, date, version, copyright, disclaimer,
