@@ -32,16 +32,40 @@ import Data.Array.Parallel.Unlifted.Parallel.Basics (
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Permute ( bpermuteUP )
 import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, uncurryS, unsafe_unpairS)
+  (:*:)(..), fstS, sndS, uncurryS, unsafe_unpairS, MaybeS(..))
+import Data.Array.Parallel.Stream
 
 replicateSUP :: UA a => USegd -> UArr a -> UArr a
 {-# INLINE_UP replicateSUP #-}
+{-
 replicateSUP segd xs = joinD theGang unbalanced
                      . mapD theGang (uncurryS replicateSU)
                      . zipD dsegd
                      $ splitAsD theGang (lengthUSegdD dsegd) xs
   where
     dsegd = splitSegdD theGang segd
+-}
+replicateSUP segd !xs = joinD theGang balanced
+                      . mapD theGang rep
+                      $ splitSegdD' theGang segd
+  where
+    rep (dsegd :*: di :*: _)
+      = bpermuteU xs
+      . unstreamU
+      $ indicesSegdS (lengthsUSegd dsegd) di (elementsUSegd dsegd)
+    
+
+indicesSegdS :: UArr Int -> Int -> Int -> Stream Int
+{-# INLINE_STREAM indicesSegdS #-}
+indicesSegdS lens k n = Stream next (0 :*: 0 :*: (k-1)) n (sNoArgs "indicesSegS")
+  where
+    !m = lengthU lens
+
+    {-# INLINE next #-}
+    next (i :*: j :*: k)
+      | j > 0     = Yield k (i   :*: j-1         :*: k)
+      | i < m     = Skip    (i+1 :*: (lens !: i) :*: k+1)
+      | otherwise = Done
 
 -- FIXME: make this efficient
 replicateRSUP :: UA a => Int -> UArr a -> UArr a
