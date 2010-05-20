@@ -50,7 +50,7 @@ indexed = indexedUP
 enumFromTo = enumFromToUP
 enumFromThenTo = enumFromThenToUP
 enumFromStepLen = enumFromStepLenUP
-enumFromToEach = enumFromToEachU
+enumFromToEach = enumFromToEachUP
 enumFromStepLenEach =enumFromStepLenEachUP
 
 replicate_s = replicateSUP

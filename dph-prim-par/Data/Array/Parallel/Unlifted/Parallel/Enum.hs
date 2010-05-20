@@ -60,9 +60,10 @@ enumFromStepLenUP start delta len =
 
 enumFromToEachUP :: Int -> UArr (Int :*: Int) -> UArr Int
 {-# INLINE enumFromToEachUP #-}
-enumFromToEachUP n inds =  
-  joinD theGang unbalanced $ mapD theGang (uncurryS enumFromToEachU) $ 
-    zipD  (splitLenD theGang n) (splitD theGang balanced inds)
+enumFromToEachUP n inds = enumFromStepLenEachUP n
+                        $ mapUP mk inds
+  where
+    mk (x :*: y) = x :*: 1 :*: (y-x+1)
 
 enumFromStepLenEachUP :: Int -> UArr (Int :*: Int :*: Int) -> UArr Int
 {-# INLINE enumFromStepLenEachUP #-}
