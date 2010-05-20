@@ -95,6 +95,10 @@ zipWithUP f a b = joinD    theGang balanced
 
 foldUP :: (UA a, DT a) => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE foldUP #-}
+foldUP f !z xs = foldD  theGang f
+                (mapD   theGang (foldU f z)
+                (splitD theGang unbalanced xs))
+{-
 foldUP f z xs = maybeS z (f z)
                (foldD  theGang combine
                (mapD   theGang (foldl1MaybeU f)
@@ -105,7 +109,7 @@ foldUP f z xs = maybeS z (f z)
     combine (JustS x) NothingS  = JustS x
     combine NothingS  (JustS y) = JustS y
     combine NothingS  NothingS  = NothingS
-
+-}
 
 -- |Array reduction proceeding from the left (requires associative combination)
 --
