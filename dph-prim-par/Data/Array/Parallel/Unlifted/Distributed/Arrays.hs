@@ -182,6 +182,20 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 "sndU/splitJoinD" forall g f xs.
   sndU (splitJoinD g f xs) = splitJoinD g (mapD g sndU . f) xs
 
+"zipU/joinD[1]" forall g xs ys.
+  zipU (joinD g balanced xs) ys
+    = joinD g balanced (zipWithD g zipU xs (splitD g balanced ys))
+
+"zipU/joinD[2]" forall g xs ys.
+  zipU xs (joinD g balanced ys)
+    = joinD g balanced (zipWithD g zipU (splitD g balanced xs) ys)
+
+"zipU/splitJoinD" forall gang f g xs ys.
+  zipU (splitJoinD gang (imapD gang f) xs) (splitJoinD gang (imapD gang g) ys)
+    = splitJoinD gang (imapD gang (\i zs -> let (as :*: bs) = unzipU zs
+                                            in zipU (f i as) (g i bs)))
+                      (zipU xs ys)
+
   #-}
 
 -- | Permute for distributed arrays.
