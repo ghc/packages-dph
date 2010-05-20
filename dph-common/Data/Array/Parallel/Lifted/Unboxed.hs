@@ -141,8 +141,8 @@ appPA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int#
 appPA_Int# ms ns = ms U.+:+ ns
 {-# INLINE_PA appPA_Int# #-}
 
-applPA_Int# :: Segd -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
-applPA_Int# is xs js ys = U.append_s is xs js ys
+applPA_Int# :: Segd -> Segd -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
+applPA_Int# segd is xs js ys = U.append_s segd is xs js ys
 {-# INLINE_PA applPA_Int# #-}
 
 pack'PA_Int# :: PArray_Int# -> PArray_Bool# -> PArray_Int#
@@ -273,9 +273,9 @@ appPA_Word8# :: PArray_Word8# -> PArray_Word8# -> PArray_Word8#
 appPA_Word8# ms ns = ms U.+:+ ns
 {-# INLINE_PA appPA_Word8# #-}
 
-applPA_Word8# :: Segd -> PArray_Word8# -> Segd -> PArray_Word8#
+applPA_Word8# :: Segd -> Segd -> PArray_Word8# -> Segd -> PArray_Word8#
                -> PArray_Word8#
-applPA_Word8# is xs js ys = U.append_s is xs js ys
+applPA_Word8# segd is xs js ys = U.append_s segd is xs js ys
 {-# INLINE_PA applPA_Word8# #-}
 
 pack'PA_Word8# :: PArray_Word8# -> PArray_Bool# -> PArray_Word8#
@@ -369,9 +369,9 @@ appPA_Double# :: PArray_Double# -> PArray_Double# -> PArray_Double#
 appPA_Double# ms ns = ms U.+:+ ns
 {-# INLINE_PA appPA_Double# #-}
 
-applPA_Double# :: Segd -> PArray_Double# -> Segd -> PArray_Double#
+applPA_Double# :: Segd -> Segd -> PArray_Double# -> Segd -> PArray_Double#
                -> PArray_Double#
-applPA_Double# is xs js ys = U.append_s is xs js ys
+applPA_Double# segd is xs js ys = U.append_s segd is xs js ys
 {-# INLINE_PA applPA_Double# #-}
 
 pack'PA_Double# :: PArray_Double# -> PArray_Bool# -> PArray_Double#

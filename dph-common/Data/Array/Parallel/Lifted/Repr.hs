@@ -335,11 +335,11 @@ instance PR a => PR (PArray a) where
               (appPR xs ys)
 
   {-# INLINE applPR #-}
-  applPR segd1 (PNested xsegd xs) segd2 (PNested ysegd ys)
-    = PNested segd (applPR xsegd' xs ysegd' ys)
+  applPR rsegd segd1 (PNested xsegd xs) segd2 (PNested ysegd ys)
+    = PNested segd (applPR segd xsegd' xs ysegd' ys)
     where
       segd = U.lengthsToSegd
-           $ U.append_s segd1 (U.lengthsSegd xsegd) segd2 (U.lengthsSegd ysegd)
+           $ U.append_s rsegd segd1 (U.lengthsSegd xsegd) segd2 (U.lengthsSegd ysegd)
 
       xsegd' = U.lengthsToSegd
              $ U.sum_s segd1 (U.lengthsSegd xsegd)

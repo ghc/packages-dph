@@ -162,7 +162,8 @@ type T_bpermutePR   a =  PData a           -- source array
 -- |Append two arrays.
 type T_appPR        a = PData a -> PData a -> PData a
 
-type T_applPR       a =  U.Segd -> PData a   -- src segd/data 1
+type T_applPR       a =  U.Segd              -- result segd
+                      -> U.Segd -> PData a   -- src segd/data 1
                       -> U.Segd -> PData a   -- src segd/data 2
                       -> PData a
 
@@ -249,7 +250,8 @@ appPD xs ys = fromArrPRepr $ appPR (toArrPRepr xs) (toArrPRepr ys)
 
 applPD :: PA a => T_applPR a
 {-# INLINE_PA applPD #-}
-applPD is xs js ys = fromArrPRepr $ applPR is (toArrPRepr xs) js (toArrPRepr ys)
+applPD segd is xs js ys
+  = fromArrPRepr $ applPR segd is (toArrPRepr xs) js (toArrPRepr ys)
 
 packByTagPD :: PA a => T_packByTagPR a
 {-# INLINE_PA packByTagPD #-}
@@ -329,10 +331,10 @@ appPA# :: PA a => PArray a -> PArray a -> PArray a
 {-# INLINE_PA appPA# #-}
 appPA# (PArray m# xs) (PArray n# ys) = PArray (m# +# n#) (appPD xs ys)
 
-applPA# :: PA a => U.Segd -> PArray a -> U.Segd -> PArray a -> PArray a
+applPA# :: PA a => U.Segd -> U.Segd -> PArray a -> U.Segd -> PArray a -> PArray a
 {-# INLINE_PA applPA# #-}
-applPA# is (PArray m# xs) js (PArray n# ys)
-  = PArray (m# +# n#) (applPD is xs js ys)
+applPA# segd is (PArray m# xs) js (PArray n# ys)
+  = PArray (m# +# n#) (applPD segd is xs js ys)
 
 packByTagPA# :: PA a => PArray a -> Int# -> U.Array Int -> Int# -> PArray a
 {-# INLINE_PA packByTagPA# #-}
@@ -419,9 +421,10 @@ appPRScalar xs ys = toScalarPData
 
 applPRScalar :: Scalar a => T_applPR a
 {-# INLINE applPRScalar #-}
-applPRScalar xsegd xs ysegd ys = toScalarPData
-                             $ U.append_s xsegd (fromScalarPData xs)
-                                          ysegd (fromScalarPData ys)
+applPRScalar segd xsegd xs ysegd ys
+  = toScalarPData
+  $ U.append_s segd xsegd (fromScalarPData xs)
+                    ysegd (fromScalarPData ys)
                         
 packByTagPRScalar :: Scalar a => T_packByTagPR a
 {-# INLINE packByTagPRScalar #-}

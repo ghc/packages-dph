@@ -53,7 +53,7 @@ enumFromStepLenEach = enumFromStepLenEachU
 
 replicate_s = replicateSU
 replicate_rs = replicateRSU
-append_s = appendSU
+append_s _ = appendSU
 fold_s = foldSU
 fold1_s = fold1SU
 fold_r = foldlRU

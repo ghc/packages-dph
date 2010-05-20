@@ -141,7 +141,8 @@ replicate_s :: Elt a => Segd -> Array a -> Array a
 replicate_rs :: Elt a => Int -> Array a -> Array a
 {-# INLINE_BACKEND replicate_rs #-}
 
-append_s :: Elt a => Segd         -- ^ segment descriptor of first array
+append_s :: Elt a => Segd         -- ^ segment descriptor of result array
+                  -> Segd         -- ^ segment descriptor of first array
                   -> Array a      -- ^ data of first array
                   -> Segd         -- ^ segment descriptor of second array
                   -> Array a      -- ^ data of first array

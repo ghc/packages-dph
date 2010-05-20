@@ -179,7 +179,7 @@ nameGens =
   , ('extractPR,        [id, const "i#", const "n#"])
   , ('bpermutePR,       [id, const "n#", const "is"])
   , ('appPR,            [(++"1"), (++"2")])
-  , ('applPR,           [const "is", (++"1"), const "js", (++"2")])
+  , ('applPR,           [const "segd", const "is", (++"1"), const "js", (++"2")])
   , ('packByTagPR,      [id, const "n#", const "tags", const "t#"])
   , ('combine2PR,       [const "n#", const "sel", (++"1"), (++"2")])
   , ('fromListPR,       [const "n#", id])

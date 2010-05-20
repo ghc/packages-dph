@@ -301,7 +301,7 @@ appPA_l xss yss
                     (U.zipWith (+) (U.indicesSegd xsegd) (U.indicesSegd ysegd))
                     (U.elementsSegd xsegd + U.elementsSegd ysegd)
 
-    xys  = applPA# xsegd (concatPA# xss) ysegd (concatPA# yss) 
+    xys  = applPA# segd xsegd (concatPA# xss) ysegd (concatPA# yss) 
 
 appPA :: PA a => PArray a :-> PArray a :-> PArray a
 {-# INLINE appPA #-}
