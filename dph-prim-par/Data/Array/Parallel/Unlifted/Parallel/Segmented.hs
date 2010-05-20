@@ -106,6 +106,15 @@ foldSUP :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
 {-# INLINE foldSUP #-}
 foldSUP = foldlSUP
 
+fold1SUP :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
+{-# INLINE fold1SUP #-}
+fold1SUP f segd xs = joinD theGang unbalanced
+                    (mapD theGang (uncurry (fold1SU f) . unsafe_unpairS)
+                    (zipD dsegd
+                    (splitSD theGang dsegd xs)))
+  where
+    dsegd = splitSegdD theGang segd
+
 sumSUP :: (Num e, UA e) => USegd -> UArr e -> UArr e
 {-# INLINE sumSUP #-}
 sumSUP = foldSUP (+) 0
