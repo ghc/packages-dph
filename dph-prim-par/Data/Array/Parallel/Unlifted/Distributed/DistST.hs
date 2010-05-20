@@ -19,9 +19,9 @@
 --
 
 module Data.Array.Parallel.Unlifted.Distributed.DistST (
-  DistST, stToDistST, distST_, distST, runDistST,
+  DistST, stToDistST, distST_, distST, runDistST, runDistST_seq, traceDistST,
 
-  myD, readMyMD, writeMyMD
+  myIndex, myD, readMyMD, writeMyMD
 ) where
 
 import Data.Array.Parallel.Base (
@@ -92,4 +92,22 @@ runDistST :: DT a => Gang -> (forall s. DistST s a) -> Dist a
 -- {-# INLINE runDistST #-}
 {-# NOINLINE runDistST #-}
 runDistST g p = runST (distST g p)
+
+runDistST_seq :: DT a => Gang -> (forall s. DistST s a) -> Dist a
+{-# NOINLINE runDistST_seq #-}
+runDistST_seq g p = runST (
+  do
+     md <- newMD g
+     go md 0
+     unsafeFreezeMD md)                           
+  where
+    !n = gangSize g
+    --
+    go md i | i < n     = do
+                            writeMD md i =<< unDistST p i
+                            go md (i+1)
+            | otherwise = return ()
+
+traceDistST :: String -> DistST s ()
+traceDistST s = DistST $ \n -> traceGangST ("Worker " ++ show n ++ ": " ++ s)
 
