@@ -16,7 +16,8 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Distributed.Combinators (
-  mapD, zipD, unzipD, fstD, sndD, zipWithD,
+  generateD, generateD_cheap,
+  imapD, mapD, zipD, unzipD, fstD, sndD, zipWithD, izipWithD,
   foldD, scanD, mapAccumLD,
 
   -- * Monadic combinators
@@ -30,19 +31,75 @@ import Data.Array.Parallel.Unlifted.Distributed.Gang (
 import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, indexD, zipD, unzipD, fstD, sndD,
   newMD, writeMD, unsafeFreezeMD,
-  checkGangD)
-import Data.Array.Parallel.Unlifted.Distributed.DistST (
-  DistST, distST_, distST, runDistST, myD)
+  checkGangD, measureD)
+import Data.Array.Parallel.Unlifted.Distributed.DistST
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 
+generateD :: DT a => Gang -> (Int -> a) -> Dist a
+{-# NOINLINE generateD #-}
+generateD g f = runDistST g (myIndex >>= return . f)
+
+generateD_cheap :: DT a => Gang -> (Int -> a) -> Dist a
+{-# NOINLINE generateD_cheap #-}
+generateD_cheap g f = runDistST_seq g (myIndex >>= return . f)
+
+imapD :: (DT a, DT b) => Gang -> (Int -> a -> b) -> Dist a -> Dist b
+{-# NOINLINE imapD #-}
+imapD g f !d = checkGangD (here "imapD") g d
+               (runDistST g (do
+                               i <- myIndex
+                               x <- myD d
+                               return (f i x)))
+
 -- | Map a function over a distributed value.
 mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
-{-# NOINLINE mapD #-}
+{-# INLINE mapD #-}
+mapD g = imapD g . const
+{-
 mapD g f !d = checkGangD (here "mapD") g d
+              {- (runDistST g (do
+                              x <- myD d
+                              traceDistST ("mapD <" ++ measureD x ++ ">")
+                              return (f x))) -}
              (runDistST g (myD d >>= return . f))
+-}
 
 {-# RULES
+
+"imapD/generateD" forall gang f g.
+  imapD gang f (generateD gang g) = generateD gang (\i -> f i (g i))
+
+"imapD/generateD_cheap" forall gang f g.
+  imapD gang f (generateD_cheap gang g) = generateD gang (\i -> f i (g i))
+
+"imapD/imapD" forall gang f g d.
+  imapD gang f (imapD gang g d) = imapD gang (\i x -> f i (g i x)) d
+
+"zipD/imapD[1]" forall gang f xs ys.
+  zipD (imapD gang f xs) ys
+    = imapD gang (\i -> unsafe_pairS . (\(x,y) -> (f i x, y)) . unsafe_unpairS)
+                 (zipD xs ys)
+
+"zipD/imapD[2]" forall gang f xs ys.
+  zipD xs (imapD gang f ys)
+    = imapD gang (\i -> unsafe_pairS . (\(x,y) -> (x, f i y)) . unsafe_unpairS)
+                 (zipD xs ys)
+
+"zipD/generateD[1]" forall gang f xs.
+  zipD (generateD gang f) xs
+    = imapD gang (\i x -> unsafe_pairS (f i, x)) xs
+
+"zipD/generateD[2]" forall gang f xs.
+  zipD xs (generateD gang f)
+    = imapD gang (\i x -> unsafe_pairS (x, f i)) xs
+
+  #-}
+
+{- RULES
+
+"mapD/generateD"
+  mapD gang f (generateD gang g) = generateD gang (\x -> f (g x))
 
 "mapD/mapD" forall gang f g d.
   mapD gang f (mapD gang g d) = mapD gang (\x -> f (g x)) d
@@ -57,7 +114,7 @@ mapD g f !d = checkGangD (here "mapD") g d
     = mapD gang (unsafe_pairS . (\(xs, ys) -> (xs, f ys)) . unsafe_unpairS)
                 (zipD xs ys)
 
-  #-}
+  -}
 
 -- zipD, unzipD, fstD, sndD reexported from Types
 
@@ -66,6 +123,11 @@ zipWithD :: (DT a, DT b, DT c)
          => Gang -> (a -> b -> c) -> Dist a -> Dist b -> Dist c
 {-# INLINE zipWithD #-}
 zipWithD g f dx dy = mapD g (uncurry f . unsafe_unpairS) (zipD dx dy)
+
+izipWithD :: (DT a, DT b, DT c)
+          => Gang -> (Int -> a -> b -> c) -> Dist a -> Dist b -> Dist c
+{-# INLINE izipWithD #-}
+izipWithD g f dx dy = imapD g (\i -> uncurry (f i) . unsafe_unpairS) (zipD dx dy)
 
 -- | Fold a distributed value.
 foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
