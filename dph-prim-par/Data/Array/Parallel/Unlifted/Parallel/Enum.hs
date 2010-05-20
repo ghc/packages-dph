@@ -26,7 +26,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Sequential (
   UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU, sndU, sumU)
 import Data.Array.Parallel.Unlifted.Distributed (
-  mapD, scanD, zipD, splitLenD, joinD, splitD, balanced, unbalanced,
+  mapD, scanD, zipD, splitLenIdxD, joinD, splitD, balanced, unbalanced,
   theGang)
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP)
@@ -51,12 +51,16 @@ enumFromThenToUP start next end =
 enumFromStepLenUP :: Int -> Int -> Int -> UArr Int
 {-# INLINE enumFromStepLenUP #-}
 enumFromStepLenUP start delta len =
-  joinD theGang balanced . mapD theGang gen $ zipD is dlen
+  -- joinD theGang balanced . mapD theGang gen $ zipD is dlen
+  joinD theGang balanced
+  (mapD theGang gen
+  (splitLenIdxD theGang len))
   where
-    dlen = splitLenD theGang len
-    is   = fstS (scanD theGang (+) 0 dlen)
+    gen (n :*: i) = enumFromStepLenU (i * delta + start) delta n
+    --dlen = splitLenD theGang len
+    --is   = fstS (scanD theGang (+) 0 dlen)
     --
-    gen (i :*: n) = enumFromStepLenU (i * delta + start) delta n
+    --gen (i :*: n) = enumFromStepLenU (i * delta + start) delta n
 
 enumFromToEachUP :: Int -> UArr (Int :*: Int) -> UArr Int
 {-# INLINE enumFromToEachUP #-}
