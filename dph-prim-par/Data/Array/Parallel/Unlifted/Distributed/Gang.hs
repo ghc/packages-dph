@@ -23,8 +23,10 @@
 
 -- #define SEQ_IF_GANG_BUSY 1
 
+-- #define TRACE_GANG 1
+
 module Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, forkGang, gangSize, gangIO, gangST -- ,
+  Gang, seqGang, forkGang, gangSize, gangIO, gangST, traceGang, traceGangST -- ,
   -- sequentialGang, seqGang
 ) where
 
@@ -32,11 +34,14 @@ module Data.Array.Parallel.Unlifted.Distributed.Gang (
 import GHC.IOBase
 import GHC.ST
 import GHC.Conc                  ( forkOnIO )
+import GHC.Exts                  ( traceEvent )
 
 import Control.Concurrent.MVar
 -- import Control.Monad.ST          ( ST, unsafeIOToST, stToIO )
 import Control.Exception         ( assert )
 import Control.Monad             ( zipWithM, zipWithM_ )
+
+import System.Time ( ClockTime(..), getClockTime )
 
 -- ---------------------------------------------------------------------------
 -- Requests and operations on them
@@ -72,6 +77,9 @@ data Gang = Gang !Int           -- Number of 'Gang' threads
                  [MVar Req]     -- One 'MVar' per thread
                  (MVar Bool)    -- Indicates whether the 'Gang' is busy
 
+seqGang :: Gang -> Gang
+seqGang (Gang n _ mv) = Gang n [] mv
+
 -- To get the gang to do work, write Req-uest values to its MVars
 
 -- | The worker thread of a 'Gang'.
@@ -79,7 +87,11 @@ gangWorker :: Int -> MVar Req -> IO ()
 gangWorker i mv =
   do
     req <- takeMVar mv
+    traceGang ("Worker " ++ show i ++ " begin")
+    start <- getGangTime
     execReq i req
+    end <- getGangTime
+    traceGang ("Worker " ++ show i ++ " end (" ++ diffTime start end)
     gangWorker i mv
 
 -- | Fork a 'Gang' with the given number of threads (at least 1).
@@ -120,19 +132,53 @@ gangIO (Gang n mvs busy) p =
              swapMVar busy False
              return ()
 #else
+gangIO (Gang n [] busy)  p = mapM_ p [0 .. n-1]
 gangIO (Gang n mvs busy) p = parIO n mvs p
 #endif
 
 parIO :: Int -> [MVar Req] -> (Int -> IO ()) -> IO ()
 parIO n mvs p =
   do
+    traceGang "parIO begin"
+    start <- getGangTime
     reqs <- sequence . replicate n $ newReq p
     zipWithM putMVar mvs reqs
     mapM_ waitReq reqs
+    end <- getGangTime
+    traceGang $ "parIO end " ++ diffTime start end
 
 -- | Same as 'gangIO' but in the 'ST' monad.
 gangST :: Gang -> (Int -> ST s ()) -> ST s ()
 gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
+
+#if TRACE_GANG
+getGangTime :: IO Integer
+getGangTime = do
+                TOD sec pico <- getClockTime
+                return (pico + sec * 1000000000000)
+
+diffTime :: Integer -> Integer -> String
+diffTime x y = show (y-x)
+#else
+getGangTime :: IO ()
+getGangTime = return ()
+
+diffTime :: () -> () -> String
+diffTime _ _ = ""
+#endif
+
+
+traceGang :: String -> IO ()
+#if TRACE_GANG
+traceGang s = do
+                t <- getGangTime
+                traceEvent $ show t ++ " @ " ++ s
+#else
+traceGang _ = return ()
+#endif
+
+traceGangST :: String -> ST s ()
+traceGangST s = unsafeIOToST (traceGang s)
 
 instance Show Gang where
   showsPrec p (Gang n _ _) = showString "<<"
