@@ -53,6 +53,8 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Subarrays (
   sliceU)
 
+import qualified GHC.Base
+
 import Debug.Trace
 
 here s = "Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators." ++ s
@@ -119,6 +121,14 @@ fold1U = foldl1U
 scanlU :: (UA a, UA b) => (b -> a -> b) -> b -> UArr a -> UArr b
 {-# INLINE_U scanlU #-}
 scanlU f z = unstreamU . scanS f z . streamU
+
+{-# RULES
+
+"seq/scanlU (+)" forall i xs z.
+  seq (unstreamU (scanS GHC.Base.plusInt i (streamU xs))) z
+    = i `seq` xs `seq` z
+
+  #-}
 
 -- |Prefix scan of a non-empty array proceeding from left to right
 --
