@@ -19,7 +19,7 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   replicateSUP, replicateRSUP, appendSUP,
-  foldlSUP, foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP
+  foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential
@@ -35,6 +35,8 @@ import Data.Array.Parallel.Unlifted.Parallel.Permute ( bpermuteUP )
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS, unsafe_unpairS, MaybeS(..))
 import Data.Array.Parallel.Stream
+
+import Control.Monad.ST ( ST, runST )
 
 replicateSUP :: UA a => USegd -> UArr a -> UArr a
 {-# INLINE_UP replicateSUP #-}
@@ -185,6 +187,7 @@ combineCUP :: UA a => UArr Bool -> UArr a -> UArr a -> USegd -> UArr a
 combineCUP flags xs ys segd = combineUP (replicateSUP segd flags) xs ys
 -}
 
+{-
 foldlSUP :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
 {-# INLINE foldlSUP #-}
 foldlSUP f z segd xs = joinD theGang unbalanced
@@ -193,19 +196,63 @@ foldlSUP f z segd xs = joinD theGang unbalanced
                       (splitSD theGang dsegd xs)))
   where
     dsegd = splitSegdD theGang segd
+-}
 
-foldSUP :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
+fixupFold :: UA a => (a -> a -> a) -> MUArr a s
+          -> Dist (Int :*: UArr a) -> ST s ()
+{-# NOINLINE fixupFold #-}
+fixupFold f !mrs !dcarry = go 1
+  where
+    !p = gangSize theGang
+
+    go i | i >= p = return ()
+         | nullU c = go (i+1)
+         | otherwise   = do
+                           x <- readMU mrs k
+                           writeMU mrs k (f x (c !: 0))
+                           go (i+1)
+      where
+        k :*: c = indexD dcarry i
+
+
+folds :: UA a => (a -> a -> a)
+              -> (USegd -> UArr a -> UArr a) -> USegd -> UArr a -> UArr a
+{-# INLINE folds #-}
+folds f g segd xs = dcarry `seq` drs `seq` runST (
+  do
+    mrs <- joinDM theGang drs
+    fixupFold f mrs dcarry
+    unsafeFreezeAllMU mrs)
+  where
+    dcarry :*: drs
+          = unzipD
+          $ mapD theGang (partial . unsafe_unpairS)
+          $ zipD (splitSegdD' theGang segd)
+                 (splitD theGang balanced xs)
+
+    partial (segd :*: k :*: off, as)
+      = let rs = g segd as
+        in
+        rs `seq`
+        if off == 0 then k :*: emptyU :*: rs
+                    else k :*: takeU 1 rs :*: dropU 1 rs
+
+
+foldSUP :: UA a => (a -> a -> a) -> a -> USegd -> UArr a -> UArr a
 {-# INLINE foldSUP #-}
-foldSUP = foldlSUP
+foldSUP f !z = folds f (foldlSU f z)
 
 fold1SUP :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
 {-# INLINE fold1SUP #-}
+fold1SUP f = folds f (fold1SU f)
+{-
 fold1SUP f segd xs = joinD theGang unbalanced
                     (mapD theGang (uncurry (fold1SU f) . unsafe_unpairS)
                     (zipD dsegd
                     (splitSD theGang dsegd xs)))
   where
     dsegd = splitSegdD theGang segd
+-}
 
 sumSUP :: (Num e, UA e) => USegd -> UArr e -> UArr e
 {-# INLINE sumSUP #-}
