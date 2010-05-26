@@ -19,7 +19,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   theGang,
 
   -- * Distributed types and classes
-  DT, Dist,
+  DT(..), Dist,
 
   -- * Higher-order combinators
   mapD, zipWithD, foldD, scanD,
@@ -36,7 +36,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
 
   -- * Distributed arrays
   lengthD, splitLenD, splitLenIdxD,
-  splitD, splitAsD, joinLengthD, joinD, splitJoinD,
+  splitD, splitAsD, joinLengthD, joinD, splitJoinD, joinDM,
   splitSegdD, splitSegdD', splitSD,
   lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
   Distribution, balanced, unbalanced,
