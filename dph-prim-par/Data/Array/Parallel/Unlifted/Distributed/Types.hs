@@ -33,7 +33,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
   checkGangD, checkGangMD,
 
   -- * Debugging functions
-  sizeD, sizeMD, measureD
+  sizeD, sizeMD, measureD, debugD
 ) where
 
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
@@ -44,6 +44,8 @@ import Data.Array.Parallel.Base
 
 import Data.Word     (Word8)
 import Control.Monad (liftM, liftM2, liftM3)
+
+import Data.List ( intercalate )
 
 infixl 9 `indexD`
 
@@ -413,4 +415,9 @@ sndD = sndS . unzipD
 -- | Yield the distributed length of a distributed array.
 lengthD :: UA a => Dist (UArr a) -> Dist Int
 lengthD (DUArr l _) = l
+
+debugD :: DT a => Dist a -> String
+debugD d = "["
+         ++ intercalate "," [measureD (indexD d i) | i <- [0 .. sizeD d-1]]
+         ++ "]"
 

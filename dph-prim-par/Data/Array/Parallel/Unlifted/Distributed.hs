@@ -45,7 +45,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   permuteD, bpermuteD, atomicUpdateD,
 
   -- * Debugging
-  fromD, toD
+  fromD, toD, debugD
 ) where
 
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
