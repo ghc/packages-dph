@@ -186,11 +186,13 @@ indices_s :: Int    -- ^ number of segments
           -> Segd   -- ^ segment descriptor
           -> Int    -- ^ overall number of indices
           -> Array Int
-{-# INLINE indices_s #-}
+{-# INLINE_BACKEND indices_s #-}
+{-
 indices_s m segd n = enumFromToEach n
                    . zip (replicate m 0)
                    . map (Prelude.subtract 1)
                    $ lengthsSegd segd
+-}
 
 lengthSegd :: Segd -> Int
 {-# INLINE_BACKEND lengthSegd #-}

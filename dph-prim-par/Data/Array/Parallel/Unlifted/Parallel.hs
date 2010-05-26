@@ -23,7 +23,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   andUP, sumUP,
   
-  replicateSUP, replicateRSUP, appendSUP,
+  replicateSUP, replicateRSUP, appendSUP, indicesSUP,
   foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP,
 
   indexedUP, replicateUP, repeatUP,

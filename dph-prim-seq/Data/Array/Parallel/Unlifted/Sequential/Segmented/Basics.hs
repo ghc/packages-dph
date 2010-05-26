@@ -21,7 +21,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
-  replicateSU, replicateRSU, appendSU
+  replicateSU, replicateRSU, appendSU, indicesSU, indicesSU'
 ) where
 
 import Data.Array.Parallel.Stream
@@ -48,4 +48,15 @@ appendSU xd xs yd ys = unstreamU
                                 (streamU xs)
                                 (streamU (lengthsUSegd yd))
                                 (streamU ys)
+
+indicesSU' :: Int -> USegd -> UArr Int
+{-# INLINE_U indicesSU' #-}
+indicesSU' i segd = unstreamU
+                  . indicesSS (elementsUSegd segd) i
+                  . streamU
+                  $ lengthsUSegd segd
+
+indicesSU :: USegd -> UArr Int
+{-# INLINE_U indicesSU #-}
+indicesSU = indicesSU' 0
 

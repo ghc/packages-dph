@@ -16,7 +16,8 @@
 
 module Data.Array.Parallel.Stream.Segmented (
   foldSS, fold1SS, combineSS, appendSS,
-  foldValuesR
+  foldValuesR,
+  indicesSS
 ) where
 
 import Data.Array.Parallel.Base (
@@ -173,3 +174,20 @@ foldValuesR f z segSize (Stream nextv vs nv c) =
         Done        -> Done
         Skip    vs' -> Skip (n :*: x :*: vs')
         Yield y vs' -> Skip ((n-1) :*: f x y :*: vs')
+
+indicesSS :: Int -> Int -> Stream Int -> Stream Int
+{-# INLINE_STREAM indicesSS #-}
+indicesSS n i (Stream next s _ c) =
+  Stream next' (i :*: NothingS :*: s) n ("indicesSS" `sArgs` c)
+  where
+    {-# INLINE next' #-}
+    next' (i :*: NothingS :*: s)
+      = case next s of
+          Done       -> Done
+          Skip    s' -> Skip (i :*: NothingS :*: s')
+          Yield k s' -> Skip (i :*: JustS k :*: s')
+
+    next' (i :*: JustS k :*: s)
+      | k > 0     = Yield i (i+1 :*: JustS (k-1) :*: s)
+      | otherwise = Skip    (0   :*: NothingS    :*: s)
+

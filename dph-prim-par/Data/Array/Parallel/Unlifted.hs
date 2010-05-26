@@ -61,6 +61,8 @@ fold1_s = fold1SUP
 fold_r = foldlRU
 sum_r = sumRUP
 
+indices_s _ segd _ = indicesSUP segd
+
 lengthSegd = lengthUSegd
 lengthsSegd = lengthsUSegd
 indicesSegd = indicesUSegd

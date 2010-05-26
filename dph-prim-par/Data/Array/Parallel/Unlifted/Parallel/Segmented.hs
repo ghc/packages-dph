@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  replicateSUP, replicateRSUP, appendSUP,
+  replicateSUP, replicateRSUP, appendSUP, indicesSUP,
   foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP
 ) where
 
@@ -275,3 +275,12 @@ foldRUP f z !segSize xs =
   where
     noOfSegs = lengthU xs `div` segSize
     dlen = splitLenD theGang noOfSegs
+
+indicesSUP :: USegd -> UArr Int
+{-# INLINE_UP indicesSUP #-}
+indicesSUP = joinD theGang balanced
+           . mapD theGang indices
+           . splitSegdD' theGang
+  where
+    indices (segd :*: k :*: off) = indicesSU' off segd
+

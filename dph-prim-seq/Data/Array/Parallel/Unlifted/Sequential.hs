@@ -88,7 +88,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   UIO(..),
 
   -- * Basic operations (segmented)
-  {-repeatCU,-} replicateSU, replicateRSU, appendSU,
+  {-repeatCU,-} replicateSU, replicateRSU, appendSU, indicesSU, indicesSU',
 
   -- * Higher-order operations (segmented)
   foldlSU, foldSU, fold1SU, foldlRU,
