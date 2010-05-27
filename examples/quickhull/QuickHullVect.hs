@@ -17,7 +17,7 @@ distance (xo, yo) ((x1, y1), (x2, y2))
 
 hsplit :: [:Point:] -> Line -> [:Point:]
 hsplit points line@(p1, p2)
-  | lengthP packed Int.< 2 = singletonP p1 +:+ packed
+  | lengthP packed Int.== 0 = [:p1:]
   | otherwise
   = concatP [: hsplit packed ends | ends <- [:(p1, pm), (pm, p2):] :]
   where
