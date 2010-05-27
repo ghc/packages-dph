@@ -213,7 +213,7 @@ elementsSegd :: Segd -> Int
 {-# INLINE_BACKEND elementsSegd #-}
 
 lengthsToSegd :: Array Int -> Segd
-{-# INLINE CONLIKE PHASE_BACKEND lengthsToSegd #-}
+{-# INLINE lengthsToSegd #-}
 lengthsToSegd ns = mkSegd ns (scan (+) 0 ns) (sum ns)
 
 mkSegd :: Array Int -> Array Int -> Int -> Segd
@@ -229,9 +229,6 @@ mkSegd :: Array Int -> Array Int -> Int -> Segd
 
 "elementsSegd/mkSegd" forall lens idxs n.
   elementsSegd (mkSegd lens idxs n) = n
-
-"lengthsSegd/lengthsToSegd" forall lens.
-  lengthsSegd (lengthsToSegd lens) = lens
 
 "seq/elementsSegd" forall segd e.
   seq (elementsSegd segd) e = seq segd e
@@ -355,13 +352,13 @@ dph_mult x y = x Prelude.* y
 
  #-}
 
-{-# RULES
+{- RULES
 
 "legthsToSegd/replicate" forall m n.
   lengthsToSegd (replicate m n)
     = mkSegd (replicate m n) (enumFromStepLen 0 n m) (m `dph_mult` n)
 
- #-}
+ -}
 
 -- These are for Gabi
 {- RULES
