@@ -101,6 +101,13 @@ zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
 {-# INLINE_BACKEND zipWith #-}
 
+{-# RULES
+
+"zipWith/replicate" forall f m n x y.
+  zipWith f (replicate m x) (replicate n y) = replicate m (f x y)
+
+  #-}
+
 zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
           => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
 {-# INLINE zipWith3 #-}
