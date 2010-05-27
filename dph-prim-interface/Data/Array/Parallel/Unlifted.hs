@@ -65,6 +65,7 @@ and = P.and
 sum = P.sum
 scan f z = P.init . P.scanl f z
 
+indices_s segd = P.concat [[0 .. n-1] | n <- segd_lengths segd] 
 indexed xs = zip [0 .. length xs - 1] xs
 enumFromTo m n = [m .. n]
 enumFromThenTo m n s = [m, n..s]

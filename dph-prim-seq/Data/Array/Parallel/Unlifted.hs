@@ -56,7 +56,7 @@ fold1_s = fold1SU
 fold_r = foldlRU
 sum_r = sumRU
 
-indices_s _ segd _ = indicesSU segd
+indices_s = indicesSU
 
 lengthSegd = lengthUSegd
 lengthsSegd = lengthsUSegd

@@ -188,10 +188,7 @@ sum_s = fold_s (Prelude.+) 0
 sum_r :: (Num a, Elt a) => Int ->Array a -> Array a
 {-# INLINE_BACKEND sum_r #-}
 
-indices_s :: Int    -- ^ number of segments
-          -> Segd   -- ^ segment descriptor
-          -> Int    -- ^ overall number of indices
-          -> Array Int
+indices_s :: Segd -> Array Int
 {-# INLINE_BACKEND indices_s #-}
 {-
 indices_s m segd n = enumFromToEach n
