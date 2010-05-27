@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, BangPatterns #-}
 
 #include "fusion-phases.h"
 
@@ -186,7 +186,7 @@ packPA_v xs bs
 packPA_l :: PA a
          => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE_PA packPA_l #-}
-packPA_l xss bss
+packPA_l !xss !bss
   = segmentPA# (lengthPA# xss) segd'
   $ packByTagPA# (concatPA# xss) (elementsSel2_1# sel) (tagsSel2 sel) 1#
   where
