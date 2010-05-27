@@ -119,6 +119,13 @@ and :: Array Bool -> Bool
 sum :: (Num a, Elt a) => Array a -> a
 {-# INLINE_BACKEND sum #-}
 
+{-# RULES
+
+"seq/sum" forall xs e.
+  seq (sum xs) e = seq xs e
+
+  #-}
+
 scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
 {-# INLINE_BACKEND scan #-}
 
