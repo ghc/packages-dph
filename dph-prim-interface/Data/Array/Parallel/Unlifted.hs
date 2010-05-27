@@ -54,15 +54,10 @@ combine2ByTag (1 : bs) xs (y : ys) = y : combine2ByTag bs xs ys
 map = P.map
 filter = P.filter
 zip = P.zipWith (:*:)
-unzip = pairS . P.unzip . P.map unpairS
+unzip = P.unzip . P.map unpairS
 fsts = map fstS
 snds = map sndS
-zip3 = P.zipWith3 (\x y z -> x :*: y :*: z)
-unzip3 xs = unzip ys :*: zs
-  where
-    ys :*: zs = unzip xs
 zipWith = P.zipWith
-zipWith3 = P.zipWith3
 
 fold = P.foldr -- or equivalently foldl
 fold1 = P.foldr1 -- or equivalently foldr1

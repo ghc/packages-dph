@@ -168,9 +168,16 @@ zipU = UAProd
 
 -- |Elementwise unpairing of array elements.
 --
-unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a :*: UArr b)
+unzipU :: (UA a, UA b) => UArr (a :*: b) -> (UArr a, UArr b)
 {-# INLINE_STREAM unzipU #-}
-unzipU (UAProd l r) = (l :*: r)
+unzipU (UAProd l r) = (l,r)
+
+{-# RULES
+
+"unzipU/zipU" forall xs ys.
+  unzipU (zipU xs ys) = (xs,ys)
+
+  #-}
 
 -- |Yield the first components of an array of pairs.
 --

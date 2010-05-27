@@ -209,12 +209,12 @@ zipWith3U f a1 a2 a3 = unstreamU (zipWith3S f (streamU a1)
 
 -- |
 unzip3U :: (UA e1, UA e2, UA e3) 
-	=> UArr (e1 :*: e2 :*: e3) -> (UArr e1 :*: UArr e2 :*: UArr e3)
+	=> UArr (e1 :*: e2 :*: e3) -> (UArr e1,UArr e2,UArr e3)
 {-# INLINE_U unzip3U #-}
-unzip3U a = let (a12 :*: a3) = unzipU a
-		(a1  :*: a2) = unzipU a12
+unzip3U a = let (a12,a3) = unzipU a
+		(a1,a2) = unzipU a12
 	    in
-	    (a1 :*: a2 :*: a3)
+	    (a1,a2,a3)
 
 -- fstU and sndU reexported from UArr
 -- |

@@ -118,7 +118,7 @@ fromUArrPA_2 :: (Scalar a, Scalar b) => Int -> U.Array (a :*: b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}
 fromUArrPA_2 (I# n#) ps = PArray n# (P_2 (toScalarPData xs) (toScalarPData  ys))
   where
-    xs :*: ys = U.unzip ps
+    (xs,ys) = U.unzip ps
 
 fromUArrPA_2' :: (Scalar a, Scalar b) => U.Array (a :*: b) -> PArray (a, b)
 {-# INLINE fromUArrPA_2' #-}
@@ -131,7 +131,7 @@ fromUArrPA_3 (I# n#) ps = PArray n# (P_3 (toScalarPData xs)
                                          (toScalarPData ys)
                                          (toScalarPData zs))
   where
-    xs :*: ys :*: zs = U.unzip3 ps
+    (xs,ys,zs) = U.unzip3 ps
 
 fromUArrPA_3' :: (Scalar a, Scalar b, Scalar c) => U.Array (a :*: b :*: c) -> PArray (a, b, c)
 {-# INLINE fromUArrPA_3' #-}

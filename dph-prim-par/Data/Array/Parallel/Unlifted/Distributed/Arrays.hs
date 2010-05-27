@@ -224,7 +224,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 
 "zipU/splitJoinD" forall gang f g xs ys.
   zipU (splitJoinD gang (imapD gang f) xs) (splitJoinD gang (imapD gang g) ys)
-    = splitJoinD gang (imapD gang (\i zs -> let (as :*: bs) = unzipU zs
+    = splitJoinD gang (imapD gang (\i zs -> let (as,bs) = unzipU zs
                                             in zipU (f i as) (g i bs)))
                       (zipU xs ys)
 

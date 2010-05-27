@@ -75,7 +75,7 @@ filter :: Elt a => (a -> Bool) -> Array a -> Array a
 zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a :*: b)
 {-# INLINE CONLIKE PHASE_BACKEND zip #-}
 
-unzip :: (Elt a, Elt b) => Array (a :*: b) -> Array a :*: Array b
+unzip :: (Elt a, Elt b) => Array (a :*: b) -> (Array a, Array b)
 {-# INLINE_BACKEND unzip #-}
 
 fsts  :: (Elt a, Elt b) => Array (a :*: b) -> Array a
@@ -86,11 +86,16 @@ snds :: (Elt a, Elt b) => Array (a :*: b) -> Array b
 
 zip3 :: (Elt a, Elt b, Elt c) => Array a -> Array b -> Array c
                            -> Array (a :*: b :*: c)
-{-# INLINE_BACKEND zip3 #-}
+{-# INLINE zip3 #-}
+zip3 xs ys zs = zip (zip xs ys) zs
 
 unzip3 :: (Elt a, Elt b, Elt c)
-       => Array (a :*: b :*: c) -> Array a :*: Array b :*: Array c
-{-# INLINE_BACKEND unzip3 #-}
+       => Array (a :*: b :*: c) -> (Array a,Array b,Array c)
+{-# INLINE unzip3 #-}
+unzip3 ps = (xs,ys,zs)
+  where
+    (qs,zs) = unzip ps
+    (xs,ys) = unzip qs
 
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
@@ -98,8 +103,9 @@ zipWith :: (Elt a, Elt b, Elt c)
 
 zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
           => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
-{-# INLINE_BACKEND zipWith3 #-}
-
+{-# INLINE zipWith3 #-}
+zipWith3 f xs ys zs = zipWith (\p z -> case p of
+                                         x :*: y -> f x y z) (zip xs ys) zs
 
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 {-# INLINE_BACKEND fold #-}
