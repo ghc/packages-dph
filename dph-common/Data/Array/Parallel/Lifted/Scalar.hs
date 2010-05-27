@@ -89,6 +89,18 @@ scalar_fold1sIndex :: Scalar a
                    => ((Int, a) -> (Int, a) -> (Int, a))
                    -> PArray (PArray a) -> PArray Int
 {-# INLINE_PA scalar_fold1sIndex #-}
+scalar_fold1sIndex f (PArray m# (PNested segd xs))
+  = PArray m#
+  $ toScalarPData
+  $ U.fsts
+  $ U.fold1_s f' segd
+  $ U.zip (U.indices_s segd)
+  $ fromScalarPData xs
+  where
+    {-# INLINE f' #-}
+    f' p q = pairS $ f (unpairS p) (unpairS q)
+
+{-
 scalar_fold1sIndex f xss = fromUArrPA n
                          . U.fsts
                          . U.fold1_s f' segd
@@ -103,6 +115,7 @@ scalar_fold1sIndex f xss = fromUArrPA n
     n = I# (lengthPA# (concatPA# xss))
 
     segd = segdPA# xss
+-}
 
 -- FIXME: hack!
 --

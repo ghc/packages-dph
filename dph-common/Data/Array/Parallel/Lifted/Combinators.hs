@@ -86,9 +86,19 @@ mapPA_v f as = replicatePA# (lengthPA# as) f $:^ as
 mapPA_l :: (PA a, PA b)
         => PArray (a :-> b) -> PArray (PArray a) -> PArray (PArray b)
 {-# INLINE_PA mapPA_l #-}
+mapPA_l (PArray n# clo) (PArray _ xss)
+  = PArray n#
+  $ case xss of { PNested segd xs ->
+    PNested segd
+  $ liftedApply (case U.elementsSegd segd of { I# k# -> k# })
+                (replicatelPD segd clo)
+                xs }
+  
+{-
 mapPA_l fs xss
   = copySegdPA# xss
       (replicatelPA# (segdPA# xss) fs $:^ concatPA# xss)
+-}
 
 mapPA :: (PA a, PA b) => (a :-> b) :-> PArray a :-> PArray b
 {-# INLINE mapPA #-}
@@ -127,7 +137,9 @@ zipPA_v xs ys = zipPA# xs ys
 zipPA_l :: (PA a, PA b)
         => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a,b))
 {-# INLINE_PA zipPA_l #-}
-zipPA_l xss yss = copySegdPA# xss (zipPA# (concatPA# xss) (concatPA# yss))
+zipPA_l (PArray n# (PNested segd xs)) (PArray _ (PNested _ ys))
+  = PArray n# (PNested segd (P_2 xs ys))
+-- zipPA_l xss yss = copySegdPA# xss (zipPA# (concatPA# xss) (concatPA# yss))
 
 zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a,b)
 {-# INLINE zipPA #-}
@@ -186,6 +198,14 @@ packPA_v xs bs
 packPA_l :: PA a
          => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 {-# INLINE_PA packPA_l #-}
+packPA_l (PArray n# xss) (PArray _ bss)
+  = PArray n#
+  $ case xss of { PNested segd xs ->
+    case bss of { PNested _ (PBool sel) ->
+    PNested (U.lengthsToSegd $ U.count_s segd (tagsSel2 sel) 1)
+  $ packByTagPD  xs (elementsSel2_1# sel) (tagsSel2 sel) 1# }}
+
+{-
 packPA_l !xss !bss
   = segmentPA# (lengthPA# xss) segd'
   $ packByTagPA# (concatPA# xss) (elementsSel2_1# sel) (tagsSel2 sel) 1#
@@ -193,6 +213,7 @@ packPA_l !xss !bss
     sel   = boolSel (concatPA# bss)
     segd' = U.lengthsToSegd
           $ U.count_s (segdPA# xss) (tagsSel2 sel) 1
+-}
 {-
   = segmentPA# (lengthPA# xss) (segdPA# xss)
   $ packPA# (concatPA# xss) (elementsSegd# segd') (toUArrPA (concatPA# bss))
@@ -253,10 +274,18 @@ indexPA_v xs (I# i#) = indexPA# xs i#
 -- index ----------------------------------------------------------------------
 indexPA_l :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 {-# INLINE_PA indexPA_l #-}
+indexPA_l (PArray _ (PNested segd xs)) (PArray n# is)
+  = PArray n#
+  $ bpermutePD xs n#
+                  (U.zipWith (+) (U.indicesSegd segd)
+                                 (fromScalarPData is))
+
+{-
 indexPA_l xss is
   = bpermutePA# (concatPA# xss)
                 (lengthPA# xss)
                 (U.zipWith (+) (U.indicesSegd (segdPA# xss)) (toUArrPA is))
+-}
 
 indexPA :: PA a => PArray a :-> Int :-> a
 {-# INLINE indexPA #-}
@@ -289,7 +318,21 @@ appPA_v xs ys = appPA# xs ys
 
 appPA_l :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 {-# INLINE_PA appPA_l #-}
-appPA_l xss yss
+appPA_l (PArray m# pxss) (PArray n# pyss)
+  = PArray (m# +# n#)
+  $ case pxss of { PNested xsegd xs ->
+    case pyss of { PNested ysegd ys ->
+    let
+      segd = U.mkSegd (U.zipWith (+) (U.lengthsSegd xsegd) (U.lengthsSegd ysegd))
+                      (U.zipWith (+) (U.indicesSegd xsegd) (U.indicesSegd ysegd))
+                      (U.elementsSegd xsegd + U.elementsSegd ysegd)
+
+    in
+    PNested segd (applPD segd xsegd xs ysegd ys) }}
+
+{-
+
+
   = segmentPA# (lengthPA# xss +# lengthPA# yss)
                segd
                xys
@@ -302,6 +345,7 @@ appPA_l xss yss
                     (U.elementsSegd xsegd + U.elementsSegd ysegd)
 
     xys  = applPA# segd xsegd (concatPA# xss) ysegd (concatPA# yss) 
+-}
 
 appPA :: PA a => PArray a :-> PArray a :-> PArray a
 {-# INLINE appPA #-}
