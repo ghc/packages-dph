@@ -80,10 +80,10 @@ unsafe_unpairS (x :*: y) = (x,y)
  #-}
 
 -- |Strict sum
-data EitherS a b = LeftS !a | RightS !b
+data EitherS a b = LeftS !a | RightS !b deriving Show
 
 -- |Strict Maybe
-data MaybeS a = NothingS | JustS !a
+data MaybeS a = NothingS | JustS !a deriving Show
 
 instance Functor MaybeS where
   fmap f (JustS x) = JustS (f x)
