@@ -303,13 +303,15 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE indexPR #-}
   indexPR (PNested segd xs) i#
-    = case U.lengthsSegd segd U.!: I# i# of { I# n# ->
+    = traceFn "indexPR" "(PArray a)" $
+      case U.lengthsSegd segd U.!: I# i# of { I# n# ->
       case U.indicesSegd segd U.!: I# i# of { I# k# ->
       PArray n# (extractPR xs k# n#) }}
 
   {-# INLINE extractPR #-}
   extractPR (PNested segd xs) i# n#
-    = case U.indicesSegd segd U.!: I# i# of
+    = traceFn "extractPR" "(PArray a)" $
+      case U.indicesSegd segd U.!: I# i# of
         I# k# -> PNested segd' (extractPR xs k# (elementsSegd# segd'))
     where
       segd' = U.lengthsToSegd
@@ -372,7 +374,8 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE packByTagPR #-}
   packByTagPR (PNested segd xs) n# tags t#
-    = PNested segd' xs'
+    = traceFn "packByTagPR" "(PArray a)" $
+      PNested segd' xs'
     where
       segd' = U.lengthsToSegd
             $ U.packByTag (U.lengthsSegd segd) tags (I# t#)
