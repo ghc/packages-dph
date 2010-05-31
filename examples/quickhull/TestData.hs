@@ -35,8 +35,8 @@ genPointsUniform
 
 genPointsUniform n -- minXY maxXY
  = let
-	pointMin	= -100
-	pointMax	= 100
+	pointMin	= 50
+	pointMax	= 150
 	gen		= mkStdGen seed
         pts             = U.randomRs (n*2) (pointMin, pointMax) gen
         xs              = U.extract pts 0 n
@@ -68,7 +68,7 @@ genPointsDisc' n (originX, originY) radiusMax
     originX `seq` originY `seq` U.zipWith makeXY radius angle
 
 genPointsDisc :: Int -> U.Array (Double :*: Double)
-genPointsDisc n = genPointsDisc' n (0,0) 100
+genPointsDisc n = genPointsDisc' n (150,150) 100
 
 -- | A point cloud with areas of high an low density
 genPointsCombo 
