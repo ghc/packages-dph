@@ -327,23 +327,6 @@ appPA_l (PArray m# pxss) (PArray n# pyss)
     in
     PNested segd (applPD segd xsegd xs ysegd ys) }}
 
-{-
-
-
-  = segmentPA# (lengthPA# xss +# lengthPA# yss)
-               segd
-               xys
-  where
-    xsegd = segdPA# xss
-    ysegd = segdPA# yss
-
-    segd = U.mkSegd (U.zipWith (+) (U.lengthsSegd xsegd) (U.lengthsSegd ysegd))
-                    (U.zipWith (+) (U.indicesSegd xsegd) (U.indicesSegd ysegd))
-                    (U.elementsSegd xsegd + U.elementsSegd ysegd)
-
-    xys  = applPA# segd xsegd (concatPA# xss) ysegd (concatPA# yss) 
--}
-
 appPA :: PA a => PArray a :-> PArray a :-> PArray a
 {-# INLINE appPA #-}
 appPA = closure2 appPA_v appPA_l
