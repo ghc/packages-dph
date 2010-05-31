@@ -318,15 +318,18 @@ instance PR a => PR (PArray a) where
   {-# INLINE bpermutePR #-}
   bpermutePR (PNested segd xs) n# is
     = traceFn "bpermutePR" "(PArray a)" $
-      PNested segd' (bpermutePR xs (elementsSegd# segd') flat_is)
+      PNested segd' (bpermutePR xs (elementsSegd# segd') js)
     where
-      segd'   = U.lengthsToSegd
-              $ U.bpermute (U.lengthsSegd segd) is
+      lens'  = U.bpermute (U.lengthsSegd segd) is
+      starts = U.bpermute (U.indicesSegd segd) is
 
-      starts  = U.indicesSegd segd'
-      lens    = U.lengthsSegd segd'
-      ends    = U.zipWith (\x y -> x + y - 1) starts lens
-      flat_is = U.enumFromToEach (U.elementsSegd segd') (U.zip starts ends)
+      segd'  = U.lengthsToSegd lens'
+
+      js     = U.enumFromStepLenEach (U.elementsSegd segd)
+                                     (U.zip3 
+                                       starts
+                                       (U.replicate (I# n#) 1)
+                                       lens')
 
   {-# INLINE appPR #-}
   appPR (PNested xsegd xs) (PNested ysegd ys)
