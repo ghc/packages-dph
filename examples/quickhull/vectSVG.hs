@@ -12,6 +12,7 @@ import qualified Data.Array.Parallel.PArray         as P
 import Data.Array.Parallel.PArray		    (PArray)
 
 import System.Environment
+import System.IO
 import Data.List
 
 import SVG
@@ -29,14 +30,16 @@ runQuickhull pts
 
 -- Main Program ---------------------------------------------------------------
 main 
- = do	args	<- getArgs
-	let n = case args of
-		 [s]	-> read s
-		 _	-> 1000
+ = do	[arg]	<- getArgs
+        pts     <- case reads arg of
+                     [(n,"")] -> return $ genPointsCombo n
+                     _        -> do
+                                   h <- openBinaryFile arg ReadMode
+                                   pts <- U.hGet h
+                                   hClose h
+                                   return pts
+        paInput <- toPArrayPoints pts
 
-	paInput <- toPArrayPoints 
-		$  genPointsCombo n
-	
 	let psHull  = runQuickhull paInput
 	    psInput = P.toList paInput
 	
