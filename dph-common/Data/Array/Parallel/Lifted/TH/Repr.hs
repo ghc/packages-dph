@@ -6,9 +6,10 @@ module Data.Array.Parallel.Lifted.TH.Repr (
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Lifted.PArray
+import Data.Array.Parallel.Base.DTrace ( traceFn )
 
 import Language.Haskell.TH
-import Data.List (transpose)
+import Data.List (transpose, intercalate)
 
 tyBndrVar :: TyVarBndr -> Name
 tyBndrVar (PlainTV  n)   = n
@@ -130,11 +131,13 @@ data Gen = Gen {
            , recursiveName  :: Name -> Name
            , split          :: ArgVal -> (Split, Arg)
            , join           :: Val -> [ExpQ] -> ExpQ
+           , typeName       :: String
            }
 
 recursiveMethod :: Gen -> Name -> [ArgVal] -> Val -> DecQ
 recursiveMethod gen name avs res
   = simpleFunD (mkName $ nameBase name) (map pat splits)
+  $ appE (varE 'traceFn `appEs` [stringE (nameBase name), stringE (typeName gen)])
   $ foldr mk_case
     (join gen res
      . recurse (recursiveCalls gen)
@@ -335,7 +338,9 @@ wrapGen :: Name -> Name -> Name -> Gen
 wrapGen wrap unwrap pwrap = Gen { recursiveCalls = 1
                                 , recursiveName  = recursiveName
                                 , split          = split
-                                , join           = join }
+                                , join           = join
+                                , typeName       = "Wrap a"
+                                }
   where
     recursiveName = mkName . replace . nameBase
       where
@@ -397,7 +402,9 @@ tupGen :: Int -> Gen
 tupGen arity = Gen { recursiveCalls = arity
                    , recursiveName  = id
                    , split          = split
-                   , join           = join }
+                   , join           = join
+                   , typeName       = tyname
+                   }
   where
     split (ScalarVal, gen)
       = (PatSplit (tupP $ varPs names), RecArg [] (varEs names))
@@ -428,4 +435,5 @@ tupGen arity = Gen { recursiveCalls = arity
     vs  = take arity [[c] | c <- ['a' ..]]
     pvs = take arity [c : "s" | c <- ['a' ..]]
 
+    tyname = "(" ++ intercalate "," vs ++ ")"
 
