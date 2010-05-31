@@ -230,6 +230,13 @@ lengthsToSegd ns = mkSegd ns (scan (+) 0 ns) (sum ns)
 mkSegd :: Array Int -> Array Int -> Int -> Segd
 {-# INLINE CONLIKE PHASE_BACKEND mkSegd #-}
 
+plusSegd :: Segd -> Segd -> Segd
+{-# INLINE plusSegd #-}
+plusSegd segd1 segd2
+  = mkSegd (zipWith (+) (lengthsSegd segd1) (lengthsSegd segd2))
+           (zipWith (+) (indicesSegd segd1) (indicesSegd segd2))
+           (elementsSegd segd1 + elementsSegd segd2)
+
 {-# RULES
 
 "lengthsSegd/mkSegd" forall lens idxs n.
