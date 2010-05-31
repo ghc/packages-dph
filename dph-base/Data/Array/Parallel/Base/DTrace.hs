@@ -17,6 +17,8 @@ import Foreign.C.String
 import GHC.ST ( ST )
 import GHC.IOBase ( unsafeIOToST )
 
+import Debug.Trace ( trace )
+
 traceLoopST :: String -> ST s a -> ST s a
 {-# INLINE traceLoopST #-}
 traceLoopST s p = do
