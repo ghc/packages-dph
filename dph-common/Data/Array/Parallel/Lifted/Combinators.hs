@@ -323,10 +323,7 @@ appPA_l (PArray m# pxss) (PArray n# pyss)
   $ case pxss of { PNested xsegd xs ->
     case pyss of { PNested ysegd ys ->
     let
-      segd = U.mkSegd (U.zipWith (+) (U.lengthsSegd xsegd) (U.lengthsSegd ysegd))
-                      (U.zipWith (+) (U.indicesSegd xsegd) (U.indicesSegd ysegd))
-                      (U.elementsSegd xsegd + U.elementsSegd ysegd)
-
+      segd = U.plusSegd xsegd ysegd
     in
     PNested segd (applPD segd xsegd xs ysegd ys) }}
 
