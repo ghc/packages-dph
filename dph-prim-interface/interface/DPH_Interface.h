@@ -136,6 +136,13 @@ sum :: (Num a, Elt a) => Array a -> a
 scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
 {-# INLINE_BACKEND scan #-}
 
+{-# RULES
+
+"seq/scan<Int> (+)" forall i xs e.
+  seq (scan GHC.Base.plusInt i xs) e = i `seq` xs `seq` e
+
+  #-}
+
 
 indexed :: Elt a => Array a -> Array (Int :*: a)
 {-# INLINE_BACKEND indexed #-}
@@ -250,6 +257,9 @@ plusSegd segd1 segd2
 
 "seq/elementsSegd" forall segd e.
   seq (elementsSegd segd) e = seq segd e
+
+"seq/mkSegd" forall lens idxs n e.
+  seq (mkSegd lens idxs n) e = lens `seq` idxs `seq` n `seq` e
 
  #-}
 
