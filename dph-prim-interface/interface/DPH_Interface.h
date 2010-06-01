@@ -106,6 +106,12 @@ zipWith :: (Elt a, Elt b, Elt c)
 "zipWith/replicate" forall f m n x y.
   zipWith f (replicate m x) (replicate n y) = replicate m (f x y)
 
+"zipWith/plusInt0_1" forall n xs.
+  zipWith GHC.Base.plusInt (replicate n (GHC.Base.I# 0#)) xs = xs
+
+"zipWith/plusInt0_2" forall n xs.
+  zipWith GHC.Base.plusInt xs (replicate n (GHC.Base.I# 0#)) = xs
+
   #-}
 
 zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
@@ -242,7 +248,7 @@ plusSegd :: Segd -> Segd -> Segd
 plusSegd segd1 segd2
   = mkSegd (zipWith (+) (lengthsSegd segd1) (lengthsSegd segd2))
            (zipWith (+) (indicesSegd segd1) (indicesSegd segd2))
-           (elementsSegd segd1 + elementsSegd segd2)
+           (elementsSegd segd1 `dph_plus` elementsSegd segd2)
 
 {-# RULES
 
@@ -330,6 +336,17 @@ dph_mod_index :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mod_index #-}
 dph_mod_index by idx = idx `Prelude.mod` by
 
+dph_plus :: Int -> Int -> Int
+{-# INLINE_BACKEND dph_plus #-}
+dph_plus x y = x Prelude.+ y
+
+{-# RULES
+
+"dph_plus" forall m n.
+  dph_plus (GHC.Base.I# m) (GHC.Base.I# n) = GHC.Base.I# m Prelude.+ GHC.Base.I# n
+
+  #-}
+
 dph_mult :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mult #-}
 dph_mult x y = x Prelude.* y
@@ -379,6 +396,13 @@ dph_mult x y = x Prelude.* y
     = map (dph_mod_index m) is
 
  #-}
+
+{-# RULES
+
+"fold_s/replicate1" forall f z n idxs n' xs.
+  fold_s f z (mkSegd (replicate n (GHC.Base.I# 1#)) idxs n') xs = xs
+
+  #-}
 
 {- RULES
 

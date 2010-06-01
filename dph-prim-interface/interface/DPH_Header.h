@@ -1,3 +1,4 @@
+{-# LANGUAGE MagicHash #-}
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
