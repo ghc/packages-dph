@@ -23,4 +23,4 @@ quickhullc_SOURCES = legacy/Main.c legacy/QuickHull.c legacy/SVG.c legacy/Timing
 quickhullc_HEADER  = legacy/Timing.h legacy/Vector.h
 
 seq/quickhullc : $(quickhullc_SOURCES) $(quickhullc_HEADER)
-	gcc -std=c99 -O3 $(quickhullc_SOURCES) -o seq/quickhullc
+	gcc -std=c99 -O3 $(quickhullc_SOURCES) -o seq/quickhullc -lm

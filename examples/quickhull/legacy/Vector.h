@@ -47,3 +47,4 @@ static inline void vector_delete(Vector* vector)
 }
 
 #endif
+

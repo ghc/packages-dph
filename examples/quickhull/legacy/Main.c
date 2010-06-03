@@ -5,6 +5,12 @@
 #include "Vector.h"
 #include "Timing.h"
 
+// FFS people.
+#ifndef M_PI
+#define M_PI 3.1415926535
+#endif
+
+
 extern int  quickHull	(Vector* points, Vector* hull);
 extern void dumpSVG	(FILE* file, Vector* points, Vector* hull);
 

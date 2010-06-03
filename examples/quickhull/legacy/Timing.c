@@ -31,3 +31,4 @@ print_timeval( const struct timeval *t )
 {
   printf( "%ld", (long int) t->tv_sec * 1000 + (long int) t->tv_usec / 1000 );
 }
+
