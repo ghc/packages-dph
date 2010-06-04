@@ -16,18 +16,18 @@ module Data.Array.Parallel.Lifted.PArray (
   PA(..),
   lengthPA#, dataPA#, replicatePA#, replicatelPA#, repeatPA#, repeatcPA#,
   emptyPA, indexPA#, extractPA#, bpermutePA#, appPA#, applPA#,
-  packByTagPA#, combine2PA#, fromListPA#, fromListPA, nfPA,
+  packByTagPA#, combine2PA#, updatePA#, fromListPA#, fromListPA, nfPA,
 
   replicatePD, replicatelPD, repeatPD, repeatcPD, emptyPD,
   indexPD, extractPD, bpermutePD, appPD, applPD,
-  packByTagPD, combine2PD, fromListPD, nfPD,
+  packByTagPD, combine2PD, updatePD, fromListPD, nfPD,
 
   PRepr, PR(..),
 
   Scalar(..),
   replicatePRScalar, replicatelPRScalar, repeatPRScalar, repeatcPRScalar, emptyPRScalar,
   indexPRScalar, extractPRScalar, bpermutePRScalar, appPRScalar, applPRScalar,
-  packByTagPRScalar, combine2PRScalar, fromListPRScalar,
+  packByTagPRScalar, combine2PRScalar, updatePRScalar, fromListPRScalar,
   nfPRScalar,
 ) where
 
@@ -104,6 +104,7 @@ class PR a where
   applPR       :: T_applPR a
   packByTagPR  :: T_packByTagPR a
   combine2PR   :: T_combine2PR a
+  updatePR     :: T_updatePR a
   fromListPR   :: T_fromListPR a
   nfPR         :: T_nfPR a
 
@@ -189,6 +190,11 @@ type T_combine2PR   a =  Int#              -- length of resulting array
                       -> PData a           -- second source array
                       -> PData a
 
+type T_updatePR     a =  PData a
+                      -> U.Array Int
+                      -> PData a
+                      -> PData a
+
 
 -- |Convert a list to an array.
 type T_fromListPR a = Int#                 -- length of resulting array
@@ -263,6 +269,11 @@ combine2PD :: PA a => T_combine2PR a
 {-# INLINE_PA combine2PD #-}
 combine2PD n# sel as bs
   = fromArrPRepr $ combine2PR n# sel (toArrPRepr as) (toArrPRepr bs)
+
+updatePD :: PA a => T_updatePR a
+{-# INLINE_PA updatePD #-}
+updatePD xs is ys
+  = fromArrPRepr $ updatePR (toArrPRepr xs) is (toArrPRepr ys)
 
 fromListPD :: PA a => T_fromListPR a
 {-# INLINE_PA fromListPD #-}
@@ -345,6 +356,11 @@ combine2PA# :: PA a => Int# -> Sel2 -> PArray a -> PArray a -> PArray a
 {-# INLINE_PA combine2PA# #-}
 combine2PA# n# sel (PArray _ as) (PArray _ bs)
   = PArray n# (combine2PD n# sel as bs)
+
+updatePA# :: PA a => PArray a -> U.Array Int -> PArray a -> PArray a
+{-# INLINE_PA updatePA# #-}
+updatePA# (PArray n# xs) is (PArray _ ys)
+  = PArray n# (updatePD xs is ys)
 
 fromListPA# :: PA a => Int# -> [a] -> PArray a
 {-# INLINE_PA fromListPA# #-}
@@ -448,6 +464,13 @@ combine2PRScalar _ sel xs ys = traceF "combine2PRScalar"
                              $ U.combine2ByTag (tagsSel2 sel)
                                                (fromScalarPData xs)
                                                (fromScalarPData ys)
+
+updatePRScalar :: Scalar a => T_updatePR a
+{-# INLINE updatePRScalar #-}
+updatePRScalar xs is ys = traceF "updatePRScalar"
+                        $ toScalarPData
+                        $ U.update (fromScalarPData xs)
+                                   (U.zip is (fromScalarPData ys))
 
 fromListPRScalar :: Scalar a => T_fromListPR a
 {-# INLINE fromListPRScalar #-}

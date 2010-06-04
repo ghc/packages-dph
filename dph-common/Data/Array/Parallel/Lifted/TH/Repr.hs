@@ -185,6 +185,7 @@ nameGens =
   , ('applPR,           [const "segd", const "is", (++"1"), const "js", (++"2")])
   , ('packByTagPR,      [id, const "n#", const "tags", const "t#"])
   , ('combine2PR,       [const "n#", const "sel", (++"1"), (++"2")])
+  , ('updatePR,         [(++"1"), const "is", (++"2")])
   , ('fromListPR,       [const "n#", id])
   , ('nfPR,             [id])
   ]

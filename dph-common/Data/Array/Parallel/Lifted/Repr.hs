@@ -153,6 +153,11 @@ instance (PR a, PR b) => PR (a,b) where
       P_2 (combine2PR n# sel as1 as2)
           (combine2PR n# sel bs1 bs2)
 
+  {-# INLINE updatePR #-}
+  updatePR (P_2 as1 bs1) is (P_2 as2 bs2) =
+      P_2 (updatePR as1 is as2)
+          (updatePR bs1 is bs2)
+
   {-# INLINE fromListPR #-}
   fromListPR n# xs = let (as,bs) = unzip xs in
       P_2 (fromListPR n# as)
