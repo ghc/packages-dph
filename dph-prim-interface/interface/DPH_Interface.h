@@ -56,6 +56,8 @@ update :: Elt a => Array a -> Array (Int :*: a) -> Array a
 (+:+) :: Elt a => Array a -> Array a -> Array a
 {-# INLINE_BACKEND (+:+) #-}
 
+interleave :: Elt a => Array a -> Array a -> Array a
+{-# INLINE_BACKEND interleave #-}
 
 pack :: Elt a => Array a -> Array Bool -> Array a
 {-# INLINE_BACKEND pack #-}
@@ -181,6 +183,16 @@ append_s :: Elt a => Segd         -- ^ segment descriptor of result array
                   -> Array a      -- ^ data of first array
                   -> Array a
 {-# INLINE_BACKEND append_s #-}
+
+{-# RULES
+
+"append_s->interleave" forall n k idxs1 idxs2 idxs3 m1 m2 m3 xs ys.
+  append_s (mkSegd (replicate n k) idxs1 m1)
+           (mkSegd (replicate n (GHC.Base.I# 1#)) idxs2 m2) xs
+           (mkSegd (replicate n (GHC.Base.I# 1#)) idxs3 m3) ys
+    = interleave xs ys
+
+  #-}
 
 repeat_c :: Elt a => Int          -- ^ length of the result array
                   -> Array Int    -- ^ number of time a segment is repeated

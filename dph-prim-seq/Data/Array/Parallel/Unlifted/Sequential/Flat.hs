@@ -32,7 +32,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat (
   replicateU,
   -- replicateEachU,
   (!:), (+:+),
-  indexedU, repeatU, repeatUS,
+  interleaveU, indexedU, repeatU, repeatUS,
 
   -- * Subarrays
   sliceU, extractU,

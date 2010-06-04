@@ -26,6 +26,7 @@ mbpermute = mbpermuteU
 bpermuteDft = bpermuteDftU
 update = updateU
 (+:+) = (U.+:+)
+interleave = interleaveU
 pack = packU
 combine = combineU
 combine2ByTag = combine2ByTagU

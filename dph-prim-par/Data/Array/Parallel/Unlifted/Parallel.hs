@@ -26,7 +26,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
   replicateSUP, replicateRSUP, appendSUP, indicesSUP,
   foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP,
 
-  indexedUP, replicateUP, repeatUP,
+  indexedUP, replicateUP, repeatUP, interleaveUP,
 
   dropUP
 ) where

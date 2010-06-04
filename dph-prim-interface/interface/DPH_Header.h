@@ -5,7 +5,7 @@ module Data.Array.Parallel.Unlifted (
   (:*:)(..), Elt, Array, Segd,
 
   length,
-  empty, replicate, repeat, (+:+),
+  empty, replicate, repeat, (+:+), interleave,
   (!:), extract, drop, permute, mbpermute, bpermute, bpermuteDft, update,
   pack, combine, combine2ByTag,
   enumFromTo, enumFromThenTo, enumFromToEach, enumFromStepLen, enumFromStepLenEach,

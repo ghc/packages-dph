@@ -27,7 +27,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU,
   replicateU, (!:), (+:+),
-  indexedU, repeatU,
+  interleaveU, indexedU, repeatU,
 
   -- * Subarrays
   sliceU, extractU,

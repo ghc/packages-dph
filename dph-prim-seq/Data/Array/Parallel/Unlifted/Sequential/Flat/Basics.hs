@@ -23,7 +23,7 @@
 module Data.Array.Parallel.Unlifted.Sequential.Flat.Basics (
   lengthU, nullU, emptyU, singletonU, consU, unitsU, replicateU, 
   (!:), (+:+), repeatU, repeatUS,
-  indexedU,
+  interleaveU, indexedU,
   toU, fromU
 ) where
 
@@ -31,7 +31,7 @@ import Data.Array.Parallel.Base (
   (:*:)(..))
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
-  consS, singletonS, replicateS, (+++), indexedS,
+  consS, singletonS, replicateS, (+++), indexedS, interleaveS,
   {-replicateEachS, zipS,-} toStream, sNoArgs)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UA, UArr, unitsU, lengthU, indexU, newU)
@@ -101,6 +101,12 @@ repeatUS k !xs = Stream next (0 :*: k) (k*n) (sNoArgs "repeatUS")
     next (i :*: 0) = Done
     next (i :*: k) | i == n    = Skip (0 :*: k-1)
                    | otherwise = Yield (xs !: i) (i+1 :*: k)
+
+-- |Interleave the elements of two arrays
+--
+interleaveU :: UA e => UArr e -> UArr e -> UArr e
+{-# INLINE_U interleaveU #-}
+interleaveU xs ys = unstreamU (interleaveS (streamU xs) (streamU ys))
 
 -- |Indexing
 -- ---------

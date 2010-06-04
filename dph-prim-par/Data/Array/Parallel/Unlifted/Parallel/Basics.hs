@@ -23,7 +23,7 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Basics (
   lengthUP, nullUP, indexedUP,
-  replicateUP, repeatUP
+  replicateUP, repeatUP, interleaveUP
 ) where
 
 import Data.Array.Parallel.Base (
@@ -33,7 +33,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Sequential (
   UA, UArr, (!:), unitsU, lengthU, newU,
   foldU, mapU, zipU, unzipU,
-  indexedU, enumFromToU, replicateU)
+  indexedU, enumFromToU, replicateU, interleaveU)
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators ( mapUP )
 import Data.Array.Parallel.Unlifted.Parallel.Enum        ( enumFromToUP )
@@ -76,6 +76,15 @@ repeatUP n es = seq m
               $ enumFromToUP 0 (m*n-1)
   where
     m = lengthU es
+
+-- |Interleave elements of two arrays
+--
+interleaveUP :: UA e => UArr e -> UArr e -> UArr e
+{-# INLINE_UP interleaveUP #-}
+interleaveUP xs ys = joinD theGang unbalanced
+                     (zipWithD theGang interleaveU
+                       (splitD theGang balanced xs)
+                       (splitD theGang balanced ys))
    
 -- |Associate each element of the array with its index
 --

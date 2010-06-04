@@ -28,6 +28,7 @@ bpermute = bpermuteUP
 mbpermute = mbpermuteU
 update = updateUP
 (+:+) = (U.+:+)
+interleave = interleaveUP
 pack = packUP
 combine = combineUP
 combine2ByTag = combine2ByTagUP

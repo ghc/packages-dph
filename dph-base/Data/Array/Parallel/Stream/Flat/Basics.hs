@@ -19,7 +19,7 @@
 module Data.Array.Parallel.Stream.Flat.Basics (
   -- * Basic operations
   emptyS, singletonS, consS, replicateS, replicateEachS, replicateEachRS,
-  (+++), indexedS,
+  (+++), indexedS, interleaveS,
   tailS,
 
   -- * Conversion to\/from lists
@@ -132,6 +132,27 @@ indexedS (Stream next s n c) = Stream next' (0 :*: s) n ("indexedS" `sArgs` c)
                         Yield x s' -> Yield (i :*: x) ((i+1) :*: s')
                         Skip    s' -> Skip            (i     :*: s')
                         Done       -> Done
+
+-- | Interleave the elements of two streams
+--
+interleaveS :: Stream a -> Stream a -> Stream a
+{-# INLINE_STREAM interleaveS #-}
+interleaveS (Stream next1 s1 n1 c1) (Stream next2 s2 n2 c2)
+  = Stream next (False :*: s1 :*: s2) (n1+n2) ("interleaveS" `sArgs` (c1,c2))
+  where
+    {-# INLINE next #-}
+    next (False :*: s1 :*: s2)
+      = case next1 s1 of
+          Yield x s1' -> Yield x (True  :*: s1' :*: s2)
+          Skip    s1' -> Skip    (False :*: s1' :*: s2)
+          Done        -> Done
+
+    next (True :*: s1 :*: s2)
+      = case next2 s2 of
+          Yield x s2' -> Yield x (False :*: s1 :*: s2')
+          Skip    s2' -> Skip    (True  :*: s1 :*: s2')
+          -- FIXME: error
+          Done        -> Done
 
 -- | Yield the tail of a stream
 --
