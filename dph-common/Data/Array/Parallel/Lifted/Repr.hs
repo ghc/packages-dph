@@ -327,11 +327,8 @@ instance PR a => PR (PArray a) where
 
       segd'  = U.lengthsToSegd lens'
 
-      js     = U.enumFromStepLenEach (U.elementsSegd segd)
-                                     (U.zip3 
-                                       starts
-                                       (U.replicate (I# n#) 1)
-                                       lens')
+      js     = U.zipWith (+) (U.indices_s segd')
+                             (U.replicate_s segd' starts)
 
   {-# INLINE appPR #-}
   appPR (PNested xsegd xs) (PNested ysegd ys)
