@@ -1,7 +1,7 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.PArr (
   mapP, filterP, combineP, emptyP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP, updateP, bpermuteP,
-  sliceP,
+  indexedP, sliceP,
   fromPArrayP, fromPArrayPA,
   toPArrayP, toPArrayPA,
   fromNestedPArrayP, fromNestedPArrayPA
@@ -46,4 +46,8 @@ updateP xs _ = xs
 
 bpermuteP :: [:a:] -> [:Int:] -> [:a:]
 bpermuteP xs _ = xs
+
+indexedP :: [:a:] -> [:(Int,a):]
+{-# NOINLINE indexedP #-}
+indexedP xs = zipP [:0 .. lengthP xs-1:] xs
 

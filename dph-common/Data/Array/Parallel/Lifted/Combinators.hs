@@ -9,7 +9,7 @@ module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
   zipWithPA, zipPA, unzipPA, 
   packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
-  slicePA, updatePA, bpermutePA,
+  indexedPA, slicePA, updatePA, bpermutePA,
 
   lengthPA_v, replicatePA_v, singletonPA_v, zipPA_v, unzipPA_v,
   indexPA_v, appPA_v, enumFromToPA_v
@@ -358,6 +358,21 @@ enumFromToPA_Int :: Int :-> Int :-> PArray Int
 {-# INLINE enumFromToPA_Int #-}
 enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
 
+indexedPA_v :: PA a => PArray a -> PArray (Int,a)
+{-# INLINE indexedPA_v #-}
+indexedPA_v (PArray n# xs)
+  = PArray n# (P_2 (toScalarPData $ U.enumFromStepLen 0 1 (I# n#)) xs)
+
+indexedPA_l :: PA a => PArray (PArray a) -> PArray (PArray (Int,a))
+{-# INLINE indexedPA_l #-}
+indexedPA_l (PArray n# xss)
+  = PArray n#
+  $ case xss of { PNested segd xs ->
+    PNested segd (P_2 (toScalarPData $ U.indices_s segd) xs) }
+
+indexedPA :: PA a => PArray a :-> PArray (Int,a)
+{-# INLINE indexedPA #-}
+indexedPA = closure1 indexedPA_v indexedPA_l
 
 -- slice ----------------------------------------------------------------------
 slicePA_v :: PA a => Int -> Int -> PArray a -> PArray a
