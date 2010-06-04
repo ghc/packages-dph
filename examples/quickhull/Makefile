@@ -19,8 +19,8 @@ gen_FLAGS = -fdph-seq
 include $(TOPDIR)/mk/test.mk
 
 
-quickhullc_SOURCES = legacy/Main.c legacy/QuickHull.c legacy/SVG.c legacy/Timing.c
-quickhullc_HEADER  = legacy/Timing.h legacy/Vector.h
+quickhullc_SOURCES = legacy/c/Main.c legacy/c/QuickHull.c legacy/c/SVG.c legacy/c/Timing.c
+quickhullc_HEADER  = legacy/c/Timing.h legacy/c/Vector.h
 
 seq/quickhullc : $(quickhullc_SOURCES) $(quickhullc_HEADER)
 	gcc -std=c99 -O3 $(quickhullc_SOURCES) -o seq/quickhullc -lm
