@@ -9,7 +9,7 @@ module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
   zipWithPA, zipPA, unzipPA, 
   packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
-  slicePA,
+  slicePA, updatePA, bpermutePA,
 
   lengthPA_v, replicatePA_v, singletonPA_v, zipPA_v, unzipPA_v,
   indexPA_v, appPA_v, enumFromToPA_v
@@ -380,4 +380,44 @@ slicePA_l (PArray n# is) (PArray _ lens) (PArray _ xss)
 
 slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
 slicePA = closure3 slicePA_v slicePA_l
+
+updatePA_v :: PA a => PArray a -> PArray (Int,a) -> PArray a
+{-# INLINE_PA updatePA_v #-}
+updatePA_v xs (PArray n# (P_2 is ys))
+  = updatePA# xs (fromScalarPData is) (PArray n# ys)
+
+updatePA_l
+  :: PA a => PArray (PArray a) -> PArray (PArray (Int,a)) -> PArray (PArray a)
+{-# INLINE_PA updatePA_l #-}
+updatePA_l (PArray m# xss) (PArray n# pss)
+  = PArray m#
+  $ case xss of { PNested segd  xs ->
+    case pss of { PNested segd' (P_2 is ys) ->
+    PNested segd
+  $ updatePD xs (U.zipWith (+) (fromScalarPData is)
+                                (U.replicate_s segd' (U.indicesSegd segd)))
+                ys }}
+
+updatePA :: PA a => PArray a :-> PArray (Int,a) :-> PArray a
+{-# INLINE updatePA #-}
+updatePA = closure2 updatePA_v updatePA_l
+
+bpermutePA_v :: PA a => PArray a -> PArray Int -> PArray a
+{-# INLINE_PA bpermutePA_v #-}
+bpermutePA_v xs (PArray n# is) = bpermutePA# xs n# (fromScalarPData is)
+
+bpermutePA_l :: PA a => PArray (PArray a) -> PArray (PArray Int) -> PArray (PArray a)
+{-# INLINE_PA bpermutePA_l #-}
+bpermutePA_l (PArray _ xss) (PArray n# iss)
+  = PArray n#
+  $ case xss of { PNested segd  xs ->
+    case iss of { PNested isegd is ->
+    PNested isegd
+  $ bpermutePD xs (elementsSegd# isegd)
+                  (U.zipWith (+) (fromScalarPData is)
+                                 (U.replicate_s isegd (U.indicesSegd segd))) }}
+
+bpermutePA :: PA a => PArray a :-> PArray Int :-> PArray a
+{-# INLINE bpermutePA #-}
+bpermutePA = closure2 bpermutePA_v bpermutePA_l
 
