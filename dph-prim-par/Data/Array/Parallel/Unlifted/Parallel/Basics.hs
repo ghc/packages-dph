@@ -64,9 +64,9 @@ lengthUP = lengthU
 --
 replicateUP :: UA e => Int -> e -> UArr e
 {-# INLINE_UP replicateUP #-}
-replicateUP n e = joinD theGang balanced
-                . mapD theGang (\n ->replicateU n e)
-                $ splitLenD theGang n
+replicateUP n !e = joinD theGang balanced
+                 . mapD theGang (\n ->replicateU n e)
+                 $ splitLenD theGang n
 
 repeatUP :: UA e => Int -> UArr e -> UArr e
 {-# INLINE_UP repeatUP #-}
