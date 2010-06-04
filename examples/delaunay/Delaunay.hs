@@ -14,6 +14,15 @@ import Data.Array.Parallel.Prelude.Int ( Int )
 
 import qualified Prelude as P
 
+xOf :: IPoint -> Double
+xOf (_,(x,_)) = x
+
+yOf :: IPoint -> Double
+yOf (_,(_,y)) = y
+
+iOf :: IPoint -> Int
+iOf (i,_) = i
+
 lineFromPoint :: Point -> Point
 lineFromPoint (x,y) = (x/q,y/q)
   where

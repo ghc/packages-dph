@@ -1,6 +1,7 @@
-module ListSVG where
+module ListDelaunay where
 
 import Data.List hiding ( sort, union )
+import SVG
 
 maxIndex :: Ord a => [a] -> Int
 maxIndex xs = fst $ maximumBy cmp $ zip [0..length xs - 1] xs
@@ -217,5 +218,8 @@ delaunayPoints ps = toPArrayP (delaunayPoints' (fromPArrayP ps))
 
 
 example :: [Point]
-example = [(113,79),(99,145),(72,144),(124,123),(124,135),(54,100),(97,95),(105,100),(107,106)]
+example = [(187.2283470049284,64.15476546210951),(155.62136380600523,108.84028008492088),(149.26053167049645,149.5598807211091),(79.4118261942465,127.50225107978828),(150.106766302773,238.44232700214994),(153.787784299575,233.58629672994178),(64.64021599338429,196.07873397263373),(158.9519012687203,181.1545990824634),(142.0960792283161,161.37135509853204),(106.43568181290043,174.18403207724552),(227.6704027469097,142.82256220439206)]
+
+exampleSVG :: String
+exampleSVG = svg example (delaunayPoints' example)
 
