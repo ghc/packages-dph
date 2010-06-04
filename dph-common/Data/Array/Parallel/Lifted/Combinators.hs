@@ -361,11 +361,13 @@ enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
 
 -- slice ----------------------------------------------------------------------
 slicePA_v :: PA a => Int -> Int -> PArray a -> PArray a
+{-# INLINE slicePA_v #-}
 slicePA_v (I# from) (I# to) xs 
   = extractPA# xs from (to -# from) 
 
 -- TODO: Can we define this in terms of extractPA?
 slicePA_l :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
+{-# INLINE slicePA_l #-}
 slicePA_l (PArray n# is) (PArray _ lens) (PArray _ xss)
   = PArray n#
   $ case xss of { PNested segd xs ->
@@ -379,6 +381,7 @@ slicePA_l (PArray n# is) (PArray _ lens) (PArray _ xss)
     segd' = U.lengthsToSegd (fromScalarPData lens)
 
 slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
+{-# INLINE slicePA #-}
 slicePA = closure3 slicePA_v slicePA_l
 
 updatePA_v :: PA a => PArray a -> PArray (Int,a) -> PArray a
