@@ -34,6 +34,7 @@ module Data.Array.Parallel.Lifted.PArray (
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Lifted.Selector
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
+import Data.Array.Parallel.Base ( traceF )
 import GHC.Exts (Int#, Int(..), (+#), (*#))
 import SpecConstr
 
@@ -380,23 +381,27 @@ emptyPRScalar = toScalarPData U.empty
 
 replicatePRScalar :: Scalar a => T_replicatePR a
 {-# INLINE replicatePRScalar #-}
-replicatePRScalar n# x = toScalarPData (U.replicate (I# n#) x)
+replicatePRScalar n# x = traceF "replicatePRScalar"
+                       $ toScalarPData (U.replicate (I# n#) x)
 
 replicatelPRScalar :: Scalar a => T_replicatelPR a
 {-# INLINE replicatelPRScalar #-}
-replicatelPRScalar segd xs = toScalarPData
+replicatelPRScalar segd xs = traceF "replicatelPRScalar"
+                         $ toScalarPData
                          $ U.replicate_s segd 
                          $ fromScalarPData xs
 
 repeatPRScalar :: Scalar a => T_repeatPR a
 {-# INLINE repeatPRScalar #-}
-repeatPRScalar n# len# xs = toScalarPData
+repeatPRScalar n# len# xs = traceF "repeatPRScalar"
+                        $ toScalarPData
                         $ U.repeat (I# n#) (I# len#)
                         $ fromScalarPData xs
 
 repeatcPRScalar :: Scalar a => T_repeatcPR a
 {-# INLINE repeatcPRScalar #-}
-repeatcPRScalar n# ns segd xs = toScalarPData
+repeatcPRScalar n# ns segd xs = traceF "repeatcPRScalar"
+                            $ toScalarPData
                             $ U.repeat_c (I# n#) ns segd
                             $ fromScalarPData xs
 
@@ -406,34 +411,40 @@ indexPRScalar xs i# = fromScalarPData xs U.!: I# i#
 
 extractPRScalar :: Scalar a => T_extractPR a
 {-# INLINE extractPRScalar #-}
-extractPRScalar xs i# n# = toScalarPData
+extractPRScalar xs i# n# = traceF "extractPRScalar"
+                       $ toScalarPData
                        $ U.extract (fromScalarPData xs) (I# i#) (I# n#)
 
 bpermutePRScalar :: Scalar a => T_bpermutePR a
 {-# INLINE bpermutePRScalar #-}
-bpermutePRScalar xs _ is = toScalarPData
+bpermutePRScalar xs _ is = traceF "bpermutePRScalar"
+                       $ toScalarPData
                        $ U.bpermute (fromScalarPData xs) is
 
 appPRScalar :: Scalar a => T_appPR a
 {-# INLINE appPRScalar #-}
-appPRScalar xs ys = toScalarPData
+appPRScalar xs ys = traceF "appPRScalar"
+                $ toScalarPData
                 $ fromScalarPData xs U.+:+ fromScalarPData ys
 
 applPRScalar :: Scalar a => T_applPR a
 {-# INLINE applPRScalar #-}
 applPRScalar segd xsegd xs ysegd ys
-  = toScalarPData
+  = traceF "applPRScalar"
+  $ toScalarPData
   $ U.append_s segd xsegd (fromScalarPData xs)
                     ysegd (fromScalarPData ys)
                         
 packByTagPRScalar :: Scalar a => T_packByTagPR a
 {-# INLINE packByTagPRScalar #-}
-packByTagPRScalar xs _ tags t# = toScalarPData
+packByTagPRScalar xs _ tags t# = traceF "packByTagPRScalar"
+                             $ toScalarPData
                              $ U.packByTag (fromScalarPData xs) tags (I# t#)
 
 combine2PRScalar :: Scalar a => T_combine2PR a
 {-# INLINE combine2PRScalar #-}
-combine2PRScalar _ sel xs ys = toScalarPData
+combine2PRScalar _ sel xs ys = traceF "combine2PRScalar"
+                             $ toScalarPData
                              $ U.combine2ByTag (tagsSel2 sel)
                                                (fromScalarPData xs)
                                                (fromScalarPData ys)
