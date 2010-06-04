@@ -186,8 +186,8 @@ delaunayDivide points prev_n
     lower_hull_indices = lowerHull proj
     hull_flags = update (replicate n 0) [(i,1) | i <- lower_hull_indices]
 
-    down_points = [p | (p,fl) <- zip points hull_flags, xOf p < med || fl /= 0]
-    up_points   = [p | (p,fl) <- zip points hull_flags, xOf p >= med || fl /= 0]
+    down_points = [p | (p,fl) <- zip points1 hull_flags, xOf p < med || fl /= 0]
+    up_points   = [p | (p,fl) <- zip points1 hull_flags, xOf p >= med || fl /= 0]
 
 delaunay' :: [Point] -> [(Int,Int)]
 delaunay' points = concat (delaunayFromEdgelist points all_edges)

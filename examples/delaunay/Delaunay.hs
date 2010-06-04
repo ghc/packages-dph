@@ -108,8 +108,8 @@ delaunayDivide points prev_n
     lower_hull_indices = lowerHull proj
     hull_flags = updateP (replicateP n 0) [:(i,1) | i <- lower_hull_indices:]
 
-    down_points = [:p | (p,fl) <- zipP points hull_flags, xOf p < med || fl Int./= 0:]
-    up_points   = [:p | (p,fl) <- zipP points hull_flags, xOf p >= med || fl Int./= 0:]
+    down_points = [:p | (p,fl) <- zipP points1 hull_flags, xOf p < med || fl Int./= 0:]
+    up_points   = [:p | (p,fl) <- zipP points1 hull_flags, xOf p >= med || fl Int./= 0:]
 
 {-
 function delaunay_divide(points,previous_n) =
