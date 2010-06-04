@@ -53,7 +53,9 @@ replicatePA_v (I# n#) x = replicatePA# n# x
 replicatePA_l :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 {-# INLINE_PA replicatePA_l #-}
 replicatePA_l (PArray n# (PInt ns)) (PArray _ xs)
-  = PArray n# (PNested (U.lengthsToSegd ns) xs)
+  = PArray n# (PNested segd (replicatelPD segd xs))
+  where
+    segd = U.lengthsToSegd ns
 
 replicatePA :: PA a => Int :-> a :-> PArray a
 {-# INLINE replicatePA #-}
