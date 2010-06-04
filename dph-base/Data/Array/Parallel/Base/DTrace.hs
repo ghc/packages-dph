@@ -5,7 +5,7 @@ module Data.Array.Parallel.Base.DTrace (
   traceLoopST, traceLoopEntryST, traceLoopExitST,
   traceLoopIO, traceLoopEntryIO, traceLoopExitIO,
 
-  traceFn, traceArg
+  traceFn, traceArg, traceF
 ) where
 
 #ifdef DPH_ENABLE_DTRACE
@@ -75,10 +75,14 @@ traceLoopExitIO  s = return ()
 
 -- FIXME: make these use DTrace as well
 traceFn :: String -> String -> a -> a
--- traceFn fn ty x = trace (fn ++ "<" ++ ty ++ ">") x
+-- traceFn fn ty x = trace (fn ++ "<" ++ ty ++ ">") x `seq` trace ("DONE " ++ fn ++ "<" ++ ty ++ ">") x
 traceFn _ _ x = x
 
 traceArg :: Show a => String -> a -> b -> b
 -- traceArg name arg x = trace ("    " ++ name ++ " = " ++ show arg) x
 traceArg _ _ x = x
+
+traceF :: String -> a -> a
+-- traceF f x = trace f x `seq` trace ("DONE " ++ f) x
+traceF _ x = x
 
