@@ -365,8 +365,18 @@ slicePA_v (I# from) (I# to) xs
   = extractPA# xs from (to -# from) 
 
 -- TODO: Can we define this in terms of extractPA?
-slicePA_l 
-  = error "dph-common: slicePA has no lifted version yet"
+slicePA_l :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
+slicePA_l (PArray n# is) (PArray _ lens) (PArray _ xss)
+  = PArray n#
+  $ case xss of { PNested segd xs ->
+    PNested segd'
+  $ bpermutePD xs (elementsSegd# segd')
+                  (U.zipWith (+) (U.indices_s segd')
+                                 (U.replicate_s segd'
+                                    (U.zipWith (+) (fromScalarPData is)
+                                                   (U.indicesSegd segd)))) }
+  where
+    segd' = U.lengthsToSegd (fromScalarPData lens)
 
 slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
 slicePA = closure3 slicePA_v slicePA_l
