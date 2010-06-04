@@ -1,13 +1,13 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.PArr (
-  mapP, filterP, combineP, emptyP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP,
+  mapP, filterP, combineP, emptyP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP, updateP, bpermuteP,
   sliceP,
   fromPArrayP, fromPArrayPA,
   toPArrayP, toPArrayPA,
   fromNestedPArrayP, fromNestedPArrayPA
 ) where
 
-import GHC.PArr
+import GHC.PArr hiding ( bpermuteP )
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Closure
 
@@ -40,3 +40,10 @@ fromNestedPArrayPA = closure1 (\xs -> xs) (\xss -> xss)
 
 combineP:: [:a:] -> [:a:] -> [:Int:] -> [:a:]
 combineP xs _ _ = xs
+
+updateP :: [:a:] -> [:(Int,a):] -> [:a:]
+updateP xs _ = xs
+
+bpermuteP :: [:a:] -> [:Int:] -> [:a:]
+bpermuteP xs _ = xs
+
