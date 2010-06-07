@@ -4,6 +4,7 @@
 
 module Data.Array.Parallel.Lifted.Unboxed (
   Segd, elementsSegd#, mkSegd#,
+  Sel2, elementsSel2_0#, elementsSel2_1#, replicateSel2#, pickSel2#, tagsSel2,
 
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
@@ -56,6 +57,7 @@ import GHC.Exts ( Int#, Int(..), Word#,
 import GHC.Word ( Word8(..) )
 
 type Segd = U.Segd
+type Sel2 = U.Sel2
 
 {-
 lengthSegd# :: Segd -> Int#
@@ -84,6 +86,31 @@ mkSegd# ns is n# = U.mkSegd ns is (I# n#)
 
   #-}
 
+replicateSel2# :: Int# -> Int# -> Sel2
+{-# INLINE replicateSel2# #-}
+replicateSel2# n# tag# = U.mkSel2 (U.replicate n tag)
+                                  (U.enumFromStepLen 0 1 n)
+                                  (if tag == 0 then n else 0)
+                                  (if tag == 0 then 0 else n)
+  where
+    n = I# n#
+    tag = I# tag#
+
+pickSel2# :: Sel2 -> Int# -> U.Array Bool
+{-# INLINE pickSel2# #-}
+pickSel2# sel tag# = U.pick (U.tagsSel2 sel) (I# tag#)
+
+tagsSel2 :: Sel2 -> U.Array Int
+{-# INLINE tagsSel2 #-}
+tagsSel2 = U.tagsSel2
+
+elementsSel2_0# :: Sel2 -> Int#
+elementsSel2_0# sel = case U.elementsSel2_0 sel of { I# n# -> n# }
+{-# INLINE_PA elementsSel2_0# #-}
+
+elementsSel2_1# :: Sel2 -> Int#
+elementsSel2_1# sel = case U.elementsSel2_1 sel of { I# n# -> n# }
+{-# INLINE_PA elementsSel2_1# #-}
 
 type PArray_Int# = U.Array Int
 

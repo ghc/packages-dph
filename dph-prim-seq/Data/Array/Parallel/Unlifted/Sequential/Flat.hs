@@ -22,7 +22,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat (
   UA,
 
   -- * Array types
-  UArr, MUArr,
+  UArr, MUArr, USel2,
 
   -- * Streaming
   streamU, unstreamU,
@@ -81,6 +81,10 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat (
   -- * Searching
   findU, findIndexU,
 
+  -- * Selectors
+  lengthUSel2, tagsUSel2, indicesUSel2, elementsUSel2_0, elementsUSel2_1,
+  mkUSel2,
+
   -- * Conversions to\/from lists
   toU, fromU,
 
@@ -114,4 +118,5 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat.Sums
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Permute
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Text ()
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Random
+import Data.Array.Parallel.Unlifted.Sequential.Flat.USel
 

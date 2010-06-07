@@ -19,8 +19,8 @@ module Data.Array.Parallel.Lifted.Repr (
 import Data.Array.Parallel.Lifted.TH.Repr
 
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Selector
-import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
+import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
+                                            elementsSel2_1# )
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ((:*:)(..), fromBool)
@@ -182,27 +182,27 @@ data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
 
 data instance PData (Sum2 a b)
-  = PSum2 Sel2 (PData a) (PData b)
+  = PSum2 U.Sel2 (PData a) (PData b)
 
 instance (PR a, PR b) => PR (Sum2 a b) where 
   {-# INLINE emptyPR #-}
   emptyPR
     = traceFn "emptyPR" "(Sum2 a b)" $
-    PSum2 (mkSel2 U.empty U.empty 0 0) emptyPR emptyPR
+    PSum2 (U.mkSel2 U.empty U.empty 0 0) emptyPR emptyPR
 
   {-# INLINE replicatePR #-}
   replicatePR n# (Alt2_1 x)
     = traceFn "replicatePR" "(Sum2 a b)" $
-      PSum2 (mkSel2 (U.replicate (I# n#) 0)
-                    (U.enumFromStepLen 0 1 (I# n#))
-                    (I# n#) 0)
+      PSum2 (U.mkSel2 (U.replicate (I# n#) 0)
+                      (U.enumFromStepLen 0 1 (I# n#))
+                      (I# n#) 0)
             (replicatePR n# x)
             emptyPR
   replicatePR n# (Alt2_2 x)
     = traceFn "replicatePR" "(Sum2 a b)" $
-      PSum2 (mkSel2 (U.replicate (I# n#) 1)
-                    (U.enumFromStepLen 0 1 (I# n#))
-                    0 (I# n#))
+      PSum2 (U.mkSel2 (U.replicate (I# n#) 1)
+                      (U.enumFromStepLen 0 1 (I# n#))
+                      0 (I# n#))
             emptyPR
             (replicatePR n# x)
 
@@ -211,9 +211,9 @@ instance (PR a, PR b) => PR (Sum2 a b) where
     = traceFn "replicatelPR" "(Sum2 a b)" $
       PSum2 sel' as' bs'
     where
-      tags      = tagsSel2 sel
+      tags      = U.tagsSel2 sel
       tags'     = U.replicate_s segd tags
-      sel'      = tagsToSel2 tags'
+      sel'      = U.tagsToSel2 tags'
 
       lens      = U.lengthsSegd segd
 
@@ -228,9 +228,9 @@ instance (PR a, PR b) => PR (Sum2 a b) where
     = traceFn "repeatPR" "(Sum2 a b)" $
       PSum2 sel' as' bs'
     where
-      sel' = tagsToSel2
+      sel' = U.tagsToSel2
            . U.repeat (I# m#) (I# n#)
-           $ tagsSel2 sel
+           $ U.tagsSel2 sel
 
       as'  = repeatPR m# (elementsSel2_0# sel) as
       bs'  = repeatPR n# (elementsSel2_1# sel) bs
@@ -238,8 +238,8 @@ instance (PR a, PR b) => PR (Sum2 a b) where
   {-# INLINE indexPR #-}
   indexPR (PSum2 sel as bs) i#
     = traceFn "indexPR" "(Sum2 a b)" $
-    case indicesSel2 sel U.!: I# i# of
-      I# k# -> case tagsSel2 sel U.!: I# i# of
+    case U.indicesSel2 sel U.!: I# i# of
+      I# k# -> case U.tagsSel2 sel U.!: I# i# of
                  0 -> Alt2_1 (indexPR as k#)
                  _ -> Alt2_2 (indexPR bs k#)
 
@@ -250,16 +250,16 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       PSum2 sel (appPR as1 as2)
                 (appPR bs1 bs2)
     where
-      sel = tagsToSel2
-          $ tagsSel2 sel1 U.+:+ tagsSel2 sel2
+      sel = U.tagsToSel2
+          $ U.tagsSel2 sel1 U.+:+ U.tagsSel2 sel2
 
   {-# INLINE packByTagPR #-}
   packByTagPR (PSum2 sel as bs) n# tags t#
     = PSum2 sel' as' bs'
     where
-      my_tags  = tagsSel2 sel
+      my_tags  = U.tagsSel2 sel
       my_tags' = U.packByTag my_tags tags (I# t#)
-      sel'     = tagsToSel2 my_tags'
+      sel'     = U.tagsToSel2 my_tags'
 
       atags    = U.packByTag tags my_tags 0
       btags    = U.packByTag tags my_tags 1
@@ -273,12 +273,12 @@ instance (PR a, PR b) => PR (Sum2 a b) where
     = traceFn "combine2PR" "(Sum2 a b)" $
       PSum2 sel' as bs
     where
-      tags  = tagsSel2 sel
-      tags' = U.combine2ByTag tags (tagsSel2 sel1) (tagsSel2 sel2)
-      sel'  = tagsToSel2 tags'
+      tags  = U.tagsSel2 sel
+      tags' = U.combine2ByTag tags (U.tagsSel2 sel1) (U.tagsSel2 sel2)
+      sel'  = U.tagsToSel2 tags'
 
-      asel = tagsToSel2 (U.packByTag tags tags' 0)
-      bsel = tagsToSel2 (U.packByTag tags tags' 1)
+      asel = U.tagsToSel2 (U.packByTag tags tags' 0)
+      bsel = U.tagsToSel2 (U.packByTag tags tags' 1)
 
       as   = combine2PR (elementsSel2_0# sel') asel as1 as2
       bs   = combine2PR (elementsSel2_1# sel') bsel bs1 bs2
@@ -383,12 +383,12 @@ instance PR a => PR (PArray a) where
     = traceFn "combine2PR" "(PArray a)" $
     PNested segd xys
     where
-      tags = tagsSel2 sel
+      tags = U.tagsSel2 sel
 
       segd = U.lengthsToSegd
            $ U.combine2ByTag tags (U.lengthsSegd xsegd) (U.lengthsSegd ysegd)
 
-      sel' = tagsToSel2
+      sel' = U.tagsToSel2
            $ U.replicate_s segd tags
 
       xys  = combine2PR (elementsSegd# segd) sel' xs ys

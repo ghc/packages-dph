@@ -9,7 +9,6 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
-import Data.Array.Parallel.Lifted.Selector
 
 import qualified Data.Array.Parallel.Unlifted as U
 
@@ -122,10 +121,10 @@ scalar_fold1sIndex f xss = fromUArrPA n
 instance Scalar Bool where
   {-# INLINE toScalarPData #-}
   toScalarPData bs
-    = PBool (tagsToSel2 (U.map fromBool bs))
+    = PBool (U.tagsToSel2 (U.map fromBool bs))
 
   {-# INLINE fromScalarPData #-}
-  fromScalarPData (PBool sel) = U.map toBool (tagsSel2 sel)
+  fromScalarPData (PBool sel) = U.map toBool (U.tagsSel2 sel)
 
 fromUArrPA_2 :: (Scalar a, Scalar b) => Int -> U.Array (a :*: b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}

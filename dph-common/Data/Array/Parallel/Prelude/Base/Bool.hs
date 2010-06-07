@@ -10,7 +10,6 @@ import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Selector
 import qualified Data.Array.Parallel.Unlifted as U
 
 import Data.Bits
@@ -40,7 +39,7 @@ not_l :: PArray Bool -> PArray Bool
 not_l (PArray n# bs)
   = PArray n#
   $ case bs of { PBool sel ->
-    PBool $ tagsToSel2 (U.map complement (tagsSel2 sel)) }
+    PBool $ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
 
 notV :: Bool :-> Bool
 {-# INLINE notV #-}
@@ -52,7 +51,7 @@ and_l (PArray n# bs) (PArray _ cs)
   = PArray n#
   $ case bs of { PBool sel1 ->
     case cs of { PBool sel2 ->
-    PBool $ tagsToSel2 (U.zipWith (.&.) (tagsSel2 sel1) (tagsSel2 sel2)) }}
+    PBool $ U.tagsToSel2 (U.zipWith (.&.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
 
 andV :: Bool :-> Bool :-> Bool
 {-# INLINE andV #-}
@@ -64,7 +63,7 @@ or_l (PArray n# bs) (PArray _ cs)
   = PArray n#
   $ case bs of { PBool sel1 ->
     case cs of { PBool sel2 ->
-    PBool $ tagsToSel2 (U.zipWith (.|.) (tagsSel2 sel1) (tagsSel2 sel2)) }}
+    PBool $ U.tagsToSel2 (U.zipWith (.|.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
 
 orV :: Bool :-> Bool :-> Bool
 {-# INLINE orV #-}

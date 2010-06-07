@@ -17,11 +17,11 @@ module Data.Array.Parallel.Lifted.Combinators (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
+import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
+                                            elementsSel2_1# )
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Scalar
-import Data.Array.Parallel.Lifted.Selector
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ( fromBool )
@@ -185,14 +185,14 @@ unzipPA = closure1 unzipPA_v unzipPA_l
 
 
 -- packPA ---------------------------------------------------------------------
-boolSel :: PArray Bool -> Sel2
+boolSel :: PArray Bool -> U.Sel2
 {-# INLINE boolSel #-}
 boolSel (PArray _ (PBool sel)) = sel
 
 packPA_v :: PA a => PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
 packPA_v xs bs
-  = packByTagPA# xs (elementsSel2_1# sel) (tagsSel2 sel) 1#
+  = packByTagPA# xs (elementsSel2_1# sel) (U.tagsSel2 sel) 1#
   -- = case U.count (toUArrPA bs) True of I# n# -> packPA# xs n# (toUArrPA bs)
   where
     sel = boolSel bs
@@ -204,8 +204,8 @@ packPA_l (PArray n# xss) (PArray _ bss)
   = PArray n#
   $ case xss of { PNested segd xs ->
     case bss of { PNested _ (PBool sel) ->
-    PNested (U.lengthsToSegd $ U.count_s segd (tagsSel2 sel) 1)
-  $ packByTagPD  xs (elementsSel2_1# sel) (tagsSel2 sel) 1# }}
+    PNested (U.lengthsToSegd $ U.count_s segd (U.tagsSel2 sel) 1)
+  $ packByTagPD  xs (elementsSel2_1# sel) (U.tagsSel2 sel) 1# }}
 
 {-
 packPA_l !xss !bss
@@ -239,7 +239,7 @@ combine2PA_v:: PA a => PArray a -> PArray a -> PArray Int -> PArray a
 {-# INLINE_PA combine2PA_v #-}
 combine2PA_v xs ys bs
   = combine2PA# (lengthPA# xs +# lengthPA# ys)
-                (tagsToSel2 (toUArrPA bs))
+                (U.tagsToSel2 (toUArrPA bs))
                 xs ys
 
 combine2PA_l:: PA a

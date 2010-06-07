@@ -261,13 +261,30 @@ plusSegd segd1 segd2
 
  #-}
 
+mkSel2 :: Array Int -> Array Int -> Int -> Int -> Sel2
+{-# INLINE CONLIKE PHASE_BACKEND mkSel2 #-}
 
-selectorToIndices2 :: Array Int -> Array Int
-{-# INLINE_BACKEND selectorToIndices2 #-}
-selectorToIndices2 sel
-  = zipWith pick sel
-  . scan idx (0 :*: 0)
-  $ map start sel
+tagsSel2 :: Sel2 -> Array Int
+{-# INLINE_BACKEND tagsSel2 #-}
+
+indicesSel2 :: Sel2 -> Array Int
+{-# INLINE_BACKEND indicesSel2 #-}
+
+elementsSel2_0 :: Sel2 -> Int
+{-# INLINE_BACKEND elementsSel2_0 #-}
+
+elementsSel2_1 :: Sel2 -> Int
+{-# INLINE_BACKEND elementsSel2_1 #-}
+
+tagsToSel2 :: Array Int -> Sel2
+{-# INLINE tagsToSel2 #-}
+tagsToSel2 tags = mkSel2 tags (tagsToIndices2 tags) (count tags 0) (count tags 1)
+
+tagsToIndices2 :: Array Int -> Array Int
+{-# INLINE_BACKEND tagsToIndices2 #-}
+tagsToIndices2 ts = zipWith pick ts
+                  . scan idx (0 :*: 0)
+                  $ map start ts
   where
     start 0 = 1 :*: 0
     start _ = 0 :*: 1
@@ -276,6 +293,20 @@ selectorToIndices2 sel
 
     pick 0 (i :*: j) = i
     pick _ (i :*: j) = j
+
+{-# RULES
+
+"tagsSel2/mkSel2"
+  forall ts is n0 n1. tagsSel2 (mkSel2 ts is n0 n1) = ts
+"indicesSel2/mkSel2"
+  forall ts is n0 n1. indicesSel2 (mkSel2 ts is n0 n1) = is
+"elementsSel2_0/mkSel2"
+  forall ts is n0 n1. elementsSel2_0 (mkSel2 ts is n0 n1) = n0
+"elementsSel2_1/mkSel2"
+  forall ts is n0 n1. elementsSel2_1 (mkSel2 ts is n0 n1) = n1
+
+  #-}
+
 
 packByTag :: Elt a => Array a -> Array Int -> Int -> Array a
 {-# INLINE_BACKEND packByTag #-}

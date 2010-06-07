@@ -9,7 +9,6 @@ module Data.Array.Parallel.Lifted.Instances (
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
-import Data.Array.Parallel.Lifted.Selector
 
 import qualified Data.Array.Parallel.Unlifted as U
 
@@ -57,7 +56,7 @@ instance PA Void where
 -- Bool --
 
 data instance PData Bool
-  = PBool Sel2
+  = PBool U.Sel2
 
 type instance PRepr Bool = Sum2 Void Void
 

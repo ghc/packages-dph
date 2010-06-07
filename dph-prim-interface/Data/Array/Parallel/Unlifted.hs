@@ -25,6 +25,12 @@ data Segd = Segd { segd_lengths  :: [Int]
                  , segd_elements :: Int
                  }
 
+data Sel2 = Sel2 { sel2_tags      :: [Int]
+                 , sel2_indices   :: [Int]
+                 , sel2_elements0 :: Int
+                 , sel2_elements1 :: Int
+                 }
+
 length = P.length
 empty = []
 replicate = P.replicate
@@ -41,6 +47,12 @@ mbpermute = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unl
 bpermuteDft = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted.bpermuteDft"
 
 interleave xs ys = P.concat [[x,y] | (x,y) <- P.zip xs ys]
+
+mkSel2 = Sel2
+tagsSel2 = sel2_tags
+indicesSel2 = sel2_indices
+elementsSel2_0 = sel2_elements0
+elementsSel2_1 = sel2_elements1
 
 pack xs bs = [x | (x,b) <- P.zip xs bs, b]
 

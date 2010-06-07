@@ -2,7 +2,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
-  (:*:)(..), Elt, Array, Segd,
+  (:*:)(..), Elt, Array, Sel2, Segd,
 
   length,
   empty, replicate, repeat, (+:+), interleave,
@@ -22,7 +22,9 @@ module Data.Array.Parallel.Unlifted (
   lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd,
   mkSegd, plusSegd,
 
-  selectorToIndices2, packByTag, pick, count, count_s,
+  mkSel2, tagsSel2, indicesSel2, elementsSel2_0, elementsSel2_1,
+  tagsToSel2, tagsToIndices2,
+  packByTag, pick, count, count_s,
 
   randoms, randomRs, IOElt, hGet, hPut,
 

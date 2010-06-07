@@ -22,7 +22,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   UA,
 
   -- * Array types
-  UArr, USegd,
+  UArr, USegd, USel2,
 
   -- * Basic operations
   lengthU, nullU, emptyU, singletonU, consU, unitsU,
@@ -77,6 +77,10 @@ module Data.Array.Parallel.Unlifted.Sequential (
 
   -- * Searching
   findU, findIndexU,
+
+  -- * Selectors
+  lengthUSel2, tagsUSel2, indicesUSel2, elementsUSel2_0, elementsUSel2_1,
+  mkUSel2,
 
   -- * Conversions to\/from lists
   toU, fromU,
