@@ -7,7 +7,7 @@ quickhull_DPH = quickhull
 quickhull_SOURCES = vect.hs QuickHullVect.hs Types.hs
 
 QuickHull_SOURCES = QuickHull.hs
-QuickHull_FLAGS   = -O2
+QuickHull_FLAGS   = -O2 -package dph-prim-seq
 
 quickhullSVG_DPH = quickhullSVG
 quickhullSVG_SOURCES = vectSVG.hs QuickhullVect.hs Types.hs SVG.hs TestData.hs
