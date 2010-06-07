@@ -44,8 +44,7 @@ removeDuplicates :: [:(Int,Int):] -> [:(Int,Int):]
 removeDuplicates edges
   = [:e | (i,e) <- iedges, andP [: e `neq` e' | e' <- sliceP 0 i edges :] :]
   where
-    iedges = zipP (Int.enumFromToP 0 (lengthP edges Int.- 1)) edges
-
+    iedges = indexedP edges
     neq (i1,j1) (i2,j2) = i1 Int./= i2 || j1 Int./= j2
 
 delaunayFromEdgelist :: [:Point:] -> [:(Int,Int):] -> [:[:(Int,Int):]:]
@@ -54,9 +53,8 @@ delaunayFromEdgelist points edges
   where
     edges1 = removeDuplicates [:(Int.max i j, Int.min i j) | (i,j) <- edges:]
     edges2 = edges1 +:+ [:(j,i) | (i,j) <- edges1:]
-    adj_lists = [:sort js | (i,js) <- collect edges2:]
-    ipoints   = zipP (Int.enumFromToP 0 (lengthP points Int.- 1)) points
-
+    adj_lists = [:js | (i,js) <- collect edges2:]
+    ipoints   = indexedP points
 {-
 % Given a set of points and a set of edges (pairs of indices to the points),
   this returns for each point its delaunay edges sorted clockwise.
@@ -97,19 +95,18 @@ delaunayDivide points prev_n
   = concatP [: delaunayDivide x n | x <- [: down_points, up_points :] :]
   where
     n = lengthP points
+
+    (_, pts) = unzipP points
     
-    points1 = [:(i,(y,x)) | (i,(x,y)) <- points:]
-    med     = median (mapP xOf points1)
-    (i,(xm,ym)) = [:p | p <- points1, xOf p == med:] !: 0
+    (xm,ym) = pts !: medianIndex [:y | (x,y) <- pts:]
 
-    proj = [:(j,(y, sq (x-xm) + sq (y-ym)))
-                | ((i,(x,y)),j) <- zipP points1 (Int.enumFromToP 0 (n Int.- 1)):]
+    proj = [:(x, sq (x-xm) + sq (y-ym)) | (x,y) <- pts:]
 
-    lower_hull_indices = lowerHull proj
+    lower_hull_indices = lowerHull (indexedP proj)
     hull_flags = updateP (replicateP n 0) [:(i,1) | i <- lower_hull_indices:]
 
-    down_points = [:p | (p,fl) <- zipP points1 hull_flags, xOf p < med || fl Int./= 0:]
-    up_points   = [:p | (p,fl) <- zipP points1 hull_flags, xOf p >= med || fl Int./= 0:]
+    down_points = [:(i,(y,x)) | ((i,(x,y)),fl) <- zipP points hull_flags, y < ym || fl Int./= 0:]
+    up_points   = [:(i,(y,x)) | ((i,(x,y)),fl) <- zipP points hull_flags, y >= ym || fl Int./= 0:]
 
 {-
 function delaunay_divide(points,previous_n) =
@@ -148,8 +145,7 @@ in flatten({delaunay_divide(x,n) : x in [down_points,up_points]}) $
 delaunay' :: [:Point:] -> [:(Int,Int):]
 delaunay' points = concatP (delaunayFromEdgelist points all_edges)
   where
-    ipoints = zipP (Int.enumFromToP 0 (lengthP points Int.- 1)) points
-
+    ipoints = indexedP points
     point_groups = delaunayDivide ipoints (lengthP ipoints Int.+ 1)
 
     all_edges = concatP [:slowDelaunay group | group <- point_groups:]
