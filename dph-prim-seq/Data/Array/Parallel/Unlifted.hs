@@ -46,7 +46,6 @@ indexed = indexedU
 enumFromTo = enumFromToU
 enumFromThenTo = enumFromThenToU
 enumFromStepLen = enumFromStepLenU
-enumFromToEach = enumFromToEachU
 enumFromStepLenEach = enumFromStepLenEachU
 
 replicate_s = replicateSU

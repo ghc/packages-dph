@@ -345,14 +345,15 @@ distance m n = max 0 (n - m + 1)
 
 enumFromToPA_l :: PArray Int -> PArray Int -> PArray (PArray Int)
 {-# INLINE_PA enumFromToPA_l #-}
-enumFromToPA_l ms ns
-  = segmentPA# (lengthPA# ms) segd
-  . fromUArrPA (I# (lengthPA# ms))
-  . U.enumFromToEach (U.elementsSegd segd)
-  $ U.zip (toUArrPA ms) (toUArrPA ns)
+enumFromToPA_l (PArray m# ms) (PArray n# ns)
+  = PArray m#
+  $ PNested segd
+  $ toScalarPData
+  $ U.enumFromStepLenEach (U.elementsSegd segd)
+        (fromScalarPData ms) (U.replicate (U.elementsSegd segd) 1) lens
   where
-    segd = U.lengthsToSegd
-         $ U.zipWith distance (toUArrPA ms) (toUArrPA ns)
+    lens = U.zipWith distance (fromScalarPData ms) (fromScalarPData ns)
+    segd = U.lengthsToSegd lens
 
 enumFromToPA_Int :: Int :-> Int :-> PArray Int
 {-# INLINE enumFromToPA_Int #-}

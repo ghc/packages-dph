@@ -70,16 +70,14 @@ indices_s segd = P.concat [[0 .. n-1] | n <- segd_lengths segd]
 indexed xs = zip [0 .. length xs - 1] xs
 enumFromTo m n = [m .. n]
 enumFromThenTo m n s = [m, n..s]
-enumFromToEach n ps = ASSERT (n == length ns)
-                    $ ns
-  where
-    ns = P.concat (map (uncurryS enumFromTo) ps)
 
 enumFromStepLen i k 0 = []
 enumFromStepLen i k n = i : enumFromStepLen (i+k) k (n-1)
 
-enumFromStepLenEach size  fsl =  ASSERT (size == (sum (P.map (\(x :*: y :*: z) -> z) fsl))) $
-  P.concat $ P.map (\(x :*:y :*:z) -> P.enumFromThenTo x (x+y) (x+ y*z)) fsl
+enumFromStepLenEach size starts steps lens
+  = ASSERT (size == sum lens)
+  P.concat
+  $ P.zipWith3 (\x y z -> P.enumFromThenTo x (x+y) (x+y*z)) starts steps lens
   
 
 randoms n = P.take n . System.Random.randoms

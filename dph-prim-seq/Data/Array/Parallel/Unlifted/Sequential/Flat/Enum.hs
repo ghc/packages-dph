@@ -29,7 +29,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Stream (
   enumFromToS, enumFromThenToS, enumFromStepLenS, enumFromToEachS, enumFromStepLenEachS)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
-  UA, UArr)
+  UA, UArr, zipU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   unstreamU, streamU)
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Sums (
@@ -57,10 +57,8 @@ enumFromToEachU :: Int -> UArr (Int :*: Int) -> UArr Int
 {-# INLINE_U enumFromToEachU #-}
 enumFromToEachU n = unstreamU . enumFromToEachS n . streamU
 
-enumFromStepLenEachU :: Int -> UArr (Int :*: Int :*: Int) -> UArr Int
+enumFromStepLenEachU :: Int -> UArr Int -> UArr Int -> UArr Int -> UArr Int
 {-# INLINE_U enumFromStepLenEachU #-}
-enumFromStepLenEachU len = unstreamU . enumFromStepLenEachS len . streamU 
-
-
-
+enumFromStepLenEachU len starts steps lens
+  = unstreamU $ enumFromStepLenEachS len $ streamU $ zipU (zipU starts steps) lens
 

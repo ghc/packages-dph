@@ -164,10 +164,7 @@ enumFromThenTo :: Int -> Int -> Int -> Array Int
 enumFromStepLen :: Int -> Int -> Int -> Array Int
 {-# INLINE_BACKEND enumFromStepLen #-}
 
-enumFromToEach :: Int -> Array (Int :*: Int) -> Array Int
-{-# INLINE_BACKEND enumFromToEach #-}
-
-enumFromStepLenEach :: Int -> Array (Int :*: Int :*: Int) -> Array Int
+enumFromStepLenEach :: Int -> Array Int -> Array Int -> Array Int -> Array Int
 {-# INLINE_BACKEND enumFromStepLenEach #-}
 
 replicate_s :: Elt a => Segd -> Array a -> Array a

@@ -13,7 +13,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
   fromListPA_Int#,
   upToPA_Int#, enumFromToPA_Int#, enumFromThenToPA_Int#,
-  enumFromStepLenPA_Int#, enumFromToEachPA_Int#,
+  enumFromStepLenPA_Int#,
   selectPA_Int#, selectorToIndices2PA#,
   -- lengthSegdPA#, lengthsSegdPA#, indicesSegdPA#, elementsSegdPA#,
   -- lengthsToSegdPA#, mkSegdPA#,
@@ -177,10 +177,6 @@ enumFromThenToPA_Int# k# m# n# = U.enumFromThenTo (I# k#) (I# m#) (I# n#)
 enumFromStepLenPA_Int# :: Int# -> Int# -> Int# -> PArray_Int#
 enumFromStepLenPA_Int# k# m# n# = U.enumFromStepLen (I# k#) (I# m#) (I# n#)
 {-# INLINE_PA enumFromStepLenPA_Int# #-}
-
-enumFromToEachPA_Int# :: Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
-enumFromToEachPA_Int# n# is js = U.enumFromToEach (I# n#) (U.zip is js)
-{-# INLINE_PA enumFromToEachPA_Int# #-}
 
 selectPA_Int# :: PArray_Int# -> Int# -> PArray_Bool#
 selectPA_Int# ns i# = U.map (\n -> n == I# i#) ns

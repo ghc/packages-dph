@@ -362,7 +362,7 @@ instance PR a => PR (PArray a) where
     = traceFn "replicatelPR" "(PArray a)" $
     PNested xsegd' $ bpermutePR xs (elementsSegd# xsegd')
                    $ U.enumFromStepLenEach (U.elementsSegd xsegd')
-                   $ U.zip3 is (U.replicate (U.elementsSegd segd) 1) ns
+                          is (U.replicate (U.elementsSegd segd) 1) ns
     where
       is = U.replicate_s segd (U.indicesSegd xsegd)
       ns = U.replicate_s segd (U.lengthsSegd xsegd)

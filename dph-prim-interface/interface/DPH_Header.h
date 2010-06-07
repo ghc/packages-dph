@@ -8,7 +8,7 @@ module Data.Array.Parallel.Unlifted (
   empty, replicate, repeat, (+:+), interleave,
   (!:), extract, drop, permute, mbpermute, bpermute, bpermuteDft, update,
   pack, combine, combine2ByTag,
-  enumFromTo, enumFromThenTo, enumFromToEach, enumFromStepLen, enumFromStepLenEach,
+  enumFromTo, enumFromThenTo, enumFromStepLen, enumFromStepLenEach,
   indexed,
   zip, zip3, unzip, unzip3, fsts, snds,
   map, zipWith, zipWith3,

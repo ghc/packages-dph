@@ -18,13 +18,14 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Enum (
-  enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromToEachUP, enumFromStepLenEachUP    
+  enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromStepLenEachUP    
 ) where
 
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, uncurryS)
 import Data.Array.Parallel.Unlifted.Sequential (
-  UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU, sndU, sumU)
+  UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU, sndU, sumU,
+  zipU, unzipU)
 import Data.Array.Parallel.Unlifted.Distributed (
   mapD, scanD, zipD, splitLenIdxD, joinD, splitD, balanced, unbalanced,
   theGang)
@@ -62,19 +63,14 @@ enumFromStepLenUP start delta len =
     --
     --gen (i :*: n) = enumFromStepLenU (i * delta + start) delta n
 
-enumFromToEachUP :: Int -> UArr (Int :*: Int) -> UArr Int
-{-# INLINE enumFromToEachUP #-}
-enumFromToEachUP n inds = enumFromStepLenEachUP n
-                        $ mapUP mk inds
-  where
-    mk (x :*: y) = x :*: 1 :*: (y-x+1)
-
-enumFromStepLenEachUP :: Int -> UArr (Int :*: Int :*: Int) -> UArr Int
+enumFromStepLenEachUP :: Int -> UArr Int -> UArr Int -> UArr Int -> UArr Int
 {-# INLINE enumFromStepLenEachUP #-}
-enumFromStepLenEachUP n ps
+enumFromStepLenEachUP n starts steps lens
   = joinD theGang unbalanced
   $ mapD theGang enum
-  $ splitD theGang unbalanced ps
+  $ splitD theGang unbalanced (zipU (zipU starts steps) lens)
   where
-    enum ps = enumFromStepLenEachU (sumU (sndU ps)) ps
+    enum ps = let (qs, llens) = unzipU ps
+                  (lstarts, lsteps) = unzipU qs
+              in enumFromStepLenEachU (sumU llens) lstarts lsteps llens
 
