@@ -14,18 +14,18 @@ module Data.Array.Parallel.Lifted.PArray (
   PArray(..), PData,
 
   PA(..),
-  lengthPA#, dataPA#, replicatePA#, replicatelPA#, repeatPA#, repeatcPA#,
+  lengthPA#, dataPA#, replicatePA#, replicatelPA#, repeatPA#,
   emptyPA, indexPA#, extractPA#, bpermutePA#, appPA#, applPA#,
   packByTagPA#, combine2PA#, updatePA#, fromListPA#, fromListPA, nfPA,
 
-  replicatePD, replicatelPD, repeatPD, repeatcPD, emptyPD,
+  replicatePD, replicatelPD, repeatPD, emptyPD,
   indexPD, extractPD, bpermutePD, appPD, applPD,
   packByTagPD, combine2PD, updatePD, fromListPD, nfPD,
 
   PRepr, PR(..),
 
   Scalar(..),
-  replicatePRScalar, replicatelPRScalar, repeatPRScalar, repeatcPRScalar, emptyPRScalar,
+  replicatePRScalar, replicatelPRScalar, repeatPRScalar, emptyPRScalar,
   indexPRScalar, extractPRScalar, bpermutePRScalar, appPRScalar, applPRScalar,
   packByTagPRScalar, combine2PRScalar, updatePRScalar, fromListPRScalar,
   nfPRScalar,
@@ -96,7 +96,6 @@ class PR a where
   replicatePR  :: T_replicatePR a
   replicatelPR :: T_replicatelPR a
   repeatPR     :: T_repeatPR a
-  repeatcPR    :: T_repeatcPR a
   indexPR      :: T_indexPR a
   extractPR    :: T_extractPR a
   bpermutePR   :: T_bpermutePR a
@@ -129,13 +128,6 @@ type T_repeatPR     a =  Int#              -- number of times to repeat
                       -> Int#              -- length of source array
                       -> PData a           -- source array
                       -> PData a
-
-type T_repeatcPR    a =  Int#              -- length of result array
-                      -> U.Array Int       -- number of times each segment is repeated
-                      -> U.Segd            -- source segment descriptor 
-                      -> PData a           -- source array
-                      -> PData a
-
 
 -- |Retrieve a numbered element from an array.
 type T_indexPR      a =  PData a           -- source array
@@ -233,12 +225,6 @@ repeatPD n# len# xs = fromArrPRepr
                     . repeatPR n# len#
                     $ toArrPRepr xs
 
-repeatcPD :: PA a => T_repeatcPR a
-{-# INLINE_PA repeatcPD #-}
-repeatcPD n# ns segd xs = fromArrPRepr
-                        . repeatcPR n# ns segd
-                        $ toArrPRepr xs
-
 indexPD :: PA a => T_indexPR a
 {-# INLINE_PA indexPD #-}
 indexPD xs i# = fromPRepr $ indexPR (toArrPRepr xs) i#
@@ -320,12 +306,6 @@ replicatelPA# segd (PArray n# xs)
 repeatPA# :: PA a => Int# -> PArray a -> PArray a
 {-# INLINE_PA repeatPA# #-}
 repeatPA# m# (PArray n# xs) = PArray (m# *# n#) (repeatPD m# n# xs)
-
-repeatcPA# :: PA a => U.Array Int -> U.Segd -> PArray a -> PArray a
-{-# INLINE_PA repeatcPA# #-}
-repeatcPA# ns segd (PArray n# xs)
-  = case U.sum (U.zipWith (*) ns (U.lengthsSegd segd)) of
-      I# m# -> PArray m# (repeatcPD m# ns segd xs)
 
 indexPA# :: PA a => PArray a -> Int# -> a
 {-# INLINE_PA indexPA# #-}
@@ -413,13 +393,6 @@ repeatPRScalar n# len# xs = traceF "repeatPRScalar"
                         $ toScalarPData
                         $ U.repeat (I# n#) (I# len#)
                         $ fromScalarPData xs
-
-repeatcPRScalar :: Scalar a => T_repeatcPR a
-{-# INLINE repeatcPRScalar #-}
-repeatcPRScalar n# ns segd xs = traceF "repeatcPRScalar"
-                            $ toScalarPData
-                            $ U.repeat_c (I# n#) ns segd
-                            $ fromScalarPData xs
 
 indexPRScalar :: Scalar a => T_indexPR a
 {-# INLINE indexPRScalar #-}

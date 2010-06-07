@@ -177,7 +177,6 @@ nameGens =
   , ('replicatePR,      [const "n#", id])
   , ('replicatelPR,     [const "segd", id])
   , ('repeatPR,         [const "n#", const "len#", id])
-  , ('repeatcPR,        [const "n#", const "ns", const "segd", id])
   , ('indexPR,          [id, const "i#"])
   , ('extractPR,        [id, const "i#", const "n#"])
   , ('bpermutePR,       [id, const "n#", const "is"])

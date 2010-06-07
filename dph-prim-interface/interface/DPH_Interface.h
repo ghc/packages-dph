@@ -194,23 +194,6 @@ append_s :: Elt a => Segd         -- ^ segment descriptor of result array
 
   #-}
 
-repeat_c :: Elt a => Int          -- ^ length of the result array
-                  -> Array Int    -- ^ number of time a segment is repeated
-                  -> Segd         -- ^ segment descriptor
-                  -> Array a      -- ^ data array
-                  -> Array a
-{-# INLINE_BACKEND repeat_c #-}
-repeat_c k ns segd xs
-  = bpermute xs
-  . enumFromStepLenEach k
-  $ zip3 is (replicate (elementsSegd segd') 1) ks
-  where
-    segd' = lengthsToSegd ns
-    is = replicate_s segd' (indicesSegd segd)
-    ks = replicate_s segd' (lengthsSegd segd)
-    -- ks = replicate_s segd'
-    --    $ zip (lengthsSegd segd) (indicesSegd segd)
-
 fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold_s #-}
 
@@ -386,10 +369,6 @@ dph_mult x y = x Prelude.* y
  #-}
 
 {-# RULES
-
-"repeat_c/repeat" forall k ks n m idxs nm len xs.
-  repeat_c k ks (mkSegd (replicate n m) idxs nm) (repeat n len xs)
-    = repeat (sum ks) len xs
 
 "repeat/enumFromStepLen[Int]" forall i j k n len.
   repeat n len (enumFromStepLen i j k)

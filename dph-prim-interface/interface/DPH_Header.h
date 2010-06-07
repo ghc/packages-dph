@@ -18,8 +18,6 @@ module Data.Array.Parallel.Unlifted (
 
   replicate_s, replicate_rs, append_s,
 
-  repeat_c,
-
   fold_s, fold1_s, fold_r, sum_s, indices_s, sum_r,
   lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd,
   mkSegd, plusSegd,

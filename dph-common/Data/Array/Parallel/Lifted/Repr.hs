@@ -116,11 +116,6 @@ instance (PR a, PR b) => PR (a,b) where
       P_2 (repeatPR n# len# as)
           (repeatPR n# len# bs)
 
-  {-# INLINE repeatcPR #-}
-  repeatcPR n# ns segd (P_2 as bs) =
-      P_2 (repeatcPR n# ns segd as)
-          (repeatcPR n# ns segd bs)
-
   {-# INLINE indexPR #-}
   indexPR (P_2 as bs) i# = (indexPR as i#, indexPR bs i#)
 
@@ -365,14 +360,13 @@ instance PR a => PR (PArray a) where
   {-# INLINE replicatelPR #-}
   replicatelPR segd (PNested xsegd xs)
     = traceFn "replicatelPR" "(PArray a)" $
-    PNested xsegd' xs'
+    PNested xsegd' $ bpermutePR xs (elementsSegd# xsegd')
+                   $ U.enumFromStepLenEach (U.elementsSegd xsegd')
+                   $ U.zip3 is (U.replicate (U.elementsSegd segd) 1) ns
     where
-      xsegd' = U.lengthsToSegd
-             $ U.replicate_s segd (U.lengthsSegd xsegd)
-
-      xs'    = repeatcPR (elementsSegd# xsegd')
-                            (U.lengthsSegd segd)
-                            xsegd xs
+      is = U.replicate_s segd (U.indicesSegd xsegd)
+      ns = U.replicate_s segd (U.lengthsSegd xsegd)
+      xsegd' = U.lengthsToSegd ns
 
   {-# INLINE packByTagPR #-}
   packByTagPR (PNested segd xs) n# tags t#

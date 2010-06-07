@@ -7,7 +7,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
 
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
-  replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#, repeatcPA_Int#,
+  replicatePA_Int#, replicatelPA_Int#, repeatPA_Int#,
   indexPA_Int#, extractPA_Int#, bpermutePA_Int#,
   appPA_Int#, applPA_Int#,
   packPA_Int#, pack'PA_Int#, combine2PA_Int#, combine2'PA_Int#,
@@ -23,7 +23,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
 
   PArray_Word8#,
   lengthPA_Word8#, emptyPA_Word8#,
-  replicatePA_Word8#, replicatelPA_Word8#, repeatPA_Word8#, repeatcPA_Word8#,
+  replicatePA_Word8#, replicatelPA_Word8#, repeatPA_Word8#,
   indexPA_Word8#, extractPA_Word8#, bpermutePA_Word8#,
   appPA_Word8#, applPA_Word8#,
   packPA_Word8#, pack'PA_Word8#, combine2PA_Word8#, combine2'PA_Word8#,
@@ -33,7 +33,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
 
   PArray_Double#,
   lengthPA_Double#, emptyPA_Double#,
-  replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#, repeatcPA_Double#,
+  replicatePA_Double#, replicatelPA_Double#, repeatPA_Double#,
   indexPA_Double#, extractPA_Double#, bpermutePA_Double#,
   appPA_Double#, applPA_Double#,
   packPA_Double#, pack'PA_Double#, combine2PA_Double#, combine2'PA_Double#,
@@ -120,10 +120,6 @@ replicatelPA_Int# segd is = U.replicate_s segd is
 repeatPA_Int# :: Int# -> Int# -> PArray_Int# -> PArray_Int#
 repeatPA_Int# n# len# is = U.repeat (I# n#) (I# len#) is
 {-# INLINE_PA repeatPA_Int# #-}
-
-repeatcPA_Int# :: Int# -> PArray_Int# -> Segd -> PArray_Int# -> PArray_Int#
-repeatcPA_Int# n# ns segd is = U.repeat_c (I# n#) ns segd is
-{-# INLINE_PA repeatcPA_Int# #-}
 
 indexPA_Int# :: PArray_Int# -> Int# -> Int#
 indexPA_Int# ns i# = case ns U.!: I# i# of { I# n# -> n# }
@@ -253,10 +249,6 @@ repeatPA_Word8# :: Int# -> Int# -> PArray_Word8# -> PArray_Word8#
 repeatPA_Word8# n# len# ds = U.repeat (I# n#) (I# len#) ds
 {-# INLINE_PA repeatPA_Word8# #-}
 
-repeatcPA_Word8# :: Int# -> PArray_Int# -> Segd -> PArray_Word8# -> PArray_Word8#
-repeatcPA_Word8# n# ns segd is = U.repeat_c (I# n#) ns segd is
-{-# INLINE_PA repeatcPA_Word8# #-}
-
 indexPA_Word8# :: PArray_Word8# -> Int# -> Word#
 indexPA_Word8# ds i# = case ds U.!: I# i# of { W8# d# -> d# }
 {-# INLINE_PA indexPA_Word8# #-}
@@ -348,10 +340,6 @@ repeatPA_Double# n# len# ds = U.repeat (I# n#) (I# len#) ds
   repeatPA_Double# n# len# ds = U.repeat (I# n#) (I# len#) ds
 
  #-}
-
-repeatcPA_Double# :: Int# -> PArray_Int# -> Segd -> PArray_Double# -> PArray_Double#
-repeatcPA_Double# n# ns segd is = U.repeat_c (I# n#) ns segd is
-{-# INLINE_PA repeatcPA_Double# #-}
 
 indexPA_Double# :: PArray_Double# -> Int# -> Double#
 indexPA_Double# ds i# = case ds U.!: I# i# of { D# d# -> d# }
