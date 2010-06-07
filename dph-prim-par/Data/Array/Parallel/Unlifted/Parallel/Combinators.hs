@@ -25,6 +25,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Combinators (
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
 mapUP :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b
 {-# INLINE mapUP #-}
@@ -62,12 +63,22 @@ combineUP flags !xs !ys = joinD theGang balanced
 
     go ((i :*: j) :*: (m :*: n)) bs = combineU bs (sliceU xs i m) (sliceU ys j n)
 
-combine2UP :: UA a => USel2 -> UArr a -> UArr a -> UArr a
+combine2UP :: UA a => UPSel2 -> UArr a -> UArr a -> UArr a
 {-# INLINE_UP combine2UP #-}
+combine2UP sel !xs !ys = joinD theGang balanced
+                       $ zipWithD theGang go (distUPSel2 sel)
+                       $ splitD theGang balanced (tagsUPSel2 sel)
+  where
+    go ((i :*: j) :*: (m :*: n)) ts = combine2ByTagU ts (sliceU xs i m)
+                                                        (sliceU ys j n)
+    
+{-
 combine2UP sel !xs !ys = zipWithUP get (tagsUSel2 sel) (indicesUSel2 sel)
   where
+    {-# INLINE [0] get #-}
     get 0 i = xs !: i
     get _ i = ys !: i
+-}
 
 {-
 combine2UP tags !xs !ys = joinD theGang balanced

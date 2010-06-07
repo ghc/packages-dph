@@ -31,7 +31,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
   mapAccumLU,
   zipU, zip3U, unzipU, unzip3U, fstU, sndU,
   zipWithU, zipWith3U, 
-  combineU, combine2U
+  combineU, combine2U, combine2ByTagU
 ) where
 
 import Data.Array.Parallel.Base (
@@ -231,9 +231,14 @@ combineU f a1 a2 = checkEq (here "combineU")
 
 combine2U :: UA a => USel2 -> UArr a -> UArr a -> UArr a
 {-# INLINE_U combine2U #-}
-combine2U ts xs ys
+combine2U sel xs ys = combine2ByTagU (tagsUSel2 sel) xs ys
+
+combine2ByTagU :: UA a => UArr Int -> UArr a -> UArr a -> UArr a
+{-# INLINE_U combine2ByTagU #-}
+combine2ByTagU ts xs ys
   = checkEq (here "combine2ByTagU")
-            ("sel length /= sum of args length")
-            (lengthUSel2 ts) (lengthU xs + lengthU ys)
-  $ unstreamU (combine2ByTagS (streamU (tagsUSel2 ts)) (streamU xs) (streamU ys))
+            ("tags length /= sum of args length")
+            (lengthU ts) (lengthU xs + lengthU ys)
+  $ unstreamU (combine2ByTagS (streamU ts) (streamU xs) (streamU ys))
+
 

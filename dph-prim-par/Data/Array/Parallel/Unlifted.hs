@@ -14,7 +14,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential
 class (UA a, DT a) => Elt a
 type Array = UArr
 type Segd = UPSegd
-type Sel2 = USel2
+type Sel2 = UPSel2
 
 length = lengthU
 empty = emptyU
@@ -51,11 +51,11 @@ enumFromThenTo = enumFromThenToUP
 enumFromStepLen = enumFromStepLenUP
 enumFromStepLenEach =enumFromStepLenEachUP
 
-mkSel2 = mkUSel2
-tagsSel2 = tagsUSel2
-indicesSel2 = indicesUSel2
-elementsSel2_0 = elementsUSel2_0
-elementsSel2_1 = elementsUSel2_1
+mkSel2 = mkUPSel2
+tagsSel2 = tagsUPSel2
+indicesSel2 = indicesUPSel2
+elementsSel2_0 = elementsUPSel2_0
+elementsSel2_1 = elementsUPSel2_1
 
 replicate_s = replicateSUP
 replicate_rs = replicateRSUP

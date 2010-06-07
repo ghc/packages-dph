@@ -52,7 +52,7 @@ module Data.Array.Parallel.Unlifted.Sequential (
   mapAccumLU,
 
   -- Segmented filter and combines
-  combineU, combine2U, combineSU,
+  combineU, combine2U, combine2ByTagU, combineSU,
 
   -- * Searching
   elemU, notElemU,
