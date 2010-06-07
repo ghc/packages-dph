@@ -18,7 +18,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, filterUP, packUP, combineUP, combine2ByTagUP,
+  mapUP, filterUP, packUP, combineUP, combine2UP,
   zipWithUP, foldUP, fold1UP, foldl1UP, scanUP
 ) where
 
@@ -62,11 +62,17 @@ combineUP flags !xs !ys = joinD theGang balanced
 
     go ((i :*: j) :*: (m :*: n)) bs = combineU bs (sliceU xs i m) (sliceU ys j n)
 
-combine2ByTagUP :: UA a => UArr Int -> UArr a -> UArr a -> UArr a
-{-# INLINE_UP combine2ByTagUP #-}
-combine2ByTagUP tags !xs !ys = joinD theGang balanced
-                             $ zipWithD theGang go (zipD is ns)
-                             $ splitD theGang balanced tags
+combine2UP :: UA a => USel2 -> UArr a -> UArr a -> UArr a
+{-# INLINE_UP combine2UP #-}
+combine2UP sel !xs !ys = zipWithUP get (tagsUSel2 sel) (indicesUSel2 sel)
+  where
+    get 0 i = xs !: i
+    get _ i = ys !: i
+
+{-
+combine2UP tags !xs !ys = joinD theGang balanced
+                        $ zipWithD theGang go (zipD is ns)
+                        $ splitD theGang balanced tags
   where
     ns = mapD theGang count
        $ splitD theGang balanced tags
@@ -80,7 +86,7 @@ combine2ByTagUP tags !xs !ys = joinD theGang balanced
 
     go ((i :*: j) :*: (m :*: n)) ts = combine2ByTagU ts (sliceU xs i m)
                                                         (sliceU ys j n)
-
+-}
 
 zipWithUP :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
 {-# INLINE zipWithUP #-}

@@ -274,7 +274,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       PSum2 sel' as bs
     where
       tags  = U.tagsSel2 sel
-      tags' = U.combine2ByTag tags (U.tagsSel2 sel1) (U.tagsSel2 sel2)
+      tags' = U.combine2 sel (U.tagsSel2 sel1) (U.tagsSel2 sel2)
       sel'  = U.tagsToSel2 tags'
 
       asel = U.tagsToSel2 (U.packByTag tags tags' 0)
@@ -386,7 +386,7 @@ instance PR a => PR (PArray a) where
       tags = U.tagsSel2 sel
 
       segd = U.lengthsToSegd
-           $ U.combine2ByTag tags (U.lengthsSegd xsegd) (U.lengthsSegd ysegd)
+           $ U.combine2 sel (U.lengthsSegd xsegd) (U.lengthsSegd ysegd)
 
       sel' = U.tagsToSel2
            $ U.replicate_s segd tags

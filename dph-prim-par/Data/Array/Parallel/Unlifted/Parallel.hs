@@ -18,7 +18,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
 
   enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromStepLenEachUP,
 
-  mapUP, filterUP, packUP, combineUP, combine2ByTagUP,
+  mapUP, filterUP, packUP, combineUP, combine2UP,
   zipWithUP, foldUP, scanUP,
 
   andUP, sumUP,

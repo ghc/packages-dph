@@ -60,9 +60,11 @@ combine [] [] [] = []
 combine (True  : bs) (x : xs) ys       = x : combine bs xs ys
 combine (False : bs) xs       (y : ys) = y : combine bs xs ys
 
-combine2ByTag [] [] [] = []
-combine2ByTag (0 : bs) (x : xs) ys = x : combine2ByTag bs xs ys
-combine2ByTag (1 : bs) xs (y : ys) = y : combine2ByTag bs xs ys
+combine2 sel xs ys = go (tagsSel2 sel) xs ys
+  where
+    go [] [] [] = []
+    go (0 : bs) (x : xs) ys = x : go bs xs ys
+    go (1 : bs) xs (y : ys) = y : go bs xs ys
 
 map = P.map
 filter = P.filter
