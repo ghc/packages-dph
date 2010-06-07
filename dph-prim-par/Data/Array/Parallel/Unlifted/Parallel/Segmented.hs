@@ -32,13 +32,14 @@ import Data.Array.Parallel.Unlifted.Parallel.Basics (
   replicateUP, repeatUP)
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Permute ( bpermuteUP )
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import Data.Array.Parallel.Base (
   (:*:)(..), fstS, sndS, uncurryS, unsafe_unpairS, MaybeS(..))
 import Data.Array.Parallel.Stream
 
 import Control.Monad.ST ( ST, runST )
 
-replicateSUP :: UA a => USegd -> UArr a -> UArr a
+replicateSUP :: UA a => UPSegd -> UArr a -> UArr a
 {-# INLINE_UP replicateSUP #-}
 {-
 replicateSUP segd xs = joinD theGang unbalanced
@@ -50,7 +51,7 @@ replicateSUP segd xs = joinD theGang unbalanced
 -}
 replicateSUP segd !xs = joinD theGang balanced
                       . mapD theGang rep
-                      $ splitSegdD' theGang segd
+                      $ distUPSegd segd
   where
     rep (dsegd :*: di :*: _)
       = bpermuteU xs
@@ -73,17 +74,19 @@ indicesSegdS lens k n = Stream next (0 :*: 0 :*: (k-1)) n (sNoArgs "indicesSegS"
 -- FIXME: make this efficient
 replicateRSUP :: UA a => Int -> UArr a -> UArr a
 {-# INLINE_UP replicateRSUP #-}
-replicateRSUP n xs = replicateSUP (lengthsToUSegd (replicateUP (lengthU xs) n)) xs
+replicateRSUP n xs = replicateSUP (lengthsToUPSegd (replicateUP (lengthU xs) n)) xs
 
-appendSUP :: UA a => USegd -> USegd -> UArr a -> USegd -> UArr a -> UArr a
+appendSUP :: UA a => UPSegd -> UPSegd -> UArr a -> UPSegd -> UArr a -> UArr a
 {-# INLINE_UP appendSUP #-}
 appendSUP segd !xd !xs !yd !ys
   = joinD theGang balanced
   . mapD theGang append
-  $ splitSegdD' theGang segd
+  $ distUPSegd segd
   where
     append (segd :*: seg_off :*: el_off)
-      = unstreamU $ appendSegS xd xs yd ys (elementsUSegd segd) seg_off el_off
+      = unstreamU $ appendSegS (segdUPSegd xd) xs
+                               (segdUPSegd yd) ys
+                               (elementsUSegd segd) seg_off el_off
 
 appendSegS :: UA a => USegd -> UArr a -> USegd -> UArr a -> Int -> Int -> Int
                 -> Stream a
@@ -216,7 +219,7 @@ fixupFold f !mrs !dcarry = go 1
 
 
 folds :: UA a => (a -> a -> a)
-              -> (USegd -> UArr a -> UArr a) -> USegd -> UArr a -> UArr a
+              -> (USegd -> UArr a -> UArr a) -> UPSegd -> UArr a -> UArr a
 {-# INLINE folds #-}
 folds f g segd xs = dcarry `seq` drs `seq` runST (
   do
@@ -227,7 +230,7 @@ folds f g segd xs = dcarry `seq` drs `seq` runST (
     dcarry :*: drs
           = unzipD
           $ mapD theGang (partial . unsafe_unpairS)
-          $ zipD (splitSegdD' theGang segd)
+          $ zipD (distUPSegd segd)
                  (splitD theGang balanced xs)
 
     partial (segd :*: k :*: off, as)
@@ -238,11 +241,11 @@ folds f g segd xs = dcarry `seq` drs `seq` runST (
                     else k :*: takeU 1 rs :*: dropU 1 rs
 
 
-foldSUP :: UA a => (a -> a -> a) -> a -> USegd -> UArr a -> UArr a
+foldSUP :: UA a => (a -> a -> a) -> a -> UPSegd -> UArr a -> UArr a
 {-# INLINE foldSUP #-}
 foldSUP f !z = folds f (foldlSU f z)
 
-fold1SUP :: UA a => (a -> a -> a) -> USegd -> UArr a -> UArr a
+fold1SUP :: UA a => (a -> a -> a) -> UPSegd -> UArr a -> UArr a
 {-# INLINE fold1SUP #-}
 fold1SUP f = folds f (fold1SU f)
 {-
@@ -254,7 +257,7 @@ fold1SUP f segd xs = joinD theGang unbalanced
     dsegd = splitSegdD theGang segd
 -}
 
-sumSUP :: (Num e, UA e) => USegd -> UArr e -> UArr e
+sumSUP :: (Num e, UA e) => UPSegd -> UArr e -> UArr e
 {-# INLINE sumSUP #-}
 sumSUP = foldSUP (+) 0
 
@@ -276,11 +279,11 @@ foldRUP f z !segSize xs =
     noOfSegs = lengthU xs `div` segSize
     dlen = splitLenD theGang noOfSegs
 
-indicesSUP :: USegd -> UArr Int
+indicesSUP :: UPSegd -> UArr Int
 {-# INLINE_UP indicesSUP #-}
 indicesSUP = joinD theGang balanced
            . mapD theGang indices
-           . splitSegdD' theGang
+           . distUPSegd
   where
     indices (segd :*: k :*: off) = indicesSU' off segd
 

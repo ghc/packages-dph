@@ -13,7 +13,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential
 
 class (UA a, DT a) => Elt a
 type Array = UArr
-type Segd = USegd
+type Segd = UPSegd
 type Sel2 = USel2
 
 length = lengthU
@@ -67,11 +67,11 @@ sum_r = sumRUP
 
 indices_s segd = indicesSUP segd
 
-lengthSegd = lengthUSegd
-lengthsSegd = lengthsUSegd
-indicesSegd = indicesUSegd
-elementsSegd = elementsUSegd
-mkSegd = mkUSegd
+lengthSegd = lengthUPSegd
+lengthsSegd = lengthsUPSegd
+indicesSegd = indicesUPSegd
+elementsSegd = elementsUPSegd
+mkSegd = mkUPSegd
 randoms = randomU
 randomRs = randomRU
 class UIO a => IOElt a

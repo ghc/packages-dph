@@ -14,6 +14,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel (
+  UPSegd,
   bpermuteUP, updateUP,
 
   enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromStepLenEachUP,
@@ -22,7 +23,11 @@ module Data.Array.Parallel.Unlifted.Parallel (
   zipWithUP, foldUP, scanUP,
 
   andUP, sumUP,
-  
+
+  lengthUPSegd, lengthsUPSegd, indicesUPSegd, elementsUPSegd,
+  segdUPSegd, distUPSegd,
+  lengthsToUPSegd, mkUPSegd,
+ 
   replicateSUP, replicateRSUP, appendSUP, indicesSUP,
   foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP,
 
@@ -38,5 +43,5 @@ import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
-
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 
