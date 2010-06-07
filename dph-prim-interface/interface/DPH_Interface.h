@@ -114,6 +114,10 @@ zipWith :: (Elt a, Elt b, Elt c)
 "zipWith/plusInt0_2" forall n xs.
   zipWith GHC.Base.plusInt xs (replicate n (GHC.Base.I# 0#)) = xs
 
+"zipWith(plusInt)/enumFromStepLen" forall i1 k1 n1 i2 k2 n2.
+  zipWith GHC.Base.plusInt (enumFromStepLen i1 k1 n1)
+                           (enumFromStepLen i2 k2 n2)
+    = enumFromStepLen (i1+i2) (k1+k2) n1
   #-}
 
 zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
@@ -168,10 +172,10 @@ enumFromStepLenEach :: Int -> Array Int -> Array Int -> Array Int -> Array Int
 {-# INLINE_BACKEND enumFromStepLenEach #-}
 
 replicate_s :: Elt a => Segd -> Array a -> Array a
-{-# INLINE_BACKEND replicate_s #-}
+{-# INLINE CONLIKE PHASE_BACKEND replicate_s #-}
 
 replicate_rs :: Elt a => Int -> Array a -> Array a
-{-# INLINE_BACKEND replicate_rs #-}
+{-# INLINE CONLIKE PHASE_BACKEND replicate_rs #-}
 
 append_s :: Elt a => Segd         -- ^ segment descriptor of result array
                   -> Segd         -- ^ segment descriptor of first array
@@ -312,6 +316,24 @@ packByTag :: Elt a => Array a -> Array Int -> Int -> Array a
 {-# INLINE_BACKEND packByTag #-}
 packByTag xs tags !tag = fsts (filter (\p -> sndS p == tag) (zip xs tags))
 
+{-# RULES
+
+"packByTag/bpermute" forall xs is tags n.
+  packByTag (bpermute xs is) tags n
+    = bpermute xs (packByTag is tags n)
+
+  #-}
+
+{- RULES
+
+"packByTag/combine2ByTag" forall tags1 xs ys tags2 n.
+  packByTag (combine2ByTag tags1 xs ys) tags2 n
+    = combine2ByTag (packByTag tags1 tags2 n)
+                    (packByTag xs (packByTag tags2 tags1 0) n)
+                    (packByTag ys (packByTag tags2 tags1 1) n)
+
+  -}
+
 pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
 {-# INLINE pick #-}
 pick xs !x = map (x==) xs
@@ -380,6 +402,9 @@ dph_mult x y = x Prelude.* y
   bpermute (repeat n len xs) is
     = len `Prelude.seq` bpermute xs (map (dph_mod_index len) is)
 
+"bpermute/bpermute" forall xs is js.
+  bpermute (bpermute xs is) js = bpermute xs (bpermute is js)
+
   #-}
 
 {-# RULES
@@ -393,6 +418,13 @@ dph_mult x y = x Prelude.* y
 
 "replicate_rs/replicate" forall m n x.
   replicate_rs m (replicate n x) = replicate (m*n) x
+
+"sum/replicate_rs" forall n xs.
+  sum (replicate_rs n xs) = sum xs * n
+
+"count/replicate_s" forall segd xs tag.
+  count (replicate_s segd xs) tag
+    = sum (packByTag (lengthsSegd segd) xs tag)
 
  #-}
 
