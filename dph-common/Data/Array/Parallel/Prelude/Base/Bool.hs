@@ -1,6 +1,6 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.Bool (
-  andP, andPA, orP, orPA
+  andP, andPA, orP, orPA, notV, andV, orV
 ) where
 
 import Data.Array.Parallel.Prelude.Base.PArr
@@ -10,6 +10,10 @@ import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
+import Data.Array.Parallel.Lifted.Selector
+import qualified Data.Array.Parallel.Unlifted as U
+
+import Data.Bits
 
 
 andP:: [:Bool:] -> Bool
@@ -29,4 +33,40 @@ orP _ = True
 orPA:: PArray Bool :-> Bool
 {-# INLINE orPA #-}
 orPA = closure1 (scalar_fold (||) False) 
-                 (scalar_folds (||) False) 
+                 (scalar_folds (||) False)
+
+not_l :: PArray Bool -> PArray Bool
+{-# INLINE not_l #-}
+not_l (PArray n# bs)
+  = PArray n#
+  $ case bs of { PBool sel ->
+    PBool $ tagsToSel2 (U.map complement (tagsSel2 sel)) }
+
+notV :: Bool :-> Bool
+{-# INLINE notV #-}
+notV = closure1 not not_l
+
+and_l :: PArray Bool -> PArray Bool -> PArray Bool
+{-# INLINE and_l #-}
+and_l (PArray n# bs) (PArray _ cs)
+  = PArray n#
+  $ case bs of { PBool sel1 ->
+    case cs of { PBool sel2 ->
+    PBool $ tagsToSel2 (U.zipWith (.&.) (tagsSel2 sel1) (tagsSel2 sel2)) }}
+
+andV :: Bool :-> Bool :-> Bool
+{-# INLINE andV #-}
+andV = closure2 (&&) and_l
+
+or_l :: PArray Bool -> PArray Bool -> PArray Bool
+{-# INLINE or_l #-}
+or_l (PArray n# bs) (PArray _ cs)
+  = PArray n#
+  $ case bs of { PBool sel1 ->
+    case cs of { PBool sel2 ->
+    PBool $ tagsToSel2 (U.zipWith (.|.) (tagsSel2 sel1) (tagsSel2 sel2)) }}
+
+orV :: Bool :-> Bool :-> Bool
+{-# INLINE orV #-}
+orV = closure2 (||) or_l
+
