@@ -7,6 +7,7 @@ import Data.Vector.Unboxed		(Vector)
 
 
 import QuickHull
+import QuickHullSplit
 import TestData
 import Timing
 import SVG
@@ -27,15 +28,20 @@ main
 	let points	= genPointsDisc pointCount (400, 400) 350 
 	let vPoints	= V.fromList points
 
+	-- Force points to create the input vector.
+	V.force vPoints `seq` return ()
+
+	-- Compute the convex hull.
 	timeStart	<- getTime
 	let vHull	= quickHull vPoints
 	V.force vHull `seq` return ()
 	timeEnd		<- getTime
 
+	-- Print how long it took.
 	print (timeEnd `minus` timeStart)
 
+	-- Dump to .svg file if requested.
 	let hull	= V.toList vHull
-	
 	maybe	(return ())
 	 	(\file -> writeFile file $ makeSVG 
 				(roundPoints $ V.toList vPoints)
