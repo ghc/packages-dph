@@ -63,11 +63,11 @@ combineUP flags !xs !ys = joinD theGang balanced
 
     go ((i :*: j) :*: (m :*: n)) bs = combineU bs (sliceU xs i m) (sliceU ys j n)
 
-combine2UP :: UA a => UPSel2 -> UArr a -> UArr a -> UArr a
+combine2UP :: UA a => UArr Int -> UPSelRep2 -> UArr a -> UArr a -> UArr a
 {-# INLINE_UP combine2UP #-}
-combine2UP sel !xs !ys = joinD theGang balanced
-                       $ zipWithD theGang go (distUPSel2 sel)
-                       $ splitD theGang balanced (tagsUPSel2 sel)
+combine2UP tags rep !xs !ys = joinD theGang balanced
+                            $ zipWithD theGang go rep
+                            $ splitD theGang balanced tags
   where
     go ((i :*: j) :*: (m :*: n)) ts = combine2ByTagU ts (sliceU xs i m)
                                                         (sliceU ys j n)

@@ -92,6 +92,7 @@ replicateSel2# n# tag# = U.mkSel2 (U.replicate n tag)
                                   (U.enumFromStepLen 0 1 n)
                                   (if tag == 0 then n else 0)
                                   (if tag == 0 then 0 else n)
+                                  (U.mkSelRep2 (U.replicate n tag))
   where
     n = I# n#
     tag = I# tag#

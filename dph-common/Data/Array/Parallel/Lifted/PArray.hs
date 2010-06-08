@@ -433,7 +433,8 @@ combine2PRScalar :: Scalar a => T_combine2PR a
 {-# INLINE combine2PRScalar #-}
 combine2PRScalar _ sel xs ys = traceF "combine2PRScalar"
                              $ toScalarPData
-                             $ U.combine2 sel
+                             $ U.combine2 (U.tagsSel2 sel)
+                                          (U.repSel2 sel)
                                           (fromScalarPData xs)
                                           (fromScalarPData ys)
 

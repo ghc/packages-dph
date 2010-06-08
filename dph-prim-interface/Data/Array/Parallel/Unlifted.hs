@@ -31,6 +31,8 @@ data Sel2 = Sel2 { sel2_tags      :: [Int]
                  , sel2_elements1 :: Int
                  }
 
+type SelRep2 = ()
+
 length = P.length
 empty = []
 replicate = P.replicate
@@ -48,11 +50,26 @@ bpermuteDft = P.error "Not implemented: dph-prim-interface:Data.Array.Parallel.U
 
 interleave xs ys = P.concat [[x,y] | (x,y) <- P.zip xs ys]
 
-mkSel2 = Sel2
+mkSel2 tags idxs n0 n1 _ = Sel2 tags idxs n0 n1
 tagsSel2 = sel2_tags
 indicesSel2 = sel2_indices
 elementsSel2_0 = sel2_elements0
 elementsSel2_1 = sel2_elements1
+repSel2 _ = ()
+
+mkSelRep2 _ = ()
+indicesSelRep2 tags _ = P.zipWith pick tags
+                      $ P.init
+                      $ P.scanl add (0,0) tags
+  where
+    pick 0 (i,j) = i
+    pick 1 (i,j) = j
+
+    add (i,j) 0 = (i+1,j)
+    add (i,j) 1 = (i,j+1)
+
+elementsSelRep2_0 tags _ = P.length [() | 0 <- tags]
+elementsSelRep2_1 tags _ = P.length [() | 1 <- tags]
 
 pack xs bs = [x | (x,b) <- P.zip xs bs, b]
 
@@ -60,7 +77,7 @@ combine [] [] [] = []
 combine (True  : bs) (x : xs) ys       = x : combine bs xs ys
 combine (False : bs) xs       (y : ys) = y : combine bs xs ys
 
-combine2 sel xs ys = go (tagsSel2 sel) xs ys
+combine2 tags _ xs ys = go tags xs ys
   where
     go [] [] [] = []
     go (0 : bs) (x : xs) ys = x : go bs xs ys

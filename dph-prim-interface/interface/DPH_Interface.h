@@ -65,7 +65,7 @@ pack :: Elt a => Array a -> Array Bool -> Array a
 combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine #-}
 
-combine2 :: Elt a => Sel2 -> Array a -> Array a -> Array a
+combine2 :: Elt a => Array Int -> SelRep2 -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine2 #-}
 
 map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
@@ -265,7 +265,7 @@ plusSegd segd1 segd2
 
  #-}
 
-mkSel2 :: Array Int -> Array Int -> Int -> Int -> Sel2
+mkSel2 :: Array Int -> Array Int -> Int -> Int -> SelRep2 -> Sel2
 {-# INLINE CONLIKE PHASE_BACKEND mkSel2 #-}
 
 tagsSel2 :: Sel2 -> Array Int
@@ -280,34 +280,42 @@ elementsSel2_0 :: Sel2 -> Int
 elementsSel2_1 :: Sel2 -> Int
 {-# INLINE_BACKEND elementsSel2_1 #-}
 
+repSel2 :: Sel2 -> SelRep2
+{-# INLINE_BACKEND repSel2 #-}
+
+mkSelRep2 :: Array Int -> SelRep2
+{-# INLINE CONLIKE PHASE_BACKEND mkSelRep2 #-}
+
+indicesSelRep2 :: Array Int -> SelRep2 -> Array Int
+{-# INLINE_BACKEND indicesSelRep2 #-}
+
+elementsSelRep2_0 :: Array Int -> SelRep2 -> Int
+{-# INLINE_BACKEND elementsSelRep2_0 #-}
+
+elementsSelRep2_1 :: Array Int -> SelRep2 -> Int
+{-# INLINE_BACKEND elementsSelRep2_1 #-}
+
 tagsToSel2 :: Array Int -> Sel2
 {-# INLINE tagsToSel2 #-}
-tagsToSel2 tags = mkSel2 tags (tagsToIndices2 tags) (count tags 0) (count tags 1)
-
-tagsToIndices2 :: Array Int -> Array Int
-{-# INLINE_BACKEND tagsToIndices2 #-}
-tagsToIndices2 ts = zipWith pick ts
-                  . scan idx (0 :*: 0)
-                  $ map start ts
-  where
-    start 0 = 1 :*: 0
-    start _ = 0 :*: 1
-
-    idx (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
-
-    pick 0 (i :*: j) = i
-    pick _ (i :*: j) = j
+tagsToSel2 tags = let rep = mkSelRep2 tags
+                  in
+                  mkSel2 tags (indicesSelRep2    tags rep)
+                              (elementsSelRep2_0 tags rep)
+                              (elementsSelRep2_1 tags rep)
+                              rep
 
 {-# RULES
 
 "tagsSel2/mkSel2"
-  forall ts is n0 n1. tagsSel2 (mkSel2 ts is n0 n1) = ts
+  forall ts is n0 n1 r. tagsSel2 (mkSel2 ts is n0 n1 r) = ts
 "indicesSel2/mkSel2"
-  forall ts is n0 n1. indicesSel2 (mkSel2 ts is n0 n1) = is
+  forall ts is n0 n1 r. indicesSel2 (mkSel2 ts is n0 n1 r) = is
 "elementsSel2_0/mkSel2"
-  forall ts is n0 n1. elementsSel2_0 (mkSel2 ts is n0 n1) = n0
+  forall ts is n0 n1 r. elementsSel2_0 (mkSel2 ts is n0 n1 r) = n0
 "elementsSel2_1/mkSel2"
-  forall ts is n0 n1. elementsSel2_1 (mkSel2 ts is n0 n1) = n1
+  forall ts is n0 n1 r. elementsSel2_1 (mkSel2 ts is n0 n1 r) = n1
+"repSel2/mkSel2"
+  forall ts is n0 n1 r. repSel2 (mkSel2 ts is n0 n1 r) = r
 
   #-}
 

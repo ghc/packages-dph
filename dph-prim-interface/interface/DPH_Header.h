@@ -22,8 +22,9 @@ module Data.Array.Parallel.Unlifted (
   lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd,
   mkSegd, plusSegd,
 
-  mkSel2, tagsSel2, indicesSel2, elementsSel2_0, elementsSel2_1,
-  tagsToSel2, tagsToIndices2,
+  mkSel2, tagsSel2, indicesSel2, elementsSel2_0, elementsSel2_1, repSel2,
+  tagsToSel2,
+  mkSelRep2, indicesSelRep2, elementsSelRep2_0, elementsSelRep2_1,
   packByTag, pick, count, count_s,
 
   randoms, randomRs, IOElt, hGet, hPut,

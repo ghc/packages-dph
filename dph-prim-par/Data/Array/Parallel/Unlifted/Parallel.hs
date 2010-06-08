@@ -14,7 +14,7 @@
 --
 
 module Data.Array.Parallel.Unlifted.Parallel (
-  UPSegd, UPSel2,
+  UPSegd, UPSel2, UPSelRep2,
 
   bpermuteUP, updateUP,
 
@@ -26,8 +26,8 @@ module Data.Array.Parallel.Unlifted.Parallel (
   andUP, sumUP,
 
   tagsUPSel2, indicesUPSel2, elementsUPSel2_0, elementsUPSel2_1,
-  selUPSel2, distUPSel2,
-  mkUPSel2,
+  selUPSel2, repUPSel2, mkUPSel2,
+  mkUPSelRep2, indicesUPSelRep2, elementsUPSelRep2_0, elementsUPSelRep2_1,
 
   lengthUPSegd, lengthsUPSegd, indicesUPSegd, elementsUPSegd,
   segdUPSegd, distUPSegd,

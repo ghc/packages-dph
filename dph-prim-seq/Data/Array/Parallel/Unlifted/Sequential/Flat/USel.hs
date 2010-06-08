@@ -24,11 +24,15 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.USel (
 
   -- * Operations on selectors
   lengthUSel2, tagsUSel2, indicesUSel2, elementsUSel2_0, elementsUSel2_1,
-  mkUSel2
+  mkUSel2, tagsToIndices2
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
   UArr, lengthU )
+import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
+  streamU, unstreamU )
+import Data.Array.Parallel.Stream ( mapAccumS )
+import Data.Array.Parallel.Base ((:*:)(..))
 
 data USel2 = USel2 { usel2_tags      :: !(UArr Int)
                    , usel2_indices   :: !(UArr Int)
@@ -59,4 +63,11 @@ elementsUSel2_1 = usel2_elements1
 mkUSel2 :: UArr Int -> UArr Int -> Int -> Int -> USel2
 {-# INLINE mkUSel2 #-}
 mkUSel2 = USel2
+
+tagsToIndices2 :: UArr Int -> UArr Int
+{-# INLINE tagsToIndices2 #-}
+tagsToIndices2 tags = unstreamU (mapAccumS add (0 :*: 0) (streamU tags))
+  where
+    add (i :*: j) 0 = (i+1 :*: j) :*: i
+    add (i :*: j) _ = (i :*: j+1) :*: j
 

@@ -13,6 +13,7 @@ class UA a => Elt a
 type Array = UArr
 type Segd = USegd
 type Sel2 = USel2
+type SelRep2 = ()
 
 length = lengthU
 empty = emptyU
@@ -30,7 +31,7 @@ update = updateU
 interleave = interleaveU
 pack = packU
 combine = combineU
-combine2 = combine2U
+combine2 tags _ = combine2ByTagU tags
 map = mapU
 filter = filterU
 zip = zipU
@@ -49,11 +50,17 @@ enumFromThenTo = enumFromThenToU
 enumFromStepLen = enumFromStepLenU
 enumFromStepLenEach = enumFromStepLenEachU
 
-mkSel2 = mkUSel2
+mkSel2 tags idxs n0 n1 _ = mkUSel2 tags idxs n0 n1
 tagsSel2 = tagsUSel2
 indicesSel2 = indicesUSel2
 elementsSel2_0 = elementsUSel2_0
 elementsSel2_1 = elementsUSel2_1
+repSel2 _ = ()
+
+mkSelRep2 tags = ()
+indicesSelRep2 tags _ = tagsToIndices2 tags
+elementsSelRep2_0 tags _ = count tags 0
+elementsSelRep2_1 tags _ = count tags 1
 
 replicate_s = replicateSU
 replicate_rs = replicateRSU
