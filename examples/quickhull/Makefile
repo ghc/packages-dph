@@ -39,5 +39,5 @@ quickhullv_SOURCES = \
 	
 seq/quickhullv : $(quickhullv_SOURCES)
 	ghc -Odph -ilegacy/vector --make legacy/vector/Main.hs -o seq/quickhullv \
-		-package dph-prim-seq -package dph-seq -threaded
+		-package dph-prim-seq -package dph-seq -threaded -rtsopts
 
