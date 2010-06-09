@@ -7,9 +7,10 @@ BENCH_DIR = $(TOPDIR)/lib
 BENCH_FLAGS = -package dph-bench -package-conf $(BENCH_DIR)/dph-bench.conf
 BENCH_DEP = $(BENCH_DIR)/dist/inplace-pkg-config
 
-DPH_FLAGS += -Odph -threaded -rtsopts
+DPH_FLAGS += -Odph -threaded -rtsopts -fsimplifier-phases=4 -fstrictness-before=3
 
 WAYS = seq par
 WAY_FLAGS = -fdph-$(WAY) -package dph-$(WAY) -odir $(WAY) -hidir $(WAY)
 
 CFLAGS += -O6
+
