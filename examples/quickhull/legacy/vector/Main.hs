@@ -4,27 +4,43 @@ import System.Environment
 import Data.Function
 import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
+import Control.Monad
 
-
-import QuickHull
-import QuickHullSplit
+import qualified QuickHullVector
+import qualified QuickHullIO
+import qualified QuickHullSplit
 import TestData
 import Timing
 import SVG
 
-parseArgs args
-	| [strCount]	<- args
-	= (read strCount, Nothing)
+algs = 	[ ("vector",	(\v -> return $ QuickHullVector.quickHull v))
+	, ("io",	QuickHullIO.quickHull)
+	, ("split",	(\v -> return $ QuickHullSplit.quickHull v)) ]
 
-	| [strCount, file]	<- args
-	= (read strCount, Just file)
+parseArgs args
+	| [alg, strCount]	<- args
+	, Just fun 		<- lookup alg algs
+	= Just (fun, read strCount, Nothing)
+
+	| [alg, strCount, file]	<- args
+	, Just fun 		<- lookup alg algs
+	= Just (fun, read strCount, Just file)
+
+	| otherwise
+	= Nothing
 
 
 main :: IO ()
 main
- = do	args		<- getArgs
-	let (pointCount, mFileSVG) = parseArgs args
-	
+ = do	argStrs		<- getArgs
+	case parseArgs argStrs of
+	 Just args	-> run args
+	 _ 		-> putStr $ unlines
+				[ "usage: quickhull <alg> <points> [out.svg]"
+				, "   algs: " ++ (show $ map fst algs) ++ "\n" ]
+
+run (fun, pointCount, mFileSVG) 
+ = do
 	let points	= genPointsDisc pointCount (400, 400) 350 
 	let vPoints	= V.fromList points
 
@@ -33,7 +49,7 @@ main
 
 	-- Compute the convex hull.
 	timeStart	<- getTime
-	let vHull	= quickHull vPoints
+	vHull		<- fun vPoints
 	V.force vHull `seq` return ()
 	timeEnd		<- getTime
 
