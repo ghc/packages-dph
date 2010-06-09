@@ -9,7 +9,7 @@ import Control.Monad
 import qualified QuickHullVector
 import qualified QuickHullIO
 import qualified QuickHullSplit
-import TestData
+import TestDataVector
 import Timing
 import SVG
 

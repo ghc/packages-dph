@@ -94,6 +94,7 @@ parPackPoints
 	-> ( Vector Point
 	   , Point)
 	
+{-# INLINE parPackPoints #-}
 parPackPoints !points !p1X !p1Y !p2X !p2Y
  | V.length points < 1000
  = packPoints points p1X p1Y p2X p2Y
@@ -156,9 +157,10 @@ fill 	:: forall s
 		( Point			-- Furthest point from the line that was found.
 		, Int)			-- The number of packed points written.
 
+{-# INLINE fill #-}
 fill !points !packed !p1X !p1Y !p2X !p2Y !ixPoints' !ixPacked'
  = go (0, 0) 0 ixPoints' ixPacked'
- where go pMax distMax ixPoints ixPacked
+ where go pMax !distMax !ixPoints !ixPacked
 	| ixPoints >= V.length points	
 	= do	return (pMax, ixPacked)
 		

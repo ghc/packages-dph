@@ -1,4 +1,4 @@
-module TestData 
+module TestDataVector
 	( genPointsUniform
 	, genPointsDisc
 	, genPointsCombo)
