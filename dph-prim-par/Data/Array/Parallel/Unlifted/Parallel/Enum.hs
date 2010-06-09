@@ -57,7 +57,7 @@ enumFromStepLenUP start delta len =
   (mapD theGang gen
   (splitLenIdxD theGang len))
   where
-    gen (n :*: i) = enumFromStepLenU (i * delta + start) delta n
+    gen (n,i) = enumFromStepLenU (i * delta + start) delta n
     --dlen = splitLenD theGang len
     --is   = fstS (scanD theGang (+) 0 dlen)
     --

@@ -33,7 +33,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Base ((:*:)(..), fstS)
 
   -- (offset as :*: offset bs) :*: (length as :*: length bs)
-type UPSelRep2 = Dist ((Int :*: Int) :*: (Int :*: Int))
+type UPSelRep2 = Dist ((Int,Int), (Int,Int))
 data UPSel2 = UPSel2 { upsel2_usel :: USel2
                      , upsel2_rep  :: UPSelRep2
                      }
@@ -70,12 +70,12 @@ mkUPSelRep2 tags = zipD idxs lens
          $ splitD theGang balanced tags
 
     idxs = fstS
-         $ scanD theGang add (0 :*: 0) lens
+         $ scanD theGang add (0,0) lens
 
     count bs = let ones = sumU bs
-               in (lengthU bs - ones) :*: ones
+               in (lengthU bs - ones,ones)
 
-    add (x1 :*: y1) (x2 :*: y2) = (x1+x2) :*: (y1+y2)
+    add (x1,y1) (x2,y2) = (x1+x2, y1+y2)
 
 indicesUPSelRep2 :: UArr Int -> UPSelRep2 -> UArr Int
 {-# INLINE indicesUPSelRep2 #-}
@@ -84,7 +84,7 @@ indicesUPSelRep2 tags rep = joinD theGang balanced
                                              (splitD theGang balanced tags)
                                               rep
   where
-    indices tags ((i :*: j) :*: (m :*: n))
+    indices tags ((i,j), (m,n))
       = combine2ByTagU tags (enumFromStepLenU i 1 m)
                             (enumFromStepLenU j 1 n)
 

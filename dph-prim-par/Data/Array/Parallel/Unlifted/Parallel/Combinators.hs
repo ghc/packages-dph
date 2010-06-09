@@ -75,8 +75,8 @@ combine2UP tags rep !xs !ys = joinD theGang balanced
                             $ zipWithD theGang go rep
                             $ splitD theGang balanced tags
   where
-    go ((i :*: j) :*: (m :*: n)) ts = combine2ByTagU ts (sliceU xs i m)
-                                                        (sliceU ys j n)
+    go ((i,j), (m,n)) ts = combine2ByTagU ts (sliceU xs i m)
+                                             (sliceU ys j n)
     
 {-
 combine2UP sel !xs !ys = zipWithUP get (tagsUSel2 sel) (indicesUSel2 sel)
@@ -153,23 +153,23 @@ fold1UP = foldl1UP
 
 foldl1UP :: (DT a, UA a) => (a -> a -> a) -> UArr a -> a
 {-# INLINE_U foldl1UP #-}
-foldl1UP f arr = (maybeS z (f z)
+foldl1UP f arr = (maybe z (f z)
            . foldD  theGang combine
            . mapD   theGang (foldl1MaybeU f)
            . splitD theGang unbalanced) arr
   where
     z = arr !: 0
-    combine (JustS x) (JustS y) = JustS (f x y)
-    combine (JustS x) NothingS  = JustS x
-    combine NothingS  (JustS y) = JustS y
-    combine NothingS  NothingS  = NothingS
+    combine (Just x) (Just y) = Just (f x y)
+    combine (Just x) Nothing  = Just x
+    combine Nothing  (Just y) = Just y
+    combine Nothing  Nothing  = Nothing
 
 scanUP :: (DT a, UA a) => (a -> a -> a) -> a -> UArr a -> UArr a
 {-# INLINE_UP scanUP #-}
 scanUP f z = splitJoinD theGang go
   where
-    go xs = let ds :*: zs = unzipD $ mapD theGang (scanResU f z) xs
-                zs'       = fstS (scanD theGang f z zs)
+    go xs = let (ds,zs) = unzipD $ mapD theGang (unsafe_unpairS . scanResU f z) xs
+                zs'     = fstS (scanD theGang f z zs)
             in
             zipWithD theGang (mapU . f) zs' ds
 

@@ -75,7 +75,7 @@ splitLenD g n = generateD_cheap g len
     len i | i < m     = l+1
           | otherwise = l
 
-splitLenIdxD :: Gang -> Int -> Dist (Int :*: Int)
+splitLenIdxD :: Gang -> Int -> Dist (Int,Int)
 {-# INLINE splitLenIdxD #-}
 splitLenIdxD g n = generateD_cheap g len_idx
   where
@@ -84,8 +84,8 @@ splitLenIdxD g n = generateD_cheap g len_idx
     !m = n `remInt` p
 
     {-# INLINE [0] len_idx #-}
-    len_idx i | i < m     = l+1 :*: i*(l+1)
-              | otherwise = l   :*: i*l + m
+    len_idx i | i < m     = (l+1, i*(l+1))
+              | otherwise = (l,   i*l + m)
                                                
 
 -- | Distribute an array over a 'Gang' such that each threads gets the given
@@ -328,7 +328,7 @@ chunk !segd !di !dn is_last
 
     n' = left_len + (k'-k)
 
-splitSegdD' :: Gang -> USegd -> Dist (USegd :*: Int :*: Int)
+splitSegdD' :: Gang -> USegd -> Dist ((USegd,Int),Int)
 {-# INLINE splitSegdD' #-}
 splitSegdD' g !segd = imapD g mk
                          (splitLenIdxD g
@@ -336,8 +336,8 @@ splitSegdD' g !segd = imapD g mk
   where
     !p = gangSize g
 
-    mk i (dn :*: di) = case chunk segd di dn (i == p-1) of
-                         (# lens, l, o #) -> lengthsToUSegd lens :*: l :*: o
+    mk i (dn,di) = case chunk segd di dn (i == p-1) of
+                     (# lens, l, o #) -> ((lengthsToUSegd lens,l),o)
 
 joinSegD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegD #-}

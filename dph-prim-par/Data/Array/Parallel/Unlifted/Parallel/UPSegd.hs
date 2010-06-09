@@ -33,7 +33,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Base ((:*:))
 
 data UPSegd = UPSegd { upsegd_usegd :: !USegd
-                     , upsegd_dsegd :: Dist (USegd :*: Int :*: Int)
+                     , upsegd_dsegd :: Dist ((USegd,Int),Int)
                      }
 
 lengthUPSegd :: UPSegd -> Int
@@ -56,7 +56,7 @@ segdUPSegd :: UPSegd -> USegd
 {-# INLINE segdUPSegd #-}
 segdUPSegd = upsegd_usegd
 
-distUPSegd :: UPSegd -> Dist (USegd :*: Int :*: Int)
+distUPSegd :: UPSegd -> Dist ((USegd,Int),Int)
 {-# INLINE distUPSegd #-}
 distUPSegd = upsegd_dsegd
 

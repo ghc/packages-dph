@@ -29,7 +29,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, indexD, zipD, unzipD, fstD, sndD,
+  DT, Dist, indexD, zipD, unzipD, fstD, sndD, deepSeqD,
   newMD, writeMD, unsafeFreezeMD,
   checkGangD, measureD)
 import Data.Array.Parallel.Unlifted.Distributed.DistST
@@ -45,12 +45,16 @@ generateD_cheap :: DT a => Gang -> (Int -> a) -> Dist a
 generateD_cheap g f = runDistST_seq g (myIndex >>= return . f)
 
 imapD :: (DT a, DT b) => Gang -> (Int -> a -> b) -> Dist a -> Dist b
-{-# NOINLINE imapD #-}
-imapD g f !d = checkGangD (here "imapD") g d
-               (runDistST g (do
-                               i <- myIndex
-                               x <- myD d
-                               return (f i x)))
+{-# INLINE [0] imapD #-}
+imapD g f d = imapD' g (\i x -> x `deepSeqD` f i x) d
+
+imapD' :: (DT a, DT b) => Gang -> (Int -> a -> b) -> Dist a -> Dist b
+{-# NOINLINE imapD' #-}
+imapD' g f !d = checkGangD (here "imapD") g d
+                (runDistST g (do
+                                i <- myIndex
+                                x <- myD d
+                                return (f i x)))
 
 -- | Map a function over a distributed value.
 mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
@@ -78,21 +82,19 @@ mapD g f !d = checkGangD (here "mapD") g d
 
 "zipD/imapD[1]" forall gang f xs ys.
   zipD (imapD gang f xs) ys
-    = imapD gang (\i -> unsafe_pairS . (\(x,y) -> (f i x, y)) . unsafe_unpairS)
-                 (zipD xs ys)
+    = imapD gang (\i (x,y) -> (f i x,y)) (zipD xs ys)
 
 "zipD/imapD[2]" forall gang f xs ys.
   zipD xs (imapD gang f ys)
-    = imapD gang (\i -> unsafe_pairS . (\(x,y) -> (x, f i y)) . unsafe_unpairS)
-                 (zipD xs ys)
+    = imapD gang (\i (x,y) -> (x, f i y)) (zipD xs ys)
 
 "zipD/generateD[1]" forall gang f xs.
   zipD (generateD gang f) xs
-    = imapD gang (\i x -> unsafe_pairS (f i, x)) xs
+    = imapD gang (\i x -> (f i, x)) xs
 
 "zipD/generateD[2]" forall gang f xs.
   zipD xs (generateD gang f)
-    = imapD gang (\i x -> unsafe_pairS (x, f i)) xs
+    = imapD gang (\i x -> (x, f i)) xs
 
   #-}
 
@@ -122,12 +124,12 @@ mapD g f !d = checkGangD (here "mapD") g d
 zipWithD :: (DT a, DT b, DT c)
          => Gang -> (a -> b -> c) -> Dist a -> Dist b -> Dist c
 {-# INLINE zipWithD #-}
-zipWithD g f dx dy = mapD g (uncurry f . unsafe_unpairS) (zipD dx dy)
+zipWithD g f dx dy = mapD g (uncurry f) (zipD dx dy)
 
 izipWithD :: (DT a, DT b, DT c)
           => Gang -> (Int -> a -> b -> c) -> Dist a -> Dist b -> Dist c
 {-# INLINE izipWithD #-}
-izipWithD g f dx dy = imapD g (\i -> uncurry (f i) . unsafe_unpairS) (zipD dx dy)
+izipWithD g f dx dy = imapD g (\i -> uncurry (f i)) (zipD dx dy)
 
 -- | Fold a distributed value.
 foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
@@ -182,19 +184,29 @@ mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
 -- model andlead to a deadlock. Hence the bangs.
 
 mapDST_ :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
-mapDST_ g p !d = checkGangD (here "mapDST_") g d $
-                 distST_ g (myD d >>= p)
+{-# INLINE mapDST_ #-}
+mapDST_ g p d = mapDST_' g (\x -> x `deepSeqD` p x) d
+
+mapDST_' :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+mapDST_' g p !d = checkGangD (here "mapDST_") g d $
+                  distST_ g (myD d >>= p)
 
 mapDST :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
-mapDST g p !d = checkGangD (here "mapDST_") g d $
-                distST g (myD d >>= p)
+{-# INLINE mapDST #-}
+mapDST g p !d = mapDST' g (\x -> x `deepSeqD` p x) d
+
+mapDST' :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+mapDST' g p !d = checkGangD (here "mapDST_") g d $
+                 distST g (myD d >>= p)
 
 zipWithDST_ :: (DT a, DT b)
             => Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
-zipWithDST_ g p !dx !dy = mapDST_ g (uncurryS p) (zipD dx dy)
+{-# INLINE zipWithDST_ #-}
+zipWithDST_ g p !dx !dy = mapDST_ g (uncurry p) (zipD dx dy)
 
 zipWithDST :: (DT a, DT b, DT c)
            => Gang
            -> (a -> b -> DistST s c) -> Dist a -> Dist b -> ST s (Dist c)
-zipWithDST g p !dx !dy = mapDST g (uncurryS p) (zipD dx dy)
+{-# INLINE zipWithDST #-}
+zipWithDST g p !dx !dy = mapDST g (uncurry p) (zipD dx dy)
 

@@ -68,18 +68,18 @@ foldS f z (Stream next s _ c) = traceLoopEntry c' $ fold z s
 
     c' = "foldS" `sArgs` c
 
--- | Yield 'NothingS' if the 'Stream' is empty and fold it otherwise.
+-- | Yield 'Nothing' if the 'Stream' is empty and fold it otherwise.
 --
-fold1MaybeS :: Rebox a => (a -> a -> a) -> Stream a -> MaybeS a
+fold1MaybeS :: Rebox a => (a -> a -> a) -> Stream a -> Maybe a
 {-# INLINE_STREAM fold1MaybeS #-}
 fold1MaybeS f (Stream next s _ c) = traceLoopEntry c' $ fold0 s
   where
     fold0 s   = case next s of
-                  Done       -> traceLoopExit c' NothingS
+                  Done       -> traceLoopExit c' Nothing
                   Skip    s' -> s' `dseq` fold0 s'
                   Yield x s' -> s' `dseq` fold1 x s'
     fold1 z s = case next s of
-                  Done       -> traceLoopExit c' $ JustS z
+                  Done       -> traceLoopExit c' $ (z `dseq` Just z)
                   Skip    s' -> s' `dseq` z `dseq` fold1 z s'
                   Yield x s' -> let z' = f z x
                                 in s' `dseq` z' `dseq` fold1 z' s'

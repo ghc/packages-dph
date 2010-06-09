@@ -53,11 +53,14 @@ replicateSUP segd !xs = joinD theGang balanced
                       . mapD theGang rep
                       $ distUPSegd segd
   where
-    rep (dsegd :*: di :*: _)
+    rep ((dsegd,di),_)
+      = replicateSU dsegd (sliceU xs di (lengthUSegd dsegd))
+
+{-
       = bpermuteU xs
       . unstreamU
       $ indicesSegdS (lengthsUSegd dsegd) di (elementsUSegd dsegd)
-    
+-}
 
 indicesSegdS :: UArr Int -> Int -> Int -> Stream Int
 {-# INLINE_STREAM indicesSegdS #-}
@@ -83,7 +86,7 @@ appendSUP segd !xd !xs !yd !ys
   . mapD theGang append
   $ distUPSegd segd
   where
-    append (segd :*: seg_off :*: el_off)
+    append ((segd,seg_off),el_off)
       = unstreamU $ appendSegS (segdUPSegd xd) xs
                                (segdUPSegd yd) ys
                                (elementsUSegd segd) seg_off el_off
@@ -202,7 +205,7 @@ foldlSUP f z segd xs = joinD theGang unbalanced
 -}
 
 fixupFold :: UA a => (a -> a -> a) -> MUArr a s
-          -> Dist (Int :*: UArr a) -> ST s ()
+          -> Dist (Int,UArr a) -> ST s ()
 {-# NOINLINE fixupFold #-}
 fixupFold f !mrs !dcarry = go 1
   where
@@ -215,7 +218,7 @@ fixupFold f !mrs !dcarry = go 1
                            writeMU mrs k (f x (c !: 0))
                            go (i+1)
       where
-        k :*: c = indexD dcarry i
+        (k,c) = indexD dcarry i
 
 
 folds :: UA a => (a -> a -> a)
@@ -227,18 +230,18 @@ folds f g segd xs = dcarry `seq` drs `seq` runST (
     fixupFold f mrs dcarry
     unsafeFreezeAllMU mrs)
   where
-    dcarry :*: drs
+    (dcarry,drs)
           = unzipD
-          $ mapD theGang (partial . unsafe_unpairS)
+          $ mapD theGang partial
           $ zipD (distUPSegd segd)
                  (splitD theGang balanced xs)
 
-    partial (segd :*: k :*: off, as)
+    partial (((segd,k),off), as)
       = let rs = g segd as
         in
         rs `seq`
-        if off == 0 then k :*: emptyU :*: rs
-                    else k :*: takeU 1 rs :*: dropU 1 rs
+        if off == 0 then ((k, emptyU),     rs)
+                    else ((k, takeU 1 rs), dropU 1 rs)
 
 
 foldSUP :: UA a => (a -> a -> a) -> a -> UPSegd -> UArr a -> UArr a
@@ -285,5 +288,5 @@ indicesSUP = joinD theGang balanced
            . mapD theGang indices
            . distUPSegd
   where
-    indices (segd :*: k :*: off) = indicesSU' off segd
+    indices ((segd,k),off) = indicesSU' off segd
 

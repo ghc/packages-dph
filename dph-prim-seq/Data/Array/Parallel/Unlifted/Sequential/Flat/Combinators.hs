@@ -95,7 +95,7 @@ foldl1U :: UA a => (a -> a -> a) -> UArr a -> a
 foldl1U f arr = checkNotEmpty (here "foldl1U") (lengthU arr) $
                 foldlU f (arr !: 0) (sliceU arr 1 (lengthU arr - 1))
 
-foldl1MaybeU :: UA a => (a -> a -> a) -> UArr a -> MaybeS a
+foldl1MaybeU :: UA a => (a -> a -> a) -> UArr a -> Maybe a
 {-# INLINE_U foldl1MaybeU #-}
 foldl1MaybeU f = fold1MaybeS f . streamU
 
@@ -106,7 +106,7 @@ foldU :: UA a => (a -> a -> a) -> a -> UArr a -> a
 {-# INLINE_U foldU #-}
 foldU = foldlU
 
-fold1MaybeU :: UA a => (a -> a -> a) -> UArr a -> MaybeS a
+fold1MaybeU :: UA a => (a -> a -> a) -> UArr a -> Maybe a
 {-# INLINE_U fold1MaybeU #-}
 fold1MaybeU = foldl1MaybeU
 

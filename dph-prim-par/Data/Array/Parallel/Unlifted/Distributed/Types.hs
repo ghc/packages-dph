@@ -23,6 +23,8 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
   -- * Operations on immutable distributed types
   indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,
   newD,
+  zipSD, unzipSD, fstSD, sndSD,
+  deepSeqD,
 
   lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
 
@@ -79,6 +81,9 @@ class DT a where
   -- | Unsafely freeze a mutable distributed value.
   unsafeFreezeMD :: MDist a s             -> ST s (Dist a)
 
+  deepSeqD       :: a -> b -> b
+  deepSeqD = seq
+
   -- | Number of elements in the distributed value. This is for debugging
   -- only.
   sizeD :: Dist a -> Int
@@ -90,8 +95,8 @@ class DT a where
   measureD :: a -> String
   measureD _ = "?"
 
--- Distributing hyperstrict types may not change their strictness.
-instance (HS a, DT a) => HS (Dist a)
+-- Distributed values must always be hyperstrict.
+instance DT a => HS (Dist a)
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
@@ -272,23 +277,74 @@ instance DT Double where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
-instance (DT a, DT b) => DT (a :*: b) where
-  data Dist  (a :*: b)   = DProd  !(Dist a)    !(Dist b)
-  data MDist (a :*: b) s = MDProd !(MDist a s) !(MDist b s)
+instance (DT a, DT b) => DT (a,b) where
+  data Dist  (a,b)   = DProd  !(Dist a)    !(Dist b)
+  data MDist (a,b) s = MDProd !(MDist a s) !(MDist b s)
 
-  indexD d i               = (fstD d `indexD` i) :*: (sndD d `indexD` i)
+  indexD d i               = (fstD d `indexD` i,sndD d `indexD` i)
   newMD g                  = liftM2 MDProd (newMD g) (newMD g)
-  readMD  (MDProd xs ys) i = liftM2 (:*:) (readMD xs i) (readMD ys i)
-  writeMD (MDProd xs ys) i (x :*: y)
+  readMD  (MDProd xs ys) i = liftM2 (,) (readMD xs i) (readMD ys i)
+  writeMD (MDProd xs ys) i (x,y)
                             = writeMD xs i x >> writeMD ys i y
   unsafeFreezeMD (MDProd xs ys)
                             = liftM2 DProd (unsafeFreezeMD xs)
                                            (unsafeFreezeMD ys)
+
+  {-# INLINE deepSeqD #-}
+  deepSeqD (x,y) z = deepSeqD x (deepSeqD y z)
+
   sizeD  (DProd  x _) = sizeD  x
   sizeMD (MDProd x _) = sizeMD x
 
-  measureD (x :*: y) = "(" ++ measureD x ++ "," ++ measureD y ++ ")"
+  measureD (x,y) = "(" ++ measureD x ++ "," ++ measureD y ++ ")"
 
+instance DT a => DT (Maybe a) where
+  data Dist  (Maybe a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
+  data MDist (Maybe a) s = MDMaybe !(MDist Bool s) !(MDist a s)
+
+  indexD (DMaybe bs as) i
+    | bs `indexD` i       = Just $ as `indexD` i
+    | otherwise           = Nothing
+  newMD g = liftM2 MDMaybe (newMD g) (newMD g)
+  readMD (MDMaybe bs as) i =
+    do
+      b <- readMD bs i
+      if b then liftM Just $ readMD as i
+           else return Nothing
+  writeMD (MDMaybe bs as) i Nothing  = writeMD bs i False
+  writeMD (MDMaybe bs as) i (Just x) = writeMD bs i True
+                                     >> writeMD as i x
+  unsafeFreezeMD (MDMaybe bs as) = liftM2 DMaybe (unsafeFreezeMD bs)
+                                                 (unsafeFreezeMD as)
+
+  {-# INLINE deepSeqD #-}
+  deepSeqD Nothing  z = z
+  deepSeqD (Just x) z = deepSeqD x z
+
+  sizeD  (DMaybe  b _) = sizeD  b
+  sizeMD (MDMaybe b _) = sizeMD b
+
+  measureD Nothing = "Nothing"
+  measureD (Just x) = "Just (" ++ measureD x ++ ")"
+
+instance (DT a, DT b) => DT (a :*: b) where
+  data Dist  (a :*: b)   = SDProd  !(Dist a)    !(Dist b)
+  data MDist (a :*: b) s = MSDProd !(MDist a s) !(MDist b s)
+
+  indexD d i                = (fstSD d `indexD` i) :*: (sndSD d `indexD` i)
+  newMD g                   = liftM2 MSDProd (newMD g) (newMD g)
+  readMD  (MSDProd xs ys) i = liftM2 (:*:) (readMD xs i) (readMD ys i)
+  writeMD (MSDProd xs ys) i (x :*: y)
+                            = writeMD xs i x >> writeMD ys i y
+  unsafeFreezeMD (MSDProd xs ys)
+                            = liftM2 SDProd (unsafeFreezeMD xs)
+                                            (unsafeFreezeMD ys)
+  sizeD  (SDProd  x _) = sizeD  x
+  sizeMD (MSDProd x _) = sizeMD x
+
+  measureD (x :*: y) = "(" ++ measureD x ++ ":*:" ++ measureD y ++ ")"
+
+{-
 instance DT a => DT (MaybeS a) where
   data Dist  (MaybeS a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
   data MDist (MaybeS a) s = MDMaybe !(MDist Bool s) !(MDist a s)
@@ -312,6 +368,7 @@ instance DT a => DT (MaybeS a) where
 
   measureD NothingS = "Nothing"
   measureD (JustS x) = "Just (" ++ measureD x ++ ")"
+-}
 
 instance UA a => DT (UArr a) where
   data Dist  (UArr a)   = DUArr  !(Dist  Int)   !(BBArr    (UArr a))
@@ -353,6 +410,11 @@ instance DT USegd where
           = liftM3 DUSegd (unsafeFreezeMD lens)
                           (unsafeFreezeMD idxs)
                           (unsafeFreezeMD eles)
+
+  deepSeqD segd z = deepSeqD (lengthsUSegd  segd)
+                  $ deepSeqD (indicesUSegd  segd)
+                  $ deepSeqD (elementsUSegd segd) z
+
   sizeD  (DUSegd  _ _ eles) = sizeD eles
   sizeMD (MDUSegd _ _ eles) = sizeMD eles
 
@@ -392,25 +454,47 @@ unitD = DUnit . gangSize
 
 -- | Pairing of distributed values.
 -- /The two values must belong to the same/ 'Gang'.
-zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
+zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
 {-# INLINE [0] zipD #-}
 zipD !x !y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
              DProd x y
 
 -- | Unpairing of distributed values.
-unzipD :: (DT a, DT b) => Dist (a :*: b) -> Dist a :*: Dist b
+unzipD :: (DT a, DT b) => Dist (a,b) -> (Dist a, Dist b)
 {-# INLINE_DIST unzipD #-}
-unzipD (DProd dx dy) = dx :*: dy
+unzipD (DProd dx dy) = (dx,dy)
 
 -- | Extract the first elements of a distributed pair.
-fstD :: (DT a, DT b) => Dist (a :*: b) -> Dist a
+fstD :: (DT a, DT b) => Dist (a,b) -> Dist a
 {-# INLINE_DIST fstD #-}
-fstD = fstS . unzipD
+fstD = fst . unzipD
 
 -- | Extract the second elements of a distributed pair.
-sndD :: (DT a, DT b) => Dist (a :*: b) -> Dist b
+sndD :: (DT a, DT b) => Dist (a,b) -> Dist b
 {-# INLINE_DIST sndD #-}
-sndD = sndS . unzipD
+sndD = snd . unzipD
+
+-- | Pairing of distributed values.
+-- /The two values must belong to the same/ 'Gang'.
+zipSD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
+{-# INLINE [0] zipSD #-}
+zipSD !x !y = checkEq (here "zipSD") "Size mismatch" (sizeD x) (sizeD y) $
+              SDProd x y
+
+-- | Unpairing of distributed values.
+unzipSD :: (DT a, DT b) => Dist (a :*: b) -> (Dist a, Dist b)
+{-# INLINE_DIST unzipSD #-}
+unzipSD (SDProd dx dy) = (dx,dy)
+
+-- | Extract the first elements of a distributed pair.
+fstSD :: (DT a, DT b) => Dist (a :*: b) -> Dist a
+{-# INLINE_DIST fstSD #-}
+fstSD = fst . unzipSD
+
+-- | Extract the second elements of a distributed pair.
+sndSD :: (DT a, DT b) => Dist (a :*: b) -> Dist b
+{-# INLINE_DIST sndSD #-}
+sndSD = snd . unzipSD
 
 -- | Yield the distributed length of a distributed array.
 lengthD :: UA a => Dist (UArr a) -> Dist Int
