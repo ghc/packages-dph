@@ -461,6 +461,10 @@ dph_mult x y = x Prelude.* y
 "fold_s/replicate1" forall f z n idxs n' xs.
   fold_s f z (mkSegd (replicate n (GHC.Base.I# 1#)) idxs n') xs = xs
 
+"fold_s/replicate" forall f z m n idxs mn xs.
+  fold_s f z (mkSegd (replicate m n) idxs mn) xs
+    = fold_r f z n xs
+
   #-}
 
 {- RULES
