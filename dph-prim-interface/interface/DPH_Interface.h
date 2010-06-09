@@ -467,6 +467,36 @@ dph_mult x y = x Prelude.* y
 
   #-}
 
+-- Quickhull rules
+
+tagZeroes :: Array Int -> Array Int
+{-# INLINE CONLIKE PHASE_BACKEND tagZeroes #-}
+tagZeroes xs = map (\x -> fromBool (x==0)) xs
+
+{-# RULES
+
+"tagZeroes" forall xs n.
+  map fromBool (zipWith GHC.Base.eqInt xs (replicate n (GHC.Base.I# 0#)))
+    = tagZeroes xs
+
+"replicate_s/tagZeroes" forall lens idxs n.
+  replicate_s (mkSegd lens idxs n) (tagZeroes lens)
+    = replicate n 0
+
+"packByTag/replicate" forall xs n t u.
+  packByTag xs (replicate n t) u = if t == u then xs else empty
+
+ #-}
+
+{-
+"packByTag/tagZeroes" forall xs ys t.
+  packByTag xs (tagZeroes ys) t = packByTag xs (map (\y -> fromBool (y==0)) ys) t
+
+"mkSelRep2/tagZeroes" forall xs.
+  mkSelRep2 (tagZeroes xs) = 
+
+  -}
+
 {- RULES
 
 "legthsToSegd/replicate" forall m n.
