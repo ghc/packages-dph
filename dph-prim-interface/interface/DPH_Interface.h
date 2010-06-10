@@ -388,7 +388,7 @@ fromList :: Elt a => [a] -> Array a
 
 dph_mod_index :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mod_index #-}
-dph_mod_index by idx = idx `Prelude.mod` by
+dph_mod_index by idx = idx `GHC.Base.remInt` by
 
 dph_plus :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_plus #-}
