@@ -41,38 +41,12 @@ import Control.Monad.ST ( ST, runST )
 
 replicateSUP :: UA a => UPSegd -> UArr a -> UArr a
 {-# INLINE_UP replicateSUP #-}
-{-
-replicateSUP segd xs = joinD theGang unbalanced
-                     . mapD theGang (uncurryS replicateSU)
-                     . zipD dsegd
-                     $ splitAsD theGang (lengthUSegdD dsegd) xs
-  where
-    dsegd = splitSegdD theGang segd
--}
 replicateSUP segd !xs = joinD theGang balanced
                       . mapD theGang rep
                       $ distUPSegd segd
   where
     rep ((dsegd,di),_)
       = replicateSU dsegd (sliceU xs di (lengthUSegd dsegd))
-
-{-
-      = bpermuteU xs
-      . unstreamU
-      $ indicesSegdS (lengthsUSegd dsegd) di (elementsUSegd dsegd)
--}
-
-indicesSegdS :: UArr Int -> Int -> Int -> Stream Int
-{-# INLINE_STREAM indicesSegdS #-}
-indicesSegdS lens k n = Stream next (0 :*: 0 :*: (k-1)) n (sNoArgs "indicesSegS")
-  where
-    !m = lengthU lens
-
-    {-# INLINE next #-}
-    next (i :*: j :*: k)
-      | j > 0     = Yield k (i   :*: j-1         :*: k)
-      | i < m     = Skip    (i+1 :*: (lens !: i) :*: k+1)
-      | otherwise = Done
 
 -- FIXME: make this efficient
 replicateRSUP :: UA a => Int -> UArr a -> UArr a
@@ -156,54 +130,6 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
       | otherwise = Yield (ys!:j)
                           (JustS (True :*: seg :*: i :*: j+1 :*: k-1 :*: n-1))
 
-{-
-appendSUP :: UA a => USegd -> UArr a -> USegd -> UArr a -> UArr a
-{-# INLINE_UP appendSUP #-}
-appendSUP xd xs yd ys = appendSU xd xs yd ys
--}
-{-
-  = joinD theGang unbalanced
-  $ zipWithD theGang
-             (\p -> uncurry (uncurry appendSU (unsafe_unpairS p))
-                 . unsafe_unpairS)
-      (zipD dxd (splitSD theGang dxd xs))
-      (zipD dyd (splitSD theGang dyd ys))
-  where
-    dxd = splitSegdD theGang xd
-    dyd = splitSegdD theGang yd
--}                                
-
-{-
-replicateEachUnbalancedUP :: UA e => UArr Int -> UArr e -> UArr e
-{-# INLINE_UP    replicateEachUnbalancedUP #-}
-replicateEachUnbalancedUP  ns es = 
-  joinD theGang unbalanced $ 
-     mapD theGang ((uncurryS.uncurryS) replicateEachU) $ 
-     mapD theGang (\t -> (((foldU (+) 0 $ fstS t) :*: fstS t) :*: sndS t)) $ 
-     mapD theGang unzipU $ 
-     splitD theGang unbalanced $ zipU ns es
-                 
-
-packCUP :: UA a => UArr Bool -> USegd -> UArr a -> UArr a
-{-# INLINE packCUP #-}
-packCUP flags segd xs = packUP xs (replicateSUP segd flags)
-
-combineCUP :: UA a => UArr Bool -> UArr a -> UArr a -> USegd -> UArr a
-{-# INLINE combineCUP #-}
-combineCUP flags xs ys segd = combineUP (replicateSUP segd flags) xs ys
--}
-
-{-
-foldlSUP :: (UA a, UA b) => (b -> a -> b) -> b -> USegd -> UArr a -> UArr b
-{-# INLINE foldlSUP #-}
-foldlSUP f z segd xs = joinD theGang unbalanced
-                      (mapD theGang (uncurry (foldlSU f z) . unsafe_unpairS)
-                      (zipD dsegd
-                      (splitSD theGang dsegd xs)))
-  where
-    dsegd = splitSegdD theGang segd
--}
-
 fixupFold :: UA a => (a -> a -> a) -> MUArr a s
           -> Dist (Int,UArr a) -> ST s ()
 {-# NOINLINE fixupFold #-}
@@ -251,14 +177,6 @@ foldSUP f !z = folds f (foldlSU f z)
 fold1SUP :: UA a => (a -> a -> a) -> UPSegd -> UArr a -> UArr a
 {-# INLINE fold1SUP #-}
 fold1SUP f = folds f (fold1SU f)
-{-
-fold1SUP f segd xs = joinD theGang unbalanced
-                    (mapD theGang (uncurry (fold1SU f) . unsafe_unpairS)
-                    (zipD dsegd
-                    (splitSD theGang dsegd xs)))
-  where
-    dsegd = splitSegdD theGang segd
--}
 
 sumSUP :: (Num e, UA e) => UPSegd -> UArr e -> UArr e
 {-# INLINE sumSUP #-}
