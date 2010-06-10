@@ -315,11 +315,15 @@ instance PR a => PR (PArray a) where
   {-# INLINE extractPR #-}
   extractPR (PNested segd xs) i# n#
     = traceFn "extractPR" "(PArray a)" $
-      case U.indicesSegd segd U.!: I# i# of
-        I# k# -> PNested segd' (extractPR xs k# (elementsSegd# segd'))
+      PNested segd' (extractPR xs k# (elementsSegd# segd'))
     where
       segd' = U.lengthsToSegd
             $ U.extract (U.lengthsSegd segd) (I# i#) (I# n#)
+
+      -- NB: not indicesSegd segd !: i because i might be one past the end
+      !(I# k#) | I# i# == 0 = 0
+               | otherwise  = U.indicesSegd segd U.!: (I# i# - 1)
+                            + U.lengthsSegd segd U.!: (I# i# - 1)
 
   {-# INLINE bpermutePR #-}
   bpermutePR (PNested segd xs) n# is
