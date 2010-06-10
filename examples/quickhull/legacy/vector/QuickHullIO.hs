@@ -17,6 +17,7 @@ import Data.Vector.Unboxed			(Vector)
 import qualified Data.Vector.Unboxed		as V
 import qualified Data.Vector.Unboxed.Mutable	as MV
 import qualified Data.Vector.Generic		as G
+import Debug.Trace
 
 type Point	= (Double, Double)
 type Line	= (Point, Point)
@@ -96,41 +97,75 @@ parPackPoints
 	
 {-# INLINE parPackPoints #-}
 parPackPoints !points !p1X !p1Y !p2X !p2Y
- | V.length points < 1000
- = packPoints points p1X p1Y p2X p2Y
+ |   numCapabilities == 1
+  || V.length points < 10000
+ = packPoints p1X p1Y p2X p2Y points
 
  | otherwise
- = let	len		= V.length points
-	half		= len `div` 2
-	rest		= len - half
+ = let	
+	numSegments	= numCapabilities
 
-	(packed1, pm1)	= packPoints (V.unsafeSlice 0 half    points) p1X p1Y p2X p2Y
-	(packed2, pm2)	= packPoints (V.unsafeSlice half rest points) p1X p1Y p2X p2Y
+	-- Total number of points to process.
+	lenPoints	= V.length points
 
-   in	packed1 `par` packed2 `pseq`
-	 let
-		pMax
-	 	 | V.length packed1 == 0	= pm2
-	 	 | V.length packed2 == 0	= pm1
-	 	 | otherwise
-	 	 = let	dist1		= distance (p1X, p1Y) (p2X, p2Y) pm1
-			dist2		= distance (p1X, p1Y) (p2X, p2Y) pm2
-	   	   in	if dist1 > dist2
-				then pm1
-				else pm2
+	-- How many points to process in each segment.
+	lenSeg		= lenPoints `div` numSegments
 
-   	 in	( packed1 V.++ packed2
-		, pMax)
+ 	-- If the total number of points doesn't divide evenly into segments
+	-- then there may be an odd number. Make sure to get the rest into the last segment.
+	splitPacked count ixStart 
+	    | count == 0	= []
+
+	    | count == 1	
+	    = let points'		= V.unsafeSlice ixStart (lenPoints - ixStart) points
+	      	  result@(packed', _)	= packPoints p1X p1Y p2X p2Y points'
+	      in  packed' `pseq` (result : [])
+
+	    | otherwise	
+	    = let points'		= V.unsafeSlice ixStart lenSeg points
+	          result@(packed', _)	= packPoints p1X p1Y p2X p2Y points'
+		  rest			= splitPacked (count - 1) (ixStart + lenSeg)
+	      in  packed' `par` rest `par` (result : rest)
+
+	results	= splitPacked numSegments 0
+	vResult	= concatVectors $ map fst results
+	pMax	= selectFurthest p1X p1Y p2X p2Y results
+	
+   in	(vResult, pMax)
+
+
+selectFurthest 
+ 	:: Double -> Double 
+	-> Double -> Double
+	-> [(Vector Point, Point)] 
+	-> Point
+	
+selectFurthest !p1X !p1Y !p2X !p2Y ps
+ = go (0, 0) 0 ps
+
+ where	go pMax !distMax []	
+	 = pMax
+
+	go pMax !distMax ((packed, pm):rest)
+	 | V.length packed == 0
+	 = go pMax distMax rest
+	
+	 | otherwise
+	 , dist		<-  distance (p1X, p1Y) (p2X, p2Y) pm 
+  	 = if dist > distMax
+		then go pm   dist    rest
+		else go pMax distMax rest
+
 
 packPoints 
-	:: Vector Point 		-- Source points.
-	-> Double -> Double 		-- First point on dividing line.
+	:: Double -> Double 		-- First point on dividing line.
 	-> Double -> Double 		-- Second point on dividing line.
+	-> Vector Point 		-- Source points.
 	-> ( Vector Point		-- Packed vector containing only points on the left of the line.
 	   , Point)			-- The point on the left that was furthest from the line.
 
 {-# INLINE packPoints #-}
-packPoints !points !p1X !p1Y !p2X !p2Y
+packPoints !p1X !p1Y !p2X !p2Y !points 
  = let
 	result	
 	 = G.create 
@@ -203,10 +238,42 @@ addHullPoint hullRef p
  $ \hull -> (V.singleton p V.++ hull, ())
 
 
+
+-- Can't find an equivalent for this in Control.Concurrent.
 parIO :: [IO ()] -> IO ()
 parIO stuff
  = do	mVars	<- replicateM (length stuff) newEmptyMVar
 	zipWithM_ (\c v -> forkIO $ c `finally` putMVar v ()) stuff mVars
 	mapM_ readMVar mVars
 	
+
+-- We really want a function in the vector library for this.
+concatVectors :: [Vector Point] -> Vector Point
+{-# NOINLINE concatVectors #-}
+concatVectors vectors
+ = G.create
+ $ do	let len	= sum $ map V.length vectors
+	vOut	<- MV.new len
+	go vectors vOut 0
+	return vOut
+
+ where	{-# INLINE go #-}
+	go [] _ _
+	 = return ()
+
+	go (vSrc:vsSrc) vDest !ixStart	
+	 = do	let lenSrc	= V.length vSrc
+		let vDestSlice	= MV.unsafeSlice ixStart lenSrc vDest
+		copyInto vDestSlice vSrc
+		go vsSrc vDest (ixStart + lenSrc) 
+
+	{-# INLINE copyInto #-}
+	copyInto !vDest !vSrc
+ 	 = go 0
+ 	 where	len	= V.length vSrc
+		go !ix
+	 	 | ix == len	= return ()
+ 	 	 | otherwise	
+  	 	 = do	MV.unsafeWrite vDest ix (vSrc `V.unsafeIndex` ix)
+			go (ix + 1)
 
