@@ -45,7 +45,7 @@ import GHC.Word  ( Word8 )
 -- instance PR Int where
 --   <forward to *PRScalar methods>
 
-$(scalarInstances [''Int, ''Double, ''Word8])
+$(scalarInstances [''Int, ''Float, ''Double, ''Word8])
 
 ----------
 -- Void --

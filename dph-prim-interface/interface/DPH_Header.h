@@ -33,7 +33,7 @@ module Data.Array.Parallel.Unlifted (
 ) where
 
 import Data.Array.Parallel.Base   ( (:*:)(..), fstS, sndS )
-import Prelude                    (Num, Int, Bool, Double)
+import Prelude                    (Num, Int, Bool, Float, Double)
 import System.IO                  (IO, Handle)
 import Data.Word                  (Word8)
 import qualified System.Random

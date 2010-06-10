@@ -33,6 +33,14 @@ instance PA Word8 where
   toArrPRepr   = id
   fromArrPRepr = id
 
+type instance PRepr Float = Float
+
+instance PA Float where
+  toPRepr      = id
+  fromPRepr    = id
+  toArrPRepr   = id
+  fromArrPRepr = id
+
 type instance PRepr Double = Double
 
 instance PA Double where

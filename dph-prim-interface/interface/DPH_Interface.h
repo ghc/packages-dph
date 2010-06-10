@@ -5,6 +5,7 @@ import Prelude ((.), ($), Num(..), Eq(..), seq)
 instance Elt Int
 instance Elt Word8
 instance Elt Bool
+instance Elt Float
 instance Elt Double
 instance (Elt a, Elt b) => Elt (a :*: b)
 
