@@ -23,7 +23,7 @@ import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
                                             elementsSel2_1# )
 
 import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Base ((:*:)(..), fromBool)
+import Data.Array.Parallel.Base ((:*:)(..), intToTag, fromBool)
 import Data.Array.Parallel.Base.DTrace ( traceFn, traceArg )
 
 import Data.List (unzip4, unzip5)
@@ -260,7 +260,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
     = PSum2 sel' as' bs'
     where
       my_tags  = U.tagsSel2 sel
-      my_tags' = U.packByTag my_tags tags (I# t#)
+      my_tags' = U.packByTag my_tags tags (intToTag (I# t#))
       sel'     = U.tagsToSel2 my_tags'
 
       atags    = U.packByTag tags my_tags 0
@@ -378,7 +378,7 @@ instance PR a => PR (PArray a) where
       PNested segd' xs'
     where
       segd' = U.lengthsToSegd
-            $ U.packByTag (U.lengthsSegd segd) tags (I# t#)
+            $ U.packByTag (U.lengthsSegd segd) tags (intToTag (I# t#))
 
       xs'   = packByTagPR xs (elementsSegd# segd') (U.replicate_s segd tags) t#
 

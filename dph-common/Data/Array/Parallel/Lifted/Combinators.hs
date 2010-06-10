@@ -24,7 +24,7 @@ import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Scalar
 
 import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Base ( fromBool )
+import Data.Array.Parallel.Base ( Tag, fromBool )
 
 import GHC.Exts (Int(..), (+#), (-#), Int#, (<#))
 
@@ -233,7 +233,7 @@ packPA = closure2 packPA_v packPA_l
 
 -- combine --------------------------------------------------------------------
 -- TODO: should the selector be a boolean array?
-combine2PA_v:: PA a => PArray a -> PArray a -> PArray Int -> PArray a
+combine2PA_v:: PA a => PArray a -> PArray a -> PArray Tag -> PArray a
 {-# INLINE_PA combine2PA_v #-}
 combine2PA_v xs ys bs
   = combine2PA# (lengthPA# xs +# lengthPA# ys)
@@ -241,13 +241,13 @@ combine2PA_v xs ys bs
                 xs ys
 
 combine2PA_l:: PA a
-            => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Int)
+            => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Tag)
                -> PArray (PArray a)
 {-# INLINE_PA combine2PA_l #-}
 combine2PA_l _ _ _ = error "combinePA_l nyi"
     
 
-combine2PA:: PA a => PArray a :-> PArray a :-> PArray Int :-> PArray a
+combine2PA:: PA a => PArray a :-> PArray a :-> PArray Tag :-> PArray a
 {-# INLINE_PA combine2PA #-}
 combine2PA = closure3 combine2PA_v combine2PA_l
 

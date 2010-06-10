@@ -25,13 +25,14 @@ data Segd = Segd { segd_lengths  :: [Int]
                  , segd_elements :: Int
                  }
 
-data Sel2 = Sel2 { sel2_tags      :: [Int]
+data Sel2 = Sel2 { sel2_tags      :: [Tag]
                  , sel2_indices   :: [Int]
                  , sel2_elements0 :: Int
                  , sel2_elements1 :: Int
                  }
 
 type SelRep2 = ()
+
 
 length = P.length
 empty = []

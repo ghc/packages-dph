@@ -1,4 +1,4 @@
-import Data.Array.Parallel.Base ( fromBool )
+import Data.Array.Parallel.Base ( Tag, tagToInt, fromBool )
 import qualified GHC.Base
 import Prelude ((.), ($), Num(..), Eq(..), seq)
 
@@ -65,7 +65,7 @@ pack :: Elt a => Array a -> Array Bool -> Array a
 combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine #-}
 
-combine2 :: Elt a => Array Int -> SelRep2 -> Array a -> Array a -> Array a
+combine2 :: Elt a => Array Tag -> SelRep2 -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine2 #-}
 
 map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
@@ -265,10 +265,10 @@ plusSegd segd1 segd2
 
  #-}
 
-mkSel2 :: Array Int -> Array Int -> Int -> Int -> SelRep2 -> Sel2
+mkSel2 :: Array Tag -> Array Int -> Int -> Int -> SelRep2 -> Sel2
 {-# INLINE CONLIKE PHASE_BACKEND mkSel2 #-}
 
-tagsSel2 :: Sel2 -> Array Int
+tagsSel2 :: Sel2 -> Array Tag
 {-# INLINE_BACKEND tagsSel2 #-}
 
 indicesSel2 :: Sel2 -> Array Int
@@ -283,19 +283,19 @@ elementsSel2_1 :: Sel2 -> Int
 repSel2 :: Sel2 -> SelRep2
 {-# INLINE_BACKEND repSel2 #-}
 
-mkSelRep2 :: Array Int -> SelRep2
+mkSelRep2 :: Array Tag -> SelRep2
 {-# INLINE CONLIKE PHASE_BACKEND mkSelRep2 #-}
 
-indicesSelRep2 :: Array Int -> SelRep2 -> Array Int
+indicesSelRep2 :: Array Tag -> SelRep2 -> Array Int
 {-# INLINE_BACKEND indicesSelRep2 #-}
 
-elementsSelRep2_0 :: Array Int -> SelRep2 -> Int
+elementsSelRep2_0 :: Array Tag -> SelRep2 -> Int
 {-# INLINE_BACKEND elementsSelRep2_0 #-}
 
-elementsSelRep2_1 :: Array Int -> SelRep2 -> Int
+elementsSelRep2_1 :: Array Tag -> SelRep2 -> Int
 {-# INLINE_BACKEND elementsSelRep2_1 #-}
 
-tagsToSel2 :: Array Int -> Sel2
+tagsToSel2 :: Array Tag -> Sel2
 {-# INLINE tagsToSel2 #-}
 tagsToSel2 tags = let rep = mkSelRep2 tags
                   in
@@ -320,7 +320,7 @@ tagsToSel2 tags = let rep = mkSelRep2 tags
   #-}
 
 
-packByTag :: Elt a => Array a -> Array Int -> Int -> Array a
+packByTag :: Elt a => Array a -> Array Tag -> Tag -> Array a
 {-# INLINE_BACKEND packByTag #-}
 packByTag xs tags !tag = fsts (filter (\p -> sndS p == tag) (zip xs tags))
 
@@ -348,7 +348,7 @@ pick xs !x = map (x==) xs
 
 count :: (Elt a, Eq a) => Array a -> a -> Int
 {-# INLINE_BACKEND count #-}
-count xs !x = sum (map (fromBool . (==) x) xs)
+count xs !x = sum (map (tagToInt . fromBool . (==) x) xs)
 
 {-# RULES
 
@@ -358,7 +358,7 @@ count xs !x = sum (map (fromBool . (==) x) xs)
 
 count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
 {-# INLINE_BACKEND count_s #-}
-count_s segd xs !x = sum_s segd (map (fromBool . (==) x) xs)
+count_s segd xs !x = sum_s segd (map (tagToInt . fromBool . (==) x) xs)
 
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
@@ -469,7 +469,7 @@ dph_mult x y = x Prelude.* y
 
 -- Quickhull rules
 
-tagZeroes :: Array Int -> Array Int
+tagZeroes :: Array Int -> Array Tag
 {-# INLINE CONLIKE PHASE_BACKEND tagZeroes #-}
 tagZeroes xs = map (\x -> fromBool (x==0)) xs
 

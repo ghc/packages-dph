@@ -33,7 +33,7 @@ module Data.Array.Parallel.Lifted.PArray (
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
-import Data.Array.Parallel.Base ( traceF )
+import Data.Array.Parallel.Base ( Tag, intToTag, traceF )
 import GHC.Exts (Int#, Int(..), (+#), (*#))
 import SpecConstr
 
@@ -167,7 +167,7 @@ type T_applPR       a =  U.Segd              -- result segd
 --
 type T_packByTagPR  a = PData a            -- source array
                       -> Int#              -- length of resulting array
-                      -> U.Array Int       -- tag values of elements in source array
+                      -> U.Array Tag       -- tag values of elements in source array
                       -> Int#              -- tag value of the elements to select
                       -> PData a
 
@@ -327,7 +327,7 @@ applPA# :: PA a => U.Segd -> U.Segd -> PArray a -> U.Segd -> PArray a -> PArray 
 applPA# segd is (PArray m# xs) js (PArray n# ys)
   = PArray (m# +# n#) (applPD segd is xs js ys)
 
-packByTagPA# :: PA a => PArray a -> Int# -> U.Array Int -> Int# -> PArray a
+packByTagPA# :: PA a => PArray a -> Int# -> U.Array Tag -> Int# -> PArray a
 {-# INLINE_PA packByTagPA# #-}
 packByTagPA# (PArray _ xs) n# tags t# = PArray n# (packByTagPD xs n# tags t#)
 
@@ -427,7 +427,9 @@ packByTagPRScalar :: Scalar a => T_packByTagPR a
 {-# INLINE packByTagPRScalar #-}
 packByTagPRScalar xs _ tags t# = traceF "packByTagPRScalar"
                              $ toScalarPData
-                             $ U.packByTag (fromScalarPData xs) tags (I# t#)
+                             $ U.packByTag (fromScalarPData xs)
+                                           tags
+                                           (intToTag (I# t#))
 
 combine2PRScalar :: Scalar a => T_combine2PR a
 {-# INLINE combine2PRScalar #-}

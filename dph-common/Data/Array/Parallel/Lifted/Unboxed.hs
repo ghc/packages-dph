@@ -50,7 +50,8 @@ module Data.Array.Parallel.Lifted.Unboxed (
 ) where
 
 import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Base ((:*:)(..), fromBool, toBool)
+import Data.Array.Parallel.Base (
+  (:*:)(..), Tag, fromBool, toBool, intToTag, tagToInt )
 
 import GHC.Exts ( Int#, Int(..), Word#,
                   Double#, Double(..) )
@@ -88,20 +89,20 @@ mkSegd# ns is n# = U.mkSegd ns is (I# n#)
 
 replicateSel2# :: Int# -> Int# -> Sel2
 {-# INLINE replicateSel2# #-}
-replicateSel2# n# tag# = U.mkSel2 (U.replicate n tag)
+replicateSel2# n# tag# = U.mkSel2 (U.replicate n (intToTag tag))
                                   (U.enumFromStepLen 0 1 n)
                                   (if tag == 0 then n else 0)
                                   (if tag == 0 then 0 else n)
-                                  (U.mkSelRep2 (U.replicate n tag))
+                                  (U.mkSelRep2 (U.replicate n (intToTag tag)))
   where
     n = I# n#
     tag = I# tag#
 
 pickSel2# :: Sel2 -> Int# -> U.Array Bool
 {-# INLINE pickSel2# #-}
-pickSel2# sel tag# = U.pick (U.tagsSel2 sel) (I# tag#)
+pickSel2# sel tag# = U.pick (U.tagsSel2 sel) (intToTag (I# tag#))
 
-tagsSel2 :: Sel2 -> U.Array Int
+tagsSel2 :: Sel2 -> U.Array Tag
 {-# INLINE tagsSel2 #-}
 tagsSel2 = U.tagsSel2
 
@@ -451,10 +452,10 @@ truesPAs_Bool# segd = sumPAs_Int# segd . fromBoolPA#
 {-# INLINE truesPAs_Bool# #-}
 
 fromBoolPA# :: PArray_Bool# -> PArray_Int#
-fromBoolPA# = U.map fromBool
+fromBoolPA# = U.map (tagToInt . fromBool)
 {-# INLINE_PA fromBoolPA# #-}
 
 toBoolPA# :: PArray_Int# -> PArray_Bool#
-toBoolPA# = U.map toBool
+toBoolPA# = U.map (toBool . intToTag)
 {-# INLINE_PA toBoolPA# #-}
 

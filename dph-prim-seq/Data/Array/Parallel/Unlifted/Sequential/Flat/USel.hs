@@ -32,9 +32,9 @@ import Data.Array.Parallel.Unlifted.Sequential.Flat.UArr (
 import Data.Array.Parallel.Unlifted.Sequential.Flat.Stream (
   streamU, unstreamU )
 import Data.Array.Parallel.Stream ( mapAccumS )
-import Data.Array.Parallel.Base ((:*:)(..))
+import Data.Array.Parallel.Base (Tag, (:*:)(..))
 
-data USel2 = USel2 { usel2_tags      :: !(UArr Int)
+data USel2 = USel2 { usel2_tags      :: !(UArr Tag)
                    , usel2_indices   :: !(UArr Int)
                    , usel2_elements0 :: !Int
                    , usel2_elements1 :: !Int
@@ -44,7 +44,7 @@ lengthUSel2 :: USel2 -> Int
 {-# INLINE lengthUSel2 #-}
 lengthUSel2 = lengthU . usel2_tags
 
-tagsUSel2 :: USel2 -> UArr Int
+tagsUSel2 :: USel2 -> UArr Tag
 {-# INLINE tagsUSel2 #-}
 tagsUSel2 = usel2_tags
 
@@ -60,11 +60,11 @@ elementsUSel2_1 :: USel2 -> Int
 {-# INLINE elementsUSel2_1 #-}
 elementsUSel2_1 = usel2_elements1
 
-mkUSel2 :: UArr Int -> UArr Int -> Int -> Int -> USel2
+mkUSel2 :: UArr Tag -> UArr Int -> Int -> Int -> USel2
 {-# INLINE mkUSel2 #-}
 mkUSel2 = USel2
 
-tagsToIndices2 :: UArr Int -> UArr Int
+tagsToIndices2 :: UArr Tag -> UArr Int
 {-# INLINE tagsToIndices2 #-}
 tagsToIndices2 tags = unstreamU (mapAccumS add (0 :*: 0) (streamU tags))
   where

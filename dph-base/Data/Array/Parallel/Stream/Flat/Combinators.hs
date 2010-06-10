@@ -22,7 +22,7 @@ module Data.Array.Parallel.Stream.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), Rebox(..) )
+  (:*:)(..), MaybeS(..), Rebox(..), Tag )
 import Data.Array.Parallel.Base.DTrace
 import Data.Array.Parallel.Stream.Flat.Stream
 
@@ -152,7 +152,7 @@ combineS (Stream next1 s m c) (Stream nextS1 t1 n1 c1) (Stream nextS2 t2 n2 c2)
                                Yield x t2' -> Yield x (s' :*: t1 :*: t2')
 
 
-combine2ByTagS :: Stream Int -> Stream a -> Stream a -> Stream a
+combine2ByTagS :: Stream Tag -> Stream a -> Stream a -> Stream a
 {-# INLINE_STREAM combine2ByTagS #-}
 combine2ByTagS (Stream next_tag s m c) (Stream next0 s0 _ c1)
                                        (Stream next1 s1 _ c2)

@@ -30,7 +30,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSel (
 
 import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Base ((:*:)(..), fstS)
+import Data.Array.Parallel.Base (Tag, tagToInt, (:*:)(..), fstS)
 
   -- (offset as :*: offset bs) :*: (length as :*: length bs)
 type UPSelRep2 = Dist ((Int,Int), (Int,Int))
@@ -38,7 +38,7 @@ data UPSel2 = UPSel2 { upsel2_usel :: USel2
                      , upsel2_rep  :: UPSelRep2
                      }
 
-tagsUPSel2 :: UPSel2 -> UArr Int
+tagsUPSel2 :: UPSel2 -> UArr Tag
 {-# INLINE tagsUPSel2 #-}
 tagsUPSel2 = tagsUSel2 .  upsel2_usel
 
@@ -62,7 +62,7 @@ repUPSel2 :: UPSel2 -> UPSelRep2
 {-# INLINE repUPSel2 #-}
 repUPSel2 = upsel2_rep
 
-mkUPSelRep2 :: UArr Int -> UPSelRep2
+mkUPSelRep2 :: UArr Tag -> UPSelRep2
 {-# INLINE mkUPSelRep2 #-}
 mkUPSelRep2 tags = zipD idxs lens
   where
@@ -72,12 +72,12 @@ mkUPSelRep2 tags = zipD idxs lens
     idxs = fstS
          $ scanD theGang add (0,0) lens
 
-    count bs = let ones = sumU bs
+    count bs = let ones = sumU (mapU tagToInt bs)
                in (lengthU bs - ones,ones)
 
     add (x1,y1) (x2,y2) = (x1+x2, y1+y2)
 
-indicesUPSelRep2 :: UArr Int -> UPSelRep2 -> UArr Int
+indicesUPSelRep2 :: UArr Tag -> UPSelRep2 -> UArr Int
 {-# INLINE indicesUPSelRep2 #-}
 indicesUPSelRep2 tags rep = joinD theGang balanced
                           $ zipWithD theGang indices
@@ -88,15 +88,15 @@ indicesUPSelRep2 tags rep = joinD theGang balanced
       = combine2ByTagU tags (enumFromStepLenU i 1 m)
                             (enumFromStepLenU j 1 n)
 
-elementsUPSelRep2_0 :: UArr Int -> UPSelRep2 -> Int
+elementsUPSelRep2_0 :: UArr Tag -> UPSelRep2 -> Int
 {-# INLINE elementsUPSelRep2_0 #-}
 elementsUPSelRep2_0 _ = sumD theGang . fstD . sndD
 
-elementsUPSelRep2_1 :: UArr Int -> UPSelRep2 -> Int
+elementsUPSelRep2_1 :: UArr Tag -> UPSelRep2 -> Int
 {-# INLINE elementsUPSelRep2_1 #-}
 elementsUPSelRep2_1 _ = sumD theGang . sndD . sndD
 
-mkUPSel2 :: UArr Int -> UArr Int -> Int -> Int -> UPSelRep2 -> UPSel2
+mkUPSel2 :: UArr Tag -> UArr Int -> Int -> Int -> UPSelRep2 -> UPSel2
 {-# INLINE mkUPSel2 #-}
 mkUPSel2 tags is n0 n1 rep = UPSel2 (mkUSel2 tags is n0 n1) rep
 

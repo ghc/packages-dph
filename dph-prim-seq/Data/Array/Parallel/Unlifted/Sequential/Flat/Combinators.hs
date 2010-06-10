@@ -35,7 +35,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators (
 ) where
 
 import Data.Array.Parallel.Base (
-  (:*:)(..), MaybeS(..), checkNotEmpty, checkEq, sndS, Rebox(..), ST, runST)
+  Tag, (:*:)(..), MaybeS(..), checkNotEmpty, checkEq, sndS, Rebox(..), ST, runST)
 import Data.Array.Parallel.Base.DTrace
 import Data.Array.Parallel.Stream (
   Step(..), Stream(..),
@@ -228,7 +228,7 @@ combineU f a1 a2 = checkEq (here "combineU")
 --  trace ("combineU:\n\t"  ++ show (lengthU f)  ++ "\n\t" ++ show (lengthU a1) ++ "\n\t" ++ show (lengthU a2) ++ "\n")
   unstreamU (combineS (streamU f) (streamU a1) (streamU a2))
 
-combine2ByTagU :: UA a => UArr Int -> UArr a -> UArr a -> UArr a
+combine2ByTagU :: UA a => UArr Tag -> UArr a -> UArr a -> UArr a
 {-# INLINE_U combine2ByTagU #-}
 combine2ByTagU ts xs ys
   = checkEq (here "combine2ByTagU")
