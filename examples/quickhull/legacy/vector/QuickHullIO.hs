@@ -67,7 +67,7 @@ hsplit hullRef !points !p1@(!p1X, !p1Y) !p2@(!p2X, !p2Y)
 	= addHullPoint hullRef p1
 	
 	-- do the two new segments in parallel.
-	| V.length packed > 10000
+	| V.length packed > 1000
 	= parIO
 		[ hsplit hullRef packed p1 pm
 		, hsplit hullRef packed pm p2 ]
@@ -98,7 +98,7 @@ parPackPoints
 {-# INLINE parPackPoints #-}
 parPackPoints !points !p1X !p1Y !p2X !p2Y
  |   numCapabilities == 1
-  || V.length points < 10000
+  || V.length points < 1000
  = packPoints p1X p1Y p2X p2Y points
 
  | otherwise
@@ -264,16 +264,6 @@ concatVectors vectors
 	go (vSrc:vsSrc) vDest !ixStart	
 	 = do	let lenSrc	= V.length vSrc
 		let vDestSlice	= MV.unsafeSlice ixStart lenSrc vDest
-		copyInto vDestSlice vSrc
+		V.copy vDestSlice vSrc
 		go vsSrc vDest (ixStart + lenSrc) 
-
-	{-# INLINE copyInto #-}
-	copyInto !vDest !vSrc
- 	 = go 0
- 	 where	len	= V.length vSrc
-		go !ix
-	 	 | ix == len	= return ()
- 	 	 | otherwise	
-  	 	 = do	MV.unsafeWrite vDest ix (vSrc `V.unsafeIndex` ix)
-			go (ix + 1)
 

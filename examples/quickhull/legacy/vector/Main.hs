@@ -41,8 +41,7 @@ main
 
 run (fun, pointCount, mFileSVG) 
  = do
-	let points	= genPointsDisc pointCount (400, 400) 350 
-	let vPoints	= V.fromList points
+	let vPoints	= genPointsDisc pointCount (400, 400) 350 
 
 	-- Force points to create the input vector.
 	V.force vPoints `seq` return ()
