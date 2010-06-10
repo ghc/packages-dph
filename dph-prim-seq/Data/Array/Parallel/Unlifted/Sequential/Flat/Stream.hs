@@ -34,7 +34,7 @@ streamU :: UA a => UArr a -> Stream a
 {-# INLINE_STREAM streamU #-}
 streamU !arr = Stream next 0 n (sNoArgs "streamU")
   where
-    n = lengthU arr
+    !n = lengthU arr
     {-# INLINE next #-}
     next i | i == n    = Done
            | otherwise = Yield (arr `indexU` i) (i+1)

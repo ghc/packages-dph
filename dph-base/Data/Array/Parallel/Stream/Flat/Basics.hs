@@ -62,7 +62,7 @@ consS x (Stream next s n c) = Stream next' (JustS (Strict x) :*: s) (n+1) ("cons
 --
 replicateS :: Int -> a -> Stream a
 {-# INLINE_STREAM replicateS #-}
-replicateS n x = Stream next 0 n (sNoArgs "replicateS")
+replicateS !n x = Stream next 0 n (sNoArgs "replicateS")
   where
     {-# INLINE next #-}
     next i | i == n    = Done
