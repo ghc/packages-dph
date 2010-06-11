@@ -1,6 +1,7 @@
 module ListDelaunay where
 
 import Data.List hiding ( sort, union )
+import qualified Data.List
 import SVG
 
 maxIndex :: Ord a => [a] -> Int
@@ -81,21 +82,27 @@ lowerHull points
 
 
 kthSmallest :: [Double] -> Int -> Double
-kthSmallest xs k
-  | k >= length lts && k < n - length gts = pivot
-  | otherwise = kthSmallest ys k'
-  where
-    n     = length xs
-    pivot = xs !! (n `div` 2)
+kthSmallest xs i = Data.List.sort xs !! i
 
-    lts   = [x | x <- xs, x < pivot]
-    gts   = [x | x <- xs, x > pivot]
+kthSmallestIndex :: [(Int,Double)] -> Int -> Int
+kthSmallestIndex xs k
+  | k >= length lts && k < n - length gts = i
+  | otherwise = kthSmallestIndex ys k'
+  where
+    n = length xs
+    (i,x) = xs !! (n `div` 2)
+
+    lts = [(j,y) | (j,y) <- xs, y < x]
+    gts = [(j,y) | (j,y) <- xs, y > x]
 
     (ys, k') | k < length lts = (lts, k)
              | otherwise      = (gts, k - (n - length gts))
 
 median :: [Double] -> Double
 median xs = kthSmallest xs (length xs `div` 2)
+
+medianIndex :: [Double] -> Int
+medianIndex xs = kthSmallestIndex (zip [0..] xs) (length xs `div` 2)
 
 union :: [(Int,[Int])] -> [(Int,[Int])]
 union ps
@@ -112,9 +119,21 @@ union ps
   (ss!!0) ++ [(pivot, concat eqs)] ++ (ss!!1)
 
 collect :: [(Int,Int)] -> [(Int,[Int])]
+{-
+collect ps = parts (sortBy cmp ps)
+  where
+    cmp (i,_) (j,_) = compare i j
+
+    parts [] = []
+    parts ((i,k):ps) = let (qs,rs) = span ((i==) . fst) ps
+                       in
+                       (i, k : map snd qs) : parts rs
+-}
 collect ps = union [(i,[j]) | (i,j) <- ps]
 
 sort :: [Int] -> [Int]
+sort = Data.List.sort
+{-
 sort xs | length xs <= 1 = xs
 sort xs = (ss!!0) ++ [pivot] ++ (ss!!1)
   where
@@ -122,7 +141,7 @@ sort xs = (ss!!0) ++ [pivot] ++ (ss!!1)
     ls    = [x | x <- xs, x < pivot]
     gs    = [x | x <- xs, x > pivot]
     ss    = map sort [ls,gs]
-
+-}
 
 
 lineFromPoint :: Point -> Point
@@ -177,8 +196,9 @@ delaunayDivide points prev_n
     n = length points
     
     points1 = [(i,(y,x)) | (i,(x,y)) <- points]
-    med     = median (map xOf points1)
-    (i,(xm,ym)) = [p | p <- points1, xOf p == med] !! 0
+    (i,(xm,ym)) = points1 !! medianIndex [x | (_, (x,y)) <- points1]
+    -- med     = median (map xOf points1)
+    -- (i,(xm,ym)) = [p | p <- points1, xOf p == med] !! 0
 
     proj = [(j,(y, sq (x-xm) + sq (y-ym)))
                 | ((i,(x,y)),j) <- zip points1 (enumFromTo 0 (n - 1))]
@@ -186,8 +206,8 @@ delaunayDivide points prev_n
     lower_hull_indices = lowerHull proj
     hull_flags = update (replicate n 0) [(i,1) | i <- lower_hull_indices]
 
-    down_points = [p | (p,fl) <- zip points1 hull_flags, xOf p < med || fl /= 0]
-    up_points   = [p | (p,fl) <- zip points1 hull_flags, xOf p >= med || fl /= 0]
+    down_points = [p | (p,fl) <- zip points1 hull_flags, xOf p < xm || fl /= 0]
+    up_points   = [p | (p,fl) <- zip points1 hull_flags, xOf p >= ym || fl /= 0]
 
 delaunay' :: [Point] -> [(Int,Int)]
 delaunay' points = concat (delaunayFromEdgelist points all_edges)
