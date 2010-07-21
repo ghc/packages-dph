@@ -53,6 +53,7 @@ splitConAppTy ty = collect ty []
   where
     collect (ConT tycon)  args = Just (ConT tycon, args)
     collect (TupleT n)    args = Just (TupleT n,   args)
+    collect ListT         args = Just (ListT,   args)
     collect ArrowT        args = Just (ArrowT,     args)
     collect (AppT ty arg) args = collect ty (arg:args)
     collect _ _ = Nothing
@@ -117,7 +118,9 @@ methodVals (ForallT (PlainTV v : _) _ ty)
     val v (VarT n) | v == n = ScalarVal
     val v (AppT (ConT c) (VarT n)) | c == ''PData && v == n = PDataVal
                                    | c == ''[]    && v == n = ListVal
-    val v (ConT c) | c == ''() = UnitVal
+    val v (AppT ListT (VarT n)) | v==n = ListVal
+    val v (ConT c) | c == ''()         = UnitVal
+    val v (TupleT 0)                   = UnitVal
     val _ t = OtherVal
 
 data Split = PatSplit  PatQ
