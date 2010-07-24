@@ -34,9 +34,17 @@ import Data.Array.Parallel.Unlifted.Parallel.Combinators (
 
 import GHC.Base ( divInt )
 
+delay_inline :: a -> a
+{-# INLINE [0] delay_inline #-}
+delay_inline x = x
+
 enumFromToUP :: (UA a, Enum a) => a -> a -> UArr a
 {-# INLINE enumFromToUP #-}
-enumFromToUP start end = enumFromThenToUP start (succ start) end
+enumFromToUP start end = mapUP toEnum (enumFromStepLenUP start' 1 len)
+  where
+    start' = fromEnum start
+    end'   = fromEnum end
+    len    = delay_inline max (end' - start') 0
 
 enumFromThenToUP :: (UA a, Enum a) => a -> a -> a -> UArr a
 {-# INLINE enumFromThenToUP #-}
