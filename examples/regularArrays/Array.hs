@@ -307,7 +307,7 @@ backpermuteDft srcArr e newSh fn =
     sh = arrayShape srcArr
     init = const e
     inds = (uncurry U.zip)
-         $ (\(di :*: si) -> (di,  U.bpermute (arrayData srcArr) si))
+         $ (\(di, si) -> (di,  U.bpermute (arrayData srcArr) si))
          $ U.unzip 
          $ U.filter (\(dstInd :*: srcInd) -> srcInd > -1)
          $ U.map fn' $ U.enumFromTo 0  (size newSh - 1)
