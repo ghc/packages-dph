@@ -76,25 +76,40 @@ instance (U.Elt e, A.Shape dim, Show e) => Show (CArray dim e) where
 
 -- Eq
 instance (U.Elt e, Eq e, A.Shape sh) => Eq (CArray sh e) where
+	{-# INLINE (==) #-}
 	(==) arr1@(CArray sh _)  arr2 
 		= toScalar 
 		$ fold (&&) True 
 		$ (flip reshape) (() :. (A.size sh)) 
 		$ zipWith (==) arr1 arr2
 		
+	{-# INLINE (/=) #-}
 	(/=) a1 a2 
 		= not $ (==) a1 a2
 
 -- Num
 -- All operators apply elementwise.
 instance (U.Elt e, A.Shape dim, Num e) => Num (CArray dim e) where
+
+	{-# INLINE (+) #-}
 	(+)		= zipWith (+)
+
+	{-# INLINE (-) #-}
 	(-)		= zipWith (-)
+
+	{-# INLINE (*) #-}
 	(*)		= zipWith (*)
+
+	{-# INLINE negate #-}
 	negate  	= map negate
+
+	{-# INLINE abs #-}
 	abs		= map abs
+
+	{-# INLINE signum #-}
 	signum 		= map signum
 
+	{-# INLINE fromInteger #-}
 	fromInteger n	= CArray fail $ Left $ (\_ -> fromInteger n) 
 	 where fail	= error "CArray.fromInteger: Constructed array has no shape"
 
@@ -154,6 +169,8 @@ forceCArray arr = toCArray (fromCArray arr)
 -- Constructors -----------------------------------------------------------------------------------
 -- | Convert a zero dimensional array into a scalar value.
 toScalar :: U.Elt e => CArray () e -> e
+
+{-# INLINE toScalar #-}
 toScalar (CArray _ m) 
 	= case m of
 		Left fn 	-> fn ()
@@ -350,6 +367,7 @@ sum	:: (U.Elt e, A.Shape dim, Num e)
 	=> CArray (dim :. Int) e
 	-> CArray dim e
 
+{-# INLINE sum #-}
 sum arr	= fold (+) 0 arr
 
 
