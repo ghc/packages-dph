@@ -44,7 +44,7 @@ enumFromToUP start end = mapUP toEnum (enumFromStepLenUP start' 1 len)
   where
     start' = fromEnum start
     end'   = fromEnum end
-    len    = delay_inline max (end' - start') 0
+    len    = delay_inline max (end' - start' + 1) 0
 
 enumFromThenToUP :: (UA a, Enum a) => a -> a -> a -> UArr a
 {-# INLINE enumFromThenToUP #-}
