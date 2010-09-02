@@ -15,7 +15,7 @@ main
 	    -> run (read pointCount) Nothing
 	
 	  [pointCount, fileSVG]
-	     -> run (read pointCount) (Just fileSVG)
+	    -> run (read pointCount) (Just fileSVG)
 
 	  _ -> do
 		putStr usage
