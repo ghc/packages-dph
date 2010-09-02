@@ -1,0 +1,36 @@
+
+Name:                dph-examples
+Version:             0.4.0
+License:             BSD3
+License-file:        LICENSE
+Author:              The DPH Team
+Maintainer:          Ben Lippmeier <benl@ouroborus.net>
+Build-Type:          Simple
+Cabal-Version:       >=1.6
+Stability:           experimental
+Category:            Data Structures
+Homepage:            http://www.cse.unsw.edu.au/~chak/project/dph/
+Description:
+        Examples using the DPH library.
+
+Synopsis:
+        Examples using the DPH library.
+
+Executable dph-quickhull
+  Build-depends: 
+        base                 == 4.*,
+        dph-prim-par         == 0.4.*,
+        dph-par              == 0.4.*,
+        dph-base             == 0.4.*,
+        random               == 1.0.*,
+        old-time             == 1.0.*
+  Main-is: Main.hs
+  hs-source-dirs: QuickHull/src lib
+  ghc-options: 
+        -threaded 
+        -rtsopts 
+        -Odph
+        -fcpr-off
+        -fsimplifier-phases=4 
+        -fstrictness-before=3 
+        -fllvm

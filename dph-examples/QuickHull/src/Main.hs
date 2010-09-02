@@ -1,0 +1,45 @@
+
+import QuickHull
+import Points2D.Generate
+import Points2D.Types
+import Timing
+import System.Environment
+
+main :: IO ()
+main 
+ = do	args	<- getArgs
+	case args of
+	  [pointCount]	
+	    -> run (read pointCount) Nothing
+	
+	  [pointCount, fileSVG]
+	     -> run (read pointCount) (Just fileSVG)
+
+	  _ -> do
+		putStr usage
+		return ()
+
+
+-- | Command line usage information.
+usage	:: String
+usage	= unlines
+	[ "Usage: quickhull <points> [out.svg]"	]
+
+
+run pointCount mFileSVG
+ = do
+	vPoints	<- pointsPArrayOfUArray
+		$ genPointsDisc pointCount (400, 400) 350 
+
+	-- Force points to create the input vector.
+	vPoints `seq` return ()
+
+	-- Compute the convex hull.
+	(vHull, tElapsed)
+		<- time 
+		$  let 	vHull	= quickhullPA vPoints
+		   in	vHull `seq` return vHull
+					
+	-- Print how long it took.
+	putStr $ prettyTime tElapsed
+
