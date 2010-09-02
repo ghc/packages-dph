@@ -1,9 +1,11 @@
 
 import QuickHull
+import SVG
 import Points2D.Generate
 import Points2D.Types
 import Timing
 import System.Environment
+import Data.Array.Parallel.PArray	as P
 
 main :: IO ()
 main 
@@ -42,4 +44,11 @@ run pointCount mFileSVG
 					
 	-- Print how long it took.
 	putStr $ prettyTime tElapsed
-
+	
+	-- If we were asked for an SVG then write it out to file.
+	maybe 	(return ())
+	 	(\fileSVG -> 
+			writeFile fileSVG
+			 $ makeSVG 	(roundPoints $ P.toList vPoints) 
+					(roundPoints $ P.toList vHull))
+		mFileSVG
