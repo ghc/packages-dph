@@ -2,11 +2,10 @@
 {-# OPTIONS -fvectorise #-}
 
 module MergeSort 
-	( sortCorePA
-	, sortCore
-	, mergeCore
-	, flipPairs
-	, interleave
+	( sortCore,   sortCorePA
+	, mergeCore,  mergeCorePA
+	, flipPairs,  flipPairsPA
+	, interleave, interleavePA
 	, evens
 	, odds)
 where
@@ -15,11 +14,30 @@ import Data.Array.Parallel.Prelude.Double
 import qualified Data.Array.Parallel.Prelude.Int as Int
 import qualified Prelude as P
 
+
+-- Wrappers -------------------------------------------------------------------
 sortCorePA :: PArray Double -> PArray Double
 {-# NOINLINE sortCorePA #-}
-sortCorePA ps = toPArrayP (sortCore (fromPArrayP ps))
+sortCorePA ps
+	= toPArrayP (sortCore (fromPArrayP ps))
+
+mergeCorePA :: PArray Double -> PArray Double -> PArray Double
+{-# NOINLINE mergeCorePA #-}
+mergeCorePA arr1 arr2
+	= toPArrayP (mergeCore (fromPArrayP arr1 +:+ fromPArrayP arr2))
+
+flipPairsPA :: PArray Double -> PArray Double
+{-# NOINLINE flipPairsPA #-}
+flipPairsPA ps
+	= toPArrayP (flipPairs (fromPArrayP ps))
+
+interleavePA :: PArray Double -> PArray Double -> PArray Double
+{-# NOINLINE interleavePA #-}
+interleavePA arr1 arr2
+	= toPArrayP (interleave (fromPArrayP arr1) (fromPArrayP arr2))
 
 
+-------------------------------------------------------------------------------
 -- | Batcher odd/even merge sort.
 --   The length of the list must be a power of two, else loop.
 sortCore :: [:Double:] -> [:Double:]
@@ -51,7 +69,7 @@ mergeCore xx
 		xx'	= interleave evens' odds'
 		ixLast	= lengthP xx' Int.- 1
 
-   	  in	[: xx' !: 0 :]  
+	  in	[: xx' !: 0 :]  
 	    +:+ (flipPairs (sliceP 1 ixLast xx'))
 	    +:+ [: xx' !: ixLast :]
 

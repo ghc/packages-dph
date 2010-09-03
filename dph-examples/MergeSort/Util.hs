@@ -1,5 +1,7 @@
 
-module Util (isPowerOfTwo)
+module Util 
+	( isPowerOfTwo
+	, isSorted)
 where
 	
 
@@ -12,11 +14,7 @@ isPowerOfTwo n
 	| otherwise		= False
 
 
-
-{-
-	$ isSorted sorted && (sum elems == sum sorted)
-
-isSorted :: [Int] -> Bool
+isSorted :: Ord a => [a] -> Bool
 isSorted xx
  = case xx of
 	[]		-> True
@@ -24,4 +22,4 @@ isSorted xx
 	(x1:x2:rest)
 	 | x1 <= x2	-> isSorted (x2 : rest)
 	 | otherwise	-> False
--}
+

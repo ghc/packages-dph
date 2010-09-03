@@ -22,20 +22,25 @@ run count
  = error "mergesort: length of array must be a power of two."
 
  | otherwise
- = do	let gen		= mkStdGen 12345
-	let parr	=  P.fromUArrPA' 
-			$  U.randomRs count (0, 1) gen
+ = do	let gen		=  mkStdGen 12345
+	let arrElems	=  (P.fromUArrPA' $ U.randomRs count (0, 1) gen)  :: P.PArray Double
+	evaluate $ P.nf arrElems
 
-	evaluate $ P.nf parr
-
-	let elems 	= (take count $ randomRs (0, 100) gen) :: [Double]
-	let sorted	= L.sort elems
+	let gen2	=  mkStdGen 54321
+	let arrElems2	=  (P.fromUArrPA' $ U.randomRs count (0, 1) gen2) :: P.PArray Double
+	evaluate $ P.nf arrElems2
 	
-	(parr_sorted, tElapsed)
+	let listElems	= P.toList arrElems
+	let listElems2	= P.toList arrElems2
+
+	let listSorted	= L.sort listElems
+	let listSorted2	= L.sort listElems2
+	
+	(arrSorted, tElapsed)
 		<- time
-		$  let	parr'	= V.sortCorePA parr
+		$  let	parr'	= V.sortCorePA arrElems 
 		   in	parr' `seq` return parr'
 		
-	putStr $ prettyTime tElapsed
-	print  $ P.toList parr_sorted
-
+	putStr	$ prettyTime tElapsed
+	print	$ P.toList arrSorted
+	print	$ isSorted $ P.toList arrSorted
