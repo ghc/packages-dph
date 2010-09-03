@@ -1,11 +1,11 @@
-{-# LANGUAGE PArr #-}
+{-# LANGUAGE PArr, ParallelListComp #-}
 {-# OPTIONS -fvectorise #-}
 
 module MergeSort 
-	( sortCore,   sortCorePA
-	, mergeCore,  mergeCorePA
-	, flipPairs,  flipPairsPA
-	, interleave, interleavePA
+	( sortCore,    sortCorePA
+	, mergeCore,   mergeCorePA
+	, flipPairs,   flipPairsPA
+	, interleave,  interleavePA
 	, evens
 	, odds)
 where
@@ -92,8 +92,8 @@ interleave xx yy
 -- | Take the even indexed elements from an array.
 evens :: [:Double:] -> [:Double:]
 evens xx
-  = [: x | (ix, x)	<- indexedP xx
-	 , Int.mod ix 2 Int.== 0 :]
+	= [: x	| (ix, x)	<- indexedP xx
+		, Int.mod ix 2 Int.== 0 :]
 
 
 -- | Take the odd indexed elements from an array.

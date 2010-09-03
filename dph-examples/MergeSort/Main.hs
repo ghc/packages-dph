@@ -5,19 +5,37 @@ import System.Environment
 import System.Random
 import Control.Exception
 import qualified MergeSort			as V
-import qualified LegacyList.OddEven 		as L
+import qualified LegacyList.OddEven 		as LO
+import qualified LegacyList.Step		as LS
 import qualified Data.Array.Parallel.PArray	as P
 import qualified Data.Array.Parallel.Unlifted	as U
+
+type Algorithm	
+	= P.PArray Double -> P.PArray Double
+
+algorithms
+ = 	[ ("oddeven",		V.sortCorePA)
+   	, ("list-oddeven",	P.fromList . LO.sort . P.toList)
+	, ("list-step",		P.fromList . LS.sort . P.toList) ]
 
 main 
  = do	args	<- getArgs
 	case args of
-	 [count] -> run (read count)
-	 []	 -> putStr "usage: mergesort <count>\n"
+	 [alg, count] 	
+	  | Just fun	<- lookup alg algorithms	
+	  -> run fun (read count)
+
+ 	 _		-> usage
 
 
-run :: Int -> IO ()
-run count
+usage :: IO ()
+usage 
+ = putStr $  "usage: mergesort <algorithm> <count>\n"
+	  ++ "  algorithms = " ++ (show $ map fst algorithms) ++ "\n\n"
+
+
+run :: Algorithm -> Int -> IO ()
+run alg count
  | not $ isPowerOfTwo count
  = error "mergesort: length of array must be a power of two."
 
@@ -25,22 +43,14 @@ run count
  = do	let gen		=  mkStdGen 12345
 	let arrElems	=  (P.fromUArrPA' $ U.randomRs count (0, 1) gen)  :: P.PArray Double
 	evaluate $ P.nf arrElems
-
-	let gen2	=  mkStdGen 54321
-	let arrElems2	=  (P.fromUArrPA' $ U.randomRs count (0, 1) gen2) :: P.PArray Double
-	evaluate $ P.nf arrElems2
-	
-	let listElems	= P.toList arrElems
-	let listElems2	= P.toList arrElems2
-
-	let listSorted	= L.sort listElems
-	let listSorted2	= L.sort listElems2
-	
+		
 	(arrSorted, tElapsed)
 		<- time
-		$  let	parr'	= V.sortCorePA arrElems 
+		$  let	parr'	= alg arrElems
 		   in	parr' `seq` return parr'
 		
 	putStr	$ prettyTime tElapsed
-	print	$ P.toList arrSorted
-	print	$ isSorted $ P.toList arrSorted
+--	print	$ P.toList arrSorted
+	print	$  (isSorted $ P.toList arrSorted) 
+		&& (P.length arrSorted == P.length arrElems)
+
