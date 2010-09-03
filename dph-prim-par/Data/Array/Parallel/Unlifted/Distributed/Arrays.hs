@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE EmptyDataDecls, ScopedTypeVariables #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -35,7 +35,7 @@ import Data.Array.Parallel.Unlifted.Sequential
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
-  stToDistST, myIndex )
+  DistST, stToDistST, myIndex )
 import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, mkDPrim, indexD, lengthD, newD, writeMD, zipD, unzipD, fstD, sndD,
   elementsUSegdD,
@@ -137,13 +137,13 @@ splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
 {-# INLINE_DIST splitD #-}
 splitD g _ arr = splitD_impl g arr
 
-joinD_impl :: UA a => Gang -> Dist (UArr a) -> UArr a
+joinD_impl :: forall a. UA a => Gang -> Dist (UArr a) -> UArr a
 {-# INLINE_DIST joinD_impl #-}
 joinD_impl g !darr = checkGangD (here "joinD") g darr $
                      newU n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
     di :*: n = scanD g (+) 0 $ lengthD darr
-    --
+    copy :: forall s. MUArr a s -> Int -> UArr a -> DistST s ()
     copy ma i arr = stToDistST (copyMU ma i arr)
 
 -- | Join a distributed array.
@@ -231,12 +231,12 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
   #-}
 
 -- | Permute for distributed arrays.
-permuteD :: UA a => Gang -> Dist (UArr a) -> Dist (UArr Int) -> UArr a
+permuteD :: forall a. UA a => Gang -> Dist (UArr a) -> Dist (UArr Int) -> UArr a
 {-# INLINE_DIST permuteD #-}
 permuteD g darr dis = newU n (\ma -> zipWithDST_ g (permute ma) darr dis)
   where
     n = joinLengthD g darr
-    --
+    permute :: forall s. MUArr a s -> UArr a -> UArr Int -> DistST s ()
     permute ma arr is = stToDistST (permuteMU ma arr is)
 
 
@@ -249,7 +249,7 @@ bpermuteD g !as ds = mapD g (bpermuteU as) ds
 -- NB: This does not (and cannot) try to prevent two threads from writing to
 -- the same position. We probably want to consider this an (unchecked) user
 -- error.
-atomicUpdateD :: UA a
+atomicUpdateD :: forall a. UA a
              => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
 {-# INLINE atomicUpdateD #-}
 atomicUpdateD g darr upd = runST (
@@ -259,6 +259,7 @@ atomicUpdateD g darr upd = runST (
     unsafeFreezeAllMU marr
   )
   where
+    update :: forall s. MUArr a s -> UArr (Int :*: a) -> DistST s ()
     update marr arr = stToDistST (atomicUpdateMU marr arr)
 
 splitSegdD :: Gang -> USegd -> Dist USegd

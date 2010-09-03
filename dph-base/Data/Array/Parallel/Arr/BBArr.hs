@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.BBArr
@@ -138,7 +139,7 @@ unsafeFreezeAllMBB marr = unsafeFreezeMBB marr (lengthMBB marr)
 
 -- |Extract a slice from an array (given by its start index and length)
 --
-extractBB :: BBArr e -> Int -> Int -> BBArr e
+extractBB :: forall e. BBArr e -> Int -> Int -> BBArr e
 {-# INLINE extractBB #-}
 extractBB arr i n = 
   runST (do
@@ -148,6 +149,8 @@ extractBB arr i n =
   )
   where
     fence = n `min` (lengthBB arr - i)
+   
+    copy0 :: forall s. STArray s Int e -> ST s ()
     copy0 sta = copy 0
       where
         copy off | off == fence = return ()

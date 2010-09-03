@@ -405,7 +405,7 @@ streamBU arr = Stream next 0 (lengthBU arr) (sNoArgs "streamBU")
 
 -- | Construct an array from a stream, filling it from left to right
 --
-unstreamBU :: UAE e => Stream e -> BUArr e
+unstreamBU :: forall e. UAE e => Stream e -> BUArr e
 {-# INLINE [1] unstreamBU #-}
 unstreamBU (Stream next s n c) =
   runST (do
@@ -415,6 +415,7 @@ unstreamBU (Stream next s n c) =
     unsafeFreezeMBU marr n'
   )
   where
+    fill0 :: forall s. MBUArr s e -> ST s Int
     fill0 marr = fill s 0
       where
         fill s i = i `seq`
@@ -451,7 +452,7 @@ appBU xs ys = unstreamBU (streamBU xs +++ streamBU ys)
 
 -- |Extract a slice from an array (given by its start index and length)
 --
-extractBU :: UAE e => BUArr e -> Int -> Int -> BUArr e
+extractBU :: forall e. UAE e => BUArr e -> Int -> Int -> BUArr e
 {-# INLINE extractBU #-}
 extractBU arr i n = 
   runST (do
@@ -461,6 +462,8 @@ extractBU arr i n =
   )
   where
     fence = n `min` (lengthBU arr - i)
+
+    copy0 :: forall s. MBUArr s e -> ST s ()
     copy0 ma = copy 0
       where
         copy off | off == fence = return ()

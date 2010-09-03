@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Parallel.Unlifted.Distributed.DistST
@@ -93,7 +94,7 @@ runDistST :: DT a => Gang -> (forall s. DistST s a) -> Dist a
 {-# NOINLINE runDistST #-}
 runDistST g p = runST (distST g p)
 
-runDistST_seq :: DT a => Gang -> (forall s. DistST s a) -> Dist a
+runDistST_seq :: forall a. DT a => Gang -> (forall s. DistST s a) -> Dist a
 {-# NOINLINE runDistST_seq #-}
 runDistST_seq g p = runST (
   do
@@ -102,7 +103,7 @@ runDistST_seq g p = runST (
      unsafeFreezeMD md)                           
   where
     !n = gangSize g
-    --
+    go :: forall s. MDist a s -> Int -> ST s ()
     go md i | i < n     = do
                             writeMD md i =<< unDistST p i
                             go md (i+1)

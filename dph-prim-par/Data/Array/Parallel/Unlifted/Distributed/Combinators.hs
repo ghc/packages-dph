@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Array.Parallel.Unlifted.Distributed.Basics
@@ -29,7 +30,7 @@ import Data.Array.Parallel.Base (
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, indexD, zipD, unzipD, fstD, sndD, deepSeqD,
+  DT, Dist, MDist, indexD, zipD, unzipD, fstD, sndD, deepSeqD,
   newMD, writeMD, unsafeFreezeMD,
   checkGangD, measureD)
 import Data.Array.Parallel.Unlifted.Distributed.DistST
@@ -144,7 +145,7 @@ foldD g f !d = checkGangD ("here foldD") g d $
              | otherwise = fold (i+1) (f x $ d `indexD` i)
 
 -- | Prefix sum of a distributed value.
-scanD :: DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
+scanD :: forall a. DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
 {-# NOINLINE scanD #-}
 scanD g f z !d = checkGangD (here "scanD") g d $
                  runST (do
@@ -154,14 +155,15 @@ scanD g f z !d = checkGangD (here "scanD") g d $
                    return (d' :*: s))
   where
     !n = gangSize g
-    --
+    scan :: forall s. MDist a s -> Int -> a -> ST s a
     scan md i !x | i == n    = return x
                  | otherwise = do
                                  writeMD md i x
                                  scan md (i+1) (f x $ d `indexD` i)
 
-mapAccumLD :: (DT a, DT b) => Gang -> (acc -> a -> acc :*: b)
-                                   -> acc -> Dist a -> acc :*: Dist b
+mapAccumLD :: forall a b acc. (DT a, DT b)
+           => Gang -> (acc -> a -> acc :*: b)
+                   -> acc -> Dist a -> acc :*: Dist b
 {-# INLINE_DIST mapAccumLD #-}
 mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
                         runST (do
@@ -171,7 +173,7 @@ mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
                           return (acc' :*: d'))
   where
     !n = gangSize g
-
+    go :: MDist b s -> Int -> acc -> ST s acc
     go md i acc | i == n    = return acc
                 | otherwise = case f acc (d `indexD` i) of
                                 acc' :*: b -> do

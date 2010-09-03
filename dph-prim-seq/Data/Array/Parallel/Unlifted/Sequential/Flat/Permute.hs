@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 ----------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Parallel.Unlifted.Sequential.Flat.Permute
@@ -141,7 +142,7 @@ reverseU :: UA e => UArr e -> UArr e
 --reverseU a = mapU (a!:) . enumFromToU 0 $ lengthU a - 1
 reverseU = rev . streamU
 
-rev :: UA e => Stream e -> UArr e
+rev :: forall e. UA e => Stream e -> UArr e
 {-# INLINE_STREAM rev #-}
 rev (Stream next s n c) =
   runST (do
@@ -151,6 +152,7 @@ rev (Stream next s n c) =
     return $ sliceU a i (n-i)
   )
   where
+    fill :: forall s. MUArr e s -> ST s Int
     fill marr = fill0 s n
       where
         fill0 s !i = case next s of
