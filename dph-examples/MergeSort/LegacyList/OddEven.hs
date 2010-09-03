@@ -14,7 +14,7 @@ sort xx
 
 -- | Batcher odd/even merge sort.
 --   This only works on on lists who's lengths are powers of two.
---   If it's not then it will loop forever.
+--   The length of the list must be a power of two, else loop.
 sortCore :: Ord a => [a] -> [a]
 sortCore xx
  	| []	<- xx	= []
@@ -26,8 +26,7 @@ sortCore xx
 
 -- | Batcher odd/even merge.
 --   The two lists to be merged are appended.
---   This only works on lists who's lengths are powers of two.
---   If it's not then it will loop forever.
+--   The length of the lists must be a power of two, else loop.
 mergeCore :: Ord a => [a] -> [a]
 mergeCore zz@[x, y]
 	| y < x		= [y, x]
@@ -41,7 +40,7 @@ mergeCore zz
 
 
 -- | For each consecutive pair of elements, 
---	flip them so they are in-order.
+--	if they are out of order then flip them so they are.
 flipPairs :: Ord a => [a] -> [a]
 flipPairs xx
 	= concat
