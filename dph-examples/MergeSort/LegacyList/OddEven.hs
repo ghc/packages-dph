@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 
 module LegacyList.OddEven (sort) where
-	
+import Util	
 
 sort :: Ord a => [a] -> [a]
 sort xx
@@ -71,15 +71,4 @@ odds xx
 	[]	-> []
 	[x]	-> []
 	x:y:xs	-> evens (y : xs)
-
-
--- | Check if an integer is a power of two.
-isPowerOfTwo :: Int -> Bool
-isPowerOfTwo n
-	| 0	<- n		= True
-	| 2	<- n		= True
-	| n `mod` 2 == 0	= isPowerOfTwo (n `div` 2)
-	| otherwise		= False
-
-
 

@@ -1,9 +1,13 @@
 
+import Util
+import Timing
+import System.Environment
+import System.Random
+import Control.Exception
 import qualified MergeSort			as V
 import qualified LegacyList.OddEven 		as L
 import qualified Data.Array.Parallel.PArray	as P
-import System.Environment
-import System.Random
+import qualified Data.Array.Parallel.Unlifted	as U
 
 main 
  = do	args	<- getArgs
@@ -14,23 +18,24 @@ main
 
 run :: Int -> IO ()
 run count
- = let	gen	= mkStdGen 12345
-	elems 	= (take count $ randomRs (0, 100) gen) :: [Double]
-	sorted	= L.sort elems
-   in	do 	print elems
-		print sorted
-		print $ P.toList (V.sortCorePA $ P.fromList elems)
+ | not $ isPowerOfTwo count
+ = error "mergesort: length of array must be a power of two."
 
---	$ isSorted sorted && (sum elems == sum sorted)
+ | otherwise
+ = do	let gen		= mkStdGen 12345
+	let parr	=  P.fromUArrPA' 
+			$  U.randomRs count (0, 1) gen
 
+	evaluate $ P.nf parr
 
-
-isSorted :: [Int] -> Bool
-isSorted xx
- = case xx of
-	[]		-> True
-	[x]		-> True
-	(x1:x2:rest)
-	 | x1 <= x2	-> isSorted (x2 : rest)
-	 | otherwise	-> False
+	let elems 	= (take count $ randomRs (0, 100) gen) :: [Double]
+	let sorted	= L.sort elems
 	
+	(parr_sorted, tElapsed)
+		<- time
+		$  let	parr'	= V.sortCorePA parr
+		   in	parr' `seq` return parr'
+		
+	putStr $ prettyTime tElapsed
+	print  $ P.toList parr_sorted
+
