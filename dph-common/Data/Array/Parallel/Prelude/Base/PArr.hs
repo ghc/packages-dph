@@ -1,9 +1,19 @@
 {-# LANGUAGE PArr #-}
 module Data.Array.Parallel.Prelude.Base.PArr (
-  mapP, filterP, combineP, emptyP, zipWithP, (!:), lengthP, concatP, zipP, unzipP, singletonP, (+:+), replicateP, updateP, bpermuteP,
-  indexedP, sliceP,
+  singletonP,
+  (!:),  sliceP,
+  emptyP, 
+  lengthP, 
+  (+:+), concatP, 
+  mapP,  filterP, 
+  zipWithP, zipP, unzipP,
+  replicateP,
+  combineP, 
+  updateP,
+  bpermuteP,
+  indexedP,
   fromPArrayP, fromPArrayPA,
-  toPArrayP, toPArrayPA,
+  toPArrayP,   toPArrayPA,
   fromNestedPArrayP, fromNestedPArrayPA
 ) where
 
