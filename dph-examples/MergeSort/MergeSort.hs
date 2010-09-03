@@ -61,19 +61,14 @@ mergeCore xx
 flipPairs  :: [:Double:] -> [:Double:]
 flipPairs xx
  = concatP 
-	[: flipped x y 
+	[: if y < x then [: y, x :] else [: x, y :]
 	|  (x, y) 	<- zipP (evens xx) (odds xx) :]
-
- where	flipped x y
-	 | y < x	= [: y, x :]
-	 | otherwise	= [: x, y :]
 
 
 -- | Interleave the elements of two arrays.
 interleave :: [:Double:] -> [:Double:] -> [:Double:]
 interleave xx yy
- = concatP 	
-	[: [:x, y:] | (x, y) <- zipP xx yy :]
+ = concatP [: [:x, y:] | (x, y) <- zipP xx yy :]
 
 
 -- | Take the even indexed elements from an array.
