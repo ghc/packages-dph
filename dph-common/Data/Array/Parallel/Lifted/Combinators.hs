@@ -231,8 +231,6 @@ packPA :: PA a => PArray a :-> PArray Bool :-> PArray a
 packPA = closure2 packPA_v packPA_l
 
 
-
-
 -- combine --------------------------------------------------------------------
 -- TODO: should the selector be a boolean array?
 combine2PA_v:: PA a => PArray a -> PArray a -> PArray Int -> PArray a
@@ -268,12 +266,12 @@ filterPA :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
 {-# INLINE filterPA #-}
 filterPA = closure2 filterPA_v filterPA_l
 
+
+-- index ----------------------------------------------------------------------
 indexPA_v :: PA a => PArray a -> Int -> a
 {-# INLINE_PA indexPA_v #-}
 indexPA_v xs (I# i#) = indexPA# xs i#
 
-
--- index ----------------------------------------------------------------------
 indexPA_l :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 {-# INLINE_PA indexPA_l #-}
 indexPA_l (PArray _ (PNested segd xs)) (PArray n# is)
@@ -359,6 +357,8 @@ enumFromToPA_Int :: Int :-> Int :-> PArray Int
 {-# INLINE enumFromToPA_Int #-}
 enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
 
+
+-- indexed --------------------------------------------------------------------
 indexedPA_v :: PA a => PArray a -> PArray (Int,a)
 {-# INLINE indexedPA_v #-}
 indexedPA_v (PArray n# xs)
@@ -374,6 +374,7 @@ indexedPA_l (PArray n# xss)
 indexedPA :: PA a => PArray a :-> PArray (Int,a)
 {-# INLINE indexedPA #-}
 indexedPA = closure1 indexedPA_v indexedPA_l
+
 
 -- slice ----------------------------------------------------------------------
 slicePA_v :: PA a => Int -> Int -> PArray a -> PArray a
@@ -400,6 +401,8 @@ slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
 {-# INLINE slicePA #-}
 slicePA = closure3 slicePA_v slicePA_l
 
+
+-- update ---------------------------------------------------------------------
 updatePA_v :: PA a => PArray a -> PArray (Int,a) -> PArray a
 {-# INLINE_PA updatePA_v #-}
 updatePA_v xs (PArray n# (P_2 is ys))
@@ -421,6 +424,8 @@ updatePA :: PA a => PArray a :-> PArray (Int,a) :-> PArray a
 {-# INLINE updatePA #-}
 updatePA = closure2 updatePA_v updatePA_l
 
+
+-- bpermute -------------------------------------------------------------------
 bpermutePA_v :: PA a => PArray a -> PArray Int -> PArray a
 {-# INLINE_PA bpermutePA_v #-}
 bpermutePA_v xs (PArray n# is) = bpermutePA# xs n# (fromScalarPData is)

@@ -11,7 +11,7 @@ import qualified Data.Array.Parallel.PArray	as P
 import qualified Data.Array.Parallel.Unlifted	as U
 
 type Algorithm	
-	= P.PArray Double -> P.PArray Double
+	= P.PArray Int -> P.PArray Int
 
 algorithms
  = 	[ ("oddeven",		V.sortCorePA)
@@ -41,7 +41,7 @@ run alg count
 
  | otherwise
  = do	let gen		=  mkStdGen 12345
-	let arrElems	=  (P.fromUArrPA' $ U.randomRs count (0, 1) gen)  :: P.PArray Double
+	let arrElems	=  (P.fromUArrPA' $ U.randomRs count (0, 100) gen)  :: P.PArray Int
 	evaluate $ P.nf arrElems
 		
 	(arrSorted, tElapsed)
@@ -50,7 +50,7 @@ run alg count
 		   in	parr' `seq` return parr'
 		
 	putStr	$ prettyTime tElapsed
---	print	$ P.toList arrSorted
+	print	$ P.toList arrSorted
 	print	$  (isSorted $ P.toList arrSorted) 
 		&& (P.length arrSorted == P.length arrElems)
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE PArr #-}
 {-# OPTIONS -fvectorise #-}
 module Reverse	
-	(treeReverse)
+	(treeReversePA)
 where
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double
@@ -16,6 +16,7 @@ treeReversePA ps
 
 -- | Reverse the elements in an array using a tree.
 treeReverse :: [:Double:] -> [:Double:]
+{-# NOINLINE treeReverse #-}
 treeReverse xx
 	| lengthP xx Int.== 1
 	= xx
@@ -25,11 +26,13 @@ treeReverse xx
 		half	= len `Int.div` 2
 
 		-- adding the call to evens here kills it
-		s1	= [: x 	| (x, ix) 
-				<- zipP xx {- (sliceP 0 half xx) -} (Int.enumFromToP 0 half)
+{-		s1	= [: x 	| (ix, x) 
+				<- zipP (Int.enumFromToP 0 (len Int.- 1)) xx
 				,  Int.mod ix 2 Int.== 0 :]
+-}
+--		s1	= [: x 	| (ix, x) 
+--				<- zipP (Int.enumFromToP 0 (half Int.- 1)) (sliceP 0 half xx) :]
 
---		s1	= sliceP 0    half xx
-
+		s1	= sliceP 0    half xx
 		s2	= sliceP half len  xx
 	  in	treeReverse s2 +:+ treeReverse s1

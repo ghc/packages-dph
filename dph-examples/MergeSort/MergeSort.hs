@@ -10,28 +10,26 @@ module MergeSort
 	, odds)
 where
 import Data.Array.Parallel.Prelude
-import Data.Array.Parallel.Prelude.Double
-import qualified Data.Array.Parallel.Prelude.Int as Int
+import Data.Array.Parallel.Prelude.Int
 import qualified Prelude as P
 
-
 -- Wrappers -------------------------------------------------------------------
-sortCorePA :: PArray Double -> PArray Double
+sortCorePA :: PArray Int -> PArray Int
 {-# NOINLINE sortCorePA #-}
 sortCorePA ps
 	= toPArrayP (sortCore (fromPArrayP ps))
 
-mergeCorePA :: PArray Double -> PArray Double -> PArray Double
+mergeCorePA :: PArray Int -> PArray Int -> PArray Int
 {-# NOINLINE mergeCorePA #-}
 mergeCorePA arr1 arr2
 	= toPArrayP (mergeCore (fromPArrayP arr1 +:+ fromPArrayP arr2))
 
-flipPairsPA :: PArray Double -> PArray Double
+flipPairsPA :: PArray Int -> PArray Int
 {-# NOINLINE flipPairsPA #-}
 flipPairsPA ps
 	= toPArrayP (flipPairs (fromPArrayP ps))
 
-interleavePA :: PArray Double -> PArray Double -> PArray Double
+interleavePA :: PArray Int -> PArray Int -> PArray Int
 {-# NOINLINE interleavePA #-}
 interleavePA arr1 arr2
 	= toPArrayP (interleave (fromPArrayP arr1) (fromPArrayP arr2))
@@ -40,12 +38,12 @@ interleavePA arr1 arr2
 -------------------------------------------------------------------------------
 -- | Batcher odd/even merge sort.
 --   The length of the list must be a power of two, else loop.
-sortCore :: [:Double:] -> [:Double:]
+sortCore :: [:Int:] -> [:Int:]
 sortCore xx
-	| len Int.== 0	= [::]
-	| len Int.== 1	= xx
+	| len == 0	= [::]
+	| len == 1	= xx
 	| otherwise
-	= let	half	= len `Int.div` 2
+	= let	half	= len `div` 2
 		s1	= sliceP 0    half xx
 		s2	= sliceP half len  xx
 	  in	mergeCore (sortCore s1 +:+ sortCore s2)
@@ -56,27 +54,38 @@ sortCore xx
 -- | Batcher odd/even merge.
 --   The two lists to merge are appended on the input.
 --   The length of the lists must be a power of two, else loop.
-mergeCore :: [:Double:] -> [:Double:]
-mergeCore xx
-	| lengthP xx Int.== 2
-	= if xx !: 1 < xx !: 0	
-		then [: xx !: 1, xx !: 0 :]
-		else [: xx !: 0, xx !: 1 :]
+mergeCore :: [:Int:] -> [:Int:]
+mergeCore xx = mergeCore' xx (lengthP xx) 0 1
+
+mergeCore' :: [:Int:] -> Int -> Int -> Int -> [:Int:]
+mergeCore' xx len offset stride
+	| len == 2
+	= let 	x0	= get xx offset stride 0
+		x1	= get xx offset stride 1
+	  in if x1 < x0
+		then [: x1, x0 :]
+		else [: x0, x1 :]
 	
 	| otherwise
-	= let	evens'	= mergeCore (evens xx)
-		odds'	= mergeCore (odds  xx)
+	= let	evens'	= mergeCore' xx (len `div` 2) offset            (stride * 2)
+		odds'	= mergeCore' xx (len `div` 2) (offset + stride) (stride * 2)
 		xx'	= interleave evens' odds'
-		ixLast	= lengthP xx' Int.- 1
+		ixLast	= lengthP xx' - 1
 
 	  in	[: xx' !: 0 :]  
 	    +:+ (flipPairs (sliceP 1 ixLast xx'))
 	    +:+ [: xx' !: ixLast :]
 
 
+-- | Get an indexed value from an array using an offset and stride.
+get :: [:Int:] -> Int -> Int -> Int -> Int
+get xx offset stride ix
+	= xx !: (offset + (ix * stride))
+
+
 -- | For each consecutive pair of elements, 
 --	if they are out of order then flip them so they are.
-flipPairs  :: [:Double:] -> [:Double:]
+flipPairs  :: [:Int:] -> [:Int:]
 flipPairs xx
  = concatP 
 	[: if y < x then [: y, x :] else [: x, y :]
@@ -84,23 +93,23 @@ flipPairs xx
 
 
 -- | Interleave the elements of two arrays.
-interleave :: [:Double:] -> [:Double:] -> [:Double:]
+interleave :: [:Int:] -> [:Int:] -> [:Int:]
 interleave xx yy
  = concatP [: [:x, y:] | (x, y) <- zipP xx yy :]
 
 
 -- | Take the even indexed elements from an array.
-evens :: [:Double:] -> [:Double:]
+evens :: [:Int:] -> [:Int:]
 evens xx
 	= [: x	| (ix, x)	<- indexedP xx
-		, Int.mod ix 2 Int.== 0 :]
+		, mod ix 2 == 0 :]
 
 
 -- | Take the odd indexed elements from an array.
-odds  :: [:Double:] -> [:Double:]
+odds  :: [:Int:] -> [:Int:]
 odds xx 
-	| len Int.== 0	= [::]
-	| len Int.== 1	= [::]
+	| len == 0	= [::]
+	| len == 1	= [::]
 	| otherwise	= evens (sliceP 1 len xx)
 	where	len	= lengthP xx
 
