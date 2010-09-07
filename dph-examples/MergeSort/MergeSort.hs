@@ -5,9 +5,7 @@ module MergeSort
 	( sortCore,    sortCorePA
 	, mergeCore,   mergeCorePA
 	, flipPairs,   flipPairsPA
-	, interleave,  interleavePA
-	, evens
-	, odds)
+	, interleave,  interleavePA)
 where
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Int
@@ -89,7 +87,7 @@ flipPairs  :: [:Int:] -> [:Int:]
 flipPairs xx
  = concatP 
 	[: if y < x then [: y, x :] else [: x, y :]
-	|  (x, y) 	<- zipP (evens xx) (odds xx) :]
+	|  (x, y) 	<- oddevens xx :]
 
 
 -- | Interleave the elements of two arrays.
@@ -98,18 +96,14 @@ interleave xx yy
  = concatP [: [:x, y:] | (x, y) <- zipP xx yy :]
 
 
--- | Take the even indexed elements from an array.
-evens :: [:Int:] -> [:Int:]
-evens xx
-	= [: x	| (ix, x)	<- indexedP xx
-		, mod ix 2 == 0 :]
+-- | Pair up the elements with odd an even indices
+--   oddevens [: 1, 8, 3, 6, 2, 8 :] 
+--	= [: (1, 8), (3, 6), (2, 8) :]
+--
+oddevens :: [:Int:] -> [:(Int, Int):]
+oddevens xx
+	= [: (x, xx !: (ix + 1) )	
+			| (ix, x)	<- indexedP xx
+			, mod ix 2 == 0 :]
 
-
--- | Take the odd indexed elements from an array.
-odds  :: [:Int:] -> [:Int:]
-odds xx 
-	| len == 0	= [::]
-	| len == 1	= [::]
-	| otherwise	= evens (sliceP 1 len xx)
-	where	len	= lengthP xx
 
