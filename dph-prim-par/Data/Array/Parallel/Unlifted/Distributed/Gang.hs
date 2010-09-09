@@ -21,7 +21,7 @@
 --
 -- * Generalise thread indices?
 
--- #define SEQ_IF_GANG_BUSY 1
+#define SEQ_IF_GANG_BUSY 1
 -- #define TRACE_GANG 1
 
 module Data.Array.Parallel.Unlifted.Distributed.Gang (
