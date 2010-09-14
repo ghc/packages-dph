@@ -23,11 +23,16 @@ main
 
 
 -- | Command line usage information.
-usage	:: String
+usage :: String
 usage	= unlines
 	[ "Usage: quickhull <points> [out.svg]"	]
 
 
+-- | Run the benchmark.
+run 	:: Int 			-- ^ How many points to use.
+	-> Maybe String 	-- ^ File name to dump an SVG of the output to.
+	-> IO ()
+	
 run pointCount mFileSVG
  = do
 	vPoints	<- pointsPArrayOfUArray
