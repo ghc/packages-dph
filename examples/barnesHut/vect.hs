@@ -3,7 +3,9 @@ import qualified BarnesHutVect as V
 
 import Data.Array.Parallel.PArray (PArray)
 import qualified Data.Array.Parallel.PArray as P
-
+import Data.Array.Parallel.Base ( (:*:)(..) )
+import Random (Random, RandomGen, getStdGen, randoms, randomRs)
+import Control.Monad
 import Control.Exception (evaluate)
 import System.Console.GetOpt
 
@@ -56,8 +58,70 @@ main = ndpMain "BarnesHut"
 
 run opts () sizes =
     case map read sizes of
-      []  -> failWith ["No sizes specified"]
-      szs -> do 
-               benchmark opts bhStepVect [simpleTest szs 0  0] P.nf show
+      []   -> failWith ["No sizes specified"]
+      [sz] -> do 
+               benchmark opts bhStepVect [randomDistTest sz 1 1] P.nf show
                return ()
+
+randomDistTest :: Int -> Double -> Double -> IO (Bench.Benchmark.Point (Double, Double, PArray MassPoint))
+randomDistTest n dx dy = 
+ do
+    testParticles <- liftM (take n) $ randomMassPointsIO dx dy 
+    evaluate testParticles
+    print testParticles
+    return $ ("N = " ) `mkPoint` (dy, dx, P.fromList testParticles)
+
+
+
+{-
+run opts alg sizes =
+  case lookup alg algs of
+    Nothing -> failWith ["Unknown algorithm"]
+    Just f  -> case map read sizes of
+                 []    -> failWith ["No sizes specified"]
+                 [sz]  -> do
+                            benchmark opts f [randomDistTest sz 1000 1000]
+                                             (`seq` ()) show
+                            return ()
+-}
+
+epsilon = 0.05
+
+randomTo, randomFrom :: Integer
+randomTo    = 2^30
+randomFrom  = - randomTo
+
+randomRIOs       :: Random a => (a, a) -> IO [a]
+randomRIOs range  = liftM (randomRs range) getStdGen 
+
+randomIOs :: Random a => IO [a]
+randomIOs  = liftM randoms getStdGen 
+
+--  generate a stream of random numbers in [0, 1)
+--
+randomDoubleIO :: IO [Double]
+randomDoubleIO  = randomIOs
+
+-- generate an infinite list of random mass points located with a homogeneous
+-- distribution around the origin within the given bounds
+--
+randomMassPointsIO       :: Double -> Double -> IO [MassPoint]
+randomMassPointsIO dx dy  = do
+			    rs <- randomRIOs (randomFrom, randomTo)
+			    return (massPnts rs)
+		            	  where
+			    to    = fromIntegral randomTo
+			    from  = fromIntegral randomFrom
+			    xmin  = - (dx / 2.0)
+			    ymin  = - (dy / 2.0)
+			    xfrac = (to - from) / dx
+			    yfrac = (to - from) / dy
+
+			    massPnts               :: [Integer] -> [MassPoint]
+			    massPnts (xb:yb:mb:rs)  = 
+			      (x, y, m) : massPnts rs
+			      where
+				m = (fromInteger . abs) mb + epsilon
+				x = xmin + (fromInteger xb) / xfrac
+				y = ymin + (fromInteger yb) / yfrac
 
