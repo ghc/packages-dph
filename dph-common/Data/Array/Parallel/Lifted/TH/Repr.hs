@@ -96,7 +96,7 @@ type ArgVal = (Val, NameGen)
 genPR_methods :: (Name -> [ArgVal] -> Val -> DecQ) -> Q [Dec]
 genPR_methods mk_method
   = do
-      ClassI (ClassD _ _ _ _ decs) <- reify ''PR
+      ClassI (ClassD _ _ _ _ decs) _ <- reify ''PR
       inls <- sequence [inlineD $ mkName $ nameBase name | SigD name _ <- decs]
       defs <- mapM gen [(name, ty) | SigD name ty <- decs]
       return $ inls ++ defs
