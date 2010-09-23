@@ -1,0 +1,19 @@
+Name:           dph
+Version:        0.5
+License:        BSD3
+License-File:   LICENSE
+Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
+Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
+Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Category:       Data Structures
+Synopsis:       Top-level package for the Data Parallel Haskell components
+
+Cabal-Version:  >= 1.6
+Build-Type:     Simple
+
+Library
+  Build-Depends:  dph-par      == 0.5,
+                  dph-seq      == 0.5,
+                  dph-prim-par == 0.5,
+                  dph-prim-seq == 0.5,
+                  dph-prim-interface == 0.4.0

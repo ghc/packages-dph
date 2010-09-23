@@ -26,7 +26,7 @@ $(eval $(call dph_create,par))
 clean :
 	rm -rf dph-seq-pkg dph-par-pkg
 
-PACKAGES = dph-base dph-prim-interface dph-prim-seq dph-prim-par dph-seq-pkg dph-par-pkg
+PACKAGES = dph-base dph-prim-interface dph-prim-seq dph-prim-par dph-seq-pkg dph-par-pkg dph
 
 sdist : dph-seq-pkg dph-par-pkg
 	for i in $(PACKAGES); do \
