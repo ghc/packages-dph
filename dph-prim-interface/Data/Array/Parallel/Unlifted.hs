@@ -2,8 +2,6 @@
 
 #include "DPH_Header.h"
 
-import Data.Array.Parallel.Base
-
 import qualified Prelude as P
 import Prelude ( Eq(..), Num(..), Bool(..), ($), (.) )
 
@@ -86,10 +84,12 @@ combine2 tags _ xs ys = go tags xs ys
 
 map = P.map
 filter = P.filter
-zip = P.zipWith (:*:)
-unzip = P.unzip . P.map unpairS
-fsts = map fstS
-snds = map sndS
+zip = P.zip
+zip3 = P.zip3
+unzip = P.unzip
+unzip3 = P.unzip3
+fsts = map P.fst
+snds = map P.snd
 zipWith = P.zipWith
 
 fold = P.foldr -- or equivalently foldl

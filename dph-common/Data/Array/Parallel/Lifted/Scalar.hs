@@ -12,8 +12,7 @@ import Data.Array.Parallel.Lifted.Instances
 
 import qualified Data.Array.Parallel.Unlifted as U
 
-import Data.Array.Parallel.Base ((:*:)(..), fstS, pairS, unpairS,
-                                 fromBool, toBool)
+import Data.Array.Parallel.Base (fromBool, toBool)
 
 import GHC.Exts ( Int(..), (-#) )
 import GHC.Word ( Word8 )
@@ -79,10 +78,7 @@ scalar_fold1s f xss = fromUArrPA (prim_lengthPA (concatPA# xss))
 scalar_fold1Index :: Scalar a
                   => ((Int, a) -> (Int, a) -> (Int, a)) -> PArray a -> Int
 {-# INLINE_PA scalar_fold1Index #-}
-scalar_fold1Index f = fstS . U.fold1 f' . U.indexed . toUArrPA
-  where
-    {-# INLINE f' #-}
-    f' p q = pairS $ f (unpairS p) (unpairS q)
+scalar_fold1Index f = fst . U.fold1 f . U.indexed . toUArrPA
 
 scalar_fold1sIndex :: Scalar a
                    => ((Int, a) -> (Int, a) -> (Int, a))
@@ -92,12 +88,9 @@ scalar_fold1sIndex f (PArray m# (PNested segd xs))
   = PArray m#
   $ toScalarPData
   $ U.fsts
-  $ U.fold1_s f' segd
+  $ U.fold1_s f segd
   $ U.zip (U.indices_s segd)
   $ fromScalarPData xs
-  where
-    {-# INLINE f' #-}
-    f' p q = pairS $ f (unpairS p) (unpairS q)
 
 {-
 scalar_fold1sIndex f xss = fromUArrPA n
@@ -126,26 +119,27 @@ instance Scalar Bool where
   {-# INLINE fromScalarPData #-}
   fromScalarPData (PBool sel) = U.map toBool (U.tagsSel2 sel)
 
-fromUArrPA_2 :: (Scalar a, Scalar b) => Int -> U.Array (a :*: b) -> PArray (a,b)
+fromUArrPA_2 :: (Scalar a, Scalar b) => Int -> U.Array (a,b) -> PArray (a,b)
 {-# INLINE fromUArrPA_2 #-}
 fromUArrPA_2 (I# n#) ps = PArray n# (P_2 (toScalarPData xs) (toScalarPData  ys))
   where
     (xs,ys) = U.unzip ps
 
-fromUArrPA_2' :: (Scalar a, Scalar b) => U.Array (a :*: b) -> PArray (a, b)
+fromUArrPA_2' :: (Scalar a, Scalar b) => U.Array (a,b) -> PArray (a, b)
 {-# INLINE fromUArrPA_2' #-}
 fromUArrPA_2' ps = fromUArrPA_2 (U.length ps) ps
 
 fromUArrPA_3 :: (Scalar a, Scalar b, Scalar c)
-             => Int -> U.Array (a :*: b :*: c) -> PArray (a,b,c)
+             => Int -> U.Array ((a,b),c) -> PArray (a,b,c)
 {-# INLINE fromUArrPA_3 #-}
 fromUArrPA_3 (I# n#) ps = PArray n# (P_3 (toScalarPData xs)
                                          (toScalarPData ys)
                                          (toScalarPData zs))
   where
-    (xs,ys,zs) = U.unzip3 ps
+    (qs,zs) = U.unzip ps
+    (xs,ys) = U.unzip qs
 
-fromUArrPA_3' :: (Scalar a, Scalar b, Scalar c) => U.Array (a :*: b :*: c) -> PArray (a, b, c)
+fromUArrPA_3' :: (Scalar a, Scalar b, Scalar c) => U.Array ((a,b),c) -> PArray (a, b, c)
 {-# INLINE fromUArrPA_3' #-}
 fromUArrPA_3' ps = fromUArrPA_3 (U.length ps) ps
 

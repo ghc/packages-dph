@@ -23,7 +23,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
   -- * Operations on immutable distributed types
   indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,
   newD,
-  zipSD, unzipSD, fstSD, sndSD,
+  -- zipSD, unzipSD, fstSD, sndSD,
   deepSeqD,
 
   lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
@@ -40,9 +40,15 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
 
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize )
-import Data.Array.Parallel.Arr
-import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Unlifted.Sequential.Vector ( Unbox, Vector )
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Unlifted.Sequential.Segmented
 import Data.Array.Parallel.Base
+
+import qualified Data.Vector.Unboxed as V
+import qualified Data.Vector.Unboxed.Mutable as MV
+import qualified Data.Vector as BV
+import qualified Data.Vector.Mutable as MBV
 
 import Data.Word     (Word8)
 import Control.Monad (liftM, liftM2, liftM3)
@@ -96,7 +102,7 @@ class DT a where
   measureD _ = "?"
 
 -- Distributed values must always be hyperstrict.
-instance DT a => HS (Dist a)
+-- instance DT a => HS (Dist a)
 
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
@@ -109,7 +115,7 @@ checkGangMD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMD d) v
 
 -- Show instance (for debugging only)
 instance (Show a, DT a) => Show (Dist a) where
-  show d = show (map (indexD d) [0 .. sizeD d - 1])
+  show d = show (Prelude.map (indexD d) [0 .. sizeD d - 1])
 
 -- | 'DT' instances
 -- ----------------
@@ -126,40 +132,40 @@ instance DT () where
                                return ()
   unsafeFreezeMD (MDUnit n) = return $ DUnit n
 
-class UAE e => DPrim e where
-  mkDPrim :: BUArr e -> Dist  e
-  unDPrim :: Dist  e -> BUArr e
+class Unbox e => DPrim e where
+  mkDPrim :: V.Vector e -> Dist  e
+  unDPrim :: Dist  e -> V.Vector e
 
-  mkMDPrim :: MBUArr s e -> MDist  e s
-  unMDPrim :: MDist  e s -> MBUArr s e
+  mkMDPrim :: MV.STVector s e -> MDist  e s
+  unMDPrim :: MDist  e s -> MV.STVector s e
 
 primIndexD :: DPrim a => Dist a -> Int -> a
 {-# INLINE primIndexD #-}
-primIndexD = indexBU . unDPrim
+primIndexD = (V.!) . unDPrim
 
 primNewMD :: DPrim a => Gang -> ST s (MDist a s)
 {-# INLINE primNewMD #-}
-primNewMD = liftM mkMDPrim . newMBU . gangSize
+primNewMD = liftM mkMDPrim . MV.new . gangSize
 
 primReadMD :: DPrim a => MDist a s -> Int -> ST s a
 {-# INLINE primReadMD #-}
-primReadMD = readMBU . unMDPrim
+primReadMD = MV.read . unMDPrim
 
 primWriteMD :: DPrim a => MDist a s -> Int -> a -> ST s ()
 {-# INLINE primWriteMD #-}
-primWriteMD = writeMBU . unMDPrim
+primWriteMD = MV.write . unMDPrim
 
 primUnsafeFreezeMD :: DPrim a => MDist a s -> ST s (Dist a)
 {-# INLINE primUnsafeFreezeMD #-}
-primUnsafeFreezeMD = liftM mkDPrim . unsafeFreezeAllMBU . unMDPrim
+primUnsafeFreezeMD = liftM mkDPrim . V.unsafeFreeze . unMDPrim
 
 primSizeD :: DPrim a => Dist a -> Int
 {-# INLINE primSizeD #-}
-primSizeD = lengthBU . unDPrim
+primSizeD = V.length . unDPrim
 
 primSizeMD :: DPrim a => MDist a s -> Int
 {-# INLINE primSizeMD #-}
-primSizeMD = lengthMBU . unMDPrim
+primSizeMD = MV.length . unMDPrim
 
 instance DPrim Bool where
   mkDPrim           = DBool
@@ -169,8 +175,8 @@ instance DPrim Bool where
   unMDPrim (MDBool a) = a
 
 instance DT Bool where
-  data Dist  Bool   = DBool  !(BUArr    Bool)
-  data MDist Bool s = MDBool !(MBUArr s Bool)
+  data Dist  Bool   = DBool  !(V.Vector    Bool)
+  data MDist Bool s = MDBool !(MV.STVector s Bool)
 
   indexD         = primIndexD
   newMD          = primNewMD
@@ -188,8 +194,8 @@ instance DPrim Char where
   unMDPrim (MDChar a) = a
 
 instance DT Char where
-  data Dist  Char   = DChar  !(BUArr    Char)
-  data MDist Char s = MDChar !(MBUArr s Char)
+  data Dist  Char   = DChar  !(V.Vector    Char)
+  data MDist Char s = MDChar !(MV.STVector s Char)
 
   indexD         = primIndexD
   newMD          = primNewMD
@@ -207,8 +213,8 @@ instance DPrim Int where
   unMDPrim (MDInt a) = a
 
 instance DT Int where
-  data Dist  Int   = DInt  !(BUArr    Int)
-  data MDist Int s = MDInt !(MBUArr s Int)
+  data Dist  Int   = DInt  !(V.Vector    Int)
+  data MDist Int s = MDInt !(MV.STVector s Int)
 
   indexD         = primIndexD
   newMD          = primNewMD
@@ -228,8 +234,8 @@ instance DPrim Word8 where
   unMDPrim (MDWord8 a) = a
 
 instance DT Word8 where
-  data Dist  Word8   = DWord8  !(BUArr    Word8)
-  data MDist Word8 s = MDWord8 !(MBUArr s Word8)
+  data Dist  Word8   = DWord8  !(V.Vector    Word8)
+  data MDist Word8 s = MDWord8 !(MV.STVector s Word8)
 
   indexD         = primIndexD
   newMD          = primNewMD
@@ -247,8 +253,8 @@ instance DPrim Float where
   unMDPrim (MDFloat a) = a
 
 instance DT Float where
-  data Dist  Float   = DFloat  !(BUArr    Float)
-  data MDist Float s = MDFloat !(MBUArr s Float)
+  data Dist  Float   = DFloat  !(V.Vector    Float)
+  data MDist Float s = MDFloat !(MV.STVector s Float)
 
   indexD         = primIndexD
   newMD          = primNewMD
@@ -266,8 +272,8 @@ instance DPrim Double where
   unMDPrim (MDDouble a) = a
 
 instance DT Double where
-  data Dist  Double   = DDouble  !(BUArr    Double)
-  data MDist Double s = MDDouble !(MBUArr s Double)
+  data Dist  Double   = DDouble  !(V.Vector    Double)
+  data MDist Double s = MDDouble !(MV.STVector s Double)
 
   indexD         = primIndexD
   newMD          = primNewMD
@@ -327,23 +333,6 @@ instance DT a => DT (Maybe a) where
   measureD Nothing = "Nothing"
   measureD (Just x) = "Just (" ++ measureD x ++ ")"
 
-instance (DT a, DT b) => DT (a :*: b) where
-  data Dist  (a :*: b)   = SDProd  !(Dist a)    !(Dist b)
-  data MDist (a :*: b) s = MSDProd !(MDist a s) !(MDist b s)
-
-  indexD d i                = (fstSD d `indexD` i) :*: (sndSD d `indexD` i)
-  newMD g                   = liftM2 MSDProd (newMD g) (newMD g)
-  readMD  (MSDProd xs ys) i = liftM2 (:*:) (readMD xs i) (readMD ys i)
-  writeMD (MSDProd xs ys) i (x :*: y)
-                            = writeMD xs i x >> writeMD ys i y
-  unsafeFreezeMD (MSDProd xs ys)
-                            = liftM2 SDProd (unsafeFreezeMD xs)
-                                            (unsafeFreezeMD ys)
-  sizeD  (SDProd  x _) = sizeD  x
-  sizeMD (MSDProd x _) = sizeMD x
-
-  measureD (x :*: y) = "(" ++ measureD x ++ ":*:" ++ measureD y ++ ")"
-
 {-
 instance DT a => DT (MaybeS a) where
   data Dist  (MaybeS a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
@@ -370,30 +359,31 @@ instance DT a => DT (MaybeS a) where
   measureD (JustS x) = "Just (" ++ measureD x ++ ")"
 -}
 
-instance UA a => DT (UArr a) where
-  data Dist  (UArr a)   = DUArr  !(Dist  Int)   !(BBArr    (UArr a))
-  data MDist (UArr a) s = MDUArr !(MDist Int s) !(MBBArr s (UArr a))
+instance Unbox a => DT (V.Vector a) where
+  data Dist  (Vector a)   = DVector  !(Dist  Int)   !(BV.Vector      (Vector a))
+  data MDist (Vector a) s = MDVector !(MDist Int s) !(MBV.STVector s (Vector a))
 
-  indexD (DUArr _ a) i = indexBB a i
-  newMD g = liftM2 MDUArr (newMD g) (newMBB (gangSize g))
-  readMD (MDUArr _ marr) = readMBB marr
-  writeMD (MDUArr mlen marr) i a =
+  indexD (DVector _ a) i = a BV.! i
+  newMD g = liftM2 MDVector (newMD g) (MBV.replicate (gangSize g)
+                                         (error "MDist (Vector a) - uninitalised"))
+  readMD (MDVector _ marr) = MBV.read marr
+  writeMD (MDVector mlen marr) i a =
     do
-      writeMD mlen i (lengthU a)
-      writeMBB marr i a
-  unsafeFreezeMD (MDUArr len a) = liftM2 DUArr (unsafeFreezeMD len)
-                                                (unsafeFreezeAllMBB a)
-  sizeD  (DUArr  _ a) = lengthBB  a
-  sizeMD (MDUArr _ a) = lengthMBB a
+      writeMD mlen i (V.length a)
+      MBV.write marr i $! a
+  unsafeFreezeMD (MDVector len a) = liftM2 DVector (unsafeFreezeMD len)
+                                               (BV.unsafeFreeze a)
+  sizeD  (DVector  _ a) = BV.length  a
+  sizeMD (MDVector _ a) = MBV.length a
 
-  measureD xs = "UArr " ++ show (lengthU xs)
+  measureD xs = "Vector " ++ show (V.length xs)
 
 instance DT USegd where
-  data Dist  USegd   = DUSegd  !(Dist (UArr Int))
-                               !(Dist (UArr Int))
+  data Dist  USegd   = DUSegd  !(Dist (Vector Int))
+                               !(Dist (Vector Int))
                                !(Dist Int)
-  data MDist USegd s = MDUSegd !(MDist (UArr Int) s)
-                               !(MDist (UArr Int) s)
+  data MDist USegd s = MDUSegd !(MDist (Vector Int) s)
+                               !(MDist (Vector Int) s)
                                !(MDist Int        s)
 
   indexD (DUSegd lens idxs eles) i
@@ -424,11 +414,11 @@ lengthUSegdD :: Dist USegd -> Dist Int
 {-# INLINE_DIST lengthUSegdD #-}
 lengthUSegdD (DUSegd lens _ _) = lengthD lens
 
-lengthsUSegdD :: Dist USegd -> Dist (UArr Int)
+lengthsUSegdD :: Dist USegd -> Dist (Vector Int)
 {-# INLINE_DIST lengthsUSegdD #-}
 lengthsUSegdD (DUSegd lens _ _ ) = lens
 
-indicesUSegdD :: Dist USegd -> Dist (UArr Int)
+indicesUSegdD :: Dist USegd -> Dist (Vector Int)
 {-# INLINE_DIST indicesUSegdD #-}
 indicesUSegdD (DUSegd _ idxs _) = idxs
 
@@ -474,31 +464,33 @@ sndD :: (DT a, DT b) => Dist (a,b) -> Dist b
 {-# INLINE_DIST sndD #-}
 sndD = snd . unzipD
 
+{-
 -- | Pairing of distributed values.
 -- /The two values must belong to the same/ 'Gang'.
-zipSD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a :*: b)
+zipSD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
 {-# INLINE [0] zipSD #-}
 zipSD !x !y = checkEq (here "zipSD") "Size mismatch" (sizeD x) (sizeD y) $
               SDProd x y
 
 -- | Unpairing of distributed values.
-unzipSD :: (DT a, DT b) => Dist (a :*: b) -> (Dist a, Dist b)
+unzipSD :: (DT a, DT b) => Dist (a,b) -> (Dist a, Dist b)
 {-# INLINE_DIST unzipSD #-}
 unzipSD (SDProd dx dy) = (dx,dy)
 
 -- | Extract the first elements of a distributed pair.
-fstSD :: (DT a, DT b) => Dist (a :*: b) -> Dist a
+fstSD :: (DT a, DT b) => Dist (a,b) -> Dist a
 {-# INLINE_DIST fstSD #-}
 fstSD = fst . unzipSD
 
 -- | Extract the second elements of a distributed pair.
-sndSD :: (DT a, DT b) => Dist (a :*: b) -> Dist b
+sndSD :: (DT a, DT b) => Dist (a,b) -> Dist b
 {-# INLINE_DIST sndSD #-}
 sndSD = snd . unzipSD
+-}
 
 -- | Yield the distributed length of a distributed array.
-lengthD :: UA a => Dist (UArr a) -> Dist Int
-lengthD (DUArr l _) = l
+lengthD :: Unbox a => Dist (Vector a) -> Dist Int
+lengthD (DVector l _) = l
 
 debugD :: DT a => Dist a -> String
 debugD d = "["

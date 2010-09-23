@@ -23,7 +23,7 @@ import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
                                             elementsSel2_1# )
 
 import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Base ((:*:)(..), intToTag, fromBool)
+import Data.Array.Parallel.Base (intToTag, fromBool)
 import Data.Array.Parallel.Base.DTrace ( traceFn, traceArg )
 
 import Data.List (unzip4, unzip5)

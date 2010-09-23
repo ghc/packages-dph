@@ -51,7 +51,7 @@ module Data.Array.Parallel.Lifted.Unboxed (
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base (
-  (:*:)(..), Tag, fromBool, toBool, intToTag, tagToInt )
+  Tag, fromBool, toBool, intToTag, tagToInt )
 
 import GHC.Exts ( Int#, Int(..), Word#,
                   Double#, Double(..) )
@@ -215,16 +215,16 @@ selectPA_Int# ns i# = U.map (\n -> n == I# i#) ns
 selectorToIndices2PA# :: PArray_Int# -> PArray_Int#
 selectorToIndices2PA# sel
   = U.zipWith pick sel
-  . U.scan index (0 :*: 0)
+  . U.scan index (0,0)
   $ U.map init' sel
   where
-    init' 0 = 1 :*: 0
-    init' _ = 0 :*: 1
+    init' 0 = (1,0)
+    init' _ = (0,1)
 
-    index (i1 :*: j1) (i2 :*: j2) = (i1+i2 :*: j1+j2)
+    index (i1,j1) (i2,j2) = (i1+i2,j1+j2)
 
-    pick 0 (i :*: _) = i
-    pick _ (_ :*: j) = j
+    pick 0 (i,_) = i
+    pick _ (_,j) = j
 {-# INLINE_PA selectorToIndices2PA# #-}
 
 sumPA_Int# :: PArray_Int# -> Int#

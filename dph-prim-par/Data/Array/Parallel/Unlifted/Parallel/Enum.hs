@@ -21,11 +21,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Enum (
   enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromStepLenEachUP    
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, uncurryS)
-import Data.Array.Parallel.Unlifted.Sequential (
-  UArr, UA, enumFromStepLenU, enumFromToEachU, enumFromStepLenEachU, sndU, sumU,
-  zipU, unzipU)
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed (
   mapD, scanD, zipD, splitLenIdxD, joinD, splitD, balanced, unbalanced,
   theGang)
@@ -38,7 +34,7 @@ delay_inline :: a -> a
 {-# INLINE [0] delay_inline #-}
 delay_inline x = x
 
-enumFromToUP :: (UA a, Enum a) => a -> a -> UArr a
+enumFromToUP :: (Unbox a, Enum a) => a -> a -> Vector a
 {-# INLINE enumFromToUP #-}
 enumFromToUP start end = mapUP toEnum (enumFromStepLenUP start' 1 len)
   where
@@ -46,7 +42,7 @@ enumFromToUP start end = mapUP toEnum (enumFromStepLenUP start' 1 len)
     end'   = fromEnum end
     len    = delay_inline max (end' - start' + 1) 0
 
-enumFromThenToUP :: (UA a, Enum a) => a -> a -> a -> UArr a
+enumFromThenToUP :: (Unbox a, Enum a) => a -> a -> a -> Vector a
 {-# INLINE enumFromThenToUP #-}
 enumFromThenToUP start next end =
   mapUP toEnum (enumFromStepLenUP start' delta len)
@@ -57,7 +53,7 @@ enumFromThenToUP start next end =
     delta  = next' - start'
     len    = abs (end' - start' + delta) `divInt` abs delta
 
-enumFromStepLenUP :: Int -> Int -> Int -> UArr Int
+enumFromStepLenUP :: Int -> Int -> Int -> Vector Int
 {-# INLINE enumFromStepLenUP #-}
 enumFromStepLenUP start delta len =
   -- joinD theGang balanced . mapD theGang gen $ zipD is dlen
@@ -65,20 +61,20 @@ enumFromStepLenUP start delta len =
   (mapD theGang gen
   (splitLenIdxD theGang len))
   where
-    gen (n,i) = enumFromStepLenU (i * delta + start) delta n
+    gen (n,i) = Seq.enumFromStepLen (i * delta + start) delta n
     --dlen = splitLenD theGang len
     --is   = fstS (scanD theGang (+) 0 dlen)
     --
-    --gen (i :*: n) = enumFromStepLenU (i * delta + start) delta n
+    --gen (i :*: n) = Seq.enumFromStepLen (i * delta + start) delta n
 
-enumFromStepLenEachUP :: Int -> UArr Int -> UArr Int -> UArr Int -> UArr Int
+enumFromStepLenEachUP :: Int -> Vector Int -> Vector Int -> Vector Int -> Vector Int
 {-# INLINE enumFromStepLenEachUP #-}
 enumFromStepLenEachUP n starts steps lens
   = joinD theGang unbalanced
   $ mapD theGang enum
-  $ splitD theGang unbalanced (zipU (zipU starts steps) lens)
+  $ splitD theGang unbalanced (Seq.zip (Seq.zip starts steps) lens)
   where
-    enum ps = let (qs, llens) = unzipU ps
-                  (lstarts, lsteps) = unzipU qs
-              in enumFromStepLenEachU (sumU llens) lstarts lsteps llens
+    enum ps = let (qs, llens) = Seq.unzip ps
+                  (lstarts, lsteps) = Seq.unzip qs
+              in Seq.enumFromStepLenEach (Seq.sum llens) lstarts lsteps llens
 

@@ -23,33 +23,33 @@ module Data.Array.Parallel.Unlifted.Parallel.Combinators (
 ) where
 
 import Data.Array.Parallel.Base
-import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
-mapUP :: (UA a, UA b) => (a -> b) -> UArr a -> UArr b
+mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
 {-# INLINE mapUP #-}
-mapUP f xs = splitJoinD theGang (mapD theGang (mapU f)) xs
+mapUP f xs = splitJoinD theGang (mapD theGang (Seq.map f)) xs
 
-filterUP :: UA a => (a -> Bool) -> UArr a -> UArr a
+filterUP :: Unbox a => (a -> Bool) -> Vector a -> Vector a
 {-# INLINE filterUP #-}
 filterUP f = joinD  theGang unbalanced
-           . mapD   theGang (filterU f)
+           . mapD   theGang (Seq.filter f)
            . splitD theGang unbalanced
 
 
 
 -- |Extract all elements from an array according to a given flag array
 -- 
-packUP:: UA e => UArr e -> UArr Bool -> UArr e
+packUP:: Unbox e => Vector e -> Vector Bool -> Vector e
 {-# INLINE_UP packUP #-}
-packUP xs flags = fstU . filterUP sndS $  zipU xs flags
+packUP xs flags = Seq.fsts . filterUP snd $ Seq.zip xs flags
 
-combineUP :: UA a => UArr Bool -> UArr a -> UArr a -> UArr a
+combineUP :: Unbox a => Vector Bool -> Vector a -> Vector a -> Vector a
 {-# INLINE combineUP #-}
 combineUP flags xs ys = combine2UP tags (mkUPSelRep2 tags) xs ys
   where
-    tags = mapU fromBool flags
+    tags = Seq.map fromBool flags
 
 {-
 combineUP flags !xs !ys = joinD theGang balanced
@@ -61,29 +61,29 @@ combineUP flags !xs !ys = joinD theGang balanced
 
     is = fstS $ scanD theGang add (0,0) ns
 
-    count bs = let ts = sumU (mapU fromBool bs)
+    count bs = let ts = sumU (Seq.map fromBool bs)
                in ts :*: (lengthU bs - ts)
 
     add (x1 :*: y1) (x2 :*: y2) = (x1+x2, y1+y2)
 
-    go ((i,j), (m,n)) bs = combineU bs (sliceU xs i m) (sliceU ys j n)
+    go ((i,j), (m,n)) bs = combineU bs (Seq.slice xs i m) (Seq.slice ys j n)
 -}
 
-combine2UP :: UA a => UArr Tag -> UPSelRep2 -> UArr a -> UArr a -> UArr a
+combine2UP :: Unbox a => Vector Tag -> UPSelRep2 -> Vector a -> Vector a -> Vector a
 {-# INLINE_UP combine2UP #-}
 combine2UP tags rep !xs !ys = joinD theGang balanced
                             $ zipWithD theGang go rep
                             $ splitD theGang balanced tags
   where
-    go ((i,j), (m,n)) ts = combine2ByTagU ts (sliceU xs i m)
-                                             (sliceU ys j n)
+    go ((i,j), (m,n)) ts = Seq.combine2ByTag ts (Seq.slice xs i m)
+                                             (Seq.slice ys j n)
     
 {-
 combine2UP sel !xs !ys = zipWithUP get (tagsUSel2 sel) (indicesUSel2 sel)
   where
     {-# INLINE [0] get #-}
-    get 0 i = xs !: i
-    get _ i = ys !: i
+    get 0 i = xs ! i
+    get _ i = ys ! i
 -}
 
 {-
@@ -101,30 +101,30 @@ combine2UP tags !xs !ys = joinD theGang balanced
 
     add (x1 :*: y1) (x2 :*: y2) = (x1+x2) :*: (y1+y2)
 
-    go ((i :*: j) :*: (m :*: n)) ts = combine2ByTagU ts (sliceU xs i m)
-                                                        (sliceU ys j n)
+    go ((i :*: j) :*: (m :*: n)) ts = Seq.combine2ByTag ts (Seq.slice xs i m)
+                                                        (Seq.slice ys j n)
 -}
 
-zipWithUP :: (UA a, UA b, UA c) => (a -> b -> c) -> UArr a -> UArr b -> UArr c
+zipWithUP :: (Unbox a, Unbox b, Unbox c) => (a -> b -> c) -> Vector a -> Vector b -> Vector c
 {-# INLINE zipWithUP #-}
-zipWithUP f xs ys = splitJoinD theGang (mapD theGang (mapU (uncurryS f))) (zipU xs ys)
+zipWithUP f xs ys = splitJoinD theGang (mapD theGang (Seq.map (uncurry f))) (Seq.zip xs ys)
 {-
 zipWithUP f a b = joinD    theGang balanced
                  (zipWithD theGang (zipWithU f)
                     (splitD theGang balanced a)
                     (splitD theGang balanced b))
 -}
---zipWithUP f a b = mapUP (uncurryS f) (zipU a b)
+--zipWithUP f a b = mapUP (uncurryS f) (Seq.zip a b)
 
-foldUP :: (UA a, DT a) => (a -> a -> a) -> a -> UArr a -> a
+foldUP :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
 {-# INLINE foldUP #-}
 foldUP f !z xs = foldD  theGang f
-                (mapD   theGang (foldU f z)
+                (mapD   theGang (Seq.fold f z)
                 (splitD theGang unbalanced xs))
 {-
 foldUP f z xs = maybeS z (f z)
                (foldD  theGang combine
-               (mapD   theGang (foldl1MaybeU f)
+               (mapD   theGang (Seq.foldl1Maybe f)
                (splitD theGang unbalanced
                 xs)))
   where
@@ -136,41 +136,41 @@ foldUP f z xs = maybeS z (f z)
 
 -- |Array reduction proceeding from the left (requires associative combination)
 --
-foldlUP :: (DT a, UA a) => (a -> a -> a) -> a -> UArr a -> a
+foldlUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> a
 {-# INLINE_UP foldlUP #-}
 foldlUP f z arr 
-  | nullU arr = z
+  | Seq.null arr = z
   | otherwise = foldl1UP f arr
 
 -- |Reduction of a non-empty array which requires an associative combination
 -- function
 --
-fold1UP :: (DT a, UA a) => (a -> a -> a) -> UArr a -> a
+fold1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE fold1UP #-}
 fold1UP = foldl1UP
 
 
 
-foldl1UP :: (DT a, UA a) => (a -> a -> a) -> UArr a -> a
+foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_U foldl1UP #-}
 foldl1UP f arr = (maybe z (f z)
            . foldD  theGang combine
-           . mapD   theGang (foldl1MaybeU f)
+           . mapD   theGang (Seq.foldl1Maybe f)
            . splitD theGang unbalanced) arr
   where
-    z = arr !: 0
+    z = arr ! 0
     combine (Just x) (Just y) = Just (f x y)
     combine (Just x) Nothing  = Just x
     combine Nothing  (Just y) = Just y
     combine Nothing  Nothing  = Nothing
 
-scanUP :: (DT a, UA a) => (a -> a -> a) -> a -> UArr a -> UArr a
+scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 {-# INLINE_UP scanUP #-}
 scanUP f z = splitJoinD theGang go
   where
-    go xs = let (ds,zs) = unzipD $ mapD theGang (unsafe_unpairS . scanResU f z) xs
-                zs'     = fstS (scanD theGang f z zs)
+    go xs = let (ds,zs) = unzipD $ mapD theGang (Seq.scanRes f z) xs
+                zs'     = fst (scanD theGang f z zs)
             in
-            zipWithD theGang (mapU . f) zs' ds
+            zipWithD theGang (Seq.map . f) zs' ds
 
 

@@ -1,5 +1,5 @@
 Name:           dph-base
-Version:        0.4.0
+Version:        0.5
 License:        BSD3
 License-File:   LICENSE
 Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
@@ -18,27 +18,14 @@ Flag DTrace
 Library
   Exposed-Modules:
         Data.Array.Parallel.Base
-        Data.Array.Parallel.Arr
         Data.Array.Parallel.Stream
         Data.Array.Parallel.Base.DTrace
 
   Other-Modules:
         Data.Array.Parallel.Base.Config
         Data.Array.Parallel.Base.Debug
-        Data.Array.Parallel.Base.Hyperstrict
         Data.Array.Parallel.Base.Util
         Data.Array.Parallel.Base.Text
-        Data.Array.Parallel.Base.Rebox
-        Data.Array.Parallel.Stream.Flat.Stream
-        Data.Array.Parallel.Stream.Flat.Basics
-        Data.Array.Parallel.Stream.Flat.Combinators
-        Data.Array.Parallel.Stream.Flat.Enum
-        Data.Array.Parallel.Stream.Flat.Random
-        Data.Array.Parallel.Stream.Flat.Search
-        Data.Array.Parallel.Stream.Flat
-        Data.Array.Parallel.Stream.Segmented
-        Data.Array.Parallel.Arr.BUArr
-        Data.Array.Parallel.Arr.BBArr
 
   Include-Dirs:
         include
@@ -61,7 +48,7 @@ Library
   else
     GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
 
-  Build-Depends:  base >= 3 && < 5, array, random
+  Build-Depends:  base >= 3 && < 5, array, random, vector >= 0.7 && < 0.8
   if impl(ghc >= 6.9)
     Build-Depends: ghc-prim
 

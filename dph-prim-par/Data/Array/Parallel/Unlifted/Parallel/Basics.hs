@@ -26,14 +26,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Basics (
   replicateUP, repeatUP, interleaveUP
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, uncurryS)
-
-
-import Data.Array.Parallel.Unlifted.Sequential (
-  UA, UArr, (!:), unitsU, lengthU, newU,
-  foldU, mapU, zipU, unzipU,
-  indexedU, enumFromToU, replicateU, interleaveU)
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators ( mapUP )
 import Data.Array.Parallel.Unlifted.Parallel.Enum        ( enumFromToUP )
@@ -41,60 +34,60 @@ import Data.Array.Parallel.Unlifted.Parallel.Permute     ( bpermuteUP )
 
 import GHC.Base ( remInt )
 
--- infixl 9 !:
+-- infixl 9 !
 -- infixr 5 +:+
 
 -- some of the functions are exactly the same as the U version
 
 -- |Test whether the given array is empty
 --
-nullUP :: UA e => UArr e -> Bool
-nullUP  = (== 0) . lengthU
+nullUP :: Unbox e => Vector e -> Bool
+nullUP  = (== 0) . Seq.length
 
 -- |Yield an empty array
 --
-emptyUP :: UA e => UArr e
-emptyUP = newU 0 (const $ return ())
+emptyUP :: Unbox e => Vector e
+emptyUP = Seq.new 0 (const $ return ())
 
-lengthUP :: UA e => UArr e -> Int
-lengthUP = lengthU
+lengthUP :: Unbox e => Vector e -> Int
+lengthUP = Seq.length
 
 
 -- |Yield an array where all elements contain the same value
 --
-replicateUP :: UA e => Int -> e -> UArr e
+replicateUP :: Unbox e => Int -> e -> Vector e
 {-# INLINE_UP replicateUP #-}
 replicateUP n !e = joinD theGang balanced
-                 . mapD theGang (\n ->replicateU n e)
+                 . mapD theGang (\n ->Seq.replicate n e)
                  $ splitLenD theGang n
 
-repeatUP :: UA e => Int -> UArr e -> UArr e
+repeatUP :: Unbox e => Int -> Vector e -> Vector e
 {-# INLINE_UP repeatUP #-}
 repeatUP n es = seq m
               . bpermuteUP es
               . mapUP (\i -> i `remInt` m)
               $ enumFromToUP 0 (m*n-1)
   where
-    m = lengthU es
+    m = Seq.length es
 
 -- |Interleave elements of two arrays
 --
-interleaveUP :: UA e => UArr e -> UArr e -> UArr e
+interleaveUP :: Unbox e => Vector e -> Vector e -> Vector e
 {-# INLINE_UP interleaveUP #-}
 interleaveUP xs ys = joinD theGang unbalanced
-                     (zipWithD theGang interleaveU
+                     (zipWithD theGang Seq.interleave
                        (splitD theGang balanced xs)
                        (splitD theGang balanced ys))
    
 -- |Associate each element of the array with its index
 --
-indexedUP :: (DT e, UA e) => UArr e -> UArr (Int :*: e)
+indexedUP :: (DT e, Unbox e) => Vector e -> Vector (Int,e)
 {-# INLINE_U indexedUP #-}
 indexedUP = splitJoinD theGang indexedFn 
   where
-    sizes  arr   = fstS $ scanD theGang (+) 0 $ lengthD arr
-    indexedFn = \arr -> (zipWithD theGang (\o -> mapU (\xy -> (fstS xy + o :*: sndS xy))) (sizes arr) $ 
-                        mapD theGang indexedU arr)
+    sizes  arr   = fst $ scanD theGang (+) 0 $ lengthD arr
+    indexedFn = \arr -> (zipWithD theGang (\o -> Seq.map (\(x,y) -> (x + o, y))) (sizes arr) $ 
+                        mapD theGang Seq.indexed arr)
 
 
 

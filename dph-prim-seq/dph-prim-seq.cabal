@@ -1,5 +1,5 @@
 Name:           dph-prim-seq
-Version:        0.4.0
+Version:        0.5
 License:        BSD3
 License-File:   LICENSE
 Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
@@ -13,29 +13,16 @@ Build-Type:     Simple
 
 Library
   Exposed-Modules:
-        Data.Array.Parallel.Unlifted.Sequential
-        Data.Array.Parallel.Unlifted
-        Data.Array.Parallel.Unlifted.Gabi
-  Other-Modules:
-        Data.Array.Parallel.Unlifted.Sequential.Flat.UArr
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Stream
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Basics
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Enum
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Subarrays
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Combinators
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Sums
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Permute
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Text
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Random
-        Data.Array.Parallel.Unlifted.Sequential.Flat.Search
-        Data.Array.Parallel.Unlifted.Sequential.Flat.USel
-        Data.Array.Parallel.Unlifted.Sequential.Flat
+        Data.Array.Parallel.Unlifted.Sequential.Segmented
         Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+        Data.Array.Parallel.Unlifted.Sequential.Vector
+        Data.Array.Parallel.Unlifted.Sequential.USel
+        Data.Array.Parallel.Unlifted
+  Other-Modules:
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Text
-        Data.Array.Parallel.Unlifted.Sequential.Segmented
 
   Exposed: False
 
@@ -47,7 +34,7 @@ Library
   else
     GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
 
-  Build-Depends:  base >= 3 && < 5, array, random
+  Build-Depends:  base >= 3 && < 5, random, vector >= 0.7 && < 0.8
   if impl(ghc >= 6.9)
     Build-Depends: ghc-prim
   Build-Depends: dph-base, dph-prim-interface

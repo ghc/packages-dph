@@ -21,48 +21,47 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums (
   sumRU
 ) where
 
-import Data.Array.Parallel.Unlifted.Sequential.Flat (
-  UA, UArr)
+import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   USegd )
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
   foldSU, fold1SU, foldlRU)
 
 -- |
-andSU :: USegd -> UArr Bool -> UArr Bool
+andSU :: USegd -> Vector Bool -> Vector Bool
 andSU = foldSU (&&) True
 
 -- |
-orSU :: USegd -> UArr Bool -> UArr Bool
+orSU :: USegd -> Vector Bool -> Vector Bool
 orSU = foldSU (||) False
 
 -- |Compute the segmented sum of an array of numerals
 --
-sumSU :: (Num e, UA e) => USegd -> UArr e -> UArr e
+sumSU :: (Num e, Unbox e) => USegd -> Vector e -> Vector e
 {-# INLINE sumSU #-}
 sumSU = foldSU (+) 0
 
 -- |Compute the segmented product of an array of numerals
 --
-productSU :: (Num e, UA e) => USegd -> UArr e -> UArr e
+productSU :: (Num e, Unbox e) => USegd -> Vector e -> Vector e
 {-# INLINE productSU #-}
 productSU = foldSU (*) 1
 
 -- |Determine the maximum element in each subarray
 --
-maximumSU :: (Ord e, UA e) => USegd -> UArr e -> UArr e
+maximumSU :: (Ord e, Unbox e) => USegd -> Vector e -> Vector e
 {-# INLINE maximumSU #-}
 maximumSU = fold1SU max
 
 -- |Determine the minimum element in each subarray
 --
-minimumSU :: (Ord e, UA e) => USegd -> UArr e -> UArr e
+minimumSU :: (Ord e, Unbox e) => USegd -> Vector e -> Vector e
 {-# INLINE minimumSU #-}
 minimumSU = fold1SU min
 
 
 -- |Compute the segmented sum of an array of numerals
 --
-sumRU :: (Num e, UA e) => Int ->UArr e -> UArr e
+sumRU :: (Num e, Unbox e) => Int ->Vector e -> Vector e
 {-# INLINE sumRU #-}
 sumRU = foldlRU (+) 0

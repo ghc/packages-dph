@@ -31,23 +31,14 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   sliceUSegd, extractUSegd
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), ST)
-import Data.Array.Parallel.Unlifted.Sequential.Flat (
-  UArr, MUArr,
-  lengthU, emptyU, singletonU, sliceU, extractU,
-  scanlU, sumU )
-
-import Control.Monad (
-  liftM)
-
+import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 
 -- | Segment descriptors represent the structure of nested arrays. For each
 -- segment, it stores the length and the starting index in the flat data
 -- array.
 --
-data USegd = USegd { usegd_lengths  :: !(UArr Int)
-                   , usegd_indices  :: !(UArr Int)
+data USegd = USegd { usegd_lengths  :: !(Vector Int)
+                   , usegd_indices  :: !(Vector Int)
                    , usegd_elements :: !Int
                    }
 
@@ -58,17 +49,17 @@ data USegd = USegd { usegd_lengths  :: !(UArr Int)
 --
 lengthUSegd :: USegd -> Int
 {-# INLINE lengthUSegd #-}
-lengthUSegd = lengthU . usegd_lengths
+lengthUSegd = V.length . usegd_lengths
 
 -- |Yield the segment lengths of a segment descriptor
 --
-lengthsUSegd :: USegd -> UArr Int
+lengthsUSegd :: USegd -> Vector Int
 {-# INLINE lengthsUSegd #-}
 lengthsUSegd = usegd_lengths
 
 -- |Yield the segment indices of a segment descriptor
 --
-indicesUSegd :: USegd -> UArr Int
+indicesUSegd :: USegd -> Vector Int
 {-# INLINE indicesUSegd #-}
 indicesUSegd = usegd_indices
 
@@ -78,7 +69,7 @@ elementsUSegd :: USegd -> Int
 {-# INLINE elementsUSegd #-}
 elementsUSegd = usegd_elements
 
-mkUSegd :: UArr Int -> UArr Int -> Int -> USegd
+mkUSegd :: Vector Int -> Vector Int -> Int -> USegd
 {-# INLINE mkUSegd #-}
 mkUSegd = USegd
 
@@ -86,19 +77,19 @@ mkUSegd = USegd
 --
 emptyUSegd :: USegd
 {-# INLINE emptyUSegd #-}
-emptyUSegd = USegd emptyU emptyU 0
+emptyUSegd = USegd V.empty V.empty 0
 
 -- |Yield a singleton segment descriptor
 --
 singletonUSegd :: Int -> USegd
 {-# INLINE singletonUSegd #-}
-singletonUSegd n = USegd (singletonU n) (singletonU 0) n
+singletonUSegd n = USegd (V.singleton n) (V.singleton 0) n
 
 -- |Convert a length array into a segment descriptor.
 --
-lengthsToUSegd :: UArr Int -> USegd
+lengthsToUSegd :: Vector Int -> USegd
 {-# INLINE lengthsToUSegd #-}
-lengthsToUSegd lens = USegd lens (scanlU (+) 0 lens) (sumU lens)
+lengthsToUSegd lens = USegd lens (V.scanl (+) 0 lens) (V.sum lens)
 
 -- |Extract a slice of a segment descriptor, avoiding copying where possible.
 --
@@ -107,7 +98,7 @@ lengthsToUSegd lens = USegd lens (scanlU (+) 0 lens) (sumU lens)
 --
 sliceUSegd :: USegd -> Int -> Int -> USegd
 {-# INLINE sliceUSegd #-}
-sliceUSegd segd i n = lengthsToUSegd $ sliceU (lengthsUSegd segd) i n
+sliceUSegd segd i n = lengthsToUSegd $ V.slice (lengthsUSegd segd) i n
 
 -- |Extract a slice of a segment descriptor, copying everything.
 --
@@ -116,5 +107,5 @@ sliceUSegd segd i n = lengthsToUSegd $ sliceU (lengthsUSegd segd) i n
 --
 extractUSegd :: USegd -> Int -> Int -> USegd
 {-# INLINE extractUSegd #-}
-extractUSegd segd i n = lengthsToUSegd $ extractU (lengthsUSegd segd) i n
+extractUSegd segd i n = lengthsToUSegd $ V.extract (lengthsUSegd segd) i n
 

@@ -25,38 +25,40 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics (
 ) where
 
 import Data.Array.Parallel.Stream
-import Data.Array.Parallel.Unlifted.Sequential.Flat
+import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 
-replicateSU :: UA a => USegd -> UArr a -> UArr a
-{-# INLINE_U replicateSU #-}
-replicateSU segd xs = unstreamU
-                     (replicateEachS (elementsUSegd segd)
-                     (zipS (streamU (lengthsUSegd segd)) (streamU xs)))
+import qualified Data.Vector.Fusion.Stream as S
 
-replicateRSU :: UA a => Int -> UArr a -> UArr a
+replicateSU :: Unbox a => USegd -> Vector a -> Vector a
+{-# INLINE_U replicateSU #-}
+replicateSU segd xs = unstream
+                     (replicateEachS (elementsUSegd segd)
+                     (S.zip (stream (lengthsUSegd segd)) (stream xs)))
+
+replicateRSU :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_U replicateRSU #-}
-replicateRSU n xs = unstreamU
+replicateRSU n xs = unstream
                   . replicateEachRS n
-                  $ streamU xs
+                  $ stream xs
                   
 
-appendSU :: UA a => USegd -> UArr a -> USegd -> UArr a -> UArr a
+appendSU :: Unbox a => USegd -> Vector a -> USegd -> Vector a -> Vector a
 {-# INLINE_U appendSU #-}
-appendSU xd xs yd ys = unstreamU
-                     $ appendSS (streamU (lengthsUSegd xd))
-                                (streamU xs)
-                                (streamU (lengthsUSegd yd))
-                                (streamU ys)
+appendSU xd xs yd ys = unstream
+                     $ appendSS (stream (lengthsUSegd xd))
+                                (stream xs)
+                                (stream (lengthsUSegd yd))
+                                (stream ys)
 
-indicesSU' :: Int -> USegd -> UArr Int
+indicesSU' :: Int -> USegd -> Vector Int
 {-# INLINE_U indicesSU' #-}
-indicesSU' i segd = unstreamU
+indicesSU' i segd = unstream
                   . indicesSS (elementsUSegd segd) i
-                  . streamU
+                  . stream
                   $ lengthsUSegd segd
 
-indicesSU :: USegd -> UArr Int
+indicesSU :: USegd -> Vector Int
 {-# INLINE_U indicesSU #-}
 indicesSU = indicesSU' 0
 

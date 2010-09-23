@@ -1,13 +1,14 @@
 import Data.Array.Parallel.Base ( Tag, tagToInt, fromBool )
 import qualified GHC.Base
 import Prelude ((.), ($), Num(..), Eq(..), seq)
+import qualified Prelude
 
 instance Elt Int
 instance Elt Word8
 instance Elt Bool
 instance Elt Float
 instance Elt Double
-instance (Elt a, Elt b) => Elt (a :*: b)
+instance (Elt a, Elt b) => Elt (a, b)
 
 infixl 9 !:
 infixr 5 +:+
@@ -48,10 +49,10 @@ bpermute :: Elt a => Array a -> Array Int -> Array a
 mbpermute :: (Elt a, Elt b) => (a->b) ->Array a -> Array Int -> Array b
 {-# INLINE_BACKEND mbpermute #-}
 
-bpermuteDft:: Elt e => Int -> (Int -> e) -> Array (Int :*: e) -> Array e
+bpermuteDft:: Elt e => Int -> (Int -> e) -> Array (Int, e) -> Array e
 {-# INLINE_BACKEND bpermuteDft #-}
 
-update :: Elt a => Array a -> Array (Int :*: a) -> Array a
+update :: Elt a => Array a -> Array (Int, a) -> Array a
 {-# INLINE_BACKEND update #-}
 
 (+:+) :: Elt a => Array a -> Array a -> Array a
@@ -75,30 +76,17 @@ map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
 filter :: Elt a => (a -> Bool) -> Array a -> Array a
 {-# INLINE_BACKEND filter #-}
 
-zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a :*: b)
+zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a, b)
 {-# INLINE CONLIKE PHASE_BACKEND zip #-}
 
-unzip :: (Elt a, Elt b) => Array (a :*: b) -> (Array a, Array b)
+unzip :: (Elt a, Elt b) => Array (a, b) -> (Array a, Array b)
 {-# INLINE_BACKEND unzip #-}
 
-fsts  :: (Elt a, Elt b) => Array (a :*: b) -> Array a
+fsts  :: (Elt a, Elt b) => Array (a, b) -> Array a
 {-# INLINE_BACKEND fsts #-}
 
-snds :: (Elt a, Elt b) => Array (a :*: b) -> Array b
+snds :: (Elt a, Elt b) => Array (a, b) -> Array b
 {-# INLINE_BACKEND snds #-}
-
-zip3 :: (Elt a, Elt b, Elt c) => Array a -> Array b -> Array c
-                           -> Array (a :*: b :*: c)
-{-# INLINE zip3 #-}
-zip3 xs ys zs = zip (zip xs ys) zs
-
-unzip3 :: (Elt a, Elt b, Elt c)
-       => Array (a :*: b :*: c) -> (Array a,Array b,Array c)
-{-# INLINE unzip3 #-}
-unzip3 ps = (xs,ys,zs)
-  where
-    (qs,zs) = unzip ps
-    (xs,ys) = unzip qs
 
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
@@ -125,7 +113,7 @@ zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
           => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
 {-# INLINE zipWith3 #-}
 zipWith3 f xs ys zs = zipWith (\p z -> case p of
-                                         x :*: y -> f x y z) (zip xs ys) zs
+                                         (x,y) -> f x y z) (zip xs ys) zs
 
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 {-# INLINE_BACKEND fold #-}
@@ -157,7 +145,7 @@ scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
   #-}
 
 
-indexed :: Elt a => Array a -> Array (Int :*: a)
+indexed :: Elt a => Array a -> Array (Int, a)
 {-# INLINE_BACKEND indexed #-}
 
 enumFromTo :: Int -> Int -> Array Int
@@ -323,7 +311,7 @@ tagsToSel2 tags = let rep = mkSelRep2 tags
 
 packByTag :: Elt a => Array a -> Array Tag -> Tag -> Array a
 {-# INLINE_BACKEND packByTag #-}
-packByTag xs tags !tag = fsts (filter (\p -> sndS p == tag) (zip xs tags))
+packByTag xs tags !tag = fsts (filter (\p -> Prelude.snd p == tag) (zip xs tags))
 
 {-# RULES
 
@@ -372,7 +360,7 @@ randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
 
 instance IOElt Int
 instance IOElt Double
-instance (IOElt a, IOElt b) => IOElt (a :*: b)
+instance (IOElt a, IOElt b) => IOElt (a, b)
 
 hPut :: IOElt a => Handle -> Array a -> IO ()
 {-# INLINE_BACKEND hPut #-}

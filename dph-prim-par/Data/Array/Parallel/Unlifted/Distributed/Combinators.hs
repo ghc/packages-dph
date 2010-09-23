@@ -25,15 +25,16 @@ module Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapDST_, mapDST, zipWithDST_, zipWithDST
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), uncurryS, unsafe_pairS, unsafe_unpairS, ST, runST)
+import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize)
 import Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, MDist, indexD, zipD, unzipD, fstD, sndD, deepSeqD,
   newMD, writeMD, unsafeFreezeMD,
-  checkGangD, measureD)
+  checkGangD, measureD, debugD)
 import Data.Array.Parallel.Unlifted.Distributed.DistST
+
+import Debug.Trace
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 
@@ -145,14 +146,14 @@ foldD g f !d = checkGangD ("here foldD") g d $
              | otherwise = fold (i+1) (f x $ d `indexD` i)
 
 -- | Prefix sum of a distributed value.
-scanD :: forall a. DT a => Gang -> (a -> a -> a) -> a -> Dist a -> Dist a :*: a
+scanD :: forall a. DT a => Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
 {-# NOINLINE scanD #-}
 scanD g f z !d = checkGangD (here "scanD") g d $
                  runST (do
                    md <- newMD g
                    s  <- scan md 0 z
                    d' <- unsafeFreezeMD md
-                   return (d' :*: s))
+                   return (d',s))
   where
     !n = gangSize g
     scan :: forall s. MDist a s -> Int -> a -> ST s a
@@ -162,23 +163,23 @@ scanD g f z !d = checkGangD (here "scanD") g d $
                                  scan md (i+1) (f x $ d `indexD` i)
 
 mapAccumLD :: forall a b acc. (DT a, DT b)
-           => Gang -> (acc -> a -> acc :*: b)
-                   -> acc -> Dist a -> acc :*: Dist b
+           => Gang -> (acc -> a -> (acc,b))
+                   -> acc -> Dist a -> (acc,Dist b)
 {-# INLINE_DIST mapAccumLD #-}
 mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
                         runST (do
                           md   <- newMD g
                           acc' <- go md 0 acc
                           d'   <- unsafeFreezeMD md
-                          return (acc' :*: d'))
+                          return (acc',d'))
   where
     !n = gangSize g
     go :: MDist b s -> Int -> acc -> ST s acc
     go md i acc | i == n    = return acc
                 | otherwise = case f acc (d `indexD` i) of
-                                acc' :*: b -> do
-                                                writeMD md i b
-                                                go md (i+1) acc'
+                                (acc',b) -> do
+                                              writeMD md i b
+                                              go md (i+1) acc'
                                 
 -- NOTE: The following combinators must be strict in the Dists because if they
 -- are not, the Dist might be evaluated (in parallel) when it is requested in

@@ -17,54 +17,51 @@ module Data.Array.Parallel.Unlifted.Parallel.Sums (
   andUP, orUP, sumUP
 ) where
 
-import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   foldUP, foldl1UP, fold1UP, mapUP)
 import Data.Array.Parallel.Unlifted.Parallel.Basics ( 
   indexedUP)
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), fstS)
-
-andUP :: UArr Bool -> Bool
+andUP :: Vector Bool -> Bool
 {-# INLINE andUP #-}
 andUP = foldUP (&&) True
 
 
 -- |
-orUP :: UArr Bool -> Bool
+orUP :: Vector Bool -> Bool
 {-# INLINE orUP #-}
 orUP = foldUP (||) False
 
-allUP :: UA e => (e -> Bool) -> UArr e -> Bool
+allUP :: Unbox e => (e -> Bool) -> Vector e -> Bool
 {-# INLINE allUP #-}
 allUP p = andUP . mapUP p
 
 -- |
-anyUP :: UA e => (e -> Bool) -> UArr e -> Bool
+anyUP :: Unbox e => (e -> Bool) -> Vector e -> Bool
 {-# INLINE anyUP #-}
 anyUP p =  orUP . mapUP p
 
 
-sumUP :: (UA a, DT a, Num a) => UArr a -> a
+sumUP :: (Unbox a, DT a, Num a) => Vector a -> a
 {-# INLINE sumUP #-}
 sumUP = foldUP (+) 0
 
-productUP :: (DT e, Num e, UA e) => UArr e -> e
+productUP :: (DT e, Num e, Unbox e) => Vector e -> e
 {-# INLINE productUP #-}
 productUP = foldUP (*) 1
 
 -- |Determine the maximum element in an array
 --
-maximumUP :: (DT e, Ord e, UA e) => UArr e -> e
+maximumUP :: (DT e, Ord e, Unbox e) => Vector e -> e
 {-# INLINE maximumUP #-}
 maximumUP = fold1UP max
 
 
 -- |Determine the maximum element in an array under the given ordering
 --
-maximumByUP :: (DT e, UA e) => (e -> e -> Ordering) -> UArr e -> e
+maximumByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> e
 {-# INLINE maximumByUP #-}
 maximumByUP = fold1UP . maxBy
   where
@@ -75,8 +72,8 @@ maximumByUP = fold1UP . maxBy
 -- |Determine the index of the maximum element in an array under the given
 -- ordering
 --
-maximumIndexByUP :: (DT e, UA e) => (e -> e -> Ordering) -> UArr e -> Int
+maximumIndexByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> Int
 {-# INLINE maximumIndexByUP #-}
-maximumIndexByUP cmp = fstS . maximumByUP cmp' . indexedUP
+maximumIndexByUP cmp = fst . maximumByUP cmp' . indexedUP
   where
-    cmp' (_ :*: x) (_ :*: y) = cmp x y
+    cmp' (_,x) (_,y) = cmp x y

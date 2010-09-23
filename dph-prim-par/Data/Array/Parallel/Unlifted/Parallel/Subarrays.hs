@@ -22,29 +22,22 @@
 
 module Data.Array.Parallel.Unlifted.Parallel.Subarrays (
   dropUP
---  sliceU, extractU, tailU, takeU, dropU, splitAtU,
+--  Seq.slice, extractU, tailU, takeU, dropU, splitAtU,
   {- takeWhileU, dropWhileU, spanU, breakU -}
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, uncurryS)
-
-
-import Data.Array.Parallel.Unlifted.Sequential (
-  UA, UArr, unitsU, lengthU, newU, sliceU, fstU, sndU,
-  foldU, mapU, zipU, unzipU, scanU,
-  indexedU, replicateU)
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 
 
-dropUP :: UA e => Int -> UArr e -> UArr e
-dropUP n xs = sliceU xs (min (max 0 n) (lengthU xs)) (min (lengthU xs) (lengthU xs - n)) 
+dropUP :: Unbox e => Int -> Vector e -> Vector e
+dropUP n xs = Seq.slice xs (min (max 0 n) (Seq.length xs)) (min (Seq.length xs) (Seq.length xs - n)) 
 {-# INLINE_U dropUP #-}
 {-
-dropUP n xs = joinD theGang unbalanced $ (mapD theGang (\t -> sliceU (fstS t) (fstS $ sndS t) (sndS $ sndS t))) args
-  -- joinD theGang balanced $ mapD theGang (replicateU 1)  startInds
+dropUP n xs = joinD theGang unbalanced $ (mapD theGang (\t -> Seq.slice (fstS t) (fstS $ sndS t) (sndS $ sndS t))) args
+  -- joinD theGang balanced $ mapD theGang (Seq.replicate 1)  startInds
   where
-    args:: Dist (UArr Int :*: (Int :*: Int))
+    args:: Dist (Vector Int :*: (Int :*: Int))
     args = zipD (splitD theGang balanced xs) ranges
 
     ranges    = mapD theGang (\t -> ((max 0 (min (fstS t - 1) (n - (sndS t))))  :*: 

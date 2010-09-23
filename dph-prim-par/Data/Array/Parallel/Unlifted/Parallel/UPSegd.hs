@@ -28,9 +28,9 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
   lengthsToUPSegd, mkUPSegd
 ) where
 
-import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Base ((:*:))
 
 data UPSegd = UPSegd { upsegd_usegd :: !USegd
                      , upsegd_dsegd :: Dist ((USegd,Int),Int)
@@ -40,11 +40,11 @@ lengthUPSegd :: UPSegd -> Int
 {-# INLINE lengthUPSegd #-}
 lengthUPSegd = lengthUSegd . upsegd_usegd
 
-lengthsUPSegd :: UPSegd -> UArr Int
+lengthsUPSegd :: UPSegd -> Vector Int
 {-# INLINE lengthsUPSegd #-}
 lengthsUPSegd = lengthsUSegd . upsegd_usegd
 
-indicesUPSegd :: UPSegd -> UArr Int
+indicesUPSegd :: UPSegd -> Vector Int
 {-# INLINE indicesUPSegd #-}
 indicesUPSegd = indicesUSegd . upsegd_usegd
 
@@ -60,11 +60,11 @@ distUPSegd :: UPSegd -> Dist ((USegd,Int),Int)
 {-# INLINE distUPSegd #-}
 distUPSegd = upsegd_dsegd
 
-lengthsToUPSegd :: UArr Int -> UPSegd
+lengthsToUPSegd :: Vector Int -> UPSegd
 {-# INLINE lengthsToUPSegd #-}
 lengthsToUPSegd = toUPSegd . lengthsToUSegd
 
-mkUPSegd :: UArr Int -> UArr Int -> Int -> UPSegd
+mkUPSegd :: Vector Int -> Vector Int -> Int -> UPSegd
 {-# INLINE mkUPSegd #-}
 mkUPSegd lens idxs n = toUPSegd (mkUSegd lens idxs n)
 

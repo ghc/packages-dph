@@ -2,7 +2,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
-  (:*:)(..), Elt, Array, Sel2, Segd,
+  Elt, Array, Sel2, Segd,
 
   length,
   empty, replicate, repeat, (+:+), interleave,
@@ -10,7 +10,7 @@ module Data.Array.Parallel.Unlifted (
   pack, combine, combine2,
   enumFromTo, enumFromThenTo, enumFromStepLen, enumFromStepLenEach,
   indexed,
-  zip, zip3, unzip, unzip3, fsts, snds,
+  zip, unzip, fsts, snds,
   map, zipWith, zipWith3,
   filter,
 
@@ -32,7 +32,6 @@ module Data.Array.Parallel.Unlifted (
   toList, fromList,
 ) where
 
-import Data.Array.Parallel.Base   ( (:*:)(..), fstS, sndS )
 import Prelude                    (Num, Int, Bool, Float, Double)
 import System.IO                  (IO, Handle)
 import Data.Word                  (Word8)

@@ -20,8 +20,6 @@ where
 
 import Data.Array.Parallel.Base (
   Read(..), showsApp, readApp)
-import Data.Array.Parallel.Unlifted.Sequential.Flat (
-  UA)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   USegd, lengthsUSegd )
 

@@ -2,53 +2,52 @@
 
 #include "DPH_Header.h"
 
-import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+))
-import qualified Data.Array.Parallel.Unlifted.Sequential
-  as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Unlifted.Sequential.USel
+import Data.Array.Parallel.Unlifted.Sequential.Segmented
 
 #include "DPH_Interface.h"
 
-class UA a => Elt a
-type Array = UArr
+class V.Unbox a => Elt a
+type Array = V.Vector
 type Segd = USegd
 type Sel2 = USel2
 type SelRep2 = ()
 
-length = lengthU
-empty = emptyU
-replicate = replicateU
-repeat n _ = repeatU n
-(!:) = (U.!:)
-extract = extractU
-drop = dropU
-permute = permuteU
-bpermute = bpermuteU
-mbpermute = mbpermuteU
-bpermuteDft = bpermuteDftU
-update = updateU
-(+:+) = (U.+:+)
-interleave = interleaveU
-pack = packU
-combine = combineU
-combine2 tags _ = combine2ByTagU tags
-map = mapU
-filter = filterU
-zip = zipU
-unzip = unzipU
-fsts = fstU
-snds = sndU
-zipWith = zipWithU
-fold = foldU
-fold1 = fold1U
-and = andU
-sum = sumU
-scan = scanU
-indexed = indexedU
-enumFromTo = enumFromToU
-enumFromThenTo = enumFromThenToU
-enumFromStepLen = enumFromStepLenU
-enumFromStepLenEach = enumFromStepLenEachU
+length = V.length
+empty = V.empty
+replicate = V.replicate
+repeat n _ = V.repeat n
+(!:) = (V.!)
+extract = V.extract
+drop = V.drop
+permute = V.permute
+bpermute = V.bpermute
+mbpermute = V.mbpermute
+bpermuteDft = V.bpermuteDft
+update = V.update
+(+:+) = (V.++)
+interleave = V.interleave
+pack = V.pack
+combine = V.combine
+combine2 tags _ = V.combine2ByTag tags
+map = V.map
+filter = V.filter
+zip = V.zip
+unzip = V.unzip
+fsts = V.fsts
+snds = V.snds
+zipWith = V.zipWith
+fold = V.fold
+fold1 = V.fold1
+and = V.and
+sum = V.sum
+scan = V.scan
+indexed = V.indexed
+enumFromTo = V.enumFromTo
+enumFromThenTo = V.enumFromThenTo
+enumFromStepLen = V.enumFromStepLen
+enumFromStepLenEach = V.enumFromStepLenEach
 
 mkSel2 tags idxs n0 n1 _ = mkUSel2 tags idxs n0 n1
 tagsSel2 = tagsUSel2
@@ -77,11 +76,11 @@ lengthsSegd = lengthsUSegd
 indicesSegd = indicesUSegd
 elementsSegd = elementsUSegd
 mkSegd = mkUSegd
-randoms = randomU
-randomRs = randomRU
-class UIO a => IOElt a
-hPut = hPutU
-hGet = hGetU
-toList = fromU
-fromList = toU
+randoms = V.random
+randomRs = V.randomR
+class V.UIO a => IOElt a
+hPut = V.hPut
+hGet = V.hGet
+toList = V.toList
+fromList = V.fromList
 

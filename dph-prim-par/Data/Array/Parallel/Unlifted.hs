@@ -1,48 +1,49 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE PackageImports, CPP #-}
 
 #include "DPH_Header.h"
 
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
-import Data.Array.Parallel.Unlifted.Sequential
-  hiding ((!:), (+:+))
-import qualified Data.Array.Parallel.Unlifted.Sequential
-  as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Segmented as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox,Vector)
 
 #include "DPH_Interface.h"
 
-class (UA a, DT a) => Elt a
-type Array = UArr
+class (Unbox a, DT a) => Elt a
+type Array = Vector
 type Segd = UPSegd
 type Sel2 = UPSel2
 type SelRep2 = UPSelRep2
 
-length = lengthU
-empty = emptyU
+length = Seq.length
+empty = Seq.empty
 replicate = replicateUP
 repeat n _ = repeatUP n
-(!:) = (U.!:)
-extract = extractU
+(!:) = (Seq.!)
+extract = Seq.extract
 drop = dropUP
-permute = permuteU
-bpermuteDft = bpermuteDftU
+permute = Seq.permute
+bpermuteDft = Seq.bpermuteDft
 bpermute = bpermuteUP
-mbpermute = mbpermuteU
+mbpermute = Seq.mbpermute
 update = updateUP
-(+:+) = (U.+:+)
+(+:+) = (Seq.++)
 interleave = interleaveUP
 pack = packUP
 combine = combineUP
 combine2 = combine2UP
 map = mapUP
 filter = filterUP
-zip = zipU
-unzip = unzipU
-fsts = fstU
-snds = sndU
+zip = Seq.zip
+unzip = Seq.unzip
+-- zip3 = V.zip3
+-- unzip3 = V.unzip3
+fsts = Seq.fsts
+snds = Seq.snds
 zipWith = zipWithUP
 fold = foldUP
-fold1 = fold1U
+fold1 = Seq.fold1
 and = andUP
 sum = sumUP
 scan = scanUP
@@ -69,7 +70,7 @@ replicate_rs = replicateRSUP
 append_s = appendSUP
 fold_s = foldSUP
 fold1_s = fold1SUP
-fold_r = foldlRU
+fold_r = Seq.foldlRU
 sum_r = sumRUP
 
 indices_s segd = indicesSUP segd
@@ -79,11 +80,11 @@ lengthsSegd = lengthsUPSegd
 indicesSegd = indicesUPSegd
 elementsSegd = elementsUPSegd
 mkSegd = mkUPSegd
-randoms = randomU
-randomRs = randomRU
-class UIO a => IOElt a
-hPut = hPutU
-hGet = hGetU
-toList = fromU
-fromList = toU
+randoms = Seq.random
+randomRs = Seq.randomR
+class Seq.UIO a => IOElt a
+hPut = Seq.hPut
+hGet = Seq.hGet
+toList = Seq.toList
+fromList = Seq.fromList
 

@@ -19,12 +19,10 @@ module Data.Array.Parallel.Unlifted.Parallel.Permute (
   bpermuteUP, updateUP
 ) where
 
-import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, uncurryS)
 
-bpermuteUP :: UA a => UArr a -> UArr Int -> UArr a
+bpermuteUP :: Unbox a => Vector a -> Vector Int -> Vector a
 {-# INLINE bpermuteUP #-}
 bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
 
@@ -45,13 +43,14 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
   atomic. Otherwise, we do a sequential update.
 -}
 
-updateUP :: forall a. UA a => UArr a -> UArr (Int :*: a) -> UArr a
+updateUP :: forall a. Unbox a => Vector a -> Vector (Int,a) -> Vector a
 {-# INLINE updateUP #-}
 updateUP as us
-  | hasAtomicWriteMU (undefined :: a) 
+  {- hasAtomicWriteMU (undefined :: a) 
   = atomicUpdateD theGang (splitD theGang unbalanced as)
                           (splitD theGang unbalanced us)
+  -}
 
   | otherwise
-  = updateU as us
+  = Seq.update as us
 

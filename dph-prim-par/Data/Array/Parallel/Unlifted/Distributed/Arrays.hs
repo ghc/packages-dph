@@ -27,11 +27,9 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   Distribution, balanced, unbalanced
 ) where
 
-import Data.Array.Parallel.Base (
-  (:*:)(..), fstS, sndS, unsafe_pairS, ST, runST)
-import Data.Array.Parallel.Arr (
-  replicateBU, appBU )
-import Data.Array.Parallel.Unlifted.Sequential
+import Data.Array.Parallel.Base ( ST, runST)
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Segmented
 import Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, gangSize, seqGang)
 import Data.Array.Parallel.Unlifted.Distributed.DistST (
@@ -50,7 +48,7 @@ import Control.Monad ( when )
 
 import GHC.Base ( quotInt, remInt )
 
-here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." ++ s
+here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." Prelude.++ s
 
 data Distribution
 
@@ -90,16 +88,16 @@ splitLenIdxD g n = generateD_cheap g len_idx
 
 -- | Distribute an array over a 'Gang' such that each threads gets the given
 -- number of elements.
-splitAsD :: UA a => Gang -> Dist Int -> UArr a -> Dist (UArr a)
+splitAsD :: Unbox a => Gang -> Dist Int -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitAsD #-}
-splitAsD g dlen !arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitAsD g dlen !arr = zipWithD (seqGang g) (Seq.slice arr) is dlen
   where
-    is = fstS $ scanD g (+) 0 dlen
+    is = fst $ scanD g (+) 0 dlen
 
 -- lengthD reexported from types
 
 -- | Overall length of a distributed array.
-joinLengthD :: UA a => Gang -> Dist (UArr a) -> Int
+joinLengthD :: Unbox a => Gang -> Dist (Vector a) -> Int
 {-# INLINE joinLengthD #-}
 joinLengthD g = sumD g . lengthD
 
@@ -108,11 +106,11 @@ joinLengthD g = sumD g . lengthD
 -- rules. Without them, splitJoinD would be a loop breaker.
 
 -- | Distribute an array over a 'Gang'.
-splitD_impl :: UA a => Gang -> UArr a -> Dist (UArr a)
+splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitD_impl #-}
-splitD_impl g !arr = generateD_cheap g (\i -> sliceU arr (idx i) (len i))
+splitD_impl g !arr = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
   where
-    n = lengthU arr
+    n = Seq.length arr
     !p = gangSize g
     !l = n `quotInt` p
     !m = n `remInt` p
@@ -123,51 +121,51 @@ splitD_impl g !arr = generateD_cheap g (\i -> sliceU arr (idx i) (len i))
     len i | i < m     = l+1
           | otherwise = l
 
-    -- slice i | i < m     = sliceU arr ((l+1)*i) (l+1)
-    --         | otherwise = sliceU arr ((l+1)*m + l*(i-m)) l
+    -- slice i | i < m     = Seq.slice arr ((l+1)*i) (l+1)
+    --         | otherwise = Seq.slice arr ((l+1)*m + l*(i-m)) l
 {-
-splitD_impl g !arr = zipWithD (seqGang g) (sliceU arr) is dlen
+splitD_impl g !arr = zipWithD (seqGang g) (Seq.slice arr) is dlen
   where
     dlen = splitLengthD (seqGang g) arr
     is   = fstS $ scanD (seqGang g) (+) 0 dlen
 -}
 
 -- | Distribute an array over a 'Gang'.
-splitD :: UA a => Gang -> Distribution -> UArr a -> Dist (UArr a)
+splitD :: Unbox a => Gang -> Distribution -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitD #-}
 splitD g _ arr = splitD_impl g arr
 
-joinD_impl :: forall a. UA a => Gang -> Dist (UArr a) -> UArr a
+joinD_impl :: forall a. Unbox a => Gang -> Dist (Vector a) -> Vector a
 {-# INLINE_DIST joinD_impl #-}
 joinD_impl g !darr = checkGangD (here "joinD") g darr $
-                     newU n (\ma -> zipWithDST_ g (copy ma) di darr)
+                     Seq.new n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
-    di :*: n = scanD g (+) 0 $ lengthD darr
-    copy :: forall s. MUArr a s -> Int -> UArr a -> DistST s ()
-    copy ma i arr = stToDistST (copyMU ma i arr)
+    (!di,!n) = scanD g (+) 0 $ lengthD darr
+    copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
+    copy ma i arr = stToDistST (Seq.copy (mdrop i ma) arr)
 
 -- | Join a distributed array.
-joinD :: UA a => Gang -> Distribution -> Dist (UArr a) -> UArr a
+joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
 {-# INLINE CONLIKE [1] joinD #-}
 joinD g _ darr  = joinD_impl g darr
 
-splitJoinD :: (UA a, UA b)
-           => Gang -> (Dist (UArr a) -> Dist (UArr b)) -> UArr a -> UArr b
+splitJoinD :: (Unbox a, Unbox b)
+           => Gang -> (Dist (Vector a) -> Dist (Vector b)) -> Vector a -> Vector b
 {-# INLINE_DIST splitJoinD #-}
 splitJoinD g f !xs = joinD_impl g (f (splitD_impl g xs))
 
 -- | Join a distributed array, yielding a mutable global array
-joinDM :: UA a => Gang -> Dist (UArr a) -> ST s (MUArr a s)
+joinDM :: Unbox a => Gang -> Dist (Vector a) -> ST s (MVector s a)
 {-# INLINE joinDM #-}
 joinDM g darr = checkGangD (here "joinDM") g darr $
                 do
-                  marr <- newMU n
+                  marr <- Seq.newM n
                   zipWithDST_ g (copy marr) di darr
                   return marr
   where
-    di :*: n = scanD g (+) 0 $ lengthD darr
+    (!di,!n) = scanD g (+) 0 $ lengthD darr
     --
-    copy ma i arr = stToDistST (copyMU ma i arr)
+    copy ma i arr = stToDistST (Seq.copy (mdrop i ma) arr)
 
 {-# RULES
 
@@ -187,145 +185,152 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
   splitJoinD g f1 (splitJoinD g f2 xs) = splitJoinD g (f1 . f2) xs
 
 {-
-"splitD/zipU" forall g b xs ys.
-  splitD g b (zipU xs ys) = zipWithD g zipU (splitD g balanced xs)
+"splitD/Seq.zip" forall g b xs ys.
+  splitD g b (Seq.zip xs ys) = zipWithD g Seq.zip (splitD g balanced xs)
                                             (splitD g balanced ys)
 
-"splitJoinD/zipU" forall g f xs ys.
-  splitJoinD g f (zipU xs ys)
+"splitJoinD/Seq.zip" forall g f xs ys.
+  splitJoinD g f (Seq.zip xs ys)
     = joinD g balanced
-        (f (zipWithD g zipU (splitD g balanced xs)
+        (f (zipWithD g Seq.zip (splitD g balanced xs)
                             (splitD g balanced ys)))
 
-"splitAsD/zipU" forall g dlen xs ys.
-  splitAsD g dlen (zipU xs ys) = zipWithD g zipU (splitAsD g dlen xs)
+"splitAsD/Seq.zip" forall g dlen xs ys.
+  splitAsD g dlen (Seq.zip xs ys) = zipWithD g Seq.zip (splitAsD g dlen xs)
                                                  (splitAsD g dlen ys)
 -}
+  #-}
 
-"fstU/joinD" forall g b xs.
-  fstU (joinD g b xs) = joinD g b (mapD g fstU xs)
+{- FIXME
 
-"sndU/joinD" forall g b xs.
-  sndU (joinD g b xs) = joinD g b (mapD g sndU xs)
+"Seq.fsts/joinD" forall g b xs.
+  Seq.fsts (joinD g b xs) = joinD g b (mapD g Seq.fsts xs)
 
-"fstU/splitJoinD" forall g f xs.
-  fstU (splitJoinD g f xs) = splitJoinD g (mapD g fstU . f) xs
+"Seq.snds/joinD" forall g b xs.
+  Seq.snds (joinD g b xs) = joinD g b (mapD g Seq.snds xs)
 
-"sndU/splitJoinD" forall g f xs.
-  sndU (splitJoinD g f xs) = splitJoinD g (mapD g sndU . f) xs
+"Seq.fsts/splitJoinD" forall g f xs.
+  Seq.fsts (splitJoinD g f xs) = splitJoinD g (mapD g Seq.fsts . f) xs
 
-"zipU/joinD[1]" forall g xs ys.
-  zipU (joinD g balanced xs) ys
-    = joinD g balanced (zipWithD g zipU xs (splitD g balanced ys))
+"Seq.snds/splitJoinD" forall g f xs.
+  Seq.snds (splitJoinD g f xs) = splitJoinD g (mapD g Seq.snds . f) xs
+-}
 
-"zipU/joinD[2]" forall g xs ys.
-  zipU xs (joinD g balanced ys)
-    = joinD g balanced (zipWithD g zipU (splitD g balanced xs) ys)
+{-#
 
-"zipU/splitJoinD" forall gang f g xs ys.
-  zipU (splitJoinD gang (imapD gang f) xs) (splitJoinD gang (imapD gang g) ys)
-    = splitJoinD gang (imapD gang (\i zs -> let (as,bs) = unzipU zs
-                                            in zipU (f i as) (g i bs)))
-                      (zipU xs ys)
+"Seq.zip/joinD[1]" forall g xs ys.
+  Seq.zip (joinD g balanced xs) ys
+    = joinD g balanced (zipWithD g Seq.zip xs (splitD g balanced ys))
+
+"Seq.zip/joinD[2]" forall g xs ys.
+  Seq.zip xs (joinD g balanced ys)
+    = joinD g balanced (zipWithD g Seq.zip (splitD g balanced xs) ys)
+
+"Seq.zip/splitJoinD" forall gang f g xs ys.
+  Seq.zip (splitJoinD gang (imapD gang f) xs) (splitJoinD gang (imapD gang g) ys)
+    = splitJoinD gang (imapD gang (\i zs -> let (as,bs) = Seq.unzip zs
+                                            in Seq.zip (f i as) (g i bs)))
+                      (Seq.zip xs ys)
 
   #-}
 
 -- | Permute for distributed arrays.
-permuteD :: forall a. UA a => Gang -> Dist (UArr a) -> Dist (UArr Int) -> UArr a
+permuteD :: forall a. Unbox a => Gang -> Dist (Vector a) -> Dist (Vector Int) -> Vector a
 {-# INLINE_DIST permuteD #-}
-permuteD g darr dis = newU n (\ma -> zipWithDST_ g (permute ma) darr dis)
+permuteD g darr dis = Seq.new n (\ma -> zipWithDST_ g (permute ma) darr dis)
   where
     n = joinLengthD g darr
-    permute :: forall s. MUArr a s -> UArr a -> UArr Int -> DistST s ()
-    permute ma arr is = stToDistST (permuteMU ma arr is)
+    permute :: forall s. MVector s a -> Vector a -> Vector Int -> DistST s ()
+    permute ma arr is = stToDistST (Seq.mpermute ma arr is)
 
 
 -- NOTE: The bang is necessary because the array must be fully evaluated
 -- before we pass it to the parallel computation.
-bpermuteD :: UA a => Gang -> UArr a -> Dist (UArr Int) -> Dist (UArr a)
+bpermuteD :: Unbox a => Gang -> Vector a -> Dist (Vector Int) -> Dist (Vector a)
 {-# INLINE bpermuteD #-}
-bpermuteD g !as ds = mapD g (bpermuteU as) ds
+bpermuteD g !as ds = mapD g (Seq.bpermute as) ds
 
 -- NB: This does not (and cannot) try to prevent two threads from writing to
 -- the same position. We probably want to consider this an (unchecked) user
 -- error.
-atomicUpdateD :: forall a. UA a
-             => Gang -> Dist (UArr a) -> Dist (UArr (Int :*: a)) -> UArr a
+atomicUpdateD :: forall a. Unbox a
+             => Gang -> Dist (Vector a) -> Dist (Vector (Int,a)) -> Vector a
 {-# INLINE atomicUpdateD #-}
 atomicUpdateD g darr upd = runST (
   do
     marr <- joinDM g darr
     mapDST_ g (update marr) upd
-    unsafeFreezeAllMU marr
+    Seq.unsafeFreeze marr
   )
   where
-    update :: forall s. MUArr a s -> UArr (Int :*: a) -> DistST s ()
-    update marr arr = stToDistST (atomicUpdateMU marr arr)
+    update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()
+    update marr arr = stToDistST (Seq.mupdate marr arr)
 
 splitSegdD :: Gang -> USegd -> Dist USegd
 {-# NOINLINE splitSegdD #-}
 splitSegdD g !segd = mapD g lengthsToUSegd
                    $ splitAsD g d lens
   where
-    d = sndS
-      . mapAccumLD g chunk 0
-      . splitLenD g
-      $ elementsUSegd segd
+    !d = snd
+       . mapAccumLD g chunk 0
+       . splitLenD g
+       $ elementsUSegd segd
 
     n = lengthUSegd segd
     lens = lengthsUSegd segd
 
-    chunk i k = let j = go i k
-                in j :*: (j-i)
+    chunk !i !k = let !j = go i k
+                  in (j,j-i)
 
-    go i k | i >= n    = i
-           | m == 0    = go (i+1) k
-           | k <= 0    = i
-           | otherwise = go (i+1) (k-m)
+    go !i !k | i >= n    = i
+             | m == 0    = go (i+1) k
+             | k <= 0    = i
+             | otherwise = go (i+1) (k-m)
       where
-        m = lens !: i
+        m = lens ! i
 
 
-search :: Int -> UArr Int -> Int
-search !x ys = go 0 (lengthU ys)
+search :: Int -> Vector Int -> Int
+search !x ys = go 0 (Seq.length ys)
   where
     go i n | n <= 0        = i
-           | (ys!:mid) < x = go (mid+1) (n-half-1)
+           | (ys!mid) < x = go (mid+1) (n-half-1)
            | otherwise     = go i half
       where
         half = n `shiftR` 1
         mid  = i + half
 
-chunk :: USegd -> Int -> Int -> Bool -> (# UArr Int, Int, Int #)
+chunk :: USegd -> Int -> Int -> Bool -> (# Vector Int, Int, Int #)
 chunk !segd !di !dn is_last
   = (# lens', k-left_len, left_off #)
   where
     !lens' = runST (do
-                      mlens' <- newMU n'
-                      when (left /= 0) $ writeMU mlens' 0 left
-                      copyMU mlens' left_len (sliceU lens k (k'-k))
-                      when (right /= 0) $ writeMU mlens' (n' - 1) right
-                      unsafeFreezeAllMU mlens')
+                      mlens' <- Seq.newM n'
+                      when (left /= 0) $ Seq.write mlens' 0 left
+                      Seq.copy (Seq.mdrop left_len mlens')
+                               (Seq.slice lens k (k'-k))
+                      when (right /= 0) $ Seq.write mlens' (n' - 1) right
+                      Seq.unsafeFreeze mlens')
 
     lens = lengthsUSegd segd
     idxs = indicesUSegd segd
-    n    = lengthU lens
+    n    = Seq.length lens
 
     k  = search di idxs
     k' | is_last   = n
        | otherwise = search (di+dn) idxs
 
     left  | k == n    = dn
-          | otherwise = min ((idxs!:k) - di) dn
+          | otherwise = min ((idxs!k) - di) dn
 
     right | k' == k   = 0
-          | otherwise = di + dn - (idxs !: (k'-1))
+          | otherwise = di + dn - (idxs ! (k'-1))
 
     left_len | left == 0   = 0
              | otherwise   = 1
 
     left_off | left == 0   = 0
-             | otherwise   = di - idxs !: (k-1)
+             | otherwise   = di - idxs ! (k-1)
 
     n' = left_len + (k'-k)
 
@@ -346,7 +351,7 @@ joinSegD g = lengthsToUSegd
            . joinD g unbalanced
            . mapD g lengthsUSegd
 
-splitSD :: UA a => Gang -> Dist USegd -> UArr a -> Dist (UArr a)
+splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitSD #-}
 splitSD g dsegd xs = splitAsD g (elementsUSegdD dsegd) xs
 
@@ -355,8 +360,8 @@ splitSD g dsegd xs = splitAsD g (elementsUSegdD dsegd) xs
 "splitSD/splitJoinD" forall g d f xs.
   splitSD g d (splitJoinD g f xs) = f (splitSD g d xs)
 
-"splitSD/zipU" forall g d xs ys.
-  splitSD g d (zipU xs ys) = zipWithD g zipU (splitSD g d xs)
+"splitSD/Seq.zip" forall g d xs ys.
+  splitSD g d (Seq.zip xs ys) = zipWithD g Seq.zip (splitSD g d xs)
                                              (splitSD g d ys)
 
   #-}
