@@ -69,6 +69,8 @@ libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : $$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
 endef
 
+ifneq "$(CLEANING)" "YES"
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),seq)))
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),par)))
+endif
 
