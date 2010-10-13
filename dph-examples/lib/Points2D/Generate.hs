@@ -11,7 +11,6 @@ import qualified Data.Array.Parallel.Prelude 	    as P
 import qualified Data.Array.Parallel.Prelude.Double as D
 import qualified Data.Array.Parallel.PArray         as P
 import Data.Array.Parallel.PArray		    (PArray)
-import Data.Array.Parallel.Base ( (:*:)(..) )
 
 import System.Random
 import Control.Exception
@@ -29,7 +28,7 @@ genPointsUniform
 	:: Int			-- ^ number of points
 	-> Double		-- ^ minimum coordinate
 	-> Double		-- ^ maximum coordinate
-        -> U.Array (Double :*: Double)
+        -> U.Array (Double, Double)
 
 genPointsUniform n pointMin pointMax
  = let	gen		= mkStdGen seed
@@ -44,7 +43,7 @@ genPointsDisc
 	:: Int			-- ^ number of points
 	-> (Double, Double) 	-- ^ center of disc
 	-> Double 		-- ^ radius of disc
-        -> U.Array (Double :*: Double)
+        -> U.Array (Double, Double)
 
 genPointsDisc n (originX, originY) radiusMax
  = let	(genRadius, genAngle)		
@@ -54,8 +53,8 @@ genPointsDisc n (originX, originY) radiusMax
         angle  = U.randomRs n (-pi, pi) genAngle
 
 	makeXY r a	
-	 	=   (originX + r * cos a)
-	   	:*: (originY + r * sin a)	
+	 	= ( originX + r * cos a
+		  , originY + r * sin a)	
 
     in	originX `seq` originY `seq` U.zipWith makeXY radius angle
 
@@ -63,7 +62,7 @@ genPointsDisc n (originX, originY) radiusMax
 -- | A point cloud with areas of high an low density
 genPointsCombo 
 	:: Int 			-- ^ number of points
-        -> U.Array (Double :*: Double)
+        -> U.Array (Double, Double)
 
 genPointsCombo n
  	=  genPointsDisc    (n `div` 5) (250, 250) 200
@@ -75,7 +74,7 @@ genPointsCombo n
 
 -- | Convert a list of points to a PArray
 pointsPArrayOfUArray 
-	:: U.Array (Double :*: Double)
+	:: U.Array (Double, Double)
 	-> IO (PArray Point)
 
 pointsPArrayOfUArray ps
