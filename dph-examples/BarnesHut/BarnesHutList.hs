@@ -1,5 +1,10 @@
 
-module BarnesHutList (oneStep)
+module BarnesHutList 
+	( MassPoint	(..)
+	, BoundingBox	(..)
+	, BHTree	(..)
+	, oneStep
+	, buildTree)
 where
 
 -- | If the distance between two points is less than this number
@@ -7,7 +12,6 @@ where
 epsilon :: Double
 epsilon = 0.05
 
--- | 
 eClose :: Double
 eClose  = 0.5
 
@@ -22,6 +26,7 @@ data MassPoint
 	, massPointPosY	:: Double
 	, massPointMass	:: Double }
 
+
 -- | A rectangular region in 2D space.
 data BoundingBox
 	= Box 
@@ -30,24 +35,23 @@ data BoundingBox
 	, boxUpperRightX :: Double
 	, boxUpperRightY :: Double }
 
+
 -- | The Barnes-Hut tree we use to organise the points.
 data BHTree
 	= BHT
-	{ bhTreeRoot	:: Double
+	{ bhTreeCenterX	:: Double
+	, bhTreeCenterY	:: Double
 	, bhTreeMass	:: Double
-	, bhTreePoint	:: Double
 	, bhTreeBranch	:: [BHTree] }
-
+	deriving Show
 
 -- | Compute a single step of the simulation.
-oneStep	:: Double		-- ^ lower left x of bounding box
-	-> Double		-- ^ lower left y of bounding box
-	-> Double		-- ^ upper right x of bounding box
-	-> Double		-- ^ upper right y of bounding box
+oneStep	:: (Double, Double)	-- ^ coord of lower left  corner of bounding box
+	-> (Double, Double)	-- ^ coord of upper right corner of bounding box
 	-> [(Double, Double, Double)]	-- ^ (x, y, mass) of each point
 	-> ([Double], [Double])	-- ^ acceleration of each point.
 
-oneStep llx lly rux ruy mspnts 
+oneStep (llx, lly) (rux, ruy) mspnts 
  = (xs, ys)
  where	(xs, ys) = unzip [ calcAccel m tree | m <- ms ]
 	tree	 = buildTree (Box llx lly rux ruy) ms
@@ -109,9 +113,9 @@ inBox (Box llx  lly rux  ruy) (MP px  py  _) =
 
 -- | Calculate the centroid of some points.
 calcCentroid :: [MassPoint] -> MassPoint
-calcCentroid mpts = MP  ((sum xs)/mass) ((sum ys)/mass) mass
+calcCentroid mpts = MP (sum xs / mass) (sum ys / mass) mass
   where
-    mass     = sum [ m | MP _ _ m  <- mpts ]
+    mass     = sum   [ m | MP _ _ m  <- mpts ]
     (xs, ys) = unzip [ (m * x, m * y) | MP x y m <- mpts ]   
 
 
