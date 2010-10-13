@@ -25,7 +25,7 @@ Executable dph-quickhull
         random               == 1.0.*,
         old-time             == 1.0.*
   Main-is: Main.hs
-  hs-source-dirs: QuickHull lib
+  hs-source-dirs: spectral/QuickHull lib
   ghc-options: 
         -threaded 
         -rtsopts 
