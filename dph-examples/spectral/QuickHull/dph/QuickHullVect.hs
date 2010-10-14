@@ -1,7 +1,7 @@
 {-# LANGUAGE PArr #-}
 {-# OPTIONS -fvectorise #-}
 
-module QuickHull (quickhullPA) where
+module QuickHullVect (quickhullPA) where
 import Points2D.Types
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double

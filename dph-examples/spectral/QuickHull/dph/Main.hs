@@ -1,9 +1,9 @@
 
-import QuickHull
+import QuickHullVect
 import SVG
+import Timing
 import Points2D.Generate
 import Points2D.Types
-import Timing
 import System.Environment
 import Data.Array.Parallel.PArray	as P
 
