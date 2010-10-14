@@ -142,7 +142,7 @@ joinD_impl g !darr = checkGangD (here "joinD") g darr $
   where
     (!di,!n) = scanD g (+) 0 $ lengthD darr
     copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
-    copy ma i arr = stToDistST (Seq.copy (mdrop i ma) arr)
+    copy ma i arr = stToDistST (Seq.copy (mslice i (Seq.length arr) ma) arr)
 
 -- | Join a distributed array.
 joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
@@ -165,7 +165,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
   where
     (!di,!n) = scanD g (+) 0 $ lengthD darr
     --
-    copy ma i arr = stToDistST (Seq.copy (mdrop i ma) arr)
+    copy ma i arr = stToDistST (Seq.copy (mslice i (Seq.length arr) ma) arr)
 
 {-# RULES
 

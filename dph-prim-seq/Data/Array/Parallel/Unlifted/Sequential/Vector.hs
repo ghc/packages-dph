@@ -72,7 +72,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
 
   -- * Mutable vectors
   newM, unsafeFreeze, M.write, M.read, mpermute, mupdate,
-  mdrop,
+  mdrop, mslice,
 
   -- * I\/O
   UIO(..)
@@ -365,6 +365,10 @@ randomRS n r g = Stream step (g,n) (Exact n)
 mdrop :: Unbox a => Int -> MVector s a -> MVector s a
 {-# INLINE mdrop #-}
 mdrop = M.drop
+
+mslice :: Unbox a => Int -> Int -> MVector s a -> MVector s a
+{-# INLINE mslice #-}
+mslice = M.slice
 
 -- * I\/O
 -- -----
