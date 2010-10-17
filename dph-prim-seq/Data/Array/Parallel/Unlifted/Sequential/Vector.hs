@@ -424,8 +424,8 @@ instance UIO Double where
 instance (UIO a, UIO b) => UIO (a,b) where
   {-# INLINE hPut #-}
   hPut h xs = case V.unzip xs of
-                (ys,zs) -> do hPut h xs
-                              hPut h ys
+                (ys,zs) -> do hPut h ys
+                              hPut h zs
 
   {-# INLINE hGet #-}
   hGet h = do xs <- hGet h
