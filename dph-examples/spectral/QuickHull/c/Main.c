@@ -69,16 +69,18 @@ int main(int argc, char** argv)
         gettimeofday( &finish, NULL );
         getrusage( RUSAGE_SELF, &finish_ru );
 
-	printf("depth          = %d\n", depth);
-	printf("points on hull = %d\n", hull->length);
+//	printf("depth          = %d\n", depth);
+//	printf("points on hull = %d\n", hull->length);
 
         sub_timeval( &finish, &start );
         sub_timeval( &finish_ru.ru_utime, &start_ru.ru_utime );
         sub_timeval( &finish_ru.ru_stime, &start_ru.ru_stime );
         add_timeval( &finish_ru.ru_utime, &finish_ru.ru_stime );
 
-	printf("timing         = ");
-        print_timeval( &finish ); putchar( '/' );
+	printf("elapsedTimeMS   = ");
+        print_timeval( &finish ); putchar( '\n' );
+
+ 	printf("cpuTimeMS       = ");
         print_timeval( &finish_ru.ru_utime); putchar( '\n' );
 
 	// Write output to file if requested.
