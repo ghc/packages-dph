@@ -69,3 +69,22 @@ Executable dph-quickhull-vector
         -fcpr-off
         -fsimplifier-phases=4 
         -fstrictness-before=3 
+
+
+Executable dph-quicksort
+  Build-depends: 
+        base                 == 4.*,
+        dph-prim-par         == 0.5.*,
+        dph-par              == 0.5.*,
+        dph-base             == 0.5.*,
+        random               == 1.0.*,
+        old-time             == 1.0.*
+  Main-is: Main.hs
+  hs-source-dirs: lib spectral/QuickSort/dph
+  ghc-options: 
+        -threaded 
+        -rtsopts 
+        -Odph
+        -fcpr-off
+        -fsimplifier-phases=4 
+        -fstrictness-before=3 
