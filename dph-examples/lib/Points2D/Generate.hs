@@ -6,6 +6,7 @@ module Points2D.Generate
 	, pointsPArrayOfUArray )
 where
 import Points2D.Types
+import Randomish
 import qualified Data.Array.Parallel.Unlifted 	    as U
 import qualified Data.Array.Parallel.Prelude 	    as P
 import qualified Data.Array.Parallel.Prelude.Double as D
@@ -31,8 +32,7 @@ genPointsUniform
         -> U.Array (Double, Double)
 
 genPointsUniform n pointMin pointMax
- = let	gen		= mkStdGen seed
-        pts             = U.randomRs (n*2) (pointMin, pointMax) gen
+ = let  pts             = randomishDoubles (n*2) pointMin pointMax seed
         xs              = U.extract pts 0 n
         ys              = U.extract pts n n
    in   U.zip xs ys
@@ -49,8 +49,8 @@ genPointsDisc n (originX, originY) radiusMax
  = let	(genRadius, genAngle)		
 		= split $ mkStdGen seed
 	
-	radius = U.randomRs n (0,   radiusMax) genRadius
-        angle  = U.randomRs n (-pi, pi) genAngle
+	radius = randomishDoubles n 0     radiusMax seed
+        angle  = randomishDoubles n (-pi) pi        (seed + 1234)
 
 	makeXY r a	
 	 	= ( originX + r * cos a

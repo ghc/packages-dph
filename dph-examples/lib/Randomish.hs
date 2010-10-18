@@ -1,6 +1,8 @@
+{-# LANGUAGE BangPatterns #-}
 
 module Randomish
- 	(randomInts)
+ 	( randomishInts
+	, randomishDoubles)
 where
 import Data.Word
 import Data.Vector.Unboxed			(Vector)
@@ -18,14 +20,14 @@ import qualified Data.Vector.Generic		as G
 --   Stephen K. Park and Keith W. Miller.
 --   Communications of the ACM, Oct 1988, Volume 31, Number 10.
 --
-randomInts 
-	:: Int 		-- Length of vector.
-	-> Int 		-- Minumum value in output.
-	-> Int 		-- Maximum value in output.
-	-> Int 		-- Random seed.	
-	-> Vector Int	-- Vector of random numbers.
+randomishInts 
+	:: Int 			-- Length of vector.
+	-> Int 			-- Minumum value in output.
+	-> Int 			-- Maximum value in output.
+	-> Int 			-- Random seed.	
+	-> Vector Int		-- Vector of random numbers.
 
-randomInts !len !valMin' !valMax' !seed'
+randomishInts !len !valMin' !valMax' !seed'
 	
  = let	-- a magic number (don't change it)
 	multiplier :: Word64
@@ -54,9 +56,27 @@ randomInts !len !valMin' !valMax' !seed'
 	  	| ix == len	= return ()
 		| otherwise
 		= do	let x'	= f x
-			MV.write vec ix $fromIntegral $ (x `mod` range) + valMin
+			MV.write vec ix $ fromIntegral $ (x `mod` range) + valMin
 			go (ix + 1) x'
 
-	go 0 (f $ fromIntegral seed)
+	go 0 (f $ f $ f $ fromIntegral seed)
 	return vec
+
+
+-- | Generate some randomish doubles with terrible statistical properties.
+--   This is good enough for test data, but not much else.
+randomishDoubles 
+	:: Int			-- Length of vector
+	-> Double		-- Minimum value in output
+	-> Double		-- Maximum value in output
+	-> Int			-- Random seed.
+	-> Vector Double	-- Vector of randomish doubles.
+
+randomishDoubles !len !valMin !valMax !seed
+ = let	range	= valMax - valMin
+
+	mx	= 2^30 - 1
+	mxf	= fromIntegral mx
+	ints	= randomishInts len 0 mx seed
 	
+   in	V.map (\n -> valMin + (fromIntegral n / mxf) * range) ints
