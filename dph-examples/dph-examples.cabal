@@ -36,22 +36,6 @@ Executable dph-evens
         -fstrictness-before=3 
 
 
-Executable dph-quickhull-vector
-  Build-depends: 
-        base                 == 4.*,
-        vector               == 0.7.*,    
-        old-time             == 1.0.*
-  Main-is: Main.hs
-  hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
-  ghc-options: 
-        -threaded 
-        -rtsopts 
-        -Odph
-        -fcpr-off
-        -fsimplifier-phases=4 
-        -fstrictness-before=3 
-
-
 Executable dph-quickhull
   Build-depends: 
         base                 == 4.*,
@@ -70,3 +54,18 @@ Executable dph-quickhull
         -fsimplifier-phases=4 
         -fstrictness-before=3 
 
+
+Executable dph-quickhull-vector
+  Build-depends: 
+        base                 == 4.*,
+        vector               == 0.7.*,    
+        old-time             == 1.0.*
+  Main-is: Main.hs
+  hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
+  ghc-options: 
+        -threaded 
+        -rtsopts 
+        -Odph
+        -fcpr-off
+        -fsimplifier-phases=4 
+        -fstrictness-before=3 
