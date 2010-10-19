@@ -8,6 +8,7 @@ import Data.Array.Parallel.Prelude	as P
 import Data.Array.Parallel.PArray	as P
 import qualified Data.Vector.Unboxed	as V
 
+
 main :: IO ()
 main 
  = do	args	<- getArgs
@@ -39,6 +40,7 @@ runAlg "vector" vec1 vec2
 		  in  result `seq` return result
 		
 usage
- = do	putStr 	$  "usage: dotp <alg> <length>"
- 		++ "  alg one of " ++ show ["dph", "vector"]
+ = putStr $ unlines
+ 	[ "usage: dotp <alg> <length>"
+ 	, "  alg one of " ++ show ["dph", "vector"] ]
 

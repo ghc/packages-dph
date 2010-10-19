@@ -14,10 +14,7 @@ main
  = do	args	<- getArgs
 	case args of
 	  [len]	-> run (read len) 
-	
-	  _ -> do
-		putStr usage
-		return ()
+	  _	-> putStr usage
 
 
 -- | Command line usage information.
