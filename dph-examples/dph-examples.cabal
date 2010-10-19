@@ -83,7 +83,7 @@ Executable dph-primes
         random               == 1.0.*,
         old-time             == 1.0.*
   Main-is: Main.hs
-  hs-source-dirs: imaginary/Primes/dph lib
+  hs-source-dirs: broken/Primes/dph lib
   ghc-options: 
         -threaded 
         -rtsopts 
