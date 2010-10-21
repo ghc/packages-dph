@@ -1,16 +1,13 @@
+{-# LANGUAGE BangPatterns #-}
 
 module BarnesHutList 
-{-	( MassPoint	(..)
+	( MassPoint	(..)
 	, BoundingBox	(..)
 	, BHTree	(..)
-	, oneStep
+	, calcAccels
 	, buildTree)
--}
-
 where
-{-
-import Common
-
+import Body
 
 eClose :: Double
 eClose  = 0.5
@@ -23,44 +20,60 @@ data BoundingBox
 	, boxLowerLeftY	 :: Double
 	, boxUpperRightX :: Double
 	, boxUpperRightY :: Double }
-
-
+	deriving Show
+	
 -- | The Barnes-Hut tree we use to organise the points.
 data BHTree
 	= BHT
-	{ bhTreeCenterX	:: Double
+	{ bhTreeBox	:: BoundingBox
+	, bhTreeCenterX	:: Double
 	, bhTreeCenterY	:: Double
 	, bhTreeMass	:: Double
 	, bhTreeBranch	:: [BHTree] }
 	deriving Show
 
 
--- | Compute a single step of the simulation.
-oneStep	:: (Double, Double)	-- ^ coord of lower left  corner of bounding box
-	-> (Double, Double)	-- ^ coord of upper right corner of bounding box
-	-> [(Double, Double, Double)]	-- ^ (x, y, mass) of each point
-	-> ([Double], [Double])	-- ^ acceleration of each point.
-
-oneStep (llx, lly) (rux, ruy) mspnts 
- = (xs, ys)
- where	(xs, ys) = unzip [ calcAccel m tree | m <- ms ]
-	tree	 = buildTree (Box llx lly rux ruy) ms
-	ms	 = [ MassPoint x y m | (x,y,m) <-  mspnts]
-
+-- | Compute the acclerations on all these points.
+calcAccels :: [MassPoint] -> [Accel]
+calcAccels mpts
+	= map (calcAccel (buildTree mpts)) mpts
+	
 
 -- | Build a Barnes-Hut tree from these points.
-buildTree
+buildTree :: [MassPoint] -> BHTree
+buildTree mpts
+ = let	(llx, lly, rux, ruy)	= findBounds mpts
+	box			= Box llx lly rux ruy
+   in	buildTreeWithBox box mpts
+
+
+-- | Find the coordinates of the bounding box that contains all these points.
+findBounds :: [MassPoint] -> (Double, Double, Double, Double)
+findBounds ((x1, y1, _) : rest1)
+ = go x1 y1 x1 y1 rest1	
+ where	go !left !right !down !up pts
+	 = case pts of
+		[]	-> (left, down, right, up)
+		(x, y, _) : rest
+		 -> let	left'	= min left  x
+			right'	= max right x
+			down'	= min down  y
+			up'	= max up    y
+	   	    in	go left' right' down' up' rest
+
+--
+buildTreeWithBox
 	:: BoundingBox		-- ^ bounding box containing all the points.
 	-> [MassPoint]		-- ^ points in the box.
 	-> BHTree
 
-buildTree bb particles
-  | length particles <= 1 = BHT x y m []
-  | otherwise             = BHT x y m subTrees
+buildTreeWithBox bb particles
+  | length particles <= 1 = BHT bb x y m []
+  | otherwise             = BHT bb x y m subTrees
   where
-    (MassPoint x y m)           = calcCentroid particles
-    (boxes, splitPnts)   = splitPoints bb particles 
-    subTrees             = [buildTree bb' ps | (bb', ps) <- zip boxes splitPnts]
+    (x, y, m)		= calcCentroid particles
+    (boxes, splitPnts)	= splitPoints bb particles 
+    subTrees		= [buildTreeWithBox bb' ps | (bb', ps) <- zip boxes splitPnts]
 
   
 -- | Split massPoints according to their locations in the quadrants.
@@ -97,16 +110,16 @@ splitPoints b@(Box llx lly rux  ruy) particles
 
 -- | Check if a particle is in box (excluding left and lower border)
 inBox:: BoundingBox -> MassPoint -> Bool
-inBox (Box llx  lly rux  ruy) (MassPoint px  py  _) = 
-    (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
+inBox (Box llx  lly rux  ruy) (px, py, _) 
+	= (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
 
 
 -- | Calculate the centroid of some points.
 calcCentroid :: [MassPoint] -> MassPoint
-calcCentroid mpts = MassPoint (sum xs / mass) (sum ys / mass) mass
+calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
   where
-    mass     = sum   [ m | MassPoint _ _ m  <- mpts ]
-    (xs, ys) = unzip [ (m * x, m * y) | MassPoint x y m <- mpts ]   
+    mass     = sum   [ m | (_, _, m)  <- mpts ]
+    (xs, ys) = unzip [ (m * x, m * y) | (x, y,  m) <- mpts ]   
 
 
 -- | Calculate the accelleration of a point due to the points in the given tree.
@@ -117,11 +130,11 @@ calcCentroid mpts = MassPoint (sum xs / mass) (sum ys / mass) mass
 --   We also use this behavior as a hacky way to discard the acceleration
 --   of a point due to interaction with itself.
 --
-calcAccel:: MassPoint -> BHTree -> (Double, Double)
-calcAccel mpt (BHT x y m subtrees)
-	| isClose mpt x y = accel mpt (MassPoint x y m)
+calcAccel:: BHTree -> MassPoint -> (Double, Double)
+calcAccel (BHT _ x y m subtrees) mpt
+	| isClose mpt x y = accel mpt (x, y, m)
 	| otherwise       = (sum xs, sum ys) 
-	where	(xs, ys)  = unzip [ calcAccel mpt st | st <- subtrees]
+	where	(xs, ys)  = unzip [ calcAccel st mpt | st <- subtrees]
 
 
 -- | If the a point is "close" to a region in the Barnes-Hut tree then we compute
@@ -131,8 +144,8 @@ calcAccel mpt (BHT x y m subtrees)
 --   TODO: Isn't this comparison the wrong way around??
 --
 isClose :: MassPoint -> Double -> Double -> Bool
-isClose (MassPoint x1 y1 m) x2 y2 
+isClose (x1, y1, m) x2 y2 
 	= (x1-x2) * (x1-x2) + (y1-y2) * (y1-y2) < eClose
 
--}
+
 
