@@ -3,10 +3,9 @@
 module Naive
 	(calcAccels)
 where
-import Common
+import Body
 import Data.Vector.Unboxed		(Vector)
 import qualified Data.Vector.Unboxed	as V
-
 
 -- | Calculate accelerations on these point in a naive O(n^2) way
 calcAccels :: Vector MassPoint -> Vector Accel

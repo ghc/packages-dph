@@ -4,19 +4,18 @@ module World
 	, drawWorld
 	, advanceWorld)
 where
-import Common
+import Body
 import Naive
 import Graphics.Gloss
 import qualified Data.Vector.Unboxed		as V
 
-
-type World	
+type World 
 	= V.Vector Body
 
 -- Drawing --------------------------------------------------------------------
 drawWorld :: World -> Picture
 drawWorld world
-	= Color (makeColor 1 1 1 0.8)
+	= Color (makeColor 1 1 1 0.4)
 	$ Pictures 
 	$ map drawBody
 	$ V.toList world
@@ -28,12 +27,18 @@ drawBody ((x, y, _), _, _)
 drawPoint :: (Double, Double) -> Picture
 drawPoint (x, y)
 	= Translate (realToFrac x) (realToFrac y) 
-	$ ThickCircle 2 4 
+	$ ThickCircle 2 4
 
 
 
 -- World ----------------------------------------------------------------------
-advanceWorld :: Double -> ViewPort -> Float -> World -> World
+-- | Advance the world forward in time.
+advanceWorld 
+	:: Double	-- ^ time multiplied to make simulation go faster.
+	-> ViewPort	-- ^ current viewport in the gloss window.
+	-> Float	-- ^ how much to advance the time in this simulation step.
+	-> World -> World
+
 advanceWorld warp _ time world
  = let	bodies	= world
 

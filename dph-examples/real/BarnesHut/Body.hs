@@ -1,7 +1,10 @@
 
-module Common
+module Body
 	( epsilon
+
+	, Velocity
 	, Accel
+
 	, MassPoint(..)
 	, accel
 	
@@ -9,14 +12,18 @@ module Common
 	, massPointOfBody
 	, bodySetAccel
 	, bodyAdvance
-	, unitBody)
+	, unitBody
+	, setStartVel)
 where
+import Util
+
 
 -- | If the distance between two points is less than this number
 --   we ignore the forces between them.
 epsilon :: Double
 epsilon = 1
 
+-- Types ---------------------------------------------------------------------
 -- | The velocity of a point.
 type Velocity	= (Double, Double)
 
@@ -71,7 +78,13 @@ bodyAdvance time
 unitBody :: Double -> Double -> Body
 unitBody x y
 	= ((x, y, 1), (0, 0), (0, 0))
-			
 
-
-
+-- | Set the starting velocity of a body.
+setStartVel :: Double -> Body -> Body
+setStartVel startVel (mp@(x, y, mass), vel, acc)
+ = let	pos		= (x, y)
+	(x', y')	= normaliseV (x, y)
+   	vel'		= (y', -x')
+	vel''		= mulSV (sqrt (magV pos) * startVel) vel'
+	
+   in	(mp, vel'', acc)
