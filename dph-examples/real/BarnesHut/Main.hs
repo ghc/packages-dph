@@ -26,9 +26,10 @@ main
 mainWithArgs :: Args MainArg -> IO ()
 mainWithArgs args
  = do	let Just windowSize	= getArgInt	args ArgWindowSize
-	let shouldDrawTree		= gotArg  	args ArgDrawTree
+	let shouldDrawTree	= gotArg  	args ArgDrawTree
 	let Just timeWarp	= getArgDouble	args ArgTimeWarp
 	let Just bodyCount	= getArgInt	args ArgBodyCount
+	let Just bodyMass	= getArgDouble  args ArgBodyMass
 	let Just epsilon	= getArgDouble	args ArgEpsilon
 	let Just discSize	= getArgDouble	args ArgDiscSize
 	let Just startSpeed	= getArgDouble	args ArgStartSpeed
@@ -36,8 +37,11 @@ mainWithArgs args
 	let vPoints 	= genPointsDisc bodyCount (0, 0) discSize
 
 	let vBodies	= V.map (setStartVelOfBody startSpeed)
-			$ V.map (\(x, y) -> unitBody x y) vPoints
+			$ V.map (setMassOfBody     bodyMass)
+			$ V.map (uncurry unitBody) 
+			$ vPoints
 
+	let advance	= advanceWorld epsilon (10 * timeWarp)
 
 	simulateInWindow
 		"Barnes-Hutt"			-- window name
@@ -47,7 +51,7 @@ mainWithArgs args
 		50				-- number of iterations per second
 		vBodies				-- initial world
 		(drawWorld shouldDrawTree)	-- fn to convert a world to a picture
-		(advanceWorld epsilon (10 * timeWarp))	-- fn to advance the world
+		advance				-- fn to advance the world
 
 
 

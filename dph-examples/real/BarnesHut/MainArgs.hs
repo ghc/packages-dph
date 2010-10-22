@@ -11,6 +11,7 @@ data MainArg
 	| ArgDrawTree
 	| ArgTimeWarp
 	| ArgBodyCount
+	| ArgBodyMass
 	| ArgEpsilon
 	| ArgDiscSize
 	| ArgStartSpeed
@@ -47,6 +48,12 @@ mainArgs
 		, argName	= Just "bodies"
 		, argData	= argDataDefaulted "Int" ArgtypeInt 100 
 		, argDesc	= "Number of bodies in simulation (default 100)" }
+
+	, Arg	{ argIndex	= ArgBodyMass
+		, argAbbr	= Just 'm'
+		, argName	= Just "mass"
+		, argData	= argDataDefaulted "Double" ArgtypeDouble 1 
+		, argDesc	= "Mass of each body (default 1)" }
 
 	, Arg	{ argIndex	= ArgEpsilon
 		, argAbbr	= Just 'e'

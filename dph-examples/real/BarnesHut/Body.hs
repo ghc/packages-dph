@@ -10,6 +10,7 @@ module Body
 
 	, unitBody
 	, massPointOfBody
+	, setMassOfBody
 	, setAccelOfBody
 	, setStartVelOfBody
 	, advanceBody)
@@ -63,6 +64,12 @@ unitBody x y
 massPointOfBody :: Body -> MassPoint
 massPointOfBody (mp, vel, acc)	
 	= mp
+
+
+-- | Set the mass of a body.
+setMassOfBody :: Double -> Body -> Body
+setMassOfBody mass ((x, y, _), vel, acc)
+	= ((x, y, mass), vel, acc)
 
 
 -- | Set the acceleration of a body.
