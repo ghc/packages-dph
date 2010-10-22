@@ -17,8 +17,8 @@ type World
 	= V.Vector Body
 
 -- Drawing --------------------------------------------------------------------
-drawWorld :: World -> Picture
-drawWorld world
+drawWorld :: Bool -> World -> Picture
+drawWorld shouldDrawTree world
  = let	picPoints	= Color (makeColor 1 1 1 0.4)
 			$ Pictures 
 			$ map drawBody
@@ -30,7 +30,10 @@ drawWorld world
 			$ V.toList world
 
    in	Pictures 
-		[ Color (makeColor 0.0 0.5 0.0 0.5) $ picTree
+		[ if shouldDrawTree 
+			then Color (makeColor 0.0 0.5 0.0 0.5) $ picTree
+			else Blank
+			
 		, picPoints ]
 
 
