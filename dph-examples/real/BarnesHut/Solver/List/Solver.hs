@@ -12,7 +12,9 @@ where
 import Body
 
 eClose :: Double
-eClose  = 0.5
+eClose  = square 200
+
+square x = x * x
 
 -- | A rectangular region in 2D space.
 data BoundingBox
@@ -135,18 +137,22 @@ calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
 --   We also use this behavior as a hacky way to discard the acceleration
 --   of a point due to interaction with itself.
 --
-calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)
+calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)	
 calcAccel !epsilon (BHT _ x y m subtrees) mpt
-	| isClose mpt x y = accel epsilon mpt (x, y, m)
-	| otherwise       = (sum xs, sum ys) 
-	where	(xs, ys)  = unzip [ calcAccel epsilon st mpt | st <- subtrees]
+	| []	<- subtrees
+	= accel epsilon mpt (x, y, m)
+	
+	| not $ isClose mpt x y
+	= accel epsilon mpt (x, y, m)
+
+	| otherwise
+	= let	(xs, ys)  = unzip [ calcAccel epsilon st mpt | st <- subtrees]
+	  in	(sum xs, sum ys) 
 
 
 -- | If the a point is "close" to a region in the Barnes-Hut tree then we compute
 --   the "real" acceleration on it due to all the points in the region, otherwise
 --   we just use the centroid as an approximation of all the points in the region.
---
---   TODO: Isn't this comparison the wrong way around??
 --
 isClose :: MassPoint -> Double -> Double -> Bool
 {-# INLINE isClose #-}

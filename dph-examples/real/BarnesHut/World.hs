@@ -8,14 +8,10 @@ import Body
 import Graphics.Gloss
 import Graphics.Gloss.Shapes
 import qualified Data.Vector.Unboxed		as V
-
-import qualified Solver.Naive.Solver		as Naive
 import qualified Solver.List.Draw		as BHL
 import qualified Solver.List.Solver		as BHL
-import qualified Solver.Vector.Solver		as BHV
 
-type World 
-	= V.Vector Body
+type World = V.Vector Body
 
 pointSize :: Float
 pointSize		= 4
@@ -55,17 +51,18 @@ drawPoint (x, y)
 -- World ----------------------------------------------------------------------
 -- | Advance the world forward in time.
 advanceWorld 
-	:: Double	-- ^ If points are less than this value then ignore forces on them.
-	-> Double	-- ^ Time multiplier to make simulation go faster.
-	-> ViewPort	-- ^ Current viewport in the gloss window.
-	-> Float	-- ^ How much to advance the time in this simulation step.
+	:: (V.Vector MassPoint	-> V.Vector Accel)
+				-- ^ Fn to compute accelerations of each point.
+	-> Double		-- ^ Time multiplier to make simulation go faster.
+	-> ViewPort		-- ^ Current viewport in the gloss window.
+	-> Float		-- ^ How much to advance the time in this simulation step.
 	-> World -> World
 
-advanceWorld epsilon warp _ time world
+advanceWorld calcAccels warp _ time world
  = let	bodies	= world
 
 	mps	= V.map massPointOfBody bodies
-	accels	= calcAccels_bhVector epsilon mps
+	accels	= calcAccels mps
 	
 	time'	= realToFrac time * warp
 	bodies'	= V.zipWith 
@@ -78,21 +75,6 @@ advanceWorld epsilon warp _ time world
    in	bodies'		
 
 
-calcAccels_naive :: Double -> V.Vector MassPoint -> V.Vector Accel
-calcAccels_naive epsilon
-	= Naive.calcAccels epsilon 
-	
-calcAccels_bhList :: Double -> V.Vector MassPoint -> V.Vector Accel
-calcAccels_bhList epsilon mpts
-	= V.fromList
-	$ BHL.calcAccels epsilon
-	$ V.toList mpts
-
-calcAccels_bhVector :: Double -> V.Vector MassPoint -> V.Vector Accel
-calcAccels_bhVector epsilon mpts
-	= V.fromList
-	$ BHV.calcAccels epsilon
-	$ V.toList mpts
 	
 	
 	

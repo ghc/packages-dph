@@ -14,7 +14,9 @@ import Data.Vector.Unboxed			(Vector)
 import qualified Data.Vector.Unboxed		as V
 
 eClose :: Double
-eClose  = 0.5
+eClose  = square 200
+
+square x = x * x
 	
 type BoundingBox
 	= (Double, Double, Double, Double)
@@ -38,7 +40,7 @@ calcAccels epsilon mpts
 -- | Build a Barnes-Hut tree from these points.
 buildTree :: [MassPoint] -> BHTree
 buildTree mpts
-	= buildTreeWithBox (findBounds mpts) mpts
+	= buildTreeWithBox (findBounds mpts) (V.fromList mpts)
 
 
 -- | Find the coordinates of the bounding box that contains these points.
@@ -61,30 +63,33 @@ findBounds ((x1, y1, _) : rest1)
 --   build the Barnes-Hut tree for them.
 buildTreeWithBox
 	:: BoundingBox		-- ^ bounding box containing all the points.
-	-> [MassPoint]		-- ^ points in the box.
+	-> Vector MassPoint	-- ^ points in the box.
 	-> BHTree
 
-buildTreeWithBox bb particles
-  | length particles <= 1	= BHT x y m []
+buildTreeWithBox bb mpts
+  | V.length mpts <= 1		= BHT x y m []
   | otherwise			= BHT x y m subTrees
-  where	(x, y, m)		= calcCentroid particles
-    	(boxes, splitPnts)	= splitPoints bb particles 
-    	subTrees		= [buildTreeWithBox bb' ps | (bb', ps) <- zip boxes splitPnts]
+  where	(x, y, m)		= calcCentroid   mpts
+    	(boxes, splitPnts)	= splitPoints bb mpts
+    	subTrees		= [buildTreeWithBox bb' ps
+					| (bb', ps) <- zip boxes splitPnts]
 
   
 -- | Split massPoints according to their locations in the quadrants.
 splitPoints
 	:: BoundingBox		-- ^ bounding box containing all the points.
-	-> [MassPoint]		-- ^ points in the box.
+	-> Vector MassPoint	-- ^ points in the box.
 	-> ( [BoundingBox]	-- 
-	   , [[MassPoint]])
+	   , [Vector MassPoint])
 
-splitPoints b@(llx, lly, rux, ruy) particles 
-  | noOfPoints <= 1 = ([b], [particles])
+splitPoints b@(llx, lly, rux, ruy) mpts
+  | noOfPoints <= 1 = ([b], [mpts])
   | otherwise         
-  = unzip [ (b,p) | (b,p) <- zip boxes splitPars, length p > 0]
+  = unzip [ (b,p) 
+		| (b,p) <- zip boxes splitPars
+		, V.length p > 0]
   where
-        noOfPoints	= length particles
+        noOfPoints	= V.length mpts
 
 	-- The midpoint of the parent bounding box.
         (midx,  midy)	= ((llx + rux) / 2.0 , (lly + ruy) / 2.0) 
@@ -97,10 +102,10 @@ splitPoints b@(llx, lly, rux, ruy) particles
         boxes		= [b1,   b2,   b3,   b4]
 
 	-- Sort the particles into the smaller boxes.
-        lls		= [ p | p <- particles, inBox b1 p ]
-        lus		= [ p | p <- particles, inBox b2 p ]
-        rus		= [ p | p <- particles, inBox b3 p ]
-        rls		= [ p | p <- particles, inBox b4 p ]
+        lls		= V.filter (inBox b1) mpts
+        lus		= V.filter (inBox b2) mpts
+        rus		= V.filter (inBox b3) mpts
+        rls		= V.filter (inBox b4) mpts
         splitPars	= [lls, lus, rus, rls]
 
 
@@ -112,12 +117,12 @@ inBox (llx, lly, rux, ruy) (px, py, _)
 
 
 -- | Calculate the centroid of some points.
-calcCentroid :: [MassPoint] -> MassPoint
+calcCentroid :: Vector MassPoint -> MassPoint
 {-# INLINE calcCentroid #-}
-calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
-  where
-    mass     = sum   [ m | (_, _, m)  <- mpts ]
-    (xs, ys) = unzip [ (m * x, m * y) | (x, y,  m) <- mpts ]   
+calcCentroid mpts 
+  = (V.sum xs / mass, V.sum ys / mass, mass)
+  where	mass     = V.sum   $ V.map (\(_, _, m) -> m) mpts
+	(xs, ys) = V.unzip $ V.map (\(x, y, m) -> (m * x, m * y)) mpts
 
 
 -- | Calculate the accelleration of a point due to the points in the given tree.
@@ -130,16 +135,20 @@ calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
 --
 calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)
 calcAccel !epsilon (BHT x y m subtrees) mpt
-	| isClose mpt x y = accel epsilon mpt (x, y, m)
-	| otherwise       = (sum xs, sum ys) 
-	where	(xs, ys)  = unzip [ calcAccel epsilon st mpt | st <- subtrees]
+	| []	<- subtrees
+	= accel epsilon mpt (x, y, m)
+	
+	| not $ isClose mpt x y
+	= accel epsilon mpt (x, y, m)
+
+	| otherwise
+	= let	(xs, ys)  = unzip [ calcAccel epsilon st mpt | st <- subtrees]
+	  in	(sum xs, sum ys) 
 
 
 -- | If the a point is "close" to a region in the Barnes-Hut tree then we compute
 --   the "real" acceleration on it due to all the points in the region, otherwise
 --   we just use the centroid as an approximation of all the points in the region.
---
---   TODO: Isn't this comparison the wrong way around??
 --
 isClose :: MassPoint -> Double -> Double -> Bool
 {-# INLINE isClose #-}
