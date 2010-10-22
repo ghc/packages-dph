@@ -47,7 +47,7 @@ buildTree mpts
    in	buildTreeWithBox box mpts
 
 
--- | Find the coordinates of the bounding box that contains all these points.
+-- | Find the coordinates of the bounding box that contains these points.
 findBounds :: [MassPoint] -> (Double, Double, Double, Double)
 findBounds ((x1, y1, _) : rest1)
  = go x1 y1 x1 y1 rest1	
@@ -61,19 +61,20 @@ findBounds ((x1, y1, _) : rest1)
 			up'	= max up    y
 	   	    in	go left' right' down' up' rest
 
---
+
+-- | Given a bounding box that contains all the points, 
+--   build the Barnes-Hut tree for them.
 buildTreeWithBox
 	:: BoundingBox		-- ^ bounding box containing all the points.
 	-> [MassPoint]		-- ^ points in the box.
 	-> BHTree
 
 buildTreeWithBox bb particles
-  | length particles <= 1 = BHT bb x y m []
-  | otherwise             = BHT bb x y m subTrees
-  where
-    (x, y, m)		= calcCentroid particles
-    (boxes, splitPnts)	= splitPoints bb particles 
-    subTrees		= [buildTreeWithBox bb' ps | (bb', ps) <- zip boxes splitPnts]
+  | length particles <= 1	= BHT bb x y m []
+  | otherwise			= BHT bb x y m subTrees
+  where	(x, y, m)		= calcCentroid particles
+    	(boxes, splitPnts)	= splitPoints bb particles 
+    	subTrees		= [buildTreeWithBox bb' ps | (bb', ps) <- zip boxes splitPnts]
 
   
 -- | Split massPoints according to their locations in the quadrants.

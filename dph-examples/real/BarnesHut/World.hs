@@ -16,6 +16,9 @@ import qualified Solver.List.Solver		as BHL
 type World 
 	= V.Vector Body
 
+pointSize :: Float
+pointSize		= 4
+
 -- Drawing --------------------------------------------------------------------
 drawWorld :: Bool -> World -> Picture
 drawWorld shouldDrawTree world
@@ -31,7 +34,7 @@ drawWorld shouldDrawTree world
 
    in	Pictures 
 		[ if shouldDrawTree 
-			then Color (makeColor 0.0 0.5 0.0 0.5) $ picTree
+			then Color (makeColor 0.5 1.0 0.5 0.2) $ picTree
 			else Blank
 			
 		, picPoints ]
@@ -44,7 +47,7 @@ drawBody ((x, y, _), _, _)
 drawPoint :: (Double, Double) -> Picture
 drawPoint (x, y)
 	= Translate (realToFrac x) (realToFrac y) 
-	$ ThickCircle 2 4
+	$ ThickCircle (pointSize / 2) pointSize
 
 
 
