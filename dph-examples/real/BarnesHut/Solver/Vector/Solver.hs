@@ -14,7 +14,7 @@ import Data.Vector.Unboxed			(Vector)
 import qualified Data.Vector.Unboxed		as V
 
 eClose :: Double
-eClose  = square 200
+eClose  = square 500
 
 square x = x * x
 	
@@ -32,31 +32,31 @@ data BHTree
 
 
 -- | Compute the acclerations on all these points.
-calcAccels :: Double -> [MassPoint] -> [Accel]
+calcAccels :: Double -> Vector MassPoint -> Vector Accel
 calcAccels epsilon mpts
-	= map (calcAccel epsilon (buildTree mpts)) mpts
-	
+ = V.map (calcAccel epsilon (buildTree mpts)) mpts
+
 
 -- | Build a Barnes-Hut tree from these points.
-buildTree :: [MassPoint] -> BHTree
+buildTree :: Vector MassPoint -> BHTree
 buildTree mpts
-	= buildTreeWithBox (findBounds mpts) (V.fromList mpts)
+	= buildTreeWithBox (findBounds mpts) mpts
 
 
 -- | Find the coordinates of the bounding box that contains these points.
-findBounds :: [MassPoint] -> (Double, Double, Double, Double)
+findBounds :: Vector MassPoint -> (Double, Double, Double, Double)
 {-# INLINE findBounds #-}
-findBounds ((x1, y1, _) : rest1)
- = go x1 y1 x1 y1 rest1	
- where	go !left !right !down !up pts
-	 = case pts of
-		[]	-> (left, down, right, up)
-		(x, y, _) : rest
-		 -> let	left'	= min left  x
-			right'	= max right x
-			down'	= min down  y
-			up'	= max up    y
-	   	    in	go left' right' down' up' rest
+findBounds bounds
+ = V.foldl' acc (x1, y1, x1, y1) bounds
+ where
+	(x1, y1, _)	= bounds V.! 0
+
+	acc (!llx, !lly, !rux, !ruy) (x, y, _)
+	 = let	!llx'	= min llx  x
+		!lly'	= min lly  y
+		!rux'	= max rux  x
+		!ruy'	= max ruy  y
+	   in	(llx', lly', rux', ruy')
 
 
 -- | Given a bounding box that contains all the points, 

@@ -8,6 +8,7 @@ import System.Console.ParseArgs
 data MainArg
 	= ArgHelp
 	| ArgWindowSize
+	| ArgSolver
 	| ArgDrawTree
 	| ArgTimeWarp
 	| ArgBodyCount
@@ -30,6 +31,12 @@ mainArgs
 		, argName	= Just "window"
 		, argData	= argDataDefaulted "Int" ArgtypeInt 500
 		, argDesc	= "Size of window in pixels (default 500)" }
+
+	, Arg	{ argIndex	= ArgSolver
+		, argAbbr	= Nothing
+		, argName	= Just "solver"
+		, argData	= argDataDefaulted "name" ArgtypeString "naive"
+		, argDesc	= "Solver to use. One of: naive, list, vector." }
 
 	, Arg	{ argIndex	= ArgDrawTree
 		, argAbbr	= Nothing

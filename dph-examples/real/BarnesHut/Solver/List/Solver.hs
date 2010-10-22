@@ -12,7 +12,7 @@ where
 import Body
 
 eClose :: Double
-eClose  = square 200
+eClose  = square 500
 
 square x = x * x
 

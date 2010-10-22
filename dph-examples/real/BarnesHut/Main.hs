@@ -30,6 +30,7 @@ main
 mainWithArgs :: Args MainArg -> IO ()
 mainWithArgs args
  = do	let Just windowSize	= getArgInt	args ArgWindowSize
+	let Just solverName	= getArgString	args ArgSolver
 	let shouldDrawTree	= gotArg  	args ArgDrawTree
 	let Just timeWarp	= getArgDouble	args ArgTimeWarp
 	let Just bodyCount	= getArgInt	args ArgBodyCount
@@ -45,7 +46,13 @@ mainWithArgs args
 			$ V.map (uncurry unitBody) 
 			$ vPoints
 
-	let advance	= advanceWorld (calcAccels_naive epsilon) (10 * timeWarp) 
+	let calcAccels
+		= case solverName of
+			"naive"		-> calcAccels_naive
+			"list"		-> calcAccels_bhList
+			"vector"	-> calcAccels_bhVector
+
+	let advance	= advanceWorld (calcAccels epsilon) (10 * timeWarp) 
 
 	simulateInWindow
 		"Barnes-Hutt"			-- window name
@@ -70,9 +77,5 @@ calcAccels_bhList epsilon mpts
 
 calcAccels_bhVector :: Double -> V.Vector MassPoint -> V.Vector Accel
 calcAccels_bhVector epsilon mpts
-	= V.fromList
-	$ BHV.calcAccels epsilon
-	$ V.toList mpts
-
-
-
+	= BHV.calcAccels epsilon mpts
+	
