@@ -12,6 +12,7 @@ import qualified Data.Vector.Unboxed		as V
 import qualified Solver.Naive.Solver		as Naive
 import qualified Solver.List.Draw		as BHL
 import qualified Solver.List.Solver		as BHL
+import qualified Solver.Vector.Solver		as BHV
 
 type World 
 	= V.Vector Body
@@ -64,7 +65,7 @@ advanceWorld epsilon warp _ time world
  = let	bodies	= world
 
 	mps	= V.map massPointOfBody bodies
-	accels	= calcAccels_bhList epsilon mps
+	accels	= calcAccels_bhVector epsilon mps
 	
 	time'	= realToFrac time * warp
 	bodies'	= V.zipWith 
@@ -85,6 +86,12 @@ calcAccels_bhList :: Double -> V.Vector MassPoint -> V.Vector Accel
 calcAccels_bhList epsilon mpts
 	= V.fromList
 	$ BHL.calcAccels epsilon
+	$ V.toList mpts
+
+calcAccels_bhVector :: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_bhVector epsilon mpts
+	= V.fromList
+	$ BHV.calcAccels epsilon
 	$ V.toList mpts
 	
 	
