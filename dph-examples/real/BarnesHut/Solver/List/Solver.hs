@@ -34,9 +34,9 @@ data BHTree
 
 
 -- | Compute the acclerations on all these points.
-calcAccels :: [MassPoint] -> [Accel]
-calcAccels mpts
-	= map (calcAccel (buildTree mpts)) mpts
+calcAccels :: Double -> [MassPoint] -> [Accel]
+calcAccels epsilon mpts
+	= map (calcAccel epsilon (buildTree mpts)) mpts
 	
 
 -- | Build a Barnes-Hut tree from these points.
@@ -130,11 +130,11 @@ calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
 --   We also use this behavior as a hacky way to discard the acceleration
 --   of a point due to interaction with itself.
 --
-calcAccel:: BHTree -> MassPoint -> (Double, Double)
-calcAccel (BHT _ x y m subtrees) mpt
-	| isClose mpt x y = accel mpt (x, y, m)
+calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)
+calcAccel epsilon (BHT _ x y m subtrees) mpt
+	| isClose mpt x y = accel epsilon mpt (x, y, m)
 	| otherwise       = (sum xs, sum ys) 
-	where	(xs, ys)  = unzip [ calcAccel st mpt | st <- subtrees]
+	where	(xs, ys)  = unzip [ calcAccel epsilon st mpt | st <- subtrees]
 
 
 -- | If the a point is "close" to a region in the Barnes-Hut tree then we compute

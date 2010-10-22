@@ -38,7 +38,7 @@ run 	:: Int		-- ^ Size of window.
 run windowSize pointCount discSize startVel
  = do	
 	let vPoints 	= genPointsDisc pointCount (0, 0) discSize
-	let vBodies	= V.map (setStartVel startVel)
+	let vBodies	= V.map (setStartVelOfBody startVel)
 			$ V.map (\(x, y) -> unitBody x y) vPoints
 
 	simulateInWindow
@@ -49,7 +49,7 @@ run windowSize pointCount discSize startVel
 		50				-- number of iterations per second
 		vBodies				-- initial world
 		drawWorld			-- fn to convert a world to a picture
-		(advanceWorld 10)		-- fn to advance the world
+		(advanceWorld 5 10)		-- fn to advance the world
 
 
 

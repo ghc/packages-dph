@@ -48,34 +48,35 @@ drawPoint (x, y)
 -- World ----------------------------------------------------------------------
 -- | Advance the world forward in time.
 advanceWorld 
-	:: Double	-- ^ time multiplied to make simulation go faster.
-	-> ViewPort	-- ^ current viewport in the gloss window.
-	-> Float	-- ^ how much to advance the time in this simulation step.
+	:: Double	-- ^ If points are less than this value then ignore forces on them.
+	-> Double	-- ^ Time multiplier to make simulation go faster.
+	-> ViewPort	-- ^ Current viewport in the gloss window.
+	-> Float	-- ^ How much to advance the time in this simulation step.
 	-> World -> World
 
-advanceWorld warp _ time world
+advanceWorld epsilon warp _ time world
  = let	bodies	= world
 
 	mps	= V.map massPointOfBody bodies
-	accels	= calcAccels_naive mps
+	accels	= calcAccels_naive epsilon mps
 	
 	time'	= realToFrac time * warp
 	bodies'	= V.zipWith 
 			(\body (ax, ay) 
-				-> bodyAdvance time' 
-					(bodySetAccel (-ax, -ay) body))
+				-> advanceBody time' 
+					(setAccelOfBody (-ax, -ay) body))
 			bodies
 			accels
 			
    in	bodies'		
 
 
-calcAccels_naive :: V.Vector MassPoint -> V.Vector Accel
-calcAccels_naive 
-	= Naive.calcAccels
+calcAccels_naive :: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_naive epsilon
+	= Naive.calcAccels epsilon 
 	
-calcAccels_bhList :: V.Vector MassPoint -> V.Vector Accel
-calcAccels_bhList mpts
+calcAccels_bhList :: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_bhList epsilon mpts
 	= V.fromList
-	$ BHL.calcAccels
+	$ BHL.calcAccels epsilon
 	$ V.toList mpts
