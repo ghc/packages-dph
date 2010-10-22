@@ -21,7 +21,7 @@ import Util
 -- | If the distance between two points is less than this number
 --   we ignore the forces between them.
 epsilon :: Double
-epsilon = 1
+epsilon = 10
 
 -- Types ---------------------------------------------------------------------
 -- | The velocity of a point.

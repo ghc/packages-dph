@@ -8,8 +8,10 @@ import Body
 import Graphics.Gloss
 import Graphics.Gloss.Shapes
 import qualified Data.Vector.Unboxed		as V
-import qualified Naive
-import qualified BarnesHutList			as BHL
+
+import qualified Solver.Naive.Solver		as Naive
+import qualified Solver.List.Draw		as BHL
+import qualified Solver.List.Solver		as BHL
 
 type World 
 	= V.Vector Body
@@ -22,7 +24,7 @@ drawWorld world
 			$ map drawBody
 			$ V.toList world
 
-   	picTree		= drawBHTree
+   	picTree		= BHL.drawBHTree
 			$ BHL.buildTree 
 			$ map massPointOfBody
 			$ V.toList world
@@ -41,13 +43,6 @@ drawPoint (x, y)
 	= Translate (realToFrac x) (realToFrac y) 
 	$ ThickCircle 2 4
 
-drawBHTree :: BHL.BHTree -> Picture
-drawBHTree bht
- = let	BHL.Box left down right up	= BHL.bhTreeBox bht
-	[left', down', right', up']	= map realToFrac [left, down, right, up]
-   	picHere				= lineLoop [(left', down'), (left', up'), (right', up'), (right', down')]
-	picSubs				= map drawBHTree $ BHL.bhTreeBranch bht
-   in	Pictures (picHere : picSubs)
 
 
 -- World ----------------------------------------------------------------------
@@ -76,7 +71,8 @@ advanceWorld warp _ time world
 
 
 calcAccels_naive :: V.Vector MassPoint -> V.Vector Accel
-calcAccels_naive = Naive.calcAccels
+calcAccels_naive 
+	= Naive.calcAccels
 	
 calcAccels_bhList :: V.Vector MassPoint -> V.Vector Accel
 calcAccels_bhList mpts

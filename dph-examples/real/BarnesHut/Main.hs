@@ -7,9 +7,7 @@ import Timing
 import System.Environment
 import Points2D.Generate
 import Graphics.Gloss
-import qualified BarnesHutList			as L
 import qualified Data.Vector.Unboxed		as V
-import qualified Data.Array.Parallel.PArray	as P
 
 main :: IO ()
 main 

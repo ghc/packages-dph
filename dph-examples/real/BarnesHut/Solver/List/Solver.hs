@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 
-module BarnesHutList 
+module Solver.List.Solver
 	( MassPoint	(..)
 	, BoundingBox	(..)
 	, BHTree	(..)
