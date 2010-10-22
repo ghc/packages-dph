@@ -1,5 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 
+-- | The list version of the solver also builds the bounding box at every
+--   node of the tree, which is good for visualisation.
 module Solver.List.Solver
 	( MassPoint	(..)
 	, BoundingBox	(..)
@@ -12,24 +14,23 @@ import Body
 eClose :: Double
 eClose  = 0.5
 
-
 -- | A rectangular region in 2D space.
 data BoundingBox
-	= Box 
-	{ boxLowerLeftX	 :: Double
-	, boxLowerLeftY	 :: Double
-	, boxUpperRightX :: Double
-	, boxUpperRightY :: Double }
+	= Box
+	{ boxLowerLeftX	 :: {-# UNPACK #-} !Double
+	, boxLowerLeftY	 :: {-# UNPACK #-} !Double
+	, boxUpperRightX :: {-# UNPACK #-} !Double
+	, boxUpperRightY :: {-# UNPACK #-} !Double }
 	deriving Show
 	
 -- | The Barnes-Hut tree we use to organise the points.
 data BHTree
 	= BHT
-	{ bhTreeBox	:: BoundingBox
-	, bhTreeCenterX	:: Double
-	, bhTreeCenterY	:: Double
-	, bhTreeMass	:: Double
-	, bhTreeBranch	:: [BHTree] }
+	{ bhTreeBox	:: {-# UNPACK #-} !BoundingBox
+	, bhTreeCenterX	:: {-# UNPACK #-} !Double
+	, bhTreeCenterY	:: {-# UNPACK #-} !Double
+	, bhTreeMass	:: {-# UNPACK #-} !Double
+	, bhTreeBranch	:: ![BHTree] }
 	deriving Show
 
 
@@ -49,6 +50,7 @@ buildTree mpts
 
 -- | Find the coordinates of the bounding box that contains these points.
 findBounds :: [MassPoint] -> (Double, Double, Double, Double)
+{-# INLINE findBounds #-}
 findBounds ((x1, y1, _) : rest1)
  = go x1 y1 x1 y1 rest1	
  where	go !left !right !down !up pts
@@ -111,12 +113,14 @@ splitPoints b@(Box llx lly rux  ruy) particles
 
 -- | Check if a particle is in box (excluding left and lower border)
 inBox:: BoundingBox -> MassPoint -> Bool
+{-# INLINE inBox #-}
 inBox (Box llx  lly rux  ruy) (px, py, _) 
 	= (px > llx) && (px <= rux) && (py > lly) && (py <= ruy)
 
 
 -- | Calculate the centroid of some points.
 calcCentroid :: [MassPoint] -> MassPoint
+{-# INLINE calcCentroid #-}
 calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
   where
     mass     = sum   [ m | (_, _, m)  <- mpts ]
@@ -132,7 +136,7 @@ calcCentroid mpts = (sum xs / mass, sum ys / mass, mass)
 --   of a point due to interaction with itself.
 --
 calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)
-calcAccel epsilon (BHT _ x y m subtrees) mpt
+calcAccel !epsilon (BHT _ x y m subtrees) mpt
 	| isClose mpt x y = accel epsilon mpt (x, y, m)
 	| otherwise       = (sum xs, sum ys) 
 	where	(xs, ys)  = unzip [ calcAccel epsilon st mpt | st <- subtrees]
@@ -145,8 +149,7 @@ calcAccel epsilon (BHT _ x y m subtrees) mpt
 --   TODO: Isn't this comparison the wrong way around??
 --
 isClose :: MassPoint -> Double -> Double -> Bool
+{-# INLINE isClose #-}
 isClose (x1, y1, m) x2 y2 
 	= (x1-x2) * (x1-x2) + (y1-y2) * (y1-y2) < eClose
-
-
 

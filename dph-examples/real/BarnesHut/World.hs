@@ -64,7 +64,7 @@ advanceWorld epsilon warp _ time world
  = let	bodies	= world
 
 	mps	= V.map massPointOfBody bodies
-	accels	= calcAccels_naive epsilon mps
+	accels	= calcAccels_bhList epsilon mps
 	
 	time'	= realToFrac time * warp
 	bodies'	= V.zipWith 
@@ -86,3 +86,7 @@ calcAccels_bhList epsilon mpts
 	= V.fromList
 	$ BHL.calcAccels epsilon
 	$ V.toList mpts
+	
+	
+	
+	

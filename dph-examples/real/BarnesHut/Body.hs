@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 
 -- | Massful bodies in the simulation.
 module Body
@@ -43,7 +44,8 @@ accel 	:: Double 	-- ^ If the distance between the points is smaller than this
 	-> MassPoint	-- ^ Neibouring point.
 	-> Accel
 
-accel epsilon (x1, y1, _) (x2, y2, m)  
+{-# INLINE accel #-}
+accel epsilon (!x1, !y1, _) (!x2, !y2, !m)  
 	| r < epsilon	= (0.0, 0.0) 
 	| otherwise	= (aabs * dx / r , aabs * dy / r)  
         where	rsqr = (dx * dx) + (dy * dy) 
