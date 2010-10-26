@@ -46,9 +46,8 @@ accel 	:: Double 	-- ^ If the distance between the points is smaller than this
 
 {-# INLINE accel #-}
 accel epsilon (!x1, !y1, _) (!x2, !y2, !m)  
-	| r < epsilon	= (0.0, 0.0) 
 	| otherwise	= (aabs * dx / r , aabs * dy / r)  
-        where	rsqr = (dx * dx) + (dy * dy) 
+        where	rsqr = (dx * dx) + (dy * dy) + epsilon
 		r    = sqrt rsqr 
 		dx   = x1 - x2 
 		dy   = y1 - y2 

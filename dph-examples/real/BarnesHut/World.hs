@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 
 module World
 	( World
@@ -10,6 +11,7 @@ import Graphics.Gloss.Shapes
 import qualified Data.Vector.Unboxed		as V
 import qualified Solver.List.Draw		as BHL
 import qualified Solver.List.Solver		as BHL
+import Debug.Trace
 
 type World = V.Vector Body
 
@@ -53,29 +55,19 @@ drawPoint (x, y)
 advanceWorld 
 	:: (V.Vector MassPoint	-> V.Vector Accel)
 				-- ^ Fn to compute accelerations of each point.
-	-> Double		-- ^ Time multiplier to make simulation go faster.
+	-> Double		-- ^ Time step.
 	-> ViewPort		-- ^ Current viewport in the gloss window.
 	-> Float		-- ^ How much to advance the time in this simulation step.
 	-> World -> World
 
-advanceWorld calcAccels warp _ time world
- = let	bodies	= world
+advanceWorld calcAccels timeStep _ time bodies
+ = let	accels	= calcAccels 
+		$ V.map massPointOfBody bodies
 
-	mps	= V.map massPointOfBody bodies
-	accels	= calcAccels mps
-	
-	time'	= realToFrac time * warp
-	bodies'	= V.zipWith 
-			(\body (ax, ay) 
-				-> advanceBody time' 
-					(setAccelOfBody (-ax, -ay) body))
-			bodies
-			accels
-			
-   in	bodies'		
-
-
-	
-	
-	
+   in	V.zipWith 
+		(\body (ax, ay) 
+			-> advanceBody timeStep
+				(setAccelOfBody (-ax, -ay) body))
+		bodies
+		accels
 	

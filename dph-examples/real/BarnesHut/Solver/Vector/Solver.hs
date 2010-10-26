@@ -21,10 +21,17 @@ square x = x * x
 type BoundingBox
 	= (Double, Double, Double, Double)
 	
+sizeOfBox :: BoundingBox -> Double
+{-# INLINE sizeOfBox #-}
+sizeOfBox (llx, lly, rux, ruy)
+	= min (abs (rux - llx)) (abs (ruy - lly))
+
+
 -- | The Barnes-Hut tree we use to organise the points.
 data BHTree
 	= BHT
-	{ bhTreeCenterX	:: {-# UNPACK #-} !Double
+	{ bhTreeSize	:: {-# UNPACK #-} !Double	-- minimum of hight and width of cell
+	, bhTreeCenterX	:: {-# UNPACK #-} !Double
 	, bhTreeCenterY	:: {-# UNPACK #-} !Double
 	, bhTreeMass	:: {-# UNPACK #-} !Double
 	, bhTreeBranch	:: ![BHTree] }
@@ -67,9 +74,11 @@ buildTreeWithBox
 	-> BHTree
 
 buildTreeWithBox bb mpts
-  | V.length mpts <= 1		= BHT x y m []
-  | otherwise			= BHT x y m subTrees
-  where	(x, y, m)		= calcCentroid   mpts
+  | V.length mpts <= 1		= BHT s x y m []
+  | otherwise			= BHT s x y m subTrees
+  where	
+	s			= sizeOfBox bb
+	(x, y, m)		= calcCentroid   mpts
     	(boxes, splitPnts)	= splitPoints bb mpts
     	subTrees		= [buildTreeWithBox bb' ps
 					| (bb', ps) <- zip boxes splitPnts]
@@ -134,11 +143,11 @@ calcCentroid mpts
 --   of a point due to interaction with itself.
 --
 calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)
-calcAccel !epsilon (BHT x y m subtrees) mpt
+calcAccel !epsilon (BHT s x y m subtrees) mpt
 	| []	<- subtrees
 	= accel epsilon mpt (x, y, m)
 	
-	| not $ isClose mpt x y
+	| isFar mpt s x y
 	= accel epsilon mpt (x, y, m)
 
 	| otherwise
@@ -150,8 +159,17 @@ calcAccel !epsilon (BHT x y m subtrees) mpt
 --   the "real" acceleration on it due to all the points in the region, otherwise
 --   we just use the centroid as an approximation of all the points in the region.
 --
-isClose :: MassPoint -> Double -> Double -> Bool
-{-# INLINE isClose #-}
-isClose (x1, y1, m) x2 y2 
-	= (x1-x2) * (x1-x2) + (y1-y2) * (y1-y2) < eClose
+isFar 	:: MassPoint 	-- point being accelerated
+	-> Double	-- size of region
+	-> Double	-- position of center of mass of cell
+	-> Double	-- position of center of mass of cell
+	-> Bool
+
+{-# INLINE isFar #-}
+isFar (x1, y1, m) s x2 y2 
+ = let	!dx	= x2 - x1
+	!dy	= y2 - y1
+	!dist	= sqrt (dx * dx + dy * dy)
+   in	(s / dist) < 1
+
 

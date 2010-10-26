@@ -10,7 +10,8 @@ data MainArg
 	| ArgWindowSize
 	| ArgSolver
 	| ArgDrawTree
-	| ArgTimeWarp
+	| ArgTimeStep
+	| ArgRate
 	| ArgBodyCount
 	| ArgBodyMass
 	| ArgEpsilon
@@ -44,11 +45,17 @@ mainArgs
 		, argData	= Nothing
 		, argDesc	= "Draw the Barnes-Hut quad tree"}
 
-	, Arg	{ argIndex	= ArgTimeWarp
+	, Arg	{ argIndex	= ArgTimeStep
 		, argAbbr	= Just 't'
-		, argName	= Just "timewarp"
+		, argName	= Just "timestep"
 		, argData	= argDataDefaulted "Double" ArgtypeDouble 1
-		, argDesc	= "Run the simulation this much faster (default 1)" }
+		, argDesc	= "Time step between stats (default 1)" }
+
+	, Arg	{ argIndex	= ArgRate
+		, argAbbr	= Just 'r'
+		, argName	= Just "rate"
+		, argData	= argDataDefaulted "Double" ArgtypeInt 100
+		, argDesc	= "Number of simulation steps per second of real time (default 100)" }
 
 	, Arg	{ argIndex	= ArgBodyCount
 		, argAbbr	= Just 'b'

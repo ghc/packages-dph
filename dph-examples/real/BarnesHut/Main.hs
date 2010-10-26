@@ -32,7 +32,8 @@ mainWithArgs args
  = do	let Just windowSize	= getArgInt	args ArgWindowSize
 	let Just solverName	= getArgString	args ArgSolver
 	let shouldDrawTree	= gotArg  	args ArgDrawTree
-	let Just timeWarp	= getArgDouble	args ArgTimeWarp
+	let Just timeStep	= getArgDouble	args ArgTimeStep
+	let Just rate		= getArgInt	args ArgRate
 	let Just bodyCount	= getArgInt	args ArgBodyCount
 	let Just bodyMass	= getArgDouble  args ArgBodyMass
 	let Just epsilon	= getArgDouble	args ArgEpsilon
@@ -52,14 +53,14 @@ mainWithArgs args
 			"list"		-> calcAccels_bhList
 			"vector"	-> calcAccels_bhVector
 
-	let advance	= advanceWorld (calcAccels epsilon) (10 * timeWarp) 
+	let advance	= advanceWorld (calcAccels epsilon) timeStep
 
 	simulateInWindow
 		"Barnes-Hutt"			-- window name
 		(windowSize, windowSize)	-- window size
 		(10, 10)			-- window position
 		black				-- background color
-		30				-- number of iterations per second
+		rate			-- number of iterations per second
 		vBodies				-- initial world
 		(drawWorld shouldDrawTree)	-- fn to convert a world to a picture
 		advance				-- fn to advance the world
