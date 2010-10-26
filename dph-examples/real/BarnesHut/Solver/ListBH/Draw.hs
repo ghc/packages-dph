@@ -1,8 +1,8 @@
 
-module Solver.List.Draw
+module Solver.ListBH.Draw
 	(drawBHTree)
 where
-import Solver.List.Solver
+import Solver.ListBH.Solver
 import Graphics.Gloss
 import Graphics.Gloss.Shapes
 

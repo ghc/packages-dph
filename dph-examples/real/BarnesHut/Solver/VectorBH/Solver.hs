@@ -2,21 +2,17 @@
 
 -- | The list version of the solver also builds the bounding box at every
 --   node of the tree, which is good for visualisation.
-module Solver.Vector.Solver
+module Solver.VectorBH.Solver
 	( MassPoint	(..)
 	, BoundingBox	(..)
 	, BHTree	(..)
 	, calcAccels
-	, buildTree)
+	, buildTree
+	, findBounds)
 where
 import Body
 import Data.Vector.Unboxed			(Vector)
 import qualified Data.Vector.Unboxed		as V
-
-eClose :: Double
-eClose  = square 500
-
-square x = x * x
 	
 type BoundingBox
 	= (Double, Double, Double, Double)
@@ -135,13 +131,6 @@ calcCentroid mpts
 
 
 -- | Calculate the accelleration of a point due to the points in the given tree.
---   If the distance between the points is less then some small number
---   we set the accel to zero to avoid the acceleration going to infinity
---   and the points escaping the simulation. 
---
---   We also use this behavior as a hacky way to discard the acceleration
---   of a point due to interaction with itself.
---
 calcAccel:: Double -> BHTree -> MassPoint -> (Double, Double)
 calcAccel !epsilon (BHT s x y m subtrees) mpt
 	| []	<- subtrees
@@ -155,9 +144,8 @@ calcAccel !epsilon (BHT s x y m subtrees) mpt
 	  in	(sum xs, sum ys) 
 
 
--- | If the a point is "close" to a region in the Barnes-Hut tree then we compute
---   the "real" acceleration on it due to all the points in the region, otherwise
---   we just use the centroid as an approximation of all the points in the region.
+-- | If the point is far from a cell in the tree then we can use
+--   it's centroid as an approximation of all the points in the region.
 --
 isFar 	:: MassPoint 	-- point being accelerated
 	-> Double	-- size of region

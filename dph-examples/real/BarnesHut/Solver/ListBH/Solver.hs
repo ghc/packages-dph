@@ -2,7 +2,7 @@
 
 -- | The list version of the solver also builds the bounding box at every
 --   node of the tree, which is good for visualisation.
-module Solver.List.Solver
+module Solver.ListBH.Solver
 	( MassPoint	(..)
 	, BoundingBox	(..)
 	, BHTree	(..)

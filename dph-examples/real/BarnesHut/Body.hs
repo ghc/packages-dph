@@ -38,20 +38,19 @@ type Body	= (MassPoint, Velocity, Accel)
 
 -- Acceleration ---------------------------------------------------------------
 -- | Calculate the acceleration on a point due to some other point.
-accel 	:: Double 	-- ^ If the distance between the points is smaller than this
-			--   then ignore the forces between them.
+accel 	:: Double 	-- ^ Smoothing parameter.
 	-> MassPoint	-- ^ The point being acclerated.
 	-> MassPoint	-- ^ Neibouring point.
 	-> Accel
 
 {-# INLINE accel #-}
 accel epsilon (!x1, !y1, _) (!x2, !y2, !m)  
-	| otherwise	= (aabs * dx / r , aabs * dy / r)  
-        where	rsqr = (dx * dx) + (dy * dy) + epsilon
-		r    = sqrt rsqr 
-		dx   = x1 - x2 
-		dy   = y1 - y2 
-		aabs = m / rsqr 
+ = (aabs * dx / r , aabs * dy / r)  
+ where	dx   = x1 - x2 
+	dy   = y1 - y2 
+	rsqr = (dx * dx) + (dy * dy) + epsilon * epsilon
+	r    = sqrt rsqr 
+	aabs = m / rsqr 
 
 
 -- Body -----------------------------------------------------------------------

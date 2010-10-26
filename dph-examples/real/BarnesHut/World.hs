@@ -9,8 +9,8 @@ import Body
 import Graphics.Gloss
 import Graphics.Gloss.Shapes
 import qualified Data.Vector.Unboxed		as V
-import qualified Solver.List.Draw		as BHL
-import qualified Solver.List.Solver		as BHL
+import qualified Solver.ListBH.Draw		as SolverLB
+import qualified Solver.ListBH.Solver		as SolverLB
 import Debug.Trace
 
 type World = V.Vector Body
@@ -26,8 +26,8 @@ drawWorld shouldDrawTree world
 			$ map drawBody
 			$ V.toList world
 
-   	picTree		= BHL.drawBHTree
-			$ BHL.buildTree 
+   	picTree		= SolverLB.drawBHTree
+			$ SolverLB.buildTree 
 			$ map massPointOfBody
 			$ V.toList world
 

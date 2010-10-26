@@ -36,8 +36,8 @@ mainArgs
 	, Arg	{ argIndex	= ArgSolver
 		, argAbbr	= Nothing
 		, argName	= Just "solver"
-		, argData	= argDataDefaulted "name" ArgtypeString "naive"
-		, argDesc	= "Solver to use. One of: naive, list, vector." }
+		, argData	= argDataDefaulted "name" ArgtypeString "vector-naive"
+		, argDesc	= "Solver to use. One of: list-bh, vector-naive, vector-bh, nested-bh." }
 
 	, Arg	{ argIndex	= ArgDrawTree
 		, argAbbr	= Nothing

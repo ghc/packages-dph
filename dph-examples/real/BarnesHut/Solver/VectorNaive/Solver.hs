@@ -1,6 +1,6 @@
 
 -- | Naive n^2 computation of accelerations.
-module Solver.Naive.Solver
+module Solver.VectorNaive.Solver
 	(calcAccels)
 where
 import Body

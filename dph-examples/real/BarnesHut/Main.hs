@@ -5,17 +5,23 @@ import Body
 import Util
 import Timing
 import MainArgs
-import System.Environment
 import Points2D.Generate
 import Graphics.Gloss
+import System.Environment
 import System.Console.ParseArgs
 import Control.Monad
-import qualified Data.Vector.Unboxed		as V
-import qualified Solver.Naive.Solver		as Naive
-import qualified Solver.List.Draw		as BHL
-import qualified Solver.List.Solver		as BHL
-import qualified Solver.Vector.Solver		as BHV
+import Data.Maybe
 
+import qualified Solver.ListBH.Draw		as SolverLB
+import qualified Solver.ListBH.Solver		as SolverLB
+
+import qualified Data.Vector.Unboxed		as V
+import qualified Solver.VectorBH.Solver		as SolverVB
+import qualified Solver.VectorNaive.Solver	as SolverVN
+
+import qualified Data.Array.Parallel.Prelude	as P
+import qualified Data.Array.Parallel.PArray	as P
+import qualified Solver.NestedBH.Solver		as SolverNB
 
 main :: IO ()
 main  
@@ -47,11 +53,10 @@ mainWithArgs args
 			$ V.map (uncurry unitBody) 
 			$ vPoints
 
-	let calcAccels
-		= case solverName of
-			"naive"		-> calcAccels_naive
-			"list"		-> calcAccels_bhList
-			"vector"	-> calcAccels_bhVector
+	let calcAccels	= fromMaybe (error $ unlines
+					[ "unknown solver " ++ show solverName
+					, "choose one of "  ++ (show $ map fst algorithms) ])
+			$ lookup solverName algorithms
 
 	let advance	= advanceWorld (calcAccels epsilon) timeStep
 
@@ -66,17 +71,43 @@ mainWithArgs args
 		advance				-- fn to advance the world
 
 
-calcAccels_naive :: Double -> V.Vector MassPoint -> V.Vector Accel
-calcAccels_naive epsilon
-	= Naive.calcAccels epsilon 
-	
-calcAccels_bhList :: Double -> V.Vector MassPoint -> V.Vector Accel
-calcAccels_bhList epsilon mpts
+-- Wrappers -------------------------------------------------------------------
+
+algorithms
+ = 	[ ("list-bh",		calcAccels_lb)
+	, ("vector-naive",	calcAccels_vn)
+	, ("vector-bh",		calcAccels_vb)
+	, ("nested-bh",		calcAccels_nb) ]
+
+-- | Lists + Barnes-Hut algorithm.
+calcAccels_lb	:: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_lb epsilon mpts
 	= V.fromList
-	$ BHL.calcAccels epsilon
+	$ SolverLB.calcAccels epsilon
 	$ V.toList mpts
 
-calcAccels_bhVector :: Double -> V.Vector MassPoint -> V.Vector Accel
-calcAccels_bhVector epsilon mpts
-	= BHV.calcAccels epsilon mpts
+
+-- | Vector + Naive algorithm.
+calcAccels_vn	:: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_vn epsilon
+	= SolverVN.calcAccels epsilon 
+	
+
+-- | Vector + Barnes-Hut algorithm.
+calcAccels_vb 	:: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_vb epsilon mpts
+	= SolverVB.calcAccels epsilon mpts
+
+
+-- | Nested Data Parallelism + Barnes-Hut algorithm.
+calcAccels_nb	:: Double -> V.Vector MassPoint -> V.Vector Accel
+calcAccels_nb epsilon mpts
+ = let	
+	-- bounds finding isn't vectorised yet.
+	(llx, lly, rux, ruy)	= SolverVB.findBounds mpts
+
+	mpts'	= P.fromList $ V.toList mpts
+	accels'	= SolverNB.calcAccelsWithBoxPA epsilon llx lly rux ruy mpts'
+	
+   in	V.fromList $ P.toList accels'
 	
