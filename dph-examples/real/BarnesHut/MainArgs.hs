@@ -9,6 +9,7 @@ data MainArg
 	= ArgHelp
 	| ArgWindowSize
 	| ArgSolver
+	| ArgMaxSteps
 	| ArgDrawTree
 	| ArgTimeStep
 	| ArgRate
@@ -38,6 +39,12 @@ mainArgs
 		, argName	= Just "solver"
 		, argData	= argDataDefaulted "name" ArgtypeString "vector-naive"
 		, argDesc	= "Solver to use. One of: list-bh, vector-naive, vector-bh, nested-bh." }
+
+	, Arg	{ argIndex	= ArgMaxSteps
+		, argAbbr	= Nothing
+		, argName	= Just "max-steps"
+		, argData	= argDataDefaulted "steps" ArgtypeInt 0
+		, argDesc	= "Exit simulation after this many steps." }
 
 	, Arg	{ argIndex	= ArgDrawTree
 		, argAbbr	= Nothing

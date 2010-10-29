@@ -5,6 +5,7 @@ import Body
 import Util
 import Timing
 import MainArgs
+import Config
 import Points2D.Generate
 import Graphics.Gloss
 import System.Environment
@@ -35,44 +36,53 @@ main
 
 mainWithArgs :: Args MainArg -> IO ()
 mainWithArgs args
- = do	let Just windowSize	= getArgInt	args ArgWindowSize
-	let Just solverName	= getArgString	args ArgSolver
-	let shouldDrawTree	= gotArg  	args ArgDrawTree
-	let Just timeStep	= getArgDouble	args ArgTimeStep
-	let Just rate		= getArgInt	args ArgRate
-	let Just bodyCount	= getArgInt	args ArgBodyCount
-	let Just bodyMass	= getArgDouble  args ArgBodyMass
-	let Just epsilon	= getArgDouble	args ArgEpsilon
-	let Just discSize	= getArgDouble	args ArgDiscSize
-	let Just startSpeed	= getArgDouble	args ArgStartSpeed
+ = let	config		= loadConfig args
 	
-	let vPoints 	= genPointsDisc bodyCount (0, 0) discSize
+	-- Setup initial world
+	vPoints 	= genPointsDisc 
+				(configBodyCount config)
+	 			(0, 0) 
+				(configStartDiscSize config)
 
-	let vBodies	= V.map (setStartVelOfBody startSpeed)
-			$ V.map (setMassOfBody     bodyMass)
+	vBodies		= V.map (setStartVelOfBody $ configStartSpeed config)
+			$ V.map (setMassOfBody     $ configBodyMass   config)
 			$ V.map (uncurry unitBody) 
 			$ vPoints
 
-	let calcAccels	= fromMaybe (error $ unlines
+	world		= World
+				{ worldBodies	= vBodies
+				, worldSteps	= 0 }
+
+	-- The solver we're using to calculate the acclerations.
+	solverName	= configSolverName config
+	calcAccels	= fromMaybe (error $ unlines
 					[ "unknown solver " ++ show solverName
 					, "choose one of "  ++ (show $ map fst algorithms) ])
 			$ lookup solverName algorithms
 
-	let advance	= advanceWorld (calcAccels epsilon) timeStep
+	-- Make functions we'll pass to gloss simulate
+	advance		= advanceWorld 
+				(calcAccels $ configEpsilon config) 
+				(configTimeStep config)
+				(configMaxSteps config)
 
-	simulateInWindow
+	draw		= drawWorld
+				(configShouldDrawTree config)
+
+	windowSize	= configWindowSize config
+
+    in	simulateInWindow
 		"Barnes-Hutt"			-- window name
 		(windowSize, windowSize)	-- window size
 		(10, 10)			-- window position
 		black				-- background color
-		rate			-- number of iterations per second
-		vBodies				-- initial world
-		(drawWorld shouldDrawTree)	-- fn to convert a world to a picture
+		(configRate config)		-- number of iterations per second
+		world				-- initial world
+		draw				-- fn to convert a world to a picture
 		advance				-- fn to advance the world
 
 
 -- Wrappers -------------------------------------------------------------------
-
 algorithms
  = 	[ ("list-bh",		calcAccels_lb)
 	, ("vector-naive",	calcAccels_vn)
