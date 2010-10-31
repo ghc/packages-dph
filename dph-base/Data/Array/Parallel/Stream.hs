@@ -11,6 +11,8 @@
 -- Stream functions not implemented in vector
 --
 
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Stream (
   indexedS, replicateEachS, replicateEachRS,
   interleaveS, combine2ByTagS,
