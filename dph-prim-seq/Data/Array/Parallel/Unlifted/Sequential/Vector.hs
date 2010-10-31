@@ -87,9 +87,11 @@ import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Data.Vector.Unboxed.Base as VBase
 import Data.Vector.Generic ( stream, unstream )
+import qualified Data.Vector.Generic as G
 import qualified Data.Vector.Generic.Mutable as MG
 import qualified Data.Vector.Storable as Storable
 import qualified Data.Vector.Storable.Mutable as MStorable
+import qualified Data.Vector.Generic.New as New
 import qualified Data.Vector.Fusion.Stream as S
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size ( Size(..) )
@@ -306,11 +308,11 @@ scanRes f z xs = let ys = scanl' f z xs
                  in
                  (unsafeInit ys, unsafeLast ys)
 
-fsts :: Vector (a,b) -> Vector a
+fsts :: (Unbox a, Unbox b) => Vector (a,b) -> Vector a
 {-# INLINE_STREAM fsts #-}
 fsts (VBase.V_2 _ xs ys) = xs
 
-snds :: Vector (a,b) -> Vector b
+snds :: (Unbox a, Unbox b) => Vector (a,b) -> Vector b
 {-# INLINE_STREAM snds #-}
 snds (VBase.V_2 _ xs ys) = ys
 
@@ -321,6 +323,19 @@ zip xs ys = V.zip xs ys
 unzip :: (Unbox a, Unbox b) => Vector (a,b) -> (Vector a, Vector b)
 {-# INLINE_STREAM unzip #-}
 unzip ps = V.unzip ps
+
+{-# RULES
+
+"fsts/new/unstream [dph-prim-seq]" forall xs.
+  fsts (G.new (New.unstream xs)) = V.map fst (G.new (New.unstream xs))
+
+"snds/new/unstream [dph-prim-seq]" forall xs.
+  snds (G.new (New.unstream xs)) = V.map snd (G.new (New.unstream xs))
+
+"stream/zip [dph-prim-seq]" forall xs ys.
+  G.stream (zip xs ys) = S.zip (G.stream xs) (G.stream ys)
+
+  #-}
 
 enumFromStepLen :: Int -> Int -> Int -> Vector Int
 {-# INLINE_U enumFromStepLen #-}
