@@ -29,13 +29,13 @@ data Config
 	, configStartSpeed	:: Double
 
 	-- Terminating conditions.
-	, configMaxSteps	:: Int }
+	, configMaxSteps	:: Maybe Int }
 	
 
 -- | Load program config from its command line arguments.	
 loadConfig :: Args MainArg -> Config
 loadConfig args
- = let	Just windowSize	= getArgInt	args ArgWindowSize
+ = let	Just windowSize	= getArgInt	args ArgGloss
 	Just solverName	= getArgString	args ArgSolver
 	shouldDrawTree	= gotArg  	args ArgDrawTree
 	Just timeStep	= getArgDouble	args ArgTimeStep
@@ -45,7 +45,8 @@ loadConfig args
 	Just epsilon	= getArgDouble	args ArgEpsilon
 	Just discSize	= getArgDouble	args ArgDiscSize
 	Just startSpeed	= getArgDouble	args ArgStartSpeed
-	Just maxSteps	= getArgInt	args ArgMaxSteps
+
+	mMaxSteps	= getArgInt	args ArgMaxSteps
 
    in Config
 	{ configWindowSize	= windowSize
@@ -58,4 +59,4 @@ loadConfig args
 	, configEpsilon		= epsilon
 	, configStartDiscSize	= discSize
 	, configStartSpeed	= startSpeed
-	, configMaxSteps	= maxSteps }
+	, configMaxSteps	= mMaxSteps }

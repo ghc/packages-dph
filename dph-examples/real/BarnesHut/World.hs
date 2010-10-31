@@ -58,7 +58,6 @@ drawPoint (x, y)
 	$ ThickCircle (pointSize / 2) pointSize
 
 
-
 -- World ----------------------------------------------------------------------
 
 -- | Advance the world forward in time.
@@ -66,12 +65,12 @@ advanceWorld
 	:: (V.Vector MassPoint	-> V.Vector Accel)
 				-- ^ Fn to compute accelerations of each point.
 	-> Double		-- ^ Time step.
-	-> Int			-- ^ Maximum number of steps.
+	-> Maybe Int		-- ^ Maximum number of steps. If Nothing then run forever.
 	-> ViewPort		-- ^ Current viewport in the gloss window.
 	-> Float		-- ^ How much to advance the time in this simulation step.
 	-> World -> World
 
-advanceWorld calcAccels timeStep maxSteps _ time world
+advanceWorld calcAccels timeStep mMaxSteps _ time world
  = let	
 	-- Calculate the accelerations on each body.
 	accels	= calcAccels 
@@ -92,11 +91,14 @@ advanceWorld calcAccels timeStep maxSteps _ time world
 			, worldSteps	= steps' }
 
 	-- If we have done enough steps then bail out now.
-   in 	if steps' > maxSteps
-	 then advanceWorld_done world
-	 else world'
+	-- steps == 0 means keep running forever.
+   in 	case mMaxSteps of
+	 Nothing		-> world'
+	 Just maxSteps
+	  | steps' < maxSteps	-> world'
+	  | otherwise		-> advanceWorld_done world'
 
 
+-- | Call error to end the program.
 advanceWorld_done world
- = error "done"
-
+ = error $ "done"
