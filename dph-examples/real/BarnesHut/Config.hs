@@ -29,7 +29,10 @@ data Config
 	, configStartSpeed	:: Double
 
 	-- Terminating conditions.
-	, configMaxSteps	:: Maybe Int }
+	, configMaxSteps	:: Maybe Int
+	
+	-- dump points to file
+	, configDumpFinal	:: Maybe FilePath }
 	
 
 -- | Load program config from its command line arguments.	
@@ -47,6 +50,7 @@ loadConfig args
 	Just startSpeed	= getArgDouble	args ArgStartSpeed
 
 	mMaxSteps	= getArgInt	args ArgMaxSteps
+	mFilePath	= getArgString	args ArgDumpFinal
 
    in Config
 	{ configWindowSize	= windowSize
@@ -59,4 +63,5 @@ loadConfig args
 	, configEpsilon		= epsilon
 	, configStartDiscSize	= discSize
 	, configStartSpeed	= startSpeed
-	, configMaxSteps	= mMaxSteps }
+	, configMaxSteps	= mMaxSteps 
+	, configDumpFinal	= mFilePath }

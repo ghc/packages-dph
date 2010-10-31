@@ -1,5 +1,6 @@
 {-# LANGUAGE ParallelListComp #-}
 
+import Dump
 import World
 import Body
 import Util
@@ -55,6 +56,7 @@ mainWithArgs args
 	-- Make functions we'll pass to gloss simulate
 	advance		= advanceWorld 
 				(calcAccels $ configEpsilon config) 
+				(endProgram $ configDumpFinal config)
 				(configTimeStep config)
 				(configMaxSteps config)
 
@@ -64,12 +66,27 @@ mainWithArgs args
 	windowSize	= configWindowSize config
 
     in	simulateInWindow
-		"Barnes-Hutt"			-- window name
-		(windowSize, windowSize)	-- window size
-		(10, 10)			-- window position
-		black				-- background color
-		(configRate config)		-- number of iterations per second
-		world				-- initial world
-		draw				-- fn to convert a world to a picture
-		advance				-- fn to advance the world
+		"Barnes-Hutt"		-- window name
+		(windowSize, windowSize)-- window size
+		(10, 10)		-- window position
+		black			-- background color
+		(configRate config)	-- number of iterations per second
+		world			-- initial world
+		draw			-- fn to convert a world to a picture
+		advance			-- fn to advance the world
+
+
+-- | Call error to end the program.
+endProgram 
+	:: Maybe FilePath		-- ^ Write final bodies to this file.
+	-> World			-- ^ Final world state.
+	-> IO ()
+
+endProgram mDumpFinal world
+ = do
+	-- Dump the final world state to file if requested.
+	maybe 	(return ()) (dumpWorld world) mDumpFinal
+
+	-- Call error to end program.
+	error $ "done"
 

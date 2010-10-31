@@ -11,7 +11,9 @@ import Graphics.Gloss.Shapes
 import qualified Data.Vector.Unboxed		as V
 import qualified Solver.ListBH.Draw		as SolverLB
 import qualified Solver.ListBH.Solver		as SolverLB
+import System.IO.Unsafe
 import Debug.Trace
+
 
 pointSize :: Float
 pointSize		= 4
@@ -64,13 +66,14 @@ drawPoint (x, y)
 advanceWorld 
 	:: (V.Vector MassPoint	-> V.Vector Accel)
 				-- ^ Fn to compute accelerations of each point.
+	-> (World -> IO ())	-- ^ Fn to (unsafely) call when we've reached maxsteps.
 	-> Double		-- ^ Time step.
 	-> Maybe Int		-- ^ Maximum number of steps. If Nothing then run forever.
 	-> ViewPort		-- ^ Current viewport in the gloss window.
 	-> Float		-- ^ How much to advance the time in this simulation step.
 	-> World -> World
 
-advanceWorld calcAccels timeStep mMaxSteps _ time world
+advanceWorld calcAccels endProgram timeStep mMaxSteps _ time world
  = let	
 	-- Calculate the accelerations on each body.
 	accels	= calcAccels 
@@ -96,9 +99,8 @@ advanceWorld calcAccels timeStep mMaxSteps _ time world
 	 Nothing		-> world'
 	 Just maxSteps
 	  | steps' < maxSteps	-> world'
-	  | otherwise		-> advanceWorld_done world'
-
-
--- | Call error to end the program.
-advanceWorld_done world
- = error $ "done"
+	  
+	  -- just watch me..
+	  | otherwise	
+	  -> unsafePerformIO (endProgram world') 
+		`seq` error "advanceWorld: we're finished, stop calling me."

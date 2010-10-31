@@ -20,6 +20,9 @@ data MainArg
 	| ArgGloss
 	| ArgRate
 	| ArgDrawTree
+	
+	-- Dump output
+	| ArgDumpFinal
 	deriving (Eq, Ord, Show)
 	
 mainArgs :: [Arg MainArg]
@@ -99,5 +102,12 @@ mainArgs
 		, argName	= Just "gloss-tree"
 		, argData	= Nothing
 		, argDesc	= "(opt. for gloss) Draw the Barnes-Hut quad tree"}
+
+	-- Dump points to file
+	, Arg	{ argIndex	= ArgDumpFinal
+		, argAbbr	= Nothing
+		, argName	= Just "dump-final"
+		, argData	= argDataOptional "FilePath" ArgtypeString
+		, argDesc	= "Dump final body positions and masses to file" }
 
 	]
