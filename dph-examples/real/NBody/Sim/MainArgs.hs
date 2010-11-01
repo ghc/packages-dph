@@ -1,5 +1,5 @@
 
-module MainArgs
+module Sim.MainArgs
 	( MainArg(..)
 	, mainArgs)
 where

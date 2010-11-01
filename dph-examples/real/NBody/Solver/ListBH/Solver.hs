@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, PatternGuards #-}
 
 -- | The list version of the solver also builds the bounding box at every
 --   node of the tree, which is good for visualisation.
@@ -9,7 +9,7 @@ module Solver.ListBH.Solver
 	, calcAccels
 	, buildTree)
 where
-import Body
+import Common.Body
 
 eClose :: Double
 eClose  = square 500

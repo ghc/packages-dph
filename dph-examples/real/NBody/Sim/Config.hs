@@ -1,9 +1,9 @@
 
-module Config
+module Sim.Config
 	( Config (..)
 	, loadConfig)
 where
-import MainArgs
+import Sim.MainArgs
 import System.Console.ParseArgs
 
 -- | Program config.

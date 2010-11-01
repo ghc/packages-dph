@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module Solver.ListBH.Draw
 	(drawBHTree)

@@ -1,9 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Dump
+module Common.Dump
 	(dumpWorld)
 where
-import Body
-import World
+import Common.Body
+import Common.World
 import System.IO
 import Data.List
 import qualified Data.Vector.Unboxed	as V

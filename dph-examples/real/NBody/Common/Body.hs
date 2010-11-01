@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 
 -- | Massful bodies in the simulation.
-module Body
+module Common.Body
 	( Velocity
 	, Accel
 	, MassPoint
@@ -16,7 +16,7 @@ module Body
 	, setStartVelOfBody
 	, advanceBody)
 where
-import Util
+import Common.Util
 
 
 -- Types ----------------------------------------------------------------------

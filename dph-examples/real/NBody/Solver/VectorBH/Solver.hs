@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, PatternGuards #-}
 
 -- | The list version of the solver also builds the bounding box at every
 --   node of the tree, which is good for visualisation.
@@ -10,7 +10,7 @@ module Solver.VectorBH.Solver
 	, buildTree
 	, findBounds)
 where
-import Body
+import Common.Body
 import Data.Vector.Unboxed			(Vector)
 import qualified Data.Vector.Unboxed		as V
 	

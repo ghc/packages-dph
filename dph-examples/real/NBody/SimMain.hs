@@ -1,13 +1,13 @@
 {-# LANGUAGE ParallelListComp #-}
 
-import Dump
-import World
-import Body
-import Util
-import Timing
-import MainArgs
-import Config
+import Sim.MainArgs
+import Sim.Config
+import Common.Dump
+import Common.World
+import Common.Body
+import Common.Util
 import Solver
+import Timing
 import Points2D.Generate
 import Graphics.Gloss
 import System.Environment

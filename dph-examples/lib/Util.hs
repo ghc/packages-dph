@@ -1,4 +1,4 @@
-
+{-# LANGUAGE PatternGuards #-}
 module Util 
 	( isPowerOfTwo
 	, isSorted)

@@ -3,7 +3,7 @@
 module Solver.VectorNaive.Solver
 	(calcAccels)
 where
-import Body
+import Common.Body
 import Data.Vector.Unboxed		(Vector)
 import qualified Data.Vector.Unboxed	as V
 

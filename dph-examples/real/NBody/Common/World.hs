@@ -1,11 +1,11 @@
 {-# LANGUAGE BangPatterns #-}
 
-module World
+module Common.World
 	( World(..)
 	, drawWorld
 	, advanceWorld)
 where
-import Body
+import Common.Body
 import Graphics.Gloss
 import Graphics.Gloss.Shapes
 import qualified Data.Vector.Unboxed		as V

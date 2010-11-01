@@ -1,5 +1,5 @@
 
-module Util
+module Common.Util
 	( magV
 	, mulSV
 	, normaliseV)

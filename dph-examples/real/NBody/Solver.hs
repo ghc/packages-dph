@@ -3,7 +3,7 @@
 module Solver
 	(solvers)
 where
-import Body
+import Common.Body
 
 import qualified Solver.ListBH.Draw		as SolverLB
 import qualified Solver.ListBH.Solver		as SolverLB
