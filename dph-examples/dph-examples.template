@@ -1,0 +1,115 @@
+
+Name:                dph-examples
+Version:             0.5
+License:             BSD3
+License-file:        LICENSE
+Author:              The DPH Team
+Maintainer:          Ben Lippmeier <benl@ouroborus.net>
+Build-Type:          Simple
+Cabal-Version:       >=1.8
+Stability:           experimental
+Category:            Data Structures
+Homepage:            http://www.cse.unsw.edu.au/~chak/project/dph/
+Description:
+        Examples using the DPH library.
+
+Synopsis:
+        Examples using the DPH library.
+
+-- With these examples, 
+--   the plain dph-NAME versions are parallel versions built against dph-par
+--   while the dph_NAME-seq versions are sequential ones built against dph-seq
+
+-- Sum of Squares -------------------------------------------------------------
+Executable dph-sumsq
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: lib imaginary/SumSquares/dph
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-sumsq-seq
+  Build-depends:  DPH_DEPENDS_SEQ
+  Main-is:        Main.hs
+  hs-source-dirs: lib imaginary/SumSquares/dph
+  ghc-options:    DPH_OPTIONS_SEQ
+
+
+-- Dot Product ----------------------------------------------------------------
+Executable dph-dotp
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: lib imaginary/DotProduct/dph
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-dotp-seq
+  Build-depends:  DPH_DEPENDS_SEQ
+  Main-is:        Main.hs
+  hs-source-dirs: lib imaginary/DotProduct/dph
+  ghc-options:    DPH_OPTIONS_SEQ
+
+
+-- Evens ----------------------------------------------------------------------
+Executable dph-evens
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Evens lib
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-evens-seq
+  Build-depends:  DPH_DEPENDS_SEQ
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Evens lib
+  ghc-options:    DPH_OPTIONS_SEQ
+
+
+-- QuickHull ------------------------------------------------------------------
+Executable dph-quickhull
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-quickhull-seq
+  Build-depends:  DPH_DEPENDS_SEQ
+  Main-is:        Main.hs
+  hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
+  ghc-options:    DPH_OPTIONS_SEQ
+
+Executable dph-quickhull-vector
+  Build-depends: 
+        base          == 4.*,
+        vector        == 0.7.*,    
+        old-time      == 1.0.*,
+        random        == 1.0.*
+  Main-is:        Main.hs
+  hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
+  ghc-options:    DPH_OPTIONS_SEQ
+
+
+-- QuickSort ------------------------------------------------------------------
+Executable dph-quicksort
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: lib spectral/QuickSort/dph
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-quicksort-seq
+  Build-depends:  DPH_DEPENDS_SEQ
+  Main-is:        Main.hs
+  hs-source-dirs: lib spectral/QuickSort/dph
+  ghc-options:    DPH_OPTIONS_SEQ
+
+
+-- NBody ----------------------------------------------------------------------
+Executable dph-nbody
+  Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*, gloss == 1.1.*
+  Main-is:        SimMain.hs
+  hs-source-dirs: lib real/NBody
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-nbody-seq
+  Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.1.*
+  Main-is:        SimMain.hs
+  hs-source-dirs: lib real/NBody
+  ghc-options:    DPH_OPTIONS_SEQ
+
