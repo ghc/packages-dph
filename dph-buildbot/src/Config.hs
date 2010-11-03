@@ -30,18 +30,13 @@ data Config
 	, configWithGhcPkg	:: FilePath
 
 	-- What libraries we should install into the GHC tree.
-	--   The libraries are installed in the order they appear on the command line.
-	--   syntax of args spec is like:
-	--     package:bmp-1.1.1.1       -- cabal install some package, downloading it off Hackage.
-	--     checkout:libs/QuickCheck  -- cabal configure ; build ; install a package from a local dir.
-	-- 
 	--   TODO: If we had a better options parser we wouldn't have to hack everything into the same arg.
-	-- 
 	, configLibs		:: Maybe String
 
 	-- Test stages
 	, configDoTestRepa	:: Bool 
 	, configDoTestDPH	:: Bool
+	, configDoTestNoSlow	:: Bool
 
 	-- Testing config.
 	, configIterations	:: Int
@@ -129,6 +124,7 @@ slurpConfig args
 		-- Testing stages
 		, configDoTestRepa	= gotArg args ArgDoTestRepa
 		, configDoTestDPH	= gotArg args ArgDoTestDPH
+		, configDoTestNoSlow	= gotArg args ArgDoTestNoSlow
 
 		-- Testing config.
 		, configIterations	= iterations 

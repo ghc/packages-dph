@@ -7,6 +7,7 @@ import Benchmarks
 import Config
 import BuildBox
 import Data.Maybe
+import Control.Monad
 
 data BuildResults
 	= BuildResults
@@ -64,8 +65,20 @@ buildTest config env
 				(benchmarksRepa config)
 	     else return []
 
+	-- Run NoSlow benchmarks
+	benchResultsNoSlow
+	 <- if (configDoTestNoSlow config)
+	     then 
+		inDir (scratchDir ++ "/NoSlow-head") $
+		withTempFile $ \filePath ->
+		 do	ssystem  $ "dist/build/noslow/noslow -o " ++ filePath
+			liftM parseNoSlowLog $ io $ readFile filePath
+		
+	     else return []
+	
+
 	let benchResults
-		= benchResultsDPH ++ benchResultsRepa	
+		= benchResultsDPH ++ benchResultsRepa ++ benchResultsNoSlow
 
 	-- Make the build results.
 	let buildResults
@@ -109,3 +122,27 @@ buildTest config env
 			sendMailWithMailer mail defaultMailer				
 			return ())
 		(configMailFromTo config)
+
+
+parseNoSlowLog :: String -> [BenchResult]
+parseNoSlowLog str
+	= map parseNoSlowLine
+	$ tail
+	$ lines str
+
+parseNoSlowLine :: String -> BenchResult
+parseNoSlowLine str
+ = let	[name, mean, meanLB, meanUB, _, _, _]
+		= words $ map (\c -> if c == ',' then ' ' else c) str
+	
+   in	BenchResult
+		{ benchResultName	= "noslow-" ++ (read name)
+		, benchResultRuns	
+		   = 	[ BenchRunResult (read mean   * 1000) Nothing
+			, BenchRunResult (read meanLB * 1000) Nothing
+			, BenchRunResult (read meanUB * 1000) Nothing ] }
+	
+	
+	
+	
+	

@@ -103,7 +103,8 @@ libBuild config spec
  	Repo dir
 	 -> do	outLn	$ "  - Building " ++ dir
 		inDir dir
-		 $ do	pkgConfigure config
+		 $ do	-- pkgClean
+			pkgConfigure config
 			pkgBuild
 			pkgInstall
 			outBlank
@@ -126,13 +127,15 @@ libBuildSub config sub
  = case sub of
 	Install pkg
 	 -> inDir pkg
-	 $ do 	pkgConfigure config
+	 $ do	pkgClean
+		pkgConfigure config
 	 	pkgBuild
 		pkgInstall
 		
 	Build pkg
 	 -> inDir pkg
-	 $ do	pkgConfigure config
+	 $ do	pkgClean
+		pkgConfigure config
 		pkgBuild
 		
 
@@ -144,6 +147,12 @@ pkgConfigure config
 		++ " --user"
 		++ " --with-compiler=" ++ configWithGhc config
 		++ " --with-hc-pkg="   ++ configWithGhcPkg config
+
+
+pkgClean :: Build ()
+pkgClean
+ = do	setupFile	<- findSetupFile
+	ssystem $ "runghc " ++ setupFile ++ " clean"
 
 
 pkgBuild :: Build ()

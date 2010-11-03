@@ -19,6 +19,7 @@ import Control.Monad
 import Control.Monad.Error.Class
 import System.Console.ParseArgs	hiding (args)
 import System.IO
+import System.Random
 import Data.Maybe
 
 main :: IO ()
@@ -59,12 +60,13 @@ mainWithArgs args
 	| (or $ map (gotArg args)
 		[ ArgGhcUnpack,  ArgGhcBuild,  ArgGhcUnpackBuild
 		, ArgLibs
-		, ArgDoTestRepa, ArgDoTestDPH])
+		, ArgDoTestRepa, ArgDoTestDPH, ArgDoTestNoSlow])
 
 	= do	-- Load up cmd line args into our config structure.
-		config	<- slurpConfig args
+		config		<- slurpConfig args
+		uid :: Integer	<- liftM fromIntegral $ getStdRandom (randomR (0 :: Integer, 1000000))
 		let buildState
-			= (buildStateDefault 0 "/tmp")
+			= (buildStateDefault uid "/tmp")
 			{ buildStateLogSystem	= if gotArg args ArgVerbose
 			 				then Just stdout
 							else Nothing }
@@ -200,7 +202,7 @@ runTotal config
 	 $ libsBuild configNew
 						
 	-- Run benchmarks and write results to file, or mail them to the list.
-	when (configDoTestRepa configNew || configDoTestDPH configNew)
+	when (configDoTestRepa configNew || configDoTestDPH configNew || configDoTestNoSlow configNew)
 	 $ buildTest configNew env
 
 

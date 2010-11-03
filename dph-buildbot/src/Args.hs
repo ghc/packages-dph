@@ -31,6 +31,7 @@ data BuildArg
 	-- Testing DPH and Repa
 	| ArgDoTestRepa
 	| ArgDoTestDPH
+	| ArgDoTestNoSlow
 	| ArgTestIterations
 	| ArgMailFrom 
 	| ArgMailTo
@@ -139,6 +140,12 @@ buildArgs
 		, argName	= Just "test-repa"
 		, argData	= Nothing
 		, argDesc	= "Run Repa regression tests." }
+
+	, Arg	{ argIndex	= ArgDoTestNoSlow
+		, argAbbr	= Nothing
+		, argName	= Just "test-noslow"
+		, argData	= Nothing
+		, argDesc	= "Run NoSlow regression tests." }
 
 	, Arg	{ argIndex	= ArgTestIterations
 		, argAbbr	= Just 'i'
