@@ -138,9 +138,9 @@ parseNoSlowLine str
    in	BenchResult
 		{ benchResultName	= "noslow-" ++ (read name)
 		, benchResultRuns	
-		   = 	[ BenchRunResult (read mean   * 1000) Nothing
-			, BenchRunResult (read meanLB * 1000) Nothing
-			, BenchRunResult (read meanUB * 1000) Nothing ] }
+		   = 	[ BenchRunResult (read mean)   Nothing
+			, BenchRunResult (read meanLB) Nothing
+			, BenchRunResult (read meanUB) Nothing ] }
 	
 	
 	
