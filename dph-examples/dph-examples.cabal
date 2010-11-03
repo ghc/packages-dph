@@ -85,7 +85,7 @@ Executable dph-quickhull-vector
         random        == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
-  ghc-options:    -rtsopts -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+  ghc-options:    -threaded -rtsopts -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
 -- QuickSort ------------------------------------------------------------------
@@ -95,11 +95,12 @@ Executable dph-quicksort
   hs-source-dirs: lib spectral/QuickSort/dph
   ghc-options:    -threaded -rtsopts -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
-Executable dph-quicksort-seq
-  Build-depends:  base == 4.*, vector == 0.7, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
-  Main-is:        Main.hs
-  hs-source-dirs: lib spectral/QuickSort/dph
-  ghc-options:    -rtsopts -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+-- This one stalls in SpecConstr then eventually runs out of memory.
+-- Executable dph-quicksort-seq
+--  Build-depends:  base == 4.*, vector == 0.7, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Main-is:        Main.hs
+--  hs-source-dirs: lib spectral/QuickSort/dph
+--  ghc-options:    -rtsopts -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
 -- NBody ----------------------------------------------------------------------

@@ -83,7 +83,7 @@ Executable dph-quickhull-vector
         random        == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
-  ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS_PAR
 
 
 -- QuickSort ------------------------------------------------------------------
@@ -93,11 +93,12 @@ Executable dph-quicksort
   hs-source-dirs: lib spectral/QuickSort/dph
   ghc-options:    DPH_OPTIONS_PAR
 
-Executable dph-quicksort-seq
-  Build-depends:  DPH_DEPENDS_SEQ
-  Main-is:        Main.hs
-  hs-source-dirs: lib spectral/QuickSort/dph
-  ghc-options:    DPH_OPTIONS_SEQ
+-- This one stalls in SpecConstr then eventually runs out of memory.
+-- Executable dph-quicksort-seq
+--  Build-depends:  DPH_DEPENDS_SEQ
+--  Main-is:        Main.hs
+--  hs-source-dirs: lib spectral/QuickSort/dph
+--  ghc-options:    DPH_OPTIONS_SEQ
 
 
 -- NBody ----------------------------------------------------------------------

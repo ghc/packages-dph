@@ -13,7 +13,11 @@ benchmarksDPH config
 	  bench config
 		"dph-dotp"
 		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N4"
-		
+
+	, bench config
+		"dph-dotp-seq"
+		"dph-examples/dist/build/dph-dotp-seq/dph-dotp-seq dph 10000000"		
+
 	, bench config
 		"dph-dotp[vector-seq]"
 		"dph-examples/dist/build/dph-dotp/dph-dotp vector 10000000 +RTS -N4"
@@ -22,15 +26,23 @@ benchmarksDPH config
 	, bench config
 		"dph-sumsq"
 		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N4"
-		
+
+	, bench config
+		"dph-sumsq-seq"
+		"dph-examples/dist/build/dph-sumsq-seq/dph-sumsq-seq dph 100000000"
+
 	, bench config
 		"dph-sumsq[vector-seq]"
 		"dph-examples/dist/build/dph-sumsq/dph-sumsq vector 100000000 +RTS -N4"
-
+		
 	  -- evens
         , bench config
 		"dph-evens"
 		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N4"
+
+        , bench config
+		"dph-evens-seq"
+		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq 10000000"
 	
 	  -- quicksort
 	, bench config 
@@ -40,11 +52,15 @@ benchmarksDPH config
 	  -- quickhull 
 	, bench config 
 		"dph-quickhull"
-		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N4"
+		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N4 -K20M"
+
+	, bench config 
+		"dph-quickhull-seq"
+		"dph-examples/dist/build/dph-quickhull-seq/dph-quickhull-seq 1000000 +RTS -K40M"
 
 	, bench config
 		"dph-quickhull[vector-seq]"
-		"dph-examples/dist/build/dph-quickhull-vector/dph-quickhull-vector vector 1000000"
+		"dph-examples/dist/build/dph-quickhull-vector/dph-quickhull-vector vector 1000000 +RTS -N4"
 
 	, bench config
 		"dph-quickhull[vector-forkIO]"
