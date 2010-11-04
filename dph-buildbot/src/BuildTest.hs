@@ -124,6 +124,7 @@ buildTest config env
 		(configMailFromTo config)
 
 
+-- | Parse a noslow benchmark results files.
 parseNoSlowLog :: String -> [BenchResult]
 parseNoSlowLog str
 	= map parseNoSlowLine
@@ -136,13 +137,16 @@ parseNoSlowLine str
 		= words $ map (\c -> if c == ',' then ' ' else c) str
 	
    in	BenchResult
-		{ benchResultName	= "noslow-" ++ (read name)
+		{ benchResultName	= normaliseNoSlowName $ read name
 		, benchResultRuns	
 		   = 	[ BenchRunResult (read mean)   Nothing
 			, BenchRunResult (read meanLB) Nothing
 			, BenchRunResult (read meanUB) Nothing ] }
 	
-	
-	
-	
-	
+
+-- | Normalise the name of a noslow benchmark to match our format.
+normaliseNoSlowName :: String -> String
+normaliseNoSlowName name
+	= ("noslow." ++)
+	$ map (\c -> if c == '/' then '.' else c)
+	$ name
