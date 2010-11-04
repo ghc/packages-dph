@@ -21,9 +21,12 @@ DPH_DEPENDS_SEQ = \
 
 
 # Options for compiling DPH examples.
+# 	For the SEQ versions we still compile with -threaded so that we can 
+# 	use the parallel garbage collector.
+#
 DPH_OPTIONS_PAR = \
-        -threaded \
         -rtsopts \
+        -threaded \
         -Odph \
         -fdph-par \
         -fcpr-off \
@@ -32,6 +35,7 @@ DPH_OPTIONS_PAR = \
 
 DPH_OPTIONS_SEQ = \
         -rtsopts \
+	-threaded \
         -Odph \
         -fdph-seq \
         -fcpr-off \
