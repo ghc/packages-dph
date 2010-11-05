@@ -53,7 +53,8 @@ mainWithArgs args
 		let [baseline, current] 
 				= map buildResultBench results
 
-		putStrLn $ render $ pprComparisons baseline current
+		return ()
+--		putStrLn $ render $ pprComparisons baseline current
 		
 	
 	-- Run some build process.

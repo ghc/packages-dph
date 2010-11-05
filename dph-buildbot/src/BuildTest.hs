@@ -13,7 +13,7 @@ data BuildResults
 	= BuildResults
 	{ buildResultTime		:: UTCTime
 	, buildResultEnvironment	:: Environment
-	, buildResultBench		:: [BenchResult] }
+	, buildResultBench		:: [BenchResult Single] }
 	deriving (Show, Read)
 
 instance Pretty BuildResults where
@@ -43,7 +43,7 @@ buildTest config env
 				
 	let resultsPrior
 		= maybe []
-			(\contents -> buildResultBench $ read contents)
+			(\contents -> map statsOfBenchResult $ buildResultBench $ read contents)
 			mBaseline
 	let scratchDir 
 		= fromMaybe ("buildTest: must specify --scratch") 
@@ -78,7 +78,8 @@ buildTest config env
 	
 
 	let benchResults
-		= benchResultsDPH ++ benchResultsRepa ++ benchResultsNoSlow
+		= benchResultsDPH ++ benchResultsRepa 
+			-- ++ benchResultsNoSlow -- nowlow versions are in Stats mode, should just make them Singles
 
 	-- Make the build results.
 	let buildResults
@@ -112,7 +113,7 @@ buildTest config env
 				, blank
 				, ppr env
 				, blank
-				, spaceHack $ pprComparisons resultsPrior benchResults
+				, text "COMPARISONS ARE BROKEN" -- spaceHack $ pprComparisons resultsPrior benchResults
 				, blank ]
 			
 			outLn $ "  - Writing mail file"
@@ -125,13 +126,13 @@ buildTest config env
 
 
 -- | Parse a noslow benchmark results files.
-parseNoSlowLog :: String -> [BenchResult]
+parseNoSlowLog :: String -> [BenchResult Stats]
 parseNoSlowLog str
 	= map parseNoSlowLine
 	$ tail
 	$ lines str
 
-parseNoSlowLine :: String -> BenchResult
+parseNoSlowLine :: String -> (BenchResult Stats)
 parseNoSlowLine str
  = let	[name, mean, meanLB, meanUB, _, _, _]
 		= words $ map (\c -> if c == ',' then ' ' else c) str
@@ -139,9 +140,12 @@ parseNoSlowLine str
    in	BenchResult
 		{ benchResultName	= normaliseNoSlowName $ read name
 		, benchResultRuns	
-		   = 	[ BenchRunResult (read mean)   Nothing
-			, BenchRunResult (read meanLB) Nothing
-			, BenchRunResult (read meanUB) Nothing ] }
+			= [ BenchRunResult 0
+				[ WithSeconds 
+				$ Time KernelWall 
+					(Stats 	(Seconds $ read meanLB) 
+						(Seconds $ read mean) 
+						(Seconds $ read meanUB)) ] ] }
 	
 
 -- | Normalise the name of a noslow benchmark to match our format.

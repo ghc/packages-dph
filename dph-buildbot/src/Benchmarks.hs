@@ -159,7 +159,7 @@ bench config name cmd
 	name
 	(return ())
 	(systemWithTimings (configVerbose config) cmd)
-	(return ())
+	(return [])
 
 
 -- | Define a benchmark with a setup command
@@ -169,12 +169,12 @@ benchUp config name cmdUp cmdBench
 	name
 	cmdUp
 	(systemWithTimings (configVerbose config) cmdBench)
-	(return ())
+	(return [])
 
 	
 -- | Run a system command, expecing it to print the kernel timings to stdout.
 --   We ignore whatever is printed to stderr.
-systemWithTimings :: Bool -> String -> Build (Maybe Timing)
+systemWithTimings :: Bool -> String -> Build [WithUnits (Aspect Single)]
 systemWithTimings verbose cmd
  = do	when verbose
 	 $ outLn $ "\n    " ++ cmd
@@ -183,16 +183,14 @@ systemWithTimings verbose cmd
 		<- systemTeeLog False cmd Log.empty 
 
 	if code == ExitSuccess
-	 then	return	$ Just $ parseTimings (Log.toString logOut)
+	 then	return	$ parseTimings (Log.toString logOut)
 	 else	throw   $ ErrorSystemCmdFailed cmd code logOut logErr
 
 
 -- | Parse kernel timings from a repa example program.
 --   Format is  elapsedTime/systemTime  in milliseconds.
-parseTimings :: String -> Timing
+parseTimings :: String -> [WithUnits (Aspect Single)]
 parseTimings str
  = let	(lElapsed : _)	= lines str
 	elapsedTime	= tail $ dropWhile (/= '=') lElapsed
-   in	Timing	(Just $ (read elapsedTime) / 1000)
-		Nothing
-		Nothing
+   in	[ Time KernelWall `secs` (read elapsedTime / 1000) ]
