@@ -118,7 +118,6 @@ buildTest config env
 				$ render $ vcat
 				[ text "DPH Performance Test Succeeded"
 				, blank
---				, ppr  "Total tests:" <+> int totalTests
 				, ppr env
 				, blank
 				, spaceHack $ render $ reportBenchResults (configSwingFraction config) resultComparisons
