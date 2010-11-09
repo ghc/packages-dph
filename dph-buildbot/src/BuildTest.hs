@@ -1,4 +1,4 @@
-
+{-# LANGUAGE PatternGuards #-}
 module BuildTest
 	( BuildResults(..)
 	, buildTest)
@@ -43,7 +43,7 @@ buildTest config env
 				
 	let resultsPrior
 		= maybe []
-			(\contents -> map statsOfBenchResult $ buildResultBench $ read contents)
+			(\contents -> map statBenchResult $ buildResultBench $ read contents)
 			mBaseline
 	let scratchDir 
 		= fromMaybe ("buildTest: must specify --scratch") 
@@ -78,8 +78,7 @@ buildTest config env
 	
 
 	let benchResults
-		= benchResultsDPH ++ benchResultsRepa 
-			-- ++ benchResultsNoSlow -- nowlow versions are in Stats mode, should just make them Singles
+		= benchResultsDPH ++ benchResultsRepa ++ benchResultsNoSlow
 
 	-- Make the build results.
 	let buildResults
@@ -102,8 +101,16 @@ buildTest config env
 			io $ writeFile fileName' $ show buildResults)
 		(configWriteResults config)
 	
+
+	-- Compute comparisons against the baseline file.
+	let resultComparisons
+	 	= compareManyBenchResults 
+			(resultsPrior)
+			(map statBenchResult benchResults)
+
+	
 	-- Mail results to recipient if requested.
-	let spaceHack = text . unlines . map (\l -> " " ++ l) . lines . render
+	let spaceHack = text . unlines . map (\l -> " " ++ l) . lines
 	maybe 	(return ())
 		(\(from, to) -> do
 			outLn $ "* Mailing results to " ++ to 
@@ -111,9 +118,10 @@ buildTest config env
 				$ render $ vcat
 				[ text "DPH Performance Test Succeeded"
 				, blank
+--				, ppr  "Total tests:" <+> int totalTests
 				, ppr env
 				, blank
-				, text "COMPARISONS ARE BROKEN" -- spaceHack $ pprComparisons resultsPrior benchResults
+				, spaceHack $ render $ reportBenchResults (configSwingFraction config) resultComparisons
 				, blank ]
 			
 			outLn $ "  - Writing mail file"
@@ -126,13 +134,13 @@ buildTest config env
 
 
 -- | Parse a noslow benchmark results files.
-parseNoSlowLog :: String -> [BenchResult Stats]
+parseNoSlowLog :: String -> [BenchResult Single]
 parseNoSlowLog str
 	= map parseNoSlowLine
 	$ tail
 	$ lines str
 
-parseNoSlowLine :: String -> (BenchResult Stats)
+parseNoSlowLine :: String -> BenchResult Single
 parseNoSlowLine str
  = let	[name, mean, meanLB, meanUB, _, _, _]
 		= words $ map (\c -> if c == ',' then ' ' else c) str
@@ -141,12 +149,10 @@ parseNoSlowLine str
 		{ benchResultName	= normaliseNoSlowName $ read name
 		, benchResultRuns	
 			= [ BenchRunResult 0
-				[ WithSeconds 
-				$ Time KernelWall 
-					(Stats 	(Seconds $ read meanLB) 
-						(Seconds $ read mean) 
-						(Seconds $ read meanUB)) ] ] }
-	
+				[ Time KernelWall `secs` (read meanLB) 
+				, Time KernelWall `secs` (read mean)
+				, Time KernelWall `secs` (read meanUB) ]] }
+
 
 -- | Normalise the name of a noslow benchmark to match our format.
 normaliseNoSlowName :: String -> String

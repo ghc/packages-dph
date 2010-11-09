@@ -41,6 +41,7 @@ data Config
 	-- Testing config.
 	, configIterations	:: Int
 	, configAgainstResults	:: Maybe FilePath 
+	, configSwingFraction	:: Maybe Double
 
 	-- What do with the results.
 	, configWriteResults	:: Maybe (FilePath, Bool)
@@ -140,6 +141,7 @@ slurpConfig args
 					  in  result
 						
 		, configAgainstResults	= getArg args ArgAgainstResults
+		, configSwingFraction	= getArg args ArgSwingFraction
 
 		-- TODO: check we have both args
 		, configMailFromTo	= let result	

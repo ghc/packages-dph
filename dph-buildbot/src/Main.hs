@@ -35,27 +35,6 @@ mainWithArgs args
 	-- Print usage help
 	| gotArg args ArgHelp
 	= usageError args ""
-
-	-- Dump a results file.
-	| Just fileName	<- getArg args ArgDoDump
-	, []		<- argsRest args
-	= do	contents	<- readFile fileName
-		let results	=  (read contents) :: BuildResults
-		putStrLn $ render $ ppr results
-
-	-- Compare two results files.
-	| gotArg args ArgDoCompare
-	= do	let fileNames	= argsRest args
-		contentss	<- mapM readFile fileNames
-		let (results :: [BuildResults])
-				= map read contentss
-		
-		let [baseline, current] 
-				= map buildResultBench results
-
-		return ()
---		putStrLn $ render $ pprComparisons baseline current
-		
 	
 	-- Run some build process.
 	| (or $ map (gotArg args)

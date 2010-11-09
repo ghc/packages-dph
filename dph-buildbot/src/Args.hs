@@ -11,10 +11,6 @@ data BuildArg
 	= ArgHelp
 	| ArgVerbose
 
-	-- Working with test files.
-	| ArgDoDump
-	| ArgDoCompare
-
 	-- Automated builds
 	| ArgDaily
 	| ArgDailyNow
@@ -38,6 +34,7 @@ data BuildArg
 	| ArgWriteResults
 	| ArgWriteResultsStamped
 	| ArgAgainstResults
+	| ArgSwingFraction
 	deriving (Eq, Ord, Show)
 
 
@@ -54,20 +51,6 @@ buildArgs
 		, argName	= Just "verbose"
 		, argData	= Nothing
 		, argDesc	= "Verbose logging of build commands." }
-
-
-	-- Working with test files.
-	, Arg	{ argIndex	= ArgDoDump
-		, argAbbr	= Nothing
-		, argName	= Just "dump"
-		, argData	= argDataOptional "file" ArgtypeString
-		, argDesc	= "Dump a test results file in human readable format." }
-
-	, Arg	{ argIndex	= ArgDoCompare 
-		, argAbbr	= Nothing
-		, argName	= Just "compare"
-		, argData	= Nothing
-		, argDesc	= "Compare two test results files." }
 
 
 	-- Automated builds
@@ -158,6 +141,12 @@ buildArgs
 		, argName	= Just "against"
 		, argData	= argDataOptional "file" ArgtypeString
 		, argDesc	= "(opt. for test modes) Print running comparison against results in this file." }
+
+	, Arg	{ argIndex	= ArgSwingFraction
+		, argAbbr	= Just 's'
+		, argName	= Just "swing"
+		, argData	= argDataOptional "fraction" ArgtypeDouble
+		, argDesc	= "(opt. for test modes) Treat a fractional swing vs the baseline as interesting (eg 0.1)" }
 
 	, Arg	{ argIndex	= ArgWriteResults
 		, argAbbr	= Just 'w'
