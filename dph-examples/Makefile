@@ -3,7 +3,7 @@
 # Package dependencies for DPH examples.
 DPH_DEPENDS_PAR = \
         base         == 4.*, \
-        vector       == 0.7, \
+        vector       == 0.7.*, \
         dph-base     == 0.5.*, \
         dph-prim-par == 0.5.*, \
         dph-par      == 0.5.*, \
@@ -12,7 +12,7 @@ DPH_DEPENDS_PAR = \
 
 DPH_DEPENDS_SEQ = \
         base         == 4.*, \
-        vector       == 0.7, \
+        vector       == 0.7.*, \
         dph-base     == 0.5.*, \
         dph-prim-seq == 0.5.*, \
         dph-seq      == 0.5.*, \
