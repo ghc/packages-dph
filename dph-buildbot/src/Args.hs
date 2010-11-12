@@ -31,6 +31,7 @@ data BuildArg
 	| ArgTestIterations
 	| ArgMailFrom 
 	| ArgMailTo
+	| ArgSendTestMail
 	| ArgWriteResults
 	| ArgWriteResultsStamped
 	| ArgAgainstResults
@@ -51,7 +52,6 @@ buildArgs
 		, argName	= Just "verbose"
 		, argData	= Nothing
 		, argDesc	= "Verbose logging of build commands." }
-
 
 	-- Automated builds
 	, Arg	{ argIndex	= ArgDaily
@@ -155,7 +155,7 @@ buildArgs
 		, argDesc	= "(opt. for test modes) Write results to this file." }
 
 	, Arg	{ argIndex	= ArgWriteResultsStamped
-		, argAbbr	= Just 's'
+		, argAbbr	= Just 'p'
 		, argName	= Just "write-stamped"
 		, argData	= argDataOptional "file" ArgtypeString
 		, argDesc	= "(opt. for test modes)  ... appending a time stamp to the name." }		
@@ -164,11 +164,18 @@ buildArgs
 		, argAbbr	= Nothing
 		, argName	= Just "mailfrom"
 		, argData	= argDataOptional "address" ArgtypeString
-		, argDesc	= "(opt. for test modes) Use \"msmtp\" to mail results from this address." }
+		, argDesc	= "(opt. for test modes) Send test results from this address." }
 
 	, Arg	{ argIndex	= ArgMailTo
 		, argAbbr	= Nothing
 		, argName	= Just "mailto"
 		, argData	= argDataOptional "address" ArgtypeString
 		, argDesc	= "(opt. for test modes)  ... to this address." }			
+
+	-- Setup debugging
+	, Arg	{ argIndex	= ArgSendTestMail
+		, argAbbr	= Nothing
+		, argName	= Just "send-test-mail"
+		, argData	= Nothing
+		, argDesc	= "Send a test mail to check mailer configuration." }
 	]

@@ -56,8 +56,8 @@ data Config
 defaultMailer :: Mailer
 defaultMailer
 	= MailerMSMTP
-	{ mailerPath	= "msmtp"
-	, mailerPort	= Just 587 }
+	{ mailerPath		= "msmtp"
+	, mailerPort		= Just 587 }
 	
 
 -- Slurp ------------------------------------------------------------------------------------------
@@ -153,4 +153,3 @@ slurpConfig args
 						= Nothing
 				  		in	result
 		}
-	

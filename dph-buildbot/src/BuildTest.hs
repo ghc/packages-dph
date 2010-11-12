@@ -9,22 +9,6 @@ import BuildBox
 import Data.Maybe
 import Control.Monad
 
-data BuildResults
-	= BuildResults
-	{ buildResultTime		:: UTCTime
-	, buildResultEnvironment	:: Environment
-	, buildResultBench		:: [BenchResult Single] }
-	deriving (Show, Read)
-
-instance Pretty BuildResults where
- ppr results
-	= hang (ppr "BuildResults") 2 $ vcat
-	[ ppr "time: " <> (ppr $ buildResultTime results)
-	, ppr $ buildResultEnvironment results
-	, ppr ""
-	, vcat 	$ punctuate (ppr "\n") 
-		$ map ppr 
-		$ buildResultBench results ]
 
 -- | Run regression tests.	
 buildTest :: Config -> Environment -> Build ()
@@ -124,7 +108,7 @@ buildTest config env
 				, blank ]
 			
 			outLn $ "  - Writing mail file"
-			io $ writeFile "repa-bot.mail" $ render $ renderMail mail
+			io $ writeFile "dph-buildbot.mail" $ render $ renderMail mail
 				
 			outLn $ "  - Sending mail"
 			sendMailWithMailer mail defaultMailer				

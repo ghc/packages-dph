@@ -35,6 +35,23 @@ mainWithArgs args
 	-- Print usage help
 	| gotArg args ArgHelp
 	= usageError args ""
+
+	-- Send a test mail
+	| gotArg args ArgSendTestMail
+	= successfully . runBuildPrint "/tmp"
+	$ do	outLn "Sending test mail."
+		let from	= fromMaybe (error "you must specify --mailfrom with --send-test-mail")
+					    (getArg args ArgMailFrom) 
+	
+		let to		= fromMaybe (error "you must specify --mailto with --send-test-mail")
+					    (getArg args ArgMailTo)
+				
+		mail	<- createMailWithCurrentTime from to "DDC BuildBot test mail" "Looks like it worked..."
+		sendMailWithMailer mail defaultMailer
+		
+		io $ writeFile "dph-buildbot.mail" (render $ renderMail mail)
+		return ()
+
 	
 	-- Run some build process.
 	| (or $ map (gotArg args)
