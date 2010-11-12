@@ -71,26 +71,39 @@ buildTest config env
 		, buildResultEnvironment	= env
 		, buildResultBench		= benchResults }
 
-	-- Write results to a file if requested.	
-	maybe 	(return ())
-		(\(fileName, shouldStamp) -> do
-			stamp	<- if shouldStamp
-				 	then io $ getStampyTime
-					else return ""
-					
-			
-			let fileName'	= fileName ++ stamp
-			
-			outLn $ "* Writing results to " ++ fileName'
-			io $ writeFile fileName' $ show buildResults)
-		(configWriteResults config)
-	
-
 	-- Compute comparisons against the baseline file.
 	let resultComparisons
 	 	= compareManyBenchResults 
 			(resultsPrior)
 			(map statBenchResult benchResults)
+
+	-- Write results to a file if requested.
+	resultFiles
+	 <- maybe (return (error "results file has not been written"))
+		  (\(fileName, shouldStamp) -> do
+			stamp	<- if shouldStamp
+				 	then io $ getStampyTime
+					else return ""
+						
+			let fileName'	= fileName ++ stamp
+			
+			outLn $ "* Writing results to " ++ fileName'
+			io $ writeFile fileName' 		$ show buildResults
+			io $ writeFile (fileName' ++ ".txt") 	$ render $ reportBenchResults Nothing resultComparisons
+
+			return [fileName', fileName' ++ ".txt"])
+			
+		(configWriteResults config)
+	
+
+	-- Upload results if requesed,
+	--	this requires that they be written to file as above.
+	maybe 	(return ())
+		(\uploadPath -> do
+			outLn $ "* Uploading results to " ++ uploadPath
+			mapM_ (\file -> ssystem $ "scp " ++ file ++ " " ++ uploadPath) resultFiles)
+			
+		(configUploadResults config)
 
 	
 	-- Mail results to recipient if requested.
@@ -98,22 +111,29 @@ buildTest config env
 	maybe 	(return ())
 		(\(from, to) -> do
 			outLn $ "* Mailing results to " ++ to 
-			mail	<- createMailWithCurrentTime from to "[nightly] DPH Performance Test Succeeded"
-				$ render $ vcat
-				[ text "DPH Performance Test Succeeded"
-				, blank
-				, ppr env
-				, blank
-				, spaceHack $ render $ reportBenchResults (configSwingFraction config) resultComparisons
-				, blank ]
+			
+			banner	<- maybe	
+					(return blank)
+					(\file -> (io $ readFile file) >>= return . text)
+					(configMailBanner config)
+			
+			mail	<- createMailWithCurrentTime from to 
+					"[nightly] DPH Performance Test Succeeded"
+					$ render $ vcat
+					[ banner
+					, ppr env
+					, blank
+					, spaceHack $ render $ reportBenchResults (configSwingFraction config) resultComparisons
+					, blank ]
 			
 			outLn $ "  - Writing mail file"
 			io $ writeFile "dph-buildbot.mail" $ render $ renderMail mail
 				
 			outLn $ "  - Sending mail"
-			sendMailWithMailer mail defaultMailer				
+			sendMailWithMailer mail defaultMailer
 			return ())
 		(configMailFromTo config)
+
 
 
 -- | Parse a noslow benchmark results files.

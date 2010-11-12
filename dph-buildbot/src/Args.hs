@@ -31,9 +31,11 @@ data BuildArg
 	| ArgTestIterations
 	| ArgMailFrom 
 	| ArgMailTo
+	| ArgMailBanner
 	| ArgSendTestMail
 	| ArgWriteResults
 	| ArgWriteResultsStamped
+	| ArgUploadResults
 	| ArgAgainstResults
 	| ArgSwingFraction
 	deriving (Eq, Ord, Show)
@@ -160,17 +162,29 @@ buildArgs
 		, argData	= argDataOptional "file" ArgtypeString
 		, argDesc	= "(opt. for test modes)  ... appending a time stamp to the name." }		
 
+	, Arg	{ argIndex	= ArgUploadResults
+		, argAbbr	= Just 'u'
+		, argName	= Just "upload"
+		, argData	= argDataOptional "scp-path" ArgtypeString
+		, argDesc	= "(opt. for test modes)  ... and scp the results to this path." }
+
 	, Arg	{ argIndex	= ArgMailFrom
 		, argAbbr	= Nothing
-		, argName	= Just "mailfrom"
+		, argName	= Just "mail-from"
 		, argData	= argDataOptional "address" ArgtypeString
 		, argDesc	= "(opt. for test modes) Send test results from this address." }
 
 	, Arg	{ argIndex	= ArgMailTo
 		, argAbbr	= Nothing
-		, argName	= Just "mailto"
+		, argName	= Just "mail-to"
 		, argData	= argDataOptional "address" ArgtypeString
 		, argDesc	= "(opt. for test modes)  ... to this address." }			
+
+	, Arg	{ argIndex	= ArgMailBanner
+		, argAbbr	= Nothing
+		, argName	= Just "mail-banner"
+		, argData	= argDataOptional "file" ArgtypeString
+		, argDesc	= "(opt. for test modes)  ... appending the banner to the front of the message." }
 
 	-- Setup debugging
 	, Arg	{ argIndex	= ArgSendTestMail

@@ -45,7 +45,9 @@ data Config
 
 	-- What do with the results.
 	, configWriteResults	:: Maybe (FilePath, Bool)
-	, configMailFromTo	:: Maybe (String, String) }
+	, configMailFromTo	:: Maybe (String, String)
+	, configMailBanner	:: Maybe String
+	, configUploadResults	:: Maybe String }
 	deriving Show
 
 
@@ -139,7 +141,8 @@ slurpConfig args
 						| otherwise
 						= Nothing
 					  in  result
-						
+		
+		, configUploadResults	= getArg args ArgUploadResults				
 		, configAgainstResults	= getArg args ArgAgainstResults
 		, configSwingFraction	= getArg args ArgSwingFraction
 
@@ -152,4 +155,6 @@ slurpConfig args
 						| otherwise
 						= Nothing
 				  		in	result
+
+		, configMailBanner	= getArg args ArgMailBanner
 		}
