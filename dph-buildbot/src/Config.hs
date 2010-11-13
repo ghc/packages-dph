@@ -46,6 +46,7 @@ data Config
 	-- What do with the results.
 	, configWriteResults	:: Maybe (FilePath, Bool)
 	, configMailFromTo	:: Maybe (String, String)
+	, configMailFailTo	:: Maybe String
 	, configMailBanner	:: Maybe String
 	, configUploadResults	:: Maybe String }
 	deriving Show
@@ -156,5 +157,6 @@ slurpConfig args
 						= Nothing
 				  		in	result
 
+		, configMailFailTo	= getArg args ArgMailFailTo
 		, configMailBanner	= getArg args ArgMailBanner
 		}

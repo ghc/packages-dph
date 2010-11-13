@@ -134,10 +134,13 @@ runTotalCatch config
 		outLn $ render $ ppr err
 		maybe 	(return ())
 			(\(from, to) -> do
+				-- target for fail messages can be overridden
+				let failto	= fromMaybe to (configMailFailTo config)
+
 				outBlank
 				outLn $ "* Mailing result to " ++ to 
 
-				mail	<- createMailWithCurrentTime from to "[nightly] DPH Performance Test FAILED :-("
+				mail	<- createMailWithCurrentTime from failto "[nightly] DPH Performance Test FAILED :-("
 					$ render $ vcat
 					[ text "DPH Performance Build Failed :-("
 					, blank

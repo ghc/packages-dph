@@ -31,6 +31,7 @@ data BuildArg
 	| ArgTestIterations
 	| ArgMailFrom 
 	| ArgMailTo
+	| ArgMailFailTo
 	| ArgMailBanner
 	| ArgSendTestMail
 	| ArgWriteResults
@@ -179,6 +180,12 @@ buildArgs
 		, argName	= Just "mail-to"
 		, argData	= argDataOptional "address" ArgtypeString
 		, argDesc	= "(opt. for test modes)  ... to this address." }			
+
+	, Arg	{ argIndex	= ArgMailFailTo
+		, argAbbr	= Nothing
+		, argName	= Just "mail-fail-to"
+		, argData	= argDataOptional "address" ArgtypeString
+		, argDesc	= "(opt. for test modes)  ... but send failure messages to this other address." }			
 
 	, Arg	{ argIndex	= ArgMailBanner
 		, argAbbr	= Nothing
