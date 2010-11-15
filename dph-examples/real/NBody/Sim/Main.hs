@@ -1,6 +1,7 @@
 {-# LANGUAGE ParallelListComp #-}
 
 import Sim.MainArgs
+import Sim.Draw
 import Sim.Config
 import Common.Dump
 import Common.World
@@ -54,14 +55,19 @@ mainWithArgs args
 			$ lookup solverName solvers
 
 	-- Make functions we'll pass to gloss simulate
-	advance		= advanceWorld 
+	advance viewport time world'
+			= advanceWorld 
 				(calcAccels $ configEpsilon config) 
 				(endProgram $ configDumpFinal config)
 				(configTimeStep config)
 				(configMaxSteps config)
+				time world'
+				
 
+	-- Function to draw the world using gloss.
 	draw		= drawWorld
 				(configShouldDrawTree config)
+
 
     in	case configWindowSize config of
 	 Just windowSize
