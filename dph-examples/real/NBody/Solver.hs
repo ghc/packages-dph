@@ -1,7 +1,8 @@
 
 -- | Wrappers for the various solvers.
 module Solver
-	(solvers)
+	( Solver
+	, solvers)
 where
 import Common.Body
 
