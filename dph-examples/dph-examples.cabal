@@ -106,13 +106,13 @@ Executable dph-quicksort
 -- NBody ----------------------------------------------------------------------
 Executable dph-nbody
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.1.*
-  Main-is:        SimMain.hs
-  hs-source-dirs: lib real/NBody
+  Main-is:        Main.hs
+  hs-source-dirs: lib real/NBody real/NBody/sim
   ghc-options:    -rtsopts -threaded -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-nbody-seq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.1.*
-  Main-is:        SimMain.hs
-  hs-source-dirs: lib real/NBody
+  Main-is:        Main.hs
+  hs-source-dirs: lib real/NBody real/NBody/sim
   ghc-options:    -rtsopts -threaded -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 

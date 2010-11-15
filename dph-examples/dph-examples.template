@@ -104,13 +104,13 @@ Executable dph-quicksort
 -- NBody ----------------------------------------------------------------------
 Executable dph-nbody
   Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*, gloss == 1.1.*
-  Main-is:        SimMain.hs
-  hs-source-dirs: lib real/NBody
+  Main-is:        Main.hs
+  hs-source-dirs: lib real/NBody real/NBody/sim
   ghc-options:    DPH_OPTIONS_PAR
 
 Executable dph-nbody-seq
   Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.1.*
-  Main-is:        SimMain.hs
-  hs-source-dirs: lib real/NBody
+  Main-is:        Main.hs
+  hs-source-dirs: lib real/NBody real/NBody/sim
   ghc-options:    DPH_OPTIONS_SEQ
 
