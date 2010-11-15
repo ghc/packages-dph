@@ -1,4 +1,4 @@
-{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE ParallelListComp, BangPatterns #-}
 
 import Sim.MainArgs
 import Sim.Draw
@@ -86,7 +86,7 @@ mainGloss config calcAccels worldStart windowSize
 	  
 		   -- Gloss doesn't provide a clean way to end the animation...
 	  	   | otherwise	
-	  	   -> unsafePerformIO (endProgram (configDumpFinal config) world') 
+	  	   -> unsafePerformIO (mainEnd (configDumpFinal config) world' >> (error $ "done")) 
 			`seq` error "advanceWorld: we're finished, stop calling me."
 
    in	simulateInWindow
@@ -100,24 +100,37 @@ mainGloss config calcAccels worldStart windowSize
 		advance			-- fn to advance the world
 
 
-mainBatch config calcAccls worldStart
- = return ()
-{-
- = go world	= go (advance world)
--}
+-- | Run the simulation in batch mode, not displaying anything to the screen.
+mainBatch
+	:: Config
+	-> Solver		-- ^ Fn to calculate accels of each point.
+	-> World		-- ^ Initial world.
+	-> IO ()
+	
+mainBatch config calcAccels worldStart
+ = go worldStart
+ where	go !world
+ 	 = let world'	= advanceWorld
+				(calcAccels $ configEpsilon config)
+				(configTimeStep config)
+				world
+				
+	   in  case configMaxSteps config of
+		 Nothing		-> go world'
+		 Just maxSteps
+		  | worldSteps world' < maxSteps	-> go world'
+		  | otherwise 
+		  -> mainEnd (configDumpFinal config) world'
 
 
--- | Call error to end the program.
-endProgram 
-	:: Maybe FilePath		-- ^ Write final bodies to this file.
-	-> World			-- ^ Final world state.
+-- | Called at end of run to dump final world state.
+mainEnd 
+	:: Maybe FilePath	-- ^ Write final bodies to this file.
+	-> World		-- ^ Final world state.
 	-> IO ()
 
-endProgram mDumpFinal world
- = do
-	-- Dump the final world state to file if requested.
+mainEnd mDumpFinal world
+ = do	-- Dump the final world state to file if requested.
 	maybe 	(return ()) (dumpWorld world) mDumpFinal
 
-	-- Call error to end program.
-	error $ "done"
 
