@@ -63,9 +63,9 @@ mainWithArgs args
 	draw		= drawWorld
 				(configShouldDrawTree config)
 
-	windowSize	= configWindowSize config
-
-    in	simulateInWindow
+    in	case configWindowSize config of
+	 Just windowSize
+	  -> simulateInWindow
 		"Barnes-Hutt"		-- window name
 		(windowSize, windowSize)-- window size
 		(10, 10)		-- window position
@@ -74,6 +74,8 @@ mainWithArgs args
 		world			-- initial world
 		draw			-- fn to convert a world to a picture
 		advance			-- fn to advance the world
+
+	 Nothing -> return ()
 
 
 -- | Call error to end the program.

@@ -5,13 +5,14 @@ module Sim.Config
 where
 import Sim.MainArgs
 import System.Console.ParseArgs
+import Data.Maybe
 
 -- | Program config.
 data Config
 	= Config {
 	 
 	-- How to present the output.
-	  configWindowSize	:: Int
+	  configWindowSize	:: Maybe Int
 	, configShouldDrawTree	:: Bool
 	, configRate		:: Int
 
@@ -38,7 +39,7 @@ data Config
 -- | Load program config from its command line arguments.	
 loadConfig :: Args MainArg -> Config
 loadConfig args
- = let	Just windowSize	= getArgInt	args ArgGloss
+ = let	mWindowSize	= getArgInt	args ArgGloss
 	Just solverName	= getArgString	args ArgSolver
 	shouldDrawTree	= gotArg  	args ArgDrawTree
 	Just timeStep	= getArgDouble	args ArgTimeStep
@@ -52,8 +53,14 @@ loadConfig args
 	mMaxSteps	= getArgInt	args ArgMaxSteps
 	mFilePath	= getArgString	args ArgDumpFinal
 
-   in Config
-	{ configWindowSize	= windowSize
+	checkMode x
+	 = if not (isJust mWindowSize || isJust mMaxSteps)
+		then error "you must specify either --max-steps or --gloss"
+		else x	
+
+   in	checkMode $
+	Config
+	{ configWindowSize	= mWindowSize
 	, configShouldDrawTree	= shouldDrawTree
 	, configRate		= rate
 	, configSolverName	= solverName

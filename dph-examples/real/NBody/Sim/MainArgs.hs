@@ -88,8 +88,8 @@ mainArgs
 	, Arg	{ argIndex	= ArgGloss
 		, argAbbr	= Nothing
 		, argName	= Just "gloss"
-		, argData	= argDataDefaulted "Int" ArgtypeInt 800
-		, argDesc	= "Animate simulation in window of this size (default 800)" }
+		, argData	= argDataOptional "Int" ArgtypeInt
+		, argDesc	= "Animate simulation in window of this size" }
 
 	, Arg	{ argIndex	= ArgRate
 		, argAbbr	= Nothing
