@@ -69,7 +69,24 @@ benchmarksDPH config
 	, benchUp config
 	 	"dph.quickhull.c.seq"
 		(inDir "dph-examples/spectral/QuickHull/c" $ qssystem "make")
-		"dph-examples/spectral/QuickHull/c/quickhull 1000000"				
+		"dph-examples/spectral/QuickHull/c/quickhull 1000000"
+		
+	  -- nbody
+	, bench config
+		"dph.nbody.vectorised.par.N1"
+		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N1"
+
+	, bench config
+		"dph.nbody.vectorised.par.N4"
+		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N4"
+
+	, bench config
+		"dph.nbody.vectorised.seq.N4"
+		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N4"
+
+	, bench config
+		"dph.nbody.vector.seq.N4"
+		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s vector-bh +RTS -N4"
 	]
 
 
