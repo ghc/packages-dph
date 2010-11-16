@@ -6,7 +6,7 @@ import Graphics.Gloss.Shapes
 
 
 main
- = do	let world	= ()
+ = do	world	<- initialWorld
 	gameInWindow
 		"Visibility"
 		(1000, 1000)

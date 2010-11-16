@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeOperators #-}
 module Points2D.Generate 
 	( genPointsUniform
+	, genPointsUniformWithSeed
 	, genPointsDisc
 	, genPointsCombo
 	, pointsPArrayOfUArray )
@@ -33,6 +34,21 @@ genPointsUniform
 
 genPointsUniform n pointMin pointMax
  = let  pts             = randomishDoubles (n*2) pointMin pointMax seed
+        xs              = U.extract pts 0 n
+        ys              = U.extract pts n n
+   in   U.zip xs ys
+
+
+-- | Some uniformly distributed points
+genPointsUniformWithSeed
+	:: Int			-- ^ seed
+	-> Int			-- ^ number of points
+	-> Double		-- ^ minimum coordinate
+	-> Double		-- ^ maximum coordinate
+        -> U.Array (Double, Double)
+
+genPointsUniformWithSeed seed' n pointMin pointMax
+ = let  pts             = randomishDoubles (n*2) pointMin pointMax seed'
         xs              = U.extract pts 0 n
         ys              = U.extract pts n n
    in   U.zip xs ys
