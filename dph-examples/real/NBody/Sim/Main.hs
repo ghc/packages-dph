@@ -108,19 +108,30 @@ mainBatch
 	-> IO ()
 	
 mainBatch config calcAccels worldStart
+ = do
+	worldStart `seq` return ()
+
+	(world', tElapsed)
+		<- time 
+		$  let 	world	= mainBatchRun config calcAccels worldStart
+		   in	world `seq` return world
+					
+	putStr $ prettyTime tElapsed
+	mainEnd (configDumpFinal config) world'
+	
+
+mainBatchRun config calcAccels worldStart 
  = go worldStart
  where	go !world
- 	 = let world'	= advanceWorld
+ 	  = let world' = advanceWorld
 				(calcAccels $ configEpsilon config)
 				(configTimeStep config)
 				world
-				
-	   in  case configMaxSteps config of
-		 Nothing		-> go world'
-		 Just maxSteps
-		  | worldSteps world' < maxSteps	-> go world'
-		  | otherwise 
-		  -> mainEnd (configDumpFinal config) world'
+	    in case configMaxSteps config of
+		Nothing	-> go world'
+		Just maxSteps
+ 		  | worldSteps world' < maxSteps -> go world'
+		  | otherwise 	-> world'
 
 
 -- | Called at end of run to dump final world state.
