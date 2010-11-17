@@ -1,6 +1,7 @@
 
 module World
 where
+import Points2D.Types
 import Points2D.Generate
 import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
@@ -44,8 +45,17 @@ splitSegment ::
 -}	
 
 
+-- | Translate both endpoints of a segment.
 translateSegment :: Double -> Double -> Segment -> Segment
 translateSegment tx ty (n, (x1, y1), (x2, y2))
 	= (n, (x1 + tx, y1 + ty), (x2 + tx, y2 + ty))
 
+
+-- | Normalise the world so that the given point is at the origin
+normaliseWorld :: Point -> World -> World
+normaliseWorld (px, py) world
+ = let	segments'	= V.map (translateSegment (-px) (-py)) 
+			$ worldSegments world
+			
+   in	world { worldSegments = segments' }
 	

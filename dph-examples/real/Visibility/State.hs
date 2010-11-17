@@ -9,17 +9,28 @@ import Points2D.Types
 data State
 	= State
 	{ stateWorld		:: World
-	, stateMode		:: Mode
+	, stateModeInterface	:: ModeInterface
+	, stateModeDisplay	:: ModeDisplay
 	, stateViewPos		:: Point }
 
 
--- | What mode the interface is in.
-data Mode	
+-- | What mode the interface interaction is in.
+data ModeInterface
 	-- | We're not doing anything inparticular.
-	= ModeIdle
+	= ModeInterfaceIdle
 
 	-- | We're moving the view position.
-	| ModeMove
+	| ModeInterfaceMove
+	deriving (Show, Eq)
+
+
+-- | What mode the display is in.
+data ModeDisplay
+	-- | Show the world in rectangular coordinates.
+	= ModeDisplayWorld
+
+	-- | Show the world normalised so the view position is at the origin.
+	| ModeDisplayNormalised
 	deriving (Show, Eq)
 
 
@@ -28,7 +39,8 @@ initialState :: World -> State
 initialState world
 	= State
 	{ stateWorld		= world
-	, stateMode		= ModeIdle
+	, stateModeInterface	= ModeInterfaceIdle
+	, stateModeDisplay	= ModeDisplayWorld
 	, stateViewPos		= (0, 0) }
 		
 
