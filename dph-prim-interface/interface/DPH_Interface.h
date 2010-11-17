@@ -464,7 +464,7 @@ tagZeroes xs = map (\x -> fromBool (x==0)) xs
 
 {-# RULES
 
-"tagZeroes" forall xs n.
+"tagZeroes" UNTIL_PHASE_BACKEND forall xs n.
   map fromBool (zipWith GHC.Base.eqInt xs (replicate n (GHC.Base.I# 0#)))
     = tagZeroes xs
 
