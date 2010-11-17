@@ -10,11 +10,8 @@ import Points2D.Types
 import Randomish
 import qualified Data.Array.Parallel.Unlifted 	    as U
 import qualified Data.Array.Parallel.Prelude 	    as P
-import qualified Data.Array.Parallel.Prelude.Double as D
 import qualified Data.Array.Parallel.PArray         as P
 import Data.Array.Parallel.PArray		    (PArray)
-
-import System.Random
 import Control.Exception
 
 -- Random points generation
@@ -23,7 +20,8 @@ import Control.Exception
 --            is between O (N) and O (N^2) depending on the input.
 --            To compare benchmark results, they always need to use the same
 --            input.
-seed 		= 42742
+seed :: Int
+seed 	= 42742
 
 -- | Some uniformly distributed points
 genPointsUniform 
@@ -62,10 +60,7 @@ genPointsDisc
         -> U.Array (Double, Double)
 
 genPointsDisc n (originX, originY) radiusMax
- = let	(genRadius, genAngle)		
-		= split $ mkStdGen seed
-	
-	radius = randomishDoubles n 0     radiusMax seed
+ = let	radius = randomishDoubles n 0     radiusMax seed
         angle  = randomishDoubles n (-pi) pi        (seed + 1234)
 
 	makeXY r a	

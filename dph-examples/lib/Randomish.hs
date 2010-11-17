@@ -35,7 +35,7 @@ randomishInts !len !valMin' !valMax' !seed'
 
 	-- a merzenne prime (don't change it)
 	modulus	:: Word64
-	modulus	= 2^31 - 1
+	modulus	= 2^(31 :: Integer) - 1
 
 	-- if the seed is 0 all the numbers in the sequence are also 0.
 	seed	
@@ -75,7 +75,7 @@ randomishDoubles
 randomishDoubles !len !valMin !valMax !seed
  = let	range	= valMax - valMin
 
-	mx	= 2^30 - 1
+	mx	= 2^(30 :: Integer) - 1
 	mxf	= fromIntegral mx
 	ints	= randomishInts len 0 mx seed
 	
