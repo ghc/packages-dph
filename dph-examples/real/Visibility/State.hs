@@ -31,6 +31,9 @@ data ModeDisplay
 
 	-- | Show the world normalised so the view position is at the origin.
 	| ModeDisplayNormalised
+
+	-- | Show the world in polar coordinates.
+	| ModeDisplayPolar
 	deriving (Show, Eq)
 
 

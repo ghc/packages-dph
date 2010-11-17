@@ -1,8 +1,14 @@
 
 module World
+	( Segment
+	, World(..)
+	, initialWorld
+	, normaliseWorld
+	, polarOfRectWorld)
 where
 import Points2D.Types
 import Points2D.Generate
+import Geometry.Segment
 import Geometry.Intersection
 import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
@@ -11,9 +17,6 @@ import Data.Maybe
 
 -- We keep this unpacked so we can use unboxed vector.
 -- index, x1, y1, x2, y2
-type Segment
-	= (Int, (Double, Double), (Double, Double))
-	
 data World 
 	= World
 	{ worldSegments	:: Vector Segment }
@@ -21,12 +24,12 @@ data World
 -- | Generate the initial world.
 initialWorld :: IO World
 initialWorld
- = do	let n		= 1000
+ = do	let n		= 100
 	let minZ	= -400
 	let maxZ	= 400
 	
-	let minDelta	= -50
-	let maxDelta	= 50
+	let minDelta	= -100
+	let maxDelta	= 100
 	
 	let centers	= genPointsUniform n minZ maxZ
 	let deltas	= genPointsUniformWithSeed 4321 n minDelta maxDelta
@@ -76,4 +79,12 @@ normaliseWorld (px, py) world
 	segments_split	= splitSegmentsOnY 0 segments_trans
 			
    in	world { worldSegments = segments_split }
-	
+
+
+-- | Convert a world from rectangular to polar coordinates.
+polarOfRectWorld :: World -> World
+polarOfRectWorld world
+	= World 
+	{ worldSegments	= V.map polarOfRectSeg (worldSegments world) }
+
+

@@ -39,6 +39,11 @@ handleInput (G.EventKey key keyState _ _) state
 	| G.Char 'n'			<- key
 	, G.Down			<- keyState
 	= state	{ stateModeDisplay	= ModeDisplayNormalised }
+
+handleInput (G.EventKey key keyState _ _) state
+	| G.Char 'p'			<- key
+	, G.Down			<- keyState
+	= state	{ stateModeDisplay	= ModeDisplayPolar }
 	
 
 handleInput _ state

@@ -1,7 +1,8 @@
 
 module Draw
 	( drawState
-	, drawWorld)
+	, drawWorld
+	, drawPolarWorld)
 where
 import State
 import World
@@ -9,6 +10,7 @@ import Points2D.Types
 import Geometry.Intersection
 import qualified Graphics.Gloss		as G
 import qualified Data.Vector.Unboxed	as V
+import Data.Vector.Unboxed		(Vector)
 import Data.Maybe
 
 dtof :: Double -> Float
@@ -21,6 +23,12 @@ drawState state
 
 	| ModeDisplayNormalised <- stateModeDisplay state
 	= drawWorldWithViewPos (0, 0) 
+	$ normaliseWorld (stateViewPos state)
+	$ stateWorld state
+
+	| ModeDisplayPolar	<- stateModeDisplay state
+	= drawPolarWorld
+	$ polarOfRectWorld
 	$ normaliseWorld (stateViewPos state)
 	$ stateWorld state
 
@@ -55,15 +63,31 @@ drawWorldWithViewPos (px, py) world
 
    in	G.Pictures [picWorld, picDude, picCrossings]
 
+
+-- | Draw a world that is in polar coordinates.
+drawPolarWorld :: World -> G.Picture	
+drawPolarWorld world
+ = let	projectPoint   (r, a)		= (((a - pi) / pi) * 400, r - 400)
+	projectSegment (n, p1, p2)	= (n, projectPoint p1, projectPoint p2)
 	
+	segs'		= V.map projectSegment $ worldSegments world
+		
+   in	drawSegments segs'
+
 
 drawWorld :: World -> G.Picture
 drawWorld world
+	= drawSegments
+	$ worldSegments world
+
+
+drawSegments :: Vector Segment -> G.Picture
+drawSegments segments
  	= G.Color G.white
 	$ G.Pictures
 	$ map drawSegment
 	$ V.toList 
-	$ worldSegments world
+	$ segments
 
 
 drawSegment :: Segment -> G.Picture
