@@ -1,13 +1,13 @@
 
 module Draw
 	( drawState
-	, drawWorld
-	, drawPolarWorld)
+	, drawWorld)
 where
 import State
 import World
-import Points2D.Types
 import Geometry.Intersection
+import Geometry.Segment
+import Geometry.Point
 import qualified Graphics.Gloss		as G
 import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
@@ -27,21 +27,34 @@ drawState state
 	$ stateWorld state
 
 	| ModeDisplayPolar	<- stateModeDisplay state
-	= drawPolarWorld
-	$ polarOfRectWorld
-	$ normaliseWorld (stateViewPos state)
-	$ stateWorld state
+	= let	
+		segsPolar	= V.map projectPolarSegment
+				$ worldSegments
+				$ polarOfRectWorld
+				$ normaliseWorld (stateViewPos state)
+				$ stateWorld state
+
+		segClipping	= chooseClippingSegment segsPolar
+	
+	  	picWorld	= G.Color G.white $ drawSegments segsPolar
+		picClipper	= G.Color G.red   $ drawSegment segClipping
+
+	  in	G.Translate 0 (-400)
+		 $ G.Scale 400 1
+		 $ G.Pictures [picWorld, picClipper]
+	
 
 	| otherwise
 	= G.Blank
 	
 
 
-drawWorldWithViewPos :: Point -> World -> G.Picture
+drawWorldWithViewPos :: Point Rect -> World Rect -> G.Picture
 drawWorldWithViewPos (px, py) world
  = let	
 	-- the world 
-	picWorld	= drawWorld world
+	picWorld	= G.Color G.white
+			$ drawWorld world
 
 	-- view position indicator
 	picDude		= G.Color G.green
@@ -64,33 +77,31 @@ drawWorldWithViewPos (px, py) world
    in	G.Pictures [picWorld, picDude, picCrossings]
 
 
--- | Draw a world that is in polar coordinates.
-drawPolarWorld :: World -> G.Picture	
-drawPolarWorld world
- = let	projectPoint   (r, a)		= (((a - pi) / pi) * 400, r - 400)
-	projectSegment (n, p1, p2)	= (n, projectPoint p1, projectPoint p2)
-	
-	segs'		= V.map projectSegment $ worldSegments world
+projectPolarSegment :: Segment Polar -> Segment Rect
+projectPolarSegment (n, p1, p2)
+	= (n, projectPolarPoint p1, projectPolarPoint p2)
+
+
+projectPolarPoint :: Point Polar -> Point Rect
+projectPolarPoint (r, a)
+	= ((a - pi) / pi, r)
 		
-   in	drawSegments segs'
 
-
-drawWorld :: World -> G.Picture
+drawWorld :: World coord -> G.Picture
 drawWorld world
 	= drawSegments
 	$ worldSegments world
 
 
-drawSegments :: Vector Segment -> G.Picture
+drawSegments :: Vector (Segment Rect) -> G.Picture
 drawSegments segments
- 	= G.Color G.white
-	$ G.Pictures
+	= G.Pictures
 	$ map drawSegment
 	$ V.toList 
 	$ segments
 
 
-drawSegment :: Segment -> G.Picture
+drawSegment :: Segment Rect -> G.Picture
 drawSegment (_, (x1, y1), (x2, y2))
 	= G.Line [(f x1, f y1), (f x2, f y2)]
 	where	f	= fromRational . toRational

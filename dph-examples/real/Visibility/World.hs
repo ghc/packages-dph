@@ -1,28 +1,26 @@
 
 module World
 	( Segment
-	, World(..)
+	, World(..), Rect, Polar
 	, initialWorld
 	, normaliseWorld
 	, polarOfRectWorld)
 where
-import Points2D.Types
-import Points2D.Generate
+import Geometry.Point
 import Geometry.Segment
-import Geometry.Intersection
 import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
-import Data.Maybe
 
 
 -- We keep this unpacked so we can use unboxed vector.
 -- index, x1, y1, x2, y2
-data World 
+data World coord 
 	= World
-	{ worldSegments	:: Vector Segment }
+	{ worldSegments	:: Vector (Segment coord) }
+
 
 -- | Generate the initial world.
-initialWorld :: IO World
+initialWorld :: IO (World Rect)
 initialWorld
  = do	let n		= 100
 	let minZ	= -400
@@ -42,36 +40,9 @@ initialWorld
 	return $ World segs
 
 
--- | Split segments that cross the line y = y0, for some y0.
-splitSegmentsOnY :: Double -> Vector Segment -> Vector Segment
-splitSegmentsOnY y0 segs
- = let	
-	-- TODO: we only need to know IF the seg crosse the line here,
-	--       not the actual intersection point. Do a faster test.
-	(segsCross, segsOther)
-		= V.unstablePartition 
-			(\(_, p1, p2) -> isJust $ intersectSegHorzLine p1 p2 y0)
-			segs
-
-	-- TODO: going via lists here is bad.
-	splitCrossingSeg :: Segment -> Vector Segment
-	splitCrossingSeg (n, p1, p2)
-	 = let	Just pCross	= intersectSegHorzLine p1 p2 y0
-	   in	V.fromList [(n, p1, pCross), (n, pCross, p2)]
-	
-	-- TODO: vector append requires a copy.	
-   in	segsOther V.++ (V.concat $ map splitCrossingSeg $ V.toList segsCross)
-
-
--- | Translate both endpoints of a segment.
-translateSegment :: Double -> Double -> Segment -> Segment
-translateSegment tx ty (n, (x1, y1), (x2, y2))
-	= (n, (x1 + tx, y1 + ty), (x2 + tx, y2 + ty))
-
-
 -- | Normalise the world so that the given point is at the origin,
 --   and split segements that cross the y=0 line.
-normaliseWorld :: Point -> World -> World
+normaliseWorld :: Point Rect -> World Rect -> World Rect
 normaliseWorld (px, py) world
  = let	segments_trans	= V.map (translateSegment (-px) (-py)) 
 			$ worldSegments world
@@ -82,7 +53,7 @@ normaliseWorld (px, py) world
 
 
 -- | Convert a world from rectangular to polar coordinates.
-polarOfRectWorld :: World -> World
+polarOfRectWorld :: World Rect -> World Polar
 polarOfRectWorld world
 	= World 
 	{ worldSegments	= V.map polarOfRectSeg (worldSegments world) }

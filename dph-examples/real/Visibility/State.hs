@@ -8,7 +8,7 @@ import Points2D.Types
 -- | The game state.
 data State
 	= State
-	{ stateWorld		:: World
+	{ stateWorld		:: World Rect
 	, stateModeInterface	:: ModeInterface
 	, stateModeDisplay	:: ModeDisplay
 	, stateViewPos		:: Point }
@@ -38,7 +38,7 @@ data ModeDisplay
 
 
 -- | Initial game state.
-initialState :: World -> State
+initialState :: World Rect -> State
 initialState world
 	= State
 	{ stateWorld		= world
