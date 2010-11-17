@@ -4,7 +4,7 @@ module Data.Array.Parallel.Base.Util (
 
 import Data.Word ( Word8 )
 
-type Tag = Word8
+type Tag = Int
 
 fromBool :: Bool -> Tag
 fromBool False = 0
@@ -17,10 +17,10 @@ toBool n | n == 0    = False
 {-# INLINE toBool #-}
 
 tagToInt :: Tag -> Int
-tagToInt = fromEnum
+tagToInt = id -- fromEnum
 {-# INLINE tagToInt #-}
 
 intToTag :: Int -> Tag
-intToTag = toEnum
+intToTag = id -- toEnum
 {-# INLINE intToTag #-}
 
