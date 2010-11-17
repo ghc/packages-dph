@@ -216,7 +216,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
   Seq.snds (splitJoinD g f xs) = splitJoinD g (mapD g Seq.snds . f) xs
 -}
 
-{-#
+{-# RULES
 
 "Seq.zip/joinD[1]" forall g xs ys.
   Seq.zip (joinD g balanced xs) ys
