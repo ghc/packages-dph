@@ -194,7 +194,8 @@ foldSS f z (Stream nexts ss sz) (Stream nextv vs _) =
                        -- error
                        --  "Stream.Segmented.foldSS: invalid segment descriptor"
           Skip    vs' -> return $ Skip (Just n,x,ss,vs')
-          Yield y vs' -> return $ Skip (Just (n-1), f x y, ss, vs')
+          Yield y vs' -> let r = f x y
+                         in r `seq` return (Skip (Just (n-1), r, ss, vs'))
 
 fold1SS :: (a -> a -> a) -> S.Stream Int -> S.Stream a -> S.Stream a
 {-# INLINE_STREAM fold1SS #-}
@@ -227,7 +228,8 @@ fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
         case r of
           Done        -> return Done  -- FIXME: error
           Skip    vs' -> return $ Skip (Just n    ,Just x      ,ss,vs')
-          Yield y vs' -> return $ Skip (Just (n-1),Just (f x y),ss,vs')
+          Yield y vs' -> let r = f x y
+                         in r `seq` return (Skip (Just (n-1),Just r,ss,vs'))
 
 
 combineSS:: S.Stream Bool -> S.Stream Int -> S.Stream a
@@ -342,7 +344,8 @@ foldValuesR f z segSize (Stream nextv vs nv) =
         case r of
           Done        -> return Done
           Skip    vs' -> return $ Skip (n,x,vs')
-          Yield y vs' -> return $ Skip ((n-1),f x y,vs')
+          Yield y vs' -> let r = f x y
+                         in r `seq` return (Skip ((n-1),r,vs'))
 
 divSize :: Size -> Int -> Size
 divSize (Exact n) k = Exact (n `div` k)
