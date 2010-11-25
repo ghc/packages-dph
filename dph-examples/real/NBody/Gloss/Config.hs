@@ -1,9 +1,9 @@
 
-module Sim.Config
+module Gloss.Config
 	( Config (..)
 	, loadConfig)
 where
-import Sim.MainArgs
+import Gloss.MainArgs
 import System.Console.ParseArgs
 import Data.Maybe
 
@@ -55,7 +55,7 @@ loadConfig args
 
 	checkMode x
 	 = if not (isJust mWindowSize || isJust mMaxSteps)
-		then error "you must specify either --max-steps or --gloss"
+		then error "you must specify either --max-steps or --gloss <window size :: Int>"
 		else x	
 
    in	checkMode $

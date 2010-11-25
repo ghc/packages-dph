@@ -6,7 +6,6 @@ module Solver
 where
 import Common.Body
 
-import qualified Solver.ListBH.Draw		as SolverLB
 import qualified Solver.ListBH.Solver		as SolverLB
 
 import qualified Data.Vector.Unboxed		as V

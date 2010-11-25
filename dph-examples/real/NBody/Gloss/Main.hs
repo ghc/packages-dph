@@ -1,16 +1,21 @@
 {-# LANGUAGE ParallelListComp, BangPatterns #-}
 
-import Sim.MainArgs
-import Sim.Draw
-import Sim.Config
+import Gloss.MainArgs
+import Gloss.Draw
+import Gloss.Config
+
 import Common.Dump
 import Common.World
 import Common.Body
 import Common.Util
+
 import Solver
 import Timing
 import Points2D.Generate
+
 import Graphics.Gloss
+import Graphics.Gloss.Interface.Simulate
+
 import System.Environment
 import System.Console.ParseArgs
 import System.IO.Unsafe
@@ -52,9 +57,8 @@ mainWithArgs args
 			$ vPoints
 
 	worldStart	= World
-				{ worldBodies	= vBodies
-				, worldSteps	= 0 }
-
+			{ worldBodies	= vBodies
+			, worldSteps	= 0 }
 				
     in	case configWindowSize config of
 	 Just windowSize	-> mainGloss config calcAccels worldStart windowSize
@@ -90,7 +94,7 @@ mainGloss config calcAccels worldStart windowSize
 			`seq` error "advanceWorld: we're finished, stop calling me."
 
    in	simulateInWindow
-		"Barnes-Hutt"		-- window name
+		"Barnes-Hut"		-- window name
 		(windowSize, windowSize)-- window size
 		(10, 10)		-- window position
 		black			-- background color

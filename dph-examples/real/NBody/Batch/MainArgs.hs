@@ -1,5 +1,5 @@
 
-module Sim.MainArgs
+module Batch.MainArgs
 	( MainArg(..)
 	, mainArgs)
 where
@@ -15,12 +15,7 @@ data MainArg
 	| ArgEpsilon
 	| ArgDiscSize
 	| ArgStartSpeed
-	
-	-- Gloss output
-	| ArgGloss
-	| ArgRate
-	| ArgDrawTree
-	
+		
 	-- Dump output
 	| ArgDumpFinal
 	deriving (Eq, Ord, Show)
@@ -38,7 +33,7 @@ mainArgs
 		, argAbbr	= Just 's'
 		, argName	= Just "solver"
 		, argData	= argDataDefaulted "name" ArgtypeString "vector-naive"
-		, argDesc	= "Solver to use. One of: list-bh, vector-naive, vector-bh, nested-bh." }
+		, argDesc	= "One of: list-bh, vector-naive, vector-bh, nested-bh. (default vector-naive)" }
 
 	-- Simulation setup.
 	, Arg	{ argIndex	= ArgTimeStep
@@ -77,33 +72,12 @@ mainArgs
 		, argData	= argDataDefaulted "Double" ArgtypeDouble 0.5
 		, argDesc	= "Starting rotation speed of bodies (default 0.5)" }
 
-	-- Termination conditions.
 	, Arg	{ argIndex	= ArgMaxSteps
 		, argAbbr	= Nothing
 		, argName	= Just "max-steps"
-		, argData	= argDataOptional "steps" ArgtypeInt
-		, argDesc	= "Exit simulation after this many steps." }
+		, argData	= argDataDefaulted "steps" ArgtypeInt 1000
+		, argDesc	= "Exit simulation after this many steps (default 1000)" }
 
-	-- Gloss animation output.
-	, Arg	{ argIndex	= ArgGloss
-		, argAbbr	= Nothing
-		, argName	= Just "gloss"
-		, argData	= argDataOptional "Int" ArgtypeInt
-		, argDesc	= "Animate simulation in window of this size" }
-
-	, Arg	{ argIndex	= ArgRate
-		, argAbbr	= Nothing
-		, argName	= Just "gloss-rate"
-		, argData	= argDataDefaulted "Double" ArgtypeInt 50
-		, argDesc	= "(opt. for gloss) Number of steps per second of real time (default 50)" }
-
-	, Arg	{ argIndex	= ArgDrawTree
-		, argAbbr	= Nothing
-		, argName	= Just "gloss-tree"
-		, argData	= Nothing
-		, argDesc	= "(opt. for gloss) Draw the Barnes-Hut quad tree"}
-
-	-- Dump points to file
 	, Arg	{ argIndex	= ArgDumpFinal
 		, argAbbr	= Nothing
 		, argName	= Just "dump-final"
