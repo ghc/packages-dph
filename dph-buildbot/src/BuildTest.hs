@@ -151,11 +151,10 @@ parseNoSlowLine str
    in	BenchResult
 		{ benchResultName	= normaliseNoSlowName $ read name
 		, benchResultRuns	
-			= [ BenchRunResult 0
+			= [ BenchRunResult 0 []
 				[ Time KernelWall `secs` (read meanLB) 
 				, Time KernelWall `secs` (read mean)
-				, Time KernelWall `secs` (read meanUB) ] 
-				[] ]
+				, Time KernelWall `secs` (read meanUB) ] ]
 		}
 
 
