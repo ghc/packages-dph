@@ -154,7 +154,9 @@ parseNoSlowLine str
 			= [ BenchRunResult 0
 				[ Time KernelWall `secs` (read meanLB) 
 				, Time KernelWall `secs` (read mean)
-				, Time KernelWall `secs` (read meanUB) ]] }
+				, Time KernelWall `secs` (read meanUB) ] 
+				[] ]
+		}
 
 
 -- | Normalise the name of a noslow benchmark to match our format.

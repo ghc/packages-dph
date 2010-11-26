@@ -11,6 +11,14 @@ benchmarksDPH config
  =	
  	[ -- dot product
 	  bench config
+		"dph.dotp.vectorised.par.N1"
+		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N1"
+
+	, bench config
+		"dph.dotp.vectorised.par.N2"
+		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N2"
+
+	, bench config
 		"dph.dotp.vectorised.par.N4"
 		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N4"
 
@@ -23,6 +31,14 @@ benchmarksDPH config
 		"dph-examples/dist/build/dph-dotp/dph-dotp vector 10000000 +RTS -N4"
 
 	  -- sum of squares
+	, bench config
+		"dph.sumsq.vectorised.par.N1"
+		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N1"
+
+	, bench config
+		"dph.sumsq.vectorised.par.N2"
+		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N2"
+
 	, bench config
 		"dph.sumsq.vectorised.par.N4"
 		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N4"
@@ -37,6 +53,14 @@ benchmarksDPH config
 		
 	  -- evens
         , bench config
+		"dph.evens.vectorised.par.N1"
+		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N1"
+
+        , bench config
+		"dph.evens.vectorised.par.N2"
+		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N2"
+
+        , bench config
 		"dph.evens.vectorised.par.N4"
 		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N4"
 
@@ -46,10 +70,26 @@ benchmarksDPH config
 	
 	  -- quicksort
 	, bench config 
+		"dph.quicksort.vectorised.par.N1"
+		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N1"
+
+	, bench config 
+		"dph.quicksort.vectorised.par.N2"
+		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N2"
+
+	, bench config 
 		"dph.quicksort.vectorised.par.N4"
 		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N4"
 
 	  -- quickhull 
+	, bench config 
+		"dph.quickhull.vectorised.par.N1"
+		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N1 -K20M"
+
+	, bench config 
+		"dph.quickhull.vectorised.par.N2"
+		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N2 -K20M"
+
 	, bench config 
 		"dph.quickhull.vectorised.par.N4"
 		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N4 -K20M"
@@ -59,7 +99,11 @@ benchmarksDPH config
 		"dph-examples/dist/build/dph-quickhull-seq/dph-quickhull-seq 1000000 +RTS -N4 -K40M"
 
 	, bench config
-		"dph.quickhull.vector.seq.N4"
+		"dph.quickhull.vector-immutable.seq.N4"
+		"dph-examples/dist/build/dph-quickhull-vector/dph-quickhull-vector split  1000000 +RTS -N4"
+
+	, bench config
+		"dph.quickhull.vector-mutable.seq.N4"
 		"dph-examples/dist/build/dph-quickhull-vector/dph-quickhull-vector vector 1000000 +RTS -N4"
 
 	, bench config
@@ -72,10 +116,6 @@ benchmarksDPH config
 		"dph-examples/spectral/QuickHull/c/quickhull 1000000"
 		
 	  -- nbody
-	, bench config
-		"dph.nbody.vectorised.par.N1"
-		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N1"
-
 	, bench config
 		"dph.nbody.vectorised.par.N4"
 		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N4"
