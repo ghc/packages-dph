@@ -116,7 +116,7 @@ benchmarksDPH config
 		"dph-examples/spectral/QuickHull/c/quickhull 1000000"
 		
 	  -- nbody
-	, bench config
+{-	, bench config
 		"dph.nbody.vectorised.par.N4"
 		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N4"
 
@@ -127,6 +127,7 @@ benchmarksDPH config
 	, bench config
 		"dph.nbody.vector.seq.N4"
 		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s vector-bh +RTS -N4"
+-}
 	]
 
 
