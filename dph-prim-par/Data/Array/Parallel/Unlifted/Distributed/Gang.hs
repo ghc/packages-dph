@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# OPTIONS_GHC -fglasgow-exts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -22,7 +21,7 @@
 -- * Generalise thread indices?
 
 #define SEQ_IF_GANG_BUSY 1
--- #define TRACE_GANG 1
+#define TRACE_GANG 0
 
 module Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, seqGang, forkGang, gangSize, gangIO, gangST, traceGang, traceGangST 
@@ -42,29 +41,32 @@ import System.Time ( ClockTime(..), getClockTime )
 -- ---------------------------------------------------------------------------
 -- Requests and operations on them
 
--- | The 'Req' type encapsulates work requests for individual members of a
---   gang. It is made up of an 'IO' action, parametrised by the index of the
---   worker which executes it, and an 'MVar' which is written to when the action
---   has been executed and can be waited upon.
-type Req = (Int -> IO (), MVar ())
+-- | The 'Req' type encapsulates work requests for individual members of a gang. 
+data Req 
+	-- | Instruct the worker to run the given action then signal it's done
+	--   by writing to an MVar.
+	= ReqDo	       (Int -> IO ()) (MVar ())
+
+	-- | Tell the worker that we're shutting the gang down. The worker should
+	--   signal that it's going down by writing to the MVar before returning
+	--   to its caller (forkGang) 	
+	| ReqShutdown  (MVar ())
 
 
 -- | Create a new request for the given action.
 newReq :: (Int -> IO ()) -> IO Req
-newReq p = do
-             mv <- newEmptyMVar
-             return (p, mv)
+newReq p 
+ = do	mv	<- newEmptyMVar
+	return	$ ReqDo p mv
 
 
--- | Block until the request has been executed. Note that only one thread can
---   wait for a request.
+-- | Block until a thread request has been executed.
+--   NOTE: only one thread can wait for the request.
 waitReq :: Req -> IO ()
-waitReq = takeMVar . snd
-
-
--- | Execute the request and signal its completion.
-execReq :: Int -> Req -> IO ()
-execReq i (p, s) = p i >> putMVar s ()
+waitReq req
+ = case req of
+	ReqDo     fn varDone	-> takeMVar varDone
+	ReqShutdown varDone	-> takeMVar varDone
 
 
 -- ---------------------------------------------------------------------------
@@ -91,28 +93,66 @@ seqGang (Gang n _ mv) = Gang n [] mv
 
 
 -- | The worker thread of a 'Gang'.
+--   The threads blocks on the MVar waiting for a work request.
 gangWorker :: Int -> MVar Req -> IO ()
-gangWorker i mv =
-  do
-    req 	<- takeMVar mv
-    traceGang ("Worker " ++ show i ++ " begin")
+gangWorker threadId varReq
+ = do	traceGang $ "Worker " ++ show threadId ++ " waiting for request."
+	req	<- takeMVar varReq
+	
+	case req of
+	 ReqDo action varDone
+	  -> do	traceGang $ "Worker " ++ show threadId ++ " begin"
+		start 	<- getGangTime
+		action threadId
+		end 	<- getGangTime
+		traceGang $ "Worker " ++ show threadId ++ " end (" ++ diffTime start end ++ ")"
+		
+		putMVar varDone ()
+		gangWorker threadId varReq
 
-    start 	<- getGangTime
-    execReq i req
-    end 	<- getGangTime
-
-    traceGang ("Worker " ++ show i ++ " end (" ++ diffTime start end ++ ")")
-    gangWorker i mv
+	 ReqShutdown varDone
+	  -> do	traceGang $ "Worker " ++ show threadId ++ " shutting down."
+		putMVar varDone ()
 
 
 -- | Fork a 'Gang' with the given number of threads (at least 1).
 forkGang :: Int -> IO Gang
-forkGang n = assert (n > 0) $
-             do
-               mvs <- sequence . replicate n $ newEmptyMVar
-               zipWithM_ forkOnIO [0..] (zipWith gangWorker [0 .. n-1] mvs)
-               busy <- newMVar False
-               return $ Gang n mvs busy
+forkGang n
+ = assert (n > 0) 
+ $ do	
+	-- Create the vars we'll use to issue work requests.
+	mvs	<- sequence . replicate n $ newEmptyMVar
+	
+	-- We want to shutdown the corresponding thread when it's MVar becomes unreachable.
+	--   Without this Repa programs can complain about "Blocked indefinitely on an MVar"
+	--   because worker threads are still blocked on the request MVars when the program ends.
+	--   Whether the finalizer is called or not is very racey. It happens about 1 in 10 runs
+	--   when for the repa-edgedetect benchmark, and less often with the others.
+	-- 
+	-- We're relying on the comment in System.Mem.Weak that says
+	--  "If there are no other threads to run, the runtime system will check for runnable
+	--   finalizers before declaring the system to be deadlocked."
+	-- 
+	-- If we were creating and destroying the gang cleanly we wouldn't need this, but theGang 
+	--   is created with a top-level unsafePerformIO. Hacks beget hacks beget hacks...
+	-- 
+	let shutdownThread varReq 
+	     = do putStr "Shutting down thread\n"
+		  varDone <- newEmptyMVar
+		  putMVar varReq (ReqShutdown varDone) 
+		  takeMVar varDone
+		  return ()
+	
+	mapM_ (\var -> addMVarFinalizer var (shutdownThread var)) mvs
+
+	-- Create all the worker threads
+	zipWithM_ forkOnIO [0..] 
+		$ zipWith gangWorker [0 .. n-1] mvs
+
+	-- The gang is currently idle.
+	busy	<- newMVar False
+	
+	return $ Gang n mvs busy
 
 
 -- | The number of threads in the 'Gang'.
@@ -148,15 +188,19 @@ gangIO (Gang n mvs busy) p = parIO n mvs p
 parIO :: Int -> [MVar Req] -> (Int -> IO ()) -> IO ()
 parIO n mvs p =
   do
-    traceGang "parIO begin"
+    traceGang "parIO: begin"
 
     start 	<- getGangTime
     reqs 	<- sequence . replicate n $ newReq p
+
+    traceGang "parIO: issuing requests"
     zipWithM putMVar mvs reqs
+
+    traceGang "parIO: waiting for requests"
     mapM_ waitReq reqs
     end 	<- getGangTime
 
-    traceGang $ "parIO end " ++ diffTime start end
+    traceGang $ "parIO: end " ++ diffTime start end
 
 
 -- | Same as 'gangIO' but in the 'ST' monad.
