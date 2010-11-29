@@ -240,30 +240,3 @@ traceGangST :: String -> ST s ()
 traceGangST s = unsafeIOToST (traceGang s)
 
 
-{- Comes from GHC.IOBase now...
--- | Unsafely embed an 'ST' computation in the 'IO' monad without fixing the
--- state type. This should go into 'Control.Monad.ST'.
-unsafeSTToIO :: ST s a -> IO a
-unsafeSTToIO (ST m) = IO $ \ s -> (unsafeCoerce# m) s
- -}
-
-
-{- Old code for sequential gang
--- gangIO (SeqGang n )      p = mapM_ p [0 .. n-1]
--- gangSize (SeqGang n)  = n
-
-
-A /sequential/ 'Gang' simulates such a group by executing work
--- requests sequentially.
-
-
--- | Yield a sequential 'Gang' which simulates the given number of threads.
-sequentialGang :: Int -> Gang
-sequentialGang n = assert (n > 0) $ SeqGang n
-
--- | Yield a sequential 'Gang' which simulates the given one.
-seqGang :: Gang -> Gang
-seqGang = sequentialGang . gangSize
--}
-
-
