@@ -1,4 +1,4 @@
-{-# LANGUAGE PArr #-}
+{-# LANGUAGE ParallelArrays #-}
 module Data.Array.Parallel.Prelude.Base.PArr (
   singletonP,
   (!:),  sliceP,

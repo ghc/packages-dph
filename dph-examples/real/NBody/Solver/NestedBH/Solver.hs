@@ -1,4 +1,4 @@
-{-# LANGUAGE PArr #-}
+{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS -fvectorise #-}
 module Solver.NestedBH.Solver 
 	(calcAccelsWithBoxPA)

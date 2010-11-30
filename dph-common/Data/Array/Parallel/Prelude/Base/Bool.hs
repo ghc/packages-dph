@@ -1,4 +1,4 @@
-{-# LANGUAGE PArr #-}
+{-# LANGUAGE ParallelArrays #-}
 module Data.Array.Parallel.Prelude.Base.Bool (
   andP, andPA, orP, orPA, notV, andV, orV
 ) where

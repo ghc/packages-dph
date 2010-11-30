@@ -1,4 +1,4 @@
-{-# LANGUAGE PArr #-}
+{-# LANGUAGE ParallelArrays #-}
 module Data.Array.Parallel.Prelude.Base.Float (
   -- Ord
   (==), (/=), (<), (<=), (>), (>=), min, max,

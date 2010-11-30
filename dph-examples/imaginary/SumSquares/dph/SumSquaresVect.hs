@@ -1,4 +1,4 @@
-{-# LANGUAGE PArr #-}
+{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS -fvectorise #-}
 module SumSquaresVect (sumSq) where
 import Data.Array.Parallel.Prelude
