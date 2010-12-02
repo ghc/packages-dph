@@ -131,8 +131,7 @@ gangWorker threadId varReq
 --
 finaliseWorker :: MVar Req -> IO ()
 finaliseWorker varReq
- = do	putStr "Shutting down thread\n"
-	varDone <- newEmptyMVar
+ = do	varDone <- newEmptyMVar
 	putMVar varReq (ReqShutdown varDone) 
 	takeMVar varDone
 	return ()
