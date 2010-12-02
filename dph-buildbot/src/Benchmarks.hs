@@ -24,6 +24,10 @@ benchmarksDPH config
 		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N4"
 
 	, bench config
+		"dph.dotp.vectorised.par.N8"
+		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N8"
+
+	, bench config
 		"dph.dotp.vectorised.seq.N4"
 		"dph-examples/dist/build/dph-dotp-seq/dph-dotp-seq dph 10000000 +RTS -N4"		
 
@@ -43,6 +47,10 @@ benchmarksDPH config
 	, bench config
 		"dph.sumsq.vectorised.par.N4"
 		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N4"
+
+	, bench config
+		"dph.sumsq.vectorised.par.N8"
+		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N8"
 
 	, bench config
 		"dph.sumsq.vectorised.seq.N4"
@@ -66,6 +74,10 @@ benchmarksDPH config
 		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N4"
 
         , bench config
+		"dph.evens.vectorised.par.N8"
+		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N8"
+
+        , bench config
 		"dph.evens.vectorised.seq.N4"
 		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq 10000000 +RTS -N4"
 	
@@ -82,6 +94,10 @@ benchmarksDPH config
 		"dph.quicksort.vectorised.par.N4"
 		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N4"
 
+	, bench config 
+		"dph.quicksort.vectorised.par.N8"
+		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N8"
+
 	  -- quickhull 
 	, bench config 
 		"dph.quickhull.vectorised.par.N1"
@@ -94,6 +110,10 @@ benchmarksDPH config
 	, bench config 
 		"dph.quickhull.vectorised.par.N4"
 		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N4 -K20M"
+
+	, bench config 
+		"dph.quickhull.vectorised.par.N8"
+		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N8 -K20M"
 
 	, bench config 
 		"dph.quickhull.vectorised.seq.N4"
@@ -110,6 +130,10 @@ benchmarksDPH config
 	, bench config
 		"dph.quickhull.vector-forkIO.par.N4"
 		"dph-examples/dist/build/dph-quickhull-vector/dph-quickhull-vector io 1000000 +RTS -N4"
+
+	, bench config
+		"dph.quickhull.vector-forkIO.par.N8"
+		"dph-examples/dist/build/dph-quickhull-vector/dph-quickhull-vector io 1000000 +RTS -N8"
 
 	, benchUp config
 	 	"dph.quickhull.c.seq"
@@ -162,7 +186,7 @@ benchmarksRepa config
 				  	 $ qssystem $ "gzip -d " ++ inputgz)
 				(laplace ++ " 1000 " ++ input ++ " output/laplace.bmp +RTS -qg -N" ++ show n)
 
-	  in	[run 1, run 2, run 4, run 8])
+	  in	[run 1, run 2, run 4, run 6, run 8])
 
  ++	[ benchUp config
 		"repa.laplace.c.seq"
@@ -183,7 +207,7 @@ benchmarksRepa config
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
 				(blur ++ " 5 " ++ input ++ " output/lena-blur.bmp +RTS -qg -N" ++ show n)
 
-	  in	[run 1, run 2, run 4])
+	  in	[run 1, run 2, run 4, run 6, run 8])
 	
 
 	-- edgedetect ---------------------------------------------------------
@@ -199,7 +223,7 @@ benchmarksRepa config
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
 				(edgedetect ++ " " ++ input ++ " output/lena-edgedetect.bmp +RTS -qg -N" ++ show n)
 				
-	  in	[run 1, run 2, run 4])
+	  in	[run 1, run 2, run 4, run 6, run 8])
 
 
 	-- fft2d-highpass -----------------------------------------------------
@@ -214,7 +238,7 @@ benchmarksRepa config
 					whenM (test $ HasFile inputgz)
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
 				(fft2d ++ " 1 " ++ input ++ " output/fft2d.bmp +RTS -qg -N" ++ show n)
-	 in	[run 1, run 2, run 4])
+	 in	[run 1, run 2, run 4, run 6, run 8])
 
 
 	-- fft3d-highpass -----------------------------------------------------
@@ -225,7 +249,7 @@ benchmarksRepa config
 				(ensureDir "output/fft3d")
 				(fft3d ++ " 128 output/fft3d/slice +RTS -qg -N" ++ show n)
 
-	 in	[run 1, run 2, run 4])
+	 in	[run 1, run 2, run 4, run 6, run 8])
 	
 
 
