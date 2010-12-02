@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-type-defaults #-}
 
 module Benchmarks where
 import Config
@@ -134,80 +135,98 @@ benchmarksDPH config
 -- | Repa benchmark configuration.
 benchmarksRepa :: Config -> [Benchmark]
 benchmarksRepa config
- =	-- mmult
-	[ bench config
-		"repa.mmult.par.N4"
-		"repa-examples/dist/build/repa-mmult/repa-mmult -random 1024 1024 -random 1024 1024 +RTS -N4"
-	
-	, benchUp config
+ =	-- mmult --------------------------------------------------------------
+	(let 	mmult	= "repa-examples/dist/build/repa-mmult/repa-mmult"
+		run n	= bench config
+				("repa.mmult.par.N" ++ show n)
+				(mmult ++ " -random 1024 1024 -random 1024 1024 +RTS -N" ++ show n)
+
+	in	[run 1, run 2, run 4, run 8])
+
+ ++	[ benchUp config
 		"repa.mmult.c.seq"
 		(inDir "repa-examples/MMult/legacy" $ qssystem "make")
-		"repa-examples/MMult/legacy/mmult -random 1024 1024 -random 1024 1024"
-	
-	-- laplace
-	, let	laplace = "repa-examples/dist/build/repa-laplace/repa-laplace"
+		"repa-examples/MMult/legacy/mmult -random 1024 1024 -random 1024 1024" ]
+
+		
+ 	-- laplace ------------------------------------------------------------
+ ++	(let	laplace = "repa-examples/dist/build/repa-laplace/repa-laplace"
 		input	= "repa-examples/Laplace/data/pls-400x400.bmp"
 		inputgz	= input ++ ".gz"
 
-	  in  	benchUp config
-		 	"repa.laplace.par.N4"
-			(do	ensureDir "output"
-				check $ HasExecutable laplace
-				whenM (test $ HasFile inputgz)
-				 $ qssystem $ "gzip -d " ++ inputgz)
+		run n	= benchUp config
+		 		("repa.laplace.par.N" ++ show n)
+				(do	ensureDir "output"
+					check $ HasExecutable laplace
+					whenM (test $ HasFile inputgz)
+				  	 $ qssystem $ "gzip -d " ++ inputgz)
+				(laplace ++ " 1000 " ++ input ++ " output/laplace.bmp +RTS -qg -N" ++ show n)
 
-			(laplace ++ " 1000 " ++ input ++ " output/laplace.bmp +RTS -N4 -qg")
+	  in	[run 1, run 2, run 4, run 8])
 
-	, benchUp config
+ ++	[ benchUp config
 		"repa.laplace.c.seq"
 		(inDir "repa-examples/Laplace/legacy" $ qssystem "make")
-		"repa-examples/Laplace/legacy/laplace 400 400 1000 output/laplace_c-seq.ppm"
+		"repa-examples/Laplace/legacy/laplace 400 400 1000 output/laplace_c-seq.ppm" ]
 
-	-- blur
-	, let	blur	= "repa-examples/dist/build/repa-blur/repa-blur"
+	
+	-- blur ---------------------------------------------------------------
+ ++	(let	blur	= "repa-examples/dist/build/repa-blur/repa-blur"
 		input	= "repa-examples/data/lena.bmp"
 		inputgz	= input ++ ".gz"
 		
-	  in	benchUp config
-			"repa.blur.par.N4"
-			(do	ensureDir "output"
-				check $ HasExecutable blur
-				whenM (test $ HasFile inputgz)
-				 $ qssystem $ "gzip -d " ++ inputgz)
-			(blur ++ " 5 " ++ input ++ " output/lena-blur.bmp +RTS -N4 -qg")
+		run n	= benchUp config
+				("repa.blur.par.N" ++ show n)
+				(do	ensureDir "output"
+					check $ HasExecutable blur
+					whenM (test $ HasFile inputgz)
+				 	 $ qssystem $ "gzip -d " ++ inputgz)
+				(blur ++ " 5 " ++ input ++ " output/lena-blur.bmp +RTS -qg -N" ++ show n)
 
-	-- edgedetect
-	, let	edgedetect = "repa-examples/dist/build/repa-edgedetect/repa-edgedetect"
-		input	   = "repa-examples/data/lena.bmp"
-		inputgz	   = input ++ ".gz"
-		
-	  in	benchUp config
-			"repa.edgedetect.par.N2"
-			(do	ensureDir "output"
-				check $ HasExecutable edgedetect
-				whenM (test $ HasFile inputgz)
-				 $ qssystem $ "gzip -d " ++ inputgz)
-			(edgedetect ++ " " ++ input ++ " output/lena-edgedetect.bmp +RTS -N2 -qg")
+	  in	[run 1, run 2, run 4])
+	
 
-	-- fft2d-highpass
-	, let	fft2d	= "repa-examples/dist/build/repa-fft2d-highpass/repa-fft2d-highpass"
+	-- edgedetect ---------------------------------------------------------
+ ++	(let	edgedetect = "repa-examples/dist/build/repa-edgedetect/repa-edgedetect"
 		input	= "repa-examples/data/lena.bmp"
 		inputgz	= input ++ ".gz"
 		
-	  in	benchUp config
-			"repa.fft2d.par.N4"
-			(do	ensureDir "output"
-				check $ HasExecutable fft2d
-				whenM (test $ HasFile inputgz)
-				 $ qssystem $ "gzip -d " ++ inputgz)
-			(fft2d ++ " 1 " ++ input ++ " output/fft2d.bmp +RTS -N4 -qg")
+	 	run n	= benchUp config
+				("repa.edgedetect.par.N" ++ show n)
+				(do	ensureDir "output"
+					check $ HasExecutable edgedetect
+					whenM (test $ HasFile inputgz)
+				 	 $ qssystem $ "gzip -d " ++ inputgz)
+				(edgedetect ++ " " ++ input ++ " output/lena-edgedetect.bmp +RTS -qg -N" ++ show n)
+				
+	  in	[run 1, run 2, run 4])
 
-	-- fft3d-highpass
-	, benchUp config
-		"repa.fft3d.par.N4"
-		(ensureDir "output/fft3d")
-		"repa-examples/dist/build/repa-fft3d-highpass/repa-fft3d-highpass 128 output/fft3d/slice +RTS -N4 -qg"
-	]
+
+	-- fft2d-highpass -----------------------------------------------------
+ ++	(let	fft2d	= "repa-examples/dist/build/repa-fft2d-highpass/repa-fft2d-highpass"
+		input	= "repa-examples/data/lena.bmp"
+		inputgz	= input ++ ".gz"
+		
+		run n	= benchUp config
+				("repa.fft2d.par.N" ++ show n)
+				(do	ensureDir "output"
+					check $ HasExecutable fft2d
+					whenM (test $ HasFile inputgz)
+				 	 $ qssystem $ "gzip -d " ++ inputgz)
+				(fft2d ++ " 1 " ++ input ++ " output/fft2d.bmp +RTS -qg -N" ++ show n)
+	 in	[run 1, run 2, run 4])
+
+
+	-- fft3d-highpass -----------------------------------------------------
+ ++	(let	fft3d	= "repa-examples/dist/build/repa-fft3d-highpass/repa-fft3d-highpass"
+	
+		run n	= benchUp config
+				("repa.fft3d.par.N" ++ show n)
+				(ensureDir "output/fft3d")
+				(fft3d ++ " 128 output/fft3d/slice +RTS -qg -N" ++ show n)
+
+	 in	[run 1, run 2, run 4])
+	
 
 
 -- | Define a plain benchmark with no setup or teardown command
