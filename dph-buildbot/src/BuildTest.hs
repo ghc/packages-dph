@@ -139,10 +139,10 @@ buildTest config env
 -- | Parse a noslow benchmark results files.
 parseNoSlowLog :: String -> [BenchResult Single]
 parseNoSlowLog str
-	= map parseNoSlowLine
-	$ tail
-	$ lines str
-
+ = case lines str of
+	[]	-> error $ "parseNoSlowLog: no lines"
+	ls	-> map parseNoSlowLine $ tail ls
+	
 parseNoSlowLine :: String -> BenchResult Single
 parseNoSlowLine str
  = let	[name, mean, meanLB, meanUB, _, _, _]

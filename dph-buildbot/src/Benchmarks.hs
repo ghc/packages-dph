@@ -250,5 +250,13 @@ systemWithTimings verbose cmd
 parseTimings :: String -> [WithUnits (Aspect Single)]
 parseTimings str
  = let	(lElapsed : _)	= lines str
-	elapsedTime	= tail $ dropWhile (/= '=') lElapsed
+	thing		= dropWhile (/= '=') lElapsed
+
+	elapsedTime
+	 = case thing of
+		[]	-> error $ "parseTimings: no time in " ++ show thing
+		_	-> tail thing
+				
    in	[ Time KernelWall `secs` (read elapsedTime / 1000) ]
+
+
