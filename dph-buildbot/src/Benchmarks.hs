@@ -53,6 +53,21 @@ benchmarksDPH config
 	, bench config
 		"dph.evens.vector.seq.N4"
 		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq vector 10000000 +RTS -N4" ]
+
+
+	  -- primes ------------------------------------------------------------
+ ++	(let 	run n	= bench config
+				("dph.primes.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-primes/dph-primes vectorised 20000000 +RTS -N" ++ show n)
+	 in	map run [1, 2, 4, 8])
+
+ ++	[ bench config
+		"dph.primes.vectorised.seq.N4"
+		"dph-examples/dist/build/dph-primes-seq/dph-primes-seq vectorised 20000000 +RTS -N4"
+	
+	, bench config
+		"dph.primes.vector.seq.N4"
+		"dph-examples/dist/build/dph-primes-seq/dph-primes-seq vector 20000000 +RTS -N4" ]
 	
 
 	  -- quicksort --------------------------------------------------------
