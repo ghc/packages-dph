@@ -1,7 +1,7 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS -fvectorise #-}
 
-module EvensVect (evensPA) where
+module EvensVectorised (evensPA) where
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Int
 import qualified Prelude as P

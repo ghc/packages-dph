@@ -1,34 +1,45 @@
 
-import EvensVect
+import EvensVectorised			as Z
+import EvensVector			as V
+import qualified Data.Vector.Unboxed	as V
 import Timing
 import System.Environment
 import Data.Array.Parallel.PArray	as P
-
--- | Command line usage information.
-usage :: String
-usage	= unlines ["Usage: evens <length>"]
 
 main :: IO ()
 main 
  = do	args	<- getArgs
 	case args of
-	  [len]	
-	    -> run (read len)
+	  [alg, len]	-> run alg (read len)
+	  _ 		-> usage
 
-	  _ -> putStr usage
+usage
+ = putStr $ unlines
+ 	[ "usage: evens <alg> <length>"
+ 	, "  alg one of " ++ show ["vectorised", "vector"] ]
 
-
--- | Run the benchmark.
-run :: Int -> IO ()
-run len
- = do	let arr	= P.fromList [0.. len - 1]
-
+run alg len
+ = do	let vec	= V.fromList [0..len - 1]
+	runAlg alg vec
+	
+runAlg "vectorised" vec
+ = do	let arr	= P.fromUArrPA' vec
 	arr `seq` return ()
 
 	(arr', tElapsed)
-		<- time 
-		$  let 	arr'	= evensPA arr
+	 <- time $ let	arr' = evensPA arr
 		   in	arr' `seq` return arr'
 					
-	putStr $ prettyTime tElapsed
-	putStr $ (show $ P.length arr') ++ "\n"
+	putStr   $ prettyTime tElapsed
+	putStrLn $ show $ P.length arr'
+
+runAlg "vector" vec
+ = do	vec `seq` return ()
+	
+	(vec', tElapsed)
+	 <- time $ let	vec' = evensV vec
+		   in	vec' `seq` return vec'
+		
+	putStr   $ prettyTime tElapsed
+	putStrLn $ show $ V.length vec'
+	
