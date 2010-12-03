@@ -25,6 +25,7 @@ DPH_DEPENDS_SEQ = \
 # 	use the parallel garbage collector.
 #
 DPH_OPTIONS_PAR = \
+	-dcore-lint \
         -rtsopts \
         -threaded \
         -Odph \
@@ -34,6 +35,7 @@ DPH_OPTIONS_PAR = \
         -fstrictness-before=3 
 
 DPH_OPTIONS_SEQ = \
+	-dcore-lint \
         -rtsopts \
 	-threaded \
         -Odph \
