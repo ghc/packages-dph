@@ -1,6 +1,6 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS -fvectorise #-}
-module SumSquaresVect (sumSq) where
+module SumSquaresVectorised (sumSq) where
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Int 		as I
 import Data.Array.Parallel.Prelude.Double	as D

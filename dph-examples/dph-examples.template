@@ -25,13 +25,13 @@ Flag gloss
 Executable dph-sumsq
   Build-depends:  DPH_DEPENDS_PAR
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/SumSquares/dph
+  hs-source-dirs: lib imaginary/SumSquares
   ghc-options:    DPH_OPTIONS_PAR
 
 Executable dph-sumsq-seq
   Build-depends:  DPH_DEPENDS_SEQ
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/SumSquares/dph
+  hs-source-dirs: lib imaginary/SumSquares
   ghc-options:    DPH_OPTIONS_SEQ
 
 
@@ -39,13 +39,13 @@ Executable dph-sumsq-seq
 Executable dph-dotp
   Build-depends:  DPH_DEPENDS_PAR
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/DotProduct/dph
+  hs-source-dirs: lib imaginary/DotProduct
   ghc-options:    DPH_OPTIONS_PAR
 
 Executable dph-dotp-seq
   Build-depends:  DPH_DEPENDS_SEQ
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/DotProduct/dph
+  hs-source-dirs: lib imaginary/DotProduct
   ghc-options:    DPH_OPTIONS_SEQ
 
 

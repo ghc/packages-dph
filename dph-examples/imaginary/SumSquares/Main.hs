@@ -1,9 +1,10 @@
 
-import SumSquaresVect
 import Timing
 import Randomish
 import System.Environment
 import qualified Data.Vector.Unboxed	as V
+import qualified SumSquaresVector	as V
+import qualified SumSquaresVectorised	as Z
 
 main :: IO ()
 main 
@@ -11,6 +12,11 @@ main
 	case args of
 	  [alg, len] 	-> run alg (read len) 
 	  _		-> usage
+
+usage
+ = putStr $ unlines
+ 	[ "usage: sumsq <alg> <length>"
+ 	, "  alg one of " ++ show ["vectorised", "vector"] ]
 	
 run alg num
  = do	(result, tElapsed) <- runAlg alg num
@@ -18,19 +24,11 @@ run alg num
 	putStr	$ prettyTime tElapsed
 	print result
 
-runAlg "dph" num
- =	time	$ let result	= sumSq num
+runAlg "vectorised" num
+ =	time	$ let result	= Z.sumSq num
 		  in  result `seq` return result
 
 runAlg "vector" num
- =	time	$ let result	= V.sum 
-				$ V.map (\x -> x * x) 
-				$ V.map fromIntegral 
-				$ V.enumFromTo 1 num
-
+ =	time	$ let result	= V.sumSq num
 		  in  result `seq` return result
 		
-usage
- = putStr $ unlines
- 	[ "usage: sumsq <alg> <length>"
- 	, "  alg one of " ++ show ["dph", "vector"] ]
