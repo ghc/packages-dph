@@ -63,6 +63,20 @@ Executable dph-evens-seq
   ghc-options:    DPH_OPTIONS_SEQ
 
 
+-- Primes ---------------------------------------------------------------------
+Executable dph-primes
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Primes lib
+  ghc-options:    DPH_OPTIONS_PAR
+
+Executable dph-primes-seq
+  Build-depends:  DPH_DEPENDS_SEQ
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Primes lib
+  ghc-options:    DPH_OPTIONS_SEQ
+
+
 -- QuickHull ------------------------------------------------------------------
 Executable dph-quickhull
   Build-depends:  DPH_DEPENDS_PAR
