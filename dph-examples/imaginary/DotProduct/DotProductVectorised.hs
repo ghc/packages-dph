@@ -1,6 +1,6 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS -fvectorise #-}
-module DotProductVect ( dotPA ) where
+module DotProductVectorised ( dotPA ) where
 
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Double as D

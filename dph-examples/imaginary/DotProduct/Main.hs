@@ -1,13 +1,12 @@
 
-import DotProductVect
 import Timing
 import Randomish
 import System.Environment
-import Data.Vector.Unboxed		(Vector)
 import Data.Array.Parallel.Prelude	as P
 import Data.Array.Parallel.PArray	as P
 import qualified Data.Vector.Unboxed	as V
-
+import qualified DotProductVector	as V
+import qualified DotProductVectorised	as Z
 
 main :: IO ()
 main 
@@ -15,6 +14,11 @@ main
 	case args of
 	  [alg, len] 	-> run alg (read len) 
 	  _		-> usage
+
+usage
+ = putStr $ unlines
+ 	[ "usage: dotp <alg> <length>"
+ 	, "  alg one of " ++ show ["vectorised", "vector"] ]
 	
 run alg len
  = do	let vec1 = randomishDoubles len 0 1 1234
@@ -25,22 +29,17 @@ run alg len
 	putStr	$ prettyTime tElapsed
 	putStr	$ (take 12 $ show result) ++ "\n"
 
-runAlg "dph" vec1 vec2 
+runAlg "vectorised" vec1 vec2 
  = do	let arr1 = fromUArrPA' vec1
 	let arr2 = fromUArrPA' vec2
 	arr1 `seq` arr2 `seq` return ()
 
-	time	$ let result	= dotPA arr1 arr2
+	time	$ let result	= Z.dotPA arr1 arr2
 		  in  result `seq` return result
 
 runAlg "vector" vec1 vec2
  = do	vec1 `seq` vec2 `seq` return ()
 
-	time	$ let result	= V.sum $ V.zipWith (*) vec1 vec2
+	time	$ let result	= V.dotV vec1 vec2 
 		  in  result `seq` return result
 		
-usage
- = putStr $ unlines
- 	[ "usage: dotp <alg> <length>"
- 	, "  alg one of " ++ show ["dph", "vector"] ]
-

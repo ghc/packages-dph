@@ -13,12 +13,12 @@ benchmarksDPH config
  	-- dot product --------------------------------------------------------
  =	  (let	run n	= bench config
 				("dph.dotp.vectorised.par.N" ++ show n)
-				("dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N" ++ show n)
+				("dph-examples/dist/build/dph-dotp/dph-dotp vectorised 10000000 +RTS -N" ++ show n)
 	   in	map run [1, 2, 4, 8])
 	
  ++	[ bench config
 		"dph.dotp.vectorised.seq.N4"
-		"dph-examples/dist/build/dph-dotp-seq/dph-dotp-seq dph 10000000 +RTS -N4"		
+		"dph-examples/dist/build/dph-dotp-seq/dph-dotp-seq vectorised 10000000 +RTS -N4"		
 
 	, bench config
 		"dph.dotp.vector.seq.N4"
@@ -28,12 +28,12 @@ benchmarksDPH config
 	  -- sum of squares ---------------------------------------------------
  ++	(let 	run n	= bench config
 				("dph.sumsq.vectorised.par.N" ++ show n)
-				("dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N" ++ show n)
+				("dph-examples/dist/build/dph-sumsq/dph-sumsq vectorised 100000000 +RTS -N" ++ show n)
 	 in 	map run [1, 2, 4, 8])
 
  ++	[ bench config
 		"dph.sumsq.vectorised.seq.N4"
-		"dph-examples/dist/build/dph-sumsq-seq/dph-sumsq-seq dph 100000000 +RTS -N4"
+		"dph-examples/dist/build/dph-sumsq-seq/dph-sumsq-seq vectorised 100000000 +RTS -N4"
 
 	, bench config
 		"dph.sumsq.vector.seq.N4"
@@ -43,12 +43,16 @@ benchmarksDPH config
 	  -- evens ------------------------------------------------------------
  ++	(let 	run n	= bench config
 				("dph.evens.vectorised.par.N" ++ show n)
-				("dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N" ++ show n)
+				("dph-examples/dist/build/dph-evens/dph-evens vectorised 10000000 +RTS -N" ++ show n)
 	 in	map run [1, 2, 4, 8])
 
  ++	[ bench config
 		"dph.evens.vectorised.seq.N4"
-		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq 10000000 +RTS -N4" ]
+		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq vectorised 10000000 +RTS -N4"
+	
+	, bench config
+		"dph.evens.vector.seq.N4"
+		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq vector 10000000 +RTS -N4" ]
 	
 
 	  -- quicksort --------------------------------------------------------
@@ -88,21 +92,22 @@ benchmarksDPH config
 	, benchUp config
 	 	"dph.quickhull.c.seq"
 		(inDir "dph-examples/spectral/QuickHull/c" $ qssystem "make")
-		"dph-examples/spectral/QuickHull/c/quickhull 1000000"
+		"dph-examples/spectral/QuickHull/c/quickhull 1000000" ]
 		
-	  -- nbody
-{-	, bench config
-		"dph.nbody.vectorised.par.N4"
-		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N4"
-
-	, bench config
+	  -- nbody ------------------------------------------------------------
+ ++	(let	run n	= bench config
+				("dph.nbody.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 10 -b 100 -s nested-bh +RTS -N" ++ show n)
+				
+	 in	map run [1, 2, 4])
+	
+ ++ 	[ bench config
 		"dph.nbody.vectorised.seq.N4"
-		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s nested-bh +RTS -N4"
+		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 10 -b 100 -s nested-bh +RTS -N4"
 
 	, bench config
 		"dph.nbody.vector.seq.N4"
-		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 100 -b 100 -s vector-bh +RTS -N4"
--}
+		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 10 -b 100 -s vector-bh +RTS -N4"
 	]
 
 
