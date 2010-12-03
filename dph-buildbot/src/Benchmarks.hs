@@ -9,113 +9,63 @@ import qualified BuildBox.Data.Log	as Log
 -- | DPH benchmark configuation.
 benchmarksDPH :: Config -> [Benchmark]
 benchmarksDPH config
- =	
- 	[ -- dot product
-	  bench config
-		"dph.dotp.vectorised.par.N1"
-		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N1"
 
-	, bench config
-		"dph.dotp.vectorised.par.N2"
-		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N2"
-
-	, bench config
-		"dph.dotp.vectorised.par.N4"
-		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N4"
-
-	, bench config
-		"dph.dotp.vectorised.par.N8"
-		"dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N8"
-
-	, bench config
+ 	-- dot product --------------------------------------------------------
+ =	  (let	run n	= bench config
+				("dph.dotp.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-dotp/dph-dotp dph 10000000 +RTS -N" ++ show n)
+	   in	map run [1, 2, 4, 8])
+	
+ ++	[ bench config
 		"dph.dotp.vectorised.seq.N4"
 		"dph-examples/dist/build/dph-dotp-seq/dph-dotp-seq dph 10000000 +RTS -N4"		
 
 	, bench config
 		"dph.dotp.vector.seq.N4"
-		"dph-examples/dist/build/dph-dotp/dph-dotp vector 10000000 +RTS -N4"
+		"dph-examples/dist/build/dph-dotp/dph-dotp vector 10000000 +RTS -N4" ]
 
-	  -- sum of squares
-	, bench config
-		"dph.sumsq.vectorised.par.N1"
-		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N1"
 
-	, bench config
-		"dph.sumsq.vectorised.par.N2"
-		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N2"
+	  -- sum of squares ---------------------------------------------------
+ ++	(let 	run n	= bench config
+				("dph.sumsq.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N" ++ show n)
+	 in 	map run [1, 2, 4, 8])
 
-	, bench config
-		"dph.sumsq.vectorised.par.N4"
-		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N4"
-
-	, bench config
-		"dph.sumsq.vectorised.par.N8"
-		"dph-examples/dist/build/dph-sumsq/dph-sumsq dph 100000000 +RTS -N8"
-
-	, bench config
+ ++	[ bench config
 		"dph.sumsq.vectorised.seq.N4"
 		"dph-examples/dist/build/dph-sumsq-seq/dph-sumsq-seq dph 100000000 +RTS -N4"
 
 	, bench config
 		"dph.sumsq.vector.seq.N4"
-		"dph-examples/dist/build/dph-sumsq/dph-sumsq vector 100000000 +RTS -N4"
+		"dph-examples/dist/build/dph-sumsq/dph-sumsq vector 100000000 +RTS -N4" ]
 		
-	  -- evens
-        , bench config
-		"dph.evens.vectorised.par.N1"
-		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N1"
 
-        , bench config
-		"dph.evens.vectorised.par.N2"
-		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N2"
+	  -- evens ------------------------------------------------------------
+ ++	(let 	run n	= bench config
+				("dph.evens.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N" ++ show n)
+	 in	map run [1, 2, 4, 8])
 
-        , bench config
-		"dph.evens.vectorised.par.N4"
-		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N4"
-
-        , bench config
-		"dph.evens.vectorised.par.N8"
-		"dph-examples/dist/build/dph-evens/dph-evens 10000000 +RTS -N8"
-
-        , bench config
+ ++	[ bench config
 		"dph.evens.vectorised.seq.N4"
-		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq 10000000 +RTS -N4"
+		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq 10000000 +RTS -N4" ]
 	
-	  -- quicksort
-	, bench config 
-		"dph.quicksort.vectorised.par.N1"
-		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N1"
 
-	, bench config 
-		"dph.quicksort.vectorised.par.N2"
-		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N2"
+	  -- quicksort --------------------------------------------------------
+ ++	(let	run n	= bench config 
+				("dph.quicksort.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N" ++ show n)
+	 in	map run [1, 2, 4, 8])
 
-	, bench config 
-		"dph.quicksort.vectorised.par.N4"
-		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N4"
 
-	, bench config 
-		"dph.quicksort.vectorised.par.N8"
-		"dph-examples/dist/build/dph-quicksort/dph-quicksort 100000 +RTS -N8"
+	  -- quickhull --------------------------------------------------------
+ ++	(let	run n	= bench config 
+				("dph.quickhull.vectorised.par.N" ++ show n)
+				("dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -K20M -N" ++ show n)
+	 in	map run [1, 2, 4, 8])
 
-	  -- quickhull 
-	, bench config 
-		"dph.quickhull.vectorised.par.N1"
-		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N1 -K20M"
 
-	, bench config 
-		"dph.quickhull.vectorised.par.N2"
-		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N2 -K20M"
-
-	, bench config 
-		"dph.quickhull.vectorised.par.N4"
-		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N4 -K20M"
-
-	, bench config 
-		"dph.quickhull.vectorised.par.N8"
-		"dph-examples/dist/build/dph-quickhull/dph-quickhull 1000000 +RTS -N8 -K20M"
-
-	, bench config 
+ ++	[ bench config 
 		"dph.quickhull.vectorised.seq.N4"
 		"dph-examples/dist/build/dph-quickhull-seq/dph-quickhull-seq 1000000 +RTS -N4 -K40M"
 
@@ -207,7 +157,7 @@ benchmarksRepa config
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
 				(blur ++ " 5 " ++ input ++ " output/lena-blur.bmp +RTS -qg -N" ++ show n)
 
-	  in	[run 1, run 2, run 4, run 6, run 8])
+	  in	map run [1, 2, 4, 6, 8])
 	
 
 	-- edgedetect ---------------------------------------------------------
@@ -223,7 +173,7 @@ benchmarksRepa config
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
 				(edgedetect ++ " " ++ input ++ " output/lena-edgedetect.bmp +RTS -qg -N" ++ show n)
 				
-	  in	[run 1, run 2, run 4, run 6, run 8])
+	  in	map run [1, 2, 4, 6, 8])
 
 
 	-- fft2d-highpass -----------------------------------------------------
@@ -238,7 +188,7 @@ benchmarksRepa config
 					whenM (test $ HasFile inputgz)
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
 				(fft2d ++ " 1 " ++ input ++ " output/fft2d.bmp +RTS -qg -N" ++ show n)
-	 in	[run 1, run 2, run 4, run 6, run 8])
+	 in	map run [1, 2, 4, 6, 8])
 
 
 	-- fft3d-highpass -----------------------------------------------------
@@ -249,7 +199,7 @@ benchmarksRepa config
 				(ensureDir "output/fft3d")
 				(fft3d ++ " 128 output/fft3d/slice +RTS -qg -N" ++ show n)
 
-	 in	[run 1, run 2, run 4, run 6, run 8])
+	 in	map run [1, 2, 4, 6, 8])
 	
 
 
