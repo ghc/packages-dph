@@ -26,7 +26,7 @@ run opts () files
   where
     showRes arr = "sum = " ++ show (U.sum arr)
 
-loadSM :: String -> IO (Point (U.Segd, U.Array (Int U.:*: Double), U.Array Double))
+loadSM :: String -> IO (Point (U.Segd, U.Array (Int, Double), U.Array Double))
 loadSM fname =
   do
     h <- openBinaryFile fname ReadMode

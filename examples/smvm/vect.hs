@@ -32,7 +32,7 @@ loadSM s
       pnt <- loadSM' s
       return $ fmap (\(segd, m, v) -> (nestUSegdPA' segd (fromUArrPA_2' m), fromUArrPA' v)) pnt
 
-loadSM' :: String -> IO (Point (U.Segd, U.Array (Int U.:*: Double), U.Array Double))
+loadSM' :: String -> IO (Point (U.Segd, U.Array (Int, Double), U.Array Double))
 {-
 loadSM' s@('(' : _) =
   case reads s of

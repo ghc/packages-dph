@@ -179,7 +179,7 @@ int main( int argc, char *argv[] )
     sum2 = (HsDouble)gen_floats(file, n);
   close(file);
 
-  printf( "columns = %d; rows = %d; elements = %d (%d)\n", cols, rows, n,
+  printf( "columns = %d; rows = %d; elements = %d (%d)\n", (int)cols, (int)rows, (int)n,
            (int)(type == FLOAT ? sizeof(HsFloat) : sizeof(HsDouble)) );
   printf( "%Lf %Lf\n", (long double)sum1, (long double)sum2 );
   return 0;
