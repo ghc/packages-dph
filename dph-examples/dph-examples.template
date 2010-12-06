@@ -77,6 +77,21 @@ Executable dph-primes-seq
   ghc-options:    DPH_OPTIONS_SEQ
 
 
+-- Words ---------------------------------------------------------------------
+Executable dph-words
+  Build-depends:  DPH_DEPENDS_PAR
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Words lib
+  ghc-options:    DPH_OPTIONS_PAR
+
+-- This one also stalls in SpecConstr, like quicksort-seq
+-- Executable dph-words-seq
+--   Build-depends:  DPH_DEPENDS_SEQ
+--   Main-is:        Main.hs
+--   hs-source-dirs: imaginary/Words lib
+--   ghc-options:    DPH_OPTIONS_SEQ
+
+
 -- QuickHull ------------------------------------------------------------------
 Executable dph-quickhull
   Build-depends:  DPH_DEPENDS_PAR
