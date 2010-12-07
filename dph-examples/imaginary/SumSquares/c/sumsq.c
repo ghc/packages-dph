@@ -5,12 +5,11 @@
 #include <time.h>
 #include <assert.h>
 
-#include <HsFFI.h>
 #include "Timing.h"
 
-HsInt compute(HsInt n)
+double compute(double n)
 {
-  HsInt sum = 0;
+  double sum = 0;
 
   while ( n >= 1 ) {
     sum += n * n;
@@ -33,13 +32,13 @@ int main( int argc, char * argv[] )
   assert (repeats >= 1);
 
   struct benchtime *bt	= bench_begin();
-  HsInt result		= 0;
+  double result		= 0;
   for (int i = 0; i < repeats; i++) {
   	result = compute( count );
   }
   bench_done(bt);
 
-  printf( "result = %ld\n", (long)result);
+  printf( "result = %g\n", result);
 
   return 0;
 }
