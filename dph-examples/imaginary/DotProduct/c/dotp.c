@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/resource.h>
+#include <assert.h>
+#include "Timing.h"
 
 #define CHECK( e )      \
   do {                  \
@@ -147,33 +149,6 @@ void dotp( Arr *xs, Arr *ys, int threads )
   free( reqs );
 }
 
-void
-add_timeval( struct timeval *x, const struct timeval *y )
-{
-  x->tv_sec += y->tv_sec;
-  x->tv_usec += y->tv_usec;
-  if( x->tv_usec > 1000000 ) {
-    ++x->tv_sec;
-    x->tv_usec -= 1000000;
-  }
-}
-
-void
-sub_timeval( struct timeval *x, const struct timeval *y )
-{
-  x->tv_sec -= y->tv_sec;
-  if( x->tv_usec < y->tv_usec ) {
-    --x->tv_sec;
-    x->tv_usec = x->tv_usec + (1000000 - y->tv_usec);
-  } else
-    x->tv_usec -= y->tv_usec;
-}
-
-void
-print_timeval( const struct timeval *t )
-{
-  printf( "%ld", (long int) t->tv_sec * 1000 + (long int) t->tv_usec / 1000 );
-}
 
 int main( int argc, char *argv[] )
 {
@@ -181,34 +156,30 @@ int main( int argc, char *argv[] )
   struct timeval start, finish;
   struct rusage start_ru, finish_ru;
 
+  if (argc != 3) {
+	printf("usage: dotp THREADS ELEMS\n");
+	exit(1);
+  }
+
   Arr xs;
   Arr ys;
   Arr *xss;
   Arr *yss;
 
-  runs    = atoi( argv[1] );	/* FIXME: runs currently ignored */
-  threads = atoi( argv[2] );
-  elems   = atoi( argv[3] );
-  printf ("N = %d; P = %d, R = %d: ", elems, threads, runs);
+  threads = atoi( argv[1] );
+  assert (threads >= 1);
+
+  elems   = atoi( argv[2] );
+  assert (elems > threads);
 
   replicateA( &xs, elems, 5 );
   replicateA( &ys, elems, 6 );
   splitA( &xss, threads, &xs );
   splitA( &yss, threads, &ys );
 
-  gettimeofday( &start, NULL );
-  getrusage( RUSAGE_SELF, &start_ru );
+  struct benchtime *bt = bench_begin();
   dotp( xss, yss, threads );
-  gettimeofday( &finish, NULL );
-  getrusage( RUSAGE_SELF, &finish_ru );
-
-  sub_timeval( &finish, &start );
-  sub_timeval( &finish_ru.ru_utime, &start_ru.ru_utime );
-  sub_timeval( &finish_ru.ru_stime, &start_ru.ru_stime );
-  add_timeval( &finish_ru.ru_utime, &finish_ru.ru_stime );
-
-  print_timeval( &finish ); putchar( '/' ); print_timeval( &finish_ru.ru_utime);
-  putchar( '\n' );
+  bench_done(bt);
 
   return 0;
 }
