@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "Timing.h"
+#include <HsFFI.h>
 
 int main(int argc, char** argv)
 {
@@ -15,8 +16,8 @@ int main(int argc, char** argv)
 	assert (length > 0);
 	
 	// Allocate buffers
-	int *src 	= malloc(sizeof(int) * length);
-	int *dst	= malloc(sizeof(int) * length);
+	HsInt *src 	= malloc(sizeof(HsInt) * length);
+	HsInt *dst	= malloc(sizeof(HsInt) * length);
 	
 	// Fill the source with test data
 	for(int i = 0; i < length; i++)
