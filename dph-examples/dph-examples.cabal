@@ -27,13 +27,13 @@ Flag gloss
 Executable dph-sumsq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/SumSquares
+  hs-source-dirs: lib imaginary/SumSquares/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-sumsq-seq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/SumSquares
+  hs-source-dirs: lib imaginary/SumSquares/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
@@ -41,13 +41,13 @@ Executable dph-sumsq-seq
 Executable dph-dotp
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/DotProduct
+  hs-source-dirs: lib imaginary/DotProduct/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-dotp-seq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
-  hs-source-dirs: lib imaginary/DotProduct
+  hs-source-dirs: lib imaginary/DotProduct/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
@@ -55,13 +55,13 @@ Executable dph-dotp-seq
 Executable dph-evens
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
-  hs-source-dirs: imaginary/Evens lib
+  hs-source-dirs: imaginary/Evens/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-evens-seq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
-  hs-source-dirs: imaginary/Evens lib
+  hs-source-dirs: imaginary/Evens/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
@@ -101,7 +101,7 @@ Executable dph-smvm
   hs-source-dirs: spectral/SMVM/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
-Executable dph-smvm-seq
+Executable dph-words-seq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: spectral/SMVM/dph lib
