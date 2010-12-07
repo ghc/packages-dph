@@ -35,9 +35,15 @@ run fileName
 					
 	-- Print how long it took.
 	putStr $ prettyTime tElapsed
+
+	-- Print some info about the test setup.
+	putStrLn $ "vector length   = " ++ show (U.length (toUArrPA vector))
+--	putStrLn $ "matrix height   = " ++ show (U.length (toUArrPA matrix))
+	
 	
 	-- Print checksum of resulting vector.
 	putStrLn $ "result sum      = " ++ show (U.sum (toUArrPA vResult))
+
 
 
 -- | Load a test file containing a sparse matrix and dense vector.
