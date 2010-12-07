@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators, ScopedTypeVariables #-}
 
 import SMVMVect (smvm)
 
@@ -11,7 +11,8 @@ import Data.Array.Parallel.PArray as P
 
 import Bench.Benchmark
 import Bench.Options
-
+import Foreign.Storable
+import Foreign.Marshal.Alloc
 
 main = ndpMain "Sparse matrix/vector multiplication (vectorised)"
                "[OPTION] ... FILES ..."
@@ -26,35 +27,52 @@ run opts () files
   where
     showRes arr = "sum = " ++ show (U.sum (toUArrPA arr))
 
+
 loadSM :: String -> IO (Point (PArray (PArray (Int, Double)), PArray Double))
 loadSM s 
-  = do
-      pnt <- loadSM' s
+ = do pnt <- loadSM' s
       return $ fmap (\(segd, m, v) -> (nestUSegdPA' segd (fromUArrPA_2' m), fromUArrPA' v)) pnt
 
+
 loadSM' :: String -> IO (Point (U.Segd, U.Array (Int, Double), U.Array Double))
-{-
-loadSM' s@('(' : _) =
-  case reads s of
-    [((lm,lv), "")] -> return $ mkPoint "input" (U.fromList_s lm, U.fromList lv)
-    _               -> failWith ["Invalid data " ++ s]
--}
-loadSM' fname =
-  do
+loadSM' fname 
+ = do
     h <- openBinaryFile fname ReadMode
+
+    -- check magic numbers at start of file to guard against word-size screwups.
+    alloca $ \ptr -> do
+	hGetBuf h ptr (sizeOf (undefined :: Int))
+	(magic1 :: Int)	<- peek ptr
+	hGetBuf h ptr (sizeOf (undefined :: Int))
+	(magic2	:: Int) <- peek ptr
+	if magic1 == 0xc0ffee00 && magic2 == 0x12345678 
+		then return ()
+		else error $ "bad magic in " ++ fname
+
+    -- number of elements in each row of the matrix.
     lengths <- U.hGet h
+
+    -- indices of all the elements.
     indices <- U.hGet h
+
+    -- values of the matrix elements.
     values  <- U.hGet h
-    dv      <- U.hGet h
-    let segd = U.lengthsToSegd lengths
-        m    = U.zip indices values
+
+    -- the dense vector.
+    vector  <- U.hGet h
+
     evaluate lengths
     evaluate indices
     evaluate values
-    evaluate dv
-    -- print (sumU values)
-    -- print (sumU dv)
-    return $ mkPoint (  "cols=" ++ show (U.length dv) ++ ", "
-                     ++ "rows=" ++ show (U.length lengths) ++ ", "
-                     ++ "elems=" ++ show (U.length m))
-              (segd,m,dv)
+    evaluate vector
+
+    putStrLn $ "sum of matrix elements = " ++ show (U.sum values)
+    putStrLn $ "sum of vector elements = " ++ show (U.sum vector)
+
+    let segd    = U.lengthsToSegd lengths
+        matrix  = U.zip indices values
+
+    return $ mkPoint (  "cols =" ++ show (U.length vector)  ++ ", "
+                     ++ "rows =" ++ show (U.length lengths) ++ ", "
+                     ++ "elems=" ++ show (U.length matrix))
+             (segd, matrix, vector)

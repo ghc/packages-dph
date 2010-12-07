@@ -27,22 +27,35 @@ run opts () files
     showRes arr = "sum = " ++ show (U.sum arr)
 
 loadSM :: String -> IO (Point (U.Segd, U.Array (Int, Double), U.Array Double))
-loadSM fname =
-  do
+loadSM fname 
+ = do
     h <- openBinaryFile fname ReadMode
+
+    -- number of elements in each row of the matrix.
     lengths <- U.hGet h
+
+    -- indices of all the elements.
     indices <- U.hGet h
+
+    -- values of the matrix elements.
     values  <- U.hGet h
-    dv      <- U.hGet h
-    let segd = U.lengthsToSegd lengths
-        m    = U.zip indices values
+
+    -- the dense vector.
+    vector  <- U.hGet h
+
+
+    let segd    = U.lengthsToSegd lengths
+        matrix  = U.zip indices values
+
     evaluate lengths
     evaluate indices
     evaluate values
-    evaluate dv
-    -- print (sumU values)
-    -- print (sumU dv)
-    return $ mkPoint (  "cols=" ++ show (U.length dv) ++ ", "
-                     ++ "rows=" ++ show (U.length lengths) ++ ", "
-                     ++ "elems=" ++ show (U.length m))
-              (segd, m, dv)
+    evaluate vector
+
+    print (U.sum values)
+    print (U.sum vector)
+
+    return $ mkPoint (  "cols =" ++ show (U.length vector)  ++ ", "
+                     ++ "rows =" ++ show (U.length lengths) ++ ", "
+                     ++ "elems=" ++ show (U.length matrix))
+             (segd, matrix, vector)

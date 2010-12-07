@@ -1,3 +1,7 @@
+// Test data generator for SMVM.
+//   Be careful to compile it with the correct machine specifier (ie -m32)
+//   or you'll get errors when you try and run the Haskell version on it.
+//  
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -240,9 +244,10 @@ int main( int argc, char *argv[] )
   // Close the output file.
   close(file);
 
-  printf( "columns = %d; rows = %d; elements = %d (%d)\n",
-		(int)cols, (int)rows, (int)n,
-                (int)(type == FLOAT ? sizeof(HsFloat) : sizeof(HsDouble)) );
+  printf( "columns              = %d\n", (int)cols);
+  printf( "rows                 = %d\n", (int)rows);
+  printf( "non-zero elements    = %d\n", (int)n);
+  printf( "element size (bytes) = %d\n", (int)(type == FLOAT ? sizeof(HsFloat) : sizeof(HsDouble)));
   printf( "sum of matrix elements %Lf\n", (long double)sum1 );
   printf( "sum of vector elements %Lf\n", (long double)sum2 );
 

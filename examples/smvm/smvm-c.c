@@ -70,6 +70,15 @@ int main( int argc, char * argv[] )
 
   runs = atoi( argv[1] );	// FIXME: runs are ignored
   file = open( argv[2], O_RDONLY );
+
+  HsInt magic1, magic2;
+  read( file, &magic1,  sizeof(HsInt) );
+  read( file, &magic2,  sizeof(HsInt) );
+  if (! (magic1 == 0xc0ffee00 && magic2 == 0x12345678)) {
+    printf ("bad magic in %s\n", argv[2]);
+    exit(1);
+  }
+
   load( file, &lengths, sizeof(HsInt) );
   load( file, &indices, sizeof(HsInt) );
   load( file, &values,  sizeof(HsDouble) );
