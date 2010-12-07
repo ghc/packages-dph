@@ -73,10 +73,11 @@ int usage()
                        
 int main( int argc, char * argv[] )
 {
-  int file, runs;
+  int file;
 
   if (argc != 2) usage();
 
+  // Load in file.
   char* fileName = argv[1];
   file  = open( fileName, O_RDONLY );
   if(file == -1) {
@@ -94,45 +95,32 @@ int main( int argc, char * argv[] )
     exit(1);
   }
 
+  // Array of how many non-zero elemens there are in each row.
   load( file, &lengths, sizeof(HsInt) );
+
+  // Indices of the elements in each row.
   load( file, &indices, sizeof(HsInt) );
+
+  // All non-zero values in the matrix.
   load( file, &values,  sizeof(HsDouble) );
+
+  // The dense vector.
   load( file, &vector,  sizeof(HsDouble) );
   close(file);
+
+  // Do the deed
   new( lengths.size, &result, sizeof(HsDouble) );
-
-  // Timing setup
-  struct timeval start, finish;
-  struct rusage start_ru, finish_ru;
-
-  gettimeofday( &start, NULL );
-  getrusage( RUSAGE_SELF, &start_ru );
-
-  // Do the dead
+  struct benchtime *bt	= bench_begin();
   compute();
+  bench_done(bt);
 
-  // Print how long it took.
-  gettimeofday( &finish, NULL );
-  getrusage( RUSAGE_SELF, &finish_ru );
+  // Print checksum of resulting vector.
+  printf( "sum of result   = %Lf\n", (long double)(checksum(&result)));
 
-
-  sub_timeval( &finish, &start );
-  sub_timeval( &finish_ru.ru_utime, &start_ru.ru_utime );
-  sub_timeval( &finish_ru.ru_stime, &start_ru.ru_stime );
-  add_timeval( &finish_ru.ru_utime, &finish_ru.ru_stime );
-
-  printf("elapsedTimeMS   = ");
-  print_timeval( &finish ); putchar( '\n' );
-
-  printf("cpuTimeMS       = ");
-  print_timeval( &finish_ru.ru_utime); putchar( '\n' );
-
-  printf("result sum      = %Lf\n", (long double)(checksum(&result)));
-
-  printf( "rows = %ld; colums = %ld; elements = %ld\n"
-	, (long)lengths.size
-        , (long)vector.size
-        , (long)values.size );
+  // Print some details about the matrix.
+  printf( "matrix rows     = %ld\n", (long)lengths.size);
+  printf( "matrix columns  = %ld\n", (long)vector.size);
+  printf( "non-zero values = %ld\n", (long)values.size);
 
   return 0;
 }
