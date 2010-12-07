@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include <HsFFI.h>
+#include "Timing.h"
 
 int rows;
 int cols;
@@ -73,19 +74,23 @@ int usage()
 int main( int argc, char * argv[] )
 {
   int file, runs;
-  clock_t start, finish;
 
   if (argc != 2) usage();
 
   char* fileName = argv[1];
   file  = open( fileName, O_RDONLY );
+  if(file == -1) {
+    printf ("can't open file '%s'\n", fileName);
+    exit(1);
+  }
 
   // Check for magic numbers at start of file.
   HsInt magic1, magic2;
   read( file, &magic1,  sizeof(HsInt) );
   read( file, &magic2,  sizeof(HsInt) );
   if (! (magic1 == 0xc0ffee00 && magic2 == 0x12345678)) {
-    printf ("bad magic in %s\n", fileName);
+    printf ("bad magic in %s\n",  fileName);
+    printf ("got = %0lx, %0lx\n", magic1, magic2);
     exit(1);
   }
 
@@ -96,14 +101,33 @@ int main( int argc, char * argv[] )
   close(file);
   new( lengths.size, &result, sizeof(HsDouble) );
 
-  start = clock();
-  compute(); 
-  finish = clock();
+  // Timing setup
+  struct timeval start, finish;
+  struct rusage start_ru, finish_ru;
 
-  printf("elapsedTimeMS  = %ld\n"
-	, (long int)((finish-start) / (CLOCKS_PER_SEC/1000)));
+  gettimeofday( &start, NULL );
+  getrusage( RUSAGE_SELF, &start_ru );
 
-  printf("result sum     = %Lf\n", (long double)(checksum(&result)));
+  // Do the dead
+  compute();
+
+  // Print how long it took.
+  gettimeofday( &finish, NULL );
+  getrusage( RUSAGE_SELF, &finish_ru );
+
+
+  sub_timeval( &finish, &start );
+  sub_timeval( &finish_ru.ru_utime, &start_ru.ru_utime );
+  sub_timeval( &finish_ru.ru_stime, &start_ru.ru_stime );
+  add_timeval( &finish_ru.ru_utime, &finish_ru.ru_stime );
+
+  printf("elapsedTimeMS   = ");
+  print_timeval( &finish ); putchar( '\n' );
+
+  printf("cpuTimeMS       = ");
+  print_timeval( &finish_ru.ru_utime); putchar( '\n' );
+
+  printf("result sum      = %Lf\n", (long double)(checksum(&result)));
 
   printf( "rows = %ld; colums = %ld; elements = %ld\n"
 	, (long)lengths.size
