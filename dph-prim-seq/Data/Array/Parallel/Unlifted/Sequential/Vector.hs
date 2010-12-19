@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, CPP #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns, CPP #-}
 
 #include "fusion-phases.h"
 
@@ -318,7 +318,7 @@ snds (VBase.V_2 _ xs ys) = ys
 
 zip :: (Unbox a, Unbox b) => Vector a -> Vector b -> Vector (a,b)
 {-# INLINE_STREAM zip #-}
-zip xs ys = V.zip xs ys
+zip !xs !ys = V.zip xs ys
 
 unzip :: (Unbox a, Unbox b) => Vector (a,b) -> (Vector a, Vector b)
 {-# INLINE_STREAM unzip #-}
