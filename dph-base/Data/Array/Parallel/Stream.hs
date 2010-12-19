@@ -211,7 +211,7 @@ fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
           Skip    ss' -> return $ Skip (Nothing,Nothing,ss',vs)
           Yield n ss' -> return $ Skip (Just n ,Nothing,ss',vs)
 
-    next (Just n,Nothing,ss,vs) =
+    next (Just !n,Nothing,ss,vs) =
       do
         r <- nextv vs
         case r of
