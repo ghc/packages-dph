@@ -28,6 +28,7 @@ DPH_OPTIONS_PAR = \
 	-dcore-lint \
         -rtsopts \
         -threaded \
+	-fllvm \
         -Odph \
         -fdph-par \
         -fcpr-off \
@@ -38,6 +39,7 @@ DPH_OPTIONS_SEQ = \
 	-dcore-lint \
         -rtsopts \
 	-threaded \
+	-fllvm \
         -Odph \
         -fdph-seq \
         -fcpr-off \

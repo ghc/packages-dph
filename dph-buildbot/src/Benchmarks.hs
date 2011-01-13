@@ -109,7 +109,7 @@ benchmarksDPH config
 		(inDir "dph-examples/spectral/QuickHull/c" $ qssystem "make")
 		"dph-examples/spectral/QuickHull/c/quickhull 1000000" ]
 		
-	  -- nbody ------------------------------------------------------------
+{-	  -- nbody ------------------------------------------------------------
  ++	(let	run n	= bench config
 				("dph.nbody.vectorised.par.N" ++ show n)
 				("dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 10 -b 100 -s nested-bh +RTS -N" ++ show n)
@@ -124,7 +124,7 @@ benchmarksDPH config
 		"dph.nbody.vector.seq.N4"
 		"dph-examples/dist/build/dph-nbody/dph-nbody --max-steps 10 -b 100 -s vector-bh +RTS -N4"
 	]
-
+-}
 
 -- | Repa benchmark configuration.
 benchmarksRepa :: Config -> [Benchmark]
@@ -161,7 +161,7 @@ benchmarksRepa config
  ++	[ benchUp config
 		"repa.laplace.c.seq"
 		(inDir "repa-examples/Laplace/legacy" $ qssystem "make")
-		"repa-examples/Laplace/legacy/laplace 400 400 1000 output/laplace_c-seq.ppm" ]
+		"repa-examples/Laplace/legacy/laplace get 400 400 1000 output/laplace_c-seq.ppm" ]
 
 	
 	-- blur ---------------------------------------------------------------
