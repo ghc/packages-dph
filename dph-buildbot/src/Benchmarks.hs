@@ -154,14 +154,14 @@ benchmarksRepa config
 					check $ HasExecutable laplace
 					whenM (test $ HasFile inputgz)
 				  	 $ qssystem $ "gzip -d " ++ inputgz)
-				(laplace ++ " 1000 " ++ input ++ " output/laplace.bmp +RTS -qg -N" ++ show n)
+				(laplace ++ " get 1000 " ++ input ++ " output/laplace.bmp +RTS -qg -N" ++ show n)
 
 	  in	[run 1, run 2, run 4, run 6, run 8])
 
  ++	[ benchUp config
 		"repa.laplace.c.seq"
 		(inDir "repa-examples/Laplace/legacy" $ qssystem "make")
-		"repa-examples/Laplace/legacy/laplace get 400 400 1000 output/laplace_c-seq.ppm" ]
+		"repa-examples/Laplace/legacy/laplace 400 400 1000 output/laplace_c-seq.ppm" ]
 
 	
 	-- blur ---------------------------------------------------------------
