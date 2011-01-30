@@ -143,11 +143,11 @@ folds f g segd xs = dcarry `seq` drs `seq` runST (
 
     partial (((segd,k),off), as)
       = let rs = g segd as
+            {-# INLINE [0] n #-}
+            n | off == 0  = 0
+              | otherwise = 1
         in
-        rs `seq`
-        if off == 0 then ((k, Seq.empty),     rs)
-                    else ((k, Seq.take 1 rs), Seq.drop 1 rs)
-
+        ((k, Seq.take n rs), Seq.drop n rs)
 
 foldSUP :: Unbox a => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
 {-# INLINE foldSUP #-}
