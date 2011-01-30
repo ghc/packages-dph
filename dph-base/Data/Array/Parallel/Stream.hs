@@ -202,7 +202,7 @@ fold1SS :: (a -> a -> a) -> S.Stream Int -> S.Stream a -> S.Stream a
 fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
   Stream next (Nothing,Nothing,ss,vs) sz
   where
-    {-# INLINE next #-}
+    {-# INLINE [0] next #-}
     next (Nothing,Nothing,ss,vs) =
       do
         r <- nexts ss
