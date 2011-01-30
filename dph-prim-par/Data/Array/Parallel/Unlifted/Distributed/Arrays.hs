@@ -115,9 +115,11 @@ splitD_impl g !arr = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
     !l = n `quotInt` p
     !m = n `remInt` p
 
+    {-# INLINE [0] idx #-}
     idx i | i < m     = (l+1)*i
           | otherwise = l*i + m
 
+    {-# INLINE [0] len #-}
     len i | i < m     = l+1
           | otherwise = l
 
