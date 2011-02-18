@@ -160,14 +160,14 @@ Executable dph-nbody
     ghc-options:    DPH_OPTIONS_PAR
   endif
 
-Executable dph-nbody-seq
-  Main-is:        Main.hs
-  if flag(gloss)
-    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.2.*
-    hs-source-dirs: lib real/NBody real/NBody/Gloss
-    ghc-options:    DPH_OPTIONS_SEQ
-  else
-    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*
-    hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    DPH_OPTIONS_SEQ
-  endif
+-- Executable dph-nbody-seq
+--  Main-is:        Main.hs
+--  if flag(gloss)
+--    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.2.*
+--    hs-source-dirs: lib real/NBody real/NBody/Gloss
+--    ghc-options:    DPH_OPTIONS_SEQ
+--  else
+--    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*
+--    hs-source-dirs: lib real/NBody real/NBody/Batch
+--    ghc-options:    DPH_OPTIONS_SEQ
+--  endif

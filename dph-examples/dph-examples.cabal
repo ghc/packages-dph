@@ -162,14 +162,14 @@ Executable dph-nbody
     ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
   endif
 
-Executable dph-nbody-seq
-  Main-is:        Main.hs
-  if flag(gloss)
-    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.2.*
-    hs-source-dirs: lib real/NBody real/NBody/Gloss
-    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
-  else
-    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
-    hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
-  endif
+-- Executable dph-nbody-seq
+--  Main-is:        Main.hs
+--  if flag(gloss)
+--    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.2.*
+--    hs-source-dirs: lib real/NBody real/NBody/Gloss
+--    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+--  else
+--    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
+--    hs-source-dirs: lib real/NBody real/NBody/Batch
+--    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+--  endif
