@@ -21,17 +21,14 @@ module Data.Array.Parallel.Prelude.Base.Int (
   enumFromToPA, enumFromToP
 ) where
 
-import Data.Array.Parallel.Prelude.Base.PArr
+import qualified Data.Array.Parallel as PArr
 
 import Data.Array.Parallel.Lifted.Combinators
-import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.PArray
 
 import Prelude (Int, Bool)
 import qualified Prelude as P
-import qualified GHC.PArr
 
 infixl 7 *
 infixl 6 +, -
@@ -77,8 +74,8 @@ minimumPA = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
 maximumPA = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 
 minimumP, maximumP :: [:Int:] -> Int
-minimumP = GHC.PArr.minimumP
-maximumP = GHC.PArr.maximumP
+minimumP = PArr.minimumP
+maximumP = PArr.maximumP
 
 minIndexPA :: PArray Int :-> Int
 {-# INLINE minIndexPA #-}
@@ -133,8 +130,8 @@ sumPA = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
 productPA = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
 
 sumP, productP :: [:Int:] -> Int
-sumP = GHC.PArr.sumP
-productP = GHC.PArr.productP
+sumP = PArr.sumP
+productP = PArr.productP
 
 
 divV, modV :: Int :-> Int :-> Int
@@ -160,5 +157,5 @@ enumFromToPA = enumFromToPA_Int
 
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
-enumFromToP n m = [:n..m:]
-
+-- enumFromToP n m = [:n..m:]
+enumFromToP n m = PArr.enumFromToP n m

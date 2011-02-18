@@ -1,5 +1,5 @@
 module Data.Array.Parallel.Prelude (
-    module Data.Array.Parallel.Prelude.Base.PArr
+    module Data.Array.Parallel
 
   , module Data.Array.Parallel.Prelude.Bool
 
@@ -8,10 +8,10 @@ module Data.Array.Parallel.Prelude (
                       , nestUSegdPA'
 ) where
 
-import Data.Array.Parallel.Prelude.Bool
+import Data.Array.Parallel hiding (sumP, productP, maximumP, minimumP, enumFromToP,
+  enumFromThenToP)
 
-import Data.Array.Parallel.Prelude.Base.PArr
-import Data.Array.Parallel.Prelude.Base.Int
+import Data.Array.Parallel.Prelude.Bool
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure

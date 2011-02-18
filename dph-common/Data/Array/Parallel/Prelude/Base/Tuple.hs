@@ -2,7 +2,6 @@ module Data.Array.Parallel.Prelude.Base.Tuple (
   tup2, tup3
 ) where
 
-import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray

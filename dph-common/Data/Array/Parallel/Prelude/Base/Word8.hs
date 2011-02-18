@@ -21,7 +21,7 @@ module Data.Array.Parallel.Prelude.Base.Word8 (
   toIntV, fromIntV
 ) where
 
-import Data.Array.Parallel.Prelude.Base.PArr
+import qualified Data.Array.Parallel as PArr
 
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
@@ -32,7 +32,6 @@ import Data.Array.Parallel.Lifted.PArray
 import Prelude (Int, Bool)
 import Data.Word (Word8)
 import qualified Prelude as P
-import qualified GHC.PArr
 
 infixl 7 *
 infixl 6 +, -
@@ -78,8 +77,8 @@ minimumPA = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
 maximumPA = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 
 minimumP, maximumP :: [:Word8:] -> Word8
-minimumP = GHC.PArr.minimumP
-maximumP = GHC.PArr.maximumP
+minimumP = PArr.minimumP
+maximumP = PArr.maximumP
 
 minIndexPA :: PArray Word8 :-> Int
 {-# INLINE minIndexPA #-}
@@ -133,8 +132,8 @@ sumPA = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
 productPA = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
 
 sumP, productP :: [:Word8:] -> Word8
-sumP = GHC.PArr.sumP
-productP = GHC.PArr.productP
+sumP = PArr.sumP
+productP = PArr.productP
 
 divV, modV :: Word8 :-> Word8 :-> Word8
 {-# INLINE divV #-}

@@ -35,7 +35,7 @@ module Data.Array.Parallel.Prelude.Base.Double (
   truncateV, roundV, ceilingV, floorV
 ) where
 
-import Data.Array.Parallel.Prelude.Base.PArr
+import qualified Data.Array.Parallel as PArr
 
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Instances
@@ -45,7 +45,6 @@ import Data.Array.Parallel.Lifted.PArray
 
 import Prelude (Double, Int, Bool)
 import qualified Prelude as P
-import qualified GHC.PArr
 
 infixr 8 **
 infixl 7 *, /
@@ -91,8 +90,8 @@ minimumPA = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
 maximumPA = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 
 minimumP, maximumP :: [:Double:] -> Double
-minimumP = GHC.PArr.minimumP
-maximumP = GHC.PArr.maximumP
+minimumP = PArr.minimumP
+maximumP = PArr.maximumP
 
 minIndexPA :: PArray Double :-> Int
 {-# INLINE minIndexPA #-}
@@ -146,8 +145,8 @@ sumPA = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
 productPA = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
 
 sumP, productP :: [:Double:] -> Double
-sumP = GHC.PArr.sumP
-productP = GHC.PArr.productP
+sumP = PArr.sumP
+productP = PArr.productP
 
 (/) :: Double -> Double -> Double
 (/) = (P./)

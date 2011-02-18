@@ -8,6 +8,6 @@ module Data.Array.Parallel.Prelude.Int (
 ) where
 
 import Data.Array.Parallel.Prelude.Base.Int
-import qualified Data.Array.Parallel.Prelude.Base
+-- import qualified Data.Array.Parallel.Prelude.Base
 import Prelude (Int)
 
