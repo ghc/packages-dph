@@ -55,7 +55,7 @@ benchmarksDPH config
 		"dph-examples/dist/build/dph-evens-seq/dph-evens-seq vector 10000000 +RTS -N4" ]
 
 
-	  -- primes ------------------------------------------------------------
+{-	  -- primes ------------------------------------------------------------
  ++	(let 	run n	= bench config
 				("dph.primes.vectorised.par.N" ++ show n)
 				("dph-examples/dist/build/dph-primes/dph-primes vectorised 20000000 +RTS -N" ++ show n)
@@ -68,7 +68,7 @@ benchmarksDPH config
 	, bench config
 		"dph.primes.vector.seq.N4"
 		"dph-examples/dist/build/dph-primes-seq/dph-primes-seq vector 20000000 +RTS -N4" ]
-	
+-}	
 
 	  -- quicksort --------------------------------------------------------
  ++	(let	run n	= bench config 
@@ -139,13 +139,13 @@ benchmarksRepa config
 
  ++	[ benchUp config
 		"repa.mmult.c.seq"
-		(inDir "repa-examples/MMult/legacy" $ qssystem "make")
-		"repa-examples/MMult/legacy/mmult -random 1024 1024 -random 1024 1024" ]
+		(inDir "repa-examples" $ qssystem "make dist/build/repa-mmult-c/repa-mmult-c")
+		"repa-examples/dist/build/repa-mmult-c/repa-mmult-c -random 1024 1024 -random 1024 1024" ]
 
 		
  	-- laplace ------------------------------------------------------------
  ++	(let	laplace = "repa-examples/dist/build/repa-laplace/repa-laplace"
-		input	= "repa-examples/Laplace/data/pls-400x400.bmp"
+		input	= "repa-examples/examples/Laplace/data/pls-400x400.bmp"
 		inputgz	= input ++ ".gz"
 
 		run n	= benchUp config
@@ -160,8 +160,8 @@ benchmarksRepa config
 
  ++	[ benchUp config
 		"repa.laplace.c.seq"
-		(inDir "repa-examples/Laplace/legacy" $ qssystem "make")
-		"repa-examples/Laplace/legacy/laplace 400 400 1000 output/laplace_c-seq.ppm" ]
+		(inDir "repa-examples" $ qssystem "make dist/build/repa-laplace-c/repa-laplace-c")
+		"repa-examples/dist/build/repa-laplace-c/repa-laplace-c 400 400 1000 output/laplace_c-seq.ppm" ]
 
 	
 	-- blur ---------------------------------------------------------------
