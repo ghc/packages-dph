@@ -64,17 +64,18 @@ Executable dph-evens-seq
 
 
 -- Primes ---------------------------------------------------------------------
-Executable dph-primes
-  Build-depends:  DPH_DEPENDS_PAR
-  Main-is:        Main.hs
-  hs-source-dirs: imaginary/Primes lib
-  ghc-options:    DPH_OPTIONS_PAR
+-- Primes dies with a bounds check error
+-- Executable dph-primes
+--  Build-depends:  DPH_DEPENDS_PAR
+--  Main-is:        Main.hs
+--  hs-source-dirs: imaginary/Primes lib
+--  ghc-options:    DPH_OPTIONS_PAR
 
-Executable dph-primes-seq
-  Build-depends:  DPH_DEPENDS_SEQ
-  Main-is:        Main.hs
-  hs-source-dirs: imaginary/Primes lib
-  ghc-options:    DPH_OPTIONS_SEQ
+-- Executable dph-primes-seq
+--  Build-depends:  DPH_DEPENDS_SEQ
+--  Main-is:        Main.hs
+--  hs-source-dirs: imaginary/Primes lib
+--  ghc-options:    DPH_OPTIONS_SEQ
 
 
 -- Words ---------------------------------------------------------------------
