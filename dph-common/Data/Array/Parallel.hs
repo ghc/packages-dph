@@ -53,6 +53,9 @@ module Data.Array.Parallel (
 import Prelude hiding (undefined)
 import GHC.PArr     -- only has the definition of [::] left
 
+-- fake dependency to satisfy built-in iface loading in the vectoriser
+import Data.Array.Parallel.Prelude.Base.Tuple ()
+
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
 
