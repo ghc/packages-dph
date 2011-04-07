@@ -1,0 +1,5 @@
+
+# Specific generated files
+/dph-base/dist-install/
+/dph-base/ghc.mk
+/dph-base/GNUmakefile
