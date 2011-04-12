@@ -99,7 +99,7 @@ class DT a where
   sizeMD :: MDist a s -> Int
 
   measureD :: a -> String
-  measureD _ = "?"
+  measureD _ = "None"
 
 -- Distributed values must always be hyperstrict.
 -- instance DT a => HS (Dist a)
@@ -224,7 +224,7 @@ instance DT Int where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
-  measureD n = "int " ++ show n
+  measureD n = "Int " ++ show n
 
 instance DPrim Word8 where
   mkDPrim            = DWord8
@@ -302,7 +302,7 @@ instance (DT a, DT b) => DT (a,b) where
   sizeD  (DProd  x _) = sizeD  x
   sizeMD (MDProd x _) = sizeMD x
 
-  measureD (x,y) = "(" ++ measureD x ++ "," ++ measureD y ++ ")"
+  measureD (x,y) = "Pair " ++ "(" ++ measureD x ++ ") (" ++  measureD y ++ ")"
 
 instance DT a => DT (Maybe a) where
   data Dist  (Maybe a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
@@ -408,7 +408,7 @@ instance DT USegd where
   sizeD  (DUSegd  _ _ eles) = sizeD eles
   sizeMD (MDUSegd _ _ eles) = sizeMD eles
 
-  measureD segd = "Segd " ++ show (lengthUSegd segd) ++ "|" ++ show (elementsUSegd segd)
+  measureD segd = "Segd " ++ show (lengthUSegd segd) ++ " " ++ show (elementsUSegd segd)
 
 lengthUSegdD :: Dist USegd -> Dist Int
 {-# INLINE_DIST lengthUSegdD #-}
