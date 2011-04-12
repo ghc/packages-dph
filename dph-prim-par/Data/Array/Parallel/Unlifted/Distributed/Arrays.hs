@@ -26,7 +26,6 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
 
   Distribution, balanced, unbalanced
 ) where
-
 import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
@@ -50,6 +49,11 @@ import GHC.Base ( quotInt, remInt )
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." Prelude.++ s
 
+
+-- Distribution ---------------------------------------------------------------
+-- | This is a phantom parameter used to record whether a distributed value
+--   is balanced evenly among the threads. It's used to signal this property
+--   between RULES, but the actual value is never used.
 data Distribution
 
 balanced :: Distribution
@@ -60,7 +64,10 @@ unbalanced :: Distribution
 {-# NOINLINE unbalanced #-}
 unbalanced = error $ here "unbalanced: touched"
 
--- | Distribute the given array length over a 'Gang'.
+
+-- Splitting and Joining array lengths ----------------------------------------
+-- | Distribute an array length over a 'Gang'.
+--   Each thread holds the number of elements it's reponsible for.
 splitLenD :: Gang -> Int -> Dist Int
 {-# INLINE splitLenD #-}
 splitLenD g n = generateD_cheap g len
@@ -73,6 +80,9 @@ splitLenD g n = generateD_cheap g len
     len i | i < m     = l+1
           | otherwise = l
 
+-- | Distribute an array length over a 'Gang'.
+--   Each thread holds the number of elements it's responsible for, 
+--   and the index of the start of its chunk.
 splitLenIdxD :: Gang -> Int -> Dist (Int,Int)
 {-# INLINE splitLenIdxD #-}
 splitLenIdxD g n = generateD_cheap g len_idx
@@ -84,28 +94,33 @@ splitLenIdxD g n = generateD_cheap g len_idx
     {-# INLINE [0] len_idx #-}
     len_idx i | i < m     = (l+1, i*(l+1))
               | otherwise = (l,   i*l + m)
+
+
+-- | Get the overall length of a distributed array.
+--   We ask each thread for its chunk length, and sum them all up.
+joinLengthD :: Unbox a => Gang -> Dist (Vector a) -> Int
+{-# INLINE joinLengthD #-}
+joinLengthD g = sumD g . lengthD
                                                
 
+-- Splitting and Joining arrays -----------------------------------------------
 -- | Distribute an array over a 'Gang' such that each threads gets the given
--- number of elements.
+--   number of elements.
 splitAsD :: Unbox a => Gang -> Dist Int -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitAsD #-}
 splitAsD g dlen !arr = zipWithD (seqGang g) (Seq.slice arr) is dlen
   where
     is = fst $ scanD g (+) 0 dlen
 
--- lengthD reexported from types
-
--- | Overall length of a distributed array.
-joinLengthD :: Unbox a => Gang -> Dist (Vector a) -> Int
-{-# INLINE joinLengthD #-}
-joinLengthD g = sumD g . lengthD
-
-
--- NOTE: We need splitD_impl and joinD_impl to avoid introducing loops through
--- rules. Without them, splitJoinD would be a loop breaker.
 
 -- | Distribute an array over a 'Gang'.
+--
+--   NOTE: This is defined in terms of splitD_impl to avoid introducing loops
+--         through RULES. Without it, splitJoinD would be a loop breaker.
+splitD :: Unbox a => Gang -> Distribution -> Vector a -> Dist (Vector a)
+{-# INLINE_DIST splitD #-}
+splitD g _ arr = splitD_impl g arr
+
 splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitD_impl #-}
 splitD_impl g !arr = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
@@ -123,19 +138,14 @@ splitD_impl g !arr = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
     len i | i < m     = l+1
           | otherwise = l
 
-    -- slice i | i < m     = Seq.slice arr ((l+1)*i) (l+1)
-    --         | otherwise = Seq.slice arr ((l+1)*m + l*(i-m)) l
-{-
-splitD_impl g !arr = zipWithD (seqGang g) (Seq.slice arr) is dlen
-  where
-    dlen = splitLengthD (seqGang g) arr
-    is   = fstS $ scanD (seqGang g) (+) 0 dlen
--}
 
--- | Distribute an array over a 'Gang'.
-splitD :: Unbox a => Gang -> Distribution -> Vector a -> Dist (Vector a)
-{-# INLINE_DIST splitD #-}
-splitD g _ arr = splitD_impl g arr
+-- | Join a distributed array.
+--
+--   NOTE: This is defined in terms of joinD_impl to avoid introducing loops
+--         through RULES. Without it, splitJoinD would be a loop breaker.
+joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
+{-# INLINE CONLIKE [1] joinD #-}
+joinD g _ darr  = joinD_impl g darr
 
 joinD_impl :: forall a. Unbox a => Gang -> Dist (Vector a) -> Vector a
 {-# INLINE_DIST joinD_impl #-}
@@ -146,15 +156,19 @@ joinD_impl g !darr = checkGangD (here "joinD") g darr $
     copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
     copy ma i arr = stToDistST (Seq.copy (mslice i (Seq.length arr) ma) arr)
 
--- | Join a distributed array.
-joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
-{-# INLINE CONLIKE [1] joinD #-}
-joinD g _ darr  = joinD_impl g darr
 
-splitJoinD :: (Unbox a, Unbox b)
-           => Gang -> (Dist (Vector a) -> Dist (Vector b)) -> Vector a -> Vector b
+-- | Split a vector over a gang, run a distributed computation, then
+--   join the pieces together again.
+splitJoinD
+        :: (Unbox a, Unbox b)
+        => Gang
+        -> (Dist (Vector a) -> Dist (Vector b))
+        -> Vector a
+        -> Vector b
 {-# INLINE_DIST splitJoinD #-}
 splitJoinD g f !xs = joinD_impl g (f (splitD_impl g xs))
+
+
 
 -- | Join a distributed array, yielding a mutable global array
 joinDM :: Unbox a => Gang -> Dist (Vector a) -> ST s (MVector s a)
@@ -168,6 +182,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
     (!di,!n) = scanD g (+) 0 $ lengthD darr
     --
     copy ma i arr = stToDistST (Seq.copy (mslice i (Seq.length arr) ma) arr)
+
 
 {-# RULES
 
@@ -236,6 +251,8 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 
   #-}
 
+
+-- Permutation ----------------------------------------------------------------
 -- | Permute for distributed arrays.
 permuteD :: forall a. Unbox a => Gang -> Dist (Vector a) -> Dist (Vector Int) -> Vector a
 {-# INLINE_DIST permuteD #-}
@@ -252,6 +269,8 @@ bpermuteD :: Unbox a => Gang -> Vector a -> Dist (Vector Int) -> Dist (Vector a)
 {-# INLINE bpermuteD #-}
 bpermuteD g !as ds = mapD g (Seq.bpermute as) ds
 
+
+-- Update ---------------------------------------------------------------------
 -- NB: This does not (and cannot) try to prevent two threads from writing to
 -- the same position. We probably want to consider this an (unchecked) user
 -- error.
@@ -268,6 +287,8 @@ atomicUpdateD g darr upd = runST (
     update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()
     update marr arr = stToDistST (Seq.mupdate marr arr)
 
+
+--- Splitting and Joining segment descriptors ---------------------------------
 splitSegdD :: Gang -> USegd -> Dist USegd
 {-# NOINLINE splitSegdD #-}
 splitSegdD g !segd = mapD g lengthsToUSegd
@@ -278,7 +299,7 @@ splitSegdD g !segd = mapD g lengthsToUSegd
        . splitLenD g
        $ elementsUSegd segd
 
-    n = lengthUSegd segd
+    n    = lengthUSegd segd
     lens = lengthsUSegd segd
 
     chunk !i !k = let !j = go i k

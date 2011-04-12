@@ -59,13 +59,12 @@ infixl 9 `indexD`
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types." ++ s
 
--- |Distributed types
--- ----------------------------
 
+-- Distributed Types ----------------------------------------------------------
 -- | Class of distributable types. Instances of 'DT' can be
--- distributed across all workers of a 'Gang'. All such types
--- must be hyperstrict as we do not want to pass thunks into distributed
--- computations.
+--   distributed across all workers of a 'Gang'. 
+--   All such types must be hyperstrict as we do not want to pass thunks
+--   into distributed computations.
 class DT a where
   data Dist  a
   data MDist a :: * -> *
@@ -74,8 +73,8 @@ class DT a where
   indexD         :: Dist a -> Int -> a
 
   -- | Create an unitialised distributed value for the given 'Gang'.
-  -- The gang is used (only) to know how many elements are needed
-  -- in the distributed value.
+  --   The gang is used (only) to know how many elements are needed
+  --   in the distributed value.
   newMD          :: Gang                  -> ST s (MDist a s)
 
   -- | Extract an element from a mutable distributed value.
@@ -90,36 +89,118 @@ class DT a where
   deepSeqD       :: a -> b -> b
   deepSeqD = seq
 
-  -- | Number of elements in the distributed value. This is for debugging
-  -- only.
+
+  -- Debugging ------------------------
+  -- | Number of elements in the distributed value.
+  --   For debugging only, as we shouldn't depend on the size of the gang.
   sizeD :: Dist a -> Int
 
-  -- | Number of elements in the mutable distributed value. This is for
-  -- debugging only.
+  -- | Number of elements in the mutable distributed value.
+  --   For debugging only, as we shouldn't care about the actual number.
   sizeMD :: MDist a s -> Int
 
+  -- | Show a distributed value.
+  --   For debugging only.
   measureD :: a -> String
   measureD _ = "None"
-
--- Distributed values must always be hyperstrict.
--- instance DT a => HS (Dist a)
-
--- | Check that the sizes of the 'Gang' and of the distributed value match.
-checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
-checkGangD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeD d) v
-
--- | Check that the sizes of the 'Gang' and of the mutable distributed value
--- match.
-checkGangMD :: DT a => String -> Gang -> MDist a s -> b -> b
-checkGangMD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMD d) v
 
 -- Show instance (for debugging only)
 instance (Show a, DT a) => Show (Dist a) where
   show d = show (Prelude.map (indexD d) [0 .. sizeD d - 1])
 
--- | 'DT' instances
--- ----------------
 
+
+-- Checking -------------------------------------------------------------------
+-- | Check that the sizes of the 'Gang' and of the distributed value match.
+checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
+checkGangD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeD d) v
+
+
+-- | Check that the sizes of the 'Gang' and of the mutable distributed value match.
+checkGangMD :: DT a => String -> Gang -> MDist a s -> b -> b
+checkGangMD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMD d) v
+
+
+-- Operations -----------------------------------------------------------------
+-- | Given a computation that can write its result to a mutable distributed value, 
+--   run the computation to generate an immutable distributed value.
+newD :: DT a => Gang -> (forall s . MDist a s -> ST s ()) -> Dist a
+newD g init =
+  runST (do
+           mdt <- newMD g
+           init mdt
+           unsafeFreezeMD mdt)
+
+-- | Show all members of a distributed value.
+debugD :: DT a => Dist a -> String
+debugD d = "["
+         ++ intercalate "," [measureD (indexD d i) | i <- [0 .. sizeD d-1]]
+         ++ "]"
+
+
+-- DPrim ----------------------------------------------------------------------
+-- | For distributed primitive values, we can just store all the members in
+--   a vector. The vector has the same length as the number of threads in the gang.
+--
+class Unbox e => DPrim e where
+
+  -- | Make an immutable distributed value.
+  mkDPrim :: V.Vector e -> Dist  e
+
+  -- | Unpack an immutable distributed value back into a vector.
+  unDPrim :: Dist  e -> V.Vector e
+
+  -- | Make a mutable distributed value.
+  mkMDPrim :: MV.STVector s e -> MDist  e s
+
+  -- | Unpack a mutable distributed value back into a vector.
+  unMDPrim :: MDist  e s -> MV.STVector s e
+
+
+-- | Get the member corresponding to a thread index.
+primIndexD :: DPrim a => Dist a -> Int -> a
+{-# INLINE primIndexD #-}
+primIndexD = (V.!) . unDPrim
+
+
+-- | Create a new distributed value, having as many members as threads
+--   in the given 'Gang'.
+primNewMD :: DPrim a => Gang -> ST s (MDist a s)
+{-# INLINE primNewMD #-}
+primNewMD = liftM mkMDPrim . MV.new . gangSize
+
+
+-- | Read the member of a distributed value corresponding to the given thread index.
+primReadMD :: DPrim a => MDist a s -> Int -> ST s a
+{-# INLINE primReadMD #-}
+primReadMD = MV.read . unMDPrim
+
+-- | Write the member of a distributed value corresponding to the given thread index.
+primWriteMD :: DPrim a => MDist a s -> Int -> a -> ST s ()
+{-# INLINE primWriteMD #-}
+primWriteMD = MV.write . unMDPrim
+
+-- | Freeze a mutable distributed value to an immutable one.
+--   You promise not to update the mutable one any further.
+primUnsafeFreezeMD :: DPrim a => MDist a s -> ST s (Dist a)
+{-# INLINE primUnsafeFreezeMD #-}
+primUnsafeFreezeMD = liftM mkDPrim . V.unsafeFreeze . unMDPrim
+
+
+-- | Get the size of a distributed value, that is, the number of threads
+--   in the gang that it was created for.
+primSizeD :: DPrim a => Dist a -> Int
+{-# INLINE primSizeD #-}
+primSizeD = V.length . unDPrim
+
+-- | Get the size of a distributed mutable value, that is, the number of threads
+--   in the gang it was created for.
+primSizeMD :: DPrim a => MDist a s -> Int
+{-# INLINE primSizeMD #-}
+primSizeMD = MV.length . unMDPrim
+
+
+-- Unit -----------------------------------------------------------------------
 instance DT () where
   data Dist ()    = DUnit  !Int
   data MDist () s = MDUnit !Int
@@ -132,41 +213,13 @@ instance DT () where
                                return ()
   unsafeFreezeMD (MDUnit n) = return $ DUnit n
 
-class Unbox e => DPrim e where
-  mkDPrim :: V.Vector e -> Dist  e
-  unDPrim :: Dist  e -> V.Vector e
+-- | Yield a distributed unit.
+unitD :: Gang -> Dist ()
+{-# INLINE_DIST unitD #-}
+unitD = DUnit . gangSize
 
-  mkMDPrim :: MV.STVector s e -> MDist  e s
-  unMDPrim :: MDist  e s -> MV.STVector s e
 
-primIndexD :: DPrim a => Dist a -> Int -> a
-{-# INLINE primIndexD #-}
-primIndexD = (V.!) . unDPrim
-
-primNewMD :: DPrim a => Gang -> ST s (MDist a s)
-{-# INLINE primNewMD #-}
-primNewMD = liftM mkMDPrim . MV.new . gangSize
-
-primReadMD :: DPrim a => MDist a s -> Int -> ST s a
-{-# INLINE primReadMD #-}
-primReadMD = MV.read . unMDPrim
-
-primWriteMD :: DPrim a => MDist a s -> Int -> a -> ST s ()
-{-# INLINE primWriteMD #-}
-primWriteMD = MV.write . unMDPrim
-
-primUnsafeFreezeMD :: DPrim a => MDist a s -> ST s (Dist a)
-{-# INLINE primUnsafeFreezeMD #-}
-primUnsafeFreezeMD = liftM mkDPrim . V.unsafeFreeze . unMDPrim
-
-primSizeD :: DPrim a => Dist a -> Int
-{-# INLINE primSizeD #-}
-primSizeD = V.length . unDPrim
-
-primSizeMD :: DPrim a => MDist a s -> Int
-{-# INLINE primSizeMD #-}
-primSizeMD = MV.length . unMDPrim
-
+-- Bool -----------------------------------------------------------------------
 instance DPrim Bool where
   mkDPrim           = DBool
   unDPrim (DBool a) = a
@@ -186,6 +239,8 @@ instance DT Bool where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
+
+-- Char -----------------------------------------------------------------------
 instance DPrim Char where
   mkDPrim           = DChar
   unDPrim (DChar a) = a
@@ -205,6 +260,8 @@ instance DT Char where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
+
+-- Int ------------------------------------------------------------------------
 instance DPrim Int where
   mkDPrim          = DInt
   unDPrim (DInt a) = a
@@ -226,6 +283,8 @@ instance DT Int where
 
   measureD n = "Int " ++ show n
 
+
+-- Word8 ----------------------------------------------------------------------
 instance DPrim Word8 where
   mkDPrim            = DWord8
   unDPrim (DWord8 a) = a
@@ -245,6 +304,8 @@ instance DT Word8 where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
+
+-- Float ----------------------------------------------------------------------
 instance DPrim Float where
   mkDPrim            = DFloat
   unDPrim (DFloat a) = a
@@ -264,6 +325,8 @@ instance DT Float where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
+
+-- Double ---------------------------------------------------------------------
 instance DPrim Double where
   mkDPrim             = DDouble
   unDPrim (DDouble a) = a
@@ -283,6 +346,8 @@ instance DT Double where
   sizeD          = primSizeD
   sizeMD         = primSizeMD
 
+
+-- Pairs ----------------------------------------------------------------------
 instance (DT a, DT b) => DT (a,b) where
   data Dist  (a,b)   = DProd  !(Dist a)    !(Dist b)
   data MDist (a,b) s = MDProd !(MDist a s) !(MDist b s)
@@ -304,6 +369,31 @@ instance (DT a, DT b) => DT (a,b) where
 
   measureD (x,y) = "Pair " ++ "(" ++ measureD x ++ ") (" ++  measureD y ++ ")"
 
+
+-- | Pairing of distributed values.
+-- /The two values must belong to the same/ 'Gang'.
+zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
+{-# INLINE [0] zipD #-}
+zipD !x !y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
+             DProd x y
+
+-- | Unpairing of distributed values.
+unzipD :: (DT a, DT b) => Dist (a,b) -> (Dist a, Dist b)
+{-# INLINE_DIST unzipD #-}
+unzipD (DProd dx dy) = (dx,dy)
+
+-- | Extract the first elements of a distributed pair.
+fstD :: (DT a, DT b) => Dist (a,b) -> Dist a
+{-# INLINE_DIST fstD #-}
+fstD = fst . unzipD
+
+-- | Extract the second elements of a distributed pair.
+sndD :: (DT a, DT b) => Dist (a,b) -> Dist b
+{-# INLINE_DIST sndD #-}
+sndD = snd . unzipD
+
+
+-- Maybe ----------------------------------------------------------------------
 instance DT a => DT (Maybe a) where
   data Dist  (Maybe a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
   data MDist (Maybe a) s = MDMaybe !(MDist Bool s) !(MDist a s)
@@ -333,32 +423,8 @@ instance DT a => DT (Maybe a) where
   measureD Nothing = "Nothing"
   measureD (Just x) = "Just (" ++ measureD x ++ ")"
 
-{-
-instance DT a => DT (MaybeS a) where
-  data Dist  (MaybeS a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
-  data MDist (MaybeS a) s = MDMaybe !(MDist Bool s) !(MDist a s)
 
-  indexD (DMaybe bs as) i
-    | bs `indexD` i       = JustS $ as `indexD` i
-    | otherwise           = NothingS
-  newMD g = liftM2 MDMaybe (newMD g) (newMD g)
-  readMD (MDMaybe bs as) i =
-    do
-      b <- readMD bs i
-      if b then liftM JustS $ readMD as i
-           else return NothingS
-  writeMD (MDMaybe bs as) i NothingS  = writeMD bs i False
-  writeMD (MDMaybe bs as) i (JustS x) = writeMD bs i True
-                                     >> writeMD as i x
-  unsafeFreezeMD (MDMaybe bs as) = liftM2 DMaybe (unsafeFreezeMD bs)
-                                                 (unsafeFreezeMD as)
-  sizeD  (DMaybe  b _) = sizeD  b
-  sizeMD (MDMaybe b _) = sizeMD b
-
-  measureD NothingS = "Nothing"
-  measureD (JustS x) = "Just (" ++ measureD x ++ ")"
--}
-
+-- Vector ---------------------------------------------------------------------
 instance Unbox a => DT (V.Vector a) where
   data Dist  (Vector a)   = DVector  !(Dist  Int)   !(BV.Vector      (Vector a))
   data MDist (Vector a) s = MDVector !(MDist Int s) !(MBV.STVector s (Vector a))
@@ -378,6 +444,13 @@ instance Unbox a => DT (V.Vector a) where
 
   measureD xs = "Vector " ++ show (V.length xs)
 
+
+-- | Yield the distributed length of a distributed array.
+lengthD :: Unbox a => Dist (Vector a) -> Dist Int
+lengthD (DVector l _) = l
+
+
+-- USegd ----------------------------------------------------------------------
 instance DT USegd where
   data Dist  USegd   = DUSegd  !(Dist (Vector Int))
                                !(Dist (Vector Int))
@@ -425,75 +498,4 @@ indicesUSegdD (DUSegd _ idxs _) = idxs
 elementsUSegdD :: Dist USegd -> Dist Int
 {-# INLINE_DIST elementsUSegdD #-}
 elementsUSegdD (DUSegd _ _ dns) = dns
-
--- |Basic operations on immutable distributed types
--- -------------------------------------------
-
-newD :: DT a => Gang -> (forall s . MDist a s -> ST s ()) -> Dist a
-newD g init =
-  runST (do
-           mdt <- newMD g
-           init mdt
-           unsafeFreezeMD mdt)
-                    
-
--- | Yield a distributed unit.
-unitD :: Gang -> Dist ()
-{-# INLINE_DIST unitD #-}
-unitD = DUnit . gangSize
-
--- | Pairing of distributed values.
--- /The two values must belong to the same/ 'Gang'.
-zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
-{-# INLINE [0] zipD #-}
-zipD !x !y = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) $
-             DProd x y
-
--- | Unpairing of distributed values.
-unzipD :: (DT a, DT b) => Dist (a,b) -> (Dist a, Dist b)
-{-# INLINE_DIST unzipD #-}
-unzipD (DProd dx dy) = (dx,dy)
-
--- | Extract the first elements of a distributed pair.
-fstD :: (DT a, DT b) => Dist (a,b) -> Dist a
-{-# INLINE_DIST fstD #-}
-fstD = fst . unzipD
-
--- | Extract the second elements of a distributed pair.
-sndD :: (DT a, DT b) => Dist (a,b) -> Dist b
-{-# INLINE_DIST sndD #-}
-sndD = snd . unzipD
-
-{-
--- | Pairing of distributed values.
--- /The two values must belong to the same/ 'Gang'.
-zipSD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
-{-# INLINE [0] zipSD #-}
-zipSD !x !y = checkEq (here "zipSD") "Size mismatch" (sizeD x) (sizeD y) $
-              SDProd x y
-
--- | Unpairing of distributed values.
-unzipSD :: (DT a, DT b) => Dist (a,b) -> (Dist a, Dist b)
-{-# INLINE_DIST unzipSD #-}
-unzipSD (SDProd dx dy) = (dx,dy)
-
--- | Extract the first elements of a distributed pair.
-fstSD :: (DT a, DT b) => Dist (a,b) -> Dist a
-{-# INLINE_DIST fstSD #-}
-fstSD = fst . unzipSD
-
--- | Extract the second elements of a distributed pair.
-sndSD :: (DT a, DT b) => Dist (a,b) -> Dist b
-{-# INLINE_DIST sndSD #-}
-sndSD = snd . unzipSD
--}
-
--- | Yield the distributed length of a distributed array.
-lengthD :: Unbox a => Dist (Vector a) -> Dist Int
-lengthD (DVector l _) = l
-
-debugD :: DT a => Dist a -> String
-debugD d = "["
-         ++ intercalate "," [measureD (indexD d i) | i <- [0 .. sizeD d-1]]
-         ++ "]"
 
