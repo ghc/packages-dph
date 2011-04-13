@@ -27,16 +27,17 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
+
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
 {-# INLINE mapUP #-}
 mapUP f xs = splitJoinD theGang (mapD theGang (Seq.map f)) xs
+
 
 filterUP :: Unbox a => (a -> Bool) -> Vector a -> Vector a
 {-# INLINE filterUP #-}
 filterUP f = joinD  theGang unbalanced
            . mapD   theGang (Seq.filter f)
            . splitD theGang unbalanced
-
 
 
 -- |Extract all elements from an array according to a given flag array
@@ -51,23 +52,6 @@ combineUP flags xs ys = combine2UP tags (mkUPSelRep2 tags) xs ys
   where
     tags = Seq.map fromBool flags
 
-{-
-combineUP flags !xs !ys = joinD theGang balanced
-                        . zipWithD theGang go (zipD is ns)
-                        $ splitD theGang balanced flags
-  where
-    ns = mapD theGang count
-       $ splitD theGang balanced flags
-
-    is = fstS $ scanD theGang add (0,0) ns
-
-    count bs = let ts = sumU (Seq.map fromBool bs)
-               in ts :*: (lengthU bs - ts)
-
-    add (x1 :*: y1) (x2 :*: y2) = (x1+x2, y1+y2)
-
-    go ((i,j), (m,n)) bs = combineU bs (Seq.slice xs i m) (Seq.slice ys j n)
--}
 
 combine2UP :: Unbox a => Vector Tag -> UPSelRep2 -> Vector a -> Vector a -> Vector a
 {-# INLINE_UP combine2UP #-}
@@ -78,61 +62,18 @@ combine2UP tags rep !xs !ys = joinD theGang balanced
     go ((i,j), (m,n)) ts = Seq.combine2ByTag ts (Seq.slice xs i m)
                                              (Seq.slice ys j n)
     
-{-
-combine2UP sel !xs !ys = zipWithUP get (tagsUSel2 sel) (indicesUSel2 sel)
-  where
-    {-# INLINE [0] get #-}
-    get 0 i = xs ! i
-    get _ i = ys ! i
--}
-
-{-
-combine2UP tags !xs !ys = joinD theGang balanced
-                        $ zipWithD theGang go (zipD is ns)
-                        $ splitD theGang balanced tags
-  where
-    ns = mapD theGang count
-       $ splitD theGang balanced tags
-
-    count bs = let ones = sumU bs
-               in (lengthU bs - ones) :*: ones
-
-    is = fstS $ scanD theGang add (0 :*: 0) ns
-
-    add (x1 :*: y1) (x2 :*: y2) = (x1+x2) :*: (y1+y2)
-
-    go ((i :*: j) :*: (m :*: n)) ts = Seq.combine2ByTag ts (Seq.slice xs i m)
-                                                        (Seq.slice ys j n)
--}
 
 zipWithUP :: (Unbox a, Unbox b, Unbox c) => (a -> b -> c) -> Vector a -> Vector b -> Vector c
 {-# INLINE zipWithUP #-}
 zipWithUP f xs ys = splitJoinD theGang (mapD theGang (Seq.map (uncurry f))) (Seq.zip xs ys)
-{-
-zipWithUP f a b = joinD    theGang balanced
-                 (zipWithD theGang (zipWithU f)
-                    (splitD theGang balanced a)
-                    (splitD theGang balanced b))
--}
---zipWithUP f a b = mapUP (uncurryS f) (Seq.zip a b)
+
 
 foldUP :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
 {-# INLINE foldUP #-}
 foldUP f !z xs = foldD  theGang f
                 (mapD   theGang (Seq.fold f z)
                 (splitD theGang unbalanced xs))
-{-
-foldUP f z xs = maybeS z (f z)
-               (foldD  theGang combine
-               (mapD   theGang (Seq.foldl1Maybe f)
-               (splitD theGang unbalanced
-                xs)))
-  where
-    combine (JustS x) (JustS y) = JustS (f x y)
-    combine (JustS x) NothingS  = JustS x
-    combine NothingS  (JustS y) = JustS y
-    combine NothingS  NothingS  = NothingS
--}
+
 
 -- |Array reduction proceeding from the left (requires associative combination)
 --
@@ -142,13 +83,13 @@ foldlUP f z arr
   | Seq.null arr = z
   | otherwise = foldl1UP f arr
 
+
 -- |Reduction of a non-empty array which requires an associative combination
 -- function
 --
 fold1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE fold1UP #-}
 fold1UP = foldl1UP
-
 
 
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
@@ -163,6 +104,7 @@ foldl1UP f arr = (maybe z (f z)
     combine (Just x) Nothing  = Just x
     combine Nothing  (Just y) = Just y
     combine Nothing  Nothing  = Nothing
+
 
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 {-# INLINE_UP scanUP #-}

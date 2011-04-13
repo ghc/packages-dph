@@ -25,9 +25,6 @@ import Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapD, foldD)
 
 
--- unitD reexported from Types
-
-
 -- | Distribute a scalar.
 --   Each thread gets its own copy of the same value.
 scalarD :: DT a => Gang -> a -> Dist a

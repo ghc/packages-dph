@@ -56,16 +56,11 @@ enumFromThenToUP start next end =
 enumFromStepLenUP :: Int -> Int -> Int -> Vector Int
 {-# INLINE enumFromStepLenUP #-}
 enumFromStepLenUP start delta len =
-  -- joinD theGang balanced . mapD theGang gen $ zipD is dlen
   joinD theGang balanced
   (mapD theGang gen
   (splitLenIdxD theGang len))
   where
     gen (n,i) = Seq.enumFromStepLen (i * delta + start) delta n
-    --dlen = splitLenD theGang len
-    --is   = fstS (scanD theGang (+) 0 dlen)
-    --
-    --gen (i :*: n) = Seq.enumFromStepLen (i * delta + start) delta n
 
 enumFromStepLenEachUP :: Int -> Vector Int -> Vector Int -> Vector Int -> Vector Int
 {-# INLINE enumFromStepLenEachUP #-}

@@ -34,9 +34,6 @@ import Data.Array.Parallel.Unlifted.Parallel.Permute     ( bpermuteUP )
 
 import GHC.Base ( remInt )
 
--- infixl 9 !
--- infixr 5 +:+
-
 -- some of the functions are exactly the same as the U version
 
 -- |Test whether the given array is empty
@@ -88,7 +85,5 @@ indexedUP = splitJoinD theGang indexedFn
     sizes  arr   = fst $ scanD theGang (+) 0 $ lengthD arr
     indexedFn = \arr -> (zipWithD theGang (\o -> Seq.map (\(x,y) -> (x + o, y))) (sizes arr) $ 
                         mapD theGang Seq.indexed arr)
-
-
 
 
