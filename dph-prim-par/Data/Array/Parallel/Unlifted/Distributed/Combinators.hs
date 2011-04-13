@@ -41,16 +41,14 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 generateD :: DT a => Gang -> (Int -> a) -> Dist a
 {-# NOINLINE generateD #-}
 generateD g f 
- 	= trace "generate full")
- 	$ runDistST g (myIndex >>= return . f)
+ 	= runDistST g (myIndex >>= return . f)
 
 
 -- | Create a distributed value, but run it sequentially (I think?)
 generateD_cheap :: DT a => Gang -> (Int -> a) -> Dist a
 {-# NOINLINE generateD_cheap #-}
 generateD_cheap g f 
-	= trace "generate cheap"
-	$ runDistST_seq g (myIndex >>= return . f)
+	= runDistST_seq g (myIndex >>= return . f)
 
 
 -- Mapping --------------------------------------------------------------------
