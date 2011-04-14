@@ -80,6 +80,21 @@ Executable dph-evens-seq
 --  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
+-- Reverse --------------------------------------------------------------------
+Executable dph-reverse
+  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Reverse/dph lib
+  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+
+
+Executable dph-reverse-seq
+  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Main-is:        Main.hs
+  hs-source-dirs: imaginary/Reverse/dph lib
+  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+
+
 -- Words ---------------------------------------------------------------------
 Executable dph-words
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
