@@ -24,7 +24,7 @@ import Data.Maybe
 
 main :: IO ()
 main 
- = do	args	<- parseArgsIO ArgsTrailing buildArgs
+ = do	args	<- parseArgsIO (ArgsTrailing "files") buildArgs
 	mainWithArgs args
 
 

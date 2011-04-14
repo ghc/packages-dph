@@ -19,8 +19,8 @@ Executable dph-buildbot
         directory           >= 1.0    && < 1.2,
         time                >= 1.1    && < 1.3,
         parseargs           == 0.1.*,
-        buildbox            == 1.4.*,
-        mtl                 == 1.1.*,
+        buildbox            == 1.5.*,
+        mtl                 == 2.0.*,
         random              == 1.*
 
   Main-is:        Main.hs

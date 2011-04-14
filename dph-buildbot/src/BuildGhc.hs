@@ -20,9 +20,9 @@ ghcUnpack fileSnapShot dirScratch
 	
 	outLn $ "  - Updating snapshot"
 	inDir "ghc-head"
-	 $ do	ssystem "./darcs-all pull -av"
-		ssystem "./darcs-all get"
-		ssystem "./darcs-all pull -av"
+	 $ do	ssystem "./sync-all pull -av"
+		ssystem "./sync-all get"
+		ssystem "./sync-all pull -av"
 	
 
 ghcBuild :: String -> Build ()
