@@ -53,6 +53,7 @@ replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_UP replicateRSUP #-}
 replicateRSUP n xs = replicateSUP (lengthsToUPSegd (replicateUP (Seq.length xs) n)) xs
 
+
 appendSUP :: Unbox a => UPSegd -> UPSegd -> Vector a -> UPSegd -> Vector a -> Vector a
 {-# INLINE_UP appendSUP #-}
 appendSUP segd !xd !xs !yd !ys
@@ -64,6 +65,7 @@ appendSUP segd !xd !xs !yd !ys
       = Seq.unstream $ appendSegS (segdUPSegd xd) xs
                                (segdUPSegd yd) ys
                                (elementsUSegd segd) seg_off el_off
+
 
 appendSegS :: Unbox a => USegd -> Vector a -> USegd -> Vector a -> Int -> Int -> Int
                 -> S.Stream a
@@ -109,6 +111,7 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
           return $ Skip (Just (False, seg', i, j, xlens ! seg', n))
       | otherwise = return $ Yield (ys!j) (Just (True, seg, i, j+1, k-1, n-1))
 
+
 fixupFold :: Unbox a => (a -> a -> a) -> MVector s a
           -> Dist (Int,Vector a) -> ST s ()
 {-# NOINLINE fixupFold #-}
@@ -149,18 +152,20 @@ folds f g segd xs = dcarry `seq` drs `seq` runST (
         in
         ((k, Seq.take n rs), Seq.drop n rs)
 
+
 foldSUP :: Unbox a => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
 {-# INLINE foldSUP #-}
 foldSUP f !z = folds f (foldlSU f z)
+
 
 fold1SUP :: Unbox a => (a -> a -> a) -> UPSegd -> Vector a -> Vector a
 {-# INLINE fold1SUP #-}
 fold1SUP f = folds f (fold1SU f)
 
+
 sumSUP :: (Num e, Unbox e) => UPSegd -> Vector e -> Vector e
 {-# INLINE sumSUP #-}
 sumSUP = foldSUP (+) 0
-
 
 
 sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
@@ -178,6 +183,7 @@ foldRUP f z !segSize xs =
   where
     noOfSegs = Seq.length xs `div` segSize
     dlen = splitLenD theGang noOfSegs
+
 
 indicesSUP :: UPSegd -> Vector Int
 {-# INLINE_UP indicesSUP #-}

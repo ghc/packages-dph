@@ -41,8 +41,9 @@ filterUP f
         . splitD theGang unbalanced
 
 
--- | Extract all elements from an array according to a given flag array.
---   The two vectors should have the same length, but this is not checked.
+-- | Take elements of an array where a flag value is true, and pack them into
+--   the result. The souce and flag arrays should have the same length, 
+--   but this is not checked.
 packUP :: Unbox e => Vector e -> Vector Bool -> Vector e
 {-# INLINE_UP packUP #-}
 packUP xs flags 
