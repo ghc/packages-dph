@@ -2,8 +2,14 @@
 module Data.Array.Parallel.Base.Config (
     debug
   , debugCritical
+  , tracePrimEnabled
 ) where
 
-debug = False
-debugCritical = False
+debug                   = False
+debugCritical           = False
+
+-- | Print tracing information for each DPH primitive to console.
+--   The tracing hooks are in dph-prim-par/D/A/P/Unlifted.hs
+tracePrimEnabled        :: Bool
+tracePrimEnabled        = False
 
