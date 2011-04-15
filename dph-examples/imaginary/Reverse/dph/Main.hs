@@ -32,7 +32,8 @@ run "vectorised" count
          <- time
          $  let  arr'    = RD.treeReversePA arr
             in   arr' `seq` return arr'
-                
+
+        print arrReversed
         putStr  $ prettyTime tElapsed
 
 run "vector" count
