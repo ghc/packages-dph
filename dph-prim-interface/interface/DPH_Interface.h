@@ -12,8 +12,6 @@ instance (Elt a, Elt b) => Elt (a, b)
 
 infixl 9 !:
 infixr 5 +:+
---infixr 5 ^+:+^
---infixr 9 >:
 
 length :: Elt a => Array a -> Int
 {-# INLINE_BACKEND length #-}
