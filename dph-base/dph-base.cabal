@@ -20,6 +20,7 @@ Library
         Data.Array.Parallel.Base
         Data.Array.Parallel.Stream
         Data.Array.Parallel.Base.DTrace
+        Data.Array.Parallel.Base.TracePrim
 
   Other-Modules:
         Data.Array.Parallel.Base.Config
