@@ -86,12 +86,34 @@ fsts  :: (Elt a, Elt b) => Array (a, b) -> Array a
 snds :: (Elt a, Elt b) => Array (a, b) -> Array b
 {-# INLINE_BACKEND snds #-}
 
+
+-- zipWith --------------------------------------------------------------------
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
 {-# INLINE_BACKEND zipWith #-}
 
-{-# RULES
 
+-- Higher arity versions of zipWith ---
+zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
+          => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
+{-# INLINE zipWith3 #-}
+zipWith3 f xs ys zs
+        = zipWith (\(x, y) z -> f x y z)
+                  (zip xs ys)
+                  zs
+
+zipWith4 :: (Elt a, Elt b, Elt c, Elt d, Elt e)
+         => (a -> b -> c -> d -> e)
+         -> Array a -> Array b -> Array c -> Array d -> Array e
+{-# INLINE zipWith4 #-}
+zipWith4 f as bs cs ds
+         = zipWith (\(a, b) (c, d) -> f a b c d)
+                   (zip as bs)
+                   (zip cs ds)
+
+
+-- Generally useful rules -------------
+{-# RULES
 "zipWith/replicate" forall f m n x y.
   zipWith f (replicate m x) (replicate n y) = replicate m (f x y)
 
@@ -106,12 +128,56 @@ zipWith :: (Elt a, Elt b, Elt c)
                            (enumFromStepLen i2 k2 n2)
     = enumFromStepLen (i1+i2) (k1+k2) n1
   #-}
+                   
+ 
+-- When scalar operations are vectorised they turn into uses of zipWith.
+--  For example,  x + y  is lifted to  zipWith (+) x y.
 
-zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
-          => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
-{-# INLINE zipWith3 #-}
-zipWith3 f xs ys zs = zipWith (\p z -> case p of
-                                         (x,y) -> f x y z) (zip xs ys) zs
+-- The following rules are needed because we don't yet do vectorisation avoidance.
+--  They fuse arithmetic operations that shouldn't have been vectorised in the
+--  first place. For example, with  z = x * y + a, the vectoriser will
+--  lift * and + to vector operations. The result of the  the multiply will be
+--  written to a vector, and then read back to do the addition.
+--
+--  Adding the zipWith rules ensures that the multiply and addition are performed
+--  in one go. We shouldn't need the rules when we have vectorisation avoidance
+--  for scalar operations.
+
+{-# RULES
+"zipWith/zipWith/zipWith" forall f g h as bs cs ds.
+  zipWith f (zipWith g as bs) (zipWith h cs ds)
+   = zipWith4 (\a b c d -> f (g a b) (h c d)) as bs cs ds
+
+"zipWith/zipWith_left"  forall f g as bs cs.
+  zipWith f (zipWith g as bs) cs
+   = zipWith3 (\a b c ->   f (g a b) c) as bs cs
+
+"zipWith/zipWith_right" forall f g as bs cs.
+  zipWith f as (zipWith g bs cs)
+   = zipWith3 (\a b c ->   f a (g b c)) as bs cs
+  #-}
+
+
+-- More rules to recover from the lack of vectorisation avoidance.
+-- The regular form of the rules shows why we really dont want to do it this way.
+{-# RULES
+"map/zipWith" forall f g xs ys.
+  map f (zipWith g xs ys)
+   = zipWith (\x y -> f (g x y)) xs ys
+
+"zipWith3/map_1" forall f g xs ys zs.
+  zipWith3 f (map g xs) ys zs
+   = zipWith3 (\x y z -> f (g x) y z) xs ys zs
+
+"zipWith3/map_2" forall f g xs ys zs.
+  zipWith3 f xs (map g ys) zs
+   = zipWith3 (\x y z -> f x (g y) z) xs ys zs
+
+"zipWith3/map_3" forall f g xs ys zs.
+  zipWith3 f xs ys (map g zs)
+   = zipWith3 (\x y z -> f x y (g z)) xs ys zs
+  #-}
+
 
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 {-# INLINE_BACKEND fold #-}
