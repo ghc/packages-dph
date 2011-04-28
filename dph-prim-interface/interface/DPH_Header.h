@@ -2,33 +2,78 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
-  Elt, Array, Sel2, Segd,
-
+  -- * Basics
+  Elt, Array,  
   length,
-  empty, replicate, repeat, (+:+), interleave,
-  (!:), extract, drop, permute, mbpermute, bpermute, bpermuteDft, update,
-  pack, combine, combine2,
-  enumFromTo, enumFromThenTo, enumFromStepLen, enumFromStepLenEach,
+  
+  -- * Constructors
+  empty,
+  (+:+),
+  generate,
+  replicate, repeat,
   indexed,
-  zip, unzip, fsts, snds,
-  map, zipWith, zipWith3,
+  enumFromTo, enumFromThenTo, enumFromStepLen, enumFromStepLenEach,
+
+  -- * Projections
+  (!:),
+  extract, drop,
   filter,
+  
+  -- * Permutation
+  permute,
+  bpermute,
+  mbpermute,
+  bpermuteDft,
+  
+  -- * Update
+  update,
+  
+  -- * Packing and Combining
+  pack,
+  combine, combine2,
+  interleave,
 
-  fold, fold1, and, sum, scan,
+  -- * Zips and ZipWith
+  zip,
+  unzip, fsts, snds,
+  map, zipWith, zipWith3,
+  
+  -- * Folds
+  fold, fold1,
+  and, sum, scan,
 
-  replicate_s, replicate_rs, append_s,
 
-  fold_s, fold1_s, fold_r, sum_s, indices_s, sum_r,
+  -- * Segmented Constructors
+  append_s, replicate_s, replicate_rs, 
+
+  -- * Segmented Folds
+  fold_s, fold1_s, fold_r, sum_s,  sum_r,
+  
+  -- * Segment Descriptors
+  Segd,
+  indices_s,
   lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd,
   mkSegd, plusSegd,
 
-  mkSel2, tagsSel2, indicesSel2, elementsSel2_0, elementsSel2_1, repSel2,
+  -- * Selectors
+  Sel2,
+  mkSel2, 
+  tagsSel2, indicesSel2, elementsSel2_0, elementsSel2_1, repSel2,
   tagsToSel2,
+  
   mkSelRep2, indicesSelRep2, elementsSelRep2_0, elementsSelRep2_1,
-  packByTag, pick, count, count_s,
+  
+  -- * Packing and picking
+  packByTag, pick,
+  
+  -- * Counting
+  count, count_s,
 
-  randoms, randomRs, IOElt, hGet, hPut,
-
+  -- * Random arrays
+  randoms, randomRs,
+  
+  -- * Array IO
+  IOElt, hGet, hPut,
   toList, fromList,
 ) where
 

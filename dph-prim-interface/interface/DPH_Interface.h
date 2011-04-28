@@ -13,66 +13,193 @@ instance (Elt a, Elt b) => Elt (a, b)
 infixl 9 !:
 infixr 5 +:+
 
+-- Basics ---------------------------------------------------------------------
+-- | Take the number of elements in an array.
 length :: Elt a => Array a -> Int
 {-# INLINE_BACKEND length #-}
 
+
+-- Constructors ---------------------------------------------------------------
+-- | An array with no elements.
+empty :: Elt a => Array a
+{-# INLINE_BACKEND empty #-}
+
+
+-- | Append two arrays.
+(+:+) :: Elt a => Array a -> Array a -> Array a
+{-# INLINE_BACKEND (+:+) #-}
+
+
+-- | Generate a new array given its length and a function to compute each element.
 generate :: Elt a => Int -> (Int -> a) -> Array a
 {-# INLINE_BACKEND generate #-}
 generate n f = map f (enumFromTo 0 (n-1))
 
-empty :: Elt a => Array a
-{-# INLINE_BACKEND empty #-}
 
+-- | Produce a new array by replicating a single element the given number of times.
 replicate :: Elt a => Int -> a -> Array a
 {-# INLINE CONLIKE PHASE_BACKEND replicate #-}
 
-repeat :: Elt a => Int -> Int -> Array a -> Array a
+
+-- | Produce an array by copying a portion of another array.
+repeat  :: Elt a 
+        => Int          -- ^ number of times to repeat the source
+        -> Int          -- ^ length of source (can be less than the provided array)
+        -> Array a      -- ^ array elements to repeat
+        -> Array a
 {-# INLINE_BACKEND repeat #-}
 
+
+-- | Tag each element of an array with its index.
+--
+--   Example: @indexed [:42, 93, 13:] = [:(0, 42), (1, 93), (2, 13):]@ 
+indexed :: Elt a => Array a -> Array (Int, a)
+{-# INLINE_BACKEND indexed #-}
+
+
+-- | Generate a range of @Int@s.
+enumFromTo :: Int -> Int -> Array Int
+{-# INLINE_BACKEND enumFromTo #-}
+
+enumFromThenTo :: Int -> Int -> Int -> Array Int
+{-# INLINE_BACKEND enumFromThenTo #-}
+
+enumFromStepLen :: Int -> Int -> Int -> Array Int
+{-# INLINE_BACKEND enumFromStepLen #-}
+
+enumFromStepLenEach :: Int -> Array Int -> Array Int -> Array Int -> Array Int
+{-# INLINE_BACKEND enumFromStepLenEach #-}
+
+
+{-# RULES
+
+"repeat/enumFromStepLen[Int]" forall i j k n len.
+  repeat n len (enumFromStepLen i j k)
+    = generate len (\m -> i + ((m `Prelude.rem` k) * j))
+
+  #-}
+
+
+-- Projections ----------------------------------------------------------------
+-- | Retrieve a numbered element from an array.
 (!:) :: Elt a => Array a -> Int -> a
 {-# INLINE_BACKEND (!:) #-}
 
-extract :: Elt a => Array a -> Int -> Int -> Array a
+
+-- | Extract a subrange of elements from an array.
+--
+--   Example: @extract [:23, 42, 93, 50, 27:] 1 3  = [:42, 93, 50:]@
+extract :: Elt a
+        => Array a      -- ^ source array
+        -> Int          -- ^ starting index in source array
+        -> Int          -- ^ length of result array
+        -> Array a
 {-# INLINE_BACKEND extract #-}
 
+
+-- | Drop some elements from the front of an array, 
+--   returning the latter portion.
 drop :: Elt a => Int -> Array a -> Array a
 {-# INLINE_BACKEND drop #-}
 
-permute :: Elt a => Array a -> Array Int -> Array a
+
+-- Permutation ----------------------------------------------------------------
+-- | Forwards permutation of array elements.
+permute :: Elt a 
+        => Array a      -- ^ source array
+        -> Array Int    -- ^ indices in the destination to copy elements to.
+        -> Array a
 {-# INLINE_BACKEND permute #-}
 
-bpermute :: Elt a => Array a -> Array Int -> Array a
+
+-- | Backwards permutation of array elements.
+--
+--   Example @bpermute [:50, 60, 20, 30:] 3 [:0, 3, 2:]  = [:50, 30, 20:]@
+bpermute 
+        :: Elt a 
+        => Array a      -- ^ source array
+        -> Array Int    -- ^ indices in the source to copy elements from.
+        -> Array a
 {-# INLINE_BACKEND bpermute #-}
 
-mbpermute :: (Elt a, Elt b) => (a->b) ->Array a -> Array Int -> Array b
+
+-- | Combination of map and bpermute.
+--
+--   The advantage of using this combined version is that we dont need
+--   to apply the parameter function to source elements that dont appear
+--   in the result.
+mbpermute :: (Elt a, Elt b) => (a->b) -> Array a -> Array Int -> Array b
 {-# INLINE_BACKEND mbpermute #-}
 
+
+-- | Default backwards permutation.
+--
+--   * The values of the index-value pairs are written into the position in the
+--     result array that is indicated by the corresponding index.
+--
+--   * All positions not covered by the index-value pairs will have the value
+--     determined by the initialiser function for that index position.
+--
 bpermuteDft:: Elt e => Int -> (Int -> e) -> Array (Int, e) -> Array e
 {-# INLINE_BACKEND bpermuteDft #-}
 
+{-# RULES
+        
+"bpermute/repeat" forall n len xs is.
+  bpermute (repeat n len xs) is
+    = len `Prelude.seq` bpermute xs (map (dph_mod_index len) is)
+
+"bpermute/bpermute" forall xs is js.
+  bpermute (bpermute xs is) js = bpermute xs (bpermute is js)
+
+  #-}
+
+
+-- Update ---------------------------------------------------------------------
+-- | Copy the source array in the destination, using new values for the given indices.
 update :: Elt a => Array a -> Array (Int, a) -> Array a
 {-# INLINE_BACKEND update #-}
 
-(+:+) :: Elt a => Array a -> Array a -> Array a
-{-# INLINE_BACKEND (+:+) #-}
 
-interleave :: Elt a => Array a -> Array a -> Array a
-{-# INLINE_BACKEND interleave #-}
 
+-- Packing and Combining -----------------------------------------------------
+-- | Extract the elements from an array that match the given predicate.
+filter :: Elt a => (a -> Bool) -> Array a -> Array a
+{-# INLINE_BACKEND filter #-}
+
+
+-- | Extract elements of an array where the associated flag is true.
 pack :: Elt a => Array a -> Array Bool -> Array a
 {-# INLINE_BACKEND pack #-}
 
+
+-- | Combine two arrays, using a tag array to tell us where to get each element from.
+--
+--   Example: @combine [T,F,F,T,T,F] [1,2,3] [4,5,6] = [1,4,5,2,3,6]@
 combine :: Elt a => Array Bool -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine #-}
 
+
+-- | Like `combine`, but use a precomputed selector to speed up the process.
+-- 
+--   See dph-prim-seq:"Data.Array.Parallel.Unlifted.Sequential.Segmented.USel"
+--   for a description of how this works.
+--   
 combine2 :: Elt a => Array Tag -> SelRep2 -> Array a -> Array a -> Array a
 {-# INLINE_BACKEND combine2 #-}
 
+
+-- | Interleave the elements of two arrays.
+-- 
+--   Example: @interleave [1,2,3] [4,5,6] = [1,4,2,5,3,6]@
+interleave :: Elt a => Array a -> Array a -> Array a
+{-# INLINE_BACKEND interleave #-}
+
+
+-- Zips and ZipWith -----------------------------------------------------------
 map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
 {-# INLINE_BACKEND map #-}
 
-filter :: Elt a => (a -> Bool) -> Array a -> Array a
-{-# INLINE_BACKEND filter #-}
 
 zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a, b)
 {-# INLINE CONLIKE PHASE_BACKEND zip #-}
@@ -80,14 +207,16 @@ zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a, b)
 unzip :: (Elt a, Elt b) => Array (a, b) -> (Array a, Array b)
 {-# INLINE_BACKEND unzip #-}
 
+-- | O(1). Take the first elements of an array of pairs.
 fsts  :: (Elt a, Elt b) => Array (a, b) -> Array a
 {-# INLINE_BACKEND fsts #-}
 
+
+-- | O(1). Take the second elements of an array of pairs.
 snds :: (Elt a, Elt b) => Array (a, b) -> Array b
 {-# INLINE_BACKEND snds #-}
 
 
--- zipWith --------------------------------------------------------------------
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
 {-# INLINE_BACKEND zipWith #-}
@@ -114,6 +243,7 @@ zipWith4 f as bs cs ds
 
 -- Generally useful rules -------------
 {-# RULES
+        
 "zipWith/replicate" forall f m n x y.
   zipWith f (replicate m x) (replicate n y) = replicate m (f x y)
 
@@ -128,7 +258,15 @@ zipWith4 f as bs cs ds
                            (enumFromStepLen i2 k2 n2)
     = enumFromStepLen (i1+i2) (k1+k2) n1
   #-}
-                   
+     
+{-# RULES
+
+"map/zipWith (+)/enumFromStepLen" forall m n is.
+  map (dph_mod_index m) (zipWith GHC.Base.plusInt (enumFromStepLen 0 m n) is)
+    = map (dph_mod_index m) is
+
+ #-}
+              
  
 -- When scalar operations are vectorised they turn into uses of zipWith.
 --  For example,  x + y  is lifted to  zipWith (+) x y.
@@ -144,6 +282,7 @@ zipWith4 f as bs cs ds
 --  for scalar operations.
 
 {-# RULES
+
 "zipWith/zipWith/zipWith" forall f g h as bs cs ds.
   zipWith f (zipWith g as bs) (zipWith h cs ds)
    = zipWith4 (\a b c d -> f (g a b) (h c d)) as bs cs ds
@@ -155,12 +294,14 @@ zipWith4 f as bs cs ds
 "zipWith/zipWith_right" forall f g as bs cs.
   zipWith f as (zipWith g bs cs)
    = zipWith3 (\a b c ->   f a (g b c)) as bs cs
+
   #-}
 
 
 -- More rules to recover from the lack of vectorisation avoidance.
 -- The regular form of the rules shows why we really dont want to do it this way.
 {-# RULES
+
 "map/zipWith" forall f g xs ys.
   map f (zipWith g xs ys)
    = zipWith (\x y -> f (g x y)) xs ys
@@ -176,9 +317,11 @@ zipWith4 f as bs cs ds
 "zipWith3/map_3" forall f g xs ys zs.
   zipWith3 f xs ys (map g zs)
    = zipWith3 (\x y z -> f x y (g z)) xs ys zs
+
   #-}
 
 
+-- Folds ----------------------------------------------------------------------
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 {-# INLINE_BACKEND fold #-}
 
@@ -191,52 +334,44 @@ and :: Array Bool -> Bool
 sum :: (Num a, Elt a) => Array a -> a
 {-# INLINE_BACKEND sum #-}
 
+scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
+{-# INLINE_BACKEND scan #-}
+
+
 {-# RULES
 
 "seq/sum" forall xs e.
   seq (sum xs) e = seq xs e
 
-  #-}
-
-scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
-{-# INLINE_BACKEND scan #-}
-
-{-# RULES
-
 "seq/scan<Int> (+)" forall i xs e.
   seq (scan GHC.Base.plusInt i xs) e = i `seq` xs `seq` e
 
+"scan/replicate" forall z n x.
+  scan GHC.Base.plusInt z (replicate n x)
+    = enumFromStepLen z x n
+
   #-}
 
 
-indexed :: Elt a => Array a -> Array (Int, a)
-{-# INLINE_BACKEND indexed #-}
+-- Segmented Constructors -----------------------------------------------------
+append_s 
+        :: Elt a
+        => Segd         -- ^ segment descriptor of result aarray
+        -> Segd         -- ^ segment descriptor of first array
+        -> Array a      -- ^ data of first array
+        -> Segd         -- ^ segment descriptor of second array
+        -> Array a      -- ^ data of first array
+        -> Array a
+{-# INLINE_BACKEND append_s #-}
 
-enumFromTo :: Int -> Int -> Array Int
-{-# INLINE_BACKEND enumFromTo #-}
-
-enumFromThenTo :: Int -> Int -> Int -> Array Int
-{-# INLINE_BACKEND enumFromThenTo #-}
-
-enumFromStepLen :: Int -> Int -> Int -> Array Int
-{-# INLINE_BACKEND enumFromStepLen #-}
-
-enumFromStepLenEach :: Int -> Array Int -> Array Int -> Array Int -> Array Int
-{-# INLINE_BACKEND enumFromStepLenEach #-}
 
 replicate_s :: Elt a => Segd -> Array a -> Array a
 {-# INLINE CONLIKE PHASE_BACKEND replicate_s #-}
 
+
 replicate_rs :: Elt a => Int -> Array a -> Array a
 {-# INLINE CONLIKE PHASE_BACKEND replicate_rs #-}
 
-append_s :: Elt a => Segd         -- ^ segment descriptor of result array
-                  -> Segd         -- ^ segment descriptor of first array
-                  -> Array a      -- ^ data of first array
-                  -> Segd         -- ^ segment descriptor of second array
-                  -> Array a      -- ^ data of first array
-                  -> Array a
-{-# INLINE_BACKEND append_s #-}
 
 {-# RULES
 
@@ -248,6 +383,29 @@ append_s :: Elt a => Segd         -- ^ segment descriptor of result array
 
   #-}
 
+{-# RULES
+
+"replicate_s/replicate" forall segd k x.
+  replicate_s segd (replicate k x) = replicate (elementsSegd segd) x
+
+"replicate_s->replicate_rs" forall n m idxs nm xs.
+  replicate_s (mkSegd (replicate n m) idxs nm) xs
+    = replicate_rs m xs
+
+"replicate_rs/replicate" forall m n x.
+  replicate_rs m (replicate n x) = replicate (m*n) x
+
+"sum/replicate_rs" forall n xs.
+  sum (replicate_rs n xs) = sum xs * n
+
+"count/replicate_s" forall segd xs tag.
+  count (replicate_s segd xs) tag
+    = sum (packByTag (lengthsSegd segd) xs tag)
+
+ #-}
+
+
+-- Segmented Folds ------------------------------------------------------------
 fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold_s #-}
 
@@ -264,6 +422,19 @@ sum_s = fold_s (Prelude.+) 0
 sum_r :: (Num a, Elt a) => Int ->Array a -> Array a
 {-# INLINE_BACKEND sum_r #-}
 
+{-# RULES
+
+"fold_s/replicate1" forall f z n idxs n' xs.
+  fold_s f z (mkSegd (replicate n (GHC.Base.I# 1#)) idxs n') xs = xs
+
+"fold_s/replicate" forall f z m n idxs mn xs.
+  fold_s f z (mkSegd (replicate m n) idxs mn) xs
+    = fold_r f z n xs
+
+  #-}
+
+
+-- Operations on Segment Descriptors ------------------------------------------
 indices_s :: Segd -> Array Int
 {-# INLINE_BACKEND indices_s #-}
 {-
@@ -299,6 +470,7 @@ plusSegd segd1 segd2
            (zipWith (+) (indicesSegd segd1) (indicesSegd segd2))
            (elementsSegd segd1 `dph_plus` elementsSegd segd2)
 
+
 {-# RULES
 
 "lengthsSegd/mkSegd" forall lens idxs n.
@@ -318,18 +490,38 @@ plusSegd segd1 segd2
 
  #-}
 
-mkSel2 :: Array Tag -> Array Int -> Int -> Int -> SelRep2 -> Sel2
+
+-- Operations on Selectors ----------------------------------------------------
+
+-- | O(1). Construct a selector. Selectors are used to speed up the `combine2` operation.
+--
+--   See dph-prim-seq:"Data.Array.Parallel.Unlifted.Sequential.Segmented.USel"
+--   for a description of how this works.
+mkSel2  :: Array Tag            -- ^ tags array
+        -> Array Int            -- ^ indices array
+        -> Int                  -- ^ number of elements taken from first source array
+        -> Int                  -- ^ number of elements taken from second source array
+        -> SelRep2      
+        -> Sel2
 {-# INLINE CONLIKE PHASE_BACKEND mkSel2 #-}
 
+
+-- | O(1). Get the tags array of a selector.
 tagsSel2 :: Sel2 -> Array Tag
 {-# INLINE_BACKEND tagsSel2 #-}
 
+
+-- | O(1). Get the indices array of a selector.
 indicesSel2 :: Sel2 -> Array Int
 {-# INLINE_BACKEND indicesSel2 #-}
 
+
+-- | O(1). Get the number of elements that will be taken from the first array.
 elementsSel2_0 :: Sel2 -> Int
 {-# INLINE_BACKEND elementsSel2_0 #-}
 
+
+-- | O(1). Get the number of elements that will be taken from the second array.
 elementsSel2_1 :: Sel2 -> Int
 {-# INLINE_BACKEND elementsSel2_1 #-}
 
@@ -348,6 +540,9 @@ elementsSelRep2_0 :: Array Tag -> SelRep2 -> Int
 elementsSelRep2_1 :: Array Tag -> SelRep2 -> Int
 {-# INLINE_BACKEND elementsSelRep2_1 #-}
 
+
+-- | O(n), Compute a selector from a tags array.
+--
 tagsToSel2 :: Array Tag -> Sel2
 {-# INLINE tagsToSel2 #-}
 tagsToSel2 tags = let rep = mkSelRep2 tags
@@ -373,9 +568,29 @@ tagsToSel2 tags = let rep = mkSelRep2 tags
   #-}
 
 
+-- Packing and Picking --------------------------------------------------------
 packByTag :: Elt a => Array a -> Array Tag -> Tag -> Array a
 {-# INLINE_BACKEND packByTag #-}
 packByTag xs tags !tag = fsts (filter (\p -> Prelude.snd p == tag) (zip xs tags))
+
+pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
+{-# INLINE pick #-}
+pick xs !x = map (x==) xs
+
+{-# RULES
+
+"tagZeroes" UNTIL_PHASE_BACKEND forall xs n.
+  map fromBool (zipWith GHC.Base.eqInt xs (replicate n (GHC.Base.I# 0#)))
+    = tagZeroes xs
+
+"replicate_s/tagZeroes" forall lens idxs n.
+  replicate_s (mkSegd lens idxs n) (tagZeroes lens)
+    = replicate n 0
+
+"packByTag/replicate" forall xs n t u.
+  packByTag xs (replicate n t) u = if t == u then xs else empty
+
+ #-}
 
 {-# RULES
 
@@ -384,6 +599,7 @@ packByTag xs tags !tag = fsts (filter (\p -> Prelude.snd p == tag) (zip xs tags)
     = bpermute xs (packByTag is tags n)
 
   #-}
+
 
 {- RULES
 
@@ -395,13 +611,16 @@ packByTag xs tags !tag = fsts (filter (\p -> Prelude.snd p == tag) (zip xs tags)
 
   -}
 
-pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
-{-# INLINE pick #-}
-pick xs !x = map (x==) xs
 
+-- Counting -------------------------------------------------------------------
 count :: (Elt a, Eq a) => Array a -> a -> Int
 {-# INLINE_BACKEND count #-}
 count xs !x = sum (map (tagToInt . fromBool . (==) x) xs)
+
+count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
+{-# INLINE_BACKEND count_s #-}
+count_s segd xs !x = sum_s segd (map (tagToInt . fromBool . (==) x) xs)
+
 
 {-# RULES
 
@@ -409,10 +628,8 @@ count xs !x = sum (map (tagToInt . fromBool . (==) x) xs)
 
   #-}
 
-count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
-{-# INLINE_BACKEND count_s #-}
-count_s segd xs !x = sum_s segd (map (tagToInt . fromBool . (==) x) xs)
 
+-- Random Arrays --------------------------------------------------------------
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
 {-# INLINE_BACKEND randoms #-}
@@ -422,6 +639,7 @@ randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
 {-# INLINE_BACKEND randomRs #-}
 
 
+-- Array IO -------------------------------------------------------------------
 instance IOElt Int
 instance IOElt Double
 instance (IOElt a, IOElt b) => IOElt (a, b)
@@ -438,6 +656,8 @@ toList :: Elt a => Array a -> [a]
 fromList :: Elt a => [a] -> Array a
 {-# INLINE_BACKEND fromList #-}
 
+
+-- Aliases for primitive operations -------------------------------------------
 dph_mod_index :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mod_index #-}
 dph_mod_index by idx = idx `GHC.Base.remInt` by
@@ -457,90 +677,16 @@ dph_mult :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mult #-}
 dph_mult x y = x Prelude.* y
 
-{-# RULES
-
-"bpermute/repeat" forall n len xs is.
-  bpermute (repeat n len xs) is
-    = len `Prelude.seq` bpermute xs (map (dph_mod_index len) is)
-
-"bpermute/bpermute" forall xs is js.
-  bpermute (bpermute xs is) js = bpermute xs (bpermute is js)
-
-  #-}
-
-{-# RULES
-
-"replicate_s/replicate" forall segd k x.
-  replicate_s segd (replicate k x) = replicate (elementsSegd segd) x
-
-"replicate_s->replicate_rs" forall n m idxs nm xs.
-  replicate_s (mkSegd (replicate n m) idxs nm) xs
-    = replicate_rs m xs
-
-"replicate_rs/replicate" forall m n x.
-  replicate_rs m (replicate n x) = replicate (m*n) x
-
-"sum/replicate_rs" forall n xs.
-  sum (replicate_rs n xs) = sum xs * n
-
-"count/replicate_s" forall segd xs tag.
-  count (replicate_s segd xs) tag
-    = sum (packByTag (lengthsSegd segd) xs tag)
-
- #-}
-
-{-# RULES
-
-"repeat/enumFromStepLen[Int]" forall i j k n len.
-  repeat n len (enumFromStepLen i j k)
-    = generate len (\m -> i + ((m `Prelude.rem` k) * j))
-
-  #-}
-
-{-# RULES
-
-"scan/replicate" forall z n x.
-  scan GHC.Base.plusInt z (replicate n x)
-    = enumFromStepLen z x n
-
-"map/zipWith (+)/enumFromStepLen" forall m n is.
-  map (dph_mod_index m) (zipWith GHC.Base.plusInt (enumFromStepLen 0 m n) is)
-    = map (dph_mod_index m) is
-
- #-}
-
-{-# RULES
-
-"fold_s/replicate1" forall f z n idxs n' xs.
-  fold_s f z (mkSegd (replicate n (GHC.Base.I# 1#)) idxs n') xs = xs
-
-"fold_s/replicate" forall f z m n idxs mn xs.
-  fold_s f z (mkSegd (replicate m n) idxs mn) xs
-    = fold_r f z n xs
-
-  #-}
-
--- Quickhull rules
 
 tagZeroes :: Array Int -> Array Tag
 {-# INLINE CONLIKE PHASE_BACKEND tagZeroes #-}
 tagZeroes xs = map (\x -> fromBool (x==0)) xs
 
-{-# RULES
 
-"tagZeroes" UNTIL_PHASE_BACKEND forall xs n.
-  map fromBool (zipWith GHC.Base.eqInt xs (replicate n (GHC.Base.I# 0#)))
-    = tagZeroes xs
 
-"replicate_s/tagZeroes" forall lens idxs n.
-  replicate_s (mkSegd lens idxs n) (tagZeroes lens)
-    = replicate n 0
-
-"packByTag/replicate" forall xs n t u.
-  packByTag xs (replicate n t) u = if t == u then xs else empty
-
- #-}
-
+-------------------------------------------------------------------------------
+-- currently disabled rules
+-------------------------------------------------------------------------------
 {-
 "packByTag/tagZeroes" forall xs ys t.
   packByTag xs (tagZeroes ys) t = packByTag xs (map (\y -> fromBool (y==0)) ys) t
@@ -549,6 +695,7 @@ tagZeroes xs = map (\x -> fromBool (x==0)) xs
   mkSelRep2 (tagZeroes xs) = 
 
   -}
+
 
 {- RULES
 
@@ -600,4 +747,3 @@ tagZeroes xs = map (\x -> fromBool (x==0)) xs
     = replicate len x
 
  -}
-
