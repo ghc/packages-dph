@@ -268,20 +268,18 @@ zipWith4 f as bs cs ds
  #-}
               
  
--- When scalar operations are vectorised they turn into uses of zipWith.
---  For example,  x + y  is lifted to  zipWith (+) x y.
-
--- The following rules are needed because we don't yet do vectorisation avoidance.
---  They fuse arithmetic operations that shouldn't have been vectorised in the
---  first place. For example, with  z = x * y + a, the vectoriser will
---  lift * and + to vector operations. The result of the  the multiply will be
+-- The following rules fuse arithmetic operations that shouldnt have been
+--  vectorised in the first place. For example, with  z = x * y + a, the vectoriser
+--  will lift * and + to vector operations. The result of the  the multiply will be
 --  written to a vector, and then read back to do the addition.
 --
 --  Adding the zipWith rules ensures that the multiply and addition are performed
---  in one go. We shouldn't need the rules when we have vectorisation avoidance
---  for scalar operations.
+--  in one go. On the other hand, they can break fusion in the backend library.
+--
+-- NOTE: These rules are only temporary, they should go away when we have 
+--       vectorisation avoidance for scalar operations.
 
-{-# RULES
+{- RULES  **************** DISABLED
 
 "zipWith/zipWith/zipWith" forall f g h as bs cs ds.
   zipWith f (zipWith g as bs) (zipWith h cs ds)
@@ -295,12 +293,13 @@ zipWith4 f as bs cs ds
   zipWith f as (zipWith g bs cs)
    = zipWith3 (\a b c ->   f a (g b c)) as bs cs
 
-  #-}
+  -}
 
 
 -- More rules to recover from the lack of vectorisation avoidance.
 -- The regular form of the rules shows why we really dont want to do it this way.
-{-# RULES
+
+{- RULES  ****************** DISABLED
 
 "map/zipWith" forall f g xs ys.
   map f (zipWith g xs ys)
@@ -318,7 +317,7 @@ zipWith4 f as bs cs ds
   zipWith3 f xs ys (map g zs)
    = zipWith3 (\x y z -> f x y (g z)) xs ys zs
 
-  #-}
+  -}
 
 
 -- Folds ----------------------------------------------------------------------
