@@ -13,7 +13,6 @@
 
 module Data.Array.Parallel.Base.Text (
   showsApp, readApp, readsApp,
-
   Read(..)
 ) where
 

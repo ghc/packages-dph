@@ -39,11 +39,14 @@ import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 import Control.Monad.ST ( ST, runST )
 
+
+-- replicate ------------------------------------------------------------------
 replicateSUP :: Unbox a => UPSegd -> Vector a -> Vector a
 {-# INLINE_UP replicateSUP #-}
-replicateSUP segd !xs = joinD theGang balanced
-                      . mapD theGang rep
-                      $ distUPSegd segd
+replicateSUP segd !xs 
+  = joinD theGang balanced
+  . mapD theGang rep
+  $ distUPSegd segd
   where
     rep ((dsegd,di),_)
       = replicateSU dsegd (Seq.slice xs di (lengthUSegd dsegd))
@@ -51,24 +54,45 @@ replicateSUP segd !xs = joinD theGang balanced
 -- FIXME: make this efficient
 replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_UP replicateRSUP #-}
-replicateRSUP n xs = replicateSUP (lengthsToUPSegd (replicateUP (Seq.length xs) n)) xs
+replicateRSUP n xs
+        = replicateSUP (lengthsToUPSegd (replicateUP (Seq.length xs) n)) xs
 
 
-appendSUP :: Unbox a => UPSegd -> UPSegd -> Vector a -> UPSegd -> Vector a -> Vector a
+-- append ---------------------------------------------------------------------
+-- | Segmented append.
+appendSUP
+        :: Unbox a
+        => UPSegd       -- ^ segment descriptor of result array
+        -> UPSegd       -- ^ segment descriptor of first array
+        -> Vector a     -- ^ data of first array
+        -> UPSegd       -- ^ segment descriptor of second array
+        -> Vector a     -- ^ data of first array
+        -> Vector a
+
 {-# INLINE_UP appendSUP #-}
 appendSUP segd !xd !xs !yd !ys
   = joinD theGang balanced
-  . mapD theGang append
+  . mapD  theGang append
   $ distUPSegd segd
-  where
-    append ((segd,seg_off),el_off)
-      = Seq.unstream $ appendSegS (segdUPSegd xd) xs
-                               (segdUPSegd yd) ys
-                               (elementsUSegd segd) seg_off el_off
+  where append ((segd,seg_off),el_off)
+         = Seq.unstream
+         $ appendSegS (segdUPSegd xd) xs
+                      (segdUPSegd yd) ys
+                      (elementsUSegd segd)
+                      seg_off el_off
 
 
-appendSegS :: Unbox a => USegd -> Vector a -> USegd -> Vector a -> Int -> Int -> Int
-                -> S.Stream a
+appendSegS
+        :: Unbox a      
+        => USegd        -- ^ segment descriptor of first array
+        -> Vector a     -- ^ data of first array
+        -> USegd        -- ^ segment descriptor of second array
+        -> Vector a     -- ^ data of second array
+        -> Int          -- 
+        -> Int
+        -> Int
+        -> S.Stream a
+
 {-# INLINE_STREAM appendSegS #-}
 appendSegS !xd !xs !yd !ys !n seg_off el_off
   = Stream next state (Exact n)
@@ -79,39 +103,38 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
     state
       | n == 0 = Nothing
       | el_off < xlens ! seg_off
-          = let i = (indicesUSegd xd ! seg_off) + el_off
-                j = indicesUSegd yd ! seg_off
-                k = (lengthsUSegd xd ! seg_off) - el_off
-            in
-            Just (False, seg_off, i, j, k, n)
-      | otherwise
-          = let -- NOTE: *not* indicesUSegd xd ! (seg_off+1) since seg_off+1
-                -- might be out of bounds
-                i = (indicesUSegd xd ! seg_off) + (lengthsUSegd xd ! seg_off)
-                el_off' = el_off - lengthsUSegd xd ! seg_off
-                j = (indicesUSegd yd ! seg_off) + el_off'
-                k = (lengthsUSegd yd ! seg_off) - el_off'
-            in
-            Just (True, seg_off, i, j, k, n)
+      = let i = (indicesUSegd xd ! seg_off) + el_off
+            j = indicesUSegd yd ! seg_off
+            k = (lengthsUSegd xd ! seg_off) - el_off
+        in  Just (False, seg_off, i, j, k, n)
 
+      | otherwise
+      = let -- NOTE: *not* indicesUSegd xd ! (seg_off+1) since seg_off+1
+            -- might be out of bounds
+            i       = (indicesUSegd xd ! seg_off) + (lengthsUSegd xd ! seg_off)
+            el_off' = el_off - lengthsUSegd xd ! seg_off
+            j       = (indicesUSegd yd ! seg_off) + el_off'
+            k       = (lengthsUSegd yd ! seg_off) - el_off'
+        in  Just (True, seg_off, i, j, k, n)
 
     {-# INLINE next #-}
     next Nothing = return Done
 
     next (Just (False, seg, i, j, k, n))
-      | n == 0 = return Done
-      | k == 0 = return $ Skip (Just (True, seg, i, j, ylens ! seg, n))
+      | n == 0    = return Done
+      | k == 0    = return $ Skip (Just (True, seg, i, j, ylens ! seg, n))
       | otherwise = return $ Yield (xs!i) (Just (False, seg, i+1, j, k-1, n-1))
 
     next (Just (True, seg, i, j, k, n))
-      | n == 0 = return Done
+      | n == 0    = return Done
       | k == 0
-        = let !seg' = seg+1
-          in
-          return $ Skip (Just (False, seg', i, j, xlens ! seg', n))
+      = let !seg' = seg+1
+        in  return $ Skip (Just (False, seg', i, j, xlens ! seg', n))
+
       | otherwise = return $ Yield (ys!j) (Just (True, seg, i, j+1, k-1, n-1))
 
 
+-- fold -----------------------------------------------------------------------
 fixupFold :: Unbox a => (a -> a -> a) -> MVector s a
           -> Dist (Int,Vector a) -> ST s ()
 {-# NOINLINE fixupFold #-}
@@ -185,6 +208,7 @@ foldRUP f z !segSize xs =
     dlen = splitLenD theGang noOfSegs
 
 
+-- indices --------------------------------------------------------------------
 indicesSUP :: UPSegd -> Vector Int
 {-# INLINE_UP indicesSUP #-}
 indicesSUP = joinD theGang balanced

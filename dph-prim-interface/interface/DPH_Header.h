@@ -33,11 +33,12 @@ module Data.Array.Parallel.Unlifted (
   combine, combine2,
   interleave,
 
-  -- * Zips and ZipWith
-  zip,
-  unzip, fsts, snds,
+  -- * Map and ZipWith
   map, zipWith, zipWith3,
-  
+
+  -- * Zipping and Unzipping
+  zip, unzip, fsts, snds,
+    
   -- * Folds
   fold, fold1,
   and, sum, scan,

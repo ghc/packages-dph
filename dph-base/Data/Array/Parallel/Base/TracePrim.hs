@@ -1,9 +1,9 @@
 
--- | When dph-base/Data.Array.Parallel.Config.tracePrimEnabled is True, DPH programs will print
+-- | When `tracePrimEnabled` in "Data.Array.Parallel.Config" is @True@, DPH programs will print
 --   out what array primitives they're using at runtime. See `tracePrim` for details.
 module Data.Array.Parallel.Base.TracePrim
-        ( TracePrim(..)
-        , tracePrim)
+        ( tracePrim
+        , TracePrim(..))
 where
 import Data.Array.Parallel.Base.Config
 import qualified Debug.Trace
@@ -11,9 +11,9 @@ import qualified Debug.Trace
 -- | Print tracing information to console.
 --
 --    This function is used to wrap the calls to DPH primitives defined
---    in dph-prim-par/Data.Array.Parallel.Unlifted
+--    in @dph-prim-par@:"Data.Array.Parallel.Unlifted"
 --
---    Tracing is only enabled when dph-base/Data.Array.Parallel.Config.tracePrimEnabled is True,
+--    Tracing is only enabled when `tracePrimEnabled` in "Data.Array.Parallel.Base.Config"  is `True`,
 --    otherwise it's a no-op.
 --   
 tracePrim :: TracePrim -> a -> a
@@ -23,6 +23,7 @@ tracePrim tr x
  
 
 -- | Records information about the use of a primitive operator.
+--
 --    These are the operator names that the vectoriser introduces.
 --    The actual implementation of each operator varies depending on what DPH backend we're using.
 --    We only trace operators that are at least O(n) in complexity. 

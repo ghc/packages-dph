@@ -14,7 +14,7 @@ infixl 9 !:
 infixr 5 +:+
 
 -- Basics ---------------------------------------------------------------------
--- | Take the number of elements in an array.
+-- | O(1). Take the number of elements in an array.
 length :: Elt a => Array a -> Int
 {-# INLINE_BACKEND length #-}
 
@@ -196,16 +196,18 @@ interleave :: Elt a => Array a -> Array a -> Array a
 {-# INLINE_BACKEND interleave #-}
 
 
--- Zips and ZipWith -----------------------------------------------------------
-map :: (Elt a, Elt b) => (a -> b) -> Array a -> Array b
-{-# INLINE_BACKEND map #-}
-
-
+-- Zipping and Unzipping ------------------------------------------------------
+-- | O(1). Takes two arrays and returns an array of corresponding pairs.
+--         If one array is short, excess elements of the longer array are discarded.
 zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a, b)
 {-# INLINE CONLIKE PHASE_BACKEND zip #-}
 
+
+-- | O(1). Transform an array into an array of the first components,
+--         and an array of the second components.
 unzip :: (Elt a, Elt b) => Array (a, b) -> (Array a, Array b)
 {-# INLINE_BACKEND unzip #-}
+
 
 -- | O(1). Take the first elements of an array of pairs.
 fsts  :: (Elt a, Elt b) => Array (a, b) -> Array a
@@ -217,12 +219,20 @@ snds :: (Elt a, Elt b) => Array (a, b) -> Array b
 {-# INLINE_BACKEND snds #-}
 
 
+-- Maps and zipWith -----------------------------------------------------------
+-- | O(n). Apply a worker function to each element of an array, yielding a new array.
+map     :: (Elt a, Elt b)
+        => (a -> b) -> Array a -> Array b
+{-# INLINE_BACKEND map #-}
+
+
+-- | O(n). zipWith generalises zip by zipping with the function given as the first
+--         argument, instead of a tupling function.
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
 {-# INLINE_BACKEND zipWith #-}
 
 
--- Higher arity versions of zipWith ---
 zipWith3 :: (Elt a, Elt b, Elt c, Elt d)
           => (a -> b -> c -> d) -> Array a -> Array b -> Array c -> Array d
 {-# INLINE zipWith3 #-}
@@ -321,18 +331,26 @@ zipWith4 f as bs cs ds
 
 
 -- Folds ----------------------------------------------------------------------
+
+-- | Left fold over an array.
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 {-# INLINE_BACKEND fold #-}
 
+-- | Left fold over an array, using the first element to initialise the state.
 fold1 :: Elt a => (a -> a -> a) -> Array a -> a
 {-# INLINE_BACKEND fold1 #-}
 
+
+-- | Compute the conjunction of all elements in a boolean array.
 and :: Array Bool -> Bool
 {-# INLINE_BACKEND and #-}
 
+-- | Compute the sum of an array of numbers.
 sum :: (Num a, Elt a) => Array a -> a
 {-# INLINE_BACKEND sum #-}
 
+-- | Similar to `foldl` but return an array of the intermediate states, including
+--   the final state that is computed by `foldl`.
 scan :: Elt a => (a -> a -> a) -> a -> Array a -> Array a
 {-# INLINE_BACKEND scan #-}
 

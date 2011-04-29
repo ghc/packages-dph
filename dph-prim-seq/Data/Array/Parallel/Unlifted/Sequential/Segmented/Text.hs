@@ -26,6 +26,3 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
 instance Show USegd where
   showsPrec k = showsApp k "toUSegd" . lengthsUSegd
 
--- instance Read USegd where
---   readPrec = fmap toUSegd (readApp "toUSegd")
-

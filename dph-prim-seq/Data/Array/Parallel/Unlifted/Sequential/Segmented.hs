@@ -9,13 +9,8 @@
 -- Stability   : internal
 -- Portability : portable
 --
--- Description ---------------------------------------------------------------
---
 -- Interface to operations on segmented unlifted arrays.
 --
--- Todo ----------------------------------------------------------------------
---
-
 module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 
   replicateSU, replicateRSU, appendSU, indicesSU, indicesSU',
