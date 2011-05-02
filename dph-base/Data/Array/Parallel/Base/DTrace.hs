@@ -1,4 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface, CPP #-}
+
+-- | Harness for DTrace.
 module Data.Array.Parallel.Base.DTrace (
   traceLoopEntry, traceLoopExit,
 

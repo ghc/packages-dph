@@ -10,13 +10,26 @@
 --
 -- Stream functions not implemented in vector
 --
+-- TODO: The use of INLINE pragmas in some of these function isn't consistent.
+--       for indexedS and combine2ByTagS, there is an INLINE_INNER on the 'next'
+--       function, but replicateEachS uses a plain INLINE and fold1SS uses
+--       a hard INLINE [0]. Can we make a rule that all top-level stream functions
+--       in this module have INLINE_STREAM, and all 'next' functions have
+--       INLINE_INNER? If not we should document the reasons for the special cases.
+--
+-- TODO: The behavour of indicesSS looks suspiciously inconsistent.
+--
 
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Stream (
+
+  -- * Flat stream operators
   indexedS, replicateEachS, replicateEachRS,
   interleaveS, combine2ByTagS,
   enumFromToEachS, enumFromStepLenEachS,
+  
+  -- * Segmented stream operators
   foldSS, fold1SS, combineSS, appendSS,
   foldValuesR,
   indicesSS
@@ -28,6 +41,12 @@ import qualified Data.Vector.Fusion.Stream as S
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 
+-- | Tag each element of an stream with its index in that stream.
+--
+-- @
+-- indexed [42,93,13]
+--  = [(0,42), (1,93), (2,13)]
+-- @
 indexedS :: S.Stream a -> S.Stream (Int,a)
 {-# INLINE_STREAM indexedS #-}
 indexedS (Stream next s n) = Stream next' (0,s) n
@@ -40,6 +59,16 @@ indexedS (Stream next s n) = Stream next' (0,s) n
                       Skip    s' -> return $ Skip        (i,s')
                       Done       -> return Done
 
+
+-- | Given a stream of pairs containing a count an an element,
+--   replicate element the number of times given by the count.
+--
+--   The first parameter sets the size hint of the resulting stream.
+-- 
+-- @
+-- replicateEach 10 [(2,10), (5,20), (3,30)]
+--   = [10,10,20,20,20,20,20,30,30,30]
+-- @
 replicateEachS :: Int -> S.Stream (Int,a) -> S.Stream a
 {-# INLINE_STREAM replicateEachS #-}
 replicateEachS n (Stream next s _) =
@@ -56,7 +85,13 @@ replicateEachS n (Stream next s _) =
     next' (k,Nothing,s) = return Done   -- FIXME: unreachable
     next' (k,Just x,s)  = return $ Yield x (k-1,Just x,s)
 
--- | Repeat each element in the stream n times
+
+-- | Repeat each element in the stream the given number of times.
+--
+-- @
+-- replicateEach 2 [10,20,30]
+--  = [10,10,20,20,30,30]
+-- @
 --
 replicateEachRS :: Int -> S.Stream a -> S.Stream a
 {-# INLINE_STREAM replicateEachRS #-}
@@ -70,15 +105,25 @@ replicateEachRS !n (Stream next s sz)
           Done       -> return Done
           Skip    s' -> return $ Skip (0,Nothing,s')
           Yield x s' -> return $ Skip (n,Just x,s')
-    next' (i,Nothing,s) = return Done -- unreachable
+    next' (i,Nothing,s) = return Done -- FIXME: unreachable
     next' (i,Just x,s) = return $ Yield x (i-1,Just x,s)
 
+
+-- | Multiply a size hint by a scalar.
 multSize :: Size -> Int -> Size
 multSize (Exact n) k = Exact (n*k)
 multSize (Max   n) k = Max   (n*k)
 multSize Unknown   _ = Unknown
 
--- | Interleave the elements of two streams
+
+-- | Interleave the elements of two streams. We alternate between the first
+--   and second streams, stopping when we can't find a matching element.
+--
+-- @
+-- interleave [2,3,4] [10,20,30] = [2,10,3,20,4,30]
+-- interleave [2,3]   [10,20,30] = [2,10,3,20]
+-- interleave [2,3,4] [10,20]    = [2,10,3,20,4]
+-- @
 --
 interleaveS :: S.Stream a -> S.Stream a -> S.Stream a
 {-# INLINE_STREAM interleaveS #-}
@@ -103,6 +148,18 @@ interleaveS (Stream next1 s1 n1) (Stream next2 s2 n2)
           -- FIXME: error
           Done        -> return Done
 
+
+-- | Combine two streams, using a tag stream to tell us which of the data
+--   streams to take the next element from.
+--
+--   If there are insufficient elements in the data strams for the provided
+--   tag stream then `error`.
+--  
+-- @
+-- combine2ByTag [0,1,1,0,0,1] [1,2,3] [4,5,6]
+--  = [1,4,5,2,3,6]
+-- @
+--
 combine2ByTagS :: S.Stream Tag -> S.Stream a -> S.Stream a -> S.Stream a
 {-# INLINE_STREAM combine2ByTagS #-}
 combine2ByTagS (Stream next_tag s m) (Stream next0 s0 _)
@@ -134,9 +191,21 @@ combine2ByTagS (Stream next_tag s m) (Stream next0 s0 _)
             Skip    s1' -> return $ Skip    (Just t, s,s0,s1')
             Yield x s1' -> return $ Yield x (Nothing,s,s0,s1')
 
+
+-- | Create a stream of integer ranges. The pairs in the input stream
+--   give the first and last value of each range.
+--
+--   The first parameter gives the size hint for the resulting stream.
+-- 
+-- @
+-- enumFromToEach 11 [(2,5), (10,16), (20,22)]
+--  = [2,3,4,5,10,11,12,13,14,15,16,20,21,22]
+-- @
+--
 enumFromToEachS :: Int -> S.Stream (Int,Int) -> S.Stream Int
 {-# INLINE_STREAM enumFromToEachS #-}
-enumFromToEachS n (Stream next s _) = Stream next' (Nothing,s) (Exact n)
+enumFromToEachS n (Stream next s _) 
+  = Stream next' (Nothing,s) (Exact n)
   where
     {-# INLINE_INNER next' #-}
     next' (Nothing,s)
@@ -151,6 +220,17 @@ enumFromToEachS n (Stream next s _) = Stream next' (Nothing,s) (Exact n)
       | k > m     = return $ Skip    (Nothing,     s)
       | otherwise = return $ Yield k (Just (k+1,m),s)
 
+
+-- | Create a stream of integer ranges. The triples in the input stream
+--   give the first value, increment, length of each range.
+--
+--   The first parameter gives the size hint for the resulting stream.
+--
+-- @
+-- enumFromStepLenEach [(1,1,5), (10,2,4), (20,3,5)]
+--  = [1,2,3,4,5,10,12,14,16,20,23,26,29,32]
+-- @
+--               
 enumFromStepLenEachS :: Int -> S.Stream (Int,Int,Int) -> S.Stream Int 
 {-# INLINE_STREAM enumFromStepLenEachS #-}
 enumFromStepLenEachS len (Stream next s _)
@@ -169,7 +249,21 @@ enumFromStepLenEachS len (Stream next s _)
     next' (Just (from,step,n),s)
       = return $ Yield from (Just (from+step,step,n-1),s)
 
-foldSS :: (a -> b -> a) -> a -> S.Stream Int -> S.Stream b -> S.Stream a
+
+-- | Segmented Stream fold. Take segments from the given stream and fold each
+--   using the supplied function and initial element. 
+--
+-- @
+-- foldSS (+) 0 [2, 3, 2] [10, 20, 30, 40, 50, 60, 70]
+--  = [30,120,130]
+-- @
+--
+foldSS  :: (a -> b -> a)        -- ^ function to perform the fold
+        -> a                    -- ^ initial element of each fold
+        -> S.Stream Int         -- ^ stream of segment lengths
+        -> S.Stream b           -- ^ stream of input data
+        -> S.Stream a           -- ^ stream of fold results
+        
 {-# INLINE_STREAM foldSS #-}
 foldSS f z (Stream nexts ss sz) (Stream nextv vs _) =
   Stream next (Nothing,z,ss,vs) sz
@@ -197,6 +291,9 @@ foldSS f z (Stream nexts ss sz) (Stream nextv vs _) =
           Yield y vs' -> let r = f x y
                          in r `seq` return (Skip (Just (n-1), r, ss, vs'))
 
+
+-- | Like `foldSS`, but use the first member of each chunk as the initial
+--   element for the fold.
 fold1SS :: (a -> a -> a) -> S.Stream Int -> S.Stream a -> S.Stream a
 {-# INLINE_STREAM fold1SS #-}
 fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
@@ -232,8 +329,28 @@ fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
                          in r `seq` return (Skip (Just (n-1),Just r,ss,vs'))
 
 
-combineSS:: S.Stream Bool -> S.Stream Int -> S.Stream a
-                          -> S.Stream Int -> S.Stream a -> S.Stream a
+-- | Segmented Stream combine. Like `combine2ByTagS`, except that the tags select
+--   entire segments of each data stream, instead of selecting one element at a time.
+--
+-- @
+-- combineSS [True, True, False, True, False, False]
+--           [2,1,3] [10,20,30,40,50,60]
+--           [1,2,3] [11,22,33,44,55,66]
+--  = [10,20,30,11,40,50,60,22,33,44,55,66]
+-- @
+--
+--   This says take two elements from the first stream, then another one element 
+--   from the first stream, then one element from the second stream, then three
+--   elements from the first stream...
+--
+combineSS 
+        :: S.Stream Bool        -- ^ tag values
+        -> S.Stream Int         -- ^ segment lengths for first data stream
+        -> S.Stream a           -- ^ first data stream
+        -> S.Stream Int         -- ^ segment lengths for second data stream
+        -> S.Stream a           -- ^ second data stream
+        -> S.Stream a
+
 {-# INLINE_STREAM combineSS #-}
 combineSS (Stream nextf sf _) 
           (Stream nexts1 ss1 _) (Stream nextv1 vs1 nv1)
@@ -285,7 +402,21 @@ combineSS (Stream nextf sf _)
           Yield x vs2' -> return $ Yield x (Just (n-1),False,sf,ss1,vs1,ss2,vs2')
 
 
-appendSS :: S.Stream Int -> S.Stream a -> S.Stream Int -> S.Stream a -> S.Stream a
+-- | Segmented Strem append. Append corresponding segments from each stream.
+--
+-- @
+-- appendSS [2, 1, 3] [10, 20, 30, 40, 50, 60]
+--          [1, 3, 2] [11, 22, 33, 44, 55, 66]
+--  = [10,20,11,30,22,33,44,40,50,60,55,66]
+-- @
+--
+appendSS
+        :: S.Stream Int         -- ^ segment lengths for first data stream
+        -> S.Stream a           -- ^ first data stream
+        -> S.Stream Int         -- ^ segment lengths for second data stream
+        -> S.Stream a           -- ^ second data stream
+        -> S.Stream a
+
 {-# INLINE_STREAM appendSS #-}
 appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
          (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
@@ -330,7 +461,18 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
           Skip    sv2' -> return $ Skip (False,Just n,ss1,sv1,ss2,sv2')
           Yield x sv2' -> return $ Yield x (False,Just (n-1),ss1,sv1,ss2,sv2')
 
-foldValuesR :: (a -> b -> a) -> a -> Int -> S.Stream b -> S.Stream a
+
+-- | Segmented Stream fold, with a fixed segment length.
+-- 
+--   Like `foldSS` but use a fixed length for each segment.
+--
+foldValuesR 
+        :: (a -> b -> a)        -- ^ function to perform the fold
+        -> a                    -- ^ initial element for fold
+        -> Int                  -- ^ length of each segment
+        -> S.Stream b           -- ^ data stream
+        -> S.Stream a
+
 {-# INLINE_STREAM foldValuesR #-}
 foldValuesR f z segSize (Stream nextv vs nv) =
   Stream next (segSize,z,vs) (nv `divSize` segSize)
@@ -347,12 +489,30 @@ foldValuesR f z segSize (Stream nextv vs nv) =
           Yield y vs' -> let r = f x y
                          in r `seq` return (Skip ((n-1),r,vs'))
 
+
+-- | Divide a size hint by a scalar.
 divSize :: Size -> Int -> Size
 divSize (Exact n) k = Exact (n `div` k)
 divSize (Max   n) k = Max   (n `div` k)
 divSize Unknown   _ = Unknown
 
-indicesSS :: Int -> Int -> S.Stream Int -> S.Stream Int
+
+-- | Segmented Stream indices.
+-- 
+-- @
+-- indicesSS 15 4 [3, 5, 7]
+--  = [4,5,6,0,1,2,3,4,0,1,2,3,4,5,6]
+-- @
+--
+-- TODO: Is that correct? Why does the first segment in the result start from 4, 
+--       unlike the others?
+--
+indicesSS 
+        :: Int
+        -> Int
+        -> S.Stream Int
+        -> S.Stream Int
+
 {-# INLINE_STREAM indicesSS #-}
 indicesSS n i (Stream next s _) =
   Stream next' (i,Nothing,s) (Exact n)
