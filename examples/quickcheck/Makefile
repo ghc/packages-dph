@@ -1,13 +1,11 @@
-GHC = ../../../../../../../compiler/stage2/ghc-inplace
-NDPDIR = ../../../../..
-NDPLIB = $(NDPDIR)/libHSndp.a
+GHC = ../../../../inplace/bin/ghc-stage2
 
 HC      = $(GHC)
-HCFLAGS = -fglasgow-exts -package QuickCheck -package template-haskell \
-          -i$(NDPDIR) -v0
-OPTFLAGS = -O2 -funbox-strict-fields \
-           -fliberate-case-threshold100 -fno-method-sharing
-
+HCFLAGS = -package QuickCheck -package template-haskell -package regex-compat \
+          -fth -XGeneralizedNewtypeDeriving -XTypeSynonymInstances -v0
+OPTFLAGS = -O2 -funbox-strict-fields -fliberate-case-threshold100
+PARFLAGS = -package dph-prim-par
+SEQFLAGS = -package dph-prim-seq
 
 TESTSUITE = Testsuite/Utils.hs \
             Testsuite/Testcase.hs \
@@ -39,11 +37,11 @@ testsuite: $(TESTSUITE_OBJS)
 
 Testsuite.o: $(filter-out Testsuite.o,$(TESTSUITE_OBJS))
 
-%.o : %.hs $(NDPLIB)
-	$(HC) -c $< $(HCFLAGS)
+%.o : %.hs
+	$(HC) -c $< $(HCFLAGS) $(PARFLAGS)
 
-%-opt.o: %.hs $(NDPLIB) testsuite
-	$(HC) -o $@ -c $< $(HCFLAGS) $(OPTFLAGS)
+%-opt.o: %.hs testsuite
+	$(HC) -o $@ -c $< $(HCFLAGS) $(PARFLAGS) $(OPTFLAGS)
 
 %.hi: %.o
 	@:
@@ -55,14 +53,16 @@ $(TEST_OBJS) : testsuite
 
 %-unopt:
 	@echo "======== Testing  $(patsubst %-unopt,%,$@) (interpreted) ========"
-	@$(HC) -e $(TESTMAIN) $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) \
+	@$(HC) -e $(TESTMAIN) $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) $(PARFLAGS) \
+		| tee $@.log | { grep -v '\.\.\. pass' || true; }
+	@$(HC) -e $(TESTMAIN) $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) $(SEQFLAGS) \
 		| tee $@.log | { grep -v '\.\.\. pass' || true; }
 	@echo "======== Finished $(patsubst %-unopt,%,$@) (interpreted) ========"
 
 %-opt: tests/%-opt.o
-	@$(HC) -o tst $(HCFLAGS) $< $(TESTSUITE_OBJS) $(NDPLIB)
 	@echo "======== Testing  $(patsubst %-opt,%,$@) (optimised) ========"
+	@$(HC) -o tst $(HCFLAGS) $(PARFLAGS) $< $(TESTSUITE_OBJS)
 	@./tst | tee $@ | { grep -v '\.\.\. pass' || true; }
-	@echo "======== Finished $(patsubst %-opt,%,$@) (optimised) ========"
 	@rm -f tst $<
+	@echo "======== Finished $(patsubst %-opt,%,$@) (optimised) ========"
 

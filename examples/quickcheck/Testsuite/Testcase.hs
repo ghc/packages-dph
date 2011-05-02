@@ -5,13 +5,13 @@ module Testsuite.Testcase (
 import Test.QuickCheck
 import Test.QuickCheck.Batch (TestResult(..), run, defOpt)
 
-import Text.Regex.Base
+import Text.Regex
 
 import System.Environment (getArgs)
 
 import Data.Maybe (isJust)
 
-import IO
+import System.IO
 
 data Test = Test { testName     :: String
                  , testProperty :: Property

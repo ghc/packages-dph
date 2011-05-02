@@ -1,7 +1,7 @@
 module Testsuite.Utils (
-  Len(..), EFL,
+  Len(..)
 
-  gvector, gdist, gtype, vtype
+--gvector, gdist, gtype, vtype
 ) where
 
 import Test.QuickCheck
@@ -9,13 +9,10 @@ import Test.QuickCheck.Batch
 
 import Text.Show.Functions
 
-import Data.Array.Parallel.Base.Hyperstrict
-import Data.Array.Parallel.Base.Fusion       (EFL)
 import Data.Array.Parallel.Unlifted
-import Data.Array.Parallel.Distributed
 
 import Data.Char
-import Monad (liftM)
+import Control.Monad (liftM)
 
 -- infix 4 ===
 
@@ -25,23 +22,28 @@ instance Arbitrary Char where
   arbitrary   = fmap chr . sized $ \n -> choose (0,n)
   coarbitrary = coarbitrary . ord
 
+{-
 instance (Arbitrary a, Arbitrary b) => Arbitrary (a :*: b) where
   arbitrary = liftM (uncurry (:*:)) arbitrary
   coarbitrary (a :*: b) = coarbitrary (a,b)
+-}
 
 instance Arbitrary Len where
   arbitrary = sized $ \n -> Len `fmap` choose (0,n)
   coarbitrary (Len n) = coarbitrary n
 
+{-
 instance Arbitrary a => Arbitrary (MaybeS a) where
   arbitrary = frequency [(1, return NothingS), (3, liftM JustS arbitrary)]
   coarbitrary NothingS  = variant 0
   coarbitrary (JustS x) = variant 1 . coarbitrary x
+-}
 
-instance (UA a, Arbitrary a) => Arbitrary (UArr a) where
-  arbitrary = fmap toU arbitrary
-  coarbitrary = coarbitrary . fromU
+instance (Elt a, Arbitrary a) => Arbitrary (Array a) where
+  arbitrary = fmap fromList arbitrary
+  coarbitrary = coarbitrary . toList
 
+{-
 instance (UA a, Arbitrary a) => Arbitrary (SUArr a) where
   arbitrary   = fmap toSU arbitrary
   coarbitrary = coarbitrary . fromSU
@@ -49,7 +51,9 @@ instance (UA a, Arbitrary a) => Arbitrary (SUArr a) where
 instance Arbitrary Gang where
   arbitrary = sized $ \n -> sequentialGang `fmap` choose (1,n+1)
   coarbitrary = coarbitrary . gangSize
+-}
 
+{-
 gvector :: Arbitrary a => Gang -> Gen [a]
 gvector = vector . gangSize
 
@@ -61,6 +65,7 @@ vtype = const
 
 gtype :: Gen (Dist a) -> a -> Gen (Dist a)
 gtype = const
+-}
 
 {-
 class Eq a => SemEq a where

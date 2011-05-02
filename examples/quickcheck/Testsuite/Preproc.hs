@@ -4,7 +4,7 @@ where
 import Language.Haskell.TH
 import Data.List
 import Data.Maybe (fromJust)
-import Monad (liftM)
+import Control.Monad (liftM)
 
 data Prop = Prop { propName   :: Name
                  , propTyvars :: [Name]
@@ -67,8 +67,14 @@ instid inst = name inst ++ env inst
 properties :: [Dec] -> [Prop]
 properties decs = [mkProp nm ty | SigD nm ty <- decs]
   where
-    mkProp nm (ForallT vars _ ty) = Prop nm vars ty
+    mkProp nm (ForallT vars _ ty) = Prop nm (names vars) ty
     mkProp nm ty                  = Prop nm []   ty
+    
+names :: [TyVarBndr] -> [Name]
+names tvs = map name tvs
+  where
+    name (PlainTV  n  ) = n
+    name (KindedTV n _) = n
                          
 embed :: [Inst] -> Exp
 embed insts = ListE [((VarE $ mkName "mkTest")    `AppE`
