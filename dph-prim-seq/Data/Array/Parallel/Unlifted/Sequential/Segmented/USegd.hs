@@ -41,7 +41,6 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 --   @
 --    flat array data:  [1, 2, 3, 4, 5, 6, 7, 8]
 --      (segmentation)   ----  -------  -  ----
---.
 --      segd  lengths: [2, 3, 1, 2]
 --            indices: [0, 2, 5, 6]
 --           elements: 8 
