@@ -5,8 +5,19 @@ module Data.Array.Parallel.Base.Config (
   , tracePrimEnabled
 ) where
 
-debug                   = False
+
+-- | Enable internal consistency checks for operations that could
+--   corrupt the heap.
+debugCritical :: Bool
 debugCritical           = False
+
+
+-- | Enable internal consistency checks.
+--   This is NOT implied by `debugCritical` above. If you want both
+--   you need to set both to `True.`
+debug :: Bool
+debug                   = False
+
 
 -- | Print tracing information for each DPH primitive to console.
 --   The tracing hooks are in dph-prim-par/D/A/P/Unlifted.hs
