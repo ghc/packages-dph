@@ -45,6 +45,7 @@ run "vector" count
          $  let arr'    = RV.treeReverse arr
             in  arr' `seq` return arr'
             
+        print arrReversed
         putStr  $ prettyTime tElapsed
 
 run _ _

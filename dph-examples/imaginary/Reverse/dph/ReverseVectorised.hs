@@ -25,6 +25,5 @@ treeReverse xx
         = let   len     = lengthP xx
                 half    = len `div` 2
                 s1      = sliceP 0    half xx
-                s2      = sliceP half len  xx           
+                s2      = sliceP half half  xx           
           in    concatP (mapP treeReverse [: s2, s1 :])
-
