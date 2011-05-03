@@ -140,9 +140,9 @@ map f arr
         $! mapUP f arr
 
 
-filter f arr
-        =  tracePrim (TraceFilter (Seq.length arr))
-        $! filterUP f arr
+filter f src
+ = let  dst     = filterUP f src
+   in   tracePrim (TraceFilter (Seq.length src) (Seq.length dst)) dst
 
 
 zipWith f arr1 arr2

@@ -44,7 +44,7 @@ data TracePrim
         | TraceCombine     { traceSrcLength  :: Int }
         | TraceCombine2    { traceSrcLength  :: Int }
         | TraceMap         { traceSrcLength  :: Int }
-        | TraceFilter      { traceSrcLength  :: Int }
+        | TraceFilter      { traceSrcLength  :: Int, traceDstLength  :: Int }
         | TraceZipWith     { traceSrc1Length :: Int, traceSrc2Length :: Int }
         | TraceFold        { traceSrcLength  :: Int }
         | TraceFold1       { traceSrcLength  :: Int }
