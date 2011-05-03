@@ -586,9 +586,25 @@ tagsToSel2 tags = let rep = mkSelRep2 tags
 
 
 -- Packing and Picking --------------------------------------------------------
-packByTag :: Elt a => Array a -> Array Tag -> Tag -> Array a
+
+-- | Select the elements of an array that have a corresponding tag.
+--   
+-- @
+-- packByTag [12, 24, 42, 93] [1, 0, 0, 1] 0
+--  = [24, 42]
+-- @
+--
+packByTag 
+        :: Elt a
+        => Array a      -- ^ data values
+        -> Array Tag    -- ^ tag values
+        -> Tag          -- ^ the tag of values to select
+        -> Array a      -- ^ data values that had that tag
+
 {-# INLINE_BACKEND packByTag #-}
-packByTag xs tags !tag = fsts (filter (\p -> Prelude.snd p == tag) (zip xs tags))
+packByTag xs tags !tag
+        = fsts (filter (\p -> Prelude.snd p == tag) (zip xs tags))
+
 
 pick :: (Elt a, Eq a) => Array a -> a -> Array Bool
 {-# INLINE pick #-}
