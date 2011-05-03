@@ -379,8 +379,8 @@ indexedPA = closure1 indexedPA_v indexedPA_l
 -- slice ----------------------------------------------------------------------
 slicePA_v :: PA a => Int -> Int -> PArray a -> PArray a
 {-# INLINE slicePA_v #-}
-slicePA_v (I# from) (I# to) xs 
-  = extractPA# xs from (to -# from) 
+slicePA_v (I# from) (I# len) xs 
+  = extractPA# xs from len 
 
 -- TODO: Can we define this in terms of extractPA?
 slicePA_l :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
