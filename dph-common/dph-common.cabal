@@ -29,6 +29,7 @@ Library
 
   Other-Modules:
         Data.Array.Parallel.PArray.PData
+        Data.Array.Parallel.PArray.Scalar
         Data.Array.Parallel.Lifted.PArray
         Data.Array.Parallel.Lifted.Unboxed
         Data.Array.Parallel.Lifted.Scalar
