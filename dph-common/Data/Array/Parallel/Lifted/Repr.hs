@@ -30,8 +30,7 @@ import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import GHC.Word  ( Word8 )
 
 
-------------------
--- Scalar types --
+-- Scalar types ---------------------------------------------------------------
 
 -- Generate
 --
@@ -46,9 +45,8 @@ import GHC.Word  ( Word8 )
 
 $(scalarInstances [''Int, ''Float, ''Double, ''Word8])
 
-----------
--- Void --
 
+-- Void -----------------------------------------------------------------------
 data Void
 
 void :: Void
@@ -64,9 +62,8 @@ pvoid = error "Data.Array.Parallel.PData Void"
 
 $(voidPRInstance ''Void 'void 'pvoid)
 
-----------
--- Unit --
 
+-- Unit -----------------------------------------------------------------------
 data instance PData () = PUnit
 
 punit :: PData ()
@@ -74,18 +71,16 @@ punit = PUnit
 
 $(unitPRInstance 'PUnit)
 
-----------
--- Wrap --
 
+-- Wrap -----------------------------------------------------------------------
 newtype Wrap a = Wrap { unWrap :: a }
 
 newtype instance PData (Wrap a) = PWrap (PData a)
 
 $(wrapPRInstance ''Wrap 'Wrap 'unWrap 'PWrap)
 
-------------
--- Tuples --
 
+-- Tuples ---------------------------------------------------------------------
 $(tupleInstances [2..5])
 
 {-
@@ -174,9 +169,8 @@ zip3PA# :: PArray a -> PArray b -> PArray c -> PArray (a,b,c)
 {-# INLINE_PA zip3PA# #-}
 zip3PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) = PArray n# (P_3 xs ys zs)
 
-----------
--- Sums --
 
+-- Sums -----------------------------------------------------------------------
 data Sum2 a b = Alt2_1 a | Alt2_2 b
 data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
 
@@ -286,9 +280,8 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       as   = combine2PR (elementsSel2_0# sel') asel as1 as2
       bs   = combine2PR (elementsSel2_1# sel') bsel bs1 bs2
 
--------------------
--- Nested arrays --
 
+-- Nested Arrays --------------------------------------------------------------
 data instance PData (PArray a) = PNested U.Segd (PData a)
 
 instance PR a => PR (PArray a) where
