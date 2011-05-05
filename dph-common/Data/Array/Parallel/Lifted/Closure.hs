@@ -15,16 +15,31 @@ import GHC.Exts (Int#)
 infixr 0 :->
 infixl 0 $:, $:^
 
--- |The type of closures
+-- | The type of closures.
+--   This bundles up 
+--      1) the vectorised verion of the function that takes an explicit environment
+--      2) the lifted version, that works on arrays.
+--         the first parameter of this function is the 'lifting context'
+--         that gives the length of the array.
+--      3) the environment of the closure.
+-- 
+--   The vectoriser closure-converts the source program so that all functions
+--   types are expressed in this form.
 --
-data a :-> b = forall e. PA e => Clo !(e -> a -> b)
-                                     !(Int# -> PData e -> PData a -> PData b)
-                                      e
+data a :-> b 
+  = forall. PA e 
+  => Clo !(e -> a -> b)                                 -- vectorised version
+         !(Int# -> PData e -> PData a -> PData b)       -- lifted version
+         e                                              -- environment
+
 
 lifted :: (PArray e -> PArray a -> PArray b)
        -> Int# -> PData e -> PData a -> PData b
 {-# INLINE lifted #-}
-lifted f n# es as = case f (PArray n# es) (PArray n# as) of PArray _ bs -> bs
+lifted f n# es as 
+  = case f (PArray n# es) (PArray n# as) of
+     PArray _ bs -> bs
+
 
 -- |Closure construction
 --
