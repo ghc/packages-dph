@@ -4,9 +4,22 @@
 --
 module Data.Array.Parallel.PArray.Scalar (
   Scalar(..),
-  replicatePRScalar, replicatelPRScalar, repeatPRScalar, emptyPRScalar,
-  indexPRScalar, extractPRScalar, bpermutePRScalar, appPRScalar, applPRScalar,
-  packByTagPRScalar, combine2PRScalar, updatePRScalar, fromListPRScalar,
+
+  -- These functions have corresponding members in the PR class
+  -- from Data.Array.Parallel.PArray.PData.
+  emptyPRScalar,
+  replicatePRScalar,
+  replicatelPRScalar,
+  repeatPRScalar, 
+  indexPRScalar,
+  extractPRScalar,
+  bpermutePRScalar,
+  appPRScalar,
+  applPRScalar,
+  packByTagPRScalar,
+  combine2PRScalar,
+  updatePRScalar,
+  fromListPRScalar,
   nfPRScalar
 )
 where
