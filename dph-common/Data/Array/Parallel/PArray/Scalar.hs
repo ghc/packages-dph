@@ -29,8 +29,8 @@ class U.Elt a => Scalar a where
 
 
 -- Scalar Wrappers ------------------------------------------------------------
---  These operators work on (PData a) arrays when we know the element 'a' type is
---  scalar. For most of them we can just coerce the PData to the underling 
+--  These wrappers work on (PData a) arrays when we know the element type 'a'
+--  is scalar. For most of them we can just coerce the PData to the underling 
 --  U.Array and use the corresponding U.Array operator.
 --
 --  The underlying U.Array may be processed in parallel or sequentially,

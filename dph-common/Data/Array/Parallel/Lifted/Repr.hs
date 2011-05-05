@@ -17,7 +17,6 @@ module Data.Array.Parallel.Lifted.Repr (
 ) where
 
 import Data.Array.Parallel.Lifted.TH.Repr
-
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
                                             elementsSel2_1# )

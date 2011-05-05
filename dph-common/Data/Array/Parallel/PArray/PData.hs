@@ -3,11 +3,10 @@
 --   and the operators we can apply to it.
 --
 module Data.Array.Parallel.PArray.PData (
-  -- * Type family of Parallel Data.
   PData,
-
-  -- * Types of primitive operators on Parallel Data.
   PR(..),
+
+  -- These types have corresponding members in the PR class.
   T_emptyPR,
   T_replicatePR,
   T_replicatelPR,
@@ -28,6 +27,7 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import Data.Array.Parallel.Base                 (Tag)
 import GHC.Exts                                 (Int#)
 import SpecConstr
+
 
 -- | Parallel Data.
 --   This is the family of types that store parallel array data.
@@ -66,6 +66,7 @@ class PR a where
   nfPR         :: T_nfPR a
 
 
+-- Operator Types -------------------------------------------------------------
 -- | An empty array.
 type T_emptyPR      a 
         =  PData a
