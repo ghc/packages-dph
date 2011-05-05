@@ -171,7 +171,6 @@ update :: Elt a => Array a -> Array (Int, a) -> Array a
 {-# INLINE_BACKEND update #-}
 
 
-
 -- Packing and Combining -----------------------------------------------------
 -- | Extract the elements from an array that match the given predicate.
 filter :: Elt a => (a -> Bool) -> Array a -> Array a
