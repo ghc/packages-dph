@@ -38,29 +38,33 @@ import GHC.Exts (Int#, Int(..), (+#), (*#))
 import SpecConstr
 
 
--- |Lifted\/bulk parallel arrays
---   A parallel array with elements of type a.
+-- | Lifted\/bulk parallel arrays
+--   This contains the array length, along with the element data.
 --
 {-# ANN type PArray NoSpecConstr #-}
 data PArray a = PArray Int# (PData a)
 
 
--- |Parallel array data.
+-- | Parallel array data.
 --
 --   The family of types that store parallel array data.
 --   PData takes the type of an element and produces the type we use to store
---   an array of those elements. 
+--   an array of those elements.  For example, for performance reasons we store
+--   an array of pairs of ints as a pair of two arrays of ints.
 --
---   For example, for performance reasons we store an array of pairs of ints
---   as a pair of two arrays of ints.
+--   Instances for simple types are defined in Data.Array.Parallel.Lifted.Repr. 
+--   Instances for user-defined algebraic data types are created by the vectoriser
+--   when vectorising their definitions.
 --
---   Instances for simple types are defined in Data.Array.Parallel.Lifted.Repr 
+--   Note that PData is just a flat chunk of memory containing elements, and doesn't
+--   include a field giving the length of the array. We use PArray when we want to
+--   pass around the array data along with its length.
 --
 {-# ANN type PData NoSpecConstr #-}
 data family PData a
 
 
--- |Representable types.
+-- | Representable types.
 --
 --   The family of types that we know how to represent generically.
 --   PRepr takes an arbitrary type and produces the generic type we use to 
@@ -75,7 +79,7 @@ type family PRepr a
 -- Dictionaries -----------------------------------------------------------------------------------
 
 -- |A PA dictionary contains the functions that we use to convert a
---   representable type to its representation, and back.
+--  representable type to its generic representation, and back.
 --
 class PR (PRepr a) => PA a where
   toPRepr      :: a -> PRepr a
@@ -199,70 +203,88 @@ type T_nfPR a = PData a -> ()
 
 -- PD Wrappers ------------------------------------------------------------------------------------
 --
---   Given some data that has a PA dictionary, we can convert it to its representation
+--   Given some data that has a PA dictionary, we can convert it to its generic representation
 --   type, perform the requested operation, then convert it back.
 --
 emptyPD :: PA a => T_emptyPR a
 {-# INLINE_PA emptyPD #-}
-emptyPD = fromArrPRepr emptyPR
+emptyPD 
+  = fromArrPRepr emptyPR
 
 replicatePD :: PA a => T_replicatePR a
 {-# INLINE_PA replicatePD #-}
-replicatePD n# x = fromArrPRepr
-                 . replicatePR n#
-                 $ toPRepr x
+replicatePD n# x 
+  = fromArrPRepr
+  . replicatePR n#
+  $ toPRepr x
 
 replicatelPD :: PA a => T_replicatelPR a
 {-# INLINE_PA replicatelPD #-}
-replicatelPD segd xs = fromArrPRepr
-                     . replicatelPR segd
-                     $ toArrPRepr xs
+replicatelPD segd xs 
+  = fromArrPRepr
+  . replicatelPR segd
+  $ toArrPRepr xs
     
 repeatPD :: PA a => T_repeatPR a
 {-# INLINE_PA repeatPD #-}
-repeatPD n# len# xs = fromArrPRepr
-                    . repeatPR n# len#
-                    $ toArrPRepr xs
+repeatPD n# len# xs 
+  = fromArrPRepr
+  . repeatPR n# len#
+  $ toArrPRepr xs
 
 indexPD :: PA a => T_indexPR a
 {-# INLINE_PA indexPD #-}
-indexPD xs i# = fromPRepr $ indexPR (toArrPRepr xs) i#
+indexPD xs i# 
+  = fromPRepr 
+  $ indexPR (toArrPRepr xs) i#
 
 extractPD :: PA a => T_extractPR a
 {-# INLINE_PA extractPD #-}
-extractPD xs i# m# = fromArrPRepr $ extractPR (toArrPRepr xs) i# m#
+extractPD xs i# m#
+  = fromArrPRepr 
+  $ extractPR (toArrPRepr xs) i# m#
 
 bpermutePD :: PA a => T_bpermutePR a
 {-# INLINE bpermutePD #-}
-bpermutePD xs n# is = fromArrPRepr $ bpermutePR (toArrPRepr xs) n# is
+bpermutePD xs n# is 
+  = fromArrPRepr 
+  $ bpermutePR (toArrPRepr xs) n# is
 
 appPD :: PA a => T_appPR a
 {-# INLINE_PA appPD #-}
-appPD xs ys = fromArrPRepr $ appPR (toArrPRepr xs) (toArrPRepr ys)
+appPD xs ys 
+  = fromArrPRepr 
+   $ appPR (toArrPRepr xs) (toArrPRepr ys)
 
 applPD :: PA a => T_applPR a
 {-# INLINE_PA applPD #-}
 applPD segd is xs js ys
-  = fromArrPRepr $ applPR segd is (toArrPRepr xs) js (toArrPRepr ys)
+  = fromArrPRepr 
+  $ applPR segd is (toArrPRepr xs) js (toArrPRepr ys)
 
 packByTagPD :: PA a => T_packByTagPR a
 {-# INLINE_PA packByTagPD #-}
 packByTagPD xs n# tags t#
-  = fromArrPRepr $ packByTagPR (toArrPRepr xs) n# tags t#
+  = fromArrPRepr 
+  $ packByTagPR (toArrPRepr xs) n# tags t#
 
 combine2PD :: PA a => T_combine2PR a
 {-# INLINE_PA combine2PD #-}
 combine2PD n# sel as bs
-  = fromArrPRepr $ combine2PR n# sel (toArrPRepr as) (toArrPRepr bs)
+  = fromArrPRepr 
+  $ combine2PR n# sel (toArrPRepr as) (toArrPRepr bs)
 
 updatePD :: PA a => T_updatePR a
 {-# INLINE_PA updatePD #-}
 updatePD xs is ys
-  = fromArrPRepr $ updatePR (toArrPRepr xs) is (toArrPRepr ys)
+  = fromArrPRepr
+  $ updatePR (toArrPRepr xs) is (toArrPRepr ys)
 
 fromListPD :: PA a => T_fromListPR a
 {-# INLINE_PA fromListPD #-}
-fromListPD n# xs = fromArrPRepr $ fromListPR n# (map toPRepr xs)
+fromListPD n# xs 
+ = fromArrPRepr
+ $ fromListPR n# (map toPRepr xs)
 
 nfPD :: PA a => T_nfPR a
 {-# INLINE nfPD #-}
@@ -288,14 +310,16 @@ dataPA# :: PArray a -> PData a
 {-# INLINE_PA dataPA# #-}
 dataPA# (PArray _ d) = d
 
--- Wrappers
+-- | An array with no elements.
 emptyPA :: PA a => PArray a
 {-# INLINE_PA emptyPA #-}
-emptyPA = PArray 0# emptyPD
+emptyPA
+  = PArray 0# emptyPD
 
 replicatePA# :: PA a => Int# -> a -> PArray a
 {-# INLINE_PA replicatePA# #-}
-replicatePA# n# x = PArray n# (replicatePD n# x)
+replicatePA# n# x
+  = PArray n# (replicatePD n# x)
 
 replicatelPA# :: PA a => U.Segd -> PArray a -> PArray a
 {-# INLINE_PA replicatelPA# #-}
@@ -304,23 +328,28 @@ replicatelPA# segd (PArray n# xs)
 
 repeatPA# :: PA a => Int# -> PArray a -> PArray a
 {-# INLINE_PA repeatPA# #-}
-repeatPA# m# (PArray n# xs) = PArray (m# *# n#) (repeatPD m# n# xs)
+repeatPA# m# (PArray n# xs) 
+  = PArray (m# *# n#) (repeatPD m# n# xs)
 
 indexPA# :: PA a => PArray a -> Int# -> a
 {-# INLINE_PA indexPA# #-}
-indexPA# (PArray _ xs) i# = indexPD xs i#
+indexPA# (PArray _ xs) i# 
+  = indexPD xs i#
 
 extractPA# :: PA a => PArray a -> Int# -> Int# -> PArray a
 {-# INLINE_PA extractPA# #-}
-extractPA# (PArray _ xs) i# n# = PArray n# (extractPD xs i# n#)
+extractPA# (PArray _ xs) i# n#
+  = PArray n# (extractPD xs i# n#)
 
 bpermutePA# :: PA a => PArray a -> Int# -> U.Array Int -> PArray a
 {-# INLINE bpermutePA# #-}
-bpermutePA# (PArray _ xs) n# is = PArray n# (bpermutePD xs n# is)
+bpermutePA# (PArray _ xs) n# is
+  = PArray n# (bpermutePD xs n# is)
 
 appPA# :: PA a => PArray a -> PArray a -> PArray a
 {-# INLINE_PA appPA# #-}
-appPA# (PArray m# xs) (PArray n# ys) = PArray (m# +# n#) (appPD xs ys)
+appPA# (PArray m# xs) (PArray n# ys)
+  = PArray (m# +# n#) (appPD xs ys)
 
 applPA# :: PA a => U.Segd -> U.Segd -> PArray a -> U.Segd -> PArray a -> PArray a
 {-# INLINE_PA applPA# #-}
@@ -329,7 +358,8 @@ applPA# segd is (PArray m# xs) js (PArray n# ys)
 
 packByTagPA# :: PA a => PArray a -> Int# -> U.Array Tag -> Int# -> PArray a
 {-# INLINE_PA packByTagPA# #-}
-packByTagPA# (PArray _ xs) n# tags t# = PArray n# (packByTagPD xs n# tags t#)
+packByTagPA# (PArray _ xs) n# tags t# 
+  = PArray n# (packByTagPD xs n# tags t#)
 
 combine2PA# :: PA a => Int# -> U.Sel2 -> PArray a -> PArray a -> PArray a
 {-# INLINE_PA combine2PA# #-}
@@ -343,16 +373,19 @@ updatePA# (PArray n# xs) is (PArray _ ys)
 
 fromListPA# :: PA a => Int# -> [a] -> PArray a
 {-# INLINE_PA fromListPA# #-}
-fromListPA# n# xs = PArray n# (fromListPD n# xs)
+fromListPA# n# xs 
+  = PArray n# (fromListPD n# xs)
 
 fromListPA :: PA a => [a] -> PArray a
 {-# INLINE fromListPA #-}
-fromListPA xs = case length xs of
-                  I# n# -> fromListPA# n# xs
+fromListPA xs
+  = case length xs of
+     I# n# -> fromListPA# n# xs
 
 nfPA :: PA a => PArray a -> ()
 {-# INLINE nfPA #-}
-nfPA (PArray _ xs) = nfPD xs
+nfPA (PArray _ xs) 
+  = nfPD xs
 
 
 -- PRScalar Operators -----------------------------------------------------------------------------
@@ -372,48 +405,56 @@ class U.Elt a => Scalar a where
 
 emptyPRScalar :: Scalar a => T_emptyPR a
 {-# INLINE emptyPRScalar #-}
-emptyPRScalar = toScalarPData U.empty
+emptyPRScalar 
+  = toScalarPData U.empty
 
 replicatePRScalar :: Scalar a => T_replicatePR a
 {-# INLINE replicatePRScalar #-}
-replicatePRScalar n# x = traceF "replicatePRScalar"
-                       $ toScalarPData (U.replicate (I# n#) x)
+replicatePRScalar n# x
+  = traceF "replicatePRScalar"
+  $ toScalarPData (U.replicate (I# n#) x)
 
 replicatelPRScalar :: Scalar a => T_replicatelPR a
 {-# INLINE replicatelPRScalar #-}
-replicatelPRScalar segd xs = traceF "replicatelPRScalar"
-                         $ toScalarPData
-                         $ U.replicate_s segd 
-                         $ fromScalarPData xs
+replicatelPRScalar segd xs 
+  = traceF "replicatelPRScalar"
+  $ toScalarPData
+  $ U.replicate_s segd 
+  $ fromScalarPData xs
 
 repeatPRScalar :: Scalar a => T_repeatPR a
 {-# INLINE repeatPRScalar #-}
-repeatPRScalar n# len# xs = traceF "repeatPRScalar"
-                        $ toScalarPData
-                        $ U.repeat (I# n#) (I# len#)
-                        $ fromScalarPData xs
+repeatPRScalar n# len# xs
+  = traceF "repeatPRScalar"
+  $ toScalarPData
+  $ U.repeat (I# n#) (I# len#)
+  $ fromScalarPData xs
 
 indexPRScalar :: Scalar a => T_indexPR a
 {-# INLINE indexPRScalar #-}
-indexPRScalar xs i# = fromScalarPData xs U.!: I# i#
+indexPRScalar xs i#
+  = fromScalarPData xs U.!: I# i#
 
 extractPRScalar :: Scalar a => T_extractPR a
 {-# INLINE extractPRScalar #-}
-extractPRScalar xs i# n# = traceF "extractPRScalar"
-                       $ toScalarPData
-                       $ U.extract (fromScalarPData xs) (I# i#) (I# n#)
+extractPRScalar xs i# n#
+  = traceF "extractPRScalar"
+  $ toScalarPData
+  $ U.extract (fromScalarPData xs) (I# i#) (I# n#)
 
 bpermutePRScalar :: Scalar a => T_bpermutePR a
 {-# INLINE bpermutePRScalar #-}
-bpermutePRScalar xs _ is = traceF "bpermutePRScalar"
-                       $ toScalarPData
-                       $ U.bpermute (fromScalarPData xs) is
+bpermutePRScalar xs _ is
+  = traceF "bpermutePRScalar"
+  $ toScalarPData
+  $ U.bpermute (fromScalarPData xs) is
 
 appPRScalar :: Scalar a => T_appPR a
 {-# INLINE appPRScalar #-}
-appPRScalar xs ys = traceF "appPRScalar"
-                $ toScalarPData
-                $ fromScalarPData xs U.+:+ fromScalarPData ys
+appPRScalar xs ys
+  = traceF "appPRScalar"
+  $ toScalarPData
+  $ fromScalarPData xs U.+:+ fromScalarPData ys
 
 applPRScalar :: Scalar a => T_applPR a
 {-# INLINE applPRScalar #-}
@@ -425,33 +466,38 @@ applPRScalar segd xsegd xs ysegd ys
                         
 packByTagPRScalar :: Scalar a => T_packByTagPR a
 {-# INLINE packByTagPRScalar #-}
-packByTagPRScalar xs _ tags t# = traceF "packByTagPRScalar"
-                             $ toScalarPData
-                             $ U.packByTag (fromScalarPData xs)
-                                           tags
-                                           (intToTag (I# t#))
+packByTagPRScalar xs _ tags t#
+  = traceF "packByTagPRScalar"
+  $ toScalarPData
+  $ U.packByTag (fromScalarPData xs)
+                tags
+                (intToTag (I# t#))
 
 combine2PRScalar :: Scalar a => T_combine2PR a
 {-# INLINE combine2PRScalar #-}
-combine2PRScalar _ sel xs ys = traceF "combine2PRScalar"
-                             $ toScalarPData
-                             $ U.combine2 (U.tagsSel2 sel)
-                                          (U.repSel2 sel)
-                                          (fromScalarPData xs)
-                                          (fromScalarPData ys)
+combine2PRScalar _ sel xs ys 
+  = traceF "combine2PRScalar"
+  $ toScalarPData
+  $ U.combine2 (U.tagsSel2 sel)
+               (U.repSel2 sel)
+               (fromScalarPData xs)
+               (fromScalarPData ys)
 
 updatePRScalar :: Scalar a => T_updatePR a
 {-# INLINE updatePRScalar #-}
-updatePRScalar xs is ys = traceF "updatePRScalar"
-                        $ toScalarPData
-                        $ U.update (fromScalarPData xs)
-                                   (U.zip is (fromScalarPData ys))
+updatePRScalar xs is ys 
+  = traceF "updatePRScalar"
+  $ toScalarPData
+  $ U.update (fromScalarPData xs)
+             (U.zip is (fromScalarPData ys))
 
 fromListPRScalar :: Scalar a => T_fromListPR a
 {-# INLINE fromListPRScalar #-}
-fromListPRScalar _ xs = toScalarPData (U.fromList xs)
+fromListPRScalar _ xs
+  = toScalarPData (U.fromList xs)
 
 nfPRScalar :: Scalar a => T_nfPR a
 {-# INLINE nfPRScalar #-}
-nfPRScalar xs = fromScalarPData xs `seq` ()
+nfPRScalar xs
+  = fromScalarPData xs `seq` ()
 
