@@ -1,6 +1,6 @@
 module Data.Array.Parallel.Lifted (
   module Data.Array.Parallel.Lifted.PArray,
-  module Data.Array.Parallel.Lifted.Instances,
+  module Data.Array.Parallel.PArray.PReprInstances,
 
   (:->), ($:), ($:^),
 
@@ -9,7 +9,7 @@ module Data.Array.Parallel.Lifted (
 
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.Instances
+import Data.Array.Parallel.PArray.PReprInstances
 
 fromPArrayPA :: PA a => PArray a :-> PArray a
 {-# INLINE fromPArrayPA #-}

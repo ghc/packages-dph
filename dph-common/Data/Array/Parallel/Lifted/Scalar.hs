@@ -8,7 +8,7 @@ where
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
-import Data.Array.Parallel.Lifted.Instances
+import Data.Array.Parallel.PArray.PReprInstances
 
 import qualified Data.Array.Parallel.Unlifted as U
 

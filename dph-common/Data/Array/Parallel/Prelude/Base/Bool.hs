@@ -6,7 +6,7 @@ module Data.Array.Parallel.Prelude.Base.Bool (
 import Data.Array.Parallel.Prelude.Base.PArr
 
 import Data.Array.Parallel.Lifted.Combinators
-import Data.Array.Parallel.Lifted.Instances
+import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray

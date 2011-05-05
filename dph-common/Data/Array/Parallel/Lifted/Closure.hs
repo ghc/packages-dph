@@ -6,8 +6,8 @@ module Data.Array.Parallel.Lifted.Closure (
   closure1, closure2, closure3
 ) where
 
+import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Instances
 import Data.Array.Parallel.Lifted.Repr
 
 import GHC.Exts (Int#)
