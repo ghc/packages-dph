@@ -27,7 +27,7 @@ infixl 0 $:, $:^
 --   types are expressed in this form.
 --
 data a :-> b 
-  = forall. PA e 
+  = forall e. PA e 
   => Clo !(e -> a -> b)                                 -- vectorised version
          !(Int# -> PData e -> PData a -> PData b)       -- lifted version
          e                                              -- environment
