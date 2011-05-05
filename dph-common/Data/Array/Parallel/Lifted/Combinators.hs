@@ -2,8 +2,23 @@
 
 #include "fusion-phases.h"
 
--- | Array combinators that do not have corresponding primitive operators
---	in dph-common Data.Array.Parallel.Lifted.Combinators are defined here.
+-- | Define the closures for the array combinators the vectoriser uses.
+--   The closures themselves use the *PD primitives defined in
+--   dph-common:Data.Array.Parallel.Lifted.Combinators
+--
+--   For each combinator:
+--    The *PA_v version is the "vectorised" version that has had its 
+--    parameters closure converted. See zipWithPA_v for an example.
+--
+--    The *PA_l version is the "lifted" version that also works
+--    on arrays of arrays.
+--
+--    The *PA version contains both of these wrapped up into a closure.
+--    The output of the vectoriser uses these *PA versions directly, 
+--    with applications being performed by the liftedApply function 
+--    from "Data.Array.Parallel.Lifted.Closure"
+--     
+--  TODO: combine2PA_l isn't implemented.
 --
 module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
@@ -30,6 +45,11 @@ import GHC.Exts (Int(..), (+#), (-#), Int#, (<#))
 
 
 -- length ---------------------------------------------------------------------
+-- | Take the number of elements in an array.
+lengthPA :: PA a => PArray a :-> Int
+{-# INLINE lengthPA #-}
+lengthPA = closure1 lengthPA_v lengthPA_l
+
 lengthPA_v :: PA a => PArray a -> Int
 {-# INLINE_PA lengthPA_v #-}
 lengthPA_v xs = I# (lengthPA# xs)
@@ -40,12 +60,13 @@ lengthPA_l xss = fromUArrPA (U.elementsSegd segd) (U.lengthsSegd segd)
   where
     segd = segdPA# xss
 
-lengthPA :: PA a => PArray a :-> Int
-{-# INLINE lengthPA #-}
-lengthPA = closure1 lengthPA_v lengthPA_l
-
 
 -- replicate ------------------------------------------------------------------
+-- | Produce a new array by replicating a single element the given number of times.
+replicatePA :: PA a => Int :-> a :-> PArray a
+{-# INLINE replicatePA #-}
+replicatePA = closure2 replicatePA_v replicatePA_l
+
 replicatePA_v :: PA a => Int -> a -> PArray a
 {-# INLINE_PA replicatePA_v #-}
 replicatePA_v (I# n#) x = replicatePA# n# x
@@ -57,12 +78,13 @@ replicatePA_l (PArray n# (PInt ns)) (PArray _ xs)
   where
     segd = U.lengthsToSegd ns
 
-replicatePA :: PA a => Int :-> a :-> PArray a
-{-# INLINE replicatePA #-}
-replicatePA = closure2 replicatePA_v replicatePA_l
-
 
 -- singleton ------------------------------------------------------------------
+-- | Produce an array containing a single element.
+singletonPA :: PA a => a :-> PArray a
+{-# INLINE singletonPA #-}
+singletonPA = closure1 singletonPA_v singletonPA_l
+
 singletonPA_v :: PA a => a -> PArray a
 {-# INLINE_PA singletonPA_v #-}
 singletonPA_v x = replicatePA_v 1 x
@@ -75,12 +97,13 @@ singletonPA_l (PArray n# xs)
                                  (I# n#))
                        xs)
 
-singletonPA :: PA a => a :-> PArray a
-{-# INLINE singletonPA #-}
-singletonPA = closure1 singletonPA_v singletonPA_l
-
 
 -- map ------------------------------------------------------------------------
+-- | Apply a worker function to each element of an array, yielding a new array.
+mapPA :: (PA a, PA b) => (a :-> b) :-> PArray a :-> PArray b
+{-# INLINE mapPA #-}
+mapPA = closure2 mapPA_v mapPA_l
+
 mapPA_v :: (PA a, PA b) => (a :-> b) -> PArray a -> PArray b
 {-# INLINE_PA mapPA_v #-}
 mapPA_v f as = replicatePA# (lengthPA# as) f $:^ as
@@ -96,18 +119,13 @@ mapPA_l (PArray n# clo) (PArray _ xss)
                 (replicatelPD segd clo)
                 xs }
   
-{-
-mapPA_l fs xss
-  = copySegdPA# xss
-      (replicatelPA# (segdPA# xss) fs $:^ concatPA# xss)
--}
-
-mapPA :: (PA a, PA b) => (a :-> b) :-> PArray a :-> PArray b
-{-# INLINE mapPA #-}
-mapPA = closure2 mapPA_v mapPA_l
-
 
 -- crossMap -------------------------------------------------------------------
+-- TODO: What does this do?
+crossMapPA :: (PA a, PA b) => (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
+{-# INLINE crossMapPA #-}
+crossMapPA = closure2 crossMapPA_v crossMapPA_l
+
 crossMapPA_v :: (PA a, PA b) => PArray a -> (a :-> PArray b) -> PArray (a,b)
 {-# INLINE_PA crossMapPA_v #-}
 crossMapPA_v as f
@@ -126,12 +144,14 @@ crossMapPA_l ass fs = copySegdPA# bss (zipPA# as' (concatPA# bss))
     bss  = concatPA_l bsss
     as' = replicatelPA# (segdPA# (concatPA# bsss)) (concatPA# ass)
 
-crossMapPA :: (PA a, PA b) => (PArray a :-> (a :-> PArray b) :-> PArray (a,b))
-{-# INLINE crossMapPA #-}
-crossMapPA = closure2 crossMapPA_v crossMapPA_l
-
 
 -- zip ------------------------------------------------------------------------
+-- | Takes two arrays and returns an array of corresponding pairs.
+--   If one array is short, excess elements of the longer array are discarded.
+zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a,b)
+{-# INLINE zipPA #-}
+zipPA = closure2 zipPA_v zipPA_l
+
 zipPA_v :: (PA a, PA b) => PArray a -> PArray b -> PArray (a,b)
 {-# INLINE_PA zipPA_v #-}
 zipPA_v xs ys = zipPA# xs ys
@@ -141,14 +161,16 @@ zipPA_l :: (PA a, PA b)
 {-# INLINE_PA zipPA_l #-}
 zipPA_l (PArray n# (PNested segd xs)) (PArray _ (PNested _ ys))
   = PArray n# (PNested segd (P_2 xs ys))
--- zipPA_l xss yss = copySegdPA# xss (zipPA# (concatPA# xss) (concatPA# yss))
-
-zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a,b)
-{-# INLINE zipPA #-}
-zipPA = closure2 zipPA_v zipPA_l
 
 
 -- zipWith --------------------------------------------------------------------
+-- | zipWith generalises zip by zipping with the function given as the first
+--   argument, instead of a tupling function.
+zipWithPA :: (PA a, PA b, PA c)
+          => (a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c
+{-# INLINE zipWithPA #-}
+zipWithPA = closure3 zipWithPA_v zipWithPA_l
+
 zipWithPA_v :: (PA a, PA b, PA c)
             => (a :-> b :-> c) -> PArray a -> PArray b -> PArray c
 {-# INLINE_PA zipWithPA_v #-}
@@ -162,13 +184,14 @@ zipWithPA_l fs ass bss
   = copySegdPA# ass
       (replicatelPA# (segdPA# ass) fs $:^ concatPA# ass $:^ concatPA# bss)
 
-zipWithPA :: (PA a, PA b, PA c)
-          => (a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c
-{-# INLINE zipWithPA #-}
-zipWithPA = closure3 zipWithPA_v zipWithPA_l
-
 
 -- unzip ----------------------------------------------------------------------
+-- | Transform an array into an array of the first components,
+--   and an array of the second components.
+unzipPA:: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
+{-# INLINE unzipPA #-}
+unzipPA = closure1 unzipPA_v unzipPA_l
+
 unzipPA_v:: (PA a, PA b) => PArray (a,b) -> (PArray a, PArray b)
 {-# INLINE_PA unzipPA_v #-}
 unzipPA_v abs = unzipPA# abs
@@ -179,21 +202,23 @@ unzipPA_l xyss = zipPA# (copySegdPA# xyss xs) (copySegdPA# xyss ys)
   where
     (xs, ys) = unzipPA# (concatPA# xyss)
 
-unzipPA:: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
-{-# INLINE unzipPA #-}
-unzipPA = closure1 unzipPA_v unzipPA_l
-
 
 -- packPA ---------------------------------------------------------------------
-boolSel :: PArray Bool -> U.Sel2
-{-# INLINE boolSel #-}
-boolSel (PArray _ (PBool sel)) = sel
+-- | Select the elements of an array that have their tag set as True.
+--   
+-- @
+-- packPA [12, 24, 42, 93] [True, False, False, True]
+--  = [24, 42]
+-- @
+--
+packPA :: PA a => PArray a :-> PArray Bool :-> PArray a
+{-# INLINE packPA #-}
+packPA = closure2 packPA_v packPA_l
 
 packPA_v :: PA a => PArray a -> PArray Bool -> PArray a
 {-# INLINE_PA packPA_v #-}
 packPA_v xs bs
   = packByTagPA# xs (elementsSel2_1# sel) (U.tagsSel2 sel) 1#
-  -- = case U.count (toUArrPA bs) True of I# n# -> packPA# xs n# (toUArrPA bs)
   where
     sel = boolSel bs
 
@@ -207,32 +232,22 @@ packPA_l (PArray n# xss) (PArray _ bss)
     PNested (U.lengthsToSegd $ U.count_s segd (U.tagsSel2 sel) 1)
   $ packByTagPD  xs (elementsSel2_1# sel) (U.tagsSel2 sel) 1# }}
 
-{-
-packPA_l !xss !bss
-  = segmentPA# (lengthPA# xss) segd'
-  $ packByTagPA# (concatPA# xss) (elementsSel2_1# sel) (tagsSel2 sel) 1#
-  where
-    sel   = boolSel (concatPA# bss)
-    segd' = U.lengthsToSegd
-          $ U.count_s (segdPA# xss) (tagsSel2 sel) 1
--}
-{-
-  = segmentPA# (lengthPA# xss) (segdPA# xss)
-  $ packPA# (concatPA# xss) (elementsSegd# segd') (toUArrPA (concatPA# bss))
-  where
-    segd' = U.lengthsToSegd
-          . U.sum_s (segdPA# xss)
-          . U.map fromBool
-          $ toUArrPA (concatPA# bss)
--}
-
-packPA :: PA a => PArray a :-> PArray Bool :-> PArray a
-{-# INLINE packPA #-}
-packPA = closure2 packPA_v packPA_l
+boolSel :: PArray Bool -> U.Sel2
+{-# INLINE boolSel #-}
+boolSel (PArray _ (PBool sel)) = sel
 
 
 -- combine --------------------------------------------------------------------
--- TODO: should the selector be a boolean array?
+-- | Combine two arrays, using a tag array to tell us where to get each element from.
+--
+--   @combine2 [1,2,3] [4,5,6] [T,F,F,T,T,F] = [1,4,5,2,3,6]@
+--
+--   TODO: should the selector be a boolean array?
+--
+combine2PA:: PA a => PArray a :-> PArray a :-> PArray Tag :-> PArray a
+{-# INLINE_PA combine2PA #-}
+combine2PA = closure3 combine2PA_v combine2PA_l
+
 combine2PA_v:: PA a => PArray a -> PArray a -> PArray Tag -> PArray a
 {-# INLINE_PA combine2PA_v #-}
 combine2PA_v xs ys bs
@@ -240,19 +255,22 @@ combine2PA_v xs ys bs
                 (U.tagsToSel2 (toUArrPA bs))
                 xs ys
 
-combine2PA_l:: PA a
-            => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray Tag)
-               -> PArray (PArray a)
+combine2PA_l
+        :: PA a
+        => PArray (PArray a) -> PArray (PArray a)
+        -> PArray (PArray Tag)
+        -> PArray (PArray a)
 {-# INLINE_PA combine2PA_l #-}
-combine2PA_l _ _ _ = error "combinePA_l nyi"
-    
-
-combine2PA:: PA a => PArray a :-> PArray a :-> PArray Tag :-> PArray a
-{-# INLINE_PA combine2PA #-}
-combine2PA = closure3 combine2PA_v combine2PA_l
+combine2PA_l _ _ _ 
+        = error "dph-common:Data.Array.Parallel.Lifted.Combinators: combinePA_l isn't implemented"
 
 
 -- filter ---------------------------------------------------------------------
+-- | Extract the elements from an array that match the given predicate.
+filterPA :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
+{-# INLINE filterPA #-}
+filterPA = closure2 filterPA_v filterPA_l
+
 filterPA_v :: PA a => (a :-> Bool) -> PArray a -> PArray a
 {-# INLINE_PA filterPA_v #-}
 filterPA_v p xs = packPA_v xs (mapPA_v p xs)
@@ -262,12 +280,13 @@ filterPA_l :: PA a
 {-# INLINE_PA filterPA_l #-}
 filterPA_l ps xss = packPA_l xss (mapPA_l ps xss)
 
-filterPA :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
-{-# INLINE filterPA #-}
-filterPA = closure2 filterPA_v filterPA_l
-
 
 -- index ----------------------------------------------------------------------
+-- | Retrieve the array element with the given index.
+indexPA :: PA a => PArray a :-> Int :-> a
+{-# INLINE indexPA #-}
+indexPA = closure2 indexPA_v indexPA_l
+
 indexPA_v :: PA a => PArray a -> Int -> a
 {-# INLINE_PA indexPA_v #-}
 indexPA_v xs (I# i#) = indexPA# xs i#
@@ -280,19 +299,13 @@ indexPA_l (PArray _ (PNested segd xs)) (PArray n# is)
                   (U.zipWith (+) (U.indicesSegd segd)
                                  (fromScalarPData is))
 
-{-
-indexPA_l xss is
-  = bpermutePA# (concatPA# xss)
-                (lengthPA# xss)
-                (U.zipWith (+) (U.indicesSegd (segdPA# xss)) (toUArrPA is))
--}
-
-indexPA :: PA a => PArray a :-> Int :-> a
-{-# INLINE indexPA #-}
-indexPA = closure2 indexPA_v indexPA_l
-
 
 -- concat ---------------------------------------------------------------------
+-- | Concatenate an array of arrays into a single array.
+concatPA :: PA a => PArray (PArray a) :-> PArray a
+{-# INLINE concatPA #-}
+concatPA = closure1 concatPA_v concatPA_l
+
 concatPA_v :: PA a => PArray (PArray a) -> PArray a
 {-# INLINE_PA concatPA_v #-}
 concatPA_v xss = concatPA# xss
@@ -306,12 +319,13 @@ concatPA_l (PArray m# (PNested segd1 (PNested segd2 xs)))
                          (U.elementsSegd segd2))
                xs)
 
-concatPA :: PA a => PArray (PArray a) :-> PArray a
-{-# INLINE concatPA #-}
-concatPA = closure1 concatPA_v concatPA_l
-
 
 -- app (append) ---------------------------------------------------------------
+-- | Append two arrays.
+appPA :: PA a => PArray a :-> PArray a :-> PArray a
+{-# INLINE appPA #-}
+appPA = closure2 appPA_v appPA_l
+
 appPA_v :: PA a => PArray a -> PArray a -> PArray a
 {-# INLINE_PA appPA_v #-}
 appPA_v xs ys = appPA# xs ys
@@ -327,12 +341,13 @@ appPA_l (PArray m# pxss) (PArray n# pyss)
     in
     PNested segd (applPD segd xsegd xs ysegd ys) }}
 
-appPA :: PA a => PArray a :-> PArray a :-> PArray a
-{-# INLINE appPA #-}
-appPA = closure2 appPA_v appPA_l
-
 
 -- enumFromTo -----------------------------------------------------------------
+-- | Produce a range of integers.
+enumFromToPA_Int :: Int :-> Int :-> PArray Int
+{-# INLINE enumFromToPA_Int #-}
+enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
+
 enumFromToPA_v :: Int -> Int -> PArray Int
 {-# INLINE_PA enumFromToPA_v #-}
 enumFromToPA_v m n = fromUArrPA (distance m n) (U.enumFromTo m n)
@@ -353,12 +368,16 @@ enumFromToPA_l (PArray m# ms) (PArray n# ns)
     lens = U.zipWith distance (fromScalarPData ms) (fromScalarPData ns)
     segd = U.lengthsToSegd lens
 
-enumFromToPA_Int :: Int :-> Int :-> PArray Int
-{-# INLINE enumFromToPA_Int #-}
-enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
-
 
 -- indexed --------------------------------------------------------------------
+-- | Tag each element of an array with its index.
+--
+--   @indexed [42, 93, 13] = [(0, 42), (1, 93), (2, 13)]@ 
+--
+indexedPA :: PA a => PArray a :-> PArray (Int,a)
+{-# INLINE indexedPA #-}
+indexedPA = closure1 indexedPA_v indexedPA_l
+
 indexedPA_v :: PA a => PArray a -> PArray (Int,a)
 {-# INLINE indexedPA_v #-}
 indexedPA_v (PArray n# xs)
@@ -371,12 +390,16 @@ indexedPA_l (PArray n# xss)
   $ case xss of { PNested segd xs ->
     PNested segd (P_2 (toScalarPData $ U.indices_s segd) xs) }
 
-indexedPA :: PA a => PArray a :-> PArray (Int,a)
-{-# INLINE indexedPA #-}
-indexedPA = closure1 indexedPA_v indexedPA_l
-
 
 -- slice ----------------------------------------------------------------------
+-- | Extract a subrange of elements from an array.
+--   The first argument is the starting index, while the second is the 
+--   length of the slice.
+--  
+slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
+{-# INLINE slicePA #-}
+slicePA = closure3 slicePA_v slicePA_l
+
 slicePA_v :: PA a => Int -> Int -> PArray a -> PArray a
 {-# INLINE slicePA_v #-}
 slicePA_v (I# from) (I# len) xs 
@@ -397,12 +420,14 @@ slicePA_l (PArray n# is) (PArray _ lens) (PArray _ xss)
   where
     segd' = U.lengthsToSegd (fromScalarPData lens)
 
-slicePA :: PA a => Int :-> Int :-> PArray a :-> PArray a
-{-# INLINE slicePA #-}
-slicePA = closure3 slicePA_v slicePA_l
 
 
 -- update ---------------------------------------------------------------------
+-- | Copy the source array in the destination, using new values for the given indices.
+updatePA :: PA a => PArray a :-> PArray (Int,a) :-> PArray a
+{-# INLINE updatePA #-}
+updatePA = closure2 updatePA_v updatePA_l
+
 updatePA_v :: PA a => PArray a -> PArray (Int,a) -> PArray a
 {-# INLINE_PA updatePA_v #-}
 updatePA_v xs (PArray n# (P_2 is ys))
@@ -420,12 +445,16 @@ updatePA_l (PArray m# xss) (PArray n# pss)
                                 (U.replicate_s segd' (U.indicesSegd segd)))
                 ys }}
 
-updatePA :: PA a => PArray a :-> PArray (Int,a) :-> PArray a
-{-# INLINE updatePA #-}
-updatePA = closure2 updatePA_v updatePA_l
-
 
 -- bpermute -------------------------------------------------------------------
+-- | Backwards permutation of array elements.
+--
+--   @bpermute [50, 60, 20, 30] [0, 3, 2]  = [50, 30, 20]@
+--
+bpermutePA :: PA a => PArray a :-> PArray Int :-> PArray a
+{-# INLINE bpermutePA #-}
+bpermutePA = closure2 bpermutePA_v bpermutePA_l
+
 bpermutePA_v :: PA a => PArray a -> PArray Int -> PArray a
 {-# INLINE_PA bpermutePA_v #-}
 bpermutePA_v xs (PArray n# is) = bpermutePA# xs n# (fromScalarPData is)
@@ -441,7 +470,4 @@ bpermutePA_l (PArray _ xss) (PArray n# iss)
                   (U.zipWith (+) (fromScalarPData is)
                                  (U.replicate_s isegd (U.indicesSegd segd))) }}
 
-bpermutePA :: PA a => PArray a :-> PArray Int :-> PArray a
-{-# INLINE bpermutePA #-}
-bpermutePA = closure2 bpermutePA_v bpermutePA_l
 
