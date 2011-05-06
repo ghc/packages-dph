@@ -48,6 +48,7 @@ type family PRepr a
 
 -- | A PA dictionary contains the functions that we use to convert a
 --   representable type to and from its generic representation.
+--   The conversion methods should all be O(1).
 --
 class PR (PRepr a) => PA a where
   toPRepr      :: a -> PRepr a

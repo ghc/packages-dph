@@ -15,7 +15,7 @@ module Data.Array.Parallel.Lifted.Repr (
 
   segdPA#, concatPA#, segmentPA#, copySegdPA#
 ) where
-
+import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.Lifted.TH.Repr
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
@@ -28,7 +28,6 @@ import Data.Array.Parallel.Base.DTrace ( traceFn, traceArg )
 import Data.List (unzip4, unzip5)
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import GHC.Word  ( Word8 )
-
 
 -- Scalar types ---------------------------------------------------------------
 
@@ -47,14 +46,6 @@ $(scalarInstances [''Int, ''Float, ''Double, ''Word8])
 
 
 -- Void -----------------------------------------------------------------------
-data Void
-
-void :: Void
-void = error "Data.Array.Parallel.void"
-
-fromVoid :: a
-fromVoid = error "fromPRepr Data.Array.Parallel.void"
-
 data instance PData Void
 
 pvoid :: PData Void
@@ -73,87 +64,129 @@ $(unitPRInstance 'PUnit)
 
 
 -- Wrap -----------------------------------------------------------------------
-newtype Wrap a = Wrap { unWrap :: a }
-
 newtype instance PData (Wrap a) = PWrap (PData a)
 
 $(wrapPRInstance ''Wrap 'Wrap 'unWrap 'PWrap)
+
+{- Generated code:
+instance PA a => PR (Wrap a) where
+... INLINE pragmas ...
+    emptyPR = traceFn "emptyPR" "Wrap a" (PWrap emptyPD)
+
+    replicatePR n# (Wrap x)
+            = traceFn "replicatePR" "Wrap a" (PWrap (replicatePD n# x))
+
+    replicatelPR segd (PWrap xs)
+            = traceFn "replicatelPR" "Wrap a" (PWrap (replicatelPD segd xs))
+
+    repeatPR n# len# (PWrap xs)
+            = traceFn "repeatPR" "Wrap a" (PWrap (repeatPD n# len# xs))
+
+    indexPR (PWrap xs) i#
+            = traceFn "indexPR" "Wrap a" (Wrap (indexPD xs i#))
+
+    extractPR (PWrap xs) i# n#
+            = traceFn "extractPR" "Wrap a" (PWrap (extractPD xs i# n#))
+
+    bpermutePR (PWrap xs) n# is
+            = traceFn "bpermutePR" "Wrap a" (PWrap (bpermutePD xs n# is))
+
+    appPR (PWrap xs1) (PWrap xs2)
+            = traceFn "appPR" "Wrap a" (PWrap (appPD xs1 xs2))
+
+    applPR segd is (PWrap xs1) js (PWrap xs2)
+            = traceFn "applPR" "Wrap a" (PWrap (applPD segd is xs1 js xs2))
+
+    packByTagPR (PWrap xs) n# tags t#
+            = traceFn
+            "packByTagPR" "Wrap a" (PWrap (packByTagPD xs n# tags t#))
+
+    combine2PR n# sel (PWrap xs1) (PWrap xs2)
+            = traceFn "combine2PR" "Wrap a" (PWrap (combine2PD n# sel xs1 xs2))
+
+    updatePR (PWrap xs1) is (PWrap xs2)
+            = traceFn "updatePR" "Wrap a" (PWrap (updatePD xs1 is xs2))
+
+    fromListPR n# xs
+            = traceFn "fromListPR" "Wrap a" (PWrap (fromListPD n# (map unWrap xs)))
+      
+    nfPR (PWrap xs) 
+            = traceFn "nfPR" "Wrap a" (nfPD xs) }
+-}
 
 
 -- Tuples ---------------------------------------------------------------------
 $(tupleInstances [2..5])
 
-{-
- - Here is what gets generated
- -
+{- Generated code:
 
 data instance PData (a,b)
   = P_2 (PData a)
         (PData b)
 
 instance (PR a, PR b) => PR (a,b) where
-  {-# INLINE emptyPR #-}
-  emptyPR = P_2 emptyPR emptyPR
+    {-# INLINE emptyPR #-}
+    emptyPR = P_2 emptyPR emptyPR
 
-  {-# INLINE replicatePR #-}
-  replicatePR n# (a,b) = 
+    {-# INLINE replicatePR #-}
+    replicatePR n# (a,b) = 
       P_2 (replicatePR n# a)
           (replicatePR n# b)
 
-  {-# INLINE replicatelPR #-}
-  replicatelPR segd (P_2 as bs) =
+    {-# INLINE replicatelPR #-}
+    replicatelPR segd (P_2 as bs) =
       P_2 (replicatelPR segd as)
           (replicatelPR segd bs) 
 
-  {-# INLINE repeatPR #-}
-  repeatPR n# len# (P_2 as bs) =
+    {-# INLINE repeatPR #-}
+    repeatPR n# len# (P_2 as bs) =
       P_2 (repeatPR n# len# as)
           (repeatPR n# len# bs)
 
-  {-# INLINE indexPR #-}
-  indexPR (P_2 as bs) i# = (indexPR as i#, indexPR bs i#)
+    {-# INLINE indexPR #-}
+    indexPR (P_2 as bs) i# = (indexPR as i#, indexPR bs i#)
 
-  {-# INLINE extractPR #-}
-  extractPR (P_2 as bs) i# n# = 
+    {-# INLINE extractPR #-}
+    extractPR (P_2 as bs) i# n# = 
       P_2 (extractPR as i# n#)
           (extractPR bs i# n#)
 
-  {-# INLINE bpermutePR #-}
-  bpermutePR (P_2 as bs) n# is =
+    {-# INLINE bpermutePR #-}
+    bpermutePR (P_2 as bs) n# is =
       P_2 (bpermutePR as n# is)
           (bpermutePR bs n# is)
 
-  {-# INLINE appPR #-}
-  appPR (P_2 as1 bs1) (P_2 as2 bs2) =
+    {-# INLINE appPR #-}
+    appPR (P_2 as1 bs1) (P_2 as2 bs2) =
       P_2 (appPR as1 as2) (appPR bs1 bs2)
 
-  {-# INLINE applPR #-}
-  applPR is (P_2 as1 bs1) js (P_2 as2 bs2) =
+    {-# INLINE applPR #-}
+    applPR is (P_2 as1 bs1) js (P_2 as2 bs2) =
       P_2 (applPR is as1 js as2)
           (applPR is bs1 js bs2)
 
-  {-# INLINE packByTagPR #-}
-  packByTagPR (P_2 as bs) n# tags t# =
+    {-# INLINE packByTagPR #-}
+    packByTagPR (P_2 as bs) n# tags t# =
       P_2 (packByTagPR as n# tags t#)
           (packByTagPR bs n# tags t#)
 
-  {-# INLINE combine2PR #-}
-  combine2PR n# sel (P_2 as1 bs1) (P_2 as2 bs2) =
+    {-# INLINE combine2PR #-}
+    combine2PR n# sel (P_2 as1 bs1) (P_2 as2 bs2) =
       P_2 (combine2PR n# sel as1 as2)
           (combine2PR n# sel bs1 bs2)
 
-  {-# INLINE updatePR #-}
-  updatePR (P_2 as1 bs1) is (P_2 as2 bs2) =
+    {-# INLINE updatePR #-}
+    updatePR (P_2 as1 bs1) is (P_2 as2 bs2) =
       P_2 (updatePR as1 is as2)
           (updatePR bs1 is bs2)
 
-  {-# INLINE fromListPR #-}
-  fromListPR n# xs = let (as,bs) = unzip xs in
+    {-# INLINE fromListPR #-}
+    fromListPR n# xs = let (as,bs) = unzip xs in
       P_2 (fromListPR n# as)
           (fromListPR n# bs)
 
-  {-# INLINE nfPR #-}
-  nfPR (P_2 as bs) = nfPR as `seq` nfPR bs
+    {-# INLINE nfPR #-}
+    nfPR (P_2 as bs) = nfPR as `seq` nfPR bs
 -}
 
 zipPA# :: PArray a -> PArray b -> PArray (a,b)
@@ -171,9 +204,6 @@ zip3PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) = PArray n# (P_3 xs ys zs)
 
 
 -- Sums -----------------------------------------------------------------------
-data Sum2 a b = Alt2_1 a | Alt2_2 b
-data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
-
 data instance PData (Sum2 a b)
   = PSum2 U.Sel2 (PData a) (PData b)
 
