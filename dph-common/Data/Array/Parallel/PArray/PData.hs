@@ -1,4 +1,3 @@
-
 -- | Defines the family of types that store parallel array data, 
 --   and the operators we can apply to it.
 --

@@ -1,12 +1,10 @@
-
 {-# LANGUAGE CPP, FlexibleContexts #-}
 
 #include "fusion-phases.h"
 
 -- | Definition of the PArray type, and functions that work on it. The PArray
---   type is a PData with an array length, and as such the functions we export
---   from this module are just wrappers for the PD functions from 
---   Data.Array.Parallel.PArray.PRepr.
+--   type is a PData with an array length. The functions we export from this
+--   module are just wrappers for the PD functions from Data.Array.Parallel.PArray.PRepr.
 --
 --   TODO: Check inconsistent use of INLINE pragmas.
 --         Most have INLINE_PA, but bpermutePD and nfPD have plain INLINE
@@ -79,7 +77,7 @@ replicatePA# n# x
 
 replicatelPA# :: PA a => U.Segd -> PArray a -> PArray a
 {-# INLINE_PA replicatelPA# #-}
-replicatelPA# segd (PArray n# xs)
+replicatelPA# segd (PArray _ xs)
   = PArray (elementsSegd# segd) (replicatelPD segd xs)
 
 repeatPA# :: PA a => Int# -> PArray a -> PArray a

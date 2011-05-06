@@ -1,17 +1,27 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS -fno-warn-orphans #-}
 
 #include "fusion-phases.h"
 
 -- | Instances for the PRepr class.
---   For primitive types these are all trivial, as we represent an array of 
---   of Ints just as an array of Ints.
+--
+--   For primitive types these are all trivial, as we represent an array of
+--   Ints just as an array of Ints. 
+--
+--   For algebraic data types defined in the source program, the vectoriser
+--   creates the appropriate PRepr instances for those types.
+--
+--   Note that polymorphic container types like tuples and arrays use the 
+--   `Wrap` constructor so we only need to convert one layer of the structure
+--   to the generic representation at a time. 
+--   See "Data.Array.Parallel.PArray.Types" for details.
 --
 module Data.Array.Parallel.PArray.PReprInstances
 where
 import Data.Array.Parallel.PArray.PRepr
+import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.Base
 import Data.Array.Parallel.Lifted.Repr
-import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
 import qualified Data.Array.Parallel.Unlifted as U
 import GHC.Word    ( Word8 )
 
