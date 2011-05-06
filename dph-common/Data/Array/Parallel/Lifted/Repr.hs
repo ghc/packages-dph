@@ -29,21 +29,6 @@ import Data.List (unzip4, unzip5)
 import GHC.Exts  (Int#, Int(..), (+#), (-#), (*#))
 import GHC.Word  ( Word8 )
 
--- Scalar types ---------------------------------------------------------------
-
--- Generate
---
--- newtype instance PData Int = PInt (U.Array Int)
---
--- instance Scalar Int where
---   fromScalarPData (PInt xs) = xs
---   toScalarPData = PInt
---
--- instance PR Int where
---   <forward to *PRScalar methods>
-
-$(scalarInstances [''Int, ''Float, ''Double, ''Word8])
-
 
 -- Void -----------------------------------------------------------------------
 data instance PData Void

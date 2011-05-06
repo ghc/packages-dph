@@ -30,6 +30,7 @@ Library
   Other-Modules:
         Data.Array.Parallel.PArray.Base
         Data.Array.Parallel.PArray.Scalar
+        Data.Array.Parallel.PArray.ScalarInstances
         Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.PReprInstances
         Data.Array.Parallel.PArray.PData

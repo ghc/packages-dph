@@ -38,6 +38,7 @@ import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Scalar
 
 import Data.Array.Parallel.PArray.PReprInstances
+import Data.Array.Parallel.PArray.ScalarInstances
 
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base ( Tag, fromBool )
