@@ -60,21 +60,9 @@ import GHC.Word ( Word8(..) )
 type Segd = U.Segd
 type Sel2 = U.Sel2
 
-{-
-lengthSegd# :: Segd -> Int#
-lengthSegd# segd = case U.lengthSegd segd of { I# n# -> n# }
-{-# INLINE_PA lengthSegd# #-}
--}
-
 elementsSegd# :: Segd -> Int#
 elementsSegd# segd = case U.elementsSegd segd of { I# n# -> n# }
 {-# INLINE_PA elementsSegd# #-}
-
-{-
-lengthsToSegdPA# :: PArray_Int# -> Segd
-lengthsToSegdPA# = U.lengthsToSegd
-{-# INLINE_PA lengthsToSegdPA# #-}
--}
 
 mkSegd# :: U.Array Int -> U.Array Int -> Int# -> Segd
 mkSegd# ns is n# = U.mkSegd ns is (I# n#)
