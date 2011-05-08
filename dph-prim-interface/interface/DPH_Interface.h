@@ -40,6 +40,13 @@ generate n f = map f (enumFromTo 0 (n-1))
 replicate :: Elt a => Int -> a -> Array a
 {-# INLINE CONLIKE PHASE_BACKEND replicate #-}
 
+{-# RULES
+
+"seq/replicate" forall n x y.
+  seq (replicate n x) y = n `seq` x `seq` y
+
+ #-}
+
 
 -- | Produce an array by copying a portion of another array.
 repeat  :: Elt a 
