@@ -35,6 +35,9 @@ generate :: Elt a => Int -> (Int -> a) -> Array a
 {-# INLINE_BACKEND generate #-}
 generate n f = map f (enumFromTo 0 (n-1))
 
+generate_cheap :: Elt a => Int -> (Int -> a) -> Array a
+{-# INLINE_BACKEND generate_cheap #-}
+generate_cheap n f = map f (enumFromTo 0 (n-1))
 
 -- | Produce a new array by replicating a single element the given number of times.
 replicate :: Elt a => Int -> a -> Array a
@@ -82,7 +85,7 @@ enumFromStepLenEach :: Int -> Array Int -> Array Int -> Array Int -> Array Int
 
 "repeat/enumFromStepLen[Int]" forall i j k n len.
   repeat n len (enumFromStepLen i j k)
-    = generate len (\m -> i + ((m `Prelude.rem` k) * j))
+    = generate_cheap len (\m -> i + ((m `Prelude.rem` k) * j))
 
   #-}
 
@@ -275,13 +278,41 @@ zipWith4 f as bs cs ds
                            (enumFromStepLen i2 k2 n2)
     = enumFromStepLen (i1+i2) (k1+k2) n1
   #-}
-     
+
+
+-- FIXME: These are the SMVM rules. They are intentionally quite specific and
+-- we want to get rid of the ASAP.
+
 {-# RULES
 
 "map/zipWith (+)/enumFromStepLen" forall m n is.
   map (dph_mod_index m) (zipWith GHC.Base.plusInt (enumFromStepLen 0 m n) is)
     = map (dph_mod_index m) is
 
+"map dph_mod_index/enumFromStepLenEach" forall k l is n1 n2.
+  map (dph_mod_index k)
+      (enumFromStepLenEach l is (replicate n1 (GHC.Base.I# 1#)) (replicate n2 k))
+    = enumFromStepLenEach l (map (dph_mod_index k) is)
+                            (replicate n1 (GHC.Base.I# 1#))
+                            (replicate n2 k)
+
+"map dph_mod_index/replicate_s" forall k segd xs.
+  map (dph_mod_index k) (replicate_s segd xs)
+    = replicate_s segd (map (dph_mod_index k) xs)
+
+"map dph_mod_index/enumFromStepLen" forall k# i n.
+  map (dph_mod_index (GHC.Base.I# k#)) (enumFromStepLen i (GHC.Base.I# k#) n)
+    = replicate n i
+
+"enumFromStepLenEach/replicate x 3" forall k m n1 n2 n3.
+  enumFromStepLenEach m (replicate n1 (GHC.Base.I# 0#))
+                        (replicate n2 (GHC.Base.I# 1#))
+                        (replicate n3 k)
+    = generate_cheap m (dph_mod_index k)
+
+"bpermute/generate_cheap" forall n f xs.
+  bpermute (generate_cheap n f) xs
+    = map f xs
  #-}
               
  
