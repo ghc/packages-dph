@@ -18,7 +18,8 @@
 --    with applications being performed by the liftedApply function 
 --    from "Data.Array.Parallel.Lifted.Closure"
 --     
---  TODO: combine2PA_l isn't implemented.
+--  TODO: combine2PA_l isn't implemented and will just `error` if you
+--        try to use it. None of our benchmarks do yet...
 --
 module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
@@ -26,8 +27,10 @@ module Data.Array.Parallel.Lifted.Combinators (
   packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
   indexedPA, slicePA, updatePA, bpermutePA,
 
-  lengthPA_v, replicatePA_v, singletonPA_v, zipPA_v, unzipPA_v,
-  indexPA_v, appPA_v, enumFromToPA_v
+  -- * Functions re-exported by Data.Array.Parallel.PArray
+  lengthPA_v, replicatePA_v, singletonPA_v, zipPA_v,    unzipPA_v,
+  packPA_v,   concatPA_v,    indexedPA_v,   updatePA_v, bpermutePA_v,
+  slicePA_v,  indexPA_v,     appPA_v,       enumFromToPA_v
 ) where
 
 import Data.Array.Parallel.Lifted.PArray
