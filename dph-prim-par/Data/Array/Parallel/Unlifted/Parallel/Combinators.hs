@@ -58,7 +58,7 @@ combineUP :: Unbox a => Vector Bool -> Vector a -> Vector a -> Vector a
 {-# INLINE combineUP #-}
 combineUP flags xs ys 
         = combine2UP tags (mkUPSelRep2 tags) xs ys
-        where tags = Seq.map fromBool flags
+        where tags = Seq.map (fromBool . not) flags
 
 
 -- | Combine two vectors based on a selector. 
