@@ -24,6 +24,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
+import Debug.Trace (trace)
 
 -- | Apply a worker to all elements of a vector.
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
@@ -114,7 +115,7 @@ fold1UP = foldl1UP
 -- | Same as 'fold1UP'.
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_U foldl1UP #-}
-foldl1UP f arr 
+foldl1UP f arr
         = (maybe z (f z)
         . foldD  theGang combine
         . mapD   theGang (Seq.foldl1Maybe f)
@@ -128,10 +129,17 @@ foldl1UP f arr
 
 
 -- | Prefix scan. Similar to fold, but produce an array of the intermediate states.
+--
+--   TODO: Fails with EU > length xs
+--
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 {-# INLINE_UP scanUP #-}
-scanUP f z 
-        = splitJoinD theGang go
-        where   go xs = let (ds,zs) = unzipD $ mapD theGang (Seq.scanRes f z) xs
-                            zs'     = fst (scanD theGang f z zs)
-                        in  zipWithD theGang (Seq.map . f) zs' ds
+scanUP f z arr
+     | Seq.null arr = empty
+     | otherwise    = splitJoinD theGang go arr
+     where
+       {-# INLINE go #-}
+       go xs = let zs  = mapD theGang (Seq.fold1 f) xs
+                   zs' = fst (scanD theGang f z zs)
+               in  zipWithD theGang (Seq.scan f) zs' xs
+
