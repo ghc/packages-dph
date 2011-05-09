@@ -34,7 +34,6 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
                                             elementsSel2_1# )
-import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.PArray.PDataInstances

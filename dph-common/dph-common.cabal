@@ -40,7 +40,6 @@ Library
         Data.Array.Parallel.Lifted.Unboxed
         Data.Array.Parallel.Lifted.Scalar
         Data.Array.Parallel.Lifted.TH.Repr
-        Data.Array.Parallel.Lifted.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Prelude.Base.Int

@@ -60,11 +60,16 @@ dataPA# (PArray _ d) = d
 
 
 -- PA Wrappers ----------------------------------------------------------------
--- These wrappers work on PArrays. As the PArray contains a PData, we can 
+--  These wrappers work on PArrays. As the PArray contains a PData, we can 
 --  can just pass this to the corresponding PD function from 
 --  Data.Array.Parallel.PArray.PRepr. However, as a PData doesn't contain 
 --  the array length, we need to do the length calculations here.
 --
+--  Note: There are some more operator# functions that work on PArrays in 
+--        "Data.Array.Parallel.PArray.DataInstances". The ones there have 
+--        a similar shape but need to know about the underlying representation
+--        constructors.
+-- 
 emptyPA :: PA a => PArray a
 {-# INLINE_PA emptyPA #-}
 emptyPA

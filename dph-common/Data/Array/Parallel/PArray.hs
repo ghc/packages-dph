@@ -1,3 +1,14 @@
+-- |Underlying data types and type classes for parallel arrays.
+--
+--	For motivational material see:
+--	   "An Approach to Fast Arrays in Haskell", Chakravarty and Keller, 2003
+--
+--	For discussion of how the mapping to generic types works see:
+--         "Instant Generics: Fast and Easy", Chakravarty, Ditu and Keller, 2009
+--
+-- TODO: Describe structure of PArrays.
+
+
 module Data.Array.Parallel.PArray (
   PArray, PA, Random(..),
 
