@@ -36,8 +36,8 @@ import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
                                             elementsSel2_1# )
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.Lifted.Scalar
-
 import Data.Array.Parallel.PArray.PReprInstances
+import Data.Array.Parallel.PArray.PDataInstances
 import Data.Array.Parallel.PArray.ScalarInstances
 
 import qualified Data.Array.Parallel.Unlifted as U

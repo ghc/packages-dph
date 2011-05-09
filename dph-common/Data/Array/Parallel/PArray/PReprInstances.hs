@@ -16,10 +16,10 @@
 --   to the generic representation at a time. 
 --   See "Data.Array.Parallel.PArray.Types" for details.
 --
-module Data.Array.Parallel.PArray.PReprInstances
-where
+module Data.Array.Parallel.PArray.PReprInstances where
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.PArray.PDataInstances
 import Data.Array.Parallel.PArray.Base
 import Data.Array.Parallel.PArray.ScalarInstances
 import Data.Array.Parallel.Lifted.Repr

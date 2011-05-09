@@ -8,6 +8,7 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Repr
 import Data.Array.Parallel.PArray.PReprInstances
+import Data.Array.Parallel.PArray.PDataInstances
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base (fromBool, toBool)
 import GHC.Exts ( Int(..), (-#) )
