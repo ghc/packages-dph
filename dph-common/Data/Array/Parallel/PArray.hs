@@ -1,14 +1,47 @@
--- |Underlying data types and type classes for parallel arrays.
---
---	For motivational material see:
---	   "An Approach to Fast Arrays in Haskell", Chakravarty and Keller, 2003
---
---	For discussion of how the mapping to generic types works see:
---         "Instant Generics: Fast and Easy", Chakravarty, Ditu and Keller, 2009
---
--- TODO: Describe structure of PArrays.
 
-
+-- | Parallel Arrays.
+--
+--   Parallel arrays use a fixed generic representation. All data stored in
+--   them is converted to the generic representation, and we have a small
+--   number of operators that work on arrays of these generic types.
+--
+--   Representation types include Ints, Floats, Tuples and Sums, so arrays of
+--   these types can be stored directly. However, user defined algebraic data
+--   needs to be converted as we don't have operators that work directly on
+--   arrays of these types.
+--
+--   The top-level PArray type is built up from several type families and
+--   clases:
+--
+--     PArray        - This is the top level type. It holds an array length, 
+--                     and array data in the generic representation (PData).
+--
+--     PRepr         - Family of types that can be converted to the generic
+--                     representation. We supply instances for basic types
+--                     like Ints Floats etc, but the vectoriser needs to make
+--                     the instances for user-defined data types itself.
+--      PA class     - Contains methods to convert to and from the generic
+--                     representation (PData).
+-- 
+--     PData         - Family of types that can be stored directly in parallel
+--                     arrays. We supply all the PData instances we need here
+--                     in the library.
+--      PR class     - Contains methods that work directly on parallel arrays.
+--                     Most of these are just wrappers for the corresponding
+--                     U.Array operators.
+--
+--     Scalar class  - Contains methods to convert between the generic 
+--                     representation (PData) and plain U.Arrays.
+--
+--  Note that the PRepr family and PA class are related.
+--     so are the PData family and PR class.
+--
+--  For motivational material see:
+--    "An Approach to Fast Arrays in Haskell", Chakravarty and Keller, 2003
+--
+--  For discussion of how the mapping to generic types works see:
+--    "Instant Generics: Fast and Easy", Chakravarty, Ditu and Keller, 2009
+--
 module Data.Array.Parallel.PArray (
   PArray, PA, Random(..),
 
@@ -16,7 +49,6 @@ module Data.Array.Parallel.PArray (
   zip, unzip, enumFromTo, fromList, toList, nf, 
   fromUArrPA'
 ) where
-
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Combinators
@@ -27,7 +59,7 @@ import Data.Array.Parallel.Base ( showsApp )
 
 import qualified System.Random as R
 
-import Prelude hiding ( length, replicate, zip, unzip, enumFromTo )
+import Prelude          hiding ( length, replicate, zip, unzip, enumFromTo )
 
 length :: PA a => PArray a -> Int
 {-# INLINE length #-}
