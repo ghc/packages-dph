@@ -22,7 +22,6 @@ module Data.Array.Parallel.Prelude.Base.Int (
 ) where
 
 import qualified Data.Array.Parallel as PArr
-
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
@@ -145,7 +144,7 @@ div = P.div
 mod = P.mod
 
 sqrt ::  Int -> Int
-sqrt n = P.floor (P.sqrt (P.fromIntegral n))
+sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 
 sqrtV :: Int :-> Int
 {-# INLINE sqrtV #-}
