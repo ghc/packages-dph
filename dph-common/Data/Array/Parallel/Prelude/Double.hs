@@ -14,6 +14,5 @@ module Data.Array.Parallel.Prelude.Double (
 ) where
 
 import Data.Array.Parallel.Prelude.Base.Double
-import qualified Data.Array.Parallel.Prelude.Base
 import Prelude (Double)
 

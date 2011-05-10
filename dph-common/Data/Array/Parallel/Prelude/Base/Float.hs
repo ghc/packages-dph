@@ -34,14 +34,9 @@ module Data.Array.Parallel.Prelude.Base.Float (
   truncate, round, ceiling, floor,
   truncateV, roundV, ceilingV, floorV
 ) where
-
 import qualified Data.Array.Parallel as PArr
-
-import Data.Array.Parallel.Lifted.Combinators
-import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.PArray
 
 import Prelude (Float, Int, Bool)
 import qualified Prelude as P

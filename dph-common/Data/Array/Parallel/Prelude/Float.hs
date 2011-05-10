@@ -14,6 +14,5 @@ module Data.Array.Parallel.Prelude.Float (
 ) where
 
 import Data.Array.Parallel.Prelude.Base.Float
-import qualified Data.Array.Parallel.Prelude.Base
 import Prelude (Float)
 

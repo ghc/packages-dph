@@ -2,16 +2,10 @@
 module Data.Array.Parallel.Prelude.Base.Bool (
   andP, andPA, orP, orPA, notV, andV, orV
 ) where
-
-import Data.Array.Parallel.Prelude.Base.PArr
-
-import Data.Array.Parallel.Lifted.Combinators
+import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
-import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.PArray
 import qualified Data.Array.Parallel.Unlifted as U
-
 import Data.Bits
 
 
