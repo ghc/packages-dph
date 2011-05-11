@@ -17,8 +17,6 @@
 --       in this module have INLINE_STREAM, and all 'next' functions have
 --       INLINE_INNER? If not we should document the reasons for the special cases.
 --
--- TODO: The behavour of indicesSS looks suspiciously inconsistent.
---
 --
 -- Note: [NEVER ENTERED]
 -- ~~~~~~~~~~~~~~~~~~~~~
@@ -509,8 +507,11 @@ divSize Unknown   _ = Unknown
 --  = [4,5,6,0,1,2,3,4,0,1,2,3,4,5,6]
 -- @
 --
--- TODO: Is that correct? Why does the first segment in the result start from 4, 
---       unlike the others?
+-- Note that we can set the starting value of the first segment independently
+-- via the second argument of indicesSS. We use this when distributing arrays
+-- across worker threads, as a thread's chunk may not start exactly at a 
+-- segment boundary, so the index of a thread's first data element may not be
+-- zero.
 --
 indicesSS 
         :: Int
