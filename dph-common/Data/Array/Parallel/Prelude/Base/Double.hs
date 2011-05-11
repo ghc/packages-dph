@@ -34,7 +34,6 @@ module Data.Array.Parallel.Prelude.Base.Double (
   truncate, round, ceiling, floor,
   truncateV, roundV, ceilingV, floorV
 ) where
-
 import qualified Data.Array.Parallel as PArr
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure

@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP, TemplateHaskell #-}
-{-# OPTIONS -fno-warn-orphans #-}
+{-# OPTIONS -fno-warn-orphans -fno-warn-missing-methods #-}
 
 #include "fusion-phases.h"
 
@@ -23,8 +23,8 @@ import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.Lifted.TH.Repr
 import Data.Array.Parallel.Lifted.Unboxed       (elementsSegd#, elementsSel2_0#, elementsSel2_1#)
-import Data.Array.Parallel.Base.DTrace          (traceFn, traceArg)
-import Data.Array.Parallel.Base                 (intToTag, fromBool)
+import Data.Array.Parallel.Base.DTrace          (traceFn)
+import Data.Array.Parallel.Base                 (intToTag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import Data.List                                (unzip4, unzip5)
 import GHC.Exts                                 (Int(..), Int#)
@@ -275,7 +275,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
           $ U.tagsSel2 sel1 U.+:+ U.tagsSel2 sel2
 
   {-# INLINE packByTagPR #-}
-  packByTagPR (PSum2 sel as bs) n# tags t#
+  packByTagPR (PSum2 sel as bs) _ tags t#
     = PSum2 sel' as' bs'
     where
       my_tags  = U.tagsSel2 sel
@@ -289,7 +289,7 @@ instance (PR a, PR b) => PR (Sum2 a b) where
       bs'      = packByTagPR bs (elementsSel2_1# sel') btags t#
 
   {-# INLINE combine2PR #-}
-  combine2PR n# sel (PSum2 sel1 as1 bs1)
+  combine2PR _ sel (PSum2 sel1 as1 bs1)
                                  (PSum2 sel2 as2 bs2)
     = traceFn "combine2PR" "(Sum2 a b)" $
       PSum2 sel' as bs
@@ -345,7 +345,7 @@ instance PR a => PR (PArray a) where
                             + U.lengthsSegd segd U.!: (I# i# - 1)
 
   {-# INLINE bpermutePR #-}
-  bpermutePR (PNested segd xs) n# is
+  bpermutePR (PNested segd xs) _ is
     = traceFn "bpermutePR" "(PArray a)" $
       PNested segd' (bpermutePR xs (elementsSegd# segd') js)
     where
@@ -396,7 +396,7 @@ instance PR a => PR (PArray a) where
       xsegd' = U.lengthsToSegd ns
 
   {-# INLINE packByTagPR #-}
-  packByTagPR (PNested segd xs) n# tags t#
+  packByTagPR (PNested segd xs) _ tags t#
     = traceFn "packByTagPR" "(PArray a)" $
       PNested segd' xs'
     where
@@ -406,7 +406,7 @@ instance PR a => PR (PArray a) where
       xs'   = packByTagPR xs (elementsSegd# segd') (U.replicate_s segd tags) t#
 
   {-# INLINE combine2PR #-}
-  combine2PR n# sel (PNested xsegd xs) (PNested ysegd ys)
+  combine2PR _ sel (PNested xsegd xs) (PNested ysegd ys)
     = traceFn "combine2PR" "(PArray a)" $
     PNested segd xys
     where

@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-missing-methods #-}
 module Data.Array.Parallel.Lifted.Closure (
   (:->)(..), PArray(..),
   mkClosure, mkClosureP, ($:), ($:^),
@@ -5,8 +6,7 @@ module Data.Array.Parallel.Lifted.Closure (
 
   closure1, closure2, closure3
 ) where
-
-import Data.Array.Parallel.PArray.PReprInstances
+import Data.Array.Parallel.PArray.PReprInstances ()
 import Data.Array.Parallel.PArray.PDataInstances
 import Data.Array.Parallel.Lifted.PArray
 
@@ -115,8 +115,8 @@ instance (PA a, PA b) => PA (a :-> b) where
 
 instance PR (a :-> b) where
   {-# INLINE emptyPR #-}
-  emptyPR = AClo (\e  a  -> error "empty array closure")
-                 (\es as -> error "empty array closure")
+  emptyPR = AClo (\_ _  -> error "empty array closure")
+                 (\_ _  -> error "empty array closure")
                  (emptyPD :: PData ())
 
   {-# INLINE replicatePR #-}

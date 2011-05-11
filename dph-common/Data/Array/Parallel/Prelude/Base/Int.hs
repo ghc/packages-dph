@@ -20,7 +20,6 @@ module Data.Array.Parallel.Prelude.Base.Int (
 
   enumFromToPA, enumFromToP
 ) where
-
 import qualified Data.Array.Parallel as PArr
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Scalar

@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE CPP #-}
 
 #include "fusion-phases.h"
@@ -5,13 +6,11 @@
 module Data.Array.Parallel.Lifted.Scalar
 where
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.PArray.PDataInstances
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Array.Parallel.Base (fromBool, toBool)
-import GHC.Exts ( Int(..), (-#) )
-import GHC.Word ( Word8 )
+import GHC.Exts (Int(..))
 
 
 -- Pretend Bools are scalars --------------------------------------------------

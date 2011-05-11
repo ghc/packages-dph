@@ -1,10 +1,9 @@
 module Data.Array.Parallel.Prelude.Base.Tuple (
   tup2, tup3
 ) where
-
-import Data.Array.Parallel.PArray.PDataInstances
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.PArray
+import Data.Array.Parallel.PArray.PDataInstances
 
 tup2 :: (PA a, PA b) => a :-> b :-> (a,b)
 {-# INLINE tup2 #-}

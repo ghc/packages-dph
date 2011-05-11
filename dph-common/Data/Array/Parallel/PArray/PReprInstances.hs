@@ -21,7 +21,7 @@ import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PDataInstances
 import Data.Array.Parallel.PArray.Base
-import Data.Array.Parallel.PArray.ScalarInstances
+import Data.Array.Parallel.PArray.ScalarInstances ()
 import Data.Array.Parallel.PArray.Types
 import qualified Data.Array.Parallel.Unlifted as U
 import GHC.Word    ( Word8 )

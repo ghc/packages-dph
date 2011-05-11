@@ -52,6 +52,12 @@ module Data.Array.Parallel.PArray (
   singleton,
   (!:),
   zip, unzip,
+  pack,
+  concat, (+:+),
+  indexed,
+  slice,
+  update,
+  bpermute,
   enumFromTo,
   
   -- * Conversion
@@ -64,16 +70,16 @@ module Data.Array.Parallel.PArray (
 ) 
 where
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.PArray.PReprInstances
+import Data.Array.Parallel.PArray.PReprInstances        ()
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Scalar
-import qualified Data.Array.Parallel.Unlifted as U
+import qualified Data.Array.Parallel.Unlifted           as U
 
 import Data.Array.Parallel.Base ( showsApp )
 
 import qualified System.Random as R
 
-import Prelude          hiding ( length, replicate, zip, unzip, enumFromTo )
+import Prelude          hiding ( length, replicate, zip, unzip, enumFromTo, concat )
 
 -- NOTE: 
 -- Most of these functions just export the corresponding "vectorised" 

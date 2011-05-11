@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-orphans #-}
 -- | Defines the class of scalar element types, as well as the 
 --   PData instances for these types.
 --

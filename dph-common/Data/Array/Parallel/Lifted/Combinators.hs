@@ -32,20 +32,18 @@ module Data.Array.Parallel.Lifted.Combinators (
   packPA_v,   concatPA_v,    indexedPA_v,   updatePA_v, bpermutePA_v,
   slicePA_v,  indexPA_v,     appPA_v,       enumFromToPA_v
 ) where
-
 import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd#, elementsSel2_0#,
-                                            elementsSel2_1# )
+import Data.Array.Parallel.Lifted.Unboxed
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.PArray.PDataInstances
 import Data.Array.Parallel.PArray.ScalarInstances
 
-import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Base ( Tag, fromBool )
+import qualified Data.Array.Parallel.Unlifted   as U
+import Data.Array.Parallel.Base                 (Tag)
 
-import GHC.Exts (Int(..), (+#), (-#), Int#, (<#))
+import GHC.Exts                                 (Int(..), (+#))
 
 
 -- length ---------------------------------------------------------------------
@@ -198,7 +196,7 @@ unzipPA = closure1 unzipPA_v unzipPA_l
 
 unzipPA_v:: (PA a, PA b) => PArray (a,b) -> (PArray a, PArray b)
 {-# INLINE_PA unzipPA_v #-}
-unzipPA_v abs = unzipPA# abs
+unzipPA_v abs' = unzipPA# abs'
 
 unzipPA_l:: (PA a, PA b) => PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 {-# INLINE_PA unzipPA_l #-}
@@ -362,7 +360,7 @@ distance m n = max 0 (n - m + 1)
 
 enumFromToPA_l :: PArray Int -> PArray Int -> PArray (PArray Int)
 {-# INLINE_PA enumFromToPA_l #-}
-enumFromToPA_l (PArray m# ms) (PArray n# ns)
+enumFromToPA_l (PArray m# ms) (PArray _ ns)
   = PArray m#
   $ PNested segd
   $ toScalarPData
@@ -440,7 +438,7 @@ updatePA_v xs (PArray n# (P_2 is ys))
 updatePA_l
   :: PA a => PArray (PArray a) -> PArray (PArray (Int,a)) -> PArray (PArray a)
 {-# INLINE_PA updatePA_l #-}
-updatePA_l (PArray m# xss) (PArray n# pss)
+updatePA_l (PArray m# xss) (PArray _ pss)
   = PArray m#
   $ case xss of { PNested segd  xs ->
     case pss of { PNested segd' (P_2 is ys) ->

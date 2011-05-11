@@ -2,7 +2,7 @@
 --   and the operators we can apply to it.
 --
 module Data.Array.Parallel.PArray.PData (
-  PData(..),
+  PData,
   PR(..),
 
   -- These types have corresponding members in the PR class.
