@@ -19,6 +19,15 @@
 --
 -- TODO: The behavour of indicesSS looks suspiciously inconsistent.
 --
+--
+-- Note: [NEVER ENTERED]
+-- ~~~~~~~~~~~~~~~~~~~~~
+--  Cases marked NEVER ENTERED should be unreachable, assuming there are no 
+--  bugs elsewhere in the library. We used to throw an error when these
+--  branches were entered, but this was confusing the simplifier. It would be 
+--  better if we could put the errors back, but we'll need to check that 
+--  performance does not regress when we do so.
+--
 
 #include "fusion-phases.h"
 
@@ -82,7 +91,7 @@ replicateEachS n (Stream next s _) =
           Done           -> return Done
           Skip s'        -> return $ Skip (0, Nothing, s')
           Yield (k,x) s' -> return $ Skip (k, Just x,s')
-    next' (k,Nothing,s) = return Done   -- FIXME: unreachable
+    next' (k,Nothing,s) = return Done   -- NEVER ENTERED (See Note)
     next' (k,Just x,s)  = return $ Yield x (k-1,Just x,s)
 
 
@@ -105,7 +114,7 @@ replicateEachRS !n (Stream next s sz)
           Done       -> return Done
           Skip    s' -> return $ Skip (0,Nothing,s')
           Yield x s' -> return $ Skip (n,Just x,s')
-    next' (i,Nothing,s) = return Done -- FIXME: unreachable
+    next' (i,Nothing,s) = return Done -- NEVER ENTERED (See Note)
     next' (i,Just x,s) = return $ Yield x (i-1,Just x,s)
 
 
@@ -145,8 +154,7 @@ interleaveS (Stream next1 s1 n1) (Stream next2 s2 n2)
         case r of
           Yield x s2' -> return $ Yield x (False,s1,s2')
           Skip    s2' -> return $ Skip    (True ,s1,s2')
-          -- FIXME: error
-          Done        -> return Done
+          Done        -> return Done -- NEVER ENTERED (See Note)
 
 
 -- | Combine two streams, using a tag stream to tell us which of the data
@@ -283,10 +291,7 @@ foldSS f z (Stream nexts ss sz) (Stream nextv vs _) =
       do
         r <- nextv vs
         case r of
-          Done        -> return Done
-                       -- FIXME
-                       -- error
-                       --  "Stream.Segmented.foldSS: invalid segment descriptor"
+          Done        -> return Done -- NEVER ENTERED (See Note)
           Skip    vs' -> return $ Skip (Just n,x,ss,vs')
           Yield y vs' -> let r = f x y
                          in r `seq` return (Skip (Just (n-1), r, ss, vs'))
@@ -312,7 +317,7 @@ fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
       do
         r <- nextv vs
         case r of
-          Done        -> return Done -- FIXME: error
+          Done        -> return Done -- NEVER ENTERED (See Note)
           Skip    vs' -> return $ Skip (Just n,    Nothing,ss,vs')
           Yield x vs' -> return $ Skip (Just (n-1),Just x, ss,vs')
 
@@ -323,7 +328,7 @@ fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
       do
         r <- nextv vs
         case r of
-          Done        -> return Done  -- FIXME: error
+          Done        -> return Done  -- NEVER ENTERED (See Note)
           Skip    vs' -> return $ Skip (Just n    ,Just x      ,ss,vs')
           Yield y vs' -> let r = f x y
                          in r `seq` return (Skip (Just (n-1),Just r,ss,vs'))
@@ -438,7 +443,7 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
       do
         r <- nextv1 sv1
         case r of
-          Done         -> return Done  -- FIXME: error
+          Done         -> return Done  -- NEVER ENTERED (See Note)
           Skip    sv1' -> return $ Skip (True,Just n,ss1,sv1',ss2,sv2)
           Yield x sv1' -> return $ Yield x (True,Just (n-1),ss1,sv1',ss2,sv2)
 
@@ -446,7 +451,7 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
       do
         r <- nexts2 ss2
         case r of
-          Done         -> return Done  -- FIXME: error
+          Done         -> return Done  -- NEVER ENTERED (See Note)
           Skip    ss2' -> return $ Skip (False,Nothing,ss1,sv1,ss2',sv2)
           Yield n ss2' -> return $ Skip (False,Just n,ss1,sv1,ss2',sv2)
 
@@ -457,7 +462,7 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
       do
         r <- nextv2 sv2
         case r of
-          Done         -> return Done  -- FIXME: error
+          Done         -> return Done  -- NEVER ENTERED (See Note)
           Skip    sv2' -> return $ Skip (False,Just n,ss1,sv1,ss2,sv2')
           Yield x sv2' -> return $ Yield x (False,Just (n-1),ss1,sv1,ss2,sv2')
 
