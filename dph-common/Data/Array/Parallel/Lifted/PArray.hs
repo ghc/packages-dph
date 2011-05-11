@@ -23,16 +23,10 @@ module Data.Array.Parallel.Lifted.PArray (
   packByTagPRScalar, combine2PRScalar, updatePRScalar, fromListPRScalar,
   nfPRScalar,
 ) where
-
-import qualified Data.Array.Parallel.Unlifted as U
-import Data.Array.Parallel.Lifted.Unboxed ( elementsSegd# )
-import Data.Array.Parallel.Base           ( Tag, intToTag, traceF )
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.Base
-import GHC.Exts (Int#, Int(..), (+#), (*#))
-import SpecConstr
 
 
 

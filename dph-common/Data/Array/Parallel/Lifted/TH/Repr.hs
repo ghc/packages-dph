@@ -4,37 +4,50 @@ module Data.Array.Parallel.Lifted.TH.Repr (
   voidPRInstance, unitPRInstance, wrapPRInstance
 ) where
 
-import qualified Data.Array.Parallel.Unlifted as U
+import qualified Data.Array.Parallel.Unlifted   as U
 import Data.Array.Parallel.Lifted.PArray
-import Data.Array.Parallel.Base.DTrace ( traceFn )
+import Data.Array.Parallel.Base.DTrace          (traceFn)
 
 import Language.Haskell.TH
-import Data.List (transpose, intercalate)
+import Data.List                                (intercalate)
 
 tyBndrVar :: TyVarBndr -> Name
 tyBndrVar (PlainTV  n)   = n
 tyBndrVar (KindedTV n _) = n
 
+mkAppTs :: Type -> [Type] -> Type
 mkAppTs = foldl AppT
 
+varTs :: [Name] -> [TypeQ]
 varTs = map varT
+
+appTs :: TypeQ -> [TypeQ] -> TypeQ
 appTs = foldl appT
 
+varEs :: [Name] -> [ExpQ]
 varEs = map varE
+
+appEs :: ExpQ -> [ExpQ] -> ExpQ
 appEs = foldl appE
 
-patLetE pat exp body = letE [valD pat (normalB exp) []] body
-normalMatch pat exp = match pat (normalB exp) []
+normalMatch :: PatQ -> ExpQ -> MatchQ
+normalMatch pat xx = match pat (normalB xx) []
 
+varPs :: [Name] -> [PatQ]
 varPs = map varP
 
+vanillaC :: Name -> [TypeQ] -> ConQ
 vanillaC con tys = normalC con (map (strictType notStrict) tys)
 
-simpleFunD name pats exp
-  = funD name [clause pats (normalB exp) []]
+
+simpleFunD :: Name -> [PatQ] -> ExpQ -> DecQ
+simpleFunD name pats xx
+  = funD name [clause pats (normalB xx) []]
+
 
 inlineD :: Name -> DecQ
 inlineD name = pragInlD name (inlineSpecNoPhase True False)
+
 
 instance_PData :: TypeQ -> [Name] -> Name -> [TypeQ] -> DecQ
 instance_PData tycon tyargs con tys
@@ -42,21 +55,24 @@ instance_PData tycon tyargs con tys
                                [vanillaC con tys]
                                []
 
+
 newtype_instance_PData :: Name -> [Name] -> Name -> TypeQ -> DecQ
 newtype_instance_PData tycon tyargs con ty
   = newtypeInstD (cxt []) ''PData [conT tycon `appTs` varTs tyargs]
                                   (vanillaC con [ty])
                                   []
 
+
 splitConAppTy :: Type -> Maybe (Type, [Type])
 splitConAppTy ty = collect ty []
   where
     collect (ConT tycon)  args = Just (ConT tycon, args)
     collect (TupleT n)    args = Just (TupleT n,   args)
-    collect ListT         args = Just (ListT,   args)
+    collect ListT         args = Just (ListT,      args)
     collect ArrowT        args = Just (ArrowT,     args)
-    collect (AppT ty arg) args = collect ty (arg:args)
+    collect (AppT t arg)  args = collect t (arg:args)
     collect _ _ = Nothing
+
 
 normaliseTy :: Type -> Q Type
 normaliseTy ty
@@ -65,19 +81,23 @@ normaliseTy ty
         -> do
              info <- reify tycon
              case info of
-               TyConI (TySynD _ bndrs ty)
-                 -> return $ substTy (zip (map tyBndrVar bndrs) args) ty
+               TyConI (TySynD _ bndrs t)
+                 -> return $ substTy (zip (map tyBndrVar bndrs) args) t
                _ -> return ty
       _ -> return ty
 
+
 substTy :: [(Name, Type)] -> Type -> Type
-substTy env (ForallT _ _ _) = error "DPH gen: can't substitute in forall ty"
-substTy env (VarT v)   = case lookup v env of
-                           Just ty -> ty
-                           Nothing -> VarT v
-substTy env (AppT t u) = AppT (substTy env t) (substTy env u)
-substTy env (SigT t k) = SigT (substTy env t) k
-substTy env t          = t
+substTy _ (ForallT _ _ _) 
+        = error "DPH gen: can't substitute in forall ty"
+
+substTy env (VarT v)    = case lookup v env of
+                             Just ty -> ty
+                             Nothing -> VarT v
+substTy env (AppT t u)  = AppT (substTy env t) (substTy env u)
+substTy env (SigT t k)  = SigT (substTy env t) k
+substTy _   t           = t
+
 
 splitFunTy :: Type -> ([Type], Type)
 splitFunTy ty = case splitConAppTy ty of
@@ -108,20 +128,29 @@ genPR_methods mk_method
                        mk_method name (zip args gs) res
           Nothing -> error $ "DPH gen: no name generator for " ++ show name
 
+
 methodVals :: Type -> Q ([Val], Val)
-methodVals (ForallT (PlainTV v : _) _ ty)
+methodVals (ForallT (PlainTV vv : _) _ ty)
   = do
-      ty' <- normaliseTy ty
-      let (args, res) = splitFunTy ty'
-      return (map (val v) args, val v res)
+      ty'               <- normaliseTy ty
+      let (args, res)   = splitFunTy ty'
+
+      return (map (val vv) args, val vv res)
   where
-    val v (VarT n) | v == n = ScalarVal
-    val v (AppT (ConT c) (VarT n)) | c == ''PData && v == n = PDataVal
-                                   | c == ''[]    && v == n = ListVal
-    val v (AppT ListT (VarT n)) | v==n = ListVal
-    val v (ConT c) | c == ''()         = UnitVal
-    val v (TupleT 0)                   = UnitVal
-    val _ t = OtherVal
+    val v (VarT n) | v == n             = ScalarVal
+
+    val v (AppT (ConT c) (VarT n)) 
+        | c == ''PData && v == n        = PDataVal
+        | c == ''[]    && v == n        = ListVal
+
+    val v (AppT ListT (VarT n)) | v==n  = ListVal
+    val _ (ConT c) | c == ''()          = UnitVal
+    val _ (TupleT 0)                    = UnitVal
+    val _ _                             = OtherVal
+
+methodVals tt
+        = error $ "DPH gen: methodVals: no match for " ++ show tt
+
 
 data Split = PatSplit  PatQ
            | CaseSplit PatQ ExpQ PatQ
@@ -148,32 +177,35 @@ recursiveMethod gen name avs res
      $ map expand args)
     splits
   where
-    (splits, args) = unzip (map split_arg avs)
+    (splits, args)      = unzip (map split_arg avs)
 
     pat (PatSplit  p)     = p
     pat (CaseSplit p _ _) = p
 
-    split_arg (OtherVal,  g) = let v = mkName (g "")
-                               in
-                               (PatSplit (varP v), OtherArg (varE v))
-    split_arg arg = split gen arg
+    split_arg (OtherVal,  g) 
+     = let v = mkName (g "")
+       in  (PatSplit (varP v), OtherArg (varE v))
 
-    mk_case (PatSplit  _)           exp = exp
-    mk_case (CaseSplit _ scrut pat) exp = caseE scrut [normalMatch pat exp]
+    split_arg arg       = split gen arg
+
+    mk_case (PatSplit  _) xx            = xx
+    mk_case (CaseSplit _ scrut pat') xx = caseE scrut [normalMatch pat' xx]
 
     expand (RecArg _ es) = es
     expand (OtherArg  e) = repeat e
 
-    trans [] = []
-    trans [xs] = [[x] | x <- xs]
-    trans (xs : yss) = zipWith (:) xs (trans yss)
+    trans []            = []
+    trans [xs]          = [[x] | x <- xs]
+    trans (xs : yss)    = zipWith (:) xs (trans yss)
 
-    recurse 0 _ = []
-    recurse n [] = replicate n (varE rec_name)
-    recurse n args = [varE rec_name `appEs` es| es <- take n args]
+    recurse 0 _         = []
+    recurse n []        = replicate n (varE rec_name)
+    recurse n args'     = [varE rec_name `appEs` es | es <- take n args']
 
     rec_name = recursiveName gen name
 
+
+nameGens :: [(Name, [[Char] -> [Char]])]
 nameGens =
   [
     ('emptyPR,          [])
@@ -238,7 +270,7 @@ instance_PR_scalar ty
                          methods
 
 scalarMethod :: Name -> Name -> [ArgVal] -> Val -> DecQ
-scalarMethod ty meth avs res
+scalarMethod _ meth _ _
   = simpleFunD (mkName $ nameBase meth) []
   $ varE
   $ mkName (nameBase meth ++ "Scalar")
@@ -285,10 +317,11 @@ voidMethod void pvoid meth avs res
   = simpleFunD (mkName $ nameBase meth) (map (const wildP) avs)
   $ result res
   where
-    result ScalarVal = varE void
-    result PDataVal  = varE pvoid
-    result UnitVal   = conE '()
-
+    result ScalarVal    = varE void
+    result PDataVal     = varE pvoid
+    result UnitVal      = conE '()
+    result _            = error "DPH gen: voidMethod: no match"
+    
 -- --
 -- ()
 -- --
@@ -306,22 +339,25 @@ unitMethod punit meth avs res
   = simpleFunD (mkName $ nameBase meth) pats
   $ foldr seq_val (result res) es
   where
-    (pats, es) = unzip [pat v g | (v,g) <- avs]
+    (pats, es)          = unzip [mkpat v g | (v,g) <- avs]
 
-    pat ScalarVal _ = (conP '() [], Nothing)
-    pat PDataVal  _ = (conP punit [], Nothing)
-    pat ListVal   g = let xs = mkName (g "xs")
-                      in
-                      (varP xs, Just $
-                        \e -> varE 'foldr `appEs` [varE 'seq, e, varE xs])
-    pat OtherVal  _ = (wildP, Nothing)
+    mkpat ScalarVal _   = (conP '() [], Nothing)
+    mkpat PDataVal  _   = (conP punit [], Nothing)
 
-    result ScalarVal = conE '()
-    result PDataVal  = conE punit
-    result UnitVal   = conE '()
+    mkpat ListVal   g 
+     = let xs = mkName (g "xs")
+       in  (varP xs, Just $ \e -> varE 'foldr `appEs` [varE 'seq, e, varE xs])
 
-    seq_val Nothing  e = e
-    seq_val (Just f) e = f e
+    mkpat OtherVal  _   = (wildP, Nothing)
+    mkpat _ _           = error "DPH gen: unitMethod/mkpat: no match"
+
+    result ScalarVal    = conE '()
+    result PDataVal     = conE punit
+    result UnitVal      = conE '()
+    result _            = error "DPH gen: unitMethod/result: no match"
+
+    seq_val Nothing  e  = e
+    seq_val (Just f) e  = f e
 
 -- ----
 -- Wrap
@@ -338,36 +374,42 @@ wrapPRInstance ty wrap unwrap pwrap
     a = VarT (mkName "a")
 
 wrapGen :: Name -> Name -> Name -> Gen
-wrapGen wrap unwrap pwrap = Gen { recursiveCalls = 1
-                                , recursiveName  = recursiveName
-                                , split          = split
-                                , join           = join
-                                , typeName       = "Wrap a"
-                                }
+wrapGen wrap unwrap pwrap 
+ = Gen  { recursiveCalls = 1
+        , recursiveName  = recursiveName'
+        , split          = split'
+        , join           = join'
+        , typeName       = "Wrap a"
+        }
   where
-    recursiveName = mkName . replace . nameBase
+    recursiveName' = mkName . replace . nameBase
       where
         replace s = init s ++ "D"
 
-    split (ScalarVal, gen)
+    split' (ScalarVal, gen)
       = (PatSplit (conP wrap [varP x]), RecArg [] [varE x])
       where
         x = mkName (gen "x")
 
-    split (PDataVal, gen)
+    split' (PDataVal, gen)
       = (PatSplit (conP pwrap [varP xs]), RecArg [] [varE xs])
       where
         xs = mkName (gen "xs")
 
-    split (ListVal, gen)
+    split' (ListVal, gen)
       = (PatSplit (varP xs),
          RecArg [] [varE 'map `appEs` [varE unwrap, varE xs]])
       where
         xs = mkName (gen "xs")
 
-    join ScalarVal [x]  = conE wrap `appE` x
-    join PDataVal  [xs] = conE pwrap `appE` xs
-    join UnitVal   [x]  = x
+    split' _             = error "DPH gen: split': no match"
+
+
+    join' ScalarVal [x]  = conE wrap `appE` x
+    join' PDataVal  [xs] = conE pwrap `appE` xs
+    join' UnitVal   [x]  = x
+    join' _         _    = error "DPH gen: wrapGen: no match"
+
 
 -- ------
 -- Tuples
@@ -404,39 +446,43 @@ instance_PR_tup arity
 tupGen :: Int -> Gen
 tupGen arity = Gen { recursiveCalls = arity
                    , recursiveName  = id
-                   , split          = split
-                   , join           = join
+                   , split          = split'
+                   , join           = join'
                    , typeName       = tyname
                    }
   where
-    split (ScalarVal, gen)
+    split' (ScalarVal, gen)
       = (PatSplit (tupP $ varPs names), RecArg [] (varEs names))
       where
         names = map (mkName . gen) vs
 
-    split (PDataVal, gen)
+    split' (PDataVal, gen)
       = (PatSplit (conP (pdataTupCon arity) $ varPs names),
          RecArg [] (varEs names))
       where
         names = map (mkName . gen) pvs
 
-    split (ListVal, gen)
-      = (CaseSplit (varP xs) (varE unzip `appE` varE xs)
+    split' (ListVal, gen)
+      = (CaseSplit (varP xs) (varE mkunzip `appE` varE xs)
                              (tupP $ varPs names),
          RecArg [] (varEs names))
       where
         xs = mkName (gen "xs")
         names = map (mkName . gen) pvs
 
-        unzip | arity == 2 = mkName "unzip"
-              | otherwise  = mkName ("unzip" ++ show arity)
+        mkunzip | arity == 2 = mkName "unzip"
+                | otherwise  = mkName ("unzip" ++ show arity)
+              
+    split' _            = error "DPH Gen: tupGen/split: no match"
 
-    join ScalarVal xs = tupE xs
-    join PDataVal  xs = conE (pdataTupCon arity) `appEs` xs
-    join UnitVal   xs = foldl1 (\x y -> varE 'seq `appEs` [x,y]) xs
 
-    vs  = take arity [[c] | c <- ['a' ..]]
-    pvs = take arity [c : "s" | c <- ['a' ..]]
+    join' ScalarVal xs  = tupE xs
+    join' PDataVal  xs  = conE (pdataTupCon arity) `appEs` xs
+    join' UnitVal   xs  = foldl1 (\x y -> varE 'seq `appEs` [x,y]) xs
+    join' _         _   = error "DPH Gen: tupGen/join: no match"
 
-    tyname = "(" ++ intercalate "," vs ++ ")"
+    vs          = take arity [[c] | c <- ['a' ..]]
+    pvs         = take arity [c : "s" | c <- ['a' ..]]
+
+    tyname      = "(" ++ intercalate "," vs ++ ")"
 
