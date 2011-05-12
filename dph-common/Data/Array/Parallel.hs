@@ -53,11 +53,31 @@ module Data.Array.Parallel (
 import Prelude hiding (undefined)
 import GHC.PArr     -- only has the definition of [::] left
 
--- fake dependency to satisfy built-in iface loading in the vectoriser
-import Data.Array.Parallel.Prelude.Base.Tuple ()
-
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
+
+
+-------------------------------------------------------------------------------
+-- FAKE DEPENDENCIES
+--  These imports are an atrocious hack to get around a race in the GHC build
+--  system. The race happens when we try to build Haddock docs for the dph-par
+--  and dph-seq packages. As these are really aliases for dph-common, all the
+--  dph-common modules need to be loaded, otherwise desugaring fails.
+--
+--  Adding these dependencies fixes the problem, as they ensure that the required
+--  dph-common modules are loaded before we try to vectorise THIS MODULE. If you 
+--  take them out, then mae sure GHC still validates with >= 2 threads. Without
+--  the dependencies it'll still work for 1 thread, but die with more than that.
+-- 
+--  Note that following modules are exactly the ones that don't import THIS MODULE
+--  by themselves. 
+-- 
+import Data.Array.Parallel.Prelude.Base.Bool    ()
+import Data.Array.Parallel.Prelude.Base.Tuple   ()
+--
+--  ... the horror, the horror ...
+-------------------------------------------------------------------------------
+
 
 infixl 9 !:
 infixr 5 +:+
