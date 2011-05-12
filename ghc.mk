@@ -70,9 +70,11 @@ endif
 # The following two modules directly import Data.Array.Parallel.Unlifted, so the prim
 # library needs to be built first. 
 #
-libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): $$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): \
+	$$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
 
-libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/PArray/PData.$${$1_osuf} : $$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/PArray/PData.$${$1_osuf} : \
+	$$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
 endef
 
 
@@ -80,4 +82,20 @@ ifneq "$(CLEANING)" "YES"
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),seq)))
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),par)))
 endif
+
+
+# HACKS ***************
+# These rules are to avoid a build race when validating with >= 2 threads.
+# I don't understand what $${$1_osuf} thing we need on the left of these.
+# This whole build setup is very hard to understand. -- BL 2011/05/12. 
+#
+libraries/dph/dph-seq/dist-install/build/Data/Array/Parallel/PArray/PData.o: \
+        $$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
+        $$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
+
+libraries/dph/dph-par/dist-install/build/Data/Array/Parallel/PArray/PData.o: \
+        $$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
+        $$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
+
+
 
