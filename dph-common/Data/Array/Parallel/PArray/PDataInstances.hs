@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, TemplateHaskell #-}
+{-# LANGUAGE CPP, TemplateHaskell, EmptyDataDecls #-}
 {-# OPTIONS -fno-warn-orphans -fno-warn-missing-methods #-}
 
 #include "fusion-phases.h"
