@@ -87,12 +87,18 @@ zipWithUP f xs ys
 
 
 -- | Undirected fold.
-foldUP :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
+foldUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> a
 {-# INLINE foldUP #-}
-foldUP f !z xs
-        = foldD theGang f
-                (mapD   theGang (Seq.fold f z)
-                (splitD theGang unbalanced xs))
+foldUP f !z arr
+        = (maybe z (f z)
+        . foldD  theGang combine
+        . mapD   theGang (Seq.fold1Maybe f)
+        . splitD theGang unbalanced) arr
+        where
+                combine (Just x) (Just y) = Just (f x y)
+                combine (Just x) Nothing  = Just x
+                combine Nothing  (Just y) = Just y
+                combine Nothing  Nothing  = Nothing
 
 
 -- | Array reduction proceeding from the left (requires associative combination)
