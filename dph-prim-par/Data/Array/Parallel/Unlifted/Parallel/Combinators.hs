@@ -92,14 +92,9 @@ foldUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> a
 {-# INLINE foldUP #-}
 foldUP f !z arr
         = (maybe z (f z)
-        . foldD  theGang combine
+        . foldD  theGang (maybeApp f)
         . mapD   theGang (Seq.fold1Maybe f)
         . splitD theGang unbalanced) arr
-        where
-                combine (Just x) (Just y) = Just (f x y)
-                combine (Just x) Nothing  = Just x
-                combine Nothing  (Just y) = Just y
-                combine Nothing  Nothing  = Nothing
 
 
 -- | Array reduction proceeding from the left (requires associative combination)
@@ -121,20 +116,12 @@ foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_U foldl1UP #-}
 foldl1UP f arr
         = (fromJust
-        . foldD  theGang combine
+        . foldD  theGang (maybeApp f)
         . mapD   theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
-        where
-                combine (Just x) (Just y) = Just (f x y)
-                combine (Just x) Nothing  = Just x
-                combine Nothing  (Just y) = Just y
-                combine Nothing  Nothing  = Nothing
 
 
 -- | Prefix scan. Similar to fold, but produce an array of the intermediate states.
---
---   TODO: Fails with EU > length xs
---
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 {-# INLINE_UP scanUP #-}
 scanUP f z arr
@@ -142,7 +129,19 @@ scanUP f z arr
      | otherwise    = splitJoinD theGang go arr
      where
        {-# INLINE go #-}
-       go xs = let zs  = mapD theGang (Seq.fold1 f) xs
-                   zs' = fst (scanD theGang f z zs)
-               in  zipWithD theGang (Seq.scan f) zs' xs
+       go xs = let zs  = mapD theGang (Seq.fold1Maybe f) xs           -- compute fold1 of every array chunk
+                   zs' = fst (scanD theGang (maybeApp f) (Just z) zs) -- compute initial value for every chunk
+               in  zipWithD theGang scanMaybe zs' xs                  -- scan using precomputed initial values
+       scanMaybe (Just z) xs = Seq.scan f z xs
+       scanMaybe Nothing  _  = empty                                  -- no chunk for this gang thread
+       
+       
+-- | Internal helper function to facilitate applying scans and folds over 
+-- | gang threads that potentially have no local value 
+maybeApp :: (a -> a -> a) -> Maybe a -> Maybe a -> Maybe a
+{-# INLINE maybeApp #-}
+maybeApp f (Just x) (Just y) = Just (f x y)
+maybeApp _ (Just x) Nothing  = Just x
+maybeApp _ Nothing  (Just y) = Just y
+maybeApp _ Nothing  Nothing  = Nothing
 
