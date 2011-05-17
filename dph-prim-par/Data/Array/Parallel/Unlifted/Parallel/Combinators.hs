@@ -24,6 +24,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
+import Data.Maybe (fromJust)
 import Debug.Trace (trace)
 
 -- | Apply a worker to all elements of a vector.
@@ -110,9 +111,6 @@ foldlUP f z arr
 
 
 -- | Reduction of a non-empty array which requires an associative combination function.
---
---   TODO: What is the difference between this and foldUP above?
---         The two type class constraints are in a different order. Does that matter?
 fold1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE fold1UP #-}
 fold1UP = foldl1UP
@@ -122,12 +120,11 @@ fold1UP = foldl1UP
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_U foldl1UP #-}
 foldl1UP f arr
-        = (maybe z (f z)
+        = (fromJust
         . foldD  theGang combine
         . mapD   theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
         where
-                z = arr ! 0
                 combine (Just x) (Just y) = Just (f x y)
                 combine (Just x) Nothing  = Just x
                 combine Nothing  (Just y) = Just y

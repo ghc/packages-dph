@@ -157,7 +157,7 @@ fold f x arr
         
 fold1 f arr
         =  tracePrim (TraceFold1 (Seq.length arr))
-        $! Seq.fold1 f arr
+        $! fold1UP f arr
 
 
 and arr =  tracePrim (TraceAnd (Seq.length arr))
