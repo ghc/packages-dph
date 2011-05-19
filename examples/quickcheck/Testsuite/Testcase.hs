@@ -3,7 +3,7 @@ module Testsuite.Testcase (
 ) where
 
 import Test.QuickCheck
-import Test.QuickCheck.Batch (TestResult(..), run, defOpt)
+--import Test.QuickCheck.Batch (TestResult(..), run, defOpt)
 
 import Text.Regex
 
@@ -30,21 +30,20 @@ runTests tests =
       do
         putStr $ name ++ spaces (60 - length name) ++ "... "
         hFlush stdout
-        res <- run prop defOpt
+        res <- quickCheckWithResult customArgs prop
         case res of
-          TestOk       _ n _ -> putStrLn $ "pass (" ++ show n ++ ")"
-          TestExausted _ n _ -> putStrLn $ "EXHAUSTED (" ++ show n ++ ")"
-          TestFailed   s n   ->
-            do
-              putStrLn $ "FAIL (" ++ show n ++ ")"
-              mapM_ putStrLn $ map ("    " ++) s
-          TestAborted   e     ->
-            do
-              putStrLn $ "ABORTED"
-              putStrLn $ "    " ++ show e
+          Success n _ _ -> putStrLn $ "pass (" ++ show n ++ ")"
+          GaveUp  n _ _ -> putStrLn $ "EXHAUSTED (" ++ show n ++ ")"
+          Failure n _ _ _ _ _ s -> do
+                          putStrLn $ "FAILED (" ++ show n ++ ")"
+                          putStrLn $ indent s
+          NoExpectedFailure
+                  n _ _ -> putStrLn $ "NO EXPECTED FAILURE (" ++ show n ++ ")"
         hFlush stdout
     spaces n | n <= 0    = ""
              | otherwise = replicate n ' '
+    customArgs = stdArgs { chatty = False } -- do not print to stdout
+    indent = unlines . map (spaces 4 ++) . lines 
 
 pick :: [String] -> [Test] -> [Test]
 pick [] = id

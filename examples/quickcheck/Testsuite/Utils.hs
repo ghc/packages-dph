@@ -5,7 +5,7 @@ module Testsuite.Utils (
 ) where
 
 import Test.QuickCheck
-import Test.QuickCheck.Batch
+--import Test.QuickCheck.Batch
 
 import Text.Show.Functions
 
@@ -29,9 +29,11 @@ newtype BPerm = BPerm (Array Int) deriving (Eq,Show)
 -- array of index-value pairs with indices taken from [0..n-1]
 newtype DftPerm a = DftPerm (Array (Int, a)) deriving (Eq, Show)
 
+{-
 instance Arbitrary Char where
   arbitrary   = fmap chr . sized $ \n -> choose (0,n)
   coarbitrary = coarbitrary . ord
+-}
 
 {-
 instance (Arbitrary a, Arbitrary b) => Arbitrary (a :*: b) where
@@ -41,22 +43,18 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (a :*: b) where
 
 instance Arbitrary Len where
   arbitrary = sized $ \n -> Len `fmap` choose (0,n)
-  coarbitrary (Len n) = coarbitrary n
 
 instance Arbitrary Perm where
   arbitrary   = Perm `fmap` (sized $ \n -> elements $ P.map fromList (permutations [0..n-1]))
-  coarbitrary = \(Perm arr) -> coarbitrary (toList arr)
 
 instance Arbitrary BPerm where
   arbitrary   = sized $ \n -> (BPerm . fromList . P.map (`mod` n)) `fmap` enlarge n arbitrary
-  coarbitrary = \(BPerm arr) -> coarbitrary (toList arr)
   
 instance (Elt a, Arbitrary a) => Arbitrary (DftPerm a) where
   arbitrary   = do
                   BPerm idxs <- arbitrary                        -- :: Gen BPerm
                   vals       <- sized $ \n -> enlarge n arbitrary -- :: Gen (Array a)
                   return $ DftPerm (U.zip idxs vals)
-  coarbitrary =   \(DftPerm arr) -> coarbitrary (toList arr)
 
 {-
 instance Arbitrary a => Arbitrary (MaybeS a) where
@@ -67,7 +65,6 @@ instance Arbitrary a => Arbitrary (MaybeS a) where
 
 instance (Elt a, Arbitrary a) => Arbitrary (Array a) where
   arbitrary = fmap fromList arbitrary
-  coarbitrary = coarbitrary . toList
 
 {-
 instance (UA a, Arbitrary a) => Arbitrary (SUArr a) where
