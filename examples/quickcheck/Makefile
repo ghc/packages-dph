@@ -52,13 +52,16 @@ $(TEST_OBJS) : testsuite
 	@:
 
 %-unopt:
-	@echo "======== Testing  $(patsubst %-unopt,%,$@) (interpreted) ========"
+	@echo "======== Testing  $(patsubst %-unopt,%,$@) (parallel, interpreted) ========"
 	@$(HC) -e $(TESTMAIN) $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) $(PARFLAGS) \
 		| tee $@.log | { grep -v '\.\.\. pass' || true; }
+	@echo "======== Finished $(patsubst %-unopt,%,$@) (parallel, interpreted) ========"
+	@echo "======== Testing  $(patsubst %-unopt,%,$@) (sequential, interpreted) ========"
 	@$(HC) -e $(TESTMAIN) $(patsubst %-unopt,tests/%.hs,$@) $(HCFLAGS) $(SEQFLAGS) \
 		| tee $@.log | { grep -v '\.\.\. pass' || true; }
-	@echo "======== Finished $(patsubst %-unopt,%,$@) (interpreted) ========"
+	@echo "======== Finished $(patsubst %-unopt,%,$@) (sequential, interpreted) ========"
 
+# Throws warnings
 %-opt: tests/%-opt.o
 	@echo "======== Testing  $(patsubst %-opt,%,$@) (optimised) ========"
 	@$(HC) -o tst $(HCFLAGS) $(PARFLAGS) $< $(TESTSUITE_OBJS)
