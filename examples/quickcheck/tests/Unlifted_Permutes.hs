@@ -39,5 +39,20 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
 
           pairs' = if n <= 0 then U.zip empty empty
                              else U.map (\(i,x) -> (i `mod` n, x)) pairs
+
+  prop_update :: (Eq a, Elt a) => Array a -> Array (Int, a) -> Bool
+  prop_update arr pairs =
+    toList (U.update arr pairs') == update (toList arr) (toList pairs')
+    where
+       -- update :: [a] -> [(Int, a)] -> [a]
+          update xs []         = xs
+          update xs ((i,x):ps) = update (set xs i x) ps
+       -- set :: [a] -> Int -> a -> [a]
+          set xs i x = (P.take i xs) ++ [x] ++ (P.drop (i+1) xs)
+
+          pairs' = if n <= 0 then U.zip empty empty
+                             else U.map (\(i,x) -> (i `mod` n, x)) pairs
+          n = U.length arr
+
  |])
 

@@ -1,3 +1,4 @@
+
 import Testsuite
 
 import Data.Array.Parallel.Unlifted as U
@@ -31,6 +32,17 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
   prop_replicate (Len n) x =
     toList (U.replicate n x) == P.replicate n x
 
+  prop_repeat :: (Eq a, Elt a) => Len -> Len -> Array a -> Bool
+  prop_repeat (Len n) (Len dummy) arr =
+    toList (U.repeat n dummy arr) == (P.concat $ P.replicate n (toList arr))
+
+  prop_interleave :: (Eq a, Elt a) => Array a -> Array a -> Bool
+  prop_interleave arr brr =
+    toList (U.interleave arr brr) == interleave (toList arr) (toList brr)
+      where interleave (x:xs) (y:ys) = x : y : (interleave xs ys)
+            interleave (x:_)  _      = [x]
+            interleave _      _      = []
+
   prop_index :: (Eq a, Elt a) => Array a -> Len -> Property
   prop_index arr (Len i) =
     i < U.length arr
@@ -39,6 +51,10 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
   prop_append :: (Eq a, Elt a) => Array a -> Array a -> Bool
   prop_append arr brr =
     toList (arr +:+ brr) == toList arr ++ toList brr
+
+  prop_indexed :: (Eq a, Elt a) => Array a -> Bool
+  prop_indexed arr =
+    toList (indexed arr) == P.zip [0..U.length arr - 1] (toList arr)
 
   -- Equality
   -- --------

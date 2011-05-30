@@ -37,6 +37,23 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
 
   -- missing: combine2
 
+  prop_zip :: (Eq a, Elt a, Eq b, Elt b) => Array a -> Array b -> Bool
+  prop_zip arr brr = 
+    toList (U.zip arr brr) == P.zip (toList arr) (toList brr)
+
+  prop_unzip :: (Eq a, Elt a, Eq b, Elt b) => Array (a, b) -> Bool
+  prop_unzip abrr =
+    (toList arr, toList brr) == P.unzip (toList abrr)
+      where (arr, brr) = U.unzip abrr
+
+  prop_fsts :: (Eq a, Elt a, Elt b) => Array (a, b) -> Bool
+  prop_fsts arr =
+    fsts arr == fst (U.unzip arr)
+
+  prop_snds :: (Elt a, Eq b, Elt b) => Array (a, b) -> Bool
+  prop_snds arr =
+    snds arr == snd (U.unzip arr)
+
   prop_zipWith :: (Elt a, Elt b, Eq c, Elt c) => (a -> b -> c) -> Array a -> Array b -> Bool
   prop_zipWith f arr brr =
     toList (U.zipWith f arr brr) == P.zipWith f (toList arr) (toList brr)
@@ -46,15 +63,18 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
   prop_zipWith3 f arr brr crr =
     toList (U.zipWith3 f arr brr crr) == P.zipWith3 f (toList arr) (toList brr) (toList crr)
 
-  prop_fold :: (Elt a, Eq a) => (a -> a -> a) -> a -> Array a -> Bool
-  prop_fold f z arr =
-    U.fold f z arr == P.foldl f z (toList arr)
+  -- TODO: Guarrantee associativity of the passed function
+  -- prop_fold :: (Elt a, Eq a) => (a -> a -> a) -> a -> Array a -> Bool
+  -- prop_fold f z arr =
+  --  U.fold f z arr == P.foldl f z (toList arr)
 
+  -- TODO: Guarrantee associativity of the passed function
   prop_fold1 :: (Elt a, Eq a) => (a -> a -> a) -> Array a -> Property
   prop_fold1 f arr =
-    not (null $ toList arr)
+    arr /= empty
     ==> U.fold1 f arr == P.foldl1 f (toList arr)
 
+  -- TODO: Guarrantee associativity of the passed function
   prop_scan :: (Elt a, Eq a) => (a -> a -> a) -> a -> Array a -> Bool
   prop_scan f z arr =
     toList (U.scan f z arr) == P.init (P.scanl f z (toList arr))
