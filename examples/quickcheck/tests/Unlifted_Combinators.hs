@@ -20,9 +20,10 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
 
   prop_pack :: (Eq a, Elt a) => Array a -> Array Bool -> Bool
   prop_pack arr flags =
-    toList (U.pack arr flags) == [x | (x,flag) <- P.zip arr' flags', flag]
-      where arr'   = toList arr
-            flags' = toList flags
+    toList (U.pack arr flags) == pack (toList arr) (toList flags)
+      where pack (x : xs) (True  : fs) = x : pack xs fs
+            pack (_ : xs) (False : fs) =     pack xs fs
+            pack _        _            = []
 
   prop_combine :: (Eq a, Elt a) => Array Bool -> Array a -> Array a -> Property
   prop_combine sel arr brr =
