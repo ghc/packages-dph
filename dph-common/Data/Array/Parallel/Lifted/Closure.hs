@@ -50,6 +50,7 @@ mkClosure :: forall a b e.
 {-# INLINE CONLIKE mkClosure #-}
 mkClosure fv fl e = Clo fv (lifted fl) e
 
+
 closure :: forall a b e.
            PA e => (e -> a -> b)
                 -> (Int# -> PData e -> PData a -> PData b)
@@ -57,6 +58,7 @@ closure :: forall a b e.
                 -> (a :-> b)
 {-# INLINE closure #-}
 closure fv fl e = Clo fv fl e
+
 
 -- |Closure application
 --
@@ -78,6 +80,7 @@ data instance PData (a :-> b)
                            !(Int# -> PData e -> PData a -> PData b)
                             (PData e)
 
+
 -- |Lifted closure construction
 --
 mkClosureP :: forall a b e.
@@ -87,6 +90,7 @@ mkClosureP :: forall a b e.
 {-# INLINE mkClosureP #-}
 mkClosureP fv fl (PArray n# es) = PArray n# (AClo fv (lifted fl) es)
 
+
 liftedClosure :: forall a b e.
                  PA e => (e -> a -> b)
                       -> (Int# -> PData e -> PData a -> PData b)
@@ -95,16 +99,20 @@ liftedClosure :: forall a b e.
 {-# INLINE liftedClosure #-}
 liftedClosure fv fl es = AClo fv fl es
 
+
 -- |Lifted closure application
 --
 ($:^) :: forall a b. PArray (a :-> b) -> PArray a -> PArray b
 {-# INLINE ($:^) #-}
 PArray n# (AClo _ f es) $:^ PArray _ as = PArray n# (f n# es as)
 
+
 liftedApply :: forall a b. Int# -> PData (a :-> b) -> PData a -> PData b
 {-# INLINE liftedApply #-}
 liftedApply n# (AClo _ f es) as = f n# es as
 
+
+-- PRepr instance for closures ------------------------------------------------
 type instance PRepr (a :-> b) = a :-> b
 
 instance (PA a, PA b) => PA (a :-> b) where
@@ -135,26 +143,33 @@ instance PR (a :-> b) where
   {-# INLINE packByTagPR #-}
   packByTagPR (AClo f f' es) n# tags t# = AClo f f' (packByTagPD es n# tags t#)
 
--- Closure construction
 
+-- Closure construction -------------------------------------------------------
+-- | Arity-1 closures.
 closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
 {-# INLINE closure1 #-}
 closure1 fv fl = mkClosure (\_ -> fv) (\_ -> fl) ()
 
+
+-- | Arity-2 closures.
 closure2 :: PA a
          => (a -> b -> c)
          -> (PArray a -> PArray b -> PArray c)
          -> (a :-> b :-> c)
+
 {-# INLINE closure2 #-}
 closure2 fv fl = mkClosure fv_1 fl_1 ()
   where
     fv_1 _ x  = mkClosure  fv fl x
     fl_1 _ xs = mkClosureP fv fl xs
 
+
+-- | Arity-3 closures.
 closure3 :: (PA a, PA b)
          => (a -> b -> c -> d)
          -> (PArray a -> PArray b -> PArray c -> PArray d)
          -> (a :-> b :-> c :-> d)
+
 {-# INLINE closure3 #-}
 closure3 fv fl = mkClosure fv_1 fl_1 ()
   where
