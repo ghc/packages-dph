@@ -24,8 +24,6 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
-import Data.Maybe (fromJust)
-import Debug.Trace (trace)
 
 -- | Apply a worker to all elements of a vector.
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
@@ -88,13 +86,12 @@ zipWithUP f xs ys
 
 
 -- | Undirected fold.
-foldUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> a
+foldUP :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
 {-# INLINE foldUP #-}
-foldUP f !z arr
-        = (maybe z (f z)
-        . foldD  theGang (maybeApp f)
-        . mapD   theGang (Seq.fold1Maybe f)
-        . splitD theGang unbalanced) arr
+foldUP f !z xs
+        = foldD theGang f
+                (mapD   theGang (Seq.fold f z)
+                (splitD theGang unbalanced xs))
 
 
 -- | Array reduction proceeding from the left (requires associative combination)
@@ -106,6 +103,9 @@ foldlUP f z arr
 
 
 -- | Reduction of a non-empty array which requires an associative combination function.
+--
+--   TODO: What is the difference between this and foldUP above?
+--         The two type class constraints are in a different order. Does that matter?
 fold1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE fold1UP #-}
 fold1UP = foldl1UP
@@ -114,34 +114,24 @@ fold1UP = foldl1UP
 -- | Same as 'fold1UP'.
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_U foldl1UP #-}
-foldl1UP f arr
-        = (fromJust
-        . foldD  theGang (maybeApp f)
+foldl1UP f arr 
+        = (maybe z (f z)
+        . foldD  theGang combine
         . mapD   theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
+        where
+                z = arr ! 0
+                combine (Just x) (Just y) = Just (f x y)
+                combine (Just x) Nothing  = Just x
+                combine Nothing  (Just y) = Just y
+                combine Nothing  Nothing  = Nothing
 
 
 -- | Prefix scan. Similar to fold, but produce an array of the intermediate states.
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 {-# INLINE_UP scanUP #-}
-scanUP f z arr
-     | Seq.null arr = empty
-     | otherwise    = splitJoinD theGang go arr
-     where
-       {-# INLINE go #-}
-       go xs = let zs  = mapD theGang (Seq.fold1Maybe f) xs           -- compute fold1 of every array chunk
-                   zs' = fst (scanD theGang (maybeApp f) (Just z) zs) -- compute initial value for every chunk
-               in  zipWithD theGang scanMaybe zs' xs                  -- scan using precomputed initial values
-       scanMaybe (Just z) xs = Seq.scan f z xs
-       scanMaybe Nothing  _  = empty                                  -- no chunk for this gang thread
-       
-       
--- | Internal helper function to facilitate applying scans and folds over 
--- | gang threads that potentially have no local value 
-maybeApp :: (a -> a -> a) -> Maybe a -> Maybe a -> Maybe a
-{-# INLINE maybeApp #-}
-maybeApp f (Just x) (Just y) = Just (f x y)
-maybeApp _ (Just x) Nothing  = Just x
-maybeApp _ Nothing  (Just y) = Just y
-maybeApp _ Nothing  Nothing  = Nothing
-
+scanUP f z 
+        = splitJoinD theGang go
+        where   go xs = let (ds,zs) = unzipD $ mapD theGang (Seq.scanRes f z) xs
+                            zs'     = fst (scanD theGang f z zs)
+                        in  zipWithD theGang (Seq.map . f) zs' ds

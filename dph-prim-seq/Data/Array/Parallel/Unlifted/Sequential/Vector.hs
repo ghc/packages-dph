@@ -37,6 +37,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   fold, fold1, fold1Maybe,
   scanl, scanl1,
   scan, scan1,
+  scanRes,
 
   -- * Searching
   elem, notElem,
@@ -275,7 +276,6 @@ fold1Maybe :: Unbox a => (a -> a -> a) -> Vector a -> Maybe a
 {-# INLINE_U fold1Maybe #-}
 fold1Maybe = foldl1Maybe
 
-
 -- |Prefix scan proceedings from left to right
 --
 scanl :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Vector a -> Vector b
@@ -301,6 +301,12 @@ scan = scanl
 scan1 :: Unbox a => (a -> a -> a) -> Vector a -> Vector a
 {-# INLINE_U scan1 #-}
 scan1 = scanl1
+
+scanRes :: Unbox a => (a -> a -> a) -> a -> Vector a -> (Vector a,a)
+{-# INLINE_U scanRes #-}
+scanRes f z xs = let ys = scanl' f z xs
+                 in
+                 (unsafeInit ys, unsafeLast ys)
 
 fsts :: (Unbox a, Unbox b) => Vector (a,b) -> Vector a
 {-# INLINE_STREAM fsts #-}
