@@ -64,21 +64,23 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
   prop_zipWith3 f arr brr crr =
     toList (U.zipWith3 f arr brr crr) == P.zipWith3 f (toList arr) (toList brr) (toList crr)
 
-  -- TODO: Guarrantee associativity of the passed function
-  -- prop_fold :: (Elt a, Eq a) => (a -> a -> a) -> a -> Array a -> Bool
-  -- prop_fold f z arr =
-  --  U.fold f z arr == P.foldl f z (toList arr)
+  {-
+  -- TODO: Guarrantee associativity of the operator and 
+  --       neutrality of initial value wrt this operator.
 
-  -- TODO: Guarrantee associativity of the passed function
+  prop_fold :: (Elt a, Eq a) => (a -> a -> a) -> a -> Array a -> Bool
+  prop_fold f z arr =
+    U.fold f z arr == P.foldl f z (toList arr)
+
   prop_fold1 :: (Elt a, Eq a) => (a -> a -> a) -> Array a -> Property
   prop_fold1 f arr =
     arr /= empty
     ==> U.fold1 f arr == P.foldl1 f (toList arr)
 
-  -- TODO: Guarrantee associativity of the passed function
   prop_scan :: (Elt a, Eq a) => (a -> a -> a) -> a -> Array a -> Bool
   prop_scan f z arr =
     toList (U.scan f z arr) == P.init (P.scanl f z (toList arr))
+  -}
 
   |])
 
