@@ -32,7 +32,15 @@ import SpecConstr
 --   This is the family of types that store parallel array data.
 --
 --   PData takes the type of an element and produces the type we use to store
---   an array of those elements.
+--   an array of those elements. The instances for PData use an efficient
+--   representation that depends on the type of elements being stored.
+--   For example, an array of pairs is stored as two separate arrays, one for
+--   each element type. This lets us avoid storing the intermediate Pair/Tuple
+--   constructors and the pointers to the elements.
+-- 
+--   Most of the instances are defined in "Data.Array.Parallel.PArray.Instances",
+--   though the instances for function closures are defined in their own module, 
+--   "Data.Array.Parallel.Lifted.Closure".
 --
 --   Note that PData is just a flat chunk of memory containing elements, and doesn't
 --   include a field giving the length of the array. We use PArray when we want to
@@ -45,8 +53,8 @@ data family PData a
 -- | A PR dictionary contains the primitive functions that operate directly
 --   on parallel array data.
 -- 
---   It's called PR because the functions work on our internal Representation
---   of the user-level array.
+--   It's called PR because the functions work on our internal, efficient
+--   Representation of the user-level array.
 --
 class PR a where
   emptyPR      :: T_emptyPR a
