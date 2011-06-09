@@ -41,6 +41,8 @@ import Control.Monad.ST ( ST, runST )
 
 
 -- replicate ------------------------------------------------------------------
+
+-- | Segmented replication, using a segment descriptor.
 replicateSUP :: Unbox a => UPSegd -> Vector a -> Vector a
 {-# INLINE_UP replicateSUP #-}
 replicateSUP segd !xs 
@@ -51,7 +53,14 @@ replicateSUP segd !xs
     rep ((dsegd,di),_)
       = replicateSU dsegd (Seq.slice xs di (lengthUSegd dsegd))
 
--- FIXME: make this efficient
+
+-- | Segmented replication.
+--   Each element in the vector is replicated the given number of times.
+--   
+--   @replicateRSUP 2 [1, 2, 3, 4, 5] = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]@
+--
+--   TODO: make this efficient
+-- 
 replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_UP replicateRSUP #-}
 replicateRSUP n xs
