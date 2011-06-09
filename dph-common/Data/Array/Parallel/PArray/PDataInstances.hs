@@ -31,6 +31,10 @@ import GHC.Exts                                 (Int(..), Int#)
 
 
 -- Void -----------------------------------------------------------------------
+-- | The Void type is used when representing enumerations. 
+--   A type like Bool is represented as @Sum2 Void Void@, meaning that we only
+--   only care about the tag of the data constructor and not its argumnent.
+--
 data instance PData Void
 
 pvoid :: PData Void
@@ -40,7 +44,26 @@ $(voidPRInstance ''Void 'void 'pvoid)
 
 
 -- Unit -----------------------------------------------------------------------
-data instance PData () 
+-- | An array of unit values is represented by a single constructor.
+--   There is only one possible value, so we only need to record it once.
+--
+--   We often uses arrays of unit values as the environmnent portion of a 
+--   lifted closure. For example, suppose we vectorise the unary function 
+--   @neg@. This function has no environment, so we construct the closure, 
+--   we fill in the environment field with @()@, which gives @Clo neg_v neg_l ()@.
+--
+--   Suppose we then compute @replicate n neg@. This results in an array of 
+--   closures. We only need one copy of the implementation functions neg_v and
+--   neg_l, but the unit environment () is lifted to an array of units, 
+--   which we represent as PUnit.
+--
+--   Note that we need to store at least one real value, PUnit in this case, 
+--   because this value also represents the divergence behaviour of the whole
+--   array. When evaluating a bulk-strict array, if any of the elements diverge 
+--   then the whole array does. We represent a diverging array of () by using
+--   a diverging computation of type PUnit as its representation.
+--
+data instance PData ()
         = PUnit
 
 punit :: PData ()
