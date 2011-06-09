@@ -18,8 +18,8 @@
 --    with applications being performed by the liftedApply function 
 --    from "Data.Array.Parallel.Lifted.Closure"
 --     
---  TODO: combine2PA_l isn't implemented and will just `error` if you
---        try to use it. None of our benchmarks do yet...
+--    TODO: combine2PA_l isn't implemented and will just `error` if you
+--          try to use it. None of our benchmarks do yet...
 --
 module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
@@ -106,6 +106,15 @@ mapPA :: (PA a, PA b) => (a :-> b) :-> PArray a :-> PArray b
 {-# INLINE mapPA #-}
 mapPA = closure2 mapPA_v mapPA_l
 
+-- | When performing a map we `replicate` the function into an array, then use
+--   lifted-application to apply each function to its corresponding argument.
+--
+--   Note that this is a virtual replicate only, meaning that we can use
+--   the same vectorised and lifted worker functions, provided we replicate
+--   the environment part of the closure. The instance for repliatePA# in
+--   PRepr class does exactly this, and it's defined in 
+--   "Data.Array.Parallel.Lifted.Closure".
+--
 mapPA_v :: (PA a, PA b) => (a :-> b) -> PArray a -> PArray b
 {-# INLINE_PA mapPA_v #-}
 mapPA_v f as = replicatePA# (lengthPA# as) f $:^ as
