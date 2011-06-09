@@ -26,7 +26,7 @@ module Data.Array.Parallel.PArray.Types (
 where
 
 -- Void -----------------------------------------------------------------------
--- | The void type is used when representing enumerations. 
+-- | The `Void` type is used when representing enumerations. 
 --   A type like Bool is represented as @Sum2 Void Void@, meaning that we only
 --   only care about the tag of the data constructor and not its argumnent.
 data Void
