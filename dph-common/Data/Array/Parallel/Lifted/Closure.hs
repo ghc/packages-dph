@@ -28,9 +28,9 @@ infixl 0 $:, $:^
 --
 data a :-> b 
   = forall e. PA e 
-  => Clo !(e -> a -> b)                            -- ^ vectorised version
-         !(Int# -> PData e -> PData a -> PData b)  -- ^ lifted version
-         e                                         -- ^ environment
+  => Clo !(e -> a -> b)                            -- vectorised function
+         !(Int# -> PData e -> PData a -> PData b)  -- lifted function
+         e                                         -- environment
 
 
 -- | Apply a lifted function by wrapping up the provided array data
@@ -50,8 +50,8 @@ lifted f n# es as
 mkClosure 
         :: forall a b e
         .  PA e
-        => (e -> a -> b)                           -- ^ vectorised version, with explicit environment.
-        -> (PArray e -> PArray a -> PArray b)      -- ^ lifted version, taking an array of environments.
+        => (e -> a -> b)                           -- ^ vectorised function, with explicit environment.
+        -> (PArray e -> PArray a -> PArray b)      -- ^ lifted function, taking an array of environments.
         -> e                                       -- ^ environment
         -> (a :-> b)
 {-# INLINE CONLIKE mkClosure #-}
@@ -65,8 +65,8 @@ mkClosure fv fl e
 --   data wrapped up into a `PArray`.
 closure :: forall a b e
         .  PA e
-        => (e -> a -> b)                           -- ^ vectorised version, with explicit environment.
-        -> (Int# -> PData e -> PData a -> PData b) -- ^ lifted version, taking an array of environments.
+        => (e -> a -> b)                           -- ^ vectorised function, with explicit environment.
+        -> (Int# -> PData e -> PData a -> PData b) -- ^ lifted function, taking an array of environments.
         -> e                                       -- ^ environment
         -> (a :-> b)
 {-# INLINE closure #-}
@@ -88,11 +88,32 @@ Clo f _ e $: a = f e a
 
 
 -- | Arrays of closures (aka array closures)
+--   We need to represent arrays of closures when vectorising partial applications.
+--
+--   For example, consider:
+--     @mapP (+) xs   ::  [: Int -> Int :]@
+--
+--   Representing this simply as an array of thunks would be far too inefficient
+--   due to the intermediate pointers involved. In a distributed parallelism
+--   setting it's also difficult to send thunks to other PE's as they contain
+--   potentially unknown code pointers.
+-- 
+--   Instead, such an array of closures is represented as the vectorised 
+--   and lifted versions of (+), along with the environment array xs:
+--
+--     @mapP (+) xs  ==>  AClo plus_v plus_l xs@
+--
+--   When we find out what the final argument, we can then use the lifted closure
+--   application function to compute the result:
+--
+--    @PArray n (AClo plus_v plus_l xs) $:^ (PArray n' ys) 
+--           => PArray n (plus_l n xs ys)@
+--
 data instance PData (a :-> b)
   =  forall e. PA e 
-  => AClo !(e -> a -> b)                           -- ^ vectorised version, with explicit environment.
-          !(Int# -> PData e -> PData a -> PData b) -- ^ lifted version, taking an array of environments.
-           (PData e)                               -- ^ array of environments.
+  => AClo !(e -> a -> b)                           -- vectorised function, with explicit environment.
+          !(Int# -> PData e -> PData a -> PData b) -- lifted function, taking an array of environments.
+           (PData e)                               -- array of environments.
 
 
 -- |Lifted closure construction
