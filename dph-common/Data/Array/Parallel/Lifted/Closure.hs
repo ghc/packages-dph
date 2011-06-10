@@ -16,11 +16,11 @@ infixr 0 :->
 infixl 0 $:, $:^
 
 -- | The type of closures.
---   This bundles up 
---      1) the vectorised verion of the function that takes an explicit environment
+--   This bundles up:
+--      1) the vectorised version of the function that takes an explicit environment
 --      2) the lifted version, that works on arrays.
---         the first parameter of this function is the 'lifting context'
---         that gives the length of the array.
+--           the first parameter of this function is the 'lifting context'
+--           that gives the length of the array.
 --      3) the environment of the closure.
 -- 
 --   The vectoriser closure-converts the source program so that all functions
@@ -28,39 +28,52 @@ infixl 0 $:, $:^
 --
 data a :-> b 
   = forall e. PA e 
-  => Clo !(e -> a -> b)                                 -- vectorised version
-         !(Int# -> PData e -> PData a -> PData b)       -- lifted version
-         e                                              -- environment
+  => Clo !(e -> a -> b)                            -- ^ vectorised version
+         !(Int# -> PData e -> PData a -> PData b)  -- ^ lifted version
+         e                                         -- ^ environment
 
 
-lifted :: (PArray e -> PArray a -> PArray b)
-       -> Int# -> PData e -> PData a -> PData b
+-- | Apply a lifted function by wrapping up the provided array data
+--   into some real `PArray`s, and passing it those.
+lifted  :: (PArray e -> PArray a -> PArray b)      -- ^ lifted function to call.
+        -> Int#                                    -- ^ lifting context
+        -> PData e                                 -- ^ environments 
+        -> PData a                                 -- ^ arguments
+        -> PData b                                 -- ^ returned elements
 {-# INLINE lifted #-}
 lifted f n# es as 
   = case f (PArray n# es) (PArray n# as) of
      PArray _ bs -> bs
 
 
--- |Closure construction
---
-mkClosure :: forall a b e. 
-             PA e => (e -> a -> b)
-                  -> (PArray e -> PArray a -> PArray b)
-                  -> e -> (a :-> b)
+-- | Construct a closure.
+mkClosure 
+        :: forall a b e
+        .  PA e
+        => (e -> a -> b)                           -- ^ vectorised version, with explicit environment.
+        -> (PArray e -> PArray a -> PArray b)      -- ^ lifted version, taking an array of environments.
+        -> e                                       -- ^ environment
+        -> (a :-> b)
 {-# INLINE CONLIKE mkClosure #-}
-mkClosure fv fl e = Clo fv (lifted fl) e
+mkClosure fv fl e
+  = Clo fv (lifted fl) e
 
 
-closure :: forall a b e.
-           PA e => (e -> a -> b)
-                -> (Int# -> PData e -> PData a -> PData b)
-                -> e
-                -> (a :-> b)
+-- | Construct a closure.
+--   This is like the `mkClosure` function above, except that the provided
+--   lifted version of the function can take raw array data, instead of 
+--   data wrapped up into a `PArray`.
+closure :: forall a b e
+        .  PA e
+        => (e -> a -> b)                           -- ^ vectorised version, with explicit environment.
+        -> (Int# -> PData e -> PData a -> PData b) -- ^ lifted version, taking an array of environments.
+        -> e                                       -- ^ environment
+        -> (a :-> b)
 {-# INLINE closure #-}
 closure fv fl e = Clo fv fl e
 
 
--- |Closure application
+-- | Apply a closure to its argument.
 --
 ($:) :: forall a b. (a :-> b) -> a -> b
 {-# INLINE ($:) #-}
@@ -73,12 +86,13 @@ Clo f _ e $: a = f e a
 
  #-}
 
--- |Arrays of closures (aka array closures)
---
+
+-- | Arrays of closures (aka array closures)
 data instance PData (a :-> b)
-  = forall e. PA e => AClo !(e -> a -> b)
-                           !(Int# -> PData e -> PData a -> PData b)
-                            (PData e)
+  =  forall e. PA e 
+  => AClo !(e -> a -> b)                           -- ^ vectorised version, with explicit environment.
+          !(Int# -> PData e -> PData a -> PData b) -- ^ lifted version, taking an array of environments.
+           (PData e)                               -- ^ array of environments.
 
 
 -- |Lifted closure construction
@@ -88,7 +102,8 @@ mkClosureP :: forall a b e.
                    -> (PArray e -> PArray a -> PArray b)
                    -> PArray e -> PArray (a :-> b)
 {-# INLINE mkClosureP #-}
-mkClosureP fv fl (PArray n# es) = PArray n# (AClo fv (lifted fl) es)
+mkClosureP fv fl (PArray n# es) 
+  = PArray n# (AClo fv (lifted fl) es)
 
 
 liftedClosure :: forall a b e.
@@ -104,12 +119,14 @@ liftedClosure fv fl es = AClo fv fl es
 --
 ($:^) :: forall a b. PArray (a :-> b) -> PArray a -> PArray b
 {-# INLINE ($:^) #-}
-PArray n# (AClo _ f es) $:^ PArray _ as = PArray n# (f n# es as)
+PArray n# (AClo _ f es) $:^ PArray _ as 
+  = PArray n# (f n# es as)
 
 
 liftedApply :: forall a b. Int# -> PData (a :-> b) -> PData a -> PData b
 {-# INLINE liftedApply #-}
-liftedApply n# (AClo _ f es) as = f n# es as
+liftedApply n# (AClo _ f es) as 
+  = f n# es as
 
 
 -- PRepr instance for closures ------------------------------------------------
@@ -128,20 +145,24 @@ instance PR (a :-> b) where
                  (emptyPD :: PData ())
 
   {-# INLINE replicatePR #-}
-  replicatePR n# (Clo f f' e) = AClo f f' (replicatePD n# e)
+  replicatePR n# (Clo f f' e) 
+    = AClo f f' (replicatePD n# e)
 
   {-# INLINE replicatelPR #-}
   replicatelPR segd (AClo f f' es)
     = AClo f f' (replicatelPD segd es)
 
   {-# INLINE indexPR #-}
-  indexPR (AClo f f' es) i# = Clo f f' (indexPD es i#)
+  indexPR (AClo f f' es) i#
+    = Clo f f'  (indexPD es i#)
 
   {-# INLINE bpermutePR #-}
-  bpermutePR (AClo f f' es) n# is = AClo f f' (bpermutePD es n# is)
+  bpermutePR (AClo f f' es) n# is
+    = AClo f f' (bpermutePD es n# is)
 
   {-# INLINE packByTagPR #-}
-  packByTagPR (AClo f f' es) n# tags t# = AClo f f' (packByTagPD es n# tags t#)
+  packByTagPR (AClo f f' es) n# tags t#
+    = AClo f f' (packByTagPD es n# tags t#)
 
 
 -- Closure construction -------------------------------------------------------
