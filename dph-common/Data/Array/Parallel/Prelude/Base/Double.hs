@@ -1,39 +1,31 @@
 {-# LANGUAGE ParallelArrays #-}
+{-# OPTIONS_GHC -fvectorise #-}
+
 module Data.Array.Parallel.Prelude.Base.Double (
   -- Ord
   (==), (/=), (<), (<=), (>), (>=), min, max,
-  eqV, neqV, ltV, leV, gtV, geV, minV, maxV,
 
   minimumP, maximumP, minIndexP, maxIndexP,
-  minimumPA, maximumPA, minIndexPA, maxIndexPA,
 
   -- Num
   (+), (-), (*), negate, abs,
-  plusV, minusV, multV, negateV, absV,
 
   sumP, productP,
-  sumPA, productPA,
 
   -- Fractional
   (/), recip,
-  divideV, recipV,
 
   -- Floating
   pi, exp, sqrt, log, (**), logBase,
   sin, tan, cos, asin, atan, acos,
   sinh, tanh, cosh, asinh, atanh, acosh,
 
-  expV, sqrtV, logV, powV, logBaseV,
-  sinV, tanV, cosV, asinV, atanV, acosV,
-  sinhV, tanhV, coshV, asinhV, atanhV, acoshV,
-
   -- RealFrac and similar
   fromInt,
-  fromIntV,
 
   truncate, round, ceiling, floor,
-  truncateV, roundV, ceilingV, floorV
 ) where
+
 import qualified Data.Array.Parallel as PArr
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
@@ -46,203 +38,145 @@ infixl 7 *, /
 infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
 
-eqV, neqV, leV, ltV, geV, gtV :: Double :-> Double :-> Bool
-{-# INLINE eqV #-}
-{-# INLINE neqV #-}
-{-# INLINE leV #-}
-{-# INLINE ltV #-}
-{-# INLINE geV #-}
-{-# INLINE gtV #-}
-eqV = closure2 (P.==) (scalar_zipWith (P.==))
-neqV = closure2 (P./=) (scalar_zipWith (P./=))
-leV = closure2 (P.<=) (scalar_zipWith (P.<=))
-ltV = closure2 (P.<) (scalar_zipWith (P.<))
-geV = closure2 (P.>=) (scalar_zipWith (P.>=))
-gtV = closure2 (P.>) (scalar_zipWith (P.>))
-
 (==), (/=), (<), (<=), (>), (>=) :: Double -> Double -> Bool
 (==) = (P.==)
+{-# VECTORISE SCALAR (==) #-}
 (/=) = (P./=)
+{-# VECTORISE SCALAR (/=) #-}
 (<=) = (P.<=)
+{-# VECTORISE SCALAR (<=) #-}
 (<)  = (P.<)
+{-# VECTORISE SCALAR (<) #-}
 (>=) = (P.>=)
+{-# VECTORISE SCALAR (>=) #-}
 (>)  = (P.>)
-
-minV, maxV :: Double :-> Double :-> Double
-{-# INLINE minV #-}
-{-# INLINE maxV #-}
-minV = closure2 P.min (scalar_zipWith P.min)
-maxV = closure2 P.max (scalar_zipWith P.max)
+{-# VECTORISE SCALAR (>) #-}
 
 min, max :: Double -> Double -> Double
 min = P.min
+{-# VECTORISE SCALAR min #-}
 max = P.max
-
-minimumPA, maximumPA :: PArray Double :-> Double
-{-# INLINE minimumPA #-}
-{-# INLINE maximumPA #-}
-minimumPA = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
-maximumPA = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
+{-# VECTORISE SCALAR max #-}
 
 minimumP, maximumP :: [:Double:] -> Double
 minimumP = PArr.minimumP
+{-# VECTORISE minimumP
+  = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min) :: PArray Double :-> Double #-}
 maximumP = PArr.maximumP
+{-# VECTORISE maximumP
+  = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max) :: PArray Double :-> Double #-}
+
+minIndexP :: [:Double:] -> Int
+{-# NOINLINE minIndexP #-}
+minIndexP _ = 0   -- FIXME: add proper implementation
+{-# VECTORISE minIndexP = minIndexPA #-}
 
 minIndexPA :: PArray Double :-> Int
 {-# INLINE minIndexPA #-}
 minIndexPA = closure1 (scalar_fold1Index min') (scalar_fold1sIndex min')
-  where
-    min' (i,x) (j,y) | x P.<= y    = (i,x)
-                     | P.otherwise = (j,y)
+{-# NOVECTORISE minIndexPA #-}
 
-minIndexP :: [:Double:] -> Int
-{-# NOINLINE minIndexP #-}
-minIndexP _ = 0
+min' (i,x) (j,y) | x P.<= y    = (i,x)
+                 | P.otherwise = (j,y)
+{-# NOVECTORISE min' #-}
+
+maxIndexP :: [:Double:] -> Int
+{-# NOINLINE maxIndexP #-}
+maxIndexP _ = 0   -- FIXME: add proper implementation
+{-# VECTORISE maxIndexP = maxIndexPA #-}
 
 maxIndexPA :: PArray Double :-> Int
 {-# INLINE maxIndexPA #-}
 maxIndexPA = closure1 (scalar_fold1Index max') (scalar_fold1sIndex max')
-  where
-    max' (i,x) (j,y) | x P.>= y    = (i,x)
-                     | P.otherwise = (j,y)
+{-# NOVECTORISE maxIndexPA #-}
 
-maxIndexP :: [:Double:] -> Int
-{-# NOINLINE maxIndexP #-}
-maxIndexP _ = 0
-
-plusV, minusV, multV :: Double :-> Double :-> Double
-{-# INLINE plusV #-}
-{-# INLINE minusV #-}
-{-# INLINE multV #-}
-plusV = closure2 (P.+) (scalar_zipWith (P.+))
-minusV = closure2 (P.-) (scalar_zipWith (P.-))
-multV = closure2 (P.*) (scalar_zipWith (P.*))
+max' (i,x) (j,y) | x P.>= y    = (i,x)
+                 | P.otherwise = (j,y)
+{-# NOVECTORISE max' #-}
 
 (+), (-), (*) :: Double -> Double -> Double
 (+) = (P.+)
+{-# VECTORISE SCALAR (+) #-}
 (-) = (P.-)
+{-# VECTORISE SCALAR (-) #-}
 (*) = (P.*)
-
-negateV, absV :: Double :-> Double
-{-# INLINE negateV #-}
-{-# INLINE absV #-}
-negateV = closure1 P.negate (scalar_map P.negate)
-absV = closure1 P.abs (scalar_map P.abs)
+{-# VECTORISE SCALAR (*) #-}
 
 negate, abs :: Double -> Double
 negate = P.negate
+{-# VECTORISE SCALAR negate #-}
 abs = P.abs
-
-sumPA, productPA :: PArray Double :-> Double
-{-# INLINE sumPA #-}
-{-# INLINE productPA #-}
-sumPA = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
-productPA = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
+{-# VECTORISE SCALAR abs #-}
 
 sumP, productP :: [:Double:] -> Double
 sumP = PArr.sumP
+{-# VECTORISE sumP 
+  = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0) :: PArray Double :-> Double #-}
 productP = PArr.productP
+{-# VECTORISE productP 
+  = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1) :: PArray Double :-> Double #-}
 
 (/) :: Double -> Double -> Double
 (/) = (P./)
-
-divideV :: Double :-> Double :-> Double
-{-# INLINE divideV #-}
-divideV = closure2 (P./) (scalar_zipWith (P./))
+{-# VECTORISE SCALAR (/) #-}
 
 recip :: Double -> Double
 recip = P.recip
-
-recipV :: Double :-> Double
-{-# INLINE recipV #-}
-recipV = closure1 P.recip (scalar_map P.recip)
-
+{-# VECTORISE SCALAR recip #-}
 
 pi :: Double
 pi = P.pi
+{-# NOVECTORISE pi #-}
 
 exp, sqrt, log, sin, tan, cos, asin, atan, acos, sinh, tanh, cosh,
   asinh, atanh, acosh :: Double -> Double
 exp = P.exp
+{-# VECTORISE SCALAR exp #-}
 sqrt = P.sqrt
+{-# VECTORISE SCALAR sqrt #-}
 log = P.log
+{-# VECTORISE SCALAR log #-}
 sin = P.sin
+{-# VECTORISE SCALAR sin #-}
 tan = P.tan
+{-# VECTORISE SCALAR tan #-}
 cos = P.cos
+{-# VECTORISE SCALAR cos #-}
 asin = P.asin
+{-# VECTORISE SCALAR asin #-}
 atan = P.atan
+{-# VECTORISE SCALAR atan #-}
 acos = P.acos
+{-# VECTORISE SCALAR acos #-}
 sinh = P.sinh
+{-# VECTORISE SCALAR sinh #-}
 tanh = P.tanh
+{-# VECTORISE SCALAR tanh #-}
 cosh = P.cosh
+{-# VECTORISE SCALAR cosh #-}
 asinh = P.asinh
+{-# VECTORISE SCALAR asinh #-}
 atanh = P.atanh
+{-# VECTORISE SCALAR atanh #-}
 acosh = P.acosh
-
-expV, sqrtV, logV, sinV, tanV, cosV, asinV, atanV, acosV, sinhV, tanhV, coshV,
-  asinhV, atanhV, acoshV :: Double :-> Double
-{-# INLINE expV #-}
-{-# INLINE sqrtV #-}
-{-# INLINE logV #-}
-{-# INLINE sinV #-}
-{-# INLINE tanV #-}
-{-# INLINE cosV #-}
-{-# INLINE asinV #-}
-{-# INLINE atanV #-}
-{-# INLINE acosV #-}
-{-# INLINE sinhV #-}
-{-# INLINE tanhV #-}
-{-# INLINE coshV #-}
-{-# INLINE asinhV #-}
-{-# INLINE atanhV #-}
-{-# INLINE acoshV #-}
-expV = closure1 P.exp (scalar_map P.exp)
-sqrtV = closure1 P.sqrt (scalar_map P.sqrt)
-logV = closure1 P.log (scalar_map P.log)
-sinV = closure1 P.sin (scalar_map P.sin)
-tanV = closure1 P.tan (scalar_map P.tan)
-cosV = closure1 P.cos (scalar_map P.cos)
-asinV = closure1 P.asin (scalar_map P.asin)
-atanV = closure1 P.atan (scalar_map P.atan)
-acosV = closure1 P.acos (scalar_map P.acos)
-sinhV = closure1 P.sinh (scalar_map P.sinh)
-tanhV = closure1 P.tanh (scalar_map P.tanh)
-coshV = closure1 P.cosh (scalar_map P.cosh)
-asinhV = closure1 P.asinh (scalar_map P.asinh)
-atanhV = closure1 P.atanh (scalar_map P.atanh)
-acoshV = closure1 P.acosh (scalar_map P.acosh)
+{-# VECTORISE SCALAR acosh #-}
 
 (**), logBase :: Double -> Double -> Double
 (**) = (P.**)
+{-# VECTORISE SCALAR (**) #-}
 logBase = P.logBase
-
-powV, logBaseV :: Double :-> Double :-> Double
-{-# INLINE powV #-}
-{-# INLINE logBaseV #-}
-powV = closure2 (P.**) (scalar_zipWith (P.**))
-logBaseV = closure2 P.logBase (scalar_zipWith P.logBase)
-
-
-fromIntV :: Int :-> Double
-{-# INLINE fromIntV #-}
-fromIntV = closure1 P.fromIntegral (scalar_map P.fromIntegral)
+{-# VECTORISE SCALAR logBase #-}
 
 fromInt :: Int -> Double
 fromInt = P.fromIntegral
-
-truncateV, roundV, ceilingV, floorV :: Double :-> Int
-{-# INLINE truncateV #-}
-{-# INLINE roundV #-}
-{-# INLINE ceilingV #-}
-{-# INLINE floorV #-}
-truncateV = closure1 P.truncate (scalar_map P.truncate)
-roundV = closure1 P.round (scalar_map P.round)
-ceilingV = closure1 P.ceiling (scalar_map P.ceiling)
-floorV = closure1 P.floor (scalar_map P.floor)
+{-# VECTORISE SCALAR fromInt #-}
 
 truncate, round, ceiling, floor :: Double -> Int
 truncate = P.truncate
+{-# VECTORISE SCALAR truncate #-}
 round = P.round
+{-# VECTORISE SCALAR round #-}
 ceiling = P.ceiling
+{-# VECTORISE SCALAR ceiling #-}
 floor = P.floor
-
+{-# VECTORISE SCALAR floor #-}
