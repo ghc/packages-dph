@@ -34,6 +34,7 @@ Library
         Data.Array.Parallel.Unlifted.Parallel.Subarrays
         Data.Array.Parallel.Unlifted.Parallel.UPSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSel
+        Data.Array.Parallel.Unlifted.Parallel.Text
 
   Exposed: False
 
