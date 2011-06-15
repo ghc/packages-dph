@@ -72,7 +72,6 @@ import Data.Array.Parallel.Lifted.Combinators
 --  Note that following modules are exactly the ones that don't import THIS MODULE
 --  by themselves. 
 -- 
-import Data.Array.Parallel.Prelude.Base.Bool    ()
 import Data.Array.Parallel.Prelude.Base.Tuple   ()
 --
 --  ... the horror, the horror ...

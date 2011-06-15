@@ -42,11 +42,6 @@ Library
         Data.Array.Parallel.Lifted.TH.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
-        Data.Array.Parallel.Prelude.Base.Int
-        Data.Array.Parallel.Prelude.Base.Word8
-        Data.Array.Parallel.Prelude.Base.Float
-        Data.Array.Parallel.Prelude.Base.Double
-        Data.Array.Parallel.Prelude.Base.Bool
         Data.Array.Parallel.Prelude.Base.Tuple
         Data.Array.Parallel.Prelude.Bool
 
