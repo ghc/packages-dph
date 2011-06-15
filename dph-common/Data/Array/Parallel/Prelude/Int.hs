@@ -124,6 +124,7 @@ sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
-enumFromToP n m = [:n..m:]
---enumFromToP n m = PArr.enumFromToP n m
+-- Haddock doesn't like this:
+-- enumFromToP n m = [:n..m:]
+enumFromToP n m = PArr.enumFromToP n m
 {-# VECTORISE enumFromToP = enumFromToPA_Int #-}
