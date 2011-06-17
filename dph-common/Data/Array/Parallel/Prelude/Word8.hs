@@ -29,10 +29,6 @@ import Prelude (Int, Bool)
 import Data.Word (Word8)
 import qualified Prelude as P
 
--- FAKE dependency to avoid build race
-import Data.Array.Parallel.Prelude.Base.Tuple   ()
-
-
 infixl 7 *
 infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
