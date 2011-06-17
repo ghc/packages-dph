@@ -35,6 +35,10 @@ import Data.Array.Parallel.Lifted.Closure
 import Prelude (Double, Int, Bool)
 import qualified Prelude as P
 
+-- FAKE dependency to avoid build race
+import Data.Array.Parallel.Prelude.Base.Tuple   ()
+
+
 infixr 8 **
 infixl 7 *, /
 infixl 6 +, -

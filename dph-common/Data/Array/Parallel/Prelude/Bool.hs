@@ -20,6 +20,9 @@ import Data.Array.Parallel.Lifted.Scalar
 import qualified Data.Array.Parallel.Unlifted as U
 import Data.Bits
 
+-- FAKE dependency to avoid build race
+import Data.Array.Parallel.Prelude.Base.Tuple   ()
+
 infixr 3 &&
 infixr 2 ||
 
