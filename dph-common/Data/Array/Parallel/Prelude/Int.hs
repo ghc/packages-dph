@@ -1,5 +1,6 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
+  -- NB: Cannot use any parallel array syntax except the type constructor
 
 module Data.Array.Parallel.Prelude.Int (
   Int,
@@ -130,7 +131,5 @@ sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
--- Haddock doesn't like this:
--- enumFromToP n m = [:n..m:]
-enumFromToP x y = [:x, y:]
+enumFromToP x y = singletonPArr (x + y)
 {-# VECTORISE enumFromToP = enumFromToPA_Int #-}

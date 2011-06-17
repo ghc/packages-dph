@@ -1,5 +1,6 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
+  -- NB: Cannot use any parallel array syntax except the type constructor
 
 module Data.Array.Parallel.Prelude.Bool (
   Bool(..),
@@ -13,7 +14,7 @@ module Data.Array.Parallel.Prelude.Bool (
 
 import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
 
-import Data.Array.Parallel.PArr
+import Data.Array.Parallel.PArr ()
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar

@@ -1,5 +1,6 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
+  -- NB: Cannot use any parallel array syntax except the type constructor
 
 module Data.Array.Parallel.Prelude.Float (
   Float,
