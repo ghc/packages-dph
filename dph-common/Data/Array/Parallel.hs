@@ -7,7 +7,7 @@
 -- Copyright   :  (c) [2006..2011] Data Parallel Haskell team
 -- License     :  see libraries/dph/LICENSE
 -- 
--- Maintainer  :  Manuel Chakravarty <chk@cse.unsw.edu.au>
+-- Maintainer  :  cvs-ghc@haskell.org
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
@@ -36,51 +36,35 @@
 -- these functions will not work at all!
 
 module Data.Array.Parallel (
-  -- [::],		-- Built-in syntax
+  module Data.Array.Parallel.Prelude,
+  
+  -- [::],    -- Built-in syntax
 
+  -- * Operations on parallel arrays '[::]'
   emptyP, singletonP, replicateP, lengthP, (!:),
   (+:+), concatP,
   mapP, filterP, combineP,
-  minimumP, maximumP, sumP, productP,
+  {- minimumP, maximumP, sumP, productP, -}  -- removed until we support type classes
   zipP, unzipP, zipWithP,
-  enumFromToP, enumFromThenToP,
+  {- enumFromToP, enumFromThenToP, -}        -- removed until we support type classes
   bpermuteP, updateP, indexedP, sliceP,
   crossMapP,
   
+  -- * Conversions
   fromPArrayP, toPArrayP, fromNestedPArrayP
 ) where
 
-import Prelude hiding (undefined)
-import GHC.PArr     -- only has the definition of [::] left
+import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
 
+import Data.Array.Parallel.PArr
+import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
 
-
--------------------------------------------------------------------------------
--- FAKE DEPENDENCIES
---  These imports are an atrocious hack to get around a race in the GHC build
---  system. The race happens when we try to build Haddock docs for the dph-par
---  and dph-seq packages. As these are really aliases for dph-common, all the
---  dph-common modules need to be loaded, otherwise desugaring fails.
---
---  Adding these dependencies fixes the problem, as they ensure that the required
---  dph-common modules are loaded before we try to vectorise THIS MODULE. If you 
---  take them out, then mae sure GHC still validates with >= 2 threads. Without
---  the dependencies it'll still work for 1 thread, but die with more than that.
--- 
---  Note that following modules are exactly the ones that don't import THIS MODULE
---  by themselves. 
--- 
-import Data.Array.Parallel.Prelude.Base.Tuple   ()
---
---  ... the horror, the horror ...
--------------------------------------------------------------------------------
-
+import Prelude hiding (undefined)
 
 infixl 9 !:
 infixr 5 +:+
-
 
 undefined :: a
 {-# NOINLINE undefined #-}
@@ -139,25 +123,21 @@ filterP !_ xs = xs
 {-# VECTORISE filterP = filterPA #-}
 
 -- sumP :: Num a => [:a:] -> a
-sumP :: [:a:] -> a      -- FIXME: MEGA KLUDGE
-{-# NOINLINE sumP #-}
-sumP a = a !: 0
--- no VECTORISE pragma yet as it's still translated in the builtin table
-
+-- {-# NOINLINE sumP #-}
+-- sumP a = a !: 0
+-- -- no VECTORISE pragma as we still have the type-specific mock Prelude modules
+-- 
 -- productP :: Num a => [:a:] -> a
-productP :: [:a:] -> a
-{-# NOINLINE productP #-}
-productP a = a !: 0
-
+-- {-# NOINLINE productP #-}
+-- productP a = a !: 0
+-- 
 -- maximumP :: Ord a => [:a:] -> a
-maximumP :: [:a:] -> a
-{-# NOINLINE maximumP #-}
-maximumP a = a !: 0
-
+-- {-# NOINLINE maximumP #-}
+-- maximumP a = a !: 0
+-- 
 -- minimumP :: Ord a => [:a:] -> a
-minimumP :: [:a:] -> a
-{-# NOINLINE minimumP #-}
-minimumP a = a !: 0
+-- {-# NOINLINE minimumP #-}
+-- minimumP a = a !: 0
 
 zipP :: [:a:] -> [:b:] -> [:(a, b):]
 {-# NOINLINE zipP #-}
@@ -175,14 +155,12 @@ zipWithP !_ !_ !_ = [::]
 {-# VECTORISE zipWithP = zipWithPA #-}
 
 -- enumFromToP :: Enum a => a -> a -> [:a:]
-enumFromToP :: a -> a -> [:a:]
-{-# NOINLINE enumFromToP #-}
-enumFromToP x y = [:x, y:]
-
+-- {-# NOINLINE enumFromToP #-}
+-- enumFromToP x y = [:x, y:]
+-- 
 -- enumFromThenToP :: Enum a => a -> a -> a -> [:a:]
-enumFromThenToP :: a -> a -> a -> [:a:]
-{-# NOINLINE enumFromThenToP #-}
-enumFromThenToP x y z = [:x, y, z:]
+-- {-# NOINLINE enumFromThenToP #-}
+-- enumFromThenToP x y z = [:x, y, z:]
 
 combineP :: [:a:] -> [:a:] -> [:Int:] -> [:a:]
 {-# NOINLINE combineP #-}

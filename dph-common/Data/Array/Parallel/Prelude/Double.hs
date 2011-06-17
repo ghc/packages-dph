@@ -28,7 +28,9 @@ module Data.Array.Parallel.Prelude.Double (
   truncate, round, ceiling, floor,
 ) where
 
-import qualified Data.Array.Parallel as PArr
+import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
+
+import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 
@@ -61,10 +63,12 @@ max = P.max
 {-# VECTORISE SCALAR max #-}
 
 minimumP, maximumP :: [:Double:] -> Double
-minimumP = PArr.minimumP
+{-# NOINLINE minimumP #-}
+minimumP a = a `indexPArr` 0
 {-# VECTORISE minimumP
   = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min) :: PArray Double :-> Double #-}
-maximumP = PArr.maximumP
+{-# NOINLINE maximumP #-}
+maximumP a = a `indexPArr` 0
 {-# VECTORISE maximumP
   = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max) :: PArray Double :-> Double #-}
 
@@ -111,10 +115,12 @@ abs = P.abs
 {-# VECTORISE SCALAR abs #-}
 
 sumP, productP :: [:Double:] -> Double
-sumP = PArr.sumP
+{-# NOINLINE sumP #-}
+sumP a = a `indexPArr` 0
 {-# VECTORISE sumP 
   = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0) :: PArray Double :-> Double #-}
-productP = PArr.productP
+{-# NOINLINE productP #-}
+productP a = a `indexPArr` 0
 {-# VECTORISE productP 
   = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1) :: PArray Double :-> Double #-}
 

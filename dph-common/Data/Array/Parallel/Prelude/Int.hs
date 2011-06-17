@@ -21,7 +21,9 @@ module Data.Array.Parallel.Prelude.Int (
   enumFromToP
 ) where
 
-import qualified Data.Array.Parallel as PArr
+import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
+
+import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
@@ -55,10 +57,12 @@ max = P.max
 {-# VECTORISE SCALAR max #-}
 
 minimumP, maximumP :: [:Int:] -> Int
-minimumP = PArr.minimumP
+{-# NOINLINE minimumP #-}
+minimumP a = a `indexPArr` 0
 {-# VECTORISE minimumP
   = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min) :: PArray Int :-> Int #-}
-maximumP = PArr.maximumP
+{-# NOINLINE maximumP #-}
+maximumP a = a `indexPArr` 0
 {-# VECTORISE maximumP
   = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max) :: PArray Int :-> Int #-}
 
@@ -105,10 +109,12 @@ abs = P.abs
 {-# VECTORISE SCALAR abs #-}
 
 sumP, productP :: [:Int:] -> Int
-sumP = PArr.sumP
+{-# NOINLINE sumP #-}
+sumP a = a `indexPArr` 0
 {-# VECTORISE sumP 
   = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0) :: PArray Int :-> Int #-}
-productP = PArr.productP
+{-# NOINLINE productP #-}
+productP a = a `indexPArr` 0
 {-# VECTORISE productP 
   = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1) :: PArray Int :-> Int #-}
 
@@ -126,5 +132,5 @@ enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
 -- Haddock doesn't like this:
 -- enumFromToP n m = [:n..m:]
-enumFromToP n m = PArr.enumFromToP n m
+enumFromToP x y = [:x, y:]
 {-# VECTORISE enumFromToP = enumFromToPA_Int #-}

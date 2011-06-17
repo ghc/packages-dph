@@ -28,6 +28,7 @@ Library
         Data.Array.Parallel.PArray
 
   Other-Modules:
+        Data.Array.Parallel.PArr
         Data.Array.Parallel.PArray.Base
         Data.Array.Parallel.PArray.Scalar
         Data.Array.Parallel.PArray.ScalarInstances
@@ -42,8 +43,9 @@ Library
         Data.Array.Parallel.Lifted.TH.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
-        Data.Array.Parallel.Prelude.Base.Tuple
+        Data.Array.Parallel.Prelude.Tuple
         Data.Array.Parallel.Prelude.Bool
+        Data.Array.Parallel.VectDepend
 
   Exposed: False
 

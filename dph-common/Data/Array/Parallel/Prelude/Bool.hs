@@ -11,18 +11,21 @@ module Data.Array.Parallel.Prelude.Bool (
   and_l, or_l, not_l
 ) where
 
-import qualified Prelude as P
-import Prelude (Bool(..))
+import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
 
+import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
 import qualified Data.Array.Parallel.Unlifted as U
+
+import qualified Prelude as P
+import Prelude (Bool(..))
+
 import Data.Bits
 
 infixr 3 &&
 infixr 2 ||
-
 
 otherwise :: Bool
 otherwise = True
