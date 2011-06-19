@@ -97,7 +97,7 @@ import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size ( Size(..) )
 import Prelude hiding ( length, null,
                         replicate, (++), repeat,
-                        tail, take, drop,
+                        tail, take, drop, splitAt,
                         reverse,
                         map, zipWith, zipWith3, filter,
                         foldl, foldl1, scanl, scanl1,
@@ -136,12 +136,6 @@ units n = replicate n ()
 interleave :: Unbox e => Vector e -> Vector e -> Vector e
 {-# INLINE_U interleave #-}
 interleave xs ys = unstream (interleaveS (stream xs) (stream ys))
-
--- |Associate each element of the array with its index
---
-indexed :: Unbox e => Vector e -> Vector (Int,e)
-{-# INLINE_U indexed #-}
-indexed = unstream . indexedS . stream
 
 -- |Repeat an array @n@ times
 --
