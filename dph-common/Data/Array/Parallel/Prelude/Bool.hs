@@ -21,15 +21,14 @@ import Data.Array.Parallel.Lifted.Scalar
 import qualified Data.Array.Parallel.Unlifted as U
 
 import qualified Prelude as P
-import Prelude (Bool(..))
+import Prelude (Bool(..), otherwise)
+  -- NB: re-export 'Prelude.otherwise' instead of rolling a new one as the former is special-cased
+  --     in the Desugarer
 
 import Data.Bits
 
 infixr 3 &&
 infixr 2 ||
-
-otherwise :: Bool
-otherwise = True
 
 (&&) :: Bool -> Bool -> Bool
 (&&) = (P.&&)

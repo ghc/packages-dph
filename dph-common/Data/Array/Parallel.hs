@@ -207,7 +207,6 @@ fromNestedPArrayP :: PArray (PArray a) -> [:[:a:]:]
 fromNestedPArrayP !_ = emptyP
 {-# VECTORISE fromNestedPArrayP = fromNestedPArrayPA #-}
 
-
 {- ================================================================================================
    This is the old code from GHC.PArr that we used to implement parallel arrays without
    vectorisation.  As soon as partial vectorisation has been implemented, we should revise
