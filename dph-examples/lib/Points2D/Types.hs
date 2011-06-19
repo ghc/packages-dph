@@ -8,7 +8,7 @@ module Points2D.Types
 	, xsOf, xsOfPA
 	, ysOf, ysOfPA)
 where
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 
 type Point = (Double, Double)
 type Line  = (Point, Point)

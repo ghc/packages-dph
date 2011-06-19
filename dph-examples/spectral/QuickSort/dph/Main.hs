@@ -4,7 +4,7 @@ import Timing
 import Randomish
 import System.Environment
 import Data.Vector.Unboxed		(Vector)
-import Data.Array.Parallel.Prelude	as P
+import Data.Array.Parallel	as P
 import Data.Array.Parallel.PArray	as P
 import qualified Data.Vector.Unboxed	as V
 import Data.Maybe

@@ -12,7 +12,7 @@ import qualified Data.Vector.Unboxed		as V
 import qualified Solver.VectorBH.Solver		as SolverVB
 import qualified Solver.VectorNaive.Solver	as SolverVN
 
-import qualified Data.Array.Parallel.Prelude	as P
+import qualified Data.Array.Parallel	as P
 import qualified Data.Array.Parallel.PArray	as P
 import qualified Solver.NestedBH.Solver		as SolverNB
 

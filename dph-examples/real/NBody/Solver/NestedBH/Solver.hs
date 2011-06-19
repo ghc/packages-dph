@@ -3,7 +3,7 @@
 module Solver.NestedBH.Solver 
 	(calcAccelsWithBoxPA)
 where
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Double
 import qualified Data.Array.Parallel.Prelude.Int as I
 import qualified Prelude

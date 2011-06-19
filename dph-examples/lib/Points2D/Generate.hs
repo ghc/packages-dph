@@ -9,7 +9,7 @@ where
 import Points2D.Types
 import Randomish
 import qualified Data.Array.Parallel.Unlifted 	    as U
-import qualified Data.Array.Parallel.Prelude 	    as P
+import qualified Data.Array.Parallel 	    as P
 import qualified Data.Array.Parallel.PArray         as P
 import Data.Array.Parallel.PArray		    (PArray)
 import Control.Exception

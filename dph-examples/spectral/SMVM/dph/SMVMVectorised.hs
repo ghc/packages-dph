@@ -3,7 +3,7 @@
 {-# OPTIONS -fvectorise #-}
 module SMVMVectorised (smvmPA) where
 
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Double as D
 import Data.Array.Parallel.Prelude.Int    as I
 

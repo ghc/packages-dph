@@ -3,7 +3,7 @@
 {-# OPTIONS -fno-spec-constr-count #-}
 module QuickSortVect (quicksortPA) where
 
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Double
 import qualified Data.Array.Parallel.Prelude.Int as I
 

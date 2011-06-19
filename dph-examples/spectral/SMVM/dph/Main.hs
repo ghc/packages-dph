@@ -6,7 +6,7 @@ import System.IO
 import Foreign.Storable
 import Foreign.Marshal.Alloc
 import Data.Array.Parallel.PArray	as P
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import qualified Data.Array.Parallel.Unlifted as U
 import System.Environment
 import Control.Exception (evaluate)

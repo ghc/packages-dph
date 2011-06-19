@@ -3,7 +3,7 @@
 module RankVectorised        
         (ranksPA)
 where
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Int
 import qualified Prelude as P
 

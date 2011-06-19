@@ -3,7 +3,7 @@
 module IndicesVectorised        
         (indicesPA, indices)
 where
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Int
 import qualified Prelude as P
 

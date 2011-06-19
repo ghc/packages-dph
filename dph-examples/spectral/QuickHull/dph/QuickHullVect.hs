@@ -3,7 +3,7 @@
 
 module QuickHullVect (quickhullPA) where
 import Points2D.Types
-import Data.Array.Parallel.Prelude
+import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Double
 import qualified Data.Array.Parallel.Prelude.Int as Int
 import qualified Prelude as P
