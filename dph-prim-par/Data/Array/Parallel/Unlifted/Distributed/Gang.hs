@@ -173,6 +173,7 @@ gangIO	:: Gang
 	-> (Int -> IO ())
 	-> IO ()
 
+gangIO (Gang n [] busy)  p = mapM_ p [0 .. n-1]
 #if SEQ_IF_GANG_BUSY
 gangIO (Gang n mvs busy) p 
  = do	traceGang   "gangIO: issuing work requests (SEQ_IF_GANG_BUSY)"
@@ -186,7 +187,6 @@ gangIO (Gang n mvs busy) p
 		swapMVar busy False
 		return ()
 #else
-gangIO (Gang n [] busy)  p = mapM_ p [0 .. n-1]
 gangIO (Gang n mvs busy) p = parIO n mvs p
 #endif
 
