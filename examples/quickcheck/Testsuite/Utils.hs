@@ -1,5 +1,9 @@
 module Testsuite.Utils (
-  Len(..), Perm(..), SizedInt(..), limitRange, update
+  Len(..), Perm(..), SizedInt(..),
+  
+  segdForArray,
+  
+  limitRange, update, nest
 ) where
 
 import Test.QuickCheck
@@ -9,7 +13,7 @@ import Text.Show.Functions
 import Data.Array.Parallel.Unlifted as U hiding ( update )
 import Prelude as P
 
-import Data.List ( delete )
+import Data.List ( delete, sort )
 
 --------------------------- Test data generators ----------------------------
 
@@ -45,6 +49,28 @@ newtype SizedInt = SizedInt Int deriving (Eq, Ord, Enum, Show, Num)
 instance Arbitrary SizedInt where
   arbitrary = SizedInt `fmap` arbitrarySizedIntegral
 
+
+-- Segment descriptor of length n.
+-- 
+-- Do not use directly unless an arbitrary Segd is all you need.  
+-- Use segdForArray to generate a Segd that fits the array.
+instance Arbitrary Segd where
+  arbitrary = sized $ \n -> 
+    do
+      ids <- genIndices n
+      let lens = indicesToLengths ids n
+      return $ mkSegd (fromList lens) (fromList ids) n
+    where 
+      -- list of non-decreasing integers in range [0, n)
+      genIndices 0 = return []
+      genIndices n = ((0:) . sort . P.map (`mod` n)) `fmap` arbitrary
+      indicesToLengths ids n = P.zipWith (-) (tail $ ids ++ [n]) ids
+
+-- Generate segment descriptor fitting the given array
+segdForArray :: (Elt a) => Array a -> Gen Segd
+segdForArray arr = resize (U.length arr) arbitrary
+
+
 ------------------------------ Helper functins ---------------------------------
 -- TODO: Enhance TH testing infrastructure to allow keeping helper fuctions in
 --       in the same files as the properties.
@@ -61,3 +87,8 @@ update xs []              = xs
 update xs ((i,x) : pairs) = update (set xs i x) pairs
     where set xs i x = (P.take i xs) ++ [x] ++ (P.drop (i+1) xs)
 
+-- Nest elements of an array according to segments lengths descriptor
+nest :: [Int] -> [a] -> [[a]]
+nest (n : ns) xs = let (ys, zs) = P.splitAt n xs
+                   in ys : nest ns zs
+nest _ _ = []
