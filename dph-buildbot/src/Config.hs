@@ -11,7 +11,7 @@ import System.Console.ParseArgs	hiding (args)
 import System.Directory
 import Control.Monad
 import Data.Maybe
-
+import qualified Data.Traversable         as T
 
 -- Config -----------------------------------------------------------------------------------------
 -- | Buildbot command line configuration.
@@ -33,17 +33,18 @@ data Config
 	--   TODO: If we had a better options parser we wouldn't have to hack everything into the same arg.
 	, configLibs		:: Maybe String
 
-	-- Test stages
-	, configDoTestRepa	:: Bool 
-	, configDoTestDPH	:: Bool
-	, configDoTestNoSlow	:: Bool
+	-- Test stages ------------------------------------
+        -- What libraries to test.
+	, configDoTestDPH	:: Maybe FilePath
+	, configDoTestRepa	:: Maybe FilePath
+	, configDoTestNoSlow	:: Maybe FilePath
 
-	-- Testing config.
+	-- Testing config ---------------------------------
 	, configIterations	:: Int
 	, configAgainstResults	:: Maybe FilePath 
 	, configSwingFraction	:: Maybe Double
 
-	-- What do with the results.
+	-- What do with the results -----------------------
 	, configWriteResults	:: Maybe (FilePath, Bool)
 	, configMailFromTo	:: Maybe (String, String)
 	, configMailFailTo	:: Maybe String
@@ -115,7 +116,33 @@ slurpConfig args
 	
 	ghcBuild	<- ghcBuild'
 
-	-- Build the final condif
+        -- Testing --------------------------------------------------
+        doTestDPH
+         <- T.mapM canonicalizePath
+         $  if gotArg args ArgDoTestDPH
+             then msum  [ getArg args ArgUseDPH
+                        , liftM (++ "/ghc-head/libraries/dph") mScratchDir
+                        , Just $ error "must specify --scratch or --use-dph with --test-dph" ]
+             else Nothing
+
+        doTestRepa
+         <- T.mapM canonicalizePath
+         $  if gotArg args ArgDoTestRepa
+             then msum  [ getArg args ArgUseDPH
+                        , liftM (++ "/repa-head") mScratchDir
+                        , Just $ error "must specify --scratch or --use-repa with --test-repa" ]
+             else Nothing
+
+        doTestNoSlow
+         <- T.mapM canonicalizePath
+         $  if gotArg args ArgDoTestNoSlow
+             then msum  [ getArg args ArgUseDPH
+                        , liftM (++ "/NoSlow-head") mScratchDir
+                        , Just $ error "must specify --scratch or --use-noslow with --test-noslow" ]
+             else Nothing
+             
+
+	-- Build the final config -----------------------------------
     	return $ Config
 		{ configVerbose		= gotArg args ArgVerbose
 		, configScratchDir	= mScratchDir
@@ -126,9 +153,9 @@ slurpConfig args
 		, configLibs		= getArg args ArgLibs
 
 		-- Testing stages
-		, configDoTestRepa	= gotArg args ArgDoTestRepa
-		, configDoTestDPH	= gotArg args ArgDoTestDPH
-		, configDoTestNoSlow	= gotArg args ArgDoTestNoSlow
+		, configDoTestDPH	= doTestDPH
+		, configDoTestRepa	= doTestRepa
+		, configDoTestNoSlow	= doTestNoSlow
 
 		-- Testing config.
 		, configIterations	= iterations 

@@ -202,7 +202,10 @@ runTotal config
 	 $ libsBuild configNew
 						
 	-- Run benchmarks and write results to file, or mail them to the list.
-	when (configDoTestRepa configNew || configDoTestDPH configNew || configDoTestNoSlow configNew)
+	when (or $ map isJust 
+	         [ configDoTestRepa configNew
+	         , configDoTestDPH configNew
+	         , configDoTestNoSlow configNew])
 	 $ buildTest configNew env
 
 

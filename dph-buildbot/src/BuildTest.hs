@@ -10,6 +10,7 @@ import Data.Maybe
 import Control.Monad
 
 
+
 -- | Run regression tests.	
 buildTest :: Config -> Environment -> Build ()
 buildTest config env
@@ -25,7 +26,8 @@ buildTest config env
 			 -> do	file	<- io $ readFile fileName
 				return	$ Just file
 				
-	let resultsPrior
+	let resultsPrior :: [BenchResult Stats]
+	    resultsPrior
 		= maybe []
 			(\contents -> map statBenchResult $ buildResultBench $ read contents)
 			mBaseline
@@ -35,31 +37,26 @@ buildTest config env
 
 	-- Run the DPH benchmarks
 	benchResultsDPH
-	 <- if (configDoTestDPH config)
-	     then inDir (scratchDir ++ "/ghc-head/libraries/dph") $
- 	  	  do	mapM 	(outRunBenchmarkWith (configIterations config)  resultsPrior)
-				(benchmarksDPH config)
-	     else return []
+	 <- (flip $ maybe $ return []) (configDoTestDPH config)
+	 $  \dir -> inDir dir 
+	 $  mapM (outRunBenchmarkWith (configIterations config)  resultsPrior)
+		 (benchmarksDPH config)
 
 	-- Run the Repa benchmarks
 	benchResultsRepa
-	 <- if (configDoTestRepa config)
-	     then inDir (scratchDir ++ "/repa-head") $
- 	 	  do	mapM 	(outRunBenchmarkWith (configIterations config)  resultsPrior)
-				(benchmarksRepa config)
-	     else return []
+	 <- (flip $ maybe $ return []) (configDoTestRepa config)
+	 $  \dir -> inDir dir
+	 $  mapM (outRunBenchmarkWith (configIterations config)  resultsPrior)
+	 	 (benchmarksRepa config)
 
 	-- Run NoSlow benchmarks
 	benchResultsNoSlow
-	 <- if (configDoTestNoSlow config)
-	     then 
-		inDir (scratchDir ++ "/NoSlow-head") $
-		withTempFile $ \filePath ->
-		 do	ssystem  $ "dist/build/noslow/noslow -o " ++ filePath
-			liftM parseNoSlowLog $ io $ readFile filePath
-		
-	     else return []
-	
+	 <- (flip $ maybe $ return []) (configDoTestNoSlow config)
+	 $ \dir -> inDir dir
+	 $ withTempFile $ \filePath ->
+	   do	ssystem  $ "dist/build/noslow/noslow -o " ++ filePath
+		liftM parseNoSlowLog $ io $ readFile filePath
+
 
 	let benchResults
 		= benchResultsDPH ++ benchResultsRepa ++ benchResultsNoSlow

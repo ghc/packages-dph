@@ -25,9 +25,14 @@ data BuildArg
 	| ArgLibs
 
 	-- Testing DPH and Repa
-	| ArgDoTestRepa
 	| ArgDoTestDPH
+	| ArgDoTestRepa
 	| ArgDoTestNoSlow
+
+        | ArgUseDPH
+        | ArgUseRepa
+        | ArgUseNoSlow
+
 	| ArgTestIterations
 	| ArgMailFrom 
 	| ArgMailTo
@@ -132,6 +137,24 @@ buildArgs
 		, argName	= Just "test-noslow"
 		, argData	= Nothing
 		, argDesc	= "Run NoSlow regression tests." }
+
+        , Arg   { argIndex      = ArgUseDPH 
+                , argAbbr       = Nothing
+                , argName       = Just "use-dph"
+                , argData       = argDataOptional "dir" ArgtypeString
+                , argDesc       = "Use this DPH repo for testing." }
+
+        , Arg   { argIndex      = ArgUseRepa
+                , argAbbr       = Nothing
+                , argName       = Just "use-repa"
+                , argData       = argDataOptional "dir" ArgtypeString
+                , argDesc       = "Use this Repa repo for testing." }
+
+        , Arg   { argIndex      = ArgUseNoSlow
+                , argAbbr       = Nothing
+                , argName       = Just "use-noslow"
+                , argData       = argDataOptional "dir" ArgtypeString
+                , argDesc       = "Use this NoSlow repo for testing." }
 
 	, Arg	{ argIndex	= ArgTestIterations
 		, argAbbr	= Just 'i'
