@@ -1,6 +1,8 @@
 module Testsuite.Utils (
   Len(..), Perm(..), SizedInt(..),
   
+  Proxy(..), asProxyTypeOf,
+    
   segdForArray,
   
   limitRange, update, nest
@@ -14,6 +16,8 @@ import Data.Array.Parallel.Unlifted as U hiding ( update )
 import Prelude as P
 
 import Data.List ( delete, sort )
+
+import System.Random ( StdGen, mkStdGen)
 
 --------------------------- Test data generators ----------------------------
 
@@ -71,7 +75,21 @@ segdForArray :: (Elt a) => Array a -> Gen Segd
 segdForArray arr = resize (U.length arr) arbitrary
 
 
------------------------------- Helper functins ---------------------------------
+-- Random number generator
+instance Arbitrary StdGen where
+  arbitrary = mkStdGen `fmap` arbitrary
+
+
+-- A phantom type similar to the one found in lib `tagged'
+data Proxy a = Proxy deriving (Show)
+
+instance Arbitrary (Proxy a) where
+  arbitrary = return Proxy
+
+asProxyTypeOf :: a -> Proxy a -> a
+asProxyTypeOf = const
+
+------------------------------- Helper functins --------------------------------
 -- TODO: Enhance TH testing infrastructure to allow keeping helper fuctions in
 --       in the same files as the properties.
   
@@ -92,3 +110,4 @@ nest :: [Int] -> [a] -> [[a]]
 nest (n : ns) xs = let (ys, zs) = P.splitAt n xs
                    in ys : nest ns zs
 nest _ _ = []
+

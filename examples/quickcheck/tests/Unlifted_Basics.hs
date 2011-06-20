@@ -4,6 +4,8 @@ import Testsuite
 import Data.Array.Parallel.Unlifted as U
 import Prelude as P
 
+import System.Random as R ( Random, StdGen, randoms, randomRs )
+
 $(testcases [ ""        <@ [t| ( Bool, Int ) |]
             , "acc"     <@ [t| ( Int       ) |]
             , "num"     <@ [t| ( Int       ) |]
@@ -64,5 +66,17 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
 
   prop_eqU_2 :: (Eq a, Elt a) => Array a -> Array a -> Bool
   prop_eqU_2 arr brr = (arr == brr) == (toList arr == toList brr)
+
+  -- Randoms
+  -- -------
+
+  prop_randoms :: (Random a, Eq a, Elt a) => Proxy [a] -> Len -> StdGen -> Bool
+  prop_randoms dummy (Len len) gen =
+    toList (U.randoms len gen) == take len (R.randoms gen) `asProxyTypeOf` dummy
+
+  prop_randomRs :: (Random a, Eq a, Elt a) => Proxy [a] -> Len -> (a, a) -> StdGen -> Bool
+  prop_randomRs dummy (Len len) range gen =
+    toList (U.randomRs len range gen) == take len (R.randomRs range gen) `asProxyTypeOf` dummy
+
   |])
 
