@@ -93,18 +93,18 @@ Clo f _ e $: a = f e a
 --   For example, consider:
 --     @mapP (+) xs   ::  [: Int -> Int :]@
 --
---   Representing this simply as an array of thunks would be far too inefficient
---   due to the intermediate pointers involved. In a distributed parallelism
---   setting it's also difficult to send thunks to other PE's as they contain
---   potentially unknown code pointers.
+--   Representing this an array of thunks doesn't work because we can't evaluate
+--   in a data parallel manner. Instead, we want *one* function applied to many
+--   array elements.
 -- 
 --   Instead, such an array of closures is represented as the vectorised 
---   and lifted versions of (+), along with the environment array xs:
+--   and lifted versions of (+), along with an environment array xs that
+--   contains the partially applied arguments.
 --
 --     @mapP (+) xs  ==>  AClo plus_v plus_l xs@
 --
---   When we find out what the final argument, we can then use the lifted closure
---   application function to compute the result:
+--   When we find out what the final argument is, we can then use the lifted
+--   closure application function to compute the result:
 --
 --    @PArray n (AClo plus_v plus_l xs) $:^ (PArray n' ys) 
 --           => PArray n (plus_l n xs ys)@
