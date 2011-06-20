@@ -75,7 +75,7 @@ loadUArr fname
 		magic1 :: Int	<- peek ptr
 		hGetBuf h ptr (sizeOf (undefined :: Int))
 		magic2	:: Int <- peek ptr
-		if magic1 == 0xc0ffee00 && magic2 == 0x12345678 
+		if magic1 == 0xc0ffee00 Prelude.&& magic2 == 0x12345678 
 			then return ()
 			else error $ "bad magic in " ++ fname
 
