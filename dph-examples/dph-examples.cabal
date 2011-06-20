@@ -96,11 +96,12 @@ Executable dph-reverse-seq
 
 
 -- Words ---------------------------------------------------------------------
-Executable dph-words
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
-  Main-is:        Main.hs
-  hs-source-dirs: imaginary/Words lib
-  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+-- This builds and runs, but takes ~5min. 
+-- Executable dph-words
+--  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Main-is:        Main.hs
+--  hs-source-dirs: imaginary/Words lib
+--  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
 
 -- This one also stalls in SpecConstr, like quicksort-seq
 -- Executable dph-words-seq
@@ -117,7 +118,7 @@ Executable dph-smvm
   hs-source-dirs: spectral/SMVM/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
-Executable dph-smvm-seq
+Executable dph-words-seq
   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: spectral/SMVM/dph lib
@@ -170,11 +171,11 @@ Executable dph-nbody
   if flag(gloss)
     Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.2.*
     hs-source-dirs: lib real/NBody real/NBody/Gloss
-    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
   else
     Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
+    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
   endif
 
 -- Executable dph-nbody-seq

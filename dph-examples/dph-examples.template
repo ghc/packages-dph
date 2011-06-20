@@ -94,11 +94,12 @@ Executable dph-reverse-seq
 
 
 -- Words ---------------------------------------------------------------------
-Executable dph-words
-  Build-depends:  DPH_DEPENDS_PAR
-  Main-is:        Main.hs
-  hs-source-dirs: imaginary/Words lib
-  ghc-options:    DPH_OPTIONS_PAR
+-- This builds and runs, but takes ~5min. 
+-- Executable dph-words
+--  Build-depends:  DPH_DEPENDS_PAR
+--  Main-is:        Main.hs
+--  hs-source-dirs: imaginary/Words lib
+--  ghc-options:    DPH_OPTIONS_PAR -fno-liberate-case
 
 -- This one also stalls in SpecConstr, like quicksort-seq
 -- Executable dph-words-seq
@@ -168,11 +169,11 @@ Executable dph-nbody
   if flag(gloss)
     Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*, gloss == 1.2.*
     hs-source-dirs: lib real/NBody real/NBody/Gloss
-    ghc-options:    DPH_OPTIONS_PAR
+    ghc-options:    DPH_OPTIONS_PAR -fno-liberate-case
   else
     Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    DPH_OPTIONS_PAR
+    ghc-options:    DPH_OPTIONS_PAR -fno-liberate-case
   endif
 
 -- Executable dph-nbody-seq
