@@ -116,7 +116,7 @@ Executable dph-smvm
   hs-source-dirs: spectral/SMVM/dph lib
   ghc-options:    DPH_OPTIONS_PAR
 
-Executable dph-words-seq
+Executable dph-smvm-seq
   Build-depends:  DPH_DEPENDS_SEQ
   Main-is:        Main.hs
   hs-source-dirs: spectral/SMVM/dph lib
