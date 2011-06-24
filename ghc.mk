@@ -62,18 +62,39 @@ libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${v_osuf}
 endif
 
-
-# We also need to make sure that the HSdph-prim-seq/par .o library
-# exists, so that GHC can load it.  The other libs already exist, because
-# we are building with stage 2 which is linked against them.
+# HACKS ***********************************************************************
+# The following modules use Template Haskell, or contain ANN pragmas. Both of
+# these features use compile-time evaluation. During this evaluation we may
+# need to load the dph-prim-* packages, but if they haven't been build yet the
+# compilation will die. This results in a build race, where the compilation
+# will succeed or not depending on whether another make thread has already
+# completed building the dph-prim-* packages.
 #
-# The following two modules directly import Data.Array.Parallel.Unlifted, so the prim
-# library needs to be built first. 
+# Note that the GHC build system does NOT respect the package dependencies
+# present in .cabal files. Even though the dph-common.cabal file lists
+# the dph-prim-* packages as dependencies, these dependencies are silently
+# ignored.
+#
+# The hack-around is to add the following explicit dependencies:
+#   The .o for every module that uses Template Haskell or annotations must
+#   must depend on the dph-prim-* GHCI libraries, so that they can be 
+#   loaded at compile time.
+# 
+# If the dependencies are wrong you will get a build race that can result in 
+# the following error:
+# 
+#   "inplace/bin/ghc-stage2"  ... -o .../Data/Array/Parallel/Lifted/PArray.dyn_o
+#    Loading package dph-prim-seq-0.4.0 ... linking ... done.
+#    Loading package dph-prim-par-0.4.0 ... <command line>: can't load .so/.DLL for: HSdph-prim-par-0.4.0-ghc6.13.20091222
+#       (libHSdph-prim-seq-0.4.0-ghc6.13.20091222.so: cannot open shared object file: No such file or directory)
 #
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): \
 	$$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
 
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/PArray/PData.$${$1_osuf} : \
+	$$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
+
+libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/PArray/Base.$${$1_osuf} : \
 	$$(libraries/dph/dph-prim-$2_dist-install_GHCI_LIB)
 endef
 
@@ -82,20 +103,4 @@ ifneq "$(CLEANING)" "YES"
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),seq)))
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),par)))
 endif
-
-
-# HACKS ***************
-# These rules are to avoid a build race when validating with >= 2 threads.
-# I don't understand what $${$1_osuf} thing we need on the left of these.
-# This whole build setup is very hard to understand. -- BL 2011/05/12. 
-#
-libraries/dph/dph-seq/dist-install/build/Data/Array/Parallel/PArray/PData.o: \
-        $$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
-        $$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
-
-libraries/dph/dph-par/dist-install/build/Data/Array/Parallel/PArray/PData.o: \
-        $$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
-        $$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
-
-
 
