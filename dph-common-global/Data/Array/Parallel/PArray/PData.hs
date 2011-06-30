@@ -19,8 +19,8 @@ module Data.Array.Parallel.PArray.PData
           -- * Derived, polymorphic operators.
         , replicatePR)
 where
-import qualified Data.Vector.Unboxed	as V
-import Data.Vector.Unboxed		(Vector)
+import qualified Data.Array.Parallel.Unlifted	as U
+
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array. 
@@ -66,6 +66,10 @@ class PS a where
 
   -- | Convert a sized array to a list.
   fromListPS	:: [a] -> PData Sized a
+  
+  -- | Convert an unlifted array to a PData. 
+  --   TODO: shift this into the Scalar class like the exising dph library.
+  fromUArrayPS  :: U.Elt a => U.Array a -> PData Sized a
 
 
 -- PJ Dictionary (Projection) -------------------------------------------------

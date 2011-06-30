@@ -8,18 +8,26 @@ import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.PArray
 
+arr10   = fromListPA [1..10 :: Int]
+arr5    = fromListPA [1..5  :: Int]
 
--- plus example
+-- length examples
+ex_length
+ = lengthPP $: arr10
+ 
+ex_length_l
+ = mapPP $: lengthPP $: fromListPA [arr5, arr10]
+
+
+-- plus examples
 --   The constant 5 is replicated by the implementation of plusPA_l.
-ex_plus	 
- = mapPA $: (plusPA $: 5) 
-	 $: (fromListPA [1, 2, 3, 4, 5, 6, 7, 8, 9, 10 :: Int])
+ex_plus_l	 
+ = mapPP $: (plusPP $: 5) $: arr10
 
 
--- index example
+-- index examples
 --   The source array for the indexing operation is not replicated
 --   because the lifted indexing operator is special-cased to use
 --   the same array.
-ex_index 
- = mapPA $: (indexPA $: (fromListPA [1, 2, 3, 4, 5, 6, 7 :: Int])) 
-	 $: (fromListPA [1, 2, 3 :: Int])
+ex_index_l
+ = mapPP $: (indexPP $: arr10) $: arr5
