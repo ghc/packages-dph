@@ -4,7 +4,21 @@
         StandaloneDeriving, UndecidableInstances #-}
         -- Undeciable instances only need for derived Show instance
 
-module Data.Array.Parallel.PArray.PData where
+-- | Parallel array types and primitive operators.
+module Data.Array.Parallel.PArray.PData 
+        ( -- * Parallel Array types.
+          PArray(..)
+        , PData (..), Sized, Global
+
+          -- * Dictionaries
+        , PS(..) -- Operators on Sized arrays.
+        , PJ(..) -- Projection operators.
+        , PE(..) -- Expansion operators.
+        , PR(..) -- Operators on array representation (combination of above)
+
+          -- * Derived, polymorphic operators.
+        , replicatePR)
+where
 import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
 

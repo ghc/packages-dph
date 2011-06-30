@@ -8,6 +8,7 @@ import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.PArray
 
+
 -- plus example
 --   The constant 5 is replicated by the implementation of plusPA_l.
 ex_plus	 

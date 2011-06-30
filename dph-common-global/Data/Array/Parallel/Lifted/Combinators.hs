@@ -12,13 +12,14 @@ import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
 
 -- fromList -------------------------------------------------------------------
-fromListPA :: PR a => [a] -> PArray a
+fromListPA :: PA a => [a] -> PArray a
 fromListPA xs
 	= PArray (length xs) (fromListPS xs)
 
 
 -- length ---------------------------------------------------------------------
-lengthPA   :: PArray a :-> Int
+-- | Take the number of elements in an array.
+lengthPA   :: PA a => PArray a :-> Int
 lengthPA = closure1 lengthPA_v lengthPA_l
 
 -----
@@ -35,7 +36,7 @@ lengthPA_l c da
 
 
 -- map ------------------------------------------------------------------------
-mapPA   :: (PR a, PR b) 
+mapPA   :: (PA a, PA b) 
         => (a :-> b) :-> PArray a :-> PArray b
 mapPA 	= closure2 mapPA_v mapPA_l
 
@@ -57,7 +58,7 @@ mapPA_l n clo arr2
 
 
 -- index ----------------------------------------------------------------------
-indexPA :: PR a => PArray a :-> Int :-> a
+indexPA :: PA a => PArray a :-> Int :-> a
 indexPA	= closure2 indexPA_v indexPA_l
 
 indexPA_v :: PR a => PArray a -> Int -> a

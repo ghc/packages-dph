@@ -4,7 +4,9 @@
         StandaloneDeriving #-}
 
 module Data.Array.Parallel.Lifted.Closure where
-import Data.Array.Parallel.PArray
+import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.PArray.PDataBase
+
 
 -- Closures -------------------------------------------------------------------
 infixr 0 :->
@@ -15,6 +17,7 @@ data (a :-> b)
 			.  (PJ m1 env, PJ m2 a)
 			=> Int -> PData m1 env -> PData m2 a -> PData Sized b)
 		env
+
 
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b
@@ -63,38 +66,6 @@ data instance PData m (a :-> b)
 			=> Int -> PData m1 env -> PData m2 a -> PData Sized b)
 		(PData m env)
 
-instance PS (a :-> b) where
-  emptyPS 
-	= AClo 	(\_ _ -> error "empty array closure")
- 		(\_ _ -> error "empty array closure")
-		(emptyPS :: PData Sized ())
-
-  appPS		= error "appPR[:->] not defined"
-  fromListPS	= error "fromListPR[:->] not defined"
-
-
-instance PJ Global (a :-> b) where
-  restrictPJ n (AClo fv fl env)	
-	= AClo fv fl (restrictPJ n env)
-
-  indexPJ   (AClo fv fl env) ix
-	= Clo fv fl (indexPJ env ix)
-
-
-instance PJ Sized (a :-> b) where
-  restrictPJ n (AClo fv fl env)	
-	= AClo fv fl (restrictPJ n env)
-
-  indexPJ   (AClo fv fl env) ix 
-	= Clo fv fl (indexPJ env ix)
-
-
-instance PE (a :-> b) where
-  repeatPE (Clo fv fl env)
-	= AClo fv fl (repeatPE env)
-
-
-instance PR (a :-> b)
 
 
 -- | Lifted closure application.
