@@ -4,8 +4,8 @@
         StandaloneDeriving #-}
 
 module Data.Array.Parallel.Lifted.Closure where
-import Data.Array.Parallel.PArray.PData
-import Data.Array.Parallel.PArray.PDataBase
+import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PData.Unit
 
 
 -- Closures -------------------------------------------------------------------
@@ -65,7 +65,6 @@ data instance PData m (a :-> b)
 			.  (PJ m1 env, PJ m2 a)
 			=> Int -> PData m1 env -> PData m2 a -> PData Sized b)
 		(PData m env)
-
 
 
 -- | Lifted closure application.

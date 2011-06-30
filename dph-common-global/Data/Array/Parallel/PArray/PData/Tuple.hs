@@ -3,9 +3,8 @@
         FlexibleInstances, FlexibleContexts,
         StandaloneDeriving #-}
 
-module Data.Array.Parallel.PArray.PDataTuple where
-
-import Data.Array.Parallel.PArray.PData
+module Data.Array.Parallel.PArray.PData.Tuple where
+import Data.Array.Parallel.PArray.PData.Base
 
 
 -- PData Sized (a, b) ---------------------------------------------------------

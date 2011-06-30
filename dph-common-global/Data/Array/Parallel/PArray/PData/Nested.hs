@@ -6,10 +6,9 @@
 	StandaloneDeriving,
 	ExistentialQuantification #-}
 
-module Data.Array.Parallel.PArray.PDataNested where
-
-import Data.Array.Parallel.PArray.PData
-import Data.Array.Parallel.PArray.PDataScalar
+module Data.Array.Parallel.PArray.PData.Nested where
+import Data.Array.Parallel.PArray.PData.Scalar
+import Data.Array.Parallel.PArray.PData.Base
 
 import qualified Data.Array.Parallel.Unlifted   as U
 import Debug.Trace

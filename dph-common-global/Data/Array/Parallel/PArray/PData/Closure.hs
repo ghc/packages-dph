@@ -2,8 +2,8 @@
         TypeOperators,
         MultiParamTypeClasses #-}
 
-module Data.Array.Parallel.PArray.PDataClosure where
-import Data.Array.Parallel.PArray.PData
+module Data.Array.Parallel.PArray.PData.Closure where
+import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Lifted.Closure
 
 

@@ -4,9 +4,8 @@
 	MultiParamTypeClasses,
 	StandaloneDeriving,
 	ExistentialQuantification #-}
-module Data.Array.Parallel.PArray.PDataScalar where
-
-import Data.Array.Parallel.PArray.PData
+module Data.Array.Parallel.PArray.PData.Scalar where
+import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted   as U
 import Debug.Trace
 
