@@ -4,7 +4,8 @@
 	FlexibleInstances, FlexibleContexts,
 	MultiParamTypeClasses,
 	StandaloneDeriving,
-	ExistentialQuantification #-}
+	ExistentialQuantification,
+	UndecidableInstances #-}
 
 module Data.Array.Parallel.PArray.PData.Nested where
 import Data.Array.Parallel.PArray.PData.Scalar
@@ -26,25 +27,32 @@ instance PS a => PS (PArray a) where
 	= PNestedS (U.mkSegd U.empty U.empty 0) emptyPS
 
   appPS (PNestedS segd1 d1) (PNestedS segd2 d2) 
-   	= undefined
+   	= error "appPS@PArray undefined"
 
   fromListPS xx
-	= undefined
-
-
+   = case xx of
+      []      -> emptyPS
+      xx@(x:xs)
+       -> PNestedS
+                (U.lengthsToSegd $ U.fromList $ map lengthPA xx)
+                (foldl1 appPS $ map unpackPA xx)
+                
 instance PJ Sized a => PJ Sized (PArray a) where 
+  restrictPJ n arr@(PNestedS segd d1)
+   = arr
+
   indexlPJ n (PNestedS segd d1) d2
    = let d1s  = restrictPJ n d1
          d2s  = restrictPJ n d2
-     in  undefined -- zipWithSegdSized indexPJ segd d1s d2s
-
+     in  error "indexlPJ@PArray sized undefined"
+     
 
 instance PR a => PJ Global (PArray a) where
 
   indexlPJ n (PNestedG (PArray _ d1)) d2
    = let PIntS vec2  = restrictPJ n d2
-     in  PArray (error "indexlPJ: fake array size, not used by caller")
-		(fromListPS (map (indexPJ d1) $ U.toList vec2))
+     in  PArray (error "indexlPJ@PArray: fake segd should not be touched by caller")
+         $ constructPS (indexPJ d1) vec2
 
 
 instance PE a => PE (PArray a) where
@@ -54,9 +62,3 @@ instance PE a => PE (PArray a) where
 instance PR a => PR (PArray a)
 
 
-zipWithSegdSized
-	:: (PData Sized a -> b -> c) 
-	-> U.Segd -> PData Sized a 
-	-> PData Sized b
-	-> PData Sized c
-zipWithSegdSized = undefined

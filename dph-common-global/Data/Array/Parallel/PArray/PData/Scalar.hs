@@ -27,8 +27,14 @@ instance PS Int where
   appPS (PIntS arr1) (PIntS arr2)
 	= PIntS (arr1 U.+:+ arr2)
 
+  constructPS f ixs
+        = PIntS (U.map f ixs)
+
   fromListPS xx
 	= PIntS (U.fromList xx)
+
+  fromUArrayPS xx
+        = PIntS xx
 
 
 instance PJ Sized Int where
@@ -41,12 +47,11 @@ instance PJ Sized Int where
 
 instance PJ Global Int where
   restrictPJ n (PIntG x)	
-	= trace ("{- restrictPJ[Int] " ++ show n ++ " " ++ show x ++ " -}")
+	= trace ("{- restrictPJ@Int " ++ show n ++ " " ++ show x ++ " -}")
 	$ PIntS (U.replicate n x)
 
   indexPJ (PIntG x) _
 	= x
-
 
 instance PE Int where
   repeatPE x	= PIntG x 

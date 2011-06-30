@@ -4,7 +4,6 @@ module Data.Array.Parallel.PArray
         , module Data.Array.Parallel.PArray.PRepr
         , fromListPA
         , fromUArrayPA
-        , lengthPA
         , replicatePA
         , indexPA)
 where
@@ -26,17 +25,12 @@ fromUArrayPA arr
         = PArray (U.length arr) (fromUArrayPS arr)
 
 
--- | Take the length of a PArray.
-lengthPA :: PArray a -> Int
-lengthPA (PArray n _)
-        = n
-
-
 -- | Replicate a single element a certain number of times, 
 --   producing physical copies of the element in the PArray.
 replicatePA   :: PA a => Int -> a -> PArray a
 replicatePA n x 
         = PArray n (replicatePR n x)
+
 
 -- | Lookup an indexed element from a PArray.
 indexPA :: PA a => PArray a -> Int -> a

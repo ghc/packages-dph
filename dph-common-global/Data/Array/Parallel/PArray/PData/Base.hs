@@ -7,6 +7,8 @@
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
+        , lengthPA, unpackPA
+          
         , PData (..), Sized, Global
 
           -- * Dictionaries
@@ -28,6 +30,11 @@ data PArray a
 deriving instance (Show (PData Sized a), Show a)
 	=> Show (PArray a)
 
+lengthPA :: PArray a -> Int
+lengthPA (PArray n _)   = n
+
+unpackPA :: PArray a -> PData Sized a
+unpackPA (PArray _ d)   = d
 
 -- PData ----------------------------------------------------------------------
 -- | Parallel array data.
@@ -57,14 +64,20 @@ class PS a where
   -- | Produce an empty array with size zero.
   emptyPS	:: PData Sized a
 
+  -- | Generate an array by applying a function to every integer in an
+  --   unlifted array. This is commonly used to implement lifted projections
+  --   of global arrays, as we can pass a worker function that extracts 
+  --   data from a physically shared source.
+  constructPS   :: (Int -> a) -> U.Array Int -> PData Sized a
+
   -- | Append two sized arrays.
   appPS		:: PData Sized a -> PData Sized a -> PData Sized a
 
   -- | Convert a sized array to a list.
   fromListPS	:: [a] -> PData Sized a
-  
+
+  -- TODO: Shift this into the Scalar class like existing library.  
   -- | Convert an unlifted array to a PData. 
-  --   TODO: shift this into the Scalar class like the exising dph library.
   fromUArrayPS  :: U.Elt a => U.Array a -> PData Sized a
 
 
@@ -90,16 +103,16 @@ class PS a => PJ m a where
   -- | Lookup a single element from the source array.
   indexPJ       :: PData m a  -> Int -> a
 
-  -- | Lifted replicate, look up each indexed element from the corresponding
-  --   array. This method only has an instance for the nested case, where 
-  --   a = PArray b.
+  -- | Lifted indexing, look up each indexed element from the corresponding array. 
+  --   NOTE: This needs to be in the PJ class because that's the only one stored
+  --         in the closure. Only defined for the case where a = PArray b.
   indexlPJ      :: Int -> PData m a -> PData Sized Int -> a
 
 
 -- PE Dictionary (Expansion) --------------------------------------------------
 -- | Contains expansion operators.
 --   Expansion operators construct infinite arrays from finite data.
-class PE a where
+class PS a => PE a where
   -- | Produce a globally defined array with the provided element at every index.
   --   Physically, this is performed just by storing the provided element once, 
   --   and returning it for every latter indexing operation.

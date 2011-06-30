@@ -32,7 +32,6 @@ instance PJ Sized (a :-> b) where
   indexPJ   (AClo fv fl env) ix 
 	= Clo fv fl (indexPJ env ix)
 
-
 instance PE (a :-> b) where
   repeatPE (Clo fv fl env)
 	= AClo fv fl (repeatPE env)

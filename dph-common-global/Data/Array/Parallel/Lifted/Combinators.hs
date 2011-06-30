@@ -38,7 +38,7 @@ lengthPA_l :: PJ m (PArray a)
 
 lengthPA_l c da
  = let	PNestedS segd _	= restrictPJ c da
-   in	error "lengthPA_l"
+   in   fromUArrayPS (U.lengthsSegd segd)
 
 
 -- replicate ------------------------------------------------------------------
@@ -78,24 +78,23 @@ mapPA_l n clo arr2
 indexPP :: PA a => PArray a :-> Int :-> a
 indexPP	= closure2 indexPA indexPA_l
 
-
 indexPA_l :: (PJ m1 (PArray a), PJ m2 Int)
 	=> Int -> PData m1 (PArray a) -> PData m2 Int -> PData Sized a
 
 indexPA_l n src ixs
  = case indexlPJ n src (restrictPJ n ixs) of
-	PArray _ d	-> d
+        PArray _ d -> d
 
 
 -- plus -----------------------------------------------------------------------
-plusPP	:: Int :-> Int :-> Int
+plusPP	 :: Int :-> Int :-> Int
 plusPP	 = closure2 plusPA_v plusPA_l
 
-plusPA_v  :: Int -> Int -> Int
+plusPA_v :: Int -> Int -> Int
 plusPA_v = (+)
 
-plusPA_l  :: (PJ m1 Int, PJ m2 Int)
-        => Int -> PData m1 Int -> PData m2 Int -> PData Sized Int
+plusPA_l :: (PJ m1 Int, PJ m2 Int)
+         => Int -> PData m1 Int -> PData m2 Int -> PData Sized Int
 plusPA_l n d1 d2
  = let PIntS vec1 = restrictPJ n d1
        PIntS vec2 = restrictPJ n d2

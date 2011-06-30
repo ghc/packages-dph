@@ -16,7 +16,7 @@ ex_length
  = lengthPP $: arr10
  
 ex_length_l
- = mapPP $: lengthPP $: fromListPA [arr5, arr10]
+ = mapPP $: lengthPP $: fromListPA [arr5, arr10, fromListPA [1..100]]
 
 
 -- plus examples
