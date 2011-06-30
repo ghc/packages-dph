@@ -10,13 +10,14 @@ import Data.Array.Parallel.PArray.PData
 import qualified Data.Array.Parallel.Unlifted   as U
 import Debug.Trace
 
+
 -- () -------------------------------------------------------------------------
 data instance PData m ()	= PUnit
 
-instance PR () where
-  emptyPR	 = PUnit
-  appPR _ _	 = PUnit
-  fromListPR xx	 = PUnit
+instance PS () where
+  emptyPS	 = PUnit
+  appPS _ _	 = PUnit
+  fromListPS xx	 = PUnit
 
 instance PJ m () where
   restrictPJ _ _ = PUnit
@@ -25,7 +26,8 @@ instance PJ m () where
 instance PE () where
   repeatPE _	 = PUnit
 
-instance PM ()
+instance PR ()
+
 
 -- Int ------------------------------------------------------------------------
 data instance PData Sized Int	
@@ -36,13 +38,15 @@ data instance PData Global Int
 
 deriving instance Show (PData Sized Int)
 
-instance PR Int where
-  emptyPR       = PIntS U.empty
 
-  appPR (PIntS arr1) (PIntS arr2)
+instance PS Int where
+  emptyPS
+        = PIntS U.empty
+
+  appPS (PIntS arr1) (PIntS arr2)
 	= PIntS (arr1 U.+:+ arr2)
 
-  fromListPR xx
+  fromListPS xx
 	= PIntS (U.fromList xx)
 
 
@@ -62,10 +66,12 @@ instance PJ Global Int where
   indexPJ (PIntG x) _
 	= x
 
+
 instance PE Int where
   repeatPE x	= PIntG x 
 
-instance PM Int
+
+instance PR Int
 
 
 -- PData Sized (PData m a) ----------------------------------------------------
@@ -75,14 +81,14 @@ data instance PData Sized  (PArray a)
 data instance PData Global (PArray a)
 	= PNestedG (PArray a)
 
-instance PR a => PR (PArray a) where
-  emptyPR
-	= PNestedS (U.mkSegd U.empty U.empty 0) emptyPR
+instance PS a => PS (PArray a) where
+  emptyPS
+	= PNestedS (U.mkSegd U.empty U.empty 0) emptyPS
 
-  appPR (PNestedS segd1 d1) (PNestedS segd2 d2) 
+  appPS (PNestedS segd1 d1) (PNestedS segd2 d2) 
    	= undefined
 
-  fromListPR xx
+  fromListPS xx
 	= undefined
 
 
@@ -92,17 +98,21 @@ instance PJ Sized a => PJ Sized (PArray a) where
          d2s  = restrictPJ n d2
      in  undefined -- zipWithSegdSized indexPJ segd d1s d2s
 
-instance PM a => PJ Global (PArray a) where
+
+instance PR a => PJ Global (PArray a) where
 
   indexlPJ n (PNestedG (PArray _ d1)) d2
    = let PIntS vec2  = restrictPJ n d2
      in  PArray (error "indexlPJ: fake array size, not used by caller")
-		(fromListPR (map (indexPJ d1) $ U.toList vec2))
+		(fromListPS (map (indexPJ d1) $ U.toList vec2))
+
 
 instance PE a => PE (PArray a) where
   repeatPE x = PNestedG x
 
-instance PM a => PM (PArray a)
+
+instance PR a => PR (PArray a)
+
 
 zipWithSegdSized
 	:: (PData Sized a -> b -> c) 

@@ -12,11 +12,10 @@ import qualified Data.Vector.Unboxed	as V
 import Data.Vector.Unboxed		(Vector)
 
 -- fromList -------------------------------------------------------------------
-fromListPA 
-	:: PM a
-	=> [a] -> PArray a
+fromListPA :: PR a => [a] -> PArray a
 fromListPA xs
-	= PArray (length xs) (fromListPR xs)
+	= PArray (length xs) (fromListPS xs)
+
 
 -- length ---------------------------------------------------------------------
 lengthPA   :: PArray a :-> Int
@@ -36,12 +35,12 @@ lengthPA_l c da
 
 
 -- map ------------------------------------------------------------------------
-mapPA   :: (PM a, PM b)
-	=> (a :-> b) :-> PArray a :-> PArray b
+mapPA   :: (PR a, PR b) 
+        => (a :-> b) :-> PArray a :-> PArray b
 mapPA 	= closure2 mapPA_v mapPA_l
 
 -----
-mapPA_v :: (PM a, PM b)
+mapPA_v :: (PR a, PR b)
 	=> (a :-> b) -> PArray a -> PArray b
 
 mapPA_v (Clo fv fl env) (PArray n as) 
@@ -58,10 +57,10 @@ mapPA_l n clo arr2
 
 
 -- index ----------------------------------------------------------------------
-indexPA :: PM a => PArray a :-> Int :-> a
+indexPA :: PR a => PArray a :-> Int :-> a
 indexPA	= closure2 indexPA_v indexPA_l
 
-indexPA_v :: PM a => PArray a -> Int -> a
+indexPA_v :: PR a => PArray a -> Int -> a
 indexPA_v (PArray _ d1) ix
 	= indexPJ d1 ix
 
@@ -86,3 +85,4 @@ plusPA_l n d1 d2
  = let PIntS vec1 = restrictPJ n d1
        PIntS vec2 = restrictPJ n d2
    in  PIntS (V.zipWith (+) vec1 vec2)
+

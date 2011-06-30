@@ -9,7 +9,7 @@ import Data.Array.Parallel.PArray
 -- Closures -------------------------------------------------------------------
 infixr 0 :->
 data (a :-> b)
-	= forall env. PM env
+	= forall env. PR env
 	=> Clo 	(env -> a -> b)
 		(forall m1 m2
 			.  (PJ m1 env, PJ m2 a)
@@ -34,7 +34,7 @@ closure1 fv fl
 
 -- | Construct an arity-2 closure.
 closure2 
-	:: forall a b c. PM a
+	:: forall a b c. PR a
 	=> (a -> b -> c)
 	-> (forall m1 m2
 		.  (PJ m1 a, PJ m2 b)
@@ -56,21 +56,21 @@ closure2 fv fl
 
 -- Array Closures -------------------------------------------------------------
 data instance PData m (a :-> b)
-	= forall env. (PJ m env, PM env)
+	= forall env. (PJ m env, PR env)
 	=> AClo	(env -> a -> b)
 		(forall m1 m2
 			.  (PJ m1 env, PJ m2 a)
 			=> Int -> PData m1 env -> PData m2 a -> PData Sized b)
 		(PData m env)
 
-instance PR (a :-> b) where
-  emptyPR 
+instance PS (a :-> b) where
+  emptyPS 
 	= AClo 	(\_ _ -> error "empty array closure")
  		(\_ _ -> error "empty array closure")
-		(emptyPR :: PData Sized ())
+		(emptyPS :: PData Sized ())
 
-  appPR		= error "appPR[:->] not defined"
-  fromListPR	= error "fromListPR[:->] not defined"
+  appPS		= error "appPR[:->] not defined"
+  fromListPS	= error "fromListPR[:->] not defined"
 
 
 instance PJ Global (a :-> b) where
@@ -94,7 +94,7 @@ instance PE (a :-> b) where
 	= AClo fv fl (repeatPE env)
 
 
-instance PM (a :-> b)
+instance PR (a :-> b)
 
 
 -- | Lifted closure application.
