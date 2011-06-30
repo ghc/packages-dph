@@ -2,7 +2,7 @@
         TypeFamilies, MultiParamTypeClasses,
         FlexibleContexts,
         StandaloneDeriving, UndecidableInstances #-}
-        -- Undeciable instances only for Show instance
+        -- Undeciable instances only need for derived Show instance
 
 module Data.Array.Parallel.PArray.PData where
 import qualified Data.Vector.Unboxed	as V
