@@ -95,9 +95,8 @@ class PS a => PJ m a where
   -- | Restrict an array to be a particular size.
   --   For pre-Sized arrays, instances should simply check that the source
   --   has the required length, and `error` if it does not. For global arrays, 
-  --   we take a finite slice starting from the beginning. If the global array
-  --   is physically represented by a single element, then it's ok to
-  --   physically copy that element to produce the required array length.
+  --   we take a finite slice, copying the single element.
+  --   We then rely on fusion in the back-end to eliminate the copying.
   restrictPJ    :: Int -> PData m a -> PData Sized a
 
   -- | Lookup a single element from the source array.

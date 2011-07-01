@@ -1,7 +1,8 @@
 {-# LANGUAGE
         TypeFamilies,
         FlexibleInstances, FlexibleContexts,
-        StandaloneDeriving #-}
+        StandaloneDeriving,
+        MultiParamTypeClasses #-}
 
 module Data.Array.Parallel.PArray.PData.Tuple where
 import Data.Array.Parallel.PArray.PData.Base
@@ -32,3 +33,8 @@ instance (PS a, PS b) => PS (a, b) where
    = let (xs, ys)	= unzip xx
      in	 PTuple2S (fromListPS xs) (fromListPS ys)
 
+instance (PE a, PE b) => PE (a, b)
+
+instance (PJ m a, PJ m b) => PJ m (a, b)
+
+instance (PR a, PR b) => PR (a, b)

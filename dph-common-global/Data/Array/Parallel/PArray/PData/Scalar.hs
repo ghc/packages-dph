@@ -17,8 +17,8 @@ data instance PData Sized Int
 data instance PData Global Int	
 	= PIntG Int
 
-deriving instance Show (PData Sized Int)
-
+deriving instance Show (PData Sized  Int)
+deriving instance Show (PData Global Int)
 
 instance PS Int where
   emptyPS
@@ -59,4 +59,53 @@ instance PE Int where
 
 instance PR Int
 
+
+-- Double ---------------------------------------------------------------------
+data instance PData Sized Double
+        = PDoubleS (U.Array Double)
+        
+data instance PData Global Double
+        = PDoubleG Double
+        
+deriving instance Show (PData Sized  Double)
+deriving instance Show (PData Global Double)
+
+instance PS Double where
+  emptyPS
+        = PDoubleS U.empty
+
+  appPS (PDoubleS arr1) (PDoubleS arr2)
+	= PDoubleS (arr1 U.+:+ arr2)
+
+  constructPS f ixs
+        = PDoubleS (U.map f ixs)
+
+  fromListPS xx
+	= PDoubleS (U.fromList xx)
+
+  fromUArrayPS xx
+        = PDoubleS xx
+
+
+instance PJ Sized Double where
+  restrictPJ n (PDoubleS vec)	
+	= PDoubleS vec
+
+  indexPJ (PDoubleS vec) ix
+	= vec U.!: ix
+
+
+instance PJ Global Double where
+  restrictPJ n (PDoubleG x)	
+	= trace ("{- restrictPJ@Double " ++ show n ++ " " ++ show x ++ " -}")
+	$ PDoubleS (U.replicate n x)
+
+  indexPJ (PDoubleG x) _
+	= x
+
+instance PE Double where
+  repeatPE x	= PDoubleG x 
+
+
+instance PR Double
 
