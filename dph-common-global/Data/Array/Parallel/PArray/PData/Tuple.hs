@@ -1,12 +1,12 @@
 {-# LANGUAGE
         TypeFamilies,
         FlexibleInstances, FlexibleContexts,
-        StandaloneDeriving,
+        StandaloneDeriving, ExplicitForAll,
         MultiParamTypeClasses #-}
 
 module Data.Array.Parallel.PArray.PData.Tuple where
 import Data.Array.Parallel.PArray.PData.Base
-
+import Data.Array.Parallel.PArray.PData.Nested
 
 -- PData Sized (a, b) ---------------------------------------------------------
 data instance PData Sized (a, b)
@@ -38,3 +38,15 @@ instance (PE a, PE b) => PE (a, b)
 instance (PJ m a, PJ m b) => PJ m (a, b)
 
 instance (PR a, PR b) => PR (a, b)
+
+
+unzipPA :: PArray (a, b) -> (PArray a, PArray b)
+unzipPA (PArray n (PTuple2S xs ys))
+        = (PArray n xs, PArray n ys)
+
+unzipPA_l :: forall m1 a b. PJ m1 (PArray (a, b))
+          => Int -> PData m1 (PArray (a, b)) -> PData Sized (PArray a, PArray b)
+unzipPA_l c vs
+ = case restrictPJ c vs of
+         PNestedS segd (PTuple2S xs ys)
+          -> PTuple2S (PNestedS segd xs) (PNestedS segd ys)
