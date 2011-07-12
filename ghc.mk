@@ -89,27 +89,30 @@ endif
 #       (libHSdph-prim-seq-0.4.0-ghc6.13.20091222.so: cannot open shared object file: No such file or directory)
 #
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): \
-	$$(libraries/dph/dph-prim-base_dist-install_GHCI_LIB) \
+	$$(libraries/dph/dph-base_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-interface_dist-install_GHCI_LIB)
 
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/PArray/PData.$${$1_osuf} : \
-	$$(libraries/dph/dph-prim-base_dist-install_GHCI_LIB) \
+	$$(libraries/dph/dph-base_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-interface_dist-install_GHCI_LIB)
 
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/PArray/Base.$${$1_osuf} : \
-	$$(libraries/dph/dph-prim-base_dist-install_GHCI_LIB) \
+	$$(libraries/dph/dph-base_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-interface_dist-install_GHCI_LIB)
-endef
 
+ifeq "$$(libraries/dph/dph-base_dist-install_GHCI_LIB)" ""
+$$(error dph_th_deps($1,$2): libraries/dph/dph-base_dist-install_GHCI_LIB not defined!)
+endif
+
+endef
 
 ifneq "$(CLEANING)" "YES"
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),seq)))
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way),par)))
 endif
-
