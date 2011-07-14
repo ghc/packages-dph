@@ -107,6 +107,8 @@ class PS a => PJ m a where
   --         in the closure. Only defined for the case where a = PArray b.
   indexlPJ      :: Int -> PData m a -> PData Sized Int -> a
 
+  replicatelPJ  :: U.Segd -> PData m a -> PData Sized a
+
 
 -- PE Dictionary (Expansion) --------------------------------------------------
 -- | Contains expansion operators.

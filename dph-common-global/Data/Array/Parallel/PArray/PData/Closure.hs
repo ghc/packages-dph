@@ -26,7 +26,8 @@ instance PJ m (a :-> b) where
   indexPJ   (AClo fv fl env) ix 
 	= Clo fv fl (indexPJ env ix)
         
-
+  replicatelPJ segd (AClo fv fl env) 
+        = AClo fv fl (replicatelPJ segd env)
 
 instance PE (a :-> b) where
   repeatPE (Clo fv fl env)

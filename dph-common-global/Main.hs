@@ -80,7 +80,7 @@ lsmvm3  :: forall m1 m2
         => Int -> PData m1 (PArray Double) -> PData m2 (Int, Double) -> PData Sized Double
 lsmvm3 c vs zs
  = case restrictPJ c zs of
-    PTuple2S is xs
+    PTuple2 is xs
      -> lap c    (lap c (repeatPE multPP_double) xs)
                  (lap c (lap c (repeatPE indexPP) vs) is)
 

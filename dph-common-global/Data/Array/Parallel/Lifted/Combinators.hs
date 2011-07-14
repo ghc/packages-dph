@@ -69,15 +69,39 @@ mapPA_l :: (PJ m1 (a :-> b), PJ m2 (PArray a), PJ Sized a)
 	=> Int 	-> PData m1 (a :-> b) 
 		-> PData m2 (PArray a) -> PData Sized (PArray b)
 
-mapPA_l n clo arr2
+mapPA_l n arrClo arr2
  = case restrictPJ n arr2 of
     PNestedS segd xs -> 
-     PNestedS segd 
+     PNestedS segd  
         (liftedApply    (U.elementsSegd segd) 
-                        (error "mapPA_l") -- (replicatel segd clo)
-                        xs)
-     
+                        (replicatelPJ segd arrClo)
+                        xs )
 
+     
+-- not sure how to represent the result of a nested repeat.
+-- maybe we want to stash extra information in the mode.
+-- so the mode type says what sort of segment descriptor to use
+
+--  result of repeatlPE has form:
+--     a a a  b b  c c c c c
+--  Want to represent this without physically copying the data.
+--  Roman says maybe only need to slice, replicate, slice.. but not replicate again.
+--
+--  Really want:
+--     .  .  .
+--     .  .  c
+--     a  .  c 
+--     a  .  c
+--     a  b  c
+--  Don't need to actually store run lengths. 
+--  lifted apply just applies whole elem arrays
+--
+
+{-
+repeatlPE :: PJ m1 a
+          => U.Segd -> PData m1 a -> PData m2 a
+repeatlPE = error "repeatlPE: undefined"
+-}
 
 -- index ----------------------------------------------------------------------
 indexPP :: PA a => PArray a :-> Int :-> a
