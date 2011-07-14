@@ -69,13 +69,10 @@ mapPA_l :: (PJ m1 (a :-> b), PJ m2 (PArray a), PJ Sized a)
 	=> Int 	-> PData m1 (a :-> b) 
 		-> PData m2 (PArray a) -> PData Sized (PArray b)
 
-mapPA_l n arrClo arr2
+mapPA_l n (AClo fv fl envs) arr2
  = case restrictPJ n arr2 of
     PNestedS segd xs -> 
-     PNestedS segd  
-        (liftedApply    (U.elementsSegd segd) 
-                        (restrictsPJ segd arrClo)
-                        xs )
+     PNestedS segd (fl (U.elementsSegd segd) (restrictsPJ segd envs) xs) 
 
      
 -- index ----------------------------------------------------------------------
