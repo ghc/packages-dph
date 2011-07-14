@@ -20,16 +20,6 @@ data instance PData Sized  (PArray a)
           -- A sized array of sized data.
 	= PNestedS U.Segd (PData Sized a)
 
-          -- A sized array of global data
-          -- Represents an array of repeated arrays  
-          --    repeatl   [[x1 x2 x3],         [x4],       [x5 x6]]        (logical)
-          --               [x1 x2 x3 x4 x5 x6]                             (physical data)
-          --                -------- -- -----                              (physical segd)
-          --         
-          -- =>          [ [[x1 x2 x3] ... ], [[x4] ...], [[x5 x6] ...]]
-          --  
---        | PNestedSG U.Segd (PData Sized a)
-
 data instance PData Global (PArray a)
 	= PNestedG (PArray a)
 
@@ -53,34 +43,68 @@ instance PJ Sized a => PJ Sized (PArray a) where
   restrictPJ n arr@(PNestedS segd d1)
    = arr
 
-  indexlPJ n (PNestedS segd d1) d2
-   = let d1s  = restrictPJ n d1
-         d2s  = restrictPJ n d2
-     in  error "indexlPJ@PArray sized undefined"
+  -- Lifted replicate.
+  -- logical  restrictsPJ :: [Int] -> [[a]] -> [[[a]]]
+  --    eg:   restrictsPJ [2 3 1]   [  [x0 x1]           [x2]             [x3 x4 x5]]
+  --                    =>          [ [[x0 x1] [x0 x1]] [[x2] [x2] [x2]] [[x3 x4 x5]]
 
-  -- TODO: replicate segment descriptor
-  replicatelPJ segd1 (PNestedS segd2 d2)
-   = PNestedS (error "replicatelPS@PArray sized undefined") d2
+  -- physical restrictsPJ :: U.Segd -> PData Sized (PArray a) -> PData Sized (PArray a)
+  --          restrictsPJ  [2 3 1]  [ x0 x1 x2 x3 x4 x5 ]  (data)
+  --                                [ 2 1 3 ]              (lengths)
+  --                                [ 0 2 3 ]              (indices)
+
+  --                    =>          [ x0 x1 x2 x3 x4 x5 ] (data)
+  --                                [ 2 2 1 1 1 3 ]       (lengths)
+  --                                [ 0 0 2 2 2 3 ]       (indices)
+  restrictsPJ segd1 (PNestedS segd2 d2)
+   = let segd'  = U.mkSegd (U.replicate_s segd1 (U.lengthsSegd segd2))
+                           (U.replicate_s segd1 (U.indicesSegd segd2))
+                           (error "replicatelPS@Sized PArray: no size for flat array")
+     in  PNestedS segd' d2
+
+  indexlPJ n (PNestedS segd d1) arrIxs
+   = let -- Ensure the indices array has the correct size.
+         PIntS ixs  = restrictPJ n arrIxs
+   
+         -- Compute the indices of all the elements we want from the flat source array.
+         ixsFlat    = U.zipWith (+) (U.indicesSegd segd) ixs
+ 
+         -- Lookup all the elements we want from the flat array.
+     in  PArray (error "indexlPJ@Sized PArray: fake segd should not be touched by caller")
+          $ constructPS (indexPJ d1) ixsFlat
+
+
 
 instance PR a => PJ Global (PArray a) where
 
-  -- TODO: make all elems of segment descriptor point to start of the data array
   restrictPJ n1 arr@(PNestedG (PArray n2 d2))
-   = PNestedS (error "repliatePJ@PArray global undefined") d2
+   = let segd'  = U.mkSegd  (U.replicate n1 n2)
+                            (U.replicate n1 0)
+                            (error "restrictPJ@Global PArray: no size for flat array")
+     in PNestedS segd' d2
 
-  indexlPJ n (PNestedG (PArray _ d1)) d2
-   = let PIntS vec2  = restrictPJ n d2
-     in  PArray (error "indexlPJ@PArray: fake segd should not be touched by caller")
-         $ constructPS (indexPJ d1) vec2
+  -- When restricting a global array, all the segments in the result
+  -- share the same source data.
+  restrictsPJ segd1 (PNestedG (PArray n d2))
+   = let segd'  = U.mkSegd  (U.replicate_s segd1 (U.replicate (U.lengthSegd segd1) n))
+                            (U.replicate_s segd1 (U.replicate (U.lengthSegd segd1) 0))
+                            (error "replicatelPJ@Global PArray: no size for flat array")
+     in PNestedS segd' d2
 
-  -- TODO: make all elems of segment descriptor point to the start of the data array
-  replicatelPJ segd1 (PNestedG (PArray n d2))
-   = PNestedS (error "replicatePJ@PArray global undefined") d2
+
+  indexlPJ n (PNestedG (PArray _ d1)) arrIxs
+   = let -- Ensure the indices array has the correct size.
+         PIntS ixs  = restrictPJ n arrIxs
+
+         -- When indexing into a global nested array, all the elements of the source
+         -- are identical so we can use the original indices without offsetting them.
+     in  PArray (error "indexlPJ@Global PArray: fake segd should not be touched by caller")
+          $ constructPS (indexPJ d1) ixs
+
 
 instance PE a => PE (PArray a) where
   repeatPE x = PNestedG x
 
 
 instance PR a => PR (PArray a)
-
 

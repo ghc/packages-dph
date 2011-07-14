@@ -74,35 +74,10 @@ mapPA_l n arrClo arr2
     PNestedS segd xs -> 
      PNestedS segd  
         (liftedApply    (U.elementsSegd segd) 
-                        (replicatelPJ segd arrClo)
+                        (restrictsPJ segd arrClo)
                         xs )
 
      
--- not sure how to represent the result of a nested repeat.
--- maybe we want to stash extra information in the mode.
--- so the mode type says what sort of segment descriptor to use
-
---  result of repeatlPE has form:
---     a a a  b b  c c c c c
---  Want to represent this without physically copying the data.
---  Roman says maybe only need to slice, replicate, slice.. but not replicate again.
---
---  Really want:
---     .  .  .
---     .  .  c
---     a  .  c 
---     a  .  c
---     a  b  c
---  Don't need to actually store run lengths. 
---  lifted apply just applies whole elem arrays
---
-
-{-
-repeatlPE :: PJ m1 a
-          => U.Segd -> PData m1 a -> PData m2 a
-repeatlPE = error "repeatlPE: undefined"
--}
-
 -- index ----------------------------------------------------------------------
 indexPP :: PA a => PArray a :-> Int :-> a
 indexPP	= closure2 indexPA indexPA_l
@@ -115,7 +90,6 @@ indexPA_l n src ixs
         PArray _ d -> d
 
 -- Tuple ======================================================================
-
 -- unzip ----------------------------------------------------------------------
 unzipPP :: PArray (a, b) :-> (PArray a, PArray b)
 unzipPP         = closure1 unzipPA unzipPA_l
@@ -124,7 +98,6 @@ unzipPP         = closure1 unzipPA unzipPA_l
 
 
 -- Scalar =====================================================================
-
 -- sum ------------------------------------------------------------------------
 sumPP_double :: PArray Double :-> Double
 sumPP_double    = closure1 sumPA sumPA_l

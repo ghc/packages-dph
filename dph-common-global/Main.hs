@@ -33,15 +33,11 @@ ex_plus_l
 ex_index_l
  = mapPP $: (indexPP $: arr10) $: arr5
  
- 
-
-
-
 
 -- smvm -----------------------------------------------------------------------
 matrix :: PArray (PArray (Int, Double))
-matrix  = fromListPA    [ fromListPA [(0, 1), (10, 5), (100, 20)]
-                        , fromListPA [(0, 2), (20, 6), (90,  30)] ]
+matrix  = fromListPA    [ fromListPA [(1, 1), (10, 5), (80, 20)]
+                        , fromListPA [(1, 2), (20, 6), (90,  30)] ]
 
 vector  :: PArray Double
 vector  = fromListPA    [0..99 :: Double]
@@ -51,6 +47,7 @@ smvm :: PArray (PArray (Int, Double)) -> PArray Double -> PArray Double
 smvm m v
         = v_smvm $: m $: v
 
+ex_smvm = smvm matrix vector
 
 lap = liftedApply
 

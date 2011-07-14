@@ -36,11 +36,12 @@ lengthPA (PArray n _)   = n
 unpackPA :: PArray a -> PData Sized a
 unpackPA (PArray _ d)   = d
 
+
 -- PData ----------------------------------------------------------------------
 -- | Parallel array data.
 --   As opposed to finite PArrays, a PData can represent a finite or infinite
 --   number of array elements, depending on the mode. The infinite case simply
---   means that all array indices map to some element value.
+--   means that all possible array indices map to some element value.
 --   
 data family PData mode a
 
@@ -94,20 +95,32 @@ class PS a where
 class PS a => PJ m a where
   -- | Restrict an array to be a particular size.
   --   For pre-Sized arrays, instances should simply check that the source
-  --   has the required length, and `error` if it does not. For global arrays, 
-  --   we take a finite slice, copying the single element.
-  --   We then rely on fusion in the back-end to eliminate the copying.
-  restrictPJ    :: Int -> PData m a -> PData Sized a
+  --   has the required length, and `error` if it does not.
+  --   For global arrays, we take a finite slice, copying the single element.
+  --   Work and Space is O(n) in the size of the result array.
+  restrictPJ    :: Int    -> PData m a -> PData Sized a
+
+  -- | Segmented restrict.
+  --   Restrict the outer layer of a nested array to be a particular size.
+  --   Only defined for a = PArray b.
+  ---
+  --   eg: restrictsPJ [___ __ _] [[x0 x1]                 [x2]      [x3 x4 x5]]
+  --                           => [[x0 x1] [x0 x1] [x0 x1] [x2] [x2] [x3 x4 x5]]
+  ---
+  --   This must be implemented in a copy-free way. The segment descriptor
+  --   in the result should point to the same data for each replicated
+  --   segment.
+  --
+  --   Work and Space must be O(n) in the number of segments in the result, 
+  --   NOT the total number of elements in the flat array.
+  restrictsPJ   :: U.Segd -> PData m a -> PData Sized a
 
   -- | Lookup a single element from the source array.
   indexPJ       :: PData m a  -> Int -> a
 
   -- | Lifted indexing, look up each indexed element from the corresponding array. 
-  --   NOTE: This needs to be in the PJ class because that's the only one stored
-  --         in the closure. Only defined for the case where a = PArray b.
+  --   Only defined for a = PArray b
   indexlPJ      :: Int -> PData m a -> PData Sized Int -> a
-
-  replicatelPJ  :: U.Segd -> PData m a -> PData Sized a
 
 
 -- PE Dictionary (Expansion) --------------------------------------------------
