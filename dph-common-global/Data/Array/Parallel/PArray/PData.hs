@@ -20,6 +20,7 @@ import qualified Data.Array.Parallel.Unlifted	as U
 
 
 -- Derived polymorphic operators ----------------------------------------------
+{-# INLINE_PDATA replicatePR #-}
 replicatePR :: PR a => Int -> a -> PData Sized a
 replicatePR n x = restrictPJ n (repeatPE x)
 

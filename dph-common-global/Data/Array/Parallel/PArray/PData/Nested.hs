@@ -23,13 +23,24 @@ data instance PData Sized  (PArray a)
 data instance PData Global (PArray a)
 	= PNestedG (PArray a)
 
+
+instance Show (PData Sized a) => Show (PData Sized (PArray a)) where
+        show (PNestedS _ d1)
+                = "(PNested " ++ " (" ++ show d1 ++ "))"
+
+
 instance PS a => PS (PArray a) where
+  {-# INLINE_PDATA emptyPS #-}
   emptyPS
 	= PNestedS (U.mkSegd U.empty U.empty 0) emptyPS
 
+
+  {-# INLINE_PDATA appPS #-}
   appPS (PNestedS segd1 d1) (PNestedS segd2 d2) 
    	= error "appPS@PArray undefined"
 
+
+  {-# INLINE_PDATA fromListPS #-}
   fromListPS xx
    = case xx of
       []      -> emptyPS
@@ -40,8 +51,10 @@ instance PS a => PS (PArray a) where
 
         
 instance PJ Sized a => PJ Sized (PArray a) where 
+  {-# INLINE_PDATA restrictPJ #-}
   restrictPJ n arr@(PNestedS segd d1)
    = arr
+
 
   -- Lifted replicate.
   -- logical  restrictsPJ :: [Int] -> [[a]] -> [[[a]]]
@@ -56,12 +69,15 @@ instance PJ Sized a => PJ Sized (PArray a) where
   --                    =>          [ x0 x1 x2 x3 x4 x5 ] (data)
   --                                [ 2 2 1 1 1 3 ]       (lengths)
   --                                [ 0 0 2 2 2 3 ]       (indices)
+  {-# INLINE_PDATA restrictsPJ #-}
   restrictsPJ segd1 (PNestedS segd2 d2)
    = let segd'  = U.mkSegd (U.replicate_s segd1 (U.lengthsSegd segd2))
                            (U.replicate_s segd1 (U.indicesSegd segd2))
                            (error "replicatelPS@Sized PArray: no size for flat array")
      in  PNestedS segd' d2
 
+
+  {-# INLINE_PDATA indexlPJ #-}
   indexlPJ n (PNestedS segd d1) arrIxs
    = let -- Ensure the indices array has the correct size.
          PIntS ixs  = restrictPJ n arrIxs
@@ -76,15 +92,17 @@ instance PJ Sized a => PJ Sized (PArray a) where
 
 
 instance PR a => PJ Global (PArray a) where
-
+  {-# INLINE_PDATA restrictPJ #-}
   restrictPJ n1 arr@(PNestedG (PArray n2 d2))
    = let segd'  = U.mkSegd  (U.replicate n1 n2)
                             (U.replicate n1 0)
                             (error "restrictPJ@Global PArray: no size for flat array")
      in PNestedS segd' d2
 
+
   -- When restricting a global array, all the segments in the result
   -- share the same source data.
+  {-# INLINE_PDATA restrictsPJ #-}
   restrictsPJ segd1 (PNestedG (PArray n d2))
    = let segd'  = U.mkSegd  (U.replicate_s segd1 (U.replicate (U.lengthSegd segd1) n))
                             (U.replicate_s segd1 (U.replicate (U.lengthSegd segd1) 0))
@@ -92,6 +110,7 @@ instance PR a => PJ Global (PArray a) where
      in PNestedS segd' d2
 
 
+  {-# INLINE_PDATA indexlPJ #-}
   indexlPJ n (PNestedG (PArray _ d1)) arrIxs
    = let -- Ensure the indices array has the correct size.
          PIntS ixs  = restrictPJ n arrIxs
@@ -103,6 +122,7 @@ instance PR a => PJ Global (PArray a) where
 
 
 instance PE a => PE (PArray a) where
+  {-# INLINE_PDATA repeatPE #-}
   repeatPE x = PNestedG x
 
 

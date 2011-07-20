@@ -1,14 +1,16 @@
 {-# LANGUAGE 
         TypeFamilies, MultiParamTypeClasses,
-        FlexibleContexts,
-        StandaloneDeriving, UndecidableInstances #-}
+        FlexibleContexts, ExplicitForAll,
+        StandaloneDeriving #-}
+        
+--        , UndecidableInstances #-}
         -- Undeciable instances only need for derived Show instance
 
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
         , lengthPA, unpackPA
-          
+        
         , PData (..), Sized, Global
 
           -- * Dictionaries
@@ -27,13 +29,19 @@ import qualified Data.Array.Parallel.Unlifted   as U
 data PArray a
 	= PArray Int (PData Sized a)
 
-deriving instance (Show (PData Sized a), Show a)
-	=> Show (PArray a)
+--deriving instance (Show (PData Sized a), Show a)
+--	=> Show (PArray a)
 
-lengthPA :: PArray a -> Int
+
+-- | Take the length of an array
+{-# INLINE_PA lengthPA #-}
+lengthPA :: forall a. PArray a -> Int
 lengthPA (PArray n _)   = n
 
-unpackPA :: PArray a -> PData Sized a
+
+-- | Take the data from an array.
+{-# INLINE_PA unpackPA #-}
+unpackPA :: forall a. PArray a -> PData Sized a
 unpackPA (PArray _ d)   = d
 
 
@@ -76,10 +84,16 @@ class PS a where
 
   -- | Convert a sized array to a list.
   fromListPS	:: [a] -> PData Sized a
+  
+  -- | Force an array to normal form.
+  nfPS          :: PData Sized a -> ()
 
-  -- TODO: Shift this into the Scalar class like existing library.  
+  -- TODO: Shift these into the Scalar class like existing library.  
   -- | Convert an unlifted array to a PData. 
   fromUArrayPS  :: U.Elt a => U.Array a -> PData Sized a
+  
+  -- | Convert a PData into an unlifted array.
+  toUArrayPS    :: U.Elt a => PData Sized a -> U.Array a
 
 
 -- PJ Dictionary (Projection) -------------------------------------------------
