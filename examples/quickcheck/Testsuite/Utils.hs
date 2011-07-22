@@ -3,7 +3,7 @@ module Testsuite.Utils (
   
   Proxy(..), asProxyTypeOf,
     
-  segdForArray,
+  segdForArray, checkSegd,
   
   limitRange, update, nest
 ) where
@@ -74,6 +74,12 @@ instance Arbitrary Segd where
 segdForArray :: (Elt a) => Array a -> Gen Segd
 segdForArray arr = resize (U.length arr) arbitrary
 
+-- Consistency check for a segment descriptor against a provided list of lengths
+checkSegd :: Segd -> Array Int -> Bool
+checkSegd segd lens =
+     (lengthsSegd  segd == lens)
+  && (indicesSegd  segd == U.scan (+) 0 lens)
+  && (elementsSegd segd == U.sum lens)
 
 -- Random number generator
 instance Arbitrary StdGen where
