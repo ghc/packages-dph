@@ -38,6 +38,7 @@ data BuildArg
 	| ArgMailTo
 	| ArgMailFailTo
 	| ArgMailBanner
+	| ArgMailBranchName
 	| ArgSendTestMail
 	| ArgWriteResults
 	| ArgWriteResultsStamped
@@ -215,6 +216,12 @@ buildArgs
 		, argName	= Just "mail-banner"
 		, argData	= argDataOptional "file" ArgtypeString
 		, argDesc	= "(opt. for test modes)  ... appending the banner to the front of the message." }
+
+        , Arg   { argIndex      = ArgMailBranchName
+                , argAbbr       = Nothing
+                , argName       = Just "mail-branch-name"
+                , argData       = argDataOptional "name" ArgtypeString
+                , argDesc       = "(opt. for test modes)  ... putting this branch name in the subject." }
 
 	-- Setup debugging
 	, Arg	{ argIndex	= ArgSendTestMail

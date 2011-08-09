@@ -180,18 +180,18 @@ benchmarksRepa config
 	  in	map run [1, 2, 4, 6, 8])
 	
 
-	-- edgedetect ---------------------------------------------------------
- ++	(let	edgedetect = "repa-examples/dist/build/repa-edgedetect/repa-edgedetect"
+	-- canny -------------------------------------------------------------
+ ++	(let	canny   = "repa-examples/dist/build/repa-canny/repa-canny"
 		input	= "repa-examples/data/lena.bmp"
 		inputgz	= input ++ ".gz"
 		
 	 	run n	= benchUp config
-				("repa.edgedetect.par.N" ++ show n)
+				("repa.canny.par.N" ++ show n)
 				(do	ensureDir "output"
-					check $ HasExecutable edgedetect
+					check $ HasExecutable canny
 					whenM (test $ HasFile inputgz)
 				 	 $ qssystem $ "gzip -d " ++ inputgz)
-				(edgedetect ++ " " ++ input ++ " output/lena-edgedetect.bmp +RTS -qg -N" ++ show n)
+				(canny ++ " " ++ input ++ " output/lena-canny.bmp +RTS -qg -N" ++ show n)
 				
 	  in	map run [1, 2, 4, 6, 8])
 

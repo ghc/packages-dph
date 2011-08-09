@@ -49,6 +49,7 @@ data Config
 	, configMailFromTo	:: Maybe (String, String)
 	, configMailFailTo	:: Maybe String
 	, configMailBanner	:: Maybe String
+	, configMailBranchName  :: Maybe String
 	, configUploadResults	:: Maybe String }
 	deriving Show
 
@@ -186,4 +187,5 @@ slurpConfig args
 
 		, configMailFailTo	= getArg args ArgMailFailTo
 		, configMailBanner	= getArg args ArgMailBanner
+		, configMailBranchName  = getArg args ArgMailBranchName
 		}

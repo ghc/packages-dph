@@ -113,9 +113,13 @@ buildTest config env
 					(return blank)
 					(\file -> (io $ readFile file) >>= return . text)
 					(configMailBanner config)
+
+			let branchName 
+			        = fromMaybe "" 
+			        $ (liftM (++ ": ") $ configMailBranchName config)
 			
 			mail	<- createMailWithCurrentTime from to 
-					"[nightly] DPH Performance Test Succeeded"
+					("[nightly] " ++ branchName ++ "DPH Performance Test Succeeded")
 					$ render $ vcat
 					[ banner
 					, ppr env
