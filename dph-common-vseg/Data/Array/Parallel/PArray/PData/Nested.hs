@@ -16,7 +16,6 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import Debug.Trace
 import Text.PrettyPrint
 
-
 instance Show U.Segd where
         show _  = "SEGD"
 
@@ -108,8 +107,22 @@ instance PR a => PR (PArray a) where
                 psegsrcs
                 psegdata
 
-  extractsPR getArr srcids seglens segstarts 
-   = error "extractsPR[PArray]: not done yet"
+  -- TODO: not finished
+  {-# INLINE_PDATA extractsPR #-}
+  extractsPR arrs srcids seglens segstarts 
+   = let vsegids        = U.empty
+         pseglens       = U.empty
+         psegstarts     = U.empty
+         psegsrcs       = U.empty
+   
+         psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata arrs
+   
+     in  PNested
+                vsegids
+                pseglens
+                psegstarts
+                psegsrcs
+                psegdata'
 
   {-# INLINE_PDATA appPR #-}
   appPR (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
@@ -120,31 +133,97 @@ instance PR a => PR (PArray a) where
                 (psegsrcs1   U.+:+ (U.map (+ (V.length psegdata1)) psegsrcs2))
                 (psegdata1   V.++  psegdata2)
 
-
-  -- TODO: bpermuteDft isn't parallelised
-  packByTagPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) tags tag
-   = let 
-         -- Pack the vsegids to determine which of the vsegs are present in the result.
+  {-# INLINE_PDATA packByTagPR #-}
+  packByTagPR arr tags tag
+   = let -- Pack the vsegids to determine which of the vsegs are present in the result.
          --  eg  tags:           [0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1]   tag = 1
          --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]
          --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
          --
          vsegids_packed   
-          = U.packByTag vsegids tags tag
+          = U.packByTag (pnested_vsegids arr) tags tag
 
+     in forceSegs vsegids_packed arr
+
+  {-# INLINE_PDATA combine2PR #-}
+  combine2PR sel2 (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
+                  (PNested vsegids2 pseglens2 psegstarts2 psegsrcs2 psegdata2)
+
+   = let -- vsegids relative to combined psegs
+         vsegids1'      = vsegids1
+         vsegids2'      = U.map (+ (U.length vsegids1)) vsegids2
+
+         -- psegsrcss in combined pdatas vector
+         psegsrcs1'     = psegsrcs1
+         psegsrcs2'     = U.map (+ (V.length psegdata1)) psegsrcs2
+         
+     in  PNested 
+                (U.combine2 (U.tagsSel2 sel2) (U.repSel2 sel2) vsegids1' vsegids2')
+                (pseglens1   U.+:+ pseglens2)
+                (psegstarts1 U.+:+ psegstarts2)
+                (psegsrcs1'  U.+:+ psegsrcs2')
+                (psegdata1   V.++  psegdata2)
+
+  -- Conversions ----------------------
+  {-# INLINE_PDATA fromListPR #-}
+  fromListPR xx
+   = case xx of
+      []      -> emptyPR
+      xx@(x:xs)
+       -> let segd      = U.lengthsToSegd $ U.fromList $ map lengthPA xx
+          in  PNested
+                { pnested_vsegids       = U.enumFromTo 0 (length xx - 1)
+                , pnested_pseglens      = U.lengthsSegd segd
+                , pnested_psegstarts    = U.indicesSegd segd
+                , pnested_psegsrcs      = U.replicate (length xx) 0
+                , pnested_psegdata      = V.singleton (foldl1 appPR $ map unpackPA xx) }
+
+  {-# INLINE_PDATA toListPR #-}
+  toListPR arr
+   = map (indexPR arr) [0 .. U.length (pnested_vsegids arr) - 1]
+
+  fromUArrayPR  = error "fromUArrayPR[PArray]: not defined yet"
+   
+  toUArrayPR    = error "toUArrayPR[PArray]: not defined et"
+
+
+-------------------------------------------------------------------------------
+concatPR :: PR a => PData (PArray a) -> PData a
+concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) 
+ = let  srcids          = U.bpermute psegsrcs   vsegids
+        segstarts       = U.bpermute psegstarts vsegids
+        seglens         = U.bpermute pseglens   vsegids
+   in   extractsPR psegdata srcids segstarts seglens
+
+
+-- | This returns a fake length, concatPA is just for testing.
+concatPA :: PR a => PArray (PArray a) -> PArray a
+concatPA (PArray n darr)
+        = PArray 0 (concatPR darr)
+
+-------------------------------------------------------------------------------
+-- | Impose new virtual segmentation on a nested array.
+--   All physical segments that are not reachable from the virtual
+--   segments are filtered out, but the underlying flat data is not touched.
+--
+--  TODO: bpermuteDft isn't parallelised
+--
+forceSegs :: U.Array Int -> PData (PArray a) -> PData (PArray a)
+forceSegs vsegids_new (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+ = let
          -- Determine which of the psegs are still reachable from the vsegs.
          -- This produces an array of flags, 
          --    with reachable   psegs corresponding to 1
          --    and  unreachable psegs corresponding to 0
          -- 
-         --  eg  vsegids_packed: [0 1 1 3 5 5 6 6]
+         --  eg  vsegids_new:    [0 1 1 3 5 5 6 6]
          --   => psegids_used:   [1 1 0 1 0 1 1]
          --  
          --  Note that psegids '2' and '4' are not in vsegids_packed.
          psegids_used
           = U.bpermuteDft (U.length pseglens)
                           (const 0)
-                          (U.zip vsegids_packed (U.replicate (U.length vsegids_packed) 1))
+                          (U.zip vsegids_new (U.replicate (U.length vsegids_new) 1))
 
          -- Produce an array of used psegs.
          --  eg  psegids_used:   [1 1 0 1 0 1 1]
@@ -170,56 +249,18 @@ instance PR a => PR (PArray a) where
          -- Use the psegids_map to rewrite the packed vsegids to point to the 
          -- corresponding psegs in the result.
          -- 
-         --  eg  vsegids_packed: [0 1 1 3 5 5 6 6]
+         --  eg  vsegids_new:    [0 1 1 3 5 5 6 6]
          --      psegids_map:    [0 1 -1 2 -1 3 4]
          -- 
          --      vsegids':       [0 1 1 2 3 3 4 4]
          --
          vsegids'
-          = U.map (psegids_map U.!:) vsegids_packed
-         
+          = U.map (psegids_map U.!:) vsegids_new
+
      in  PNested 
                 vsegids'
                 (U.packByTag pseglens   psegids_used 1)
                 (U.packByTag psegstarts psegids_used 1)
                 (U.packByTag psegsrcs   psegids_used 1)
                 psegdata
-
-
-  -- Conversions ----------------------
-  {-# INLINE_PDATA fromListPR #-}
-  fromListPR xx
-   = case xx of
-      []      -> emptyPR
-      xx@(x:xs)
-       -> let segd      = U.lengthsToSegd $ U.fromList $ map lengthPA xx
-          in  PNested
-                { pnested_vsegids       = U.enumFromTo 0 (length xx - 1)
-                , pnested_pseglens      = U.lengthsSegd segd
-                , pnested_psegstarts    = U.indicesSegd segd
-                , pnested_psegsrcs      = U.replicate (length xx) 0
-                , pnested_psegdata      = V.singleton (foldl1 appPR $ map unpackPA xx) }
-
-  {-# INLINE_PDATA toListPR #-}
-  toListPR arr
-   = map (indexPR arr) [0 .. U.length (pnested_vsegids arr) - 1]
-
-  fromUArrayPR  = error "fromUArrayPR[PArray]: not defined yet"
-   
-  toUArrayPR    = error "toUArrayPR[PArray]: not defined et"
-
-
-
-concatPR :: PR a => PData (PArray a) -> PData a
-concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) 
- = let  srcids          = U.bpermute psegsrcs   vsegids
-        segstarts       = U.bpermute psegstarts vsegids
-        seglens         = U.bpermute pseglens   vsegids
-   in   extractsPR (psegdata V.!) srcids segstarts seglens
-
-
--- | This returns a fake length, concatPA is just for testing.
-concatPA :: PR a => PArray (PArray a) -> PArray a
-concatPA (PArray n darr)
-        = PArray 0 (concatPR darr)
 

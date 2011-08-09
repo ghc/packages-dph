@@ -7,6 +7,7 @@
 module Data.Array.Parallel.PArray.PData.Scalar where
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
 
@@ -53,9 +54,8 @@ instance PR Int where
         = PInt (U.extract arr start len)
 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR getArr srcids ixsBase lens
-   = PInt (uextracts (\srcid -> case getArr srcid of
-                                  PInt arr -> arr)
+  extractsPR arrs srcids ixsBase lens
+   = PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
                      srcids ixsBase lens)
                 
   {-# INLINE_PDATA appPR #-}
@@ -65,6 +65,12 @@ instance PR Int where
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PInt arr1) arrTags tag
         = PInt (U.packByTag arr1 arrTags tag)
+
+  {-# INLINE_PDATA combine2PR #-}
+  combine2PR sel (PInt arr1) (PInt arr2)
+        = PInt (U.combine2 (U.tagsSel2 sel)
+                           (U.repSel2  sel)
+                           arr1 arr2)
 
   {-# INLINE_PDATA fromListPR #-}
   fromListPR xx

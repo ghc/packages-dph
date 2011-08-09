@@ -9,14 +9,17 @@ module Data.Array.Parallel.PArray.PData.Base
         ( -- * Parallel Array types.
           PArray(..)
         , lengthPA, unpackPA
-        , replicatePA, replicatesPA', extractsPA'
-        , packByTagPA'
         , fromListPA, toListPA
         , PprPhysical (..), PprVirtual (..)
         , PData (..)
         , PR(..)
         
-        , uextracts1, uextracts)
+        , uextracts
+        , replicatePA, replicatesPA'
+        , extractsPA'
+        , packByTagPA'
+        , combine2PA')
+
 where
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
@@ -44,43 +47,6 @@ lengthPA (PArray n _)   = n
 {-# INLINE_PA unpackPA #-}
 unpackPA :: PArray a -> PData a
 unpackPA (PArray _ d)   = d
-
-
--- | Replicate an array
-{-# INLINE_PA replicatePA #-}
-replicatePA :: PR a => Int -> a -> PArray a
-replicatePA n x
-        = PArray n (replicatePR n x)
-
-
-replicatesPA' :: PR a => [Int] -> PArray a -> PArray a
-replicatesPA' lens (PArray _ darr)
-        = PArray (sum lens) (replicatesPR (U.fromList lens) darr)
-
-
-extractsPA' :: PR a => (Int -> PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
-extractsPA' getArr srcids startixs seglens
-        = PArray (sum seglens) 
-        $ extractsPR (unpackPA . getArr) 
-                     (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
-
-
--- | NOTE: Returns an array with a fake size for testing purposes.
-packByTagPA' :: PR a => PArray a -> [Int] -> Int -> PArray a
-packByTagPA' (PArray n arr) tags tag
- = let  arr'    = packByTagPR arr (U.fromList tags) tag
-   in   PArray 0 arr'
-
-
-{-# INLINE_PA fromListPA #-}
-fromListPA :: forall a. PR a => [a] -> PArray a
-fromListPA xx
-        = PArray (length xx) (fromListPR xx)
-
-{-# INLINE_PA toListPA #-}
-toListPA   :: forall a. PR a => PArray a -> [a]
-toListPA (PArray _ arr)
-        = toListPR arr
 
 
 -- Pretty Printer classes -----------------------------------------------------
@@ -133,13 +99,26 @@ class PR a where
   extractPR     :: PData a    -> Int -> Int -> PData a
 
   -- | Segmented extract.
-  extractsPR    :: (Int -> PData a) -> U.Array Int -> U.Array Int -> U.Array Int -> PData a
+  extractsPR    :: V.Vector (PData a)
+                -> U.Array Int       -- ^ segment source ids
+                -> U.Array Int       -- ^ segment base indices
+                -> U.Array Int       -- ^ segment lengths
+                -> PData a
 
   -- | Append two sized arrays.
   appPR		:: PData a -> PData a -> PData a
 
   -- | Filter an array based on some tags.
-  packByTagPR   :: PData a -> U.Array Tag -> Tag -> PData a
+  packByTagPR   :: PData a      -- ^ source array
+                -> U.Array Tag  -- ^ array of tags
+                -> Tag          -- ^ tag of elements to select
+                -> PData a
+
+  -- | Combine two arrays based on a selector.
+  combine2PR    :: U.Sel2       -- ^ selector
+                -> PData a      -- ^ first source array
+                -> PData a      -- ^ second source array
+                -> PData a
 
   -- Conversions ---------------------
   -- | Convert a list to an array
@@ -155,16 +134,66 @@ class PR a where
   -- | Convert a PData into an unlifted array.
   toUArrayPR    :: U.Elt a => PData a -> U.Array a
 
-{-# INLINE uextracts1 #-}
-uextracts1 :: U.Elt a => U.Array a -> U.Array Int -> U.Array Int -> U.Array a
-uextracts1 arr ixBase lens
- = let  lenTotal        = U.sum lens
-   in   uextracts (const arr) (U.replicate lenTotal 0) ixBase lens
 
+
+
+----------------------------------------------------------------------------------
+-- These PArray functions should be moved into D.A.P.PArray when closures work ---
+----------------------------------------------------------------------------------
+
+-- | Replicate an array
+{-# INLINE_PA replicatePA #-}
+replicatePA :: PR a => Int -> a -> PArray a
+replicatePA n x
+        = PArray n (replicatePR n x)
+
+{-# INLINE_PA fromListPA #-}
+fromListPA :: forall a. PR a => [a] -> PArray a
+fromListPA xx
+        = PArray (length xx) (fromListPR xx)
+
+{-# INLINE_PA toListPA #-}
+toListPA   :: forall a. PR a => PArray a -> [a]
+toListPA (PArray _ arr)
+        = toListPR arr
+
+
+-------------------------------------------------------------------------------
+-- These PArray functions are just for testing 
+-------------------------------------------------------------------------------
+
+replicatesPA' :: PR a => [Int] -> PArray a -> PArray a
+replicatesPA' lens (PArray _ darr)
+        = PArray (sum lens) (replicatesPR (U.fromList lens) darr)
+
+
+extractsPA' :: PR a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
+extractsPA' arrs srcids startixs seglens
+        = PArray (sum seglens) 
+        $ extractsPR (V.map unpackPA arrs) 
+                     (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
+
+
+-- | NOTE: Returns an array with a fake size for testing purposes.
+packByTagPA' :: PR a => PArray a -> [Int] -> Int -> PArray a
+packByTagPA' (PArray n arr) tags tag
+ = let  arr'    = packByTagPR arr (U.fromList tags) tag
+   in   PArray 0 arr'
+
+
+combine2PA' :: PR a => [Int] -> PArray a -> PArray a -> PArray a
+combine2PA' sel (PArray _ darr1) (PArray _ darr2)
+ = let  darr'   = combine2PR (U.tagsToSel2 (U.fromList sel)) darr1 darr2
+   in   PArray 0 darr'
+
+
+-------------------------------------------------------------------------------
+-- extra unlifted primitives should be moved into unlifted library ------------
+-------------------------------------------------------------------------------
 
 {-# INLINE uextracts #-}
-uextracts :: U.Elt a => (Int -> U.Array a) -> U.Array Int -> U.Array Int -> U.Array Int -> U.Array a
-uextracts getArr srcids ixBase lens 
+uextracts :: U.Elt a => V.Vector (U.Array a) -> U.Array Int -> U.Array Int -> U.Array Int -> U.Array a
+uextracts arrs srcids ixBase lens 
  = let -- total length of the result
         dstLen    = U.sum lens
         segd      = U.lengthsToSegd lens
@@ -183,11 +212,9 @@ uextracts getArr srcids ixBase lens
 
         result    = U.zipWith3
                         (\ixDst ixSegDst (ixSegSrcBase, srcid)
-                                -> getArr srcid U.!: (ixDst - ixSegDst + ixSegSrcBase))
+                                -> (arrs V.!  srcid) U.!: (ixDst - ixSegDst + ixSegSrcBase))
                         (U.enumFromTo 0 (dstLen - 1))
                         startixs'
                         (U.zip baseixs srcids')
    in result
-   
- 
-    
+
