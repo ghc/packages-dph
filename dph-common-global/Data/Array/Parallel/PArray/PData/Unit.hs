@@ -1,36 +1,54 @@
 {-# LANGUAGE
         TypeFamilies, MultiParamTypeClasses,
-        FlexibleInstances #-}
+        FlexibleInstances,
+        StandaloneDeriving #-}
 
 module Data.Array.Parallel.PArray.PData.Unit where
 import Data.Array.Parallel.PArray.PData.Base
 
 
--- () -------------------------------------------------------------------------
-data instance PData m ()	= PUnit
+data instance PData ()
+	= PUnit
 
-instance PS () where
-  {-# INLINE_PDATA emptyPS #-}
-  emptyPS	        = PUnit
+deriving instance Show (PData ())
 
-  {-# INLINE_PDATA appPS #-}
-  appPS _ _	        = PUnit
+instance PR () where
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
+        = PUnit
 
-  {-# INLINE_PDATA fromListPS #-}
-  fromListPS xx	        = PUnit
+  {-# INLINE_PDATA nfPR #-}
+  nfPR xx
+        = xx `seq` ()
 
-instance PJ m () where
-  {-# INLINE_PDATA restrictPJ #-}
-  restrictPJ _ _        = PUnit
+  {-# INLINE_PDATA replicatePR #-}
+  replicatePR _ _
+	= PUnit
 
-  {-# INLINE_PDATA indexPJ #-}
-  indexPJ _ _	        = ()
+  {-# INLINE_PDATA replicatesPR #-}
+  replicatesPR _ _
+        = PUnit
+        
+  {-# INLINE_PDATA indexPR #-}
+  indexPR _ _
+	= ()
 
-  {-# INLINE_PDATA indexlPJ #-}
-  indexlPJ              = error "indexlPJ@(): undefined"
+  {-# INLINE_PDATA extractPR #-}
+  extractPR _ _ _
+        = PUnit
+                
+  {-# INLINE_PDATA appPR #-}
+  appPR _ _
+	= PUnit
 
-instance PE () where
-  {-# INLINE_PDATA repeatPE #-}
-  repeatPE _	        = PUnit
+  {-# INLINE_PDATA fromListPR #-}
+  fromListPR _
+	= PUnit
 
-instance PR ()
+  {-# INLINE_PDATA fromUArrayPR #-}
+  fromUArrayPR _
+        = PUnit
+
+  {-# INLINE_PDATA toUArrayPR #-}
+  toUArrayPR _
+        = error "toUArrayPR: doens't work as we don't know the length"

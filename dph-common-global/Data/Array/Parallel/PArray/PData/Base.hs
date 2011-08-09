@@ -1,36 +1,37 @@
 {-# LANGUAGE 
         TypeFamilies, MultiParamTypeClasses,
         FlexibleContexts, ExplicitForAll,
-        StandaloneDeriving #-}
-        
---        , UndecidableInstances #-}
+        StandaloneDeriving,
+        UndecidableInstances #-}
         -- Undeciable instances only need for derived Show instance
 
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
         , lengthPA, unpackPA
+        , replicatePA, replicatesPA', extractsPA'
+        , packByTagPA'
+        , fromListPA, toListPA
+        , PprPhysical (..), PprVirtual (..)
+        , PData (..)
+        , PR(..)
         
-        , PData (..), Sized, Global
-
-          -- * Dictionaries
-        , PS(..) -- Operators on Sized arrays.
-        , PJ(..) -- Projection operators.
-        , PE(..) -- Expansion operators.
-        , PR(..) -- Operators on array representation (combination of above)
-        )
+        , uextracts1, uextracts)
 where
 import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import Data.Array.Parallel.Base                 (Tag)
+import Text.PrettyPrint
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array. 
 --   PArrays always contain a finite (sized) number of elements, which means
 --   they have a length.
 data PArray a
-	= PArray Int (PData Sized a)
+	= PArray Int (PData  a)
 
---deriving instance (Show (PData Sized a), Show a)
---	=> Show (PArray a)
+deriving instance (Show (PData a), Show a)
+	=> Show (PArray a)
 
 
 -- | Take the length of an array
@@ -41,114 +42,152 @@ lengthPA (PArray n _)   = n
 
 -- | Take the data from an array.
 {-# INLINE_PA unpackPA #-}
-unpackPA :: forall a. PArray a -> PData Sized a
+unpackPA :: PArray a -> PData a
 unpackPA (PArray _ d)   = d
 
 
+-- | Replicate an array
+{-# INLINE_PA replicatePA #-}
+replicatePA :: PR a => Int -> a -> PArray a
+replicatePA n x
+        = PArray n (replicatePR n x)
+
+
+replicatesPA' :: PR a => [Int] -> PArray a -> PArray a
+replicatesPA' lens (PArray _ darr)
+        = PArray (sum lens) (replicatesPR (U.fromList lens) darr)
+
+
+extractsPA' :: PR a => (Int -> PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
+extractsPA' getArr srcids startixs seglens
+        = PArray (sum seglens) 
+        $ extractsPR (unpackPA . getArr) 
+                     (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
+
+
+-- | NOTE: Returns an array with a fake size for testing purposes.
+packByTagPA' :: PR a => PArray a -> [Int] -> Int -> PArray a
+packByTagPA' (PArray n arr) tags tag
+ = let  arr'    = packByTagPR arr (U.fromList tags) tag
+   in   PArray 0 arr'
+
+
+{-# INLINE_PA fromListPA #-}
+fromListPA :: forall a. PR a => [a] -> PArray a
+fromListPA xx
+        = PArray (length xx) (fromListPR xx)
+
+{-# INLINE_PA toListPA #-}
+toListPA   :: forall a. PR a => PArray a -> [a]
+toListPA (PArray _ arr)
+        = toListPR arr
+
+
+-- Pretty Printer classes -----------------------------------------------------
+-- | Pretty print physical structure of data.
+class PprPhysical a where
+ pprp :: a -> Doc
+ 
+instance PprPhysical (PData a) => PprPhysical (PArray a) where
+ pprp (PArray n dat)
+  =   (text "PArray " <+> int n)
+  $+$ (nest 4 
+      $ pprp dat)
+ 
+-- | Pretty print virtual / logical structure of data.
+class PprVirtual a where
+ pprv :: a -> Doc
+
+instance PprVirtual (PData a) => PprVirtual (PArray a) where
+ pprv (PArray _ dat)
+  =   pprv dat
+ 
+ 
 -- PData ----------------------------------------------------------------------
 -- | Parallel array data.
 --   As opposed to finite PArrays, a PData can represent a finite or infinite
 --   number of array elements, depending on the mode. The infinite case simply
 --   means that all possible array indices map to some element value.
 --   
-data family PData mode a
-
--- | An array with a finite size.
-data Sized
-
--- | An infinite (globalised) array, with the same value for every element.
---   These are constructed by repeating a single value.
---   Not all array operations are possible on global arrays, in particular
---   we cannot take their length, or append global arrays to others.
-data Global
-
-
--- PS Dictionary (Sized) ------------------------------------------------------
--- | Contains operations on sized arrays.
---   For methods that consume source arrays, all elements from the source 
---   may be demanded, and the total work linear in the length of the
---   source and result arrays.
---   
-class PS a where
-  -- | Produce an empty array with size zero.
-  emptyPS	:: PData Sized a
-
-  -- | Generate an array by applying a function to every integer in an
-  --   unlifted array. This is commonly used to implement lifted projections
-  --   of global arrays, as we can pass a worker function that extracts 
-  --   data from a physically shared source.
-  constructPS   :: (Int -> a) -> U.Array Int -> PData Sized a
-
-  -- | Append two sized arrays.
-  appPS		:: PData Sized a -> PData Sized a -> PData Sized a
-
-  -- | Convert a sized array to a list.
-  fromListPS	:: [a] -> PData Sized a
-  
-  -- | Force an array to normal form.
-  nfPS          :: PData Sized a -> ()
-
-  -- TODO: Shift these into the Scalar class like existing library.  
-  -- | Convert an unlifted array to a PData. 
-  fromUArrayPS  :: U.Elt a => U.Array a -> PData Sized a
-  
-  -- | Convert a PData into an unlifted array.
-  toUArrayPS    :: U.Elt a => PData Sized a -> U.Array a
-
-
--- PJ Dictionary (Projection) -------------------------------------------------
--- | Contains projection operators. 
---   Projection operators may consume source arrays without demanding all 
---   the elements. These operators are indexed on the mode of the source 
---   arrays, and may have different implementations depending on whether
---   the source is Sized or Global.
--- 
---   This class has a PS superclass because the instances may also use
---   operators on sized arrays.
---  
-class PS a => PJ m a where
-  -- | Restrict an array to be a particular size.
-  --   For pre-Sized arrays, instances should simply check that the source
-  --   has the required length, and `error` if it does not.
-  --   For global arrays, we take a finite slice, copying the single element.
-  --   Work and Space is O(n) in the size of the result array.
-  restrictPJ    :: Int    -> PData m a -> PData Sized a
-
-  -- | Segmented restrict.
-  --   Restrict the outer layer of a nested array to be a particular size.
-  --   Only defined for a = PArray b.
-  ---
-  --   eg: restrictsPJ [___ __ _] [[x0 x1]                 [x2]      [x3 x4 x5]]
-  --                           => [[x0 x1] [x0 x1] [x0 x1] [x2] [x2] [x3 x4 x5]]
-  ---
-  --   This must be implemented in a copy-free way. The segment descriptor
-  --   in the result should point to the same data for each replicated
-  --   segment.
-  --
-  --   Work and Space must be O(n) in the number of segments in the result, 
-  --   NOT the total number of elements in the flat array.
-  restrictsPJ   :: U.Segd -> PData m a -> PData Sized a
-
-  -- | Lookup a single element from the source array.
-  indexPJ       :: PData m a  -> Int -> a
-
-  -- | Lifted indexing, look up each indexed element from the corresponding array. 
-  --   Only defined for a = PArray b
-  indexlPJ      :: Int -> PData m a -> PData Sized Int -> a
-
-
--- PE Dictionary (Expansion) --------------------------------------------------
--- | Contains expansion operators.
---   Expansion operators construct infinite arrays from finite data.
-class PS a => PE a where
-  -- | Produce a globally defined array with the provided element at every index.
-  --   Physically, this is performed just by storing the provided element once, 
-  --   and returning it for every latter indexing operation.
-  repeatPE      :: a -> PData Global a
+data family PData a
 
 
 -- PR Dictionary (Representation) ---------------------------------------------
--- | Convenience class to bundle together all the primitive operators
---   that work on our representation of parallel arrays.
-class (PJ Sized a, PJ Global a, PE a) => PR a
+class PR a where
+  -- | Produce an empty array with size zero.
+  emptyPR	:: PData a
 
+  -- | Ensure there are no thunks in the representation of a manifest array.
+  nfPR          :: PData a -> ()
+
+  -- | O(n). Define an array of the given size, that maps all elements to the same value.
+  replicatePR   :: Int    -> a           -> PData a
+
+  -- | O(sum lens). Segmented replicate.
+  replicatesPR  :: U.Array Int -> PData a -> PData a
+
+  -- | O(1). Lookup a single element from the source array.
+  indexPR       :: PData a    -> Int -> a
+
+  -- | O(n). Extract a range of elements from an array.
+  extractPR     :: PData a    -> Int -> Int -> PData a
+
+  -- | Segmented extract.
+  extractsPR    :: (Int -> PData a) -> U.Array Int -> U.Array Int -> U.Array Int -> PData a
+
+  -- | Append two sized arrays.
+  appPR		:: PData a -> PData a -> PData a
+
+  -- | Filter an array based on some tags.
+  packByTagPR   :: PData a -> U.Array Tag -> Tag -> PData a
+
+  -- Conversions ---------------------
+  -- | Convert a list to an array
+  fromListPR	:: [a] -> PData a
+
+  -- | Convert an array to a list
+  toListPR      :: PData a -> [a]
+
+  -- TODO: Shift these into the Scalar class like existing library.  
+  -- | Convert an unlifted array to a PData. 
+  fromUArrayPR  :: U.Elt a => U.Array a -> PData a
+  
+  -- | Convert a PData into an unlifted array.
+  toUArrayPR    :: U.Elt a => PData a -> U.Array a
+
+{-# INLINE uextracts1 #-}
+uextracts1 :: U.Elt a => U.Array a -> U.Array Int -> U.Array Int -> U.Array a
+uextracts1 arr ixBase lens
+ = let  lenTotal        = U.sum lens
+   in   uextracts (const arr) (U.replicate lenTotal 0) ixBase lens
+
+
+{-# INLINE uextracts #-}
+uextracts :: U.Elt a => (Int -> U.Array a) -> U.Array Int -> U.Array Int -> U.Array Int -> U.Array a
+uextracts getArr srcids ixBase lens 
+ = let -- total length of the result
+        dstLen    = U.sum lens
+        segd      = U.lengthsToSegd lens
+    
+        -- source array ids to load from
+        srcids'   = U.replicate_s segd srcids
+
+        -- base indices in the source array to load from
+        baseixs   = U.replicate_s segd ixBase
+        
+        -- starting indices for each of the segments
+        startixs  = U.scan (+) 0 lens
+          
+        -- starting indices for each of the segments in the result
+        startixs' = U.replicate_s segd startixs
+
+        result    = U.zipWith3
+                        (\ixDst ixSegDst (ixSegSrcBase, srcid)
+                                -> getArr srcid U.!: (ixDst - ixSegDst + ixSegSrcBase))
+                        (U.enumFromTo 0 (dstLen - 1))
+                        startixs'
+                        (U.zip baseixs srcids')
+   in result
+   
+ 
+    
