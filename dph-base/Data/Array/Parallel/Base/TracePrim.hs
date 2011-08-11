@@ -1,4 +1,3 @@
-
 -- | When `tracePrimEnabled` in "Data.Array.Parallel.Config" is @True@, DPH programs will print
 --   out what array primitives they're using at runtime. See `tracePrim` for details.
 module Data.Array.Parallel.Base.TracePrim

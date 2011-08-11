@@ -17,7 +17,7 @@ import Foreign.C.String
 #endif
 
 import GHC.ST ( ST )
-import GHC.IOBase ( unsafeIOToST )
+import GHC.IO ( unsafeIOToST )
 
 import Debug.Trace ( trace )
 

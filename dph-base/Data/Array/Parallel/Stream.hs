@@ -1,15 +1,23 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Stream
--- Copyright   : (c) 2010        Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : non-portable (existentials)
---
--- Stream functions not implemented in vector
---
+-- | Stream functions not implemented in @Data.Vector@
+#include "fusion-phases.h"
+
+module Data.Array.Parallel.Stream (
+
+  -- * Flat stream operators
+  indexedS, replicateEachS, replicateEachRS,
+  interleaveS, combine2ByTagS,
+  enumFromToEachS, enumFromStepLenEachS,
+  
+  -- * Segmented stream operators
+  foldSS, fold1SS, combineSS, appendSS,
+  foldValuesR,
+  indicesSS
+) where
+import Data.Array.Parallel.Base ( Tag )
+import qualified Data.Vector.Fusion.Stream as S
+import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
+import Data.Vector.Fusion.Stream.Size    ( Size(..) )
+
 -- TODO: The use of INLINE pragmas in some of these function isn't consistent.
 --       for indexedS and combine2ByTagS, there is an INLINE_INNER on the 'next'
 --       function, but replicateEachS uses a plain INLINE and fold1SS uses
@@ -26,27 +34,6 @@
 --  better if we could put the errors back, but we'll need to check that 
 --  performance does not regress when we do so.
 --
-
-#include "fusion-phases.h"
-
-module Data.Array.Parallel.Stream (
-
-  -- * Flat stream operators
-  indexedS, replicateEachS, replicateEachRS,
-  interleaveS, combine2ByTagS,
-  enumFromToEachS, enumFromStepLenEachS,
-  
-  -- * Segmented stream operators
-  foldSS, fold1SS, combineSS, appendSS,
-  foldValuesR,
-  indicesSS
-) where
-
-import Data.Array.Parallel.Base ( Tag )
-
-import qualified Data.Vector.Fusion.Stream as S
-import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
-import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 
 -- | Tag each element of an stream with its index in that stream.
 --

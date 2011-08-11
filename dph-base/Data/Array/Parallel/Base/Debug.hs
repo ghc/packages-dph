@@ -1,17 +1,4 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Stream
--- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---               (c) [2006..2007] Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : portable
---
---
--- Debugging infrastructure for the parallel arrays library
-
+-- | Debugging infrastructure for the parallel arrays library.
 module Data.Array.Parallel.Base.Debug (
     check
   , checkCritical
@@ -20,7 +7,6 @@ module Data.Array.Parallel.Base.Debug (
   , checkNotEmpty
   , uninitialised
 ) where
-
 import Data.Array.Parallel.Base.Config  (debug, debugCritical)
 
 outOfBounds :: String -> Int -> Int -> a

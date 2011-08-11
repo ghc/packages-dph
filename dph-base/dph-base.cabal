@@ -1,14 +1,14 @@
 Name:           dph-base
-Version:        0.5
+Version:        0.5.1.1
 License:        BSD3
 License-File:   LICENSE
-Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
-Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
-Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Author:         The DPH Team
+Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
+Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Basic Definitions for Data-Parallel Haskell.
+Synopsis:       Common utilities and config for Data Parallel Haskell
 
-Cabal-Version:  >= 1.2.3
+Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Flag DTrace
@@ -36,20 +36,16 @@ Library
 
   Exposed: True
 
-  if flag(DTrace)
-    CPP-Options: -DDPH_ENABLE_DTRACE
-    Extra-Libraries: dph-trace
-    Extra-Lib-Dirs: /Users/rl/projects/ndp/ghc-inline/libraries/dph/dtrace
+  Extensions: 
+         TypeFamilies, GADTs, RankNTypes,
+         BangPatterns, MagicHash, UnboxedTuples, TypeOperators, CPP
 
-  Extensions: TypeFamilies, GADTs, RankNTypes,
-              BangPatterns, MagicHash, UnboxedTuples, TypeOperators, CPP
-  GHC-Options: -funbox-strict-fields -fcpr-off
-  if impl(ghc >= 6.9)
-    GHC-Options: -Odph
-  else
-    GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
+  GHC-Options: -Odph -funbox-strict-fields -fcpr-off 
 
-  Build-Depends:  base >= 3 && < 5, array, random, vector >= 0.7 && < 0.8
-  if impl(ghc >= 6.9)
-    Build-Depends: ghc-prim
-
+  Build-Depends:  
+        base     == 4.4.*,
+        ghc-prim == 0.2.*,
+        array    == 0.3.*,
+        random   == 1.0.*,
+        vector   == 0.7.*
+          

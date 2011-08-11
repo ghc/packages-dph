@@ -1,21 +1,8 @@
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Base.Text
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  portable
---
--- Utilities for defining Read\/Show instances.
---
-
+-- | Utilities for defining Read\/Show instances.
 module Data.Array.Parallel.Base.Text (
   showsApp, readApp, readsApp,
   Read(..)
 ) where
-
 import Text.Read
 
 showsApp :: Show a => Int -> String -> a -> ShowS
