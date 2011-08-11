@@ -1,15 +1,4 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.USel
--- Copyright   :  (c) 2010         Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : portable
---
---
--- A selector is a description of how to perform a `combine` operation.
+-- | A selector is a description of how to perform a `combine` operation.
 --
 -- Suppose we are evaluating the following expression:
 --
@@ -50,7 +39,6 @@ module Data.Array.Parallel.Unlifted.Sequential.USel (
   tagsUSel2, indicesUSel2, elementsUSel2_0, elementsUSel2_1,
   tagsToIndices2
 ) where
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import qualified Data.Vector.Fusion.Stream as S
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..) )

@@ -1,21 +1,7 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
--- Copyright   : (c) [2001..2002] Manuel M T Chakravarty & Gabriele Keller
---             , (c) 2006 Manuel M T Chakravarty & Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : portable
---
--- Segment Descriptors
---
-
 {-# LANGUAGE CPP #-}
-
 #include "fusion-phases.h"
 
+-- | Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   -- * Types
   USegd,
@@ -30,7 +16,6 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   -- * Operations
   sliceUSegd, extractUSegd
 ) where
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 
 -- | Segment descriptors represent the structure of nested arrays.
