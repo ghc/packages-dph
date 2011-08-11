@@ -50,4 +50,5 @@ import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
+import Data.Array.Parallel.Unlifted.Parallel.Text ()
 

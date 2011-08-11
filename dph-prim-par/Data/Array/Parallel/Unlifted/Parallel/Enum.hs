@@ -51,7 +51,9 @@ enumFromThenToUP start next end =
     next'  = fromEnum next
     end'   = fromEnum end
     delta  = next' - start'
-    len    = abs (end' - start' + delta) `divInt` abs delta
+    -- distance between start' and end' expressed in deltas
+    dist   = (end' - start' + delta) `divInt` delta
+    len    = max dist 0
 
 enumFromStepLenUP :: Int -> Int -> Int -> Vector Int
 {-# INLINE enumFromStepLenUP #-}
