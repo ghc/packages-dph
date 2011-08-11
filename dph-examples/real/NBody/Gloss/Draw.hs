@@ -1,4 +1,4 @@
-
+{-# LANGUAGE PatternGuards #-}
 -- | Drawing the world as a gloss picture.
 module Gloss.Draw
 	(drawWorld)

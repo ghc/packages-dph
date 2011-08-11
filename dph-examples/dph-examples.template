@@ -1,6 +1,6 @@
 
 Name:                dph-examples
-Version:             0.5
+Version:             0.5.1.1
 License:             BSD3
 License-file:        LICENSE
 Author:              The DPH Team
@@ -167,7 +167,7 @@ Executable dph-quicksort
 Executable dph-nbody
   Main-is:        Main.hs
   if flag(gloss)
-    Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*, gloss == 1.2.*
+    Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*, gloss == 1.3.*
     hs-source-dirs: lib real/NBody real/NBody/Gloss
     ghc-options:    DPH_OPTIONS_PAR -fno-liberate-case
   else
@@ -179,7 +179,7 @@ Executable dph-nbody
 -- Executable dph-nbody-seq
 --  Main-is:        Main.hs
 --  if flag(gloss)
---    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.2.*
+--    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.3.*
 --    hs-source-dirs: lib real/NBody real/NBody/Gloss
 --    ghc-options:    DPH_OPTIONS_SEQ
 --  else

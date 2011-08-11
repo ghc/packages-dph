@@ -2,7 +2,7 @@
 
 
 Name:                dph-examples
-Version:             0.5
+Version:             0.5.1.1
 License:             BSD3
 License-file:        LICENSE
 Author:              The DPH Team
@@ -25,13 +25,13 @@ Flag gloss
 
 -- Sum of Squares -------------------------------------------------------------
 Executable dph-sumsq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib imaginary/SumSquares/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-sumsq-seq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib imaginary/SumSquares/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -39,13 +39,13 @@ Executable dph-sumsq-seq
 
 -- Dot Product ----------------------------------------------------------------
 Executable dph-dotp
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib imaginary/DotProduct/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-dotp-seq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib imaginary/DotProduct/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -53,13 +53,13 @@ Executable dph-dotp-seq
 
 -- Evens ----------------------------------------------------------------------
 Executable dph-evens
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Evens/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-evens-seq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Evens/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -68,13 +68,13 @@ Executable dph-evens-seq
 -- Primes ---------------------------------------------------------------------
 -- Primes dies with a bounds check error
 -- Executable dph-primes
---  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: imaginary/Primes lib
 --  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 -- Executable dph-primes-seq
---  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: imaginary/Primes lib
 --  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -82,14 +82,14 @@ Executable dph-evens-seq
 
 -- Reverse --------------------------------------------------------------------
 Executable dph-reverse
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Reverse/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 
 Executable dph-reverse-seq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Reverse/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -98,14 +98,14 @@ Executable dph-reverse-seq
 -- Words ---------------------------------------------------------------------
 -- This builds and runs, but takes ~5min. 
 -- Executable dph-words
---  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: imaginary/Words lib
 --  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
 
 -- This one also stalls in SpecConstr, like quicksort-seq
 -- Executable dph-words-seq
---   Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--   Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --   Main-is:        Main.hs
 --   hs-source-dirs: imaginary/Words lib
 --   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -113,13 +113,13 @@ Executable dph-reverse-seq
 
 -- SMVM ---------------------------------------------------------------------
 Executable dph-smvm
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: spectral/SMVM/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-smvm-seq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: spectral/SMVM/dph lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -128,13 +128,13 @@ Executable dph-smvm-seq
 
 -- QuickHull ------------------------------------------------------------------
 Executable dph-quickhull
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-quickhull-seq
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -152,14 +152,14 @@ Executable dph-quickhull-vector
 
 -- QuickSort ------------------------------------------------------------------
 Executable dph-quicksort
-  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
   Main-is:        Main.hs
   hs-source-dirs: lib spectral/QuickSort/dph
   ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 -- This one stalls in SpecConstr then eventually runs out of memory.
 -- Executable dph-quicksort-seq
---  Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: lib spectral/QuickSort/dph
 --  ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -169,11 +169,11 @@ Executable dph-quicksort
 Executable dph-nbody
   Main-is:        Main.hs
   if flag(gloss)
-    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.2.*
+    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
     hs-source-dirs: lib real/NBody real/NBody/Gloss
     ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
   else
-    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
+    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
     ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
   endif
@@ -181,11 +181,11 @@ Executable dph-nbody
 -- Executable dph-nbody-seq
 --  Main-is:        Main.hs
 --  if flag(gloss)
---    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.2.*
+--    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
 --    hs-source-dirs: lib real/NBody real/NBody/Gloss
 --    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 --  else
---    Build-depends:  base == 4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
+--    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
 --    hs-source-dirs: lib real/NBody real/NBody/Batch
 --    ghc-options:    -dcore-lint -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 --  endif
