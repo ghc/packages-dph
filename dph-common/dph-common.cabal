@@ -1,14 +1,14 @@
 Name:           dph-DPHWAY
-Version:        0.5
+Version:        0.5.1.1
 License:        BSD3
 License-File:   LICENSE
-Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
-Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
-Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Author:         The DPH Team
+Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
+Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
 Synopsis:       Data structures for Nested Data-Parallel Haskell.
 
-Cabal-Version:  >= 1.2.3
+Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
@@ -51,19 +51,19 @@ Library
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
-  GHC-Options: -funbox-strict-fields -fcpr-off
-  if impl(ghc >= 6.9)
-    GHC-Options: -Odph
-  else
-    GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
 
-  Build-Depends:  base >= 3 && < 5, array, random, ghc, template-haskell
-  if impl(ghc >= 6.9)
-    Build-Depends: ghc-prim
-  Build-Depends: dph-base
+  GHC-Options: -Odph -funbox-strict-fields -fcpr-off
+
+  Build-Depends:  
+        base             == 4.4.*,
+        ghc              == 7.2.*,
+        array            == 0.3.*,
+        random           == 1.0.*,
+        template-haskell == 2.6.*,
+        dph-base         == 0.5.*,
+        dph-prim-DPHWAY  == 0.5.*
 
   GHC-Options: -fdph-this
 
-  Build-Depends: dph-prim-DPHWAY
   GHC-Options: -package-name dph-DPHWAY
 

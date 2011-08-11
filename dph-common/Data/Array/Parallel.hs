@@ -1,17 +1,7 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel
--- Copyright   :  (c) [2006..2011] Data Parallel Haskell team
--- License     :  see libraries/dph/LICENSE
--- 
--- Maintainer  :  cvs-ghc@haskell.org
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
---
--- User level interface of parallel arrays.
+-- | User level interface of parallel arrays.
 --
 -- The semantic difference between standard Haskell arrays (aka "lazy
 -- arrays") and parallel arrays (aka "strict arrays") is that the evaluation
@@ -31,9 +21,10 @@
 -- operations are not supported on parallel arrays, as they would require the
 -- infinite parallel arrays: `iterate', `repeat', and `cycle'.
 -- 
--- /WARNING:/ In the current implementation, the functionality provided in this module is tied to
--- the vectoriser pass of GHC invoked by passing the `-fvectorise` option.  Without vectorisation
--- these functions will not work at all!
+-- /WARNING:/ In the current implementation, the functionality provided in
+-- this module is tied to the vectoriser pass of GHC invoked by passing the
+-- `-fvectorise` option.  Without vectorisation these functions will not work
+-- at all!
 
 module Data.Array.Parallel (
   module Data.Array.Parallel.Prelude,

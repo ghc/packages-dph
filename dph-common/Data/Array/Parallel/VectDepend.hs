@@ -1,16 +1,6 @@
 {-# OPTIONS_GHC -fvectorise #-}
 {-# OPTIONS_HADDOCK hide #-}
 
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.VectDepend
--- Copyright   :  (c) 2001-2011 The Data Parallel Haskell team
--- License     :  see libraries/base/LICENSE
--- 
--- Maintainer  :  cvs-ghc@haskell.org
--- Stability   :  internal
--- Portability :  non-portable (GHC Extensions)
---
 -- Note [Vectoriser dependencies]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Some of the modules in 'dph-common' (and hence, 'dph-seq' and 'dph-par') are being vectorised,

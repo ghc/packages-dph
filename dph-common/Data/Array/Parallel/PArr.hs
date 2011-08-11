@@ -2,17 +2,6 @@
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 {-# OPTIONS_HADDOCK hide #-}
 
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.PArr
--- Copyright   :  (c) 2001-2011 The Data Parallel Haskell team
--- License     :  see libraries/base/LICENSE
--- 
--- Maintainer  :  cvs-ghc@haskell.org
--- Stability   :  internal
--- Portability :  non-portable (GHC Extensions)
---
-
 -- #hide
 module Data.Array.Parallel.PArr (
   emptyPArr, replicatePArr, singletonPArr, indexPArr, lengthPArr
