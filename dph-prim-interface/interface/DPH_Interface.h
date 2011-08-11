@@ -25,7 +25,7 @@ empty :: Elt a => Array a
 {-# INLINE_BACKEND empty #-}
 
 
--- | Append two arrays.
+-- | O(n). Append two arrays.
 (+:+) :: Elt a => Array a -> Array a -> Array a
 {-# INLINE_BACKEND (+:+) #-}
 
@@ -39,7 +39,7 @@ generate_cheap :: Elt a => Int -> (Int -> a) -> Array a
 {-# INLINE_BACKEND generate_cheap #-}
 generate_cheap n f = map f (enumFromTo 0 (n-1))
 
--- | Produce a new array by replicating a single element the given number of times.
+-- | O(n). Produce a new array by replicating a single element the given number of times.
 replicate :: Elt a => Int -> a -> Array a
 {-# INLINE CONLIKE PHASE_BACKEND replicate #-}
 
@@ -91,13 +91,12 @@ enumFromStepLenEach :: Int -> Array Int -> Array Int -> Array Int -> Array Int
 
 
 -- Projections ----------------------------------------------------------------
--- | Retrieve a numbered element from an array.
+-- | O(1). Retrieve a numbered element from an array.
 (!:) :: Elt a => Array a -> Int -> a
 {-# INLINE_BACKEND (!:) #-}
 
 
--- | Extract a subrange of elements from an array.
---
+-- | O(n). Extract a subrange of elements from an array.
 --   Example: @extract [:23, 42, 93, 50, 27:] 1 3  = [:42, 93, 50:]@
 extract :: Elt a
         => Array a      -- ^ source array
@@ -107,22 +106,22 @@ extract :: Elt a
 {-# INLINE_BACKEND extract #-}
 
 
--- | Drop some elements from the front of an array, 
---   returning the latter portion.
+-- | O(n). Drop some elements from the front of an array, 
+--         returning the latter portion.
 drop :: Elt a => Int -> Array a -> Array a
 {-# INLINE_BACKEND drop #-}
 
 
 -- Permutation ----------------------------------------------------------------
--- | Forwards permutation of array elements.
+-- | O(n). Forwards permutation of array elements.
 permute :: Elt a 
         => Array a      -- ^ source array
-        -> Array Int    -- ^ indices in the destination to copy elements to.
+        -> Array Int    -- ^ indices in the destination to copy elements to
         -> Array a
 {-# INLINE_BACKEND permute #-}
 
 
--- | Backwards permutation of array elements.
+-- | O(n). Backwards permutation of array elements.
 --
 --   Example @bpermute [:50, 60, 20, 30:] 3 [:0, 3, 2:]  = [:50, 30, 20:]@
 bpermute 
@@ -166,7 +165,7 @@ bpermuteDft:: Elt e => Int -> (Int -> e) -> Array (Int, e) -> Array e
 
 
 -- Update ---------------------------------------------------------------------
--- | Copy the source array in the destination, using new values for the given indices.
+-- | O(n). Copy the source array in the destination, using new values for the given indices.
 update :: Elt a => Array a -> Array (Int, a) -> Array a
 {-# INLINE_BACKEND update #-}
 
@@ -229,13 +228,13 @@ snds :: (Elt a, Elt b) => Array (a, b) -> Array b
 
 
 -- Maps and zipWith -----------------------------------------------------------
--- | O(n). Apply a worker function to each element of an array, yielding a new array.
+-- | Apply a worker function to each element of an array, yielding a new array.
 map     :: (Elt a, Elt b)
         => (a -> b) -> Array a -> Array b
 {-# INLINE_BACKEND map #-}
 
 
--- | O(n). zipWith generalises zip by zipping with the function given as the first
+-- | zipWith generalises zip by zipping with the function given as the first
 --         argument, instead of a tupling function.
 zipWith :: (Elt a, Elt b, Elt c)
         => (a -> b -> c) -> Array a -> Array b -> Array c
@@ -491,12 +490,6 @@ sum_r :: (Num a, Elt a) => Int ->Array a -> Array a
 -- Operations on Segment Descriptors ------------------------------------------
 indices_s :: Segd -> Array Int
 {-# INLINE_BACKEND indices_s #-}
-{-
-indices_s m segd n = enumFromToEach n
-                   . zip (replicate m 0)
-                   . map (Prelude.subtract 1)
-                   $ lengthsSegd segd
--}
 
 lengthSegd :: Segd -> Int
 {-# INLINE_BACKEND lengthSegd #-}
@@ -596,7 +589,6 @@ elementsSelRep2_1 :: Array Tag -> SelRep2 -> Int
 
 
 -- | O(n), Compute a selector from a tags array.
---
 tagsToSel2 :: Array Tag -> Sel2
 {-# INLINE tagsToSel2 #-}
 tagsToSel2 tags = let rep = mkSelRep2 tags
@@ -671,22 +663,16 @@ pick xs !x = map (x==) xs
   #-}
 
 
-{- RULES
-
-"packByTag/combine2ByTag" forall tags1 xs ys tags2 n.
-  packByTag (combine2ByTag tags1 xs ys) tags2 n
-    = combine2ByTag (packByTag tags1 tags2 n)
-                    (packByTag xs (packByTag tags2 tags1 0) n)
-                    (packByTag ys (packByTag tags2 tags1 1) n)
-
-  -}
 
 
 -- Counting -------------------------------------------------------------------
+-- | Count the number of elements in array that are equal to the given value.
 count :: (Elt a, Eq a) => Array a -> a -> Int
 {-# INLINE_BACKEND count #-}
 count xs !x = sum (map (tagToInt . fromBool . (==) x) xs)
 
+
+-- | Count the number of elements in segments that are equal to the given value.
 count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
 {-# INLINE_BACKEND count_s #-}
 count_s segd xs !x = sum_s segd (map (tagToInt . fromBool . (==) x) xs)
@@ -714,15 +700,23 @@ instance IOElt Int
 instance IOElt Double
 instance (IOElt a, IOElt b) => IOElt (a, b)
 
+
+-- | Write an array to a file.
 hPut :: IOElt a => Handle -> Array a -> IO ()
 {-# INLINE_BACKEND hPut #-}
 
+
+-- | Read an array from a file.
 hGet :: IOElt a => Handle -> IO (Array a)
 {-# INLINE_BACKEND hGet #-}
 
+
+-- | Convert an array to a list of elements.
 toList :: Elt a => Array a -> [a]
 {-# INLINE_BACKEND toList #-}
 
+
+-- | Convert a list of elements to an array.
 fromList :: Elt a => [a] -> Array a
 {-# INLINE_BACKEND fromList #-}
 
@@ -753,67 +747,16 @@ tagZeroes :: Array Int -> Array Tag
 tagZeroes xs = map (\x -> fromBool (x==0)) xs
 
 
-
 -------------------------------------------------------------------------------
--- currently disabled rules
+-- Currently disabled rules
 -------------------------------------------------------------------------------
-{-
-"packByTag/tagZeroes" forall xs ys t.
-  packByTag xs (tagZeroes ys) t = packByTag xs (map (\y -> fromBool (y==0)) ys) t
 
-"mkSelRep2/tagZeroes" forall xs.
-  mkSelRep2 (tagZeroes xs) = 
+{- RULES
+
+"packByTag/combine2ByTag" forall tags1 xs ys tags2 n.
+  packByTag (combine2ByTag tags1 xs ys) tags2 n
+    = combine2ByTag (packByTag tags1 tags2 n)
+                    (packByTag xs (packByTag tags2 tags1 0) n)
+                    (packByTag ys (packByTag tags2 tags1 1) n)
 
   -}
-
-
-{- RULES
-
-"legthsToSegd/replicate" forall m n.
-  lengthsToSegd (replicate m n)
-    = mkSegd (replicate m n) (enumFromStepLen 0 n m) (m `dph_mult` n)
-
- -}
-
--- These are for Gabi
-{- RULES
-
-"repeat/bpermute" forall n len xs is.
-  repeat n len (bpermute xs is)
-    = bpermute xs (repeat n len is)
-
-"lengthsToSegd/replicate" forall m n.
-  lengthsToSegd (replicate m n)
-    = let { m' = m; n' = n } in toSegd (zip (replicate m' n')
-                                            (enumFromStepLen 0 n' m'))
-
-"fromSegd/toSegd" forall ps.
-  fromSegd (toSegd ps) = ps
-
-"sum/replicate" forall m n.
-  sum (replicate m n) = m Prelude.* n
-
-"replicateEach/zip" forall n lens xs ys.
-  replicateEach n lens (zip xs ys)
-    = let { n' = n; lens' = lens } in zip (replicateEach n' lens' xs)
-                                          (replicateEach n' lens' ys)
-
-"fsts/zip" forall xs ys.
-  fsts (zip xs ys) = xs
-
-"snds/zip" forall xs ys.
-  snds (zip xs ys) = ys
-
-"repeat/enumFromStepLenEach" forall n m m' ps.
-  repeat n m (enumFromStepLenEach m' ps)
-    = enumFromStepLenEach (n*m) (repeat n (length ps) ps)
-
-"repeat/zip3" forall n len xs ys zs.
-  repeat n len (zip3 xs ys zs)
-    = zip3 (repeat n len xs) (repeat n len ys) (repeat n len zs)
-
-"repeat/replicate" forall n len m x.
-  repeat n len (replicate m x)
-    = replicate len x
-
- -}

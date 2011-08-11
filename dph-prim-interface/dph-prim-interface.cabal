@@ -1,14 +1,14 @@
 Name:           dph-prim-interface
-Version:        0.5
+Version:        0.5.1.1
 License:        BSD3
 License-File:   LICENSE
-Author:         Roman Leshchinskiy
-Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
-Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Author:         The DPH Team
+Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
+Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
 Synopsis:       Backend Interface for Data Parallel Haskell
 
-Cabal-Version:  >= 1.2
+Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
@@ -26,11 +26,10 @@ Library
 
   Extensions: BangPatterns
 
-  GHC-Options: -funbox-strict-fields -fcpr-off
-  if impl(ghc >= 6.9)
-    GHC-Options: -Odph
-  else
-    GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
+  GHC-Options: -Odph -funbox-strict-fields -fcpr-off
 
-  Build-Depends:  base >= 3 && < 5, random, dph-base
+  Build-Depends: 
+        base     == 4.4.*,
+        random   == 1.0.*,
+        dph-base == 0.5.*
 

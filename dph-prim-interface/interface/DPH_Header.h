@@ -34,7 +34,7 @@ module Data.Array.Parallel.Unlifted (
   interleave,
 
   -- * Map and ZipWith
-  map, zipWith, zipWith3,
+  map, zipWith, zipWith3, zipWith4,
 
   -- * Zipping and Unzipping
   zip, unzip, fsts, snds,
