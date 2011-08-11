@@ -1,17 +1,6 @@
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Unlifted.Distributed.Scalars
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
---
--- Distributed scalars.
--- With a distributed value like (Dist Int), each thread has its own integer, 
--- which may or may not have the same values as the ones on other threads.
---
+-- | Distributed scalars.
+--   With a distributed value like (Dist Int), each thread has its own integer, 
+--   which may or may not have the same values as the ones on other threads.
 module Data.Array.Parallel.Unlifted.Distributed.Scalars (
   unitD, scalarD,
   orD, andD, sumD

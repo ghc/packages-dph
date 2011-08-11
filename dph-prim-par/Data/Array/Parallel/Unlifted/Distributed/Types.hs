@@ -1,21 +1,9 @@
 {-# OPTIONS -fno-warn-incomplete-patterns #-}
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Unlifted.Distributed.Types
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
---
--- Distributed types.
---
-
 {-# LANGUAGE CPP #-}
 
 #include "fusion-phases.h"
 
+-- | Distributed types.
 module Data.Array.Parallel.Unlifted.Distributed.Types (
   -- * Distributed types
   DT, Dist, MDist, DPrim(..),
@@ -175,10 +163,12 @@ primReadMD :: DPrim a => MDist a s -> Int -> ST s a
 {-# INLINE primReadMD #-}
 primReadMD = MV.read . unMDPrim
 
+
 -- | Write the member of a distributed value corresponding to the given thread index.
 primWriteMD :: DPrim a => MDist a s -> Int -> a -> ST s ()
 {-# INLINE primWriteMD #-}
 primWriteMD = MV.write . unMDPrim
+
 
 -- | Freeze a mutable distributed value to an immutable one.
 --   You promise not to update the mutable one any further.
@@ -192,6 +182,7 @@ primUnsafeFreezeMD = liftM mkDPrim . V.unsafeFreeze . unMDPrim
 primSizeD :: DPrim a => Dist a -> Int
 {-# INLINE primSizeD #-}
 primSizeD = V.length . unDPrim
+
 
 -- | Get the size of a distributed mutable value, that is, the number of threads
 --   in the gang it was created for.
@@ -212,6 +203,9 @@ instance DT () where
   writeMD  (MDUnit n) i ()  = check (here "writeMD[()]") n i $
                                return ()
   unsafeFreezeMD (MDUnit n) = return $ DUnit n
+
+  sizeD  = error "dph-prim-par:sizeD[()] undefined"
+  sizeMD = error "dph-prim-par:sizeMD[()] undefined"
 
 -- | Yield a distributed unit.
 unitD :: Gang -> Dist ()

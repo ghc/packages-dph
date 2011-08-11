@@ -1,19 +1,7 @@
------------------------------------------------------------------------------
--- Module      : Data.Array.Parallel.Unlifted.Parallel.Combinators
--- Copyright   : (c) 2006         Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : experimental
--- Portability : portable
---
---
--- | Parallel combinators for unlifted arrays
---
 {-# LANGUAGE CPP #-}
-
 #include "fusion-phases.h"
 
+-- | Parallel combinators for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, filterUP, packUP, combineUP, combine2UP,
   zipWithUP, foldUP, fold1UP, foldl1UP, scanUP

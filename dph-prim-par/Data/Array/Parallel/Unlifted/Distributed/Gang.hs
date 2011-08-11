@@ -1,16 +1,6 @@
 {-# LANGUAGE CPP #-}
 
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Distributed.Gang
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
---
--- Gang primitives.
+-- | Gang primitives.
 --
 -- /TODO:/
 --
@@ -27,9 +17,9 @@ module Data.Array.Parallel.Unlifted.Distributed.Gang (
   Gang, seqGang, forkGang, gangSize, gangIO, gangST, traceGang, traceGangST 
 ) where
 
-import GHC.IOBase
+import GHC.IO
 import GHC.ST
-import GHC.Conc                  ( forkOnIO )
+import GHC.Conc                  ( forkOn )
 import GHC.Exts                  ( traceEvent )
 
 import Control.Concurrent.MVar
@@ -38,9 +28,7 @@ import Control.Monad             ( zipWithM, zipWithM_ )
 
 import System.Time ( ClockTime(..), getClockTime )
 
--- ---------------------------------------------------------------------------
--- Requests and operations on them
-
+-- Requests and operations on them --------------------------------------------
 -- | The 'Req' type encapsulates work requests for individual members of a gang. 
 data Req 
 	-- | Instruct the worker to run the given action then signal it's done
@@ -69,9 +57,7 @@ waitReq req
 	ReqShutdown varDone	-> takeMVar varDone
 
 
--- ---------------------------------------------------------------------------
--- Thread gangs and operations on them
-
+-- Thread gangs and operations on them ----------------------------------------
 -- | A 'Gang' is a group of threads which execute arbitrary work requests.
 --   To get the gang to do work, write Req-uest values
 --   to its MVars
@@ -149,7 +135,7 @@ forkGang n
 	mapM_ (\var -> addMVarFinalizer var (finaliseWorker var)) mvs
 
 	-- Create all the worker threads
-	zipWithM_ forkOnIO [0..] 
+	zipWithM_ forkOn [0..] 
 		$ zipWith gangWorker [0 .. n-1] mvs
 
 	-- The gang is currently idle.

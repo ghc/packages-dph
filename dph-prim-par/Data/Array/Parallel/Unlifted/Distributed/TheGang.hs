@@ -1,5 +1,10 @@
--- This is a hack which will go away as soon as possible!
 
+-- DPH programs always used a single, shared gang of threads.
+-- The gang exists at top level, and is initialised unsafely.
+-- 
+-- The Vectoriser guarantees that the gang is only used by a single
+-- computation at a time.
+--
 module Data.Array.Parallel.Unlifted.Distributed.TheGang (
   theGang
 ) where

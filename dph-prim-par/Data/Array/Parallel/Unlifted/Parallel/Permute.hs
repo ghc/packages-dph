@@ -1,26 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Parallel.Permute
--- Copyright   : (c) 2006         Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : experimental
--- Portability : portable
---
--- Description ---------------------------------------------------------------
---
--- Parallel permutations for unlifted arrays
---
-
+-- | Parallel permutations for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Permute (
   bpermuteUP, updateUP
 ) where
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
+
 
 bpermuteUP :: Unbox a => Vector a -> Vector Int -> Vector a
 {-# INLINE bpermuteUP #-}

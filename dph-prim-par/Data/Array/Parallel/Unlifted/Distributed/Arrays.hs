@@ -1,22 +1,8 @@
 {-# LANGUAGE EmptyDataDecls, ScopedTypeVariables #-}
-
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Unlifted.Distributed.Arrays
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
---
--- Operations on distributed arrays.
---
-
 {-# LANGUAGE CPP #-}
-
 #include "fusion-phases.h"
 
+-- | Operations on distributed arrays.
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLenD, splitLenIdxD,
   splitAsD, splitD, joinLengthD, joinD, splitJoinD, joinDM,
@@ -79,6 +65,7 @@ splitLenD g n = generateD_cheap g len
     {-# INLINE [0] len #-}
     len i | i < m     = l+1
           | otherwise = l
+
 
 -- | Distribute an array length over a 'Gang'.
 --   Each thread holds the number of elements it's responsible for, 
@@ -201,37 +188,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 "splitJoinD/splitJoinD" forall g f1 f2 xs.
   splitJoinD g f1 (splitJoinD g f2 xs) = splitJoinD g (f1 . f2) xs
 
-{-
-"splitD/Seq.zip" forall g b xs ys.
-  splitD g b (Seq.zip xs ys) = zipWithD g Seq.zip (splitD g balanced xs)
-                                            (splitD g balanced ys)
-
-"splitJoinD/Seq.zip" forall g f xs ys.
-  splitJoinD g f (Seq.zip xs ys)
-    = joinD g balanced
-        (f (zipWithD g Seq.zip (splitD g balanced xs)
-                            (splitD g balanced ys)))
-
-"splitAsD/Seq.zip" forall g dlen xs ys.
-  splitAsD g dlen (Seq.zip xs ys) = zipWithD g Seq.zip (splitAsD g dlen xs)
-                                                 (splitAsD g dlen ys)
--}
   #-}
-
-{- FIXME
-
-"Seq.fsts/joinD" forall g b xs.
-  Seq.fsts (joinD g b xs) = joinD g b (mapD g Seq.fsts xs)
-
-"Seq.snds/joinD" forall g b xs.
-  Seq.snds (joinD g b xs) = joinD g b (mapD g Seq.snds xs)
-
-"Seq.fsts/splitJoinD" forall g f xs.
-  Seq.fsts (splitJoinD g f xs) = splitJoinD g (mapD g Seq.fsts . f) xs
-
-"Seq.snds/splitJoinD" forall g f xs.
-  Seq.snds (splitJoinD g f xs) = splitJoinD g (mapD g Seq.snds . f) xs
--}
 
 {-# RULES
 
@@ -323,6 +280,7 @@ search !x ys = go 0 (Seq.length ys)
         half = n `shiftR` 1
         mid  = i + half
 
+
 chunk :: USegd -> Int -> Int -> Bool -> (# Vector Int, Int, Int #)
 chunk !segd !di !dn is_last
   = (# lens', k-left_len, left_off #)
@@ -357,6 +315,7 @@ chunk !segd !di !dn is_last
 
     n' = left_len + (k'-k)
 
+
 splitSegdD' :: Gang -> USegd -> Dist ((USegd,Int),Int)
 {-# INLINE splitSegdD' #-}
 splitSegdD' g !segd = imapD g mk
@@ -368,11 +327,13 @@ splitSegdD' g !segd = imapD g mk
     mk i (dn,di) = case chunk segd di dn (i == p-1) of
                      (# lens, l, o #) -> ((lengthsToUSegd lens,l),o)
 
+
 joinSegD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegD #-}
 joinSegD g = lengthsToUSegd
            . joinD g unbalanced
            . mapD g lengthsUSegd
+
 
 splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitSD #-}
@@ -388,4 +349,3 @@ splitSD g dsegd xs = splitAsD g (elementsUSegdD dsegd) xs
                                              (splitSD g d ys)
 
   #-}
-

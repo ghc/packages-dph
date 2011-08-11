@@ -1,14 +1,14 @@
 Name:           dph-prim-par
-Version:        0.5
+Version:        0.5.1.1
 License:        BSD3
 License-File:   LICENSE
-Author:         Manuel M T Chakravarty, Gabriele Keller, Roman Leshchinskiy
-Maintainer:     Roman Leshchinskiy <rl@cse.unsw.edu.au>
-Homepage:       http://www.cse.unsw.edu.au/~chak/project/dph/
+Author:         The DPH Team
+Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
+Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
 Synopsis:       Parallel Primitives for Data-Parallel Haskell.
 
-Cabal-Version:  >= 1.2.3
+Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
@@ -40,14 +40,13 @@ Library
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
-  GHC-Options: -funbox-strict-fields -fcpr-off
-  if impl(ghc >= 6.9)
-    GHC-Options: -Odph
-  else
-    GHC-Options: -O2 -fdicts-cheap -fno-method-sharing
+  GHC-Options: -Odph -funbox-strict-fields -fcpr-off
 
-  Build-Depends:  base >= 3 && < 5, array, random, vector >= 0.7
-  if impl(ghc >= 6.9)
-    Build-Depends: ghc-prim
-  Build-Depends: dph-base, dph-prim-interface, dph-prim-seq, old-time
-
+  Build-Depends:  
+        base     == 4.4.*,
+        random   == 1.0.*,
+        vector   == 0.7.*,
+        old-time == 1.0.*,
+        dph-base == 0.5.*,
+        dph-prim-interface == 0.5.*,
+        dph-prim-seq       == 0.5.*

@@ -1,27 +1,12 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Parallel.Segmented
--- Copyright   : (c) [2006,2007]        Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : non-portable (existentials)
---
--- Description ---------------------------------------------------------------
---
--- Parallel combinators for segmented unboxed arrays
---
-
 {-# LANGUAGE CPP #-}
 
 #include "fusion-phases.h"
 
+-- | Parallel combinators for segmented unboxed arrays
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   replicateSUP, replicateRSUP, appendSUP, indicesSUP,
   foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP
 ) where
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
 import Data.Array.Parallel.Unlifted.Distributed

@@ -1,18 +1,4 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Parallel.Sums
--- Copyright   : (c) 2006         Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : experimental
--- Portability : portable
---
--- Description ---------------------------------------------------------------
---
--- Sum-like parallel combinators for unlifted arrays
---
-
+-- | Sum-like parallel combinators for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Sums (
   andUP, orUP, sumUP
 ) where
@@ -24,43 +10,47 @@ import Data.Array.Parallel.Unlifted.Parallel.Combinators (
 import Data.Array.Parallel.Unlifted.Parallel.Basics ( 
   indexedUP)
 
+-- | Compute the logical AND of all the elements in a array.
 andUP :: Vector Bool -> Bool
 {-# INLINE andUP #-}
 andUP = foldUP (&&) True
 
 
--- |
+-- | Compute the logical OR of all the elements in a array.
 orUP :: Vector Bool -> Bool
 {-# INLINE orUP #-}
 orUP = foldUP (||) False
 
+-- | Check whether all the elements in a array meet the given predicate.
 allUP :: Unbox e => (e -> Bool) -> Vector e -> Bool
 {-# INLINE allUP #-}
 allUP p = andUP . mapUP p
 
--- |
+-- | Check whether any of the elements in a array meet the given predicate.
 anyUP :: Unbox e => (e -> Bool) -> Vector e -> Bool
 {-# INLINE anyUP #-}
 anyUP p =  orUP . mapUP p
 
 
+-- | Compute the sum all the elements of a array.
 sumUP :: (Unbox a, DT a, Num a) => Vector a -> a
 {-# INLINE sumUP #-}
 sumUP = foldUP (+) 0
 
+
+-- | Compute the product of all the elements of an array.
 productUP :: (DT e, Num e, Unbox e) => Vector e -> e
 {-# INLINE productUP #-}
 productUP = foldUP (*) 1
 
--- |Determine the maximum element in an array
---
+
+-- | Determine the maximum element in an array.
 maximumUP :: (DT e, Ord e, Unbox e) => Vector e -> e
 {-# INLINE maximumUP #-}
 maximumUP = fold1UP max
 
 
--- |Determine the maximum element in an array under the given ordering
---
+--  |Determine the maximum element in an array under the given ordering
 maximumByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> e
 {-# INLINE maximumByUP #-}
 maximumByUP = fold1UP . maxBy
@@ -69,9 +59,8 @@ maximumByUP = fold1UP . maxBy
                           LT -> y
                           _  -> x
 
--- |Determine the index of the maximum element in an array under the given
--- ordering
---
+-- | Determine the index of the maximum element in an array under the given
+--   ordering
 maximumIndexByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> Int
 {-# INLINE maximumIndexByUP #-}
 maximumIndexByUP cmp = fst . maximumByUP cmp' . indexedUP

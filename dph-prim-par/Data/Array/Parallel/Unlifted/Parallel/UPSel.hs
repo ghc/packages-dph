@@ -1,22 +1,7 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Parallel.UPSel
--- Copyright   : (c) 2010         Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : portable
---
--- Description ---------------------------------------------------------------
---
--- Parallel selectors.
---
-
 {-# LANGUAGE CPP #-}
-
 #include "fusion-phases.h"
 
+-- | Parallel selectors.
 module Data.Array.Parallel.Unlifted.Parallel.UPSel (
   -- * Types
   UPSel2, UPSelRep2,
@@ -49,9 +34,10 @@ data UPSel2
 --
 --   Suppose we want to perform the following combine operation:
 --
---     @combine [0,0,1,1,0,1,0,0,1] [A0,A1,A2,A3,A4] [B0,B1,B2,B3] 
---        = [A0,A1,B0,B1,A2,B2,A3,A4,B3]
---     @
+-- @
+--    combine [0,0,1,1,0,1,0,0,1] [A0,A1,A2,A3,A4] [B0,B1,B2,B3] 
+--     = [A0,A1,B0,B1,A2,B2,A3,A4,B3]
+-- @
 --
 --   The first array is the tags array, that says which of the data arrays to
 --   get each successive element from. As `combine` is difficult to compute
@@ -60,34 +46,38 @@ data UPSel2
 --   element. The selector contains the original tags, as well as the source
 --   index telling us where to get each element for the result array.
 -- 
---     @[0,0,1,1,0,1,0,0,1]      -- tags    (which data vector to take the elem from)
---      [0,1,0,1,2,2,3,4,3]      -- indices (where in the vector to take the elem from)
---     @
+-- @
+--    [0,0,1,1,0,1,0,0,1]      -- tags    (which data vector to take the elem from)
+--    [0,1,0,1,2,2,3,4,3]      -- indices (where in the vector to take the elem from)
+-- @
 --
 --  Suppose we want to distribute the combine operation across 3 PEs. It's
 --  easy to split the selector like so:
 --
---  @       PE0                PE1               PE2
---        [0,0,1]            [1,0,1]           [0,0,1]   -- tags
---        [0,1,0]            [1,2,2]           [3,4,3]   -- indices
---  @
+-- @       
+--     PE0                PE1               PE2
+--    [0,0,1]            [1,0,1]           [0,0,1]   -- tags
+--    [0,1,0]            [1,2,2]           [3,4,3]   -- indices
+-- @
 --
 --  We now need to split the two data arrays. Each PE needs slices of the data
 --  arrays that correspond to the parts of the selector that were given to it.
 --  For the current example we get:
 --
---  @       PE0                PE1               PE2
---        [A0,A1]            [A2]              [A3,A4]
---        [B0]               [B1,B2]           [B3]
---  @
+-- @
+--    PE0                PE1               PE2
+--    [A0,A1]            [A2]              [A3,A4]
+--    [B0]               [B1,B2]           [B3]
+-- @
 --
 --  The `UPSelRep2` contains the starting index and length of each of of these
 --  slices:
 --
---  @       PE0                PE1               PE2
+-- @
+--         PE0                PE1               PE2
 --    ((0, 0), (2, 1))   ((2, 1), (1, 2))  ((3, 3), (2, 1))
 --    indices   lens      indices  lens    indices  lens
---  @
+-- @
 --
 type UPSelRep2
         = Dist ((Int,Int), (Int,Int))

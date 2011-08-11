@@ -1,20 +1,4 @@
------------------------------------------------------------------------------
--- |
--- Module      : Data.Array.Parallel.Unlifted.Parallel.Text
--- Copyright   : (c) 2006 Roman Leshchinskiy
--- License     : see libraries/ndp/LICENSE
--- 
--- Maintainer  : Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   : internal
--- Portability : portable
---
--- Description ---------------------------------------------------------------
---
---  Read\/Show instances for segmented unlifted arrays.
---
--- Todo ----------------------------------------------------------------------
---
-
+-- | Read\/Show instances for segmented unlifted arrays.
 module Data.Array.Parallel.Unlifted.Parallel.Text ()
 where
 

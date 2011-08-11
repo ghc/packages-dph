@@ -1,16 +1,4 @@
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Unlifted.Distributed
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
---
--- Distributed types and operations.
---
-
+-- | Distributed types and operations.
 module Data.Array.Parallel.Unlifted.Distributed (
   -- * Gang operations
   Gang, forkGang, gangSize,
@@ -19,7 +7,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   theGang,
 
   -- * Distributed types and classes
-  DT(..), Dist,
+  DT(..),
 
   -- * Higher-order combinators
   mapD, zipWithD, foldD, scanD,

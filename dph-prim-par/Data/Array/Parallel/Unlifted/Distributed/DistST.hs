@@ -1,28 +1,16 @@
 {-# LANGUAGE ScopedTypeVariables #-}
------------------------------------------------------------------------------
--- |
--- Module      :  Data.Array.Parallel.Unlifted.Distributed.DistST
--- Copyright   :  (c) 2006 Roman Leshchinskiy
--- License     :  see libraries/ndp/LICENSE
--- 
--- Maintainer  :  Roman Leshchinskiy <rl@cse.unsw.edu.au>
--- Stability   :  experimental
--- Portability :  non-portable (GHC Extensions)
+-- | Distributed ST computations.
 --
--- Distributed ST computations.
---
--- Computations of type 'DistST' are data-parallel computations which
--- are run on each thread of a gang. At the moment, they can only access the
--- element of a (possibly mutable) distributed value owned by the current
--- thread.
+--  Computations of type 'DistST' are data-parallel computations which
+--  are run on each thread of a gang. At the moment, they can only access the
+--  element of a (possibly mutable) distributed value owned by the current
+--  thread.
 --
 -- /TODO:/ Add facilities for implementing parallel scans etc.
---
 module Data.Array.Parallel.Unlifted.Distributed.DistST (
   DistST, stToDistST, distST_, distST, runDistST, runDistST_seq, traceDistST,
   myIndex, myD, readMyMD, writeMyMD
 ) where
-
 import Data.Array.Parallel.Base (
   ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang
