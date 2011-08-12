@@ -16,3 +16,6 @@
 /dph-prim-seq/ghc.mk
 /dph-prim-seq/GNUmakefile
 dph-seq/
+
+*.o
+*.hi
