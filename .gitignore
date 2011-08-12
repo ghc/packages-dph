@@ -19,3 +19,5 @@ dph-seq/
 
 *.o
 *.hi
+war-std-std
+/dph-test/bin/
