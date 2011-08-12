@@ -41,7 +41,7 @@ jobCompile (JobCompile
 	  $  systemTee False
 		("ghc " ++ " -XTemplateHaskell"
 		        ++ " -iwar/DPH"
-		        ++ " -fdph-par"
+		        ++ " -package dph-prim-par"
 		        ++ " -outputdir " ++ buildDir 
 		        ++ " --make "     ++ srcCopyHS
 		        ++ " -o "         ++ mainBin)

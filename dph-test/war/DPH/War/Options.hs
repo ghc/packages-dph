@@ -7,7 +7,7 @@ import System.Console.ParseArgs
 
 data MainArg
 	= ArgHelp
-	| ArgDebug
+	| ArgVerbose
 	| ArgTestDir
         | ArgJobs               
 	| ArgClean
@@ -22,16 +22,16 @@ mainArgs
 	        , argData	= Nothing
 	        , argDesc	= "Print this usage help." }
         
-        , Arg   { argIndex      = ArgDebug
-                , argAbbr       = Just 'd'
-                , argName       = Just "debug"
+        , Arg   { argIndex      = ArgVerbose
+                , argAbbr       = Just 'v'
+                , argName       = Just "verbose"
                 , argData       = Nothing
                 , argDesc       = "Emit debugging info for the test driver." }
                 
         , Arg   { argIndex      = ArgTestDir
-                , argAbbr       = Just 't'
-                , argName       = Just "test-dir"
-                , argData       = Nothing
+                , argAbbr       = Just 'd'
+                , argName       = Just "dir"
+                , argData       = argDataDefaulted "dir" ArgtypeString "test"
                 , argDesc       = "Test directories" }
                 
         , Arg   { argIndex      = ArgJobs

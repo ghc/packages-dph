@@ -66,7 +66,7 @@ loadConfig args
 
     in	Config
 	{ configArgs		= args
-	, configDebug		= gotArg    args ArgDebug
+	, configDebug		= gotArg    args ArgVerbose
 	, configThreads		= fromMaybe 1 $ getArgInt args ArgJobs
 	, configBatch		= False
 	, configLogFailed	= Nothing

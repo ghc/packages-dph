@@ -42,7 +42,7 @@ runTests tests =
         hFlush stdout
     spaces n | n <= 0    = ""
              | otherwise = replicate n ' '
-    customArgs = stdArgs { chatty = False } -- do not print to stdout
+    customArgs = stdArgs { chatty = False, maxSize = 100 } -- do not print to stdout
     indent = unlines . map (spaces 4 ++) . lines 
 
 pick :: [String] -> [Test] -> [Test]

@@ -152,6 +152,7 @@ generate dom = concatMap gen
                    , propTyvars = []
                    , propType   = ty }) =
           [Inst name [] (VarE name `SigE` ty)]
+
     gen prop@(Prop { propName   = name
                    , propTyvars = tvs
                    , propType   = ty }) =

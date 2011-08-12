@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeSynonymInstances, 
+{-# LANGUAGE 
+        TypeSynonymInstances, 
         GeneralizedNewtypeDeriving #-}
 
 module Testsuite.Utils (
@@ -12,7 +13,6 @@ module Testsuite.Utils (
 ) where
 
 import Test.QuickCheck
-
 import Text.Show.Functions
 
 import Data.Array.Parallel.Unlifted as U hiding ( update )

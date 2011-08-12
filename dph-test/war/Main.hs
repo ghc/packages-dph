@@ -29,7 +29,7 @@ import qualified Data.Traversable	as Seq
 main :: IO ()
 main 
  = do	-- Parse command line options, and exit if they're no good.
-	args	<- parseArgsIO (ArgsTrailing "test-dir") mainArgs
+	args	<- parseArgsIO ArgsComplete mainArgs
         when (gotArg args ArgHelp)
          $ usageError args ""
         

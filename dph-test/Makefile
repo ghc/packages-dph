@@ -7,7 +7,7 @@ bin/war : $(shell find war -name "*.hs")
 	
 .PHONY : test
 test : bin/war
-	bin/war test
+	bin/war -d test
 	
 clean :
 	@echo "Cleaning..."
