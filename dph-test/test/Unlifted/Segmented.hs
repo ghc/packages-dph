@@ -62,7 +62,7 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
          concat (interleave (nest lens1' arr') (nest lens2' brr'))
       where segdFrom lens1 lens2 = lengthsToSegd $ U.interleave lens1 lens2
             lengthsToSegd lens = mkSegd lens (scan (+) 0 lens) (U.sum lens)
-            interleave :: [a] -> [a] -> [a]
+--            interleave :: [a] -> [a] -> [a]
             interleave (x : xs) (y : ys) = x : y : interleave xs ys
             interleave (x : xs) _        = [x]
             interleave _        _        = []

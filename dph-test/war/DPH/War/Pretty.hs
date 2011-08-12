@@ -46,9 +46,13 @@ diagnoseJobResults width useColor workingDir job aspects
 
 	-- Compile ----------------------------
 	JobCompile{}
+	 | or $ map isResultUnexpectedFailure aspects
+	 -> (False, pprResult (jobFile job) "compile"
+		        Red 	(text "failed"))
+
 	 | Just time	<- takeResultTime aspects
 	 -> (True, pprResult (jobFile job) "compile" 
-		        Black	(text "time" <> (parens $ padR 7 $ ppr time)))
+		        Green	(text "time" <> (parens $ padR 7 $ ppr time)))
 
 
 	-- Shell --------------------------------

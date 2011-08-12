@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeSynonymInstances, 
+        GeneralizedNewtypeDeriving #-}
+
 module Testsuite.Utils (
   Len(..), Perm(..), SizedInt(..),
   

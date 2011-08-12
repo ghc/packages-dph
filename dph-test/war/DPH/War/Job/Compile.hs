@@ -34,35 +34,25 @@ jobCompile (JobCompile
 	qssystem $ "cp " ++ (intercalate " " sources) ++ " " ++ buildDir
 
 	-- The copied version of the root source file.
-	let srcCopyHS	= buildDir ++ "/" ++ srcFile
-	let buildMk	= buildDir ++ "/build.mk"
-	
-	-- We're doing this via a makefile so we get the ghc flags and options
-	-- from the DDC build system. The paths in the make file need to be in
-	-- posix form with '/' as the separators.
-	currentDir	<- io $ getCurrentDirectory
-	let hacks f	= map (\z -> if z == '\\' then '/' else z) f
-	let mainBin'	= hacks $ makeRelative currentDir mainBin
-	let srcCopyHS'	= hacks $ makeRelative currentDir srcCopyHS
-	
-	genBuildMk buildMk mainBin' srcCopyHS'
+	let srcCopyHS	= buildDir </> srcFile
 	
 	(time, (code, strOut, strErr))
 	  <- runTimedCommand
 	  $  systemTee False
-		("make -f " ++ buildMk)
+		("ghc -iwar/DPH -outputdir "
+		        ++ buildDir 
+		        ++ " --make " ++ srcCopyHS
+		        ++ " -XTemplateHaskell"
+		        ++ " -fdph-seq")
 		""
+
 	atomicWriteFile mainCompOut strOut
-	atomicWriteFile mainCompErr strErr
+	atomicWriteFile mainCompErr strErr        
 
 	let ftime	= fromRational $ toRational time
-	return [ ResultAspect $ Time TotalWall `secs` ftime ]
+	return  $  [ ResultAspect $ Time TotalWall `secs` ftime]
+	        ++ (case code of
+	                ExitFailure _ -> [ResultUnexpectedFailure]
+	                _             -> [])
 	
 	
-genBuildMk :: FilePath -> String -> String -> Build ()
-genBuildMk outfile mainBin mainHs
- = do	let str	= "# Generated Makefile\n\n"
- 		++ "include make/build.mk\n\n"
-                ++ mainBin ++ " : " ++ mainHs ++ "\n"
-                ++ "\t$(GHC) $(GHC_LANGUAGE) $(DDC_PACKAGES) -isrc --make $^ -o $@\n\n"
-	io $ writeFile outfile str
