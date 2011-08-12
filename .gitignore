@@ -21,3 +21,4 @@ dph-seq/
 *.hi
 war-std-std
 /dph-test/bin/
+/dph-common-vseg/dist/
