@@ -10,6 +10,7 @@ module Data.Array.Parallel.PArray.PData.Base
           PArray(..)
         , lengthPA, unpackPA
         , fromListPA, toListPA
+        , indexPA, appPA
         , PprPhysical (..), PprVirtual (..)
         , PData (..)
         , PR(..)
@@ -148,14 +149,24 @@ replicatePA n x
         = PArray n (replicatePR n x)
 
 {-# INLINE_PA fromListPA #-}
-fromListPA :: forall a. PR a => [a] -> PArray a
+fromListPA :: PR a => [a] -> PArray a
 fromListPA xx
         = PArray (length xx) (fromListPR xx)
 
 {-# INLINE_PA toListPA #-}
-toListPA   :: forall a. PR a => PArray a -> [a]
+toListPA   :: PR a => PArray a -> [a]
 toListPA (PArray _ arr)
         = toListPR arr
+
+{-# INLINE_PA indexPA #-}
+indexPA    :: PR a => PArray a -> Int -> a
+indexPA (PArray _ arr) ix
+        = indexPR arr ix
+
+{-# INLINE_PA appPA #-}
+appPA      :: PR a => PArray a -> PArray a -> PArray a
+appPA (PArray n1 darr1) (PArray n2 darr2)
+        = PArray (n1 + n2) (darr1 `appPR` darr2)
 
 
 -------------------------------------------------------------------------------
