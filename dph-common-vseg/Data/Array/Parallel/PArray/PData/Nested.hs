@@ -16,8 +16,6 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import Debug.Trace
 import Text.PrettyPrint
 
-instance Show U.Segd where
-        show _  = "SEGD"
 
 -- Nested arrays --------------------------------------------------------------
 data instance PData (PArray a)

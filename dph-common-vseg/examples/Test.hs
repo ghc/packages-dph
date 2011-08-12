@@ -25,7 +25,11 @@ arrN7  = fromListPA [arrI7, arrI1, arrI3, arrI1, arrI5, arrI1, arrI3]
 
 arrN7' = replicatesPA' [2, 2, 4, 2, 3, 4, 2] arrN7
 
-tagsN7 = [0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1 :: Int]
+tagsN7 = [1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1:: Int]
 
-arrM2 = fromListPA [arrN2, arrN1, arrN7]
-arrM3 = replicatesPA' [3, 2] arrM2
+arrM3  = fromListPA [arrN2, arrN1, arrN7]
+arrM3' = fromListPA [arrN4, arrN2, arrN3]
+
+arrM5   = fromListPA    [arrN4, arrN2, arrN3, arrN1, arrN4']
+arrM5'  = replicatesPA' [3, 1, 2] arrM3
+
