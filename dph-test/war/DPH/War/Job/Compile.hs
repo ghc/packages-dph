@@ -39,11 +39,12 @@ jobCompile (JobCompile
 	(time, (code, strOut, strErr))
 	  <- runTimedCommand
 	  $  systemTee False
-		("ghc -iwar/DPH -outputdir "
-		        ++ buildDir 
-		        ++ " --make " ++ srcCopyHS
-		        ++ " -XTemplateHaskell"
-		        ++ " -fdph-seq")
+		("ghc " ++ " -XTemplateHaskell"
+		        ++ " -iwar/DPH"
+		        ++ " -fdph-par"
+		        ++ " -outputdir " ++ buildDir 
+		        ++ " --make "     ++ srcCopyHS
+		        ++ " -o "         ++ mainBin)
 		""
 
 	atomicWriteFile mainCompOut strOut

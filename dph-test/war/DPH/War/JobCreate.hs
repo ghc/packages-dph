@@ -90,7 +90,7 @@ createJobs config way allFiles filePath
 		 diffStderr	= JobDiff	testName (wayName way) testStderrCheck
 						testRunStderr testStderrDiff
 
-	     in	[compile]
+	     in	[compile, run]
 			++ (if shouldDiffStdout then [diffStdout] else [])
 			++ (if shouldDiffStderr then [diffStderr] else [])
 

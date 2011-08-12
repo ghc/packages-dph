@@ -52,7 +52,7 @@ diagnoseJobResults width useColor workingDir job aspects
 
 	 | Just time	<- takeResultTime aspects
 	 -> (True, pprResult (jobFile job) "compile" 
-		        Green	(text "time" <> (parens $ padR 7 $ ppr time)))
+		        Blue	(text "time" <> (parens $ padR 7 $ ppr time)))
 
 
 	-- Shell --------------------------------
