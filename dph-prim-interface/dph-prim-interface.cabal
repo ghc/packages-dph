@@ -6,7 +6,7 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Backend Interface for Data Parallel Haskell
+Synopsis:       Backend interface for Data Parallel Haskell
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple
