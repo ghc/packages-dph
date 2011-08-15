@@ -8,6 +8,7 @@ module Testsuite.Utils (
   Proxy(..), asProxyTypeOf,
     
   segdForArray, checkSegd,
+  SliceSpec(..), arbitrarySliceSpec,
   
   limitRange, update, nest
 ) where
@@ -97,6 +98,22 @@ instance Arbitrary (Proxy a) where
 
 asProxyTypeOf :: a -> Proxy a -> a
 asProxyTypeOf = const
+
+
+-- SliceSpec ------------------------------------------------------------------
+-- | An in-bounds slice of a vector
+data SliceSpec
+        = SliceSpec 
+        { sliceSpecLen          :: Int
+        , sliceSpecStart        :: Int }
+        deriving (Show, Eq)
+
+arbitrarySliceSpec :: Int -> Gen SliceSpec
+arbitrarySliceSpec len
+ = do   lenSlice <- choose (0, len)
+        ixStart  <- choose (0, len - lenSlice)
+        return   $  SliceSpec lenSlice ixStart
+
 
 ------------------------------- Helper functins --------------------------------
 -- TODO: Enhance TH testing infrastructure to allow keeping helper fuctions in

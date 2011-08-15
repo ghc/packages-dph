@@ -10,7 +10,9 @@ module Data.Array.Parallel.PArray.PData.Base
           PArray(..)
         , lengthPA,     unpackPA
         , fromVectorPA, toVectorPA
-        , indexPA,      extractPA, appPA
+        , indexPA
+        , extractPA,    extractsPA
+        , appPA
         , fromListPA,   toListPA
         , PprPhysical (..), PprVirtual (..)
         , PData (..)
@@ -103,9 +105,9 @@ class PR a where
 
   -- | Segmented extract.
   extractsPR    :: Vector (PData a)
-                -> U.Array Int       -- ^ segment source ids
-                -> U.Array Int       -- ^ segment base indices
-                -> U.Array Int       -- ^ segment lengths
+                -> U.Array Int  -- ^ segment source ids
+                -> U.Array Int  -- ^ segment base indices
+                -> U.Array Int  -- ^ segment lengths
                 -> PData a
 
   -- | Append two sized arrays.
@@ -144,49 +146,77 @@ class PR a where
 -- These PArray functions should be moved into D.A.P.PArray when closures work ---
 ----------------------------------------------------------------------------------
 
--- | Replicate an array
+instance (Eq a, PR a)  => Eq (PArray a) where
+ (==) xs ys = toVectorPA xs == toVectorPA ys
+ (/=) xs ys = toVectorPA xs /= toVectorPA ys
+
+
+-- | Create an array of the given size that maps all elements to the same value.
 {-# INLINE_PA replicatePA #-}
 replicatePA :: PR a => Int -> a -> PArray a
 replicatePA n x
         = PArray n (replicatePR n x)
 
 
+-- | Convert a `Vector` to a `PArray`
 {-# INLINE_PA fromVectorPA #-}
 fromVectorPA :: PR a => Vector a -> PArray a
 fromVectorPA vec
         = PArray (V.length vec) (fromVectorPR vec)
 
-        
+
+-- | Convert a `PArray` to a `Vector`        
 {-# INLINE_PA toVectorPA #-}
 toVectorPA   :: PR a => PArray a -> Vector a
 toVectorPA (PArray _ arr)
         = toVectorPR arr
 
 
+-- | Lookup a single element from the source array.
 {-# INLINE_PA indexPA #-}
 indexPA    :: PR a => PArray a -> Int -> a
 indexPA (PArray _ arr) ix
         = indexPR arr ix
 
 
+-- | Extract a range of elements from an array.
 {-# INLINE_PA extractPA #-}
 extractPA  :: PR a => PArray a -> Int -> Int -> PArray a
 extractPA (PArray _ arr) start len
         = PArray len (extractPR arr start len)
 
 
+-- | Segmented extract.
+{-# INLINE_PA extractsPA #-}
+extractsPA 
+        :: PR a 
+        => Vector (PArray a)    -- ^ source array
+        -> U.Array Int          -- ^ segment source ids
+        -> U.Array Int          -- ^ segment base indices
+        -> U.Array Int          -- ^ segment lengths
+        -> PArray a
+
+extractsPA arrs srcids segIxs segLens
+ = let vecs     = V.map (\(PArray _ vec) -> vec) arrs
+   in  PArray   (U.length srcids)
+                (extractsPR vecs srcids segIxs segLens)
+
+
+-- | Append two arrays.
 {-# INLINE_PA appPA #-}
 appPA      :: PR a => PArray a -> PArray a -> PArray a
 appPA (PArray n1 darr1) (PArray n2 darr2)
         = PArray (n1 + n2) (darr1 `appPR` darr2)
 
 
+-- | Convert a list to a `PArray`.
 {-# INLINE_PA fromListPA #-}
 fromListPA :: PR a => [a] -> PArray a
 fromListPA xx
         = PArray (length xx) (fromVectorPR $ V.fromList xx)
 
 
+-- | Convert a `PArray` to a list.
 {-# INLINE_PA toListPA #-}
 toListPA   :: PR a => PArray a -> [a]
 toListPA (PArray _ arr)
