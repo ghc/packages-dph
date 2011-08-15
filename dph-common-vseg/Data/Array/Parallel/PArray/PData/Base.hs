@@ -8,10 +8,10 @@
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
-        , lengthPA, unpackPA
-        , fromListPA,   toListPA
+        , lengthPA,     unpackPA
         , fromVectorPA, toVectorPA
-        , indexPA, appPA
+        , indexPA,      extractPA, appPA
+        , fromListPA,   toListPA
         , PprPhysical (..), PprVirtual (..)
         , PData (..)
         , PR(..)
@@ -99,7 +99,7 @@ class PR a where
   indexPR       :: PData a    -> Int -> a
 
   -- | O(n). Extract a range of elements from an array.
-  extractPR     :: PData a    -> Int -> Int -> PData a
+  extractPR     :: PData a -> Int -> Int -> PData a
 
   -- | Segmented extract.
   extractsPR    :: Vector (PData a)
@@ -167,6 +167,12 @@ toVectorPA (PArray _ arr)
 indexPA    :: PR a => PArray a -> Int -> a
 indexPA (PArray _ arr) ix
         = indexPR arr ix
+
+
+{-# INLINE_PA extractPA #-}
+extractPA  :: PR a => PArray a -> Int -> Int -> PArray a
+extractPA (PArray _ arr) start len
+        = PArray len (extractPR arr start len)
 
 
 {-# INLINE_PA appPA #-}
