@@ -22,5 +22,7 @@ jobRun (JobRun	testName _wayName _fileName
 	atomicWriteFile mainRunOut strOut
 	atomicWriteFile mainRunErr strErr
 	
-	return [ResultAspect $ Time TotalWall `secs` (fromRational $ toRational time)]
-	
+	return  $  [ResultAspect $ Time TotalWall `secs` (fromRational $ toRational time)]
+ 	        ++ (case code of
+	                ExitFailure _ -> [ResultUnexpectedFailure]
+	                _             -> [])
