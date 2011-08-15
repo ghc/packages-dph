@@ -28,25 +28,31 @@ $(testcases [ ""         <@ [t| ( Int,
   prop_replicate :: (PR a, Eq a) => a -> Property
   prop_replicate x
    =   forAll (choose (0, 100)) $ \n
-   ->  P.replicate n x
-    == toListPA (replicatePA n x) 
+   ->  V.replicate n x
+    == toVectorPA (replicatePA n x) 
 
   -- TODO: replicates
 
-  prop_index :: (PR a, Eq a) => [a] -> Property
+  prop_index :: (PR a, Eq a) => Vector a -> Property
   prop_index xs
-    =    length xs > 0
-    ==>  forAll (choose (0, length xs - 1)) $ \ix 
-    ->   xs P.!! ix
-     ==  indexPA (fromListPA xs) ix
+    =   V.length xs > 0
+    ==> forAll (choose (0, V.length xs - 1)) $ \ix 
+    ->  xs V.! ix
+     == indexPA (fromVectorPA xs) ix
     
-  -- TODO: extract
+  prop_extract :: (PR a, Eq a) => Vector a -> Property
+  prop_extract xs
+   =   forAll (choose (0, V.length xs + 10))       $ \lenSlice
+   ->  forAll (choose (0, V.length xs - lenSlice)) $ \ixStart
+   ->  V.slice ixStart lenSlice xs  
+    == toVectorPA (extractPA (fromVectorPA xs) ixStart lenSlice)
+   
   -- TODO: extracts
   
-  prop_app :: (PR a, Eq a) => [a] -> [a] -> Bool
+  prop_app :: (PR a, Eq a) => Vector a -> Vector a -> Bool
   prop_app xs ys
-    =   xs ++ ys
-     == toListPA (fromListPA xs `appPA` fromListPA ys) 
+    =   xs V.++ ys
+     == toVectorPA (fromVectorPA xs `appPA` fromVectorPA ys) 
   
   -- TODO: packByTag
   -- TODO: combine2
