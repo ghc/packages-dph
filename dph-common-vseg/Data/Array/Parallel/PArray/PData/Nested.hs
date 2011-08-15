@@ -47,7 +47,7 @@ instance PprPhysical (PData a) => PprPhysical (PData (PArray a)) where
 
 instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
  pprv arr
-  =   lbrack <> hcat (punctuate comma (map pprv $ toListPR arr)) <> rbrack
+  =   lbrack <> hcat (punctuate comma (map pprv $ V.toList $ toVectorPR arr)) <> rbrack
 
       
 deriving instance Show (PData a) 
@@ -164,24 +164,23 @@ instance PR a => PR (PArray a) where
 
   -- Conversions ----------------------
   {-# INLINE_PDATA fromListPR #-}
-  fromListPR xx
-   = case xx of
-      []      -> emptyPR
-      xx@(x:xs)
-       -> let segd      = U.lengthsToSegd $ U.fromList $ map lengthPA xx
-          in  PNested
-                { pnested_vsegids       = U.enumFromTo 0 (length xx - 1)
-                , pnested_pseglens      = U.lengthsSegd segd
-                , pnested_psegstarts    = U.indicesSegd segd
-                , pnested_psegsrcs      = U.replicate (length xx) 0
-                , pnested_psegdata      = V.singleton (foldl1 appPR $ map unpackPA xx) }
+  fromVectorPR xx
+   | V.length xx == 0 = emptyPR
+   | otherwise
+   = let segd      = U.lengthsToSegd $ U.fromList $ V.toList $ V.map lengthPA xx
+     in  PNested
+          { pnested_vsegids       = U.enumFromTo 0 (V.length xx - 1)
+          , pnested_pseglens      = U.lengthsSegd segd
+          , pnested_psegstarts    = U.indicesSegd segd
+          , pnested_psegsrcs      = U.replicate (V.length xx) 0
+          , pnested_psegdata      = V.singleton (V.foldl1 appPR $ V.map unpackPA xx) }
 
   {-# INLINE_PDATA toListPR #-}
-  toListPR arr
-   = map (indexPR arr) [0 .. U.length (pnested_vsegids arr) - 1]
+  toVectorPR arr
+   = V.generate (U.length (pnested_vsegids arr))
+   $ indexPR arr
 
-  fromUArrayPR  = error "fromUArrayPR[PArray]: not defined yet"
-   
+  fromUArrayPR  = error "fromUArrayPR[PArray]: not defined yet"   
   toUArrayPR    = error "toUArrayPR[PArray]: not defined et"
 
 

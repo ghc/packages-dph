@@ -5,9 +5,11 @@ import Testsuite
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Scalar
 import Data.Array.Parallel.PArray.PData.Nested
-import Prelude as P
 import Text.PrettyPrint
 import Debug.Trace
+import qualified Data.Vector    as V
+import Data.Vector              (Vector)
+import Prelude                  as P
 
 $(testcases [ ""         <@ [t| ( Int, 
                                   PArray Int, 
@@ -18,10 +20,10 @@ $(testcases [ ""         <@ [t| ( Int,
   -- Converting arrays to and from lists.
   --  Note that converting a nested array to and from a list is fairly involved, 
   --  as we need to construct the segment descriptors.
-  prop_toFromList :: (PR a, Eq a) => [a] -> Bool
+  prop_toFromList :: (PR a, Eq a) => Vector a -> Bool
   prop_toFromList xs 
    =   xs
-    == toListPA (fromListPA xs) 
+    == toVectorPA (fromVectorPA xs) 
 
   prop_replicate :: (PR a, Eq a) => a -> Property
   prop_replicate x
@@ -55,6 +57,11 @@ $(testcases [ ""         <@ [t| ( Int,
   |])
 
 
+instance (Arbitrary a)       => Arbitrary (V.Vector a) where
+ arbitrary
+  = do  xs      <- arbitrary
+        return  $ V.fromList xs
+
 
 instance (Eq a, PR a)        => Eq (PArray a) where
  (==) xs ys = toListPA xs == toListPA ys
@@ -76,4 +83,4 @@ instance ( PprPhysical (PData a)
   = sized $ \size 
   -> do xs      <- resize (truncate $ (\x -> sqrt x * 2) $ fromIntegral size) $ arbitrary 
 --       trace   (render $ pprp $ fromListPR xs) $
-        return  $ fromListPR xs
+        return  $ fromVectorPR xs

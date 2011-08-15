@@ -73,12 +73,12 @@ instance PR Int where
                            arr1 arr2)
 
   {-# INLINE_PDATA fromListPR #-}
-  fromListPR xx
-	= PInt (U.fromList xx)
+  fromVectorPR xx
+	= PInt (U.fromList $ V.toList xx)
 
   {-# INLINE_PDATA toListPR #-}
-  toListPR (PInt arr)
-        = U.toList arr
+  toVectorPR (PInt arr)
+        = V.fromList $ U.toList arr
 
   {-# INLINE_PDATA fromUArrayPR #-}
   fromUArrayPR xx

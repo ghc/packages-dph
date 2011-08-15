@@ -9,7 +9,8 @@ module Data.Array.Parallel.PArray.PData.Base
         ( -- * Parallel Array types.
           PArray(..)
         , lengthPA, unpackPA
-        , fromListPA, toListPA
+        , fromListPA,   toListPA
+        , fromVectorPA, toVectorPA
         , indexPA, appPA
         , PprPhysical (..), PprVirtual (..)
         , PData (..)
@@ -24,6 +25,7 @@ module Data.Array.Parallel.PArray.PData.Base
 where
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import Text.PrettyPrint
 
@@ -100,7 +102,7 @@ class PR a where
   extractPR     :: PData a    -> Int -> Int -> PData a
 
   -- | Segmented extract.
-  extractsPR    :: V.Vector (PData a)
+  extractsPR    :: Vector (PData a)
                 -> U.Array Int       -- ^ segment source ids
                 -> U.Array Int       -- ^ segment base indices
                 -> U.Array Int       -- ^ segment lengths
@@ -123,10 +125,10 @@ class PR a where
 
   -- Conversions ---------------------
   -- | Convert a list to an array
-  fromListPR	:: [a] -> PData a
+  fromVectorPR	:: Vector a -> PData a
 
   -- | Convert an array to a list
-  toListPR      :: PData a -> [a]
+  toVectorPR    :: PData a -> Vector a
 
   -- TODO: Shift these into the Scalar class like existing library.  
   -- | Convert an unlifted array to a PData. 
@@ -148,25 +150,41 @@ replicatePA :: PR a => Int -> a -> PArray a
 replicatePA n x
         = PArray n (replicatePR n x)
 
-{-# INLINE_PA fromListPA #-}
-fromListPA :: PR a => [a] -> PArray a
-fromListPA xx
-        = PArray (length xx) (fromListPR xx)
 
-{-# INLINE_PA toListPA #-}
-toListPA   :: PR a => PArray a -> [a]
-toListPA (PArray _ arr)
-        = toListPR arr
+{-# INLINE_PA fromVectorPA #-}
+fromVectorPA :: PR a => Vector a -> PArray a
+fromVectorPA vec
+        = PArray (V.length vec) (fromVectorPR vec)
+
+        
+{-# INLINE_PA toVectorPA #-}
+toVectorPA   :: PR a => PArray a -> Vector a
+toVectorPA (PArray _ arr)
+        = toVectorPR arr
+
 
 {-# INLINE_PA indexPA #-}
 indexPA    :: PR a => PArray a -> Int -> a
 indexPA (PArray _ arr) ix
         = indexPR arr ix
 
+
 {-# INLINE_PA appPA #-}
 appPA      :: PR a => PArray a -> PArray a -> PArray a
 appPA (PArray n1 darr1) (PArray n2 darr2)
         = PArray (n1 + n2) (darr1 `appPR` darr2)
+
+
+{-# INLINE_PA fromListPA #-}
+fromListPA :: PR a => [a] -> PArray a
+fromListPA xx
+        = PArray (length xx) (fromVectorPR $ V.fromList xx)
+
+
+{-# INLINE_PA toListPA #-}
+toListPA   :: PR a => PArray a -> [a]
+toListPA (PArray _ arr)
+        = V.toList $ toVectorPR arr
 
 
 -------------------------------------------------------------------------------
