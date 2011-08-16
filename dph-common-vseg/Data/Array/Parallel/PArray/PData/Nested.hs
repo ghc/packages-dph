@@ -98,28 +98,39 @@ instance PR a => PR (PArray a) where
      in  PArray pseglen darr
 
   {-# INLINE_PDATA extractPR #-}
-  extractPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) ix len
-   = PNested    (U.extract vsegids ix len)
+  -- TODO: force out unused psegs. add a quickcheck prop for this.
+  extractPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) start len
+   = PNested    (U.extract vsegids start len)
                 pseglens
                 psegstarts
                 psegsrcs
                 psegdata
 
-  -- TODO: not finished
+
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR arrs srcids seglens segstarts 
-   = let vsegids        = U.empty
-         pseglens       = U.empty
-         psegstarts     = U.empty
-         psegsrcs       = U.empty
-   
+  extractsPR arrs segsrcs segstarts seglens 
+   = let segMax         = U.sum seglens - 1
+         vsegids'       = U.enumFromTo 0 segMax
+
+         vsegids_src    = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
+         srcids'        = U.replicate_s (U.lengthsToSegd seglens) segsrcs
+
+         pseglens'      = U.zipWith (\srcid vsegid -> pnested_pseglens   (arrs V.! srcid) U.!: vsegid)
+                                    srcids' vsegids_src
+
+         psegstarts'    = U.zipWith (\srcid vsegid -> pnested_psegstarts (arrs V.! srcid) U.!: vsegid)
+                                    srcids' vsegids_src
+
+         psegsrcs'      = U.zipWith (\srcid vsegid -> pnested_psegsrcs   (arrs V.! srcid) U.!: vsegid)
+                                    srcids' vsegids_src
+
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata arrs
    
      in  PNested
-                vsegids
-                pseglens
-                psegstarts
-                psegsrcs
+                vsegids'
+                pseglens'
+                psegstarts'
+                psegsrcs'
                 psegdata'
 
   {-# INLINE_PDATA appPR #-}
@@ -163,7 +174,7 @@ instance PR a => PR (PArray a) where
                 (psegdata1   V.++  psegdata2)
 
   -- Conversions ----------------------
-  {-# INLINE_PDATA fromListPR #-}
+  {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
    | V.length xx == 0 = emptyPR
    | otherwise
@@ -175,7 +186,7 @@ instance PR a => PR (PArray a) where
           , pnested_psegsrcs      = U.replicate (V.length xx) 0
           , pnested_psegdata      = V.singleton (V.foldl1 appPR $ V.map unpackPA xx) }
 
-  {-# INLINE_PDATA toListPR #-}
+  {-# INLINE_PDATA toVectorPR #-}
   toVectorPR arr
    = V.generate (U.length (pnested_vsegids arr))
    $ indexPR arr

@@ -8,7 +8,10 @@ module Testsuite.Utils (
   Proxy(..), asProxyTypeOf,
     
   segdForArray, checkSegd,
-  SliceSpec(..), arbitrarySliceSpec,
+
+  SliceSpec(..), 
+  arbitrarySliceSpec,
+  arbitrarySliceSpec1,
   
   limitRange, update, nest
 ) where
@@ -104,15 +107,38 @@ asProxyTypeOf = const
 -- | An in-bounds slice of a vector
 data SliceSpec
         = SliceSpec 
-        { sliceSpecLen          :: Int
-        , sliceSpecStart        :: Int }
-        deriving (Show, Eq)
+        { sliceSpecStart        :: Int 
+        , sliceSpecLen          :: Int }
+        deriving (Eq)
+
+instance Show SliceSpec where
+ show (SliceSpec start len)
+        = show (start, len)
 
 arbitrarySliceSpec :: Int -> Gen SliceSpec
 arbitrarySliceSpec len
- = do   lenSlice <- choose (0, len)
-        ixStart  <- choose (0, len - lenSlice)
-        return   $  SliceSpec lenSlice ixStart
+ = do   lenSlice  <- choose (0, len)
+
+        -- If the length is 0 then it's valid to slice 0 0,
+        -- even though there is no element with index 0
+        let maxIx     = if len == 0      then 0     else len - 1 
+        let maxStart  = if lenSlice == 0 then maxIx else len - lenSlice
+
+        ixStart   <- choose (0, maxStart)
+        return   $  SliceSpec ixStart lenSlice
+
+
+arbitrarySliceSpec1 :: Int -> Gen SliceSpec
+arbitrarySliceSpec1 len
+ = do   lenSlice  <- choose (1, len)
+
+        -- If the length is 0 then it's valid to slice 0 0,
+        -- even though there is no element with index 0
+        let maxIx     = if len == 0      then 0     else len - 1 
+        let maxStart  = if lenSlice == 0 then maxIx else len - lenSlice
+
+        ixStart   <- choose (0, maxStart)
+        return   $  SliceSpec ixStart lenSlice
 
 
 ------------------------------- Helper functins --------------------------------

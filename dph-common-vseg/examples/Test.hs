@@ -4,6 +4,9 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Scalar
 import Data.Array.Parallel.PArray.PData.Nested
 
+arrI0   = (fromListPA [])               :: PArray Int
+arrN0   = (fromListPA [])               :: PArray (PArray Int)
+arrN0'  = (fromListPA [fromListPA []])  :: PArray (PArray Int)
 
 ex_1 = replicatePR 10 (5 :: Int)
 

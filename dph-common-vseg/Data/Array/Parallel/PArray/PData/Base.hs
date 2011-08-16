@@ -8,6 +8,7 @@
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
+        , emptyPA
         , lengthPA,     unpackPA
         , fromVectorPA, toVectorPA
         , indexPA
@@ -91,19 +92,24 @@ class PR a where
   -- | Ensure there are no thunks in the representation of a manifest array.
   nfPR          :: PData a -> ()
 
-  -- | O(n). Define an array of the given size, that maps all elements to the same value.
+  -- | Define an array of the given size, that maps all elements to the same value.
+  --   O(n). 
   replicatePR   :: Int    -> a           -> PData a
 
-  -- | O(sum lens). Segmented replicate.
+  -- | Segmented replicate.
+  --   O(sum lengths). 
   replicatesPR  :: U.Array Int -> PData a -> PData a
 
-  -- | O(1). Lookup a single element from the source array.
+  -- | Lookup a single element from the source array.
+  --   O(1). 
   indexPR       :: PData a    -> Int -> a
 
-  -- | O(n). Extract a range of elements from an array.
+  -- | Extract a range of elements from an array.
+  --   O(n). 
   extractPR     :: PData a -> Int -> Int -> PData a
 
   -- | Segmented extract.
+  --   O(sum seglens).  
   extractsPR    :: Vector (PData a)
                 -> U.Array Int  -- ^ segment source ids
                 -> U.Array Int  -- ^ segment base indices
@@ -149,6 +155,12 @@ class PR a where
 instance (Eq a, PR a)  => Eq (PArray a) where
  (==) xs ys = toVectorPA xs == toVectorPA ys
  (/=) xs ys = toVectorPA xs /= toVectorPA ys
+
+-- | An empty array.
+{-# INLINE_PA emptyPA #-}
+emptyPA :: PR a => PArray a
+emptyPA
+        = PArray 0 emptyPR
 
 
 -- | Create an array of the given size that maps all elements to the same value.
@@ -257,7 +269,14 @@ combine2PA' sel (PArray _ darr1) (PArray _ darr2)
 -------------------------------------------------------------------------------
 
 {-# INLINE uextracts #-}
-uextracts :: U.Elt a => V.Vector (U.Array a) -> U.Array Int -> U.Array Int -> U.Array Int -> U.Array a
+uextracts 
+        :: U.Elt a 
+        => V.Vector (U.Array a) 
+        -> U.Array Int  -- source ids
+        -> U.Array Int  -- base indices
+        -> U.Array Int  -- segment lengths
+        -> U.Array a
+
 uextracts arrs srcids ixBase lens 
  = let -- total length of the result
         dstLen    = U.sum lens

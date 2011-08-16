@@ -72,11 +72,11 @@ instance PR Int where
                            (U.repSel2  sel)
                            arr1 arr2)
 
-  {-# INLINE_PDATA fromListPR #-}
+  {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
 	= PInt (U.fromList $ V.toList xx)
 
-  {-# INLINE_PDATA toListPR #-}
+  {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PInt arr)
         = V.fromList $ U.toList arr
 
