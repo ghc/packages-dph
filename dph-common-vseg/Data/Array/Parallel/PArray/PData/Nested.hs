@@ -64,8 +64,10 @@ instance PR a => PR (PArray a) where
 	, pnested_psegsrcs      = U.empty
 	, pnested_psegdata      = V.empty }
 
+
   {-# INLINE_PDATA nfPR #-}
   nfPR  = error "nfPR[PArray]: not defined yet"
+
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
@@ -76,6 +78,7 @@ instance PR a => PR (PArray a) where
         , pnested_psegsrcs      = U.replicate 1 0
         , pnested_psegdata      = V.singleton darr }
                 
+
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (PNested vsegids pseglens psegstarts psegsrcs psegdata)
         = PNested
@@ -84,6 +87,7 @@ instance PR a => PR (PArray a) where
         , pnested_psegstarts    = psegstarts
         , pnested_psegsrcs      = psegsrcs
         , pnested_psegdata      = psegdata }
+
 
   {-# INLINE_PDATA indexPR #-}
   indexPR arr@(PNested vsegids pseglens psegstarts psegsrcs psegdatas) ix
@@ -96,6 +100,7 @@ instance PR a => PR (PArray a) where
          darr       = extractPR psegdata psegstart pseglen
          
      in  PArray pseglen darr
+
 
   {-# INLINE_PDATA extractPR #-}
   -- TODO: force out unused psegs. add a quickcheck prop for this.
@@ -168,6 +173,7 @@ instance PR a => PR (PArray a) where
                 (psegsrcs1   U.+:+ (U.map (+ (V.length psegdata1)) psegsrcs2))
                 (psegdata1   V.++  psegdata2)
 
+
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR arr tags tag
    = let -- Pack the vsegids to determine which of the vsegs are present in the result.
@@ -179,6 +185,7 @@ instance PR a => PR (PArray a) where
           = U.packByTag (pnested_vsegids arr) tags tag
 
      in forceSegs vsegids_packed arr
+
 
   {-# INLINE_PDATA combine2PR #-}
   combine2PR sel2 (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
@@ -199,6 +206,7 @@ instance PR a => PR (PArray a) where
                 (psegsrcs1'  U.+:+ psegsrcs2')
                 (psegdata1   V.++  psegdata2)
 
+
   -- Conversions ----------------------
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
@@ -212,10 +220,12 @@ instance PR a => PR (PArray a) where
           , pnested_psegsrcs      = U.replicate (V.length xx) 0
           , pnested_psegdata      = V.singleton (V.foldl1 appPR $ V.map unpackPA xx) }
 
+
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR arr
    = V.generate (U.length (pnested_vsegids arr))
    $ indexPR arr
+
 
   fromUArrayPR  = error "fromUArrayPR[PArray]: not defined yet"   
   toUArrayPR    = error "toUArrayPR[PArray]: not defined et"
