@@ -78,7 +78,7 @@ $(testcases [ ""         <@ [t| ( Int,
 
             vec           = toVectorPA arr
             vresult       = V.concat $ V.toList
-                         $ V.zipWith (\len start -> V.slice start len vec)
+                          $ V.zipWith (\len start -> V.slice start len vec)
                                 lens
                                 starts
 
@@ -87,7 +87,7 @@ $(testcases [ ""         <@ [t| ( Int,
                                 (V.convert sources)
                                 (V.convert starts)
                                 (V.convert lens)
-          
+
             vresult2      = toVectorPA aresult
 
         in vresult == vresult2
@@ -104,6 +104,15 @@ $(testcases [ ""         <@ [t| ( Int,
   
   -- TODO: fromUArrayPR
   -- TODO: toUArrayPR
+
+
+
+  -- TODO: Move the compound PA funs into their own module.
+  -- | Concatenate arrays
+  prop_concat :: (PR a, Eq a) => Vector (Vector a) -> Bool
+  prop_concat xss
+   = let  xss' = fromVectorPA (V.map fromVectorPA xss)
+     in   V.concat (V.toList xss) == toVectorPA (concatPA xss')
   
   |])
 
