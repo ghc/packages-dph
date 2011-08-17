@@ -40,6 +40,7 @@ jobCompile (JobCompile
 	  <- runTimedCommand
 	  $  systemTee False
 		("ghc " ++ " -XTemplateHaskell"
+		        ++ " -iwar"
 		        ++ " -iwar/DPH"
 		        ++ " -package dph-prim-par"
 		        ++ " -outputdir " ++ buildDir 
@@ -50,10 +51,15 @@ jobCompile (JobCompile
 	atomicWriteFile mainCompOut strOut
 	atomicWriteFile mainCompErr strErr        
 
+        let success     = case code of
+                                ExitFailure _   -> False
+                                _               -> True
+                                
+        when (not success)
+         $ do   io $ putStrLn strErr
+                io $ putStrLn strOut
+
 	let ftime	= fromRational $ toRational time
 	return  $  [ ResultAspect $ Time TotalWall `secs` ftime]
-	        ++ (case code of
-	                ExitFailure _ -> [ResultUnexpectedFailure]
-	                _             -> [])
-	
-	
+	        ++ (if success then [] else [ResultUnexpectedFailure])
+
