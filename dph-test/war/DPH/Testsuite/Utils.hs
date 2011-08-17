@@ -6,27 +6,18 @@ module Testsuite.Utils (
   Len(..), Perm(..), SizedInt(..),
   
   Proxy(..), asProxyTypeOf,
-    
-  segdForArray, checkSegd,
-
-  SliceSpec(..), 
-  arbitrarySliceSpec,
-  arbitrarySliceSpec1,
-  
+      
   limitRange, update, nest
 ) where
-
 import Test.QuickCheck
 import Text.Show.Functions
 
 import Data.Array.Parallel.Unlifted as U hiding ( update )
 import Prelude as P
-
 import Data.List ( delete, sort )
-
 import System.Random ( StdGen, mkStdGen)
 
---------------------------- Test data generators ----------------------------
+-- Test data generators -------------------------------------------------------
 
 instance (Elt a, Arbitrary a) => Arbitrary (Array a) where
   arbitrary = fmap fromList arbitrary
@@ -61,33 +52,6 @@ instance Arbitrary SizedInt where
   arbitrary = SizedInt `fmap` arbitrarySizedIntegral
 
 
--- Segment descriptor of length n.
--- 
--- Do not use directly unless an arbitrary Segd is all you need.  
--- Use segdForArray to generate a Segd that fits the array.
-instance Arbitrary Segd where
-  arbitrary = sized $ \n -> 
-    do
-      ids <- genIndices n
-      let lens = indicesToLengths ids n
-      return $ mkSegd (fromList lens) (fromList ids) n
-    where 
-      -- list of non-decreasing integers in range [0, n)
-      genIndices 0 = return []
-      genIndices n = ((0:) . sort . P.map (`mod` n)) `fmap` arbitrary
-      indicesToLengths ids n = P.zipWith (-) (tail $ ids ++ [n]) ids
-
--- Generate segment descriptor fitting the given array
-segdForArray :: (Elt a) => Array a -> Gen Segd
-segdForArray arr = resize (U.length arr) arbitrary
-
--- Consistency check for a segment descriptor against a provided list of lengths
-checkSegd :: Segd -> Array Int -> Bool
-checkSegd segd lens =
-     (lengthsSegd  segd == lens)
-  && (indicesSegd  segd == U.scan (+) 0 lens)
-  && (elementsSegd segd == U.sum lens)
-
 -- Random number generator
 instance Arbitrary StdGen where
   arbitrary = mkStdGen `fmap` arbitrary
@@ -103,45 +67,7 @@ asProxyTypeOf :: a -> Proxy a -> a
 asProxyTypeOf = const
 
 
--- SliceSpec ------------------------------------------------------------------
--- | An in-bounds slice of a vector
-data SliceSpec
-        = SliceSpec 
-        { sliceSpecStart        :: Int 
-        , sliceSpecLen          :: Int }
-        deriving (Eq)
-
-instance Show SliceSpec where
- show (SliceSpec start len)
-        = show (start, len)
-
-arbitrarySliceSpec :: Int -> Gen SliceSpec
-arbitrarySliceSpec len
- = do   lenSlice  <- choose (0, len)
-
-        -- If the length is 0 then it's valid to slice 0 0,
-        -- even though there is no element with index 0
-        let maxIx     = if len == 0      then 0     else len - 1 
-        let maxStart  = if lenSlice == 0 then maxIx else len - lenSlice
-
-        ixStart   <- choose (0, maxStart)
-        return   $  SliceSpec ixStart lenSlice
-
-
-arbitrarySliceSpec1 :: Int -> Gen SliceSpec
-arbitrarySliceSpec1 len
- = do   lenSlice  <- choose (1, len)
-
-        -- If the length is 0 then it's valid to slice 0 0,
-        -- even though there is no element with index 0
-        let maxIx     = if len == 0      then 0     else len - 1 
-        let maxStart  = if lenSlice == 0 then maxIx else len - lenSlice
-
-        ixStart   <- choose (0, maxStart)
-        return   $  SliceSpec ixStart lenSlice
-
-
-------------------------------- Helper functins --------------------------------
+-- Helper functins ------------------------------------------------------------
 -- TODO: Enhance TH testing infrastructure to allow keeping helper fuctions in
 --       in the same files as the properties.
   
