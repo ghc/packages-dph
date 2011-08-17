@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances, ScopedTypeVariables #-}
 
+import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.PArray.PData.Base
 
@@ -7,6 +8,7 @@ import Testsuite
 import DPH.Arbitrary.Selector
 import DPH.Arbitrary.SliceSpec
 import DPH.Arbitrary.Perm
+import DPH.Arbitrary.Int
 import qualified DPH.Operators.List             as L
 
 import Text.PrettyPrint
@@ -100,8 +102,29 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
   prop_app xs ys
     =   xs V.++ ys
      == toVectorPA (fromVectorPA xs `appPA` fromVectorPA ys) 
-  
 
+  
+  -- | Filter an array based on some tags.
+  --   NOTE: We use second argument of type (Vector a) to witness the type of 'a', 
+  --         but we don't use the actual value.
+  prop_packByTag
+    :: (PR a, Eq a, Arbitrary a, Show a)
+    => Len -> Vector a -> Property
+  prop_packByTag (Len n) zz
+   =   forAll (liftM V.fromList $ vectorOf n (choose (0, 1))) $ \tags
+    -> forAll (liftM V.fromList $ vectorOf n arbitrary)       $ \vec1
+    -> forAll (choose (0, 1))                                 $ \tag
+    -> let vecResult    = V.fromList
+                        $ L.packByTag  (V.toList $ vec1 `asTypeOf` zz)
+                                       (V.toList $ (tags :: Vector Tag))
+                                       tag
+                                       
+           arrResult    = packByTagPA  (fromVectorPA vec1)
+                                       (U.fromList $ V.toList tags)
+                                       tag
+       in vecResult == toVectorPA arrResult
+
+       
   -- | Combine two arrays based on a selector.
   --   NOTE: We use second argument of type (Vector a) to witness the type of 'a', 
   --         but we don't use the actual value.
@@ -120,6 +143,7 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
 
             sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
             arrResult   = combine2PA  sel2 (fromVectorPA vec1) (fromVectorPA vec2)
+
         in  vecResult == toVectorPA arrResult
 
 
@@ -127,6 +151,8 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
   --   When an nested array has been produced with combine, it's guaranteed to contain
   --   multiple flat data arrays in its psegdata field. By concatenating it we test
   --   that extractsPR handles this representation.
+  --   NOTE: We use second argument of type (Vector (Vector a)) to witness the type of 'a', 
+  --         but we don't use the actual value.
   prop_combine2_concat
      :: (PR a, Eq a, Arbitrary a, Show a) 
      => Selector -> Vector (Vector a) -> Property
@@ -146,15 +172,8 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
                                 (fromVectorPA $ V.map fromVectorPA vec2)
 
         in  V.concat (V.toList vecResult) == toVectorPA (concatPA arrResult)
-  
-     
-  -- TODO: packByTag
-  -- TODO: combine2
-  
-  -- TODO: fromUArrayPR
-  -- TODO: toUArrayPR
 
-
+ 
 
   -- TODO: Move the compound PA funs into their own module.
   -- | Concatenate arrays
