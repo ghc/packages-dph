@@ -69,6 +69,11 @@ instance PR a => PR (PArray a) where
   nfPR  = error "nfPR[PArray]: not defined yet"
 
 
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PNested vsegids _ _ _ _)
+        = U.length vsegids
+
+
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
         = PNested

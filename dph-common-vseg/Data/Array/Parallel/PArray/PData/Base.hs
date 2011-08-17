@@ -8,23 +8,12 @@
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
-        , emptyPA
         , lengthPA,     unpackPA
-        , fromVectorPA, toVectorPA
-        , indexPA
-        , extractPA,    extractsPA
-        , appPA
-        , fromListPA,   toListPA
         , PprPhysical (..), PprVirtual (..)
         , PData (..)
         , PR(..)
         
-        , uextracts
-        , replicatePA, replicatesPA'
-        , extractsPA'
-        , packByTagPA'
-        , combine2PA')
-
+        , uextracts)
 where
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
@@ -77,10 +66,6 @@ instance PprVirtual (PData a) => PprVirtual (PArray a) where
  
 -- PData ----------------------------------------------------------------------
 -- | Parallel array data.
---   As opposed to finite PArrays, a PData can represent a finite or infinite
---   number of array elements, depending on the mode. The infinite case simply
---   means that all possible array indices map to some element value.
---   
 data family PData a
 
 
@@ -91,6 +76,11 @@ class PR a where
 
   -- | Ensure there are no thunks in the representation of a manifest array.
   nfPR          :: PData a -> ()
+
+  -- | Get the number of elements in an array.
+  --   For nested arrays this is just the length of the top level of nesting,
+  --   not the total number of elements in the array.
+  lengthPR      :: PData a -> Int
 
   -- | Define an array of the given size, that maps all elements to the same value.
   --   O(n). 
@@ -146,122 +136,6 @@ class PR a where
   toUArrayPR    :: U.Elt a => PData a -> U.Array a
 
 
-
-
-----------------------------------------------------------------------------------
--- These PArray functions should be moved into D.A.P.PArray when closures work ---
-----------------------------------------------------------------------------------
-
-instance (Eq a, PR a)  => Eq (PArray a) where
- (==) xs ys = toVectorPA xs == toVectorPA ys
- (/=) xs ys = toVectorPA xs /= toVectorPA ys
-
--- | An empty array.
-{-# INLINE_PA emptyPA #-}
-emptyPA :: PR a => PArray a
-emptyPA
-        = PArray 0 emptyPR
-
-
--- | Create an array of the given size that maps all elements to the same value.
-{-# INLINE_PA replicatePA #-}
-replicatePA :: PR a => Int -> a -> PArray a
-replicatePA n x
-        = PArray n (replicatePR n x)
-
-
--- | Convert a `Vector` to a `PArray`
-{-# INLINE_PA fromVectorPA #-}
-fromVectorPA :: PR a => Vector a -> PArray a
-fromVectorPA vec
-        = PArray (V.length vec) (fromVectorPR vec)
-
-
--- | Convert a `PArray` to a `Vector`        
-{-# INLINE_PA toVectorPA #-}
-toVectorPA   :: PR a => PArray a -> Vector a
-toVectorPA (PArray _ arr)
-        = toVectorPR arr
-
-
--- | Lookup a single element from the source array.
-{-# INLINE_PA indexPA #-}
-indexPA    :: PR a => PArray a -> Int -> a
-indexPA (PArray _ arr) ix
-        = indexPR arr ix
-
-
--- | Extract a range of elements from an array.
-{-# INLINE_PA extractPA #-}
-extractPA  :: PR a => PArray a -> Int -> Int -> PArray a
-extractPA (PArray _ arr) start len
-        = PArray len (extractPR arr start len)
-
-
--- | Segmented extract.
-{-# INLINE_PA extractsPA #-}
-extractsPA 
-        :: PR a 
-        => Vector (PArray a)    -- ^ source array
-        -> U.Array Int          -- ^ segment source ids
-        -> U.Array Int          -- ^ segment base indices
-        -> U.Array Int          -- ^ segment lengths
-        -> PArray a
-
-extractsPA arrs srcids segIxs segLens
- = let vecs     = V.map (\(PArray _ vec) -> vec) arrs
-   in  PArray   (U.length srcids)
-                (extractsPR vecs srcids segIxs segLens)
-
-
--- | Append two arrays.
-{-# INLINE_PA appPA #-}
-appPA      :: PR a => PArray a -> PArray a -> PArray a
-appPA (PArray n1 darr1) (PArray n2 darr2)
-        = PArray (n1 + n2) (darr1 `appPR` darr2)
-
-
--- | Convert a list to a `PArray`.
-{-# INLINE_PA fromListPA #-}
-fromListPA :: PR a => [a] -> PArray a
-fromListPA xx
-        = PArray (length xx) (fromVectorPR $ V.fromList xx)
-
-
--- | Convert a `PArray` to a list.
-{-# INLINE_PA toListPA #-}
-toListPA   :: PR a => PArray a -> [a]
-toListPA (PArray _ arr)
-        = V.toList $ toVectorPR arr
-
-
--------------------------------------------------------------------------------
--- These PArray functions are just for testing 
--------------------------------------------------------------------------------
-
-replicatesPA' :: PR a => [Int] -> PArray a -> PArray a
-replicatesPA' lens (PArray _ darr)
-        = PArray (sum lens) (replicatesPR (U.fromList lens) darr)
-
-
-extractsPA' :: PR a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
-extractsPA' arrs srcids startixs seglens
-        = PArray (sum seglens) 
-        $ extractsPR (V.map unpackPA arrs) 
-                     (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
-
-
--- | NOTE: Returns an array with a fake size for testing purposes.
-packByTagPA' :: PR a => PArray a -> [Int] -> Int -> PArray a
-packByTagPA' (PArray n arr) tags tag
- = let  arr'    = packByTagPR arr (U.fromList tags) tag
-   in   PArray 0 arr'
-
-
-combine2PA' :: PR a => [Int] -> PArray a -> PArray a -> PArray a
-combine2PA' sel (PArray _ darr1) (PArray _ darr2)
- = let  darr'   = combine2PR (U.tagsToSel2 (U.fromList sel)) darr1 darr2
-   in   PArray 0 darr'
 
 
 -------------------------------------------------------------------------------

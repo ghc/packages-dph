@@ -37,6 +37,10 @@ instance PR Int where
   nfPR (PInt xx)
         = xx `seq` ()
 
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PInt xx)
+        = U.length xx
+
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len x
 	= PInt (U.replicate len x)
