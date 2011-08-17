@@ -1,7 +1,9 @@
 import Testsuite
 import Testsuite.Utils as TU ( limitRange, update )
-
+import DPH.Arbitrary.Int
+import DPH.Arbitrary.Perm
 import Data.Array.Parallel.Unlifted as U
+import qualified Data.Vector        as V
 import Prelude as P
 
 import Data.List ( sort )
@@ -16,7 +18,8 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
   prop_permute :: (Elt a, Eq a) => Array a -> Perm -> Bool
   prop_permute arr (Perm ixs) =
     toList (permute arr ixs') == TU.update (toList arr) (toList $ U.zip ixs' arr)
-    where ixs' = U.filter (< U.length arr) ixs
+    where ixs' = U.filter (< U.length arr) 
+               $ U.fromList $ V.toList ixs
 
   prop_bpermute :: (Elt a, Eq a) => Array a -> Array Int -> Bool
   prop_bpermute arr ixs = 
