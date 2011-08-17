@@ -4,6 +4,7 @@ import Data.Array.Parallel.PArray
 import Data.Array.Parallel.PArray.PData.Base
 
 import Testsuite
+import DPH.Arbitrary.Selector
 import DPH.Arbitrary.SliceSpec
 import DPH.Arbitrary.Perm
 import qualified DPH.Operators.List             as L
@@ -17,9 +18,8 @@ import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 
 
-$(testcases [ ""         <@ [t| ( Int, 
-                                  PArray Int, 
-                                  PArray (PArray Int) )|]
+$(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
+            , "b"       <@ [t| ( Int, PArray Int ) |]
             ]
   [d|
   -- Converting arrays to and from lists.
@@ -68,8 +68,6 @@ $(testcases [ ""         <@ [t| ( Int,
 
 
   -- | Extract many slices from a single array.
-  --   The QuickCheck property takes a Vector (PArray a) because we want to use V.mapM 
-  --   to determine the length of each segment.
   prop_extracts1 :: (PR a, Eq a) => PArray a -> Property
   prop_extracts1 arr
    =    lengthPA arr > 0 
@@ -105,46 +103,50 @@ $(testcases [ ""         <@ [t| ( Int,
   
 
   -- | Combine two arrays based on a selector.
+  --   NOTE: We use second argument of type (Vector a) to witness the type of 'a', 
+  --         but we don't use the actual value.
   prop_combine2 
-     :: (PR a, Eq a
-        , PprPhysical (PData a)
-        , PprVirtual  (PData a)
-        , Show a, Arbitrary a) => Perm -> Vector a-> Property
-  prop_combine2 (Perm perm') zz
+     :: (PR a, Eq a, Arbitrary a, Show a) 
+     => Selector -> Vector a-> Property
+  prop_combine2 (Selector vecTags) zz
+   =    V.length vecTags >= 2
+    ==> even (V.length vecTags)
+    ==> forAll (liftM V.fromList $ vectorOf (V.length vecTags `div` 2) arbitrary) $ \vec1
+     -> forAll (liftM V.fromList $ vectorOf (V.length vecTags `div` 2) arbitrary) $ \vec2
+     -> let vecResult   = V.fromList
+                        $ L.combine2 (V.toList vecTags) 
+                                     (V.toList $ vec1 `asTypeOf` zz) 
+                                     (V.toList $ vec2 `asTypeOf` zz)
 
-   -- Build a non-empty vector of tags.
-   = let perm      = if V.length perm' `mod` 2 == 1
-                        then perm' V.++ (V.singleton $ V.length perm')
-                        else perm'
-         
-         vecLen    = V.length perm `div` 2
+            sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
+            arrResult   = combine2PA  sel2 (fromVectorPA vec1) (fromVectorPA vec2)
+        in  vecResult == toVectorPA arrResult
 
-         vecTags   = V.backpermute
-                        (V.replicate vecLen 0  V.++  V.replicate vecLen (1 :: Int))
-                        perm
 
-     in V.length vecTags >= 2
-       ==> forAll (liftM V.fromList $ vectorOf vecLen arbitrary) $ \vec1
-        -> forAll (liftM V.fromList $ vectorOf vecLen arbitrary) $ \vec2
-        -> let 
-               vecResult   = V.fromList
-                           $ L.combine2 (V.toList vecTags) 
-                                        (V.toList $ vec1 `asTypeOf` zz) 
-                                        (V.toList $ vec2 `asTypeOf` zz)
+  -- | Concatenate arrays that have been produced via combine.
+  --   When an nested array has been produced with combine, it's guaranteed to contain
+  --   multiple flat data arrays in its psegdata field. By concatenating it we test
+  --   that extractsPR handles this representation.
+  prop_combine2_concat
+     :: (PR a, Eq a, Arbitrary a, Show a) 
+     => Selector -> Vector (Vector a) -> Property
+  prop_combine2_concat (Selector vecTags) zz
+   =    V.length vecTags >= 2
+    ==> even (V.length vecTags)
+    ==> forAll (liftM V.fromList $ vectorOf (V.length vecTags `div` 2) arbitrary) $ \vec1
+     -> forAll (liftM V.fromList $ vectorOf (V.length vecTags `div` 2) arbitrary) $ \vec2
+     -> let vecResult   = V.fromList
+                        $ L.combine2 (V.toList vecTags) 
+                                     (V.toList $ vec1 `asTypeOf` zz) 
+                                     (V.toList $ vec2 `asTypeOf` zz)
 
-               sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
-               arrResult   = combine2PA  sel2 (fromVectorPA vec1) (fromVectorPA vec2)
-           in  
-{-            trace (render $ vcat
-                        [ text "-----------------------------"
-                        , text $ show perm
-                        , text $ show vecTags
-                        , text "SRC VEC1: " <> (pprv $ fromVectorPA (vec1 `asTypeOf` zz))
-                        , text "SRC VEC2: " <> (pprv $ fromVectorPA (vec2 `asTypeOf` zz))
-                        , text "DST VEC:  " <> (pprv $ fromVectorPA vecResult)
-                        , text "DST ARR:  " <> (pprv $ arrResult) ]) $ -}
-              vecResult == toVectorPA arrResult
+            sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
+            arrResult   = combine2PA sel2 
+                                (fromVectorPA $ V.map fromVectorPA vec1) 
+                                (fromVectorPA $ V.map fromVectorPA vec2)
 
+        in  V.concat (V.toList vecResult) == toVectorPA (concatPA arrResult)
+  
      
   -- TODO: packByTag
   -- TODO: combine2
