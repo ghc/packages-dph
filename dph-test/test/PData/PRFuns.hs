@@ -1,16 +1,20 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances, ScopedTypeVariables #-}
+
+import Data.Array.Parallel.PArray
+import Data.Array.Parallel.PArray.PData.Base
 
 import Testsuite
+import DPH.Arbitrary.SliceSpec
+import DPH.Arbitrary.Perm
+import qualified DPH.Operators.List             as L
 
-import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Scalar
-import Data.Array.Parallel.PArray.PData.Nested
 import Text.PrettyPrint
 import Debug.Trace
 import Control.Monad
-import qualified Data.Vector    as V
-import Data.Vector              (Vector)
-import Prelude                  as P
+import Data.Vector                              (Vector)
+import Prelude                                  as P
+import qualified Data.Vector                    as V
+import qualified Data.Array.Parallel.Unlifted   as U
 
 
 $(testcases [ ""         <@ [t| ( Int, 
@@ -99,6 +103,49 @@ $(testcases [ ""         <@ [t| ( Int,
     =   xs V.++ ys
      == toVectorPA (fromVectorPA xs `appPA` fromVectorPA ys) 
   
+
+  -- | Combine two arrays based on a selector.
+  prop_combine2 
+     :: (PR a, Eq a
+        , PprPhysical (PData a)
+        , PprVirtual  (PData a)
+        , Show a, Arbitrary a) => Perm -> Vector a-> Property
+  prop_combine2 (Perm perm') zz
+
+   -- Build a non-empty vector of tags.
+   = let perm      = if V.length perm' `mod` 2 == 1
+                        then perm' V.++ (V.singleton $ V.length perm')
+                        else perm'
+         
+         vecLen    = V.length perm `div` 2
+
+         vecTags   = V.backpermute
+                        (V.replicate vecLen 0  V.++  V.replicate vecLen (1 :: Int))
+                        perm
+
+     in V.length vecTags >= 2
+       ==> forAll (liftM V.fromList $ vectorOf vecLen arbitrary) $ \vec1
+        -> forAll (liftM V.fromList $ vectorOf vecLen arbitrary) $ \vec2
+        -> let 
+               vecResult   = V.fromList
+                           $ L.combine2 (V.toList vecTags) 
+                                        (V.toList $ vec1 `asTypeOf` zz) 
+                                        (V.toList $ vec2 `asTypeOf` zz)
+
+               sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
+               arrResult   = combine2PA  sel2 (fromVectorPA vec1) (fromVectorPA vec2)
+           in  
+{-            trace (render $ vcat
+                        [ text "-----------------------------"
+                        , text $ show perm
+                        , text $ show vecTags
+                        , text "SRC VEC1: " <> (pprv $ fromVectorPA (vec1 `asTypeOf` zz))
+                        , text "SRC VEC2: " <> (pprv $ fromVectorPA (vec2 `asTypeOf` zz))
+                        , text "DST VEC:  " <> (pprv $ fromVectorPA vecResult)
+                        , text "DST ARR:  " <> (pprv $ arrResult) ]) $ -}
+              vecResult == toVectorPA arrResult
+
+     
   -- TODO: packByTag
   -- TODO: combine2
   

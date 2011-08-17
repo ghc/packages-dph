@@ -245,11 +245,6 @@ concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
    in   extractsPR psegdata srcids segstarts seglens
 
 
--- | This returns a fake length, concatPA is just for testing.
-concatPA :: PR a => PArray (PArray a) -> PArray a
-concatPA (PArray n darr)
-        = PArray 0 (concatPR darr)
-
 -------------------------------------------------------------------------------
 -- | Impose new virtual segmentation on a nested array.
 --   All physical segments that are not reachable from the virtual

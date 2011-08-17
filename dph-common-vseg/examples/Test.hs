@@ -1,8 +1,8 @@
 
 module Test where
+import Data.Array.Parallel.PArray
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Scalar
-import Data.Array.Parallel.PArray.PData.Nested
+
 
 arrI0   = (fromListPA [])               :: PArray Int
 arrN0   = (fromListPA [])               :: PArray (PArray Int)
@@ -25,14 +25,13 @@ arrN3  = fromListPA [arrI1, arrI3, arrI5]
 arrN4  = fromListPA [arrI7,  arrI1, arrI3, arrI1]
 arrN4' = fromListPA [arrI5', arrI3, arrI7, arrI3]
 arrN7  = fromListPA [arrI7, arrI1, arrI3, arrI1, arrI5, arrI1, arrI3]
-
-arrN7' = replicatesPA' [2, 2, 4, 2, 3, 4, 2] arrN7
+arrN7' = fromListPA [arrI5, arrI3, arrI1, arrI1, arrI7, arrI3, arrI5]
 
 tagsN7 = [1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1:: Int]
 
 arrM3  = fromListPA [arrN2, arrN1, arrN7]
 arrM3' = fromListPA [arrN4, arrN2, arrN3]
 
-arrM5   = fromListPA    [arrN4, arrN2, arrN3, arrN1, arrN4']
-arrM5'  = replicatesPA' [3, 1, 2] arrM3
+arrM6   = fromListPA    [arrN4, arrN2, arrN3, arrN1, arrN4', arrN1]
+arrM6'  = replicatesPA' [3, 1, 2] arrM3
 

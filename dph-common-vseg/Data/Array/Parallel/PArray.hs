@@ -26,9 +26,10 @@ module Data.Array.Parallel.PArray
         , packByTagPA
         , combine2PA
         
-        -- Things defined in this module.
+        -- Derived operators.
         , fromListPA
         , toListPA
+        , concatPA
 
         -- Wrappers used for testing only.
         , replicatesPA'
@@ -147,6 +148,13 @@ fromListPA xx
 toListPA   :: PR a => PArray a -> [a]
 toListPA (PArray _ arr)
         = V.toList $ toVectorPR arr
+
+
+-- | Concatenate a nested array.
+concatPA :: PR a => PArray (PArray a) -> PArray a
+concatPA (PArray n darr)
+ = let  darr'   = concatPR darr
+   in   PArray (lengthPR darr') darr'
 
 
 -------------------------------------------------------------------------------
