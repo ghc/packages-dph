@@ -121,17 +121,43 @@ instance PR a => PR (PArray a) where
          psegstarts'    = U.zipWith (\srcid vsegid -> pnested_psegstarts (arrs V.! srcid) U.!: vsegid)
                                     srcids' vsegids_src
 
-         psegsrcs'      = U.zipWith (\srcid vsegid -> pnested_psegsrcs   (arrs V.! srcid) U.!: vsegid)
-                                    srcids' vsegids_src
+         -- As all the flat data arrays in the sources are present in the result array,
+         -- we need to offset the psegsrcs field when combining multiple sources.
+         -- 
+         -- For example:
+         --  Source Arrays:
+         --   arr0  ...
+         --         psrcids  :  [0, 0, 0, 1, 1]
+         --         psegdata :  [PInt xs1, PInt xs2]
+         --
+         --   arr1  ... 
+         --         psrcids  :  [0, 0, 1, 1, 2, 2, 2]
+         --         psegdata :  [PInt ys1, PInt ys2, PInt ys3]
+         -- 
+         --   Result Array:
+         --         psrcids  :  [...]
+         --         psegdata :  [PInt xs1, PInt xs2, PInt ys1, PInt ys2, PInt ys3] 
+         --
+         --  Note that references to flatdata arrays [0, 1, 2] in arr1 need to be offset
+         --  by 2 (which is length arr0.psegdata) to refer to the same flat data arrays
+         --  in the result.
+         -- 
+         --  We encode these offsets in the psrcoffset vector:
+         --       psrcoffset :  [0, 2]
+         --
+         psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) arrs
 
+         psegsrcs'      = U.zipWith 
+                                (\srcid vsegid 
+                                        -> (pnested_psegsrcs   (arrs V.! srcid) U.!: vsegid)
+                                        +  psrcoffset V.! srcid)
+                                srcids' vsegids_src
+
+         -- All flat data arrays in the sources go into the result.
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata arrs
    
-     in  PNested
-                vsegids'
-                pseglens'
-                psegstarts'
-                psegsrcs'
-                psegdata'
+     in  PNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
+
 
   {-# INLINE_PDATA appPR #-}
   appPR (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
