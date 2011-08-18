@@ -21,6 +21,10 @@ import Text.PrettyPrint
 
 
 -- Nested arrays --------------------------------------------------------------
+
+-- TODO: Using plain V.Vector for the psegdata field means that operations on
+--       this field aren't parallelised. In particular, when we append two
+--       psegdata fields during appPR or combinePR this runs sequentially.
 data instance PData (PArray a)
 	= PNested
 	{ -- Virtual segmentation. 
@@ -71,6 +75,7 @@ validBool str b
         = if b  then True 
                 else error $ "validBool check failed -- " ++ str
 
+-- PR Instances ---------------------------------------------------------------
 instance PR a => PR (PArray a) where
 
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc
@@ -91,14 +96,29 @@ instance PR a => PR (PArray a) where
                          psegsrcs
 
          -- Each physical segment must be a valid slice of the corresponding flat array.
+         -- 
+         --   We allow psegs with len 0, start 0 even if the flat array is empty.
+         --   This occurs with [ [] ]. 
+         -- 
+         --   As a generalistion of above, we allow segments with len 0, start <= srclen.
+         --   This occurs when there is an empty array as the last segment
+         --   For example:
+         --        [ [5, 4, 3, 2] [ ] ].
+         --        PNested  vsegids:    [0,1]
+         --                 pseglens:   [4,0]
+         --                 psegstarts: [0,4]  -- last '4' here is <= length of flat array
+         --                 psegsrcs:   [0,0]
+         --                 PInt        [5, 4, 3, 2]
+         --
          psegSlicesOK 
                 = validBool "nested pseg slices"
                 $ U.and 
                 $ U.zipWith3 
                         (\len start srcid
                            -> let srclen = lengthPR (psegdata V.! srcid)
-                              in  and [ validIx  "nested psegstart " srclen start
-                                      , validLen "nested pseglen   " srclen (start + len)])
+                              in  and [    (len == 0 && start <= srclen)
+                                        || validIx  "nested psegstart " srclen start
+                                      ,    validLen "nested pseglen   " srclen (start + len)])
                         pseglens psegstarts psegsrcs
 
          -- TODO: Check that all psegs are referenced by some vseg.
@@ -108,6 +128,8 @@ instance PR a => PR (PArray a) where
              , psegsrcsOK
              , psegSlicesOK]
                  
+
+
 
   {-# INLINE_PDATA emptyPR #-}
   emptyPR

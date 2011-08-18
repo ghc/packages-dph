@@ -56,7 +56,7 @@ instance (Eq a, PR a)  => Eq (PArray a) where
 validPA :: PR a => PArray a -> Bool
 validPA (PArray n darr1)
         =  validPR darr1
-        && (n == lengthPR darr1)
+        && validBool "parray length" (n == lengthPR darr1)
 
 
 -- | An empty array.
@@ -120,7 +120,7 @@ extractsPA
 
 extractsPA arrs srcids segIxs segLens
  = let vecs     = V.map (\(PArray _ vec) -> vec) arrs
-   in  PArray   (U.length srcids)
+   in  PArray   (U.sum segLens)
                 (extractsPR vecs srcids segIxs segLens)
 
 
