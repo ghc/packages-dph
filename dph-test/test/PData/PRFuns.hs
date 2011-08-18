@@ -20,7 +20,8 @@ import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 
 
-$(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
+$(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int)
+                               ,  (), PArray () )  |]
             , "b"       <@ [t| ( Int, PArray Int ) |]
             ]
   [d|
