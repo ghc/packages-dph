@@ -10,7 +10,7 @@ arrN0'  = (fromListPA [fromListPA []])  :: PArray (PArray Int)
 
 ex_1 = replicatePR 10 (5 :: Int)
 
-tagsI5 = [0, 1, 0, 1, 0 :: Int]
+tagsI5 = [0, 1, 1, 0, 0, 1 :: Int]
 
 arrI1  = fromListPA [0 :: Int]
 arrI3  = fromListPA [1, 2, 3 :: Int]

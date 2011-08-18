@@ -105,8 +105,6 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
 
   
   -- | Filter an array based on some tags.
-  --   NOTE: We use second argument of type (Vector a) to witness the type of 'a', 
-  --         but we don't use the actual value.
   prop_packByTag
     :: (PR a, Eq a, Arbitrary a, Show a)
     => Len -> Vector a -> Property
@@ -126,8 +124,6 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
 
        
   -- | Combine two arrays based on a selector.
-  --   NOTE: We use second argument of type (Vector a) to witness the type of 'a', 
-  --         but we don't use the actual value.
   prop_combine2 
      :: (PR a, Eq a, Arbitrary a, Show a) 
      => Selector -> Vector a-> Property
@@ -151,11 +147,9 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
   --   When an nested array has been produced with combine, it's guaranteed to contain
   --   multiple flat data arrays in its psegdata field. By concatenating it we test
   --   that extractsPR handles this representation.
-  --   NOTE: We use second argument of type (Vector (Vector a)) to witness the type of 'a', 
-  --         but we don't use the actual value.
   prop_combine2_concat
-     :: (PR a, Eq a, Arbitrary a, Show a) 
-     => Selector -> Vector (Vector a) -> Property
+     :: (PR b, Eq b, Arbitrary b, Show b) 
+     => Selector -> Vector (Vector b) -> Property
   prop_combine2_concat (Selector vecTags) zz
    =    V.length vecTags >= 2
     ==> even (V.length vecTags)
@@ -173,11 +167,29 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
 
         in  V.concat (V.toList vecResult) == toVectorPA (concatPA arrResult)
 
- 
+
+  -- | Packing an array then immediately combining it should yield the original array.
+  prop_combine2_packByTag
+   :: (PR a, Eq a, Arbitrary a, Show a)
+   => Selector -> Vector a -> Property
+  prop_combine2_packByTag (Selector vecTags) zz
+   =    V.length vecTags >= 2
+    ==> even (V.length vecTags)
+    ==> forAll (liftM V.fromList $ vectorOf (V.length vecTags) arbitrary) $ \vec
+     -> let 
+            uarrTags    = U.fromList $ V.toList vecTags
+            sel2        = U.tagsToSel2 uarrTags
+
+            arr         = fromVectorPA (vec `asTypeOf` zz)
+            arr'        = combine2PA sel2
+                                (packByTagPA arr uarrTags 0)
+                                (packByTagPA arr uarrTags 1)
+
+        in  arr == arr'
 
   -- TODO: Move the compound PA funs into their own module.
   -- | Concatenate arrays
-  prop_concat :: (PR a, Eq a) => Vector (Vector a) -> Bool
+  prop_concat :: (PR b, Eq b) => Vector (Vector b) -> Bool
   prop_concat xss
    = let  xss' = fromVectorPA (V.map fromVectorPA xss)
      in   V.concat (V.toList xss) == toVectorPA (concatPA xss')
