@@ -49,10 +49,11 @@ import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] 
 
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Prelude
+import Data.Array.Parallel.Prelude.Int
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
 
-import Prelude hiding (undefined)
+import Prelude hiding (Int, undefined)
 
 infixl 9 !:
 infixr 5 +:+

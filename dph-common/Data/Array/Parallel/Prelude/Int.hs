@@ -37,6 +37,8 @@ infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
 infixl 7 `div`, `mod`
 
+{-# VECTORISE SCALAR type Int #-}
+
 (==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
 (==) = (P.==)
 {-# VECTORISE SCALAR (==) #-}
