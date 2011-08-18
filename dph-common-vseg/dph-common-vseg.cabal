@@ -18,6 +18,12 @@ Library
         Data.Array.Parallel.PArray.PData.Nested
         Data.Array.Parallel.PArray
 
+  Include-Dirs:
+        include
+
+  Install-Includes:
+        fusion-phases-vseg.h
+
   Extensions:
         TypeFamilies, GADTs, RankNTypes, CPP,
         BangPatterns, MagicHash, UnboxedTuples, TypeOperators
@@ -27,11 +33,6 @@ Library
         -funbox-strict-fields
         -fcpr-off
   
-  CPP-Options:
-        -cpp
-        -DINLINE_PA='INLINE'
-        -DINLINE_PDATA='INLINE'
-
   Build-Depends:  
         base             == 4.4.*,
         ghc              == 7.*,

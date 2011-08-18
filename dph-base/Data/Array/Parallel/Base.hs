@@ -2,6 +2,7 @@
 module Data.Array.Parallel.Base (
   -- * Debugging infrastructure
   module Data.Array.Parallel.Base.Debug,
+  module Data.Array.Parallel.Base.Config,
 
   -- * Data constructor tags
   module Data.Array.Parallel.Base.Util,
@@ -17,6 +18,7 @@ module Data.Array.Parallel.Base (
   ST(..), runST
 ) where
 import Data.Array.Parallel.Base.Debug
+import Data.Array.Parallel.Base.Config
 import Data.Array.Parallel.Base.Util
 import Data.Array.Parallel.Base.Text
 import Data.Array.Parallel.Base.DTrace

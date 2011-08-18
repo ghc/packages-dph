@@ -1,0 +1,2 @@
+#define INLINE_PDATA INLINE
+#define INLINE_PA    INLINE

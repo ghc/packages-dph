@@ -1,5 +1,5 @@
-
 {-# LANGUAGE
+        CPP,
 	TypeFamilies,
 	FlexibleInstances, FlexibleContexts,
 	MultiParamTypeClasses,
@@ -7,9 +7,12 @@
 	ExistentialQuantification,
 	UndecidableInstances #-}
 
+#include "fusion-phases-vseg.h"
+
 module Data.Array.Parallel.PArray.PData.Nested where
 import Data.Array.Parallel.PArray.PData.Scalar
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.Base
 
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
@@ -53,8 +56,59 @@ instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
 deriving instance Show (PData a) 
         => Show (PData (PArray a))
 
+-- TODO: shift this stuff into dph-base
+validIx  :: String -> Int -> Int -> Bool
+validIx str len ix 
+        = check str len ix (ix >= 0 && ix < len)
+
+validLen :: String -> Int -> Int -> Bool
+validLen str len ix 
+        = checkLen str len ix (ix >= 0 && ix <= len)
+
+-- TODO: slurp debug flag from base 
+validBool :: String -> Bool -> Bool
+validBool str b
+        = if b  then True 
+                else error $ "validBool check failed -- " ++ str
 
 instance PR a => PR (PArray a) where
+
+  -- TODO: ensure that all psegdata arrays are referenced from some psegsrc
+  {-# INLINE_PDATA validPR #-}
+  validPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+   = let -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
+         fieldLensOK
+                = validBool "nested field lengths"
+                $ and 
+                [ U.length psegstarts == U.length pseglens
+                , U.length psegsrcs   == U.length pseglens ]
+         
+         -- Each pseg source id must point to a valid flat data array
+         psegsrcsOK
+                = validBool "nested psegsrcs"
+                $ U.and 
+                $ U.map (\srcid -> validIx "nested psegsrcs " (V.length psegdata) srcid)
+                         psegsrcs
+
+         -- Each physical segment must be a valid slice of the corresponding flat array.
+         psegSlicesOK 
+                = validBool "nested pseg slices"
+                $ U.and 
+                $ U.zipWith3 
+                        (\len start srcid
+                           -> let srclen = lengthPR (psegdata V.! srcid)
+                              in  and [ validIx  "nested psegstart " srclen start
+                                      , validLen "nested pseglen   " srclen (start + len)])
+                        pseglens psegstarts psegsrcs
+
+         -- TODO: Check that all psegs are referenced by some vseg.
+         -- TODO: check all vsegs reference a valid pseg.
+
+     in  and [ fieldLensOK
+             , psegsrcsOK
+             , psegSlicesOK]
+                 
+
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
 	= PNested

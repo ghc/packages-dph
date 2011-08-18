@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+#include "fusion-phases-vseg.h"
 
 -- | Functions that work directly on PArrays.
 
@@ -14,6 +16,7 @@ module Data.Array.Parallel.PArray
         , unpackPA
 
         -- PA versions of PR functions.
+        , validPA
         , emptyPA
         , nfPA
         , replicatePA
@@ -46,6 +49,14 @@ import qualified Data.Vector                    as V
 instance (Eq a, PR a)  => Eq (PArray a) where
  (==) xs ys = toVectorPA xs == toVectorPA ys
  (/=) xs ys = toVectorPA xs /= toVectorPA ys
+
+
+-- | Check that an array has a valid internal representation.
+{-# INLINE_PA validPA #-}
+validPA :: PR a => PArray a -> Bool
+validPA (PArray n darr1)
+        =  validPR darr1
+        && (n == lengthPR darr1)
 
 
 -- | An empty array.

@@ -1,14 +1,19 @@
 {-# LANGUAGE
+        CPP,
 	TypeFamilies,
 	FlexibleInstances, FlexibleContexts,
 	MultiParamTypeClasses,
 	StandaloneDeriving,
 	ExistentialQuantification #-}
+
+#include "fusion-phases-vseg.h"
+
 module Data.Array.Parallel.PArray.PData.Scalar where
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
+
 
 
 data instance PData Int
@@ -29,6 +34,10 @@ instance PprVirtual (PData Int) where
 
 
 instance PR Int where
+  {-# INLINE_PDATA validPR #-}
+  validPR _
+        = True
+
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
         = PInt U.empty

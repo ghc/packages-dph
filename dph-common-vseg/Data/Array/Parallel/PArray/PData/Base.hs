@@ -1,9 +1,12 @@
 {-# LANGUAGE 
+        CPP,
         TypeFamilies, MultiParamTypeClasses,
         FlexibleContexts, ExplicitForAll,
         StandaloneDeriving,
         UndecidableInstances #-}
         -- Undeciable instances only need for derived Show instance
+
+#include "fusion-phases-vseg.h"
 
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
@@ -71,6 +74,10 @@ data family PData a
 
 -- PR Dictionary (Representation) ---------------------------------------------
 class PR a where
+  -- | Check that an array has a well formed representation.
+  --   This should only return False where there is a bug in the library.
+  validPR       :: PData a -> Bool
+
   -- | Produce an empty array with size zero.
   emptyPR	:: PData a
 
