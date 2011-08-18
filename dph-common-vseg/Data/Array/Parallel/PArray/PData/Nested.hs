@@ -14,6 +14,7 @@ import Data.Array.Parallel.PArray.PData.Scalar
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base
 
+import qualified Data.IntSet                    as IS
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 import Debug.Trace
@@ -75,27 +76,35 @@ validBool str b
         = if b  then True 
                 else error $ "validBool check failed -- " ++ str
 
+
 -- PR Instances ---------------------------------------------------------------
 instance PR a => PR (PArray a) where
 
-  -- TODO: ensure that all psegdata arrays are referenced from some psegsrc
+  -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
   {-# INLINE_PDATA validPR #-}
   validPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
-   = let -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
+   = let 
+        -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
          fieldLensOK
-                = validBool "nested field lengths"
+                = validBool "nested array field lengths not identical"
                 $ and 
                 [ U.length psegstarts == U.length pseglens
                 , U.length psegsrcs   == U.length pseglens ]
-         
-         -- Each pseg source id must point to a valid flat data array
-         psegsrcsOK
-                = validBool "nested psegsrcs"
-                $ U.and 
-                $ U.map (\srcid -> validIx "nested psegsrcs " (V.length psegdata) srcid)
-                         psegsrcs
 
-         -- Each physical segment must be a valid slice of the corresponding flat array.
+         -- Every vseg must reference a valid pseg.
+         vsegsRefOK
+                = validBool "nested array vseg doesn't ref pseg"
+                $ U.and
+                $ U.map (\vseg -> vseg < U.length pseglens) vsegids
+                
+         
+         -- Every pseg source id must point to a flat data array
+         psegsrcsRefOK
+                = validBool "nested array psegsrc doesn't ref flat array"
+                $ U.and 
+                $ U.map (\srcid -> srcid < V.length psegdata) psegsrcs
+
+         -- Every physical segment must be a valid slice of the corresponding flat array.
          -- 
          --   We allow psegs with len 0, start 0 even if the flat array is empty.
          --   This occurs with [ [] ]. 
@@ -111,24 +120,29 @@ instance PR a => PR (PArray a) where
          --                 PInt        [5, 4, 3, 2]
          --
          psegSlicesOK 
-                = validBool "nested pseg slices"
+                = validBool "nested array pseg slices are invalid"
                 $ U.and 
                 $ U.zipWith3 
                         (\len start srcid
                            -> let srclen = lengthPR (psegdata V.! srcid)
                               in  and [    (len == 0 && start <= srclen)
-                                        || validIx  "nested psegstart " srclen start
-                                      ,    validLen "nested pseglen   " srclen (start + len)])
+                                        || validIx  "nested array psegstart " srclen start
+                                      ,    validLen "nested array pseglen   " srclen (start + len)])
                         pseglens psegstarts psegsrcs
 
-         -- TODO: Check that all psegs are referenced by some vseg.
-         -- TODO: check all vsegs reference a valid pseg.
+         -- Every pseg must be referenced by some vseg.
+         vsegs   = IS.fromList $ U.toList vsegids
+         psegsReffedOK
+                =  validBool "nested array pseg not reffed by vseg"
+                $  (U.length pseglens == 0) 
+                || (U.and $ U.map (flip IS.member vsegs) 
+                          $ U.enumFromTo 0 (U.length pseglens - 1))
 
      in  and [ fieldLensOK
-             , psegsrcsOK
-             , psegSlicesOK]
-                 
-
+             , vsegsRefOK
+             , psegsrcsRefOK
+             , psegSlicesOK
+             , psegsReffedOK ]
 
 
   {-# INLINE_PDATA emptyPR #-}
@@ -152,7 +166,8 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
-        = PNested
+   = checkNotEmpty "replicatPR[PArray]" c
+   $ PNested
         { pnested_vsegids       = U.replicate c 0
         , pnested_pseglens      = U.replicate 1 n
         , pnested_psegstarts    = U.replicate 1 0
@@ -184,13 +199,8 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA extractPR #-}
-  -- TODO: force out unused psegs. add a quickcheck prop for this.
-  extractPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) start len
-   = PNested    (U.extract vsegids start len)
-                pseglens
-                psegstarts
-                psegsrcs
-                psegdata
+  extractPR arr@(PNested vsegids pseglens psegstarts psegsrcs psegdata) start len
+   = forceSegs (U.extract vsegids start len) arr
 
 
   {-# INLINE_PDATA extractsPR #-}

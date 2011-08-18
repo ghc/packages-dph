@@ -90,8 +90,12 @@ class PR a where
   lengthPR      :: PData a -> Int
 
   -- | Define an array of the given size, that maps all elements to the same value.
+  --   We require the replication count to be > 0 so that it's easier to maintain
+  --   the validPR invariants for nested arrays.
   --   O(n). 
-  replicatePR   :: Int    -> a           -> PData a
+  replicatePR   :: Int          -- ^ size of result array. Must be > 0.
+                -> a            -- ^ element to replicate.
+                -> PData a
 
   -- | Segmented replicate.
   --   O(sum lengths). 

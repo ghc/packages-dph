@@ -35,9 +35,10 @@ $(testcases [ ""        <@ [t| ( Int, PArray Int, PArray (PArray Int) ) |]
 
 
   -- | Define an array that maps all indices to the same element.
+  --   The array size must be > 0.
   prop_replicate :: (PR a, Eq a) => a -> Property
   prop_replicate x
-   =  forAll (choose (0, 100)) $ \n
+   =  forAll (choose (1, 100)) $ \n
    -> let arr = replicatePA n x
       in  validPA arr 
        && V.replicate n x ==  toVectorPA arr
