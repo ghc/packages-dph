@@ -20,6 +20,8 @@ module Data.Array.Parallel.PArray
         , emptyPA
         , nfPA
         , replicatePA
+        , replicatesPA
+        , unsafeReplicatesPA
         , fromVectorPA
         , toVectorPA
         , indexPA
@@ -36,6 +38,7 @@ module Data.Array.Parallel.PArray
 
         -- Wrappers used for testing only.
         , replicatesPA'
+        , unsafeReplicatesPA'
         , extractsPA'
         , packByTagPA'
         , combine2PA')
@@ -73,11 +76,30 @@ nfPA (PArray n d)
         = n `seq` nfPR d
 
 
--- | Create an array of the given size that maps all elements to the same value.
+-- | Define an array of the given size, that maps all elements to the same value.
+--   We require the replication count to be > 0 so that it's easier to maintain
+--   the validPR invariants for nested arrays.
+--   O(n). 
 {-# INLINE_PA replicatePA #-}
 replicatePA :: PR a => Int -> a -> PArray a
 replicatePA n x
         = PArray n (replicatePR n x)
+
+
+-- | Segmented replicate.
+--   O(sum lengths). 
+{-# INLINE_PA replicatesPA #-}
+replicatesPA :: PR a => U.Array Int -> PArray a -> PArray a
+replicatesPA repCounts (PArray _ darr)
+        = PArray (U.sum repCounts) (replicatesPR repCounts darr)
+
+
+-- | Unsafe segmented replicate.
+--   O(sum lengths). 
+{-# INLINE_PA unsafeReplicatesPA #-}
+unsafeReplicatesPA :: PR a => U.Array Int -> PArray a -> PArray a
+unsafeReplicatesPA repCounts (PArray _ darr)
+        = PArray (U.sum repCounts) (unsafeReplicatesPR repCounts darr)
 
 
 -- | Convert a `Vector` to a `PArray`
@@ -172,10 +194,15 @@ concatPA (PArray n darr)
 -- These PArray functions are just for testing 
 -------------------------------------------------------------------------------
 
--- | Create an array of the given size that maps all elements to the same value.
+-- | Segmented replicate.
 replicatesPA' :: PR a => [Int] -> PArray a -> PArray a
-replicatesPA' lens (PArray _ darr)
-        = PArray (sum lens) (replicatesPR (U.fromList lens) darr)
+replicatesPA' lens arr
+        = replicatesPA (U.fromList lens) arr
+
+-- | Unsafe segmented replicate.
+unsafeReplicatesPA' :: PR a => [Int] -> PArray a -> PArray a
+unsafeReplicatesPA' lens arr
+        = unsafeReplicatesPA (U.fromList lens) arr
 
 
 -- | Segmented extract.

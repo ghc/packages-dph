@@ -176,13 +176,14 @@ instance PR a => PR (PArray a) where
                 
 
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR lens (PNested vsegids pseglens psegstarts psegsrcs psegdata)
-        = PNested
-        { pnested_vsegids       = U.replicate_s (U.lengthsToSegd lens) vsegids
-        , pnested_pseglens      = pseglens
-        , pnested_psegstarts    = psegstarts
-        , pnested_psegsrcs      = psegsrcs
-        , pnested_psegdata      = psegdata }
+  replicatesPR lens arr
+   = forceSegs $ unsafeReplicatesPR lens arr
+
+
+  {-# INLINE_PDATA unsafeReplicatesPR #-}
+  unsafeReplicatesPR lens arr
+   = arr { pnested_vsegids 
+                = U.replicate_s (U.lengthsToSegd lens) (pnested_vsegids arr) }
 
 
   {-# INLINE_PDATA indexPR #-}
@@ -199,8 +200,10 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA extractPR #-}
-  extractPR arr@(PNested vsegids pseglens psegstarts psegsrcs psegdata) start len
-   = forceSegs (U.extract vsegids start len) arr
+  extractPR arr start len
+   = forceSegs 
+   $ arr { pnested_vsegids
+                = U.extract (pnested_vsegids arr) start len }
 
 
   {-# INLINE_PDATA extractsPR #-}
@@ -266,16 +269,15 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA packByTagPR #-}
+  -- Pack the vsegids to determine which of the vsegs are present in the result.
+  --  eg  tags:           [0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1]   tag = 1
+  --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]
+  --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
+  --       
   packByTagPR arr tags tag
-   = let -- Pack the vsegids to determine which of the vsegs are present in the result.
-         --  eg  tags:           [0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1]   tag = 1
-         --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]
-         --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
-         --
-         vsegids_packed   
-          = U.packByTag (pnested_vsegids arr) tags tag
-
-     in forceSegs vsegids_packed arr
+   = forceSegs 
+   $ arr { pnested_vsegids
+                = U.packByTag (pnested_vsegids arr) tags tag }
 
 
   {-# INLINE_PDATA combine2PR #-}
@@ -332,28 +334,28 @@ concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
 
 
 -------------------------------------------------------------------------------
--- | Impose new virtual segmentation on a nested array.
+-- | Impose virtual segmentation on a nested array.
 --   All physical segments that are not reachable from the virtual
 --   segments are filtered out, but the underlying flat data is not touched.
 --
 --  TODO: bpermuteDft isn't parallelised
 --
-forceSegs :: U.Array Int -> PData (PArray a) -> PData (PArray a)
-forceSegs vsegids_new (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+forceSegs :: PData (PArray a) -> PData (PArray a)
+forceSegs (PNested vsegids pseglens psegstarts psegsrcs psegdata)
  = let
          -- Determine which of the psegs are still reachable from the vsegs.
          -- This produces an array of flags, 
          --    with reachable   psegs corresponding to 1
          --    and  unreachable psegs corresponding to 0
          -- 
-         --  eg  vsegids_new:    [0 1 1 3 5 5 6 6]
+         --  eg  vsegids:        [0 1 1 3 5 5 6 6]
          --   => psegids_used:   [1 1 0 1 0 1 1]
          --  
          --  Note that psegids '2' and '4' are not in vsegids_packed.
          psegids_used
           = U.bpermuteDft (U.length pseglens)
                           (const 0)
-                          (U.zip vsegids_new (U.replicate (U.length vsegids_new) 1))
+                          (U.zip vsegids (U.replicate (U.length vsegids) 1))
 
          -- Produce an array of used psegs.
          --  eg  psegids_used:   [1 1 0 1 0 1 1]
@@ -379,13 +381,13 @@ forceSegs vsegids_new (PNested vsegids pseglens psegstarts psegsrcs psegdata)
          -- Use the psegids_map to rewrite the packed vsegids to point to the 
          -- corresponding psegs in the result.
          -- 
-         --  eg  vsegids_new:    [0 1 1 3 5 5 6 6]
+         --  eg  vsegids:        [0 1 1 3 5 5 6 6]
          --      psegids_map:    [0 1 -1 2 -1 3 4]
          -- 
          --      vsegids':       [0 1 1 2 3 3 4 4]
          --
          vsegids'
-          = U.map (psegids_map U.!:) vsegids_new
+          = U.map (psegids_map U.!:) vsegids
 
      in  PNested 
                 vsegids'
