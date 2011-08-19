@@ -45,6 +45,7 @@ module Data.Array.Parallel.PArray
         , combine2PA')
 where
 import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.PArray.PRepr
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
@@ -57,7 +58,7 @@ instance (Eq a, PR a)  => Eq (PArray a) where
 
 -- | Check that an array has a valid internal representation.
 {-# INLINE_PA validPA #-}
-validPA :: PR a => PArray a -> Bool
+validPA :: PA a => PArray a -> Bool
 validPA (PArray n darr1)
         =  validPR darr1
         && validBool "parray length" (n == lengthPR darr1)
@@ -65,14 +66,14 @@ validPA (PArray n darr1)
 
 -- | An empty array.
 {-# INLINE_PA emptyPA #-}
-emptyPA :: PR a => PArray a
+emptyPA :: PA a => PArray a
 emptyPA
         = PArray 0 emptyPR
 
 
 -- | Force an array to normal form.
 {-# INLINE_PA nfPA #-}
-nfPA :: PR a => PArray a -> ()
+nfPA :: PA a => PArray a -> ()
 nfPA (PArray n d)
         = n `seq` nfPR d
 
@@ -82,7 +83,7 @@ nfPA (PArray n d)
 --   the validPR invariants for nested arrays.
 --   O(n). 
 {-# INLINE_PA replicatePA #-}
-replicatePA :: PR a => Int -> a -> PArray a
+replicatePA :: PA a => Int -> a -> PArray a
 replicatePA n x
         = PArray n (replicatePR n x)
 
@@ -90,7 +91,7 @@ replicatePA n x
 -- | Segmented replicate.
 --   O(sum lengths). 
 {-# INLINE_PA replicatesPA #-}
-replicatesPA :: PR a => U.Array Int -> PArray a -> PArray a
+replicatesPA :: PA a => U.Array Int -> PArray a -> PArray a
 replicatesPA repCounts (PArray _ darr)
         = PArray (U.sum repCounts) (replicatesPR repCounts darr)
 
@@ -98,35 +99,35 @@ replicatesPA repCounts (PArray _ darr)
 -- | Unsafe segmented replicate.
 --   O(sum lengths). 
 {-# INLINE_PA unsafeReplicatesPA #-}
-unsafeReplicatesPA :: PR a => U.Array Int -> PArray a -> PArray a
+unsafeReplicatesPA :: PA a => U.Array Int -> PArray a -> PArray a
 unsafeReplicatesPA repCounts (PArray _ darr)
         = PArray (U.sum repCounts) (unsafeReplicatesPR repCounts darr)
 
 
 -- | Convert a `Vector` to a `PArray`
 {-# INLINE_PA fromVectorPA #-}
-fromVectorPA :: PR a => Vector a -> PArray a
+fromVectorPA :: PA a => Vector a -> PArray a
 fromVectorPA vec
         = PArray (V.length vec) (fromVectorPR vec)
 
 
 -- | Convert a `PArray` to a `Vector`        
 {-# INLINE_PA toVectorPA #-}
-toVectorPA   :: PR a => PArray a -> Vector a
+toVectorPA   :: PA a => PArray a -> Vector a
 toVectorPA (PArray _ arr)
         = toVectorPR arr
 
 
 -- | Lookup a single element from the source array.
 {-# INLINE_PA indexPA #-}
-indexPA    :: PR a => PArray a -> Int -> a
+indexPA    :: PA a => PArray a -> Int -> a
 indexPA (PArray _ arr) ix
         = indexPR arr ix
 
 
 -- | Extract a range of elements from an array.
 {-# INLINE_PA extractPA #-}
-extractPA  :: PR a => PArray a -> Int -> Int -> PArray a
+extractPA  :: PA a => PArray a -> Int -> Int -> PArray a
 extractPA (PArray _ arr) start len
         = PArray len (extractPR arr start len)
 
@@ -134,7 +135,7 @@ extractPA (PArray _ arr) start len
 -- | Segmented extract.
 {-# INLINE_PA extractsPA #-}
 extractsPA 
-        :: PR a 
+        :: PA a 
         => Vector (PArray a)    -- ^ source array
         -> U.Array Int          -- ^ segment source ids
         -> U.Array Int          -- ^ segment base indices
@@ -149,14 +150,14 @@ extractsPA arrs srcids segIxs segLens
 
 -- | Append two arrays.
 {-# INLINE_PA appPA #-}
-appPA      :: PR a => PArray a -> PArray a -> PArray a
+appPA      :: PA a => PArray a -> PArray a -> PArray a
 appPA (PArray n1 darr1) (PArray n2 darr2)
         = PArray (n1 + n2) (darr1 `appPR` darr2)
 
 
 -- | Filter an array based on some tags.
 {-# INLINE_PA packByTagPA #-}
-packByTagPA :: PR a => PArray a -> U.Array Tag -> Tag -> PArray a
+packByTagPA :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
 packByTagPA (PArray _ darr) tags tag
  = let  darr'   = packByTagPR darr tags tag
    in   PArray (lengthPR darr') darr'
@@ -164,7 +165,7 @@ packByTagPA (PArray _ darr) tags tag
 
 -- | Combine two arrays based on a selector.
 {-# INLINE_PA combine2PA #-}
-combine2PA  :: PR a => U.Sel2 -> PArray a -> PArray a -> PArray a
+combine2PA  :: PA a => U.Sel2 -> PArray a -> PArray a -> PArray a
 combine2PA sel (PArray _ darr1) (PArray _ darr2)
  = let  darr'    = combine2PR sel darr1 darr2
    in   PArray (lengthPR darr') darr'
@@ -172,27 +173,27 @@ combine2PA sel (PArray _ darr1) (PArray _ darr2)
 
 -- | Convert a list to a `PArray`.
 {-# INLINE_PA fromListPA #-}
-fromListPA :: PR a => [a] -> PArray a
+fromListPA :: PA a => [a] -> PArray a
 fromListPA xx
         = PArray (length xx) (fromVectorPR $ V.fromList xx)
 
 
 -- | Convert a `PArray` to a list.
 {-# INLINE_PA toListPA #-}
-toListPA   :: PR a => PArray a -> [a]
+toListPA   :: PA a => PArray a -> [a]
 toListPA (PArray _ arr)
         = V.toList $ toVectorPR arr
 
 
 -- | Concatenate a nested array.
-concatPA :: PR a => PArray (PArray a) -> PArray a
+concatPA :: PA a => PArray (PArray a) -> PArray a
 concatPA (PArray n darr)
  = let  darr'   = concatPR darr
    in   PArray (lengthPR darr') darr'
 
 
 -- | Impose a nesting structure on a flat array
-unconcatPA :: PR a => PArray (PArray a) -> PArray a -> PArray (PArray a)
+unconcatPA :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
 unconcatPA (PArray n darr1) (PArray _ darr2)
         = PArray n (unconcatPR darr1 darr2)
 
@@ -202,32 +203,32 @@ unconcatPA (PArray n darr1) (PArray _ darr2)
 -------------------------------------------------------------------------------
 
 -- | Segmented replicate.
-replicatesPA' :: PR a => [Int] -> PArray a -> PArray a
+replicatesPA' :: PA a => [Int] -> PArray a -> PArray a
 replicatesPA' lens arr
         = replicatesPA (U.fromList lens) arr
 
 -- | Unsafe segmented replicate.
-unsafeReplicatesPA' :: PR a => [Int] -> PArray a -> PArray a
+unsafeReplicatesPA' :: PA a => [Int] -> PArray a -> PArray a
 unsafeReplicatesPA' lens arr
         = unsafeReplicatesPA (U.fromList lens) arr
 
 
 -- | Segmented extract.
-extractsPA' :: PR a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
+extractsPA' :: PA a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
 extractsPA' arrs srcids startixs seglens
         = PArray (sum seglens) 
         $ extractsPR (V.map unpackPA arrs) 
                      (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
 
 
--- | NOTE: Returns an array with a fake size for testing purposes.
-packByTagPA' :: PR a => PArray a -> [Int] -> Int -> PArray a
+-- | Filter an array based on some tags.
+packByTagPA' :: PA a => PArray a -> [Int] -> Int -> PArray a
 packByTagPA' (PArray n arr) tags tag
  = let  arr'    = packByTagPR arr (U.fromList tags) tag
-   in   PArray 0 arr'
+   in   PArray (lengthPR arr') arr'
 
 
-combine2PA' :: PR a => [Int] -> PArray a -> PArray a -> PArray a
+combine2PA' :: PA a => [Int] -> PArray a -> PArray a -> PArray a
 combine2PA' sel (PArray _ darr1) (PArray _ darr2)
  = let  darr'   = combine2PR (U.tagsToSel2 (U.fromList sel)) darr1 darr2
    in   PArray 0 darr'
