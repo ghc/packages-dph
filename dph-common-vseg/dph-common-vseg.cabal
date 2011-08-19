@@ -16,6 +16,7 @@ Library
         Data.Array.Parallel.PArray.PData.Base
         Data.Array.Parallel.PArray.PData.Scalar
         Data.Array.Parallel.PArray.PData.Nested
+        Data.Array.Parallel.PArray.PData.Unit
         Data.Array.Parallel.PArray
 
   Include-Dirs:
