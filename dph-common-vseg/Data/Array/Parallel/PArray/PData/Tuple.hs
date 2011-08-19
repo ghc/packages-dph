@@ -1,39 +1,71 @@
 {-# LANGUAGE
+        CPP,
         TypeFamilies,
         FlexibleInstances, FlexibleContexts,
         StandaloneDeriving, ExplicitForAll,
         MultiParamTypeClasses #-}
+#include "fusion-phases-vseg.h"
 
 module Data.Array.Parallel.PArray.PData.Tuple 
 where
 import Data.Array.Parallel.PArray.PData.Base
--- import Data.Array.Parallel.PArray.PData.Nested
-import qualified Data.Array.Parallel.Unlifted as U
-
+import Data.Array.Parallel.PArray.PData.Nested
+import Data.Array.Parallel.Base
+import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import Text.PrettyPrint
 
 data instance PData (a, b)
         = PTuple2 (PData a) (PData b)
+
 
 deriving instance (Show (PData a), Show (PData b)) 
 	=> Show (PData (a, b))
 
 
+instance (PprPhysical (PData a), PprPhysical (PData b))
+        => PprPhysical (PData (a, b)) where
+ pprp   (PTuple2 xs ys)
+        = text "PTuple2 " <> vcat [pprp xs, pprp ys]
+
+
+instance ( PR a, PR b, Show a, Show b
+         , PprVirtual (PData a), PprVirtual (PData b))
+        => PprVirtual (PData (a, b)) where
+ pprv   (PTuple2 xs ys)
+        = text $ show 
+        $ zip (V.toList $ toVectorPR xs) 
+              (V.toList $ toVectorPR ys)
+
+
 instance (PR a, PR b) => PR (a, b) where
+  {-# INLINE_PDATA validPR #-}
+  validPR (PTuple2 xs ys)
+        =  checkEq "validPR[Tuple2]" "array length mismatch" 
+                (lengthPR xs) (lengthPR ys)
+        $  validPR xs && validPR ys
+
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
-   = PTuple2 emptyPR emptyPR
+        = PTuple2 emptyPR emptyPR
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (PTuple2 arr1 arr2)
         = nfPR arr2 `seq` nfPR arr2 `seq` ()
 
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PTuple2 arr1 _)
+        = lengthPR arr1
+
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len (x, y)
-        = PTuple2 (replicatePR len x) (replicatePR len y)
+        = PTuple2 (replicatePR len x)
+                  (replicatePR len y)
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (PTuple2 arr1 arr2)
-        = PTuple2 (replicatesPR lens arr1) (replicatesPR lens arr2)
+        = PTuple2 (replicatesPR lens arr1)
+                  (replicatesPR lens arr2)
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PTuple2 arr1 arr2) ix
@@ -44,14 +76,37 @@ instance (PR a, PR b) => PR (a, b) where
         = PTuple2 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
 
+  {-# INLINE_PDATA extractsPR #-}
+  extractsPR arrs srcids starts lens
+   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) arrs
+     in  PTuple2 (extractsPR xs srcids starts lens)
+                 (extractsPR ys srcids starts lens)
+
   {-# INLINE_PDATA appPR #-}
   appPR (PTuple2 arr11 arr12) (PTuple2 arr21 arr22)
-   = PTuple2 (arr11 `appPR` arr21) (arr12 `appPR` arr22)
+        = PTuple2 (arr11 `appPR` arr21)
+                  (arr12 `appPR` arr22)
 
-  {-# INLINE_PDATA fromListPR #-}
-  fromListPR xx
-   = let (xs, ys)	= unzip xx
-     in	 PTuple2 (fromListPR xs) (fromListPR ys)
+  {-# INLINE_PDATA packByTagPR #-}
+  packByTagPR (PTuple2 arr1 arr2) tags tag
+        = PTuple2 (packByTagPR arr1 tags tag)
+                  (packByTagPR arr2 tags tag)
+
+  {-# INLINE_PDATA combine2PR #-}
+  combine2PR sel (PTuple2 xs1 ys1) (PTuple2 xs2 ys2)
+        = PTuple2 (combine2PR sel xs1 xs2)
+                  (combine2PR sel ys1 ys2)
+
+  {-# INLINE_PDATA fromVectorPR #-}
+  fromVectorPR vec
+   = let (xs, ys)	= V.unzip vec
+     in	 PTuple2 (fromVectorPR xs)
+                 (fromVectorPR ys)
+
+  {-# INLINE_PDATA toVectorPR #-}
+  toVectorPR (PTuple2 xs ys)
+        = V.zip  (toVectorPR xs)
+                 (toVectorPR ys)
 
   {-# INLINE_PDATA fromUArrayPR #-}
   fromUArrayPR xx
@@ -80,14 +135,12 @@ unzipPA :: PArray (a, b) -> (PArray a, PArray b)
 unzipPA (PArray n (PTuple2 xs ys))
         = (PArray n xs, PArray n ys)
 
-{-
-{-# INLINE_PA unzipPA_l #-}
-unzipPA_l :: forall m1 a b. PJ m1 (PArray (a, b))
-          => Int -> PData m1 (PArray (a, b)) -> PData Sized (PArray a, PArray b)
-unzipPA_l c vs
- = case restrictPJ c vs of
-         PNestedS segd (PTuple2 xs ys)
-          -> PTuple2 (PNestedS segd xs) (PNestedS segd ys)
--}
 
+{-# INLINE_PA unzipPA_l #-}
+unzipPA_l :: (PR a, PR b)
+          => Int -> PData (PArray (a, b)) -> PData (PArray a, PArray b)
+unzipPA_l c (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+ = let  (xsdata, ysdata)        = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
+   in   PTuple2 (PNested vsegids pseglens psegstarts psegsrcs xsdata)
+                (PNested vsegids pseglens psegstarts psegsrcs ysdata)
 

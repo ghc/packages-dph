@@ -52,7 +52,7 @@ unpackPA (PArray _ d)   = d
 class PprPhysical a where
  pprp :: a -> Doc
  
-instance PprPhysical (PData a) => PprPhysical (PArray a) where
+instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
  pprp (PArray n dat)
   =   (text "PArray " <+> int n)
   $+$ (nest 4 
@@ -87,6 +87,10 @@ class PR a where
   -- | Get the number of elements in an array.
   --   For nested arrays this is just the length of the top level of nesting,
   --   not the total number of elements in the array.
+
+  --   TODO: We want a length function so we can use it in validPR,
+  --         but it should return  Nothing when the array is 'defined everywhere', 
+  --         like with arrays of ().
   lengthPR      :: PData a -> Int
 
   -- | Define an array of the given size, that maps all elements to the same value.
