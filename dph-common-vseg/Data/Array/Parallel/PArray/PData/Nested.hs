@@ -334,6 +334,16 @@ concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
    in   extractsPR psegdata srcids segstarts seglens
 
 
+unconcatPR :: PR a => PData (PArray a) -> PData a -> PData (PArray a)
+unconcatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) arr
+ = let  segs            = U.length vsegids - 1
+   in   PNested 
+         { pnested_vsegids      = U.enumFromTo 0 segs
+         , pnested_pseglens     = U.map (pseglens   U.!:) vsegids
+         , pnested_psegstarts   = U.map (psegstarts U.!:) vsegids
+         , pnested_psegsrcs     = U.replicate segs 0
+         , pnested_psegdata     = V.singleton arr }
+
 -------------------------------------------------------------------------------
 -- | Impose virtual segmentation on a nested array.
 --   All physical segments that are not reachable from the virtual

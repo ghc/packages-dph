@@ -35,6 +35,7 @@ module Data.Array.Parallel.PArray
         , fromListPA
         , toListPA
         , concatPA
+        , unconcatPA
 
         -- Wrappers used for testing only.
         , replicatesPA'
@@ -188,6 +189,12 @@ concatPA :: PR a => PArray (PArray a) -> PArray a
 concatPA (PArray n darr)
  = let  darr'   = concatPR darr
    in   PArray (lengthPR darr') darr'
+
+
+-- | Impose a nesting structure on a flat array
+unconcatPA :: PR a => PArray (PArray a) -> PArray a -> PArray (PArray a)
+unconcatPA (PArray n darr1) (PArray _ darr2)
+        = PArray n (unconcatPR darr1 darr2)
 
 
 -------------------------------------------------------------------------------
