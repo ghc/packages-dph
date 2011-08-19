@@ -334,11 +334,11 @@ concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
    in   extractsPR psegdata srcids segstarts seglens
 
 
-unconcatPR :: PR a => PData (PArray a) -> PData a -> PData (PArray a)
+unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
 unconcatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) arr
- = let  segs            = U.length vsegids - 1
+ = let  segs            = U.length vsegids
    in   PNested 
-         { pnested_vsegids      = U.enumFromTo 0 segs
+         { pnested_vsegids      = U.enumFromTo 0 (segs - 1)
          , pnested_pseglens     = U.map (pseglens   U.!:) vsegids
          , pnested_psegstarts   = U.map (psegstarts U.!:) vsegids
          , pnested_psegsrcs     = U.replicate segs 0

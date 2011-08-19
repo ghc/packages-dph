@@ -36,21 +36,14 @@ ex_length_l
 ex_plus_l	 
  = mapPP $: (plusPP_int $: 5) $: arr10
 
-
+{-
 -- index examples
 --   The source array for the indexing operation is not replicated
 --   because the lifted indexing operator is special-cased to use
 --   the same array.
 ex_index_l
  = mapPP $: (indexPP $: arr10) $: arr5
- 
-
-ex_plus2
- = lap 10 (repeatPE (plusPP_int $: 2)) (repeatPE 3)
- 
-ex_plus3
- = lap 10 (lap 10 (repeatPE (plus3PP_int $: 2)) (repeatPE 3)) (repeatPE 4)
-
+  
 
 ignorePP :: (PR a, PR b) => a :-> b :-> b
 ignorePP = closure2 ignore ignore_l
@@ -68,6 +61,4 @@ ignore_l n _ bs
 
 ex_ignore xs
         = mapPP $: (mapPP $: (ignorePP $: arrError)) $: xs
-
-
-
+-}
