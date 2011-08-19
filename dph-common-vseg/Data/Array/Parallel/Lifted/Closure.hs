@@ -35,11 +35,9 @@ infixr 0 :->
 --   types are expressed in this form.
 data (a :-> b)
 	= forall env. PR env
-	=> Clo 	(env -> a -> b)
-		(forall m1 m2
-			.  (PJ m1 env, PJ m2 a)
-			=> Int -> PData m1 env -> PData m2 a -> PData Sized b)
-		env
+	=> Clo 	!(env -> a -> b)
+		!(Int -> PData env -> PData a -> PData b)
+		!env
 
 
 -- | Closure application.
@@ -65,19 +63,16 @@ data (a :-> b)
 --
 --     @mapP (+) xs  ==>  AClo plus_v plus_l xs@
 --
-data instance PData m (a :-> b)
-	= forall env. (PJ m env, PR env)
+data instance PData (a :-> b)
+	= forall env. PR env
 	=> AClo	(env -> a -> b)
-		(forall m1 m2
-			.  (PJ m1 env, PJ m2 a)
-			=> Int -> PData m1 env -> PData m2 a -> PData Sized b)
-		(PData m env)
+		(Int -> PData env -> PData a -> PData b)
+		(PData env)
 
 
 -- | Lifted closure application.
 liftedApply 
-	:: PJ m2 a
-	=> Int -> PData m1 (a :-> b) -> PData m2 a -> PData Sized b
+	:: Int -> PData (a :-> b) -> PData a -> PData b
 
 {-# INLINE_CLOSURE liftedApply #-}
 liftedApply n (AClo _ fl envs) as
@@ -93,7 +88,7 @@ liftedApply n (AClo _ fl envs) as
 --   from unlifted and lifted versions of a primitive function.
 closure1 
 	:: (a -> b)
-	-> (forall m2. PJ m2 a => Int -> PData m2 a -> PData Sized b)
+	-> (Int -> PData a -> PData b)
 	-> (a :-> b)
 
 {-# INLINE_CLOSURE closure1 #-}
@@ -108,21 +103,13 @@ closure1 fv fl
 closure2 
 	:: forall a b c. PR a
 	=> (a -> b -> c)
-	-> (forall m1 m2
-		.  (PJ m1 a, PJ m2 b)
-		=> Int -> PData m1 a -> PData m2 b -> PData Sized c)
+	-> (Int -> PData a -> PData b -> PData c)
 	-> (a :-> b :-> c)
 
 {-# INLINE_CLOSURE closure2 #-}
 closure2 fv fl
- = let	fv_1 	:: forall env. env -> a -> (b :-> c)
-	fv_1 _ xa = Clo fv fl xa
-
-	fl_1 	:: forall env m1 m2
-		.  (PJ m1 env, PJ m2 a)
-		=> Int -> PData m1 env -> PData m2 a -> PData Sized (b :-> c)
-
-	fl_1 n _ xs = AClo fv fl (restrictPJ n xs)
+ = let	fv_1 _ xa   = Clo fv fl xa
+	fl_1 n _ xs = AClo fv fl xs
 	
    in	Clo fv_1 fl_1 ()
 
@@ -132,45 +119,21 @@ closure2 fv fl
 closure3 
         :: forall a b c d. (PR a, PR b)
         => (a -> b -> c -> d)
-        -> (forall m1 m2 m3
-                .  (PJ m1 (a, b), PJ m3 c)
-                => Int -> PData m1 a -> PData m1 b -> PData m3 c -> PData Sized d)
+        -> (Int -> PData a -> PData b -> PData c -> PData d)
         -> (a :-> b :-> c :-> d)
         
 {-# INLINE_CLOSURE closure3 #-}
 closure3 fv fl
- = let  fv_1    :: forall env. env -> a -> (b :-> c :-> d)
-        fv_1 _ xa = Clo fv_2 fl_2 xa
-        
-        fl_1    :: forall env m1 m2
-                .  (PJ m1 env, PJ m2 a)
-                => Int -> PData m1 env -> PData m2 a -> PData Sized (b :-> c :-> d)
-
-        fl_1 n _ xs
-                = AClo fv_2 fl_2 (restrictPJ n xs)
+ = let  fv_1   _ xa = Clo   fv_2 fl_2 xa
+        fl_1 n _ xs = AClo  fv_2 fl_2 xs
 
         -----
-        fv_2    :: a -> b -> (c :-> d)
-        fv_2 xa yb = Clo fv_3 fl_3 (xa, yb)
-                
-
-        fl_2    :: forall m1 m2
-                .  (PJ m1 a, PJ m2 b)
-                => Int -> PData m1 a -> PData m2 b -> PData Sized (c :-> d)
-                
-        fl_2 n xs ys 
-                = AClo fv_3 fl_3 (PTuple2 (restrictPJ n xs) (restrictPJ n ys))
+        fv_2 xa yb   = Clo  fv_3 fl_3 (xa, yb)
+        fl_2 n xs ys = AClo fv_3 fl_3 (PTuple2 xs ys)
 
         -----
-        fv_3    :: (a, b) -> c -> d
-        fv_3   (xa, yb) zc        = fv xa yb zc
-
-        fl_3    :: forall m1 m2
-                .  (PJ m1 (a, b), PJ m2 c)
-                => Int -> PData m1 (a, b) -> PData m2 c -> PData Sized d
-
-        fl_3 n (PTuple2 xs ys) zs 
-                = fl n xs ys zs
+        fv_3 (xa, yb) zc           = fv xa yb zc
+        fl_3 n (PTuple2 xs ys) zs  = fl n xs ys zs
 
    in   Clo fv_1 fl_1 ()
 

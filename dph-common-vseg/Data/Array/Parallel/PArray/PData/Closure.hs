@@ -1,45 +1,64 @@
 {-# LANGUAGE
+        CPP,
         TypeOperators,
         FlexibleInstances,
         MultiParamTypeClasses #-}
+#include "fusion-phases-vseg.h"
 
 module Data.Array.Parallel.PArray.PData.Closure where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Lifted.Closure
 
 
-instance PS (a :-> b) where
-  {-# INLINE_PDATA emptyPS #-}
-  emptyPS 
+instance PR (a :-> b) where
+  {-# INLINE_PDATA validPR #-}
+  validPR (AClo _ _ env)
+        = validPR env
+
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
 	= AClo 	(\_ _ -> error "empty array closure")
  		(\_ _ -> error "empty array closure")
-		(emptyPS :: PData Sized ())
+		(emptyPR :: PData ())
 
-  {-# INLINE_PDATA appPS #-}
-  appPS		= error "appPR[:->] not defined"
+  {-# INLINE_PDATA nfPR #-}
+  nfPR clo@(AClo fv fl envs)
+        = fv `seq` fl `seq` nfPR envs `seq` ()
 
-  {-# INLINE_PDATA fromListPS #-}
-  fromListPS	= error "fromListPR[:->] not defined"
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (AClo _ _ envs)
+        = lengthPR envs
 
+  {-# INLINE_PDATA replicatePR #-}
+  replicatePR n (Clo fv fl envs)
+        = AClo fv fl (replicatePR n envs)
 
-instance PJ m (a :-> b) where
-  {-# INLINE_PDATA restrictPJ #-}
-  restrictPJ n (AClo fv fl env)
-        = AClo fv fl (restrictPJ n env)
+  {-# INLINE_PDATA replicatesPR #-}
+  replicatesPR lens (AClo fv fl envs)
+        = AClo fv fl (replicatesPR lens envs)
 
-  {-# INLINE_PDATA restrictsPJ #-}
-  restrictsPJ segd (AClo fv fl env) 
-        = AClo fv fl (restrictsPJ segd env)
+  {-# INLINE_PDATA indexPR #-}
+  indexPR (AClo fv fl envs) ix
+        = Clo fv fl (indexPR envs ix)
 
-  {-# INLINE_PDATA indexPJ #-}
-  indexPJ   (AClo fv fl env) ix 
-	= Clo fv fl (indexPJ env ix)
+  {-# INLINE_PDATA extractPR #-}
+  extractPR (AClo fv fl envs) start len
+        = AClo fv fl (extractPR envs start len)
         
 
-instance PE (a :-> b) where
-  {-# INLINE_PDATA repeatPE #-}
-  repeatPE (Clo fv fl env)
-	= AClo fv fl (repeatPE env)
+  {-# INLINE_PDATA packByTagPR #-}
+  packByTagPR (AClo fv fl envs) tags tag
+        = AClo fv fl (packByTagPR envs tags tag)
 
 
-instance PR (a :-> b)
+  -- TODO: not sure about these.
+  --       we can't just extract the env because the vector may
+  --       contain closures with multiple functions.
+  {-# INLINE_PDATA extractsPR #-}
+  extractsPR _  = error "extractPR[:->]: not defined"
+  appPR _       = error "appPR[:->]: not defined"
+  combine2PR    = error "combinePR[:->]: not defined"
+  fromVectorPR  = error "fromVectorPR[:->]: not defined"
+  toVectorPR    = error "toVectorPR[:->]: not defined"
+  fromUArrayPR  = error "fromUArrayPR[:->]: not defined"
+  toUArrayPR    = error "toUArrayPR[:->]: not defined"
