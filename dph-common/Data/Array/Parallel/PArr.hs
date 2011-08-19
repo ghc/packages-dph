@@ -8,7 +8,7 @@ module Data.Array.Parallel.PArr (
 ) where
 
 import GHC.ST   ( ST(..), runST )
-import GHC.Base ( Array#, Int (I#), MutableArray#, newArray#,
+import GHC.Base ( Int (I#), MutableArray#, newArray#,
                   unsafeFreezeArray#, indexArray#, {- writeArray# -} )
 import GHC.PArr -- provides the definition of '[::]'
 

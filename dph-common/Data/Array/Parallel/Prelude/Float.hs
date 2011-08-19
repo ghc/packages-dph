@@ -32,16 +32,19 @@ module Data.Array.Parallel.Prelude.Float (
 import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
 
 import Data.Array.Parallel.PArr
+import Data.Array.Parallel.Prelude.Int    (Int)  -- get the vectorised version
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 
-import Prelude (Float, Int, Bool)
+import Prelude (Float, Bool)
 import qualified Prelude as P
 
 infixr 8 **
 infixl 7 *, /
 infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
+
+{-# VECTORISE SCALAR type Float #-}
 
 (==), (/=), (<), (<=), (>), (>=) :: Float -> Float -> Bool
 (==) = (P.==)

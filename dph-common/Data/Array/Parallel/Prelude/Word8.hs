@@ -24,10 +24,11 @@ module Data.Array.Parallel.Prelude.Word8 (
 import Data.Array.Parallel.VectDepend ()  -- see Note [Vectoriser dependencies] in the same module
 
 import Data.Array.Parallel.PArr
+import Data.Array.Parallel.Prelude.Int    (Int)  -- get the vectorised version
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 
-import Prelude (Int, Bool)
+import Prelude (Bool)
 import Data.Word (Word8)
 import qualified Prelude as P
 
@@ -35,6 +36,8 @@ infixl 7 *
 infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
 infixl 7 `div`, `mod`
+
+{-# VECTORISE SCALAR type Word8 #-}
 
 (==), (/=), (<), (<=), (>), (>=) :: Word8 -> Word8 -> Bool
 (==) = (P.==)
