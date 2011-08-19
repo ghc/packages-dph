@@ -10,14 +10,10 @@
 
 module Data.Array.Parallel.PArray.PData.Scalar where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
-
-
-
-data instance PData Int
-	= PInt (U.Array Int)
 
 deriving instance Show (PData Int)
 
@@ -62,14 +58,22 @@ instance PR Int where
   indexPR (PInt arr) ix
 	= arr U.!: ix
 
+  {-# INLINE_PDATA indexlPR #-}
+  indexlPR _ (PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
+   	= PInt
+	$ U.zipWith (\vsegid ix 
+			-> (psegdata V.! (psegsrcs   U.!: vsegid)) 
+				   `indexPR` (psegstarts U.!: vsegid + ix))
+		    vsegids ixs
+
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
         = PInt (U.extract arr start len)
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR arrs srcids ixsBase lens
-   = PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
-                     srcids ixsBase lens)
+   	= PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
+                     	srcids ixsBase lens)
                 
   {-# INLINE_PDATA appPR #-}
   appPR (PInt arr1) (PInt arr2)

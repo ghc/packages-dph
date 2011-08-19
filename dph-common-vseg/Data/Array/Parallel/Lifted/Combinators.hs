@@ -11,7 +11,7 @@ module Data.Array.Parallel.Lifted.Combinators
         ( lengthPP
         , replicatePP
         , mapPP
---        , indexPP
+	, indexPP
 --        , unzipPP
 
         -- TODO: Shift scalar functions should go into their own class.
@@ -25,6 +25,8 @@ import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray
+import Debug.Trace
+import Text.PrettyPrint
 
 import qualified Data.Array.Parallel.Unlifted     as U
 
@@ -103,20 +105,32 @@ mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs ps
   in    unconcatPR arg arrResult
 
 
-{-
 -- index ----------------------------------------------------------------------
 {-# INLINE_PA indexPP #-}
-indexPP :: PA a => PArray a :-> Int :-> a
-indexPP	= closure2 indexPA indexPA_l
+indexPP :: (PA a, PprPhysical (PData a)) => PArray a :-> Int :-> a
+indexPP	= closure2 indexPA indexlPR
 
-
+{-
 {-# INLINE_PA indexPA_l #-}
-indexPA_l :: (PJ m1 (PArray a), PJ m2 Int)
-	=> Int -> PData m1 (PArray a) -> PData m2 Int -> PData Sized a
+indexPA_l :: (PR a, PprPhysical (PData a))
+	=> Int -> PData (PArray a) -> PData Int -> PData a
+indexPA_l n arr@(PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
+ = let	srcids'	  = U.map (psegsrcs U.!:) vsegids
 
-indexPA_l n src ixs
- = case indexlPJ n src (restrictPJ n ixs) of
-        PArray _ d -> d
+	startixs' = U.zipWith (\vseg ix -> (psegstarts U.!: vseg) + ix)  
+				vsegids ixs
+
+	seglens'  = U.replicate (U.length ixs) 1
+	result	  = extractsPR psegdata srcids' startixs' seglens'
+   in	trace (render $ vcat
+		[ pprp arr
+		, text $ show srcids'
+		, text $ show startixs'
+		, text $ show seglens' ])
+		
+		undefined -- result
+-}
+{-
 
 -- Tuple ======================================================================
 -- unzip ----------------------------------------------------------------------

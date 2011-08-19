@@ -47,6 +47,7 @@ unpackPA :: PArray a -> PData a
 unpackPA (PArray _ d)   = d
 
 
+
 -- Pretty Printer classes -----------------------------------------------------
 -- | Pretty print physical structure of data.
 class PprPhysical a where
@@ -97,7 +98,7 @@ class PR a where
   --   We require the replication count to be > 0 so that it's easier to maintain
   --   the validPR invariants for nested arrays.
   --   O(n). 
-  replicatePR   :: Int          -- ^ size of result array. Must be > 0.
+  replicatePR   :: Int          -- ^ length of result array. Must be > 0.
                 -> a            -- ^ element to replicate.
                 -> PData a
 
@@ -118,6 +119,9 @@ class PR a where
   -- | Lookup a single element from the source array.
   --   O(1). 
   indexPR       :: PData a    -> Int -> a
+
+  -- | Lookup several elements from several source arrays
+  indexlPR 	:: Int -> PData (PArray a) -> PData Int -> PData a
 
   -- | Extract a range of elements from an array.
   --   O(n). 

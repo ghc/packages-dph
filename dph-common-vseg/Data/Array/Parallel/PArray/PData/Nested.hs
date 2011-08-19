@@ -10,7 +10,6 @@
 #include "fusion-phases-vseg.h"
 
 module Data.Array.Parallel.PArray.PData.Nested where
-import Data.Array.Parallel.PArray.PData.Scalar
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base
 
@@ -22,6 +21,9 @@ import Text.PrettyPrint
 
 
 -- Nested arrays --------------------------------------------------------------
+
+data instance PData Int
+	= PInt (U.Array Int)
 
 -- TODO: Using plain V.Vector for the psegdata field means that operations on
 --       this field aren't parallelised. In particular, when we append two
@@ -163,7 +165,6 @@ instance PR a => PR (PArray a) where
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (PNested vsegids _ _ _ _)
         = U.length vsegids
-
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)

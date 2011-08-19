@@ -7,6 +7,7 @@
 
 module Data.Array.Parallel.PArray.PData.Unit where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PData.Scalar
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
@@ -57,6 +58,10 @@ instance PR () where
   {-# INLINE_PDATA indexPR #-}
   indexPR _ _
 	= ()
+
+  {-# INLINE_PDATA indexlPR #-}
+  indexlPR c _ ixs
+	= PUnit c
 
   {-# INLINE_PDATA extractPR #-}
   extractPR _ _ len

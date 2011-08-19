@@ -25,6 +25,7 @@ module Data.Array.Parallel.PArray
         , fromVectorPA
         , toVectorPA
         , indexPA
+	, indexlPA
         , extractPA
         , extractsPA
         , appPA
@@ -123,6 +124,13 @@ toVectorPA (PArray _ arr)
 indexPA    :: PA a => PArray a -> Int -> a
 indexPA (PArray _ arr) ix
         = indexPR arr ix
+
+
+-- | Lookup a several elements from several source arrays
+{-# INLINE_PA indexlPA #-}
+indexlPA    :: PA a => PArray (PArray a) -> PArray Int -> PArray a
+indexlPA (PArray n darr) (PArray _ ixs)
+        = PArray n (indexlPR n darr ixs)
 
 
 -- | Extract a range of elements from an array.

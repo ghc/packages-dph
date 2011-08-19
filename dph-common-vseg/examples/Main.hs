@@ -9,12 +9,14 @@ import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray
+import Test
 
 main 
  = do   putStrLn $ (show $ lengthPA arr10)
         putStr "foo"
 
 arr10           = fromListPA [1..10 :: Int]
+arr3		= fromListPA [1..3  :: Int]
 arr5            = fromListPA [1..5  :: Int]
 arrN            = fromListPA [arr5, arr10, fromListPA [1..100]]
 
@@ -36,7 +38,7 @@ ex_length_l
 ex_plus_l	 
  = mapPP $: (plusPP_int $: 5) $: arr10
 
-{-
+
 -- index examples
 --   The source array for the indexing operation is not replicated
 --   because the lifted indexing operator is special-cased to use
@@ -44,7 +46,7 @@ ex_plus_l
 ex_index_l
  = mapPP $: (indexPP $: arr10) $: arr5
   
-
+{-
 ignorePP :: (PR a, PR b) => a :-> b :-> b
 ignorePP = closure2 ignore ignore_l
 

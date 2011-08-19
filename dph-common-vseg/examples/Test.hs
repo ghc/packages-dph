@@ -15,6 +15,7 @@ tagsI5 = [0, 1, 1, 0, 0, 1 :: Int]
 
 arrI1  = fromListPA [0 :: Int]
 arrI3  = fromListPA [1, 2, 3 :: Int]
+arrI4  = fromListPA [3, 2, 4, 0 :: Int]
 arrI5  = fromListPA [5, 6, 7, 8, 9 :: Int]
 arrI5' = fromListPA [1, 2, 3, 4, 5 :: Int]
 
