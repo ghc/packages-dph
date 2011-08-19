@@ -80,6 +80,7 @@ validBool str b
 -- PR Instances ---------------------------------------------------------------
 instance PR a => PR (PArray a) where
 
+  -- TODO: make this check all sub arrays as well
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
   {-# INLINE_PDATA validPR #-}
   validPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
@@ -268,12 +269,12 @@ instance PR a => PR (PArray a) where
                 (psegdata1   V.++  psegdata2)
 
 
-  {-# INLINE_PDATA packByTagPR #-}
   -- Pack the vsegids to determine which of the vsegs are present in the result.
   --  eg  tags:           [0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1]   tag = 1
   --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]
   --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
   --       
+  {-# INLINE_PDATA packByTagPR #-}
   packByTagPR arr tags tag
    = forceSegs 
    $ arr { pnested_vsegids

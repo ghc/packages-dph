@@ -12,6 +12,9 @@ import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
 
+-- | NOTE: We're only maintaining the length temporarilly. 
+--         This is done so that the validPA checks work, but in future we'll 
+--         fix validPA so it handles 'defined everywhere' arrays.
 data instance PData ()
 	= PUnit Int
 
