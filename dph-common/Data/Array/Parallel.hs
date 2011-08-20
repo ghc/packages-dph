@@ -61,9 +61,10 @@ infixr 5 +:+
 undefined :: a
 {-# NOINLINE undefined #-}
 undefined = error "Data.Array.Parallel: undefined"
-{-# VECTORISE undefined 
-  = error "Data.Array.Parallel: undefined vectorised" 
-  :: forall a. PA a => a #-}
+{-# VECTORISE undefined = undefined_v #-}
+undefined_v :: forall a. PA a => a
+undefined_v = error "Data.Array.Parallel: undefined vectorised"
+{-# NOVECTORISE undefined_v #-}
 
 -- We only define the signatures of operations on parallel arrays (and bodies that convince GHC
 -- that these functions don't just return diverge).  The vectoriser rewrites them to entirely

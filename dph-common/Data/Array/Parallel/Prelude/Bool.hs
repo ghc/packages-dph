@@ -32,7 +32,11 @@ infixr 2 ||
 
 (&&) :: Bool -> Bool -> Bool
 (&&) = (P.&&)
-{-# VECTORISE (&&) = closure2 (P.&&) and_l #-}
+{-# VECTORISE (&&) = (&&*) #-}
+(&&*) :: Bool :-> Bool :-> Bool
+{-# INLINE (&&*) #-}
+(&&*) = closure2 (P.&&) and_l
+{-# NOVECTORISE (&&*) #-}
 
 and_l :: PArray Bool -> PArray Bool -> PArray Bool
 {-# INLINE and_l #-}
@@ -45,7 +49,11 @@ and_l (PArray n# bs) (PArray _ cs)
 
 (||) :: Bool -> Bool -> Bool
 (||) = (P.||)
-{-# VECTORISE (||) = closure2 (P.||) or_l #-}
+{-# VECTORISE (||) = (||*) #-}
+(||*) :: Bool :-> Bool :-> Bool
+{-# INLINE (||*) #-}
+(||*) = closure2 (P.||) or_l
+{-# NOVECTORISE (||*) #-}
 
 or_l :: PArray Bool -> PArray Bool -> PArray Bool
 {-# INLINE or_l #-}
@@ -58,7 +66,11 @@ or_l (PArray n# bs) (PArray _ cs)
 
 not :: Bool -> Bool
 not = P.not
-{-# VECTORISE not = closure1 P.not not_l #-}
+{-# VECTORISE not = not_v #-}
+not_v :: Bool :-> Bool
+{-# INLINE not_v #-}
+not_v = closure1 P.not not_l
+{-# NOVECTORISE not_v #-}
 
 not_l :: PArray Bool -> PArray Bool
 {-# INLINE not_l #-}
@@ -71,9 +83,17 @@ not_l (PArray n# bs)
 andP:: [:Bool:] -> Bool
 {-# NOINLINE andP #-}
 andP _ = True
-{-# VECTORISE andP = closure1 (scalar_fold (&&) True) (scalar_folds (&&) True) #-}
+{-# VECTORISE andP = andP_v #-}
+andP_v :: PArray Bool :-> Bool
+{-# INLINE andP_v #-}
+andP_v = closure1 (scalar_fold (&&) True) (scalar_folds (&&) True)
+{-# NOVECTORISE andP_v #-}
 
 orP:: [:Bool:] -> Bool
 {-# NOINLINE orP #-}
 orP _ = True
-{-# VECTORISE orP = closure1 (scalar_fold (||) False) (scalar_folds (||) False) #-}
+{-# VECTORISE orP = orP_v #-}
+orP_v :: PArray Bool :-> Bool
+{-# INLINE orP_v #-}
+orP_v = closure1 (scalar_fold (||) False) (scalar_folds (||) False)
+{-# NOVECTORISE orP_v #-}

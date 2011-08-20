@@ -62,12 +62,18 @@ max = P.max
 minimumP, maximumP :: [:Int:] -> Int
 {-# NOINLINE minimumP #-}
 minimumP a = a `indexPArr` 0
-{-# VECTORISE minimumP
-  = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min) :: PArray Int :-> Int #-}
+{-# VECTORISE minimumP = minimumP_v #-}
 {-# NOINLINE maximumP #-}
 maximumP a = a `indexPArr` 0
-{-# VECTORISE maximumP
-  = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max) :: PArray Int :-> Int #-}
+{-# VECTORISE maximumP = maximumP_v #-}
+
+minimumP_v, maximumP_v:: PArray Int :-> Int
+{-# INLINE minimumP_v #-}
+minimumP_v = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
+{-# NOVECTORISE minimumP_v #-}
+{-# INLINE maximumP_v #-}
+maximumP_v = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
+{-# NOVECTORISE maximumP_v #-}
 
 minIndexP :: [:Int:] -> Int
 {-# NOINLINE minIndexP #-}
@@ -114,12 +120,18 @@ abs = P.abs
 sumP, productP :: [:Int:] -> Int
 {-# NOINLINE sumP #-}
 sumP a = a `indexPArr` 0
-{-# VECTORISE sumP 
-  = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0) :: PArray Int :-> Int #-}
+{-# VECTORISE sumP = sumP_v #-}
 {-# NOINLINE productP #-}
 productP a = a `indexPArr` 0
-{-# VECTORISE productP 
-  = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1) :: PArray Int :-> Int #-}
+{-# VECTORISE productP = productP_v #-}
+
+sumP_v, productP_v:: PArray Int :-> Int
+{-# INLINE sumP_v #-}
+sumP_v     = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
+{-# NOVECTORISE sumP_v #-}
+{-# INLINE productP_v #-}
+productP_v = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
+{-# NOVECTORISE productP_v #-}
 
 div, mod :: Int -> Int -> Int
 div = P.div
