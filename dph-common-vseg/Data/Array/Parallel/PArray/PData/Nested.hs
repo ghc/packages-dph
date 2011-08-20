@@ -200,6 +200,34 @@ instance PR a => PR (PArray a) where
          
      in  PArray pseglen darr
 
+  indexlPR c arr@(PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
+   = let vsegids'	= U.enumFromTo 0 (U.length ixs - 1)
+
+	 {-# INLINE getSegInfo #-}
+	 getSegInfo f vsegid ix
+		= f (psegdata V.! (psegsrcs U.!: vsegid)) U.!: ((psegstarts U.!: vsegid) + ix)
+		
+	 pseglens'	= U.zipWith (getSegInfo pnested_pseglens)   vsegids ixs				
+	 psegstarts'	= U.zipWith (getSegInfo pnested_psegstarts) vsegids ixs				
+
+	 -- TODO: this code is shared with extracts...
+	 --       when we combine pdata arrays we need to shift the source ixs.
+	 --       maybe there is a more general operation here.
+         psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) psegdata
+
+	 psegsrcs'
+	  = U.zipWith (\vsegid ix -> 
+		let srcid	= psegsrcs   U.!: vsegid
+		    darr	= psegdata   V.!  srcid
+		    start	= (psegstarts U.!: vsegid) + ix
+		in  (pnested_psegsrcs darr U.!: start) + (psrcoffset V.! srcid) )
+		vsegids ixs
+
+         -- All flat data arrays in the sources go into the result.
+         psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata psegdata
+
+     in  PNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
+
 
   {-# INLINE_PDATA extractPR #-}
   extractPR arr start len

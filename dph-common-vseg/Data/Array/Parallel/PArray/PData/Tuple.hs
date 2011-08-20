@@ -71,6 +71,13 @@ instance (PR a, PR b) => PR (a, b) where
   indexPR (PTuple2 arr1 arr2) ix
         = (indexPR arr1 ix, indexPR arr2 ix)
 
+  {-# INLINE_PDATA indexlPR #-}
+  indexlPR c (PNested vsegids pseglens psegstarts psegsrcs psegdata) ixs
+   = let (xs, ys)	= V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata 
+	 xsArr		= PNested vsegids pseglens psegstarts psegsrcs xs
+	 ysArr		= PNested vsegids pseglens psegstarts psegsrcs ys
+     in  PTuple2  (indexlPR c xsArr ixs) (indexlPR c ysArr ixs)
+
   {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len
         = PTuple2 (extractPR arr1 start len) 

@@ -111,26 +111,6 @@ indexPP :: (PA a, PprPhysical (PData a)) => PArray a :-> Int :-> a
 indexPP	= closure2 indexPA indexlPR
 
 {-
-{-# INLINE_PA indexPA_l #-}
-indexPA_l :: (PR a, PprPhysical (PData a))
-	=> Int -> PData (PArray a) -> PData Int -> PData a
-indexPA_l n arr@(PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
- = let	srcids'	  = U.map (psegsrcs U.!:) vsegids
-
-	startixs' = U.zipWith (\vseg ix -> (psegstarts U.!: vseg) + ix)  
-				vsegids ixs
-
-	seglens'  = U.replicate (U.length ixs) 1
-	result	  = extractsPR psegdata srcids' startixs' seglens'
-   in	trace (render $ vcat
-		[ pprp arr
-		, text $ show srcids'
-		, text $ show startixs'
-		, text $ show seglens' ])
-		
-		undefined -- result
--}
-{-
 
 -- Tuple ======================================================================
 -- unzip ----------------------------------------------------------------------

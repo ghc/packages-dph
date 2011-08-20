@@ -34,6 +34,9 @@ tagsN7 = [1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1:: Int]
 arrM3  = fromListPA [arrN2, arrN1, arrN7]
 arrM3' = fromListPA [arrN4, arrN2, arrN3]
 
+-- TODO: this fails and not caught by quickcheck props
+-- validPA $ combine2PA' [0, 1, 0] arrM3 arrM3'
+
 arrM6   = fromListPA    [arrN4, arrN2, arrN3, arrN1, arrN4', arrN1]
 arrM6'  = replicatesPA' [3, 1, 2] arrM3
 

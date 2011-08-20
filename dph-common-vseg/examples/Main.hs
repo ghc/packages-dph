@@ -40,27 +40,6 @@ ex_plus_l
 
 
 -- index examples
---   The source array for the indexing operation is not replicated
---   because the lifted indexing operator is special-cased to use
---   the same array.
 ex_index_l
  = mapPP $: (indexPP $: arr10) $: arr5
   
-{-
-ignorePP :: (PR a, PR b) => a :-> b :-> b
-ignorePP = closure2 ignore ignore_l
-
-ignore :: a -> b -> b
-ignore     _ b  = b
-
-ignore_l
-        :: forall a b m1 m2
-        .  (PJ m1 a, PJ m2 b)
-        => Int -> PData m1 a -> PData m2 b -> PData Sized b
-
-ignore_l n _ bs 
-        = restrictPJ n bs
-
-ex_ignore xs
-        = mapPP $: (mapPP $: (ignorePP $: arrError)) $: xs
--}
