@@ -7,7 +7,7 @@
 
 module Data.Array.Parallel.PArray.PData.Unit where
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Scalar
+import Data.Array.Parallel.PArray.PData.Int
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint

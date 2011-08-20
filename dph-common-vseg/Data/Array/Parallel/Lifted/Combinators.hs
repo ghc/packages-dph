@@ -15,10 +15,9 @@ module Data.Array.Parallel.Lifted.Combinators
 --        , unzipPP
 
         -- TODO: Shift scalar functions should go into their own class.
---        , multPP_double
---        , sumPP_double
         , plusPP_int
---        , plus3PP_int
+        , multPP_double
+--        , sumPP_double
           )
 where
 import Data.Array.Parallel.Lifted.Closure
@@ -150,10 +149,10 @@ plusPP_int	 = closure2 (+) plusPA_int_l
 
 {-# INLINE_PA plusPA_int_l #-}
 plusPA_int_l    :: Int -> PData Int -> PData Int -> PData Int
-plusPA_int_l n (PInt arr1) (PInt arr2)
+plusPA_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith (+) arr1 arr2)
 
-{-
+
 -- mult -----------------------------------------------------------------------
 {-# INLINE_PA multPP_double #-}
 multPP_double   :: Double :-> Double :-> Double
@@ -161,11 +160,7 @@ multPP_double = closure2 (*) multPA_double_l
 
 
 {-# INLINE_PA multPA_double_l #-}
-multPA_double_l :: (PJ m1 Double, PJ m2 Doubl
-         => Int -> PData m1 Double -> PData m2 Double -> PData Sized Double
-multPA_double_l n d1 d2
- = let PDoubleS vec1 = restrictPJ n d1
-       PDoubleS vec2 = restrictPJ n d2
-   in  PDoubleS (U.zipWith (*) vec1 vec2)
--}
+multPA_double_l :: Int -> PData Double -> PData Double -> PData Double
+multPA_double_l c (PDouble arr1) (PDouble arr2)
+ 	= PDouble (U.zipWith (*) arr1 arr2)
 
