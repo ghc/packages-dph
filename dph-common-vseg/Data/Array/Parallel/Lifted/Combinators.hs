@@ -12,7 +12,7 @@ module Data.Array.Parallel.Lifted.Combinators
         , replicatePP
         , mapPP
 	, indexPP
---        , unzipPP
+	, unzipPP
 
         -- TODO: Shift scalar functions should go into their own class.
         , plusPP_int
@@ -106,19 +106,18 @@ mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs ps
 
 -- index ----------------------------------------------------------------------
 {-# INLINE_PA indexPP #-}
-indexPP :: (PA a, PprPhysical (PData a)) => PArray a :-> Int :-> a
-indexPP	= closure2 indexPA indexlPR
+indexPP :: PA a => PArray a :-> Int :-> a
+indexPP		= closure2 indexPA indexlPR
 
-{-
 
 -- Tuple ======================================================================
 -- unzip ----------------------------------------------------------------------
 {-# INLINE_PA unzipPP #-}
-unzipPP :: PArray (a, b) :-> (PArray a, PArray b)
+unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
 unzipPP         = closure1 unzipPA unzipPA_l
 
 
-
+{-
 -- Scalar =====================================================================
 -- sum ------------------------------------------------------------------------
 {-# INLINE_PA sumPP_double #-}
