@@ -1,7 +1,9 @@
 {-# LANGUAGE
+	CPP,
         NoMonomorphismRestriction,
         TypeOperators, RankNTypes,
         FlexibleContexts #-}
+#include "fusion-phases-vseg.h"
 
 module SMVMVectorised (smvmPA) 
 where
@@ -34,22 +36,18 @@ vsmvm m v      = mapPP $: (Clo undefined lsmvm2 v) $: m
 
 -- (\r. sumP (mapP (\z. case z of (i, x) -> x * (v !: i)) r))
 {-# INLINE_USER lsmvm2 #-}
-lsmvm2  :: forall m1 m2
-        .  (PJ m1 (PArray Double), PJ m2 (PArray (Int, Double)))
-        => Int -> PData m1 (PArray Double) -> PData m2 (PArray (Int, Double)) -> PData Sized Double
+lsmvm2  :: Int -> PData (PArray Double) -> PData (PArray (Int, Double)) -> PData Double
 lsmvm2 c vs rs 
-        = lap c (repeatPE sumPP_double) 
-                (lap c  (lap c  (repeatPE mapPP) 
+        = lap c (replicatePR c sumPP_double) 
+                (lap c  (lap c  (replicatePR c mapPP) 
                                 (AClo undefined lsmvm3 vs))
                         rs)
 
 -- \z. case z of (i, x) -> x * (v !: i)
 {-# INLINE_USER lsmvm3 #-}
-lsmvm3  :: forall m1 m2
-        .  (PJ m1 (PArray Double), PJ m2 (Int, Double))
-        => Int -> PData m1 (PArray Double) -> PData m2 (Int, Double) -> PData Sized Double
+lsmvm3  :: Int -> PData (PArray Double) -> PData (Int, Double) -> PData Double
 lsmvm3 c vs zs
- = case restrictPJ c zs of
+ = case zs of
     PTuple2 is xs
-     -> lap c    (lap c (repeatPE multPP_double) xs)
-                 (lap c (lap c (repeatPE indexPP) vs) is)
+     -> lap c    (lap c (replicatePR c multPP_double) xs)
+                 (lap c (lap c (replicatePR c indexPP) vs) is)

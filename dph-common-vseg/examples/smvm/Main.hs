@@ -7,11 +7,13 @@ import SMVMVectorised
 import System.IO
 import Foreign.Storable
 import Foreign.Marshal.Alloc
-import Data.Array.Parallel.PArray               (PArray)
+import Data.Array.Parallel.PArray
+import Data.Array.Parallel.PArray.PData
 import qualified Data.Array.Parallel.PArray	as P
 import qualified Data.Array.Parallel.Unlifted   as U
 import System.Environment
 import Control.Exception (evaluate)
+import Text.PrettyPrint
 
 -------------------
 {-
@@ -57,19 +59,6 @@ run fileName
 
 	-- Print checksum of resulting vector.
 	putStrLn $ "result sum      = " ++ show (U.sum (P.toUArrayPA vResult))
-
-
-thing   :: String
-        -> IO (PArray (PArray Int))
-thing str
- = do   let vector      :: U.Array Int
-            vector      = undefined
-            
-        let segd       :: U.Segd
-            segd       = undefined
-             
-        return $ P.nestUSegdPA segd (P.fromUArrayPA vector)
-        
 
 
 -- | Load a test file containing a sparse matrix and dense vector.

@@ -38,9 +38,9 @@ infixr 0 :->
 --   types are expressed in this form.
 data (a :-> b)
 	= forall env. PR env
-	=> Clo 	!(env -> a -> b)
-		!(Int -> PData env -> PData a -> PData b)
-		!env
+	=> Clo 	(env -> a -> b)
+		(Int -> PData env -> PData a -> PData b)
+		env
 
 
 -- | Closure application.

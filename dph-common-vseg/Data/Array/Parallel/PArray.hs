@@ -31,12 +31,16 @@ module Data.Array.Parallel.PArray
         , appPA
         , packByTagPA
         , combine2PA
+	, fromUArrayPA
+	, toUArrayPA
         
         -- Derived operators.
         , fromListPA
         , toListPA
         , concatPA
         , unconcatPA
+	, fromUArray2PA
+	, nestUSegdPA
 
         -- Wrappers used for testing only.
         , replicatesPA'
@@ -179,6 +183,20 @@ combine2PA sel (PArray _ darr1) (PArray _ darr2)
    in   PArray (lengthPR darr') darr'
 
 
+-- | Convert a `UArray` to a `PArray`
+{-# INLINE_PA toUArrayPA #-}
+toUArrayPA :: (U.Elt a, PA a) => PArray a -> U.Array a
+toUArrayPA (PArray n darr)
+	= toUArrayPR darr
+
+
+-- | Convert a `PArray` to a `UArray`
+{-# INLINE_PA fromUArrayPA #-}
+fromUArrayPA :: (U.Elt a, PA a) => U.Array a -> PArray a
+fromUArrayPA uarr
+	= PArray (U.length uarr) (fromUArrayPR uarr)
+
+
 -- | Convert a list to a `PArray`.
 {-# INLINE_PA fromListPA #-}
 fromListPA :: PA a => [a] -> PArray a
@@ -194,6 +212,7 @@ toListPA (PArray _ arr)
 
 
 -- | Concatenate a nested array.
+{-# INLINE_PA concatPA #-}
 concatPA :: PA a => PArray (PArray a) -> PArray a
 concatPA (PArray n darr)
  = let  darr'   = concatPR darr
@@ -201,9 +220,43 @@ concatPA (PArray n darr)
 
 
 -- | Impose a nesting structure on a flat array
+{-# INLINE_PA unconcatPA #-}
 unconcatPA :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
 unconcatPA (PArray n darr1) (PArray _ darr2)
         = PArray n (unconcatPR darr1 darr2)
+
+
+-- | Convert an unlifted array of pairs to a PArray of pairs.
+{-# INLINE_PA fromUArray2PA #-}
+fromUArray2PA   :: (U.Elt a, PA a, U.Elt b, PA b) 
+                => U.Array (a, b) -> PArray (a, b)
+fromUArray2PA arr
+ = let  (xs, ys)        = U.unzip arr
+   in   PArray  (U.length arr) 
+                (PTuple2 (fromUArrayPR xs) (fromUArrayPR ys))
+
+
+-- | O(1). Create a nested array from a segment descriptor and some flat data.
+--   The segment descriptor must represent as many elements as present
+--   in the flat data array, else `error`
+{-# INLINE_PA nestUSegdPA #-}
+nestUSegdPA :: U.Segd -> PArray a -> PArray (PArray a)
+nestUSegdPA segd (PArray n darr)
+        | U.elementsSegd segd     == n
+        = PArray (U.lengthSegd segd)
+	$ PNested	
+		{ pnested_vsegids	= U.enumFromTo 0 (U.lengthSegd segd - 1)
+		, pnested_pseglens	= U.lengthsSegd segd
+		, pnested_psegstarts	= U.indicesSegd segd
+		, pnested_psegsrcs	= U.replicate (U.lengthSegd segd) 0
+		, pnested_psegdata	= V.singleton darr }
+
+        | otherwise
+        = error $ unlines
+                [ "Data.Array.Parallel.PArray.nestUSegdPA: number of elements defined by "
+                        ++ "segment descriptor and data array do not match"
+                , " length of segment desciptor = " ++ show (U.elementsSegd segd)
+                , " length of data array        = " ++ show n ]
 
 
 -------------------------------------------------------------------------------
@@ -241,35 +294,4 @@ combine2PA' sel (PArray _ darr1) (PArray _ darr2)
  = let  darr'   = combine2PR (U.tagsToSel2 (U.fromList sel)) darr1 darr2
    in   PArray 0 darr'
 
-
-
-
--- Finish me ------------------------------------------------------------------
-{-
--- | Convert an unlifted array of pairs to a PArray of pairs.
-{-# INLINE_PA fromUArray2PA #-}
-fromUArray2PA   :: (U.Elt a, PA a, U.Elt b, PA b) 
-                => U.Array (a, b) -> PArray (a, b)
-fromUArray2PA arr
- = let  (xs, ys)        = U.unzip arr
-   in   PArray  (U.length arr) 
-                (PTuple2 (fromUArrayPS xs) (fromUArrayPS ys))
-
-
--- | O(1). Create a nested array from a segment descriptor and some flat data.
---   The segment descriptor must represent as many elements as present
---   in the flat data array, else `error`
-{-# INLINE_PA nestUSegdPA #-}
-nestUSegdPA :: U.Segd -> PArray a -> PArray (PArray a)
-nestUSegdPA segd (PArray n d1)
-        | U.elementsSegd segd     == n
-        = PArray n (PNestedS segd d1)
-
-        | otherwise
-        = error $ unlines
-                [ "Data.Array.Parallel.PArray.nestUSegdPA: number of elements defined by "
-                        ++ "segment descriptor and data array do not match"
-                , " length of segment desciptor = " ++ show (U.elementsSegd segd)
-                , " length of data array        = " ++ show n ]
--}                
 
