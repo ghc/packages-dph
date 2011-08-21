@@ -4,6 +4,8 @@ import Data.Array.Parallel.PArray
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Closure
+import Data.Array.Parallel.PArray.Stream
+
 
 arrI0   = (fromListPA [])               :: PArray Int
 arrN0   = (fromListPA [])               :: PArray (PArray Int)

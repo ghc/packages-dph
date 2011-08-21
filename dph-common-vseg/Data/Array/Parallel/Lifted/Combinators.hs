@@ -17,17 +17,18 @@ module Data.Array.Parallel.Lifted.Combinators
         -- TODO: Shift scalar functions should go into their own class.
         , plusPP_int
         , multPP_double
---        , sumPP_double
-          )
+	, sumPP_double, sumPP_int)
 where
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
+import Data.Array.Parallel.PArray.Stream
 import Data.Array.Parallel.PArray
 import Debug.Trace
 import Text.PrettyPrint
 
-import qualified Data.Array.Parallel.Unlifted     as U
+import qualified Data.Array.Parallel.Unlifted	as U
+import qualified Data.Vector			as V
 
 --   For each combinator:
 --    The *PA_v version is the "vectorised" version that has had its parameters
@@ -117,27 +118,29 @@ unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
 unzipPP         = closure1 unzipPA unzipPA_l
 
 
-{-
 -- Scalar =====================================================================
 -- sum ------------------------------------------------------------------------
+
 {-# INLINE_PA sumPP_double #-}
 sumPP_double :: PArray Double :-> Double
-sumPP_double    = closure1 sumPA sumPA_l
+sumPP_double    = closure1 sumPA_double sumPA_l_double
 
 
-{-# INLINE_PA sumPA #-}
-sumPA   :: PArray Double -> Double
-sumPA (PArray _ (PDoubleS xs))
+{-# INLINE_PA sumPA_double #-}
+sumPA_double   :: PArray Double -> Double
+sumPA_double (PArray _ (PDouble xs))
         = U.sum xs
 
 
-{-# INLINE_PA sumPA_l #-}
-sumPA_l :: forall m1. PJ m1 (PArray Double)
-        => Int -> PData m1 (PArray Double) -> PData Sized Double
-sumPA_l c xss
- = let  PNestedS segd (PDoubleS xs)   = restrictPJ c xss
-   in   PDoubleS (U.sum_s segd xs)
--}
+{-# INLINE_PA sumPP_int #-}
+sumPP_int :: PArray Int :-> Int
+sumPP_int    = closure1 sumPA_int sumPA_l_int
+
+
+{-# INLINE_PA sumPA_int #-}
+sumPA_int   :: PArray Int  -> Int
+sumPA_int (PArray _ (PInt xs))
+        = U.sum xs
 
 
 -- plus -----------------------------------------------------------------------
