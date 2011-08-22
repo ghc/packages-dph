@@ -42,6 +42,7 @@ module Data.Array.Parallel.PArray
 	, nestUSegdPA
         , concatPA
         , unconcatPA
+        , concatlPA
         , appendlPA
         , slicelPA
 
@@ -269,6 +270,13 @@ concatPA (PArray n darr)
 unconcatPA :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
 unconcatPA (PArray n darr1) (PArray _ darr2)
         = PArray n (unconcatPR darr1 darr2)
+
+
+-- | Lifted concat
+{-# INLINE_PA concatlPA #-}
+concatlPA :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
+concatlPA (PArray n darr1)
+        = PArray n (concatlPR darr1)
 
 
 -- | Lifted append

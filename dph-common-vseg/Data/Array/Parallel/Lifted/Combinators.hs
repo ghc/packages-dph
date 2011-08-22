@@ -13,7 +13,9 @@ module Data.Array.Parallel.Lifted.Combinators
         , replicatePP
         , indexPP
         , mapPP
+        , appendPP
         , slicePP
+        , concatPP
 
         -- * Tuple functions
         , unzipPP
@@ -139,6 +141,17 @@ mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs ps
   in    unconcatPR arg arrResult
 
 
+-- append ---------------------------------------------------------------------
+{-# INLINE_PA appendPP #-}
+appendPP :: PA a => PArray a :-> PArray a :-> PArray a
+appendPP        = closure2 appendPA appendPA_l
+
+{-# INLINE_PA appendPA_l #-}
+appendPA_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
+appendPA_l c arr1 arr2
+        = appendlPR arr1 arr2
+
+
 -- slice ----------------------------------------------------------------------
 {-# INLINE_PA slicePP #-}
 slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
@@ -157,10 +170,16 @@ slicePA_l _ sliceStarts sliceLens arrs
         = slicelPR sliceStarts sliceLens arrs
 
 
--- append ---------------------------------------------------------------------
--- {-# INLINE_PA appendPP #-}
--- appendPP :: PA a => PArray a :-> PArray a :-> PArray a
--- appendPP        = closure2 appendPA appendPA_l
+-- concat ---------------------------------------------------------------------
+{-# INLINE_PA concatPP #-}
+concatPP :: PA a => PArray (PArray a) :-> PArray a
+concatPP        = closure1 concatPA concatPA_l
+
+
+{-# INLINE_PA concatPA_l #-}
+concatPA_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
+concatPA_l c darr
+        = concatlPR darr
 
 
 -- Tuple ======================================================================

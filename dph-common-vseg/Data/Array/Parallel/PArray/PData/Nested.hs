@@ -24,6 +24,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         -- * Functions derived from PR primops
         , concatPR
         , unconcatPR
+        , concatlPR
         , slicelPR
         , appendlPR
         
@@ -474,15 +475,22 @@ unconcatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) arr
          , pnested_psegdata     = V.singleton arr }
 
 
--------------------------------------------------------------------------------
--- | Lifted append.
---   Both arrays must contain the same number of elements
-appendlPR 
-        :: PR a
-        => PData (PArray a)     
-        -> PData (PArray a)
-        -> PData (PArray a)
+-- | Lifted concat.
+--   Both arrays must contain the same number of elements.
+concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
+concatlPR arr
+ = let  (segd1, darr1)  = flattenNestedPR arr
+        (segd2, darr2)  = flattenNestedPR darr1
+        
+        segd'           = U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
+                                   (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))
+                                   (U.elementsSegd segd2)
+   in   nestedOfSegdPR segd' darr2
 
+
+-- | Lifted append.
+--   Both arrays must contain the same number of elements.
+appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
 appendlPR  arr1 arr2
  = let  (segd1, darr1)  = flattenNestedPR arr1
         (segd2, darr2)  = flattenNestedPR arr2
@@ -491,7 +499,6 @@ appendlPR  arr1 arr2
          $ appendsPR segd' segd1 darr1 segd2 darr2
 
 
--------------------------------------------------------------------------------
 -- | Extract some slices from some arrays.
 --   The arrays of starting indices and lengths must themselves
 --   have the same length.
