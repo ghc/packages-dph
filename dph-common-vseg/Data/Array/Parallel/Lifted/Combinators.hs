@@ -1,7 +1,7 @@
 {-# LANGUAGE
         CPP,
-	TypeFamilies, MultiParamTypeClasses, 
-	FlexibleInstances, FlexibleContexts,
+        TypeFamilies, MultiParamTypeClasses, 
+        FlexibleInstances, FlexibleContexts,
         RankNTypes, ExistentialQuantification,
         StandaloneDeriving, TypeOperators #-}
 #include "fusion-phases-vseg.h"
@@ -11,13 +11,13 @@ module Data.Array.Parallel.Lifted.Combinators
         ( lengthPP
         , replicatePP
         , mapPP
-	, indexPP
-	, unzipPP
+        , indexPP
+        , unzipPP
 
         -- TODO: Shift scalar functions should go into their own class.
         , plusPP_int
         , multPP_double
-	, sumPP_double, sumPP_int)
+        , sumPP_double, sumPP_int)
 where
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData
@@ -27,8 +27,8 @@ import Data.Array.Parallel.PArray
 import Debug.Trace
 import Text.PrettyPrint
 
-import qualified Data.Array.Parallel.Unlifted	as U
-import qualified Data.Vector			as V
+import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
 
 --   For each combinator:
 --    The *PA_v version is the "vectorised" version that has had its parameters
@@ -55,9 +55,9 @@ lengthPP        = closure1 lengthPA lengthPA_l
 
 {-# INLINE_PA lengthPA_l #-}
 lengthPA_l :: PA (PArray a)
-	   => Int -> PData (PArray a) -> PData Int
+           => Int -> PData (PArray a) -> PData Int
 lengthPA_l c (PNested vsegids pseglens psegstarts psegsrcs psegdata)
- = let	lens    = U.map (pseglens U.!:) vsegids
+ = let  lens    = U.map (pseglens U.!:) vsegids
    in   PInt lens
 
 
@@ -79,20 +79,20 @@ replicatePA_l = error "replciatePA_l"
 mapPP   :: (PA a, PA b) 
         => (a :-> b) :-> PArray a :-> PArray b
 
-mapPP 	= closure2 mapPA_v mapPA_l
+mapPP   = closure2 mapPA_v mapPA_l
 
 
 {-# INLINE_PA mapPA_v #-}
 mapPA_v :: (PR a, PR b)
-	=> (a :-> b) -> PArray a -> PArray b
+        => (a :-> b) -> PArray a -> PArray b
 mapPA_v (Clo fv fl env) (PArray n as) 
-	= PArray n (fl n (replicatePR n env) as)
+        = PArray n (fl n (replicatePR n env) as)
 
 
 {-# INLINE_PA mapPA_l #-}
 mapPA_l :: (PR (a :-> b), PR a, PR b)
-	=> Int 	-> PData (a :-> b) 
-		-> PData (PArray a) -> PData (PArray b)
+        => Int  -> PData (a :-> b) 
+                -> PData (PArray a) -> PData (PArray b)
 
 mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs psegdata)
  = let  argFlat         = concatPR arg
@@ -108,7 +108,7 @@ mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs ps
 -- index ----------------------------------------------------------------------
 {-# INLINE_PA indexPP #-}
 indexPP :: PA a => PArray a :-> Int :-> a
-indexPP		= closure2 indexPA indexlPR
+indexPP         = closure2 indexPA indexlPR
 
 
 -- Tuple ======================================================================
@@ -145,8 +145,8 @@ sumPA_int (PArray _ (PInt xs))
 
 -- plus -----------------------------------------------------------------------
 {-# INLINE_PA plusPP_int #-}
-plusPP_int	 :: Int :-> Int :-> Int
-plusPP_int	 = closure2 (+) plusPA_int_l
+plusPP_int       :: Int :-> Int :-> Int
+plusPP_int       = closure2 (+) plusPA_int_l
 
 
 {-# INLINE_PA plusPA_int_l #-}
@@ -164,5 +164,5 @@ multPP_double = closure2 (*) multPA_double_l
 {-# INLINE_PA multPA_double_l #-}
 multPA_double_l :: Int -> PData Double -> PData Double -> PData Double
 multPA_double_l c (PDouble arr1) (PDouble arr2)
- 	= PDouble (U.zipWith (*) arr1 arr2)
+        = PDouble (U.zipWith (*) arr1 arr2)
 

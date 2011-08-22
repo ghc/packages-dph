@@ -1,7 +1,7 @@
 {-# LANGUAGE
         CPP,
-	TypeOperators, ScopedTypeVariables, ExistentialQuantification,
-	TypeFamilies, Rank2Types, MultiParamTypeClasses, 
+        TypeOperators, ScopedTypeVariables, ExistentialQuantification,
+        TypeFamilies, Rank2Types, MultiParamTypeClasses, 
         StandaloneDeriving, FlexibleContexts #-}
 
 #include "fusion-phases-vseg.h"
@@ -37,16 +37,16 @@ infixr 0 :->
 --   The vectoriser closure-converts the source program so that all functions
 --   types are expressed in this form.
 data (a :-> b)
-	= forall env. PR env
-	=> Clo 	(env -> a -> b)
-		(Int -> PData env -> PData a -> PData b)
-		env
+        = forall env. PR env
+        => Clo  (env -> a -> b)
+                (Int -> PData env -> PData a -> PData b)
+                env
 
 
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b
 {-# INLINE_CLOSURE ($:) #-}
-($:) (Clo fv fl env) x	= fv env x
+($:) (Clo fv fl env) x  = fv env x
    
 
 -- Array Closures -------------------------------------------------------------
@@ -67,19 +67,19 @@ data (a :-> b)
 --     @mapP (+) xs  ==>  AClo plus_v plus_l xs@
 --
 data instance PData (a :-> b)
-	= forall env. PR env
-	=> AClo	(env -> a -> b)
-		(Int -> PData env -> PData a -> PData b)
-		(PData env)
+        = forall env. PR env
+        => AClo (env -> a -> b)
+                (Int -> PData env -> PData a -> PData b)
+                (PData env)
 
 
 -- | Lifted closure application.
 liftedApply 
-	:: Int -> PData (a :-> b) -> PData a -> PData b
+        :: Int -> PData (a :-> b) -> PData a -> PData b
 
 {-# INLINE_CLOSURE liftedApply #-}
 liftedApply n (AClo _ fl envs) as
-	= fl n envs as
+        = fl n envs as
 
 
 -- Closure Construction -------------------------------------------------------
@@ -90,31 +90,31 @@ liftedApply n (AClo _ fl envs) as
 -- | Construct an arity-1 closure.
 --   from unlifted and lifted versions of a primitive function.
 closure1 
-	:: (a -> b)
-	-> (Int -> PData a -> PData b)
-	-> (a :-> b)
+        :: (a -> b)
+        -> (Int -> PData a -> PData b)
+        -> (a :-> b)
 
 {-# INLINE_CLOSURE closure1 #-}
-closure1 fv fl	
-	= Clo	(\_env -> fv)
-		(\n _env -> fl n)
-		()
+closure1 fv fl  
+        = Clo   (\_env -> fv)
+                (\n _env -> fl n)
+                ()
 
 
 -- | Construct an arity-2 closure
 --   from lifted and unlifted versions of a primitive function.
 closure2 
-	:: forall a b c. PR a
-	=> (a -> b -> c)
-	-> (Int -> PData a -> PData b -> PData c)
-	-> (a :-> b :-> c)
+        :: forall a b c. PR a
+        => (a -> b -> c)
+        -> (Int -> PData a -> PData b -> PData c)
+        -> (a :-> b :-> c)
 
 {-# INLINE_CLOSURE closure2 #-}
 closure2 fv fl
- = let	fv_1 _ xa   = Clo fv fl xa
-	fl_1 n _ xs = AClo fv fl xs
-	
-   in	Clo fv_1 fl_1 ()
+ = let  fv_1 _ xa   = Clo fv fl xa
+        fl_1 n _ xs = AClo fv fl xs
+        
+   in   Clo fv_1 fl_1 ()
 
 
 -- | Construct an arity-3 closure

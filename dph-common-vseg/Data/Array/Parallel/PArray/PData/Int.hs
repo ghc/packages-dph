@@ -1,10 +1,10 @@
 {-# LANGUAGE
         CPP,
-	TypeFamilies,
-	FlexibleInstances, FlexibleContexts,
-	MultiParamTypeClasses,
-	StandaloneDeriving,
-	ExistentialQuantification #-}
+        TypeFamilies,
+        FlexibleInstances, FlexibleContexts,
+        MultiParamTypeClasses,
+        StandaloneDeriving,
+        ExistentialQuantification #-}
 
 #include "fusion-phases-vseg.h"
 
@@ -48,7 +48,7 @@ instance PR Int where
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len x
-	= PInt (U.replicate len x)
+        = PInt (U.replicate len x)
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (PInt arr)
@@ -56,15 +56,15 @@ instance PR Int where
                 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PInt arr) ix
-	= arr U.!: ix
+        = arr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR _ (PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
-   	= PInt
-	$ U.zipWith (\vsegid ix 
-			-> (psegdata V.! (psegsrcs   U.!: vsegid)) 
-				   `indexPR` (psegstarts U.!: vsegid + ix))
-		    vsegids ixs
+        = PInt
+        $ U.zipWith (\vsegid ix 
+                        -> (psegdata V.! (psegsrcs   U.!: vsegid)) 
+                                   `indexPR` (psegstarts U.!: vsegid + ix))
+                    vsegids ixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
@@ -72,12 +72,12 @@ instance PR Int where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR arrs srcids ixsBase lens
-   	= PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
-                     	srcids ixsBase lens)
+        = PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
+                        srcids ixsBase lens)
                 
   {-# INLINE_PDATA appPR #-}
   appPR (PInt arr1) (PInt arr2)
-	= PInt (arr1 U.+:+ arr2)
+        = PInt (arr1 U.+:+ arr2)
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PInt arr1) arrTags tag
@@ -91,7 +91,7 @@ instance PR Int where
 
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
-	= PInt (U.fromList $ V.toList xx)
+        = PInt (U.fromList $ V.toList xx)
 
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PInt arr)

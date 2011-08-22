@@ -20,7 +20,7 @@ data instance PData (a, b)
 
 
 deriving instance (Show (PData a), Show (PData b)) 
-	=> Show (PData (a, b))
+        => Show (PData (a, b))
 
 
 instance (PprPhysical (PData a), PprPhysical (PData b))
@@ -73,9 +73,9 @@ instance (PR a, PR b) => PR (a, b) where
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR c (PNested vsegids pseglens psegstarts psegsrcs psegdata) ixs
-   = let (xs, ys)	= V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata 
-	 xsArr		= PNested vsegids pseglens psegstarts psegsrcs xs
-	 ysArr		= PNested vsegids pseglens psegstarts psegsrcs ys
+   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata 
+         xsArr          = PNested vsegids pseglens psegstarts psegsrcs xs
+         ysArr          = PNested vsegids pseglens psegstarts psegsrcs ys
      in  PTuple2  (indexlPR c xsArr ixs) (indexlPR c ysArr ixs)
 
   {-# INLINE_PDATA extractPR #-}
@@ -106,8 +106,8 @@ instance (PR a, PR b) => PR (a, b) where
 
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
-   = let (xs, ys)	= V.unzip vec
-     in	 PTuple2 (fromVectorPR xs)
+   = let (xs, ys)       = V.unzip vec
+     in  PTuple2 (fromVectorPR xs)
                  (fromVectorPR ys)
 
   {-# INLINE_PDATA toVectorPR #-}

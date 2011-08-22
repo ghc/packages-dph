@@ -17,7 +17,7 @@ import Text.PrettyPrint
 --         This is done so that the validPA checks work, but in future we'll 
 --         fix validPA so it handles 'defined everywhere' arrays.
 data instance PData ()
-	= PUnit Int
+        = PUnit Int
 
 deriving instance Show (PData ())
 
@@ -49,7 +49,7 @@ instance PR () where
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n _
-	= PUnit n
+        = PUnit n
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens _
@@ -57,11 +57,11 @@ instance PR () where
         
   {-# INLINE_PDATA indexPR #-}
   indexPR _ _
-	= ()
+        = ()
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR c _ ixs
-	= PUnit c
+        = PUnit c
 
   {-# INLINE_PDATA extractPR #-}
   extractPR _ _ len
@@ -73,7 +73,7 @@ instance PR () where
                 
   {-# INLINE_PDATA appPR #-}
   appPR (PUnit len1) (PUnit len2)
-	= PUnit (len1 + len2)
+        = PUnit (len1 + len2)
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR _ tags tag
@@ -86,7 +86,7 @@ instance PR () where
 
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
-	= PUnit (V.length vec)
+        = PUnit (V.length vec)
 
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PUnit len)

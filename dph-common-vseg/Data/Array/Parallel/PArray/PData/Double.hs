@@ -1,10 +1,10 @@
 {-# LANGUAGE
         CPP,
-	TypeFamilies,
-	FlexibleInstances, FlexibleContexts,
-	MultiParamTypeClasses,
-	StandaloneDeriving,
-	ExistentialQuantification #-}
+        TypeFamilies,
+        FlexibleInstances, FlexibleContexts,
+        MultiParamTypeClasses,
+        StandaloneDeriving,
+        ExistentialQuantification #-}
 
 #include "fusion-phases-vseg.h"
 
@@ -16,7 +16,7 @@ import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
 data instance PData Double
-	= PDouble (U.Array Double)
+        = PDouble (U.Array Double)
 
 deriving instance Show (PData Double)
 
@@ -51,7 +51,7 @@ instance PR Double where
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len x
-	= PDouble (U.replicate len x)
+        = PDouble (U.replicate len x)
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (PDouble arr)
@@ -59,15 +59,15 @@ instance PR Double where
                 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix
-	= arr U.!: ix
+        = arr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR _ (PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
-   	= PDouble
-	$ U.zipWith (\vsegid ix 
-			-> (psegdata V.! (psegsrcs   U.!: vsegid)) 
-				   `indexPR` (psegstarts U.!: vsegid + ix))
-		    vsegids ixs
+        = PDouble
+        $ U.zipWith (\vsegid ix 
+                        -> (psegdata V.! (psegsrcs   U.!: vsegid)) 
+                                   `indexPR` (psegstarts U.!: vsegid + ix))
+                    vsegids ixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
@@ -75,12 +75,12 @@ instance PR Double where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR arrs srcids ixsBase lens
-   	= PDouble (uextracts (V.map (\(PDouble arr) -> arr) arrs)
-                     	srcids ixsBase lens)
+        = PDouble (uextracts (V.map (\(PDouble arr) -> arr) arrs)
+                        srcids ixsBase lens)
                 
   {-# INLINE_PDATA appPR #-}
   appPR (PDouble arr1) (PDouble arr2)
-	= PDouble (arr1 U.+:+ arr2)
+        = PDouble (arr1 U.+:+ arr2)
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PDouble arr1) arrTags tag
@@ -94,7 +94,7 @@ instance PR Double where
 
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
-	= PDouble (U.fromList $ V.toList xx)
+        = PDouble (U.fromList $ V.toList xx)
 
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PDouble arr)

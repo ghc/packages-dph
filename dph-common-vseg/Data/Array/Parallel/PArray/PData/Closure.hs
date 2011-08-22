@@ -17,9 +17,9 @@ instance PR (a :-> b) where
 
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
-	= AClo 	(\_ _ -> error "empty array closure")
- 		(\_ _ -> error "empty array closure")
-		(emptyPR :: PData ())
+        = AClo  (\_ _ -> error "empty array closure")
+                (\_ _ -> error "empty array closure")
+                (emptyPR :: PData ())
 
   {-# INLINE_PDATA nfPR #-}
   nfPR clo@(AClo fv fl envs)

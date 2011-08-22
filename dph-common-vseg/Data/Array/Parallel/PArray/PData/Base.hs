@@ -29,10 +29,10 @@ import Text.PrettyPrint
 --   PArrays always contain a finite (sized) number of elements, which means
 --   they have a length.
 data PArray a
-	= PArray Int (PData  a)
+        = PArray Int (PData  a)
 
 deriving instance (Show (PData a), Show a)
-	=> Show (PArray a)
+        => Show (PArray a)
 
 
 -- | Take the length of an array
@@ -80,7 +80,7 @@ class PR a where
   validPR       :: PData a -> Bool
 
   -- | Produce an empty array with size zero.
-  emptyPR	:: PData a
+  emptyPR       :: PData a
 
   -- | Ensure there are no thunks in the representation of a manifest array.
   nfPR          :: PData a -> ()
@@ -121,7 +121,7 @@ class PR a where
   indexPR       :: PData a    -> Int -> a
 
   -- | Lookup several elements from several source arrays
-  indexlPR 	:: Int -> PData (PArray a) -> PData Int -> PData a
+  indexlPR      :: Int -> PData (PArray a) -> PData Int -> PData a
 
   -- | Extract a range of elements from an array.
   --   O(n). 
@@ -136,7 +136,7 @@ class PR a where
                 -> PData a
 
   -- | Append two sized arrays.
-  appPR		:: PData a -> PData a -> PData a
+  appPR         :: PData a -> PData a -> PData a
 
   -- | Filter an array based on some tags.
   packByTagPR   :: PData a      -- ^ source array
@@ -152,7 +152,7 @@ class PR a where
 
   -- Conversions ---------------------
   -- | Convert a list to an array
-  fromVectorPR	:: Vector a -> PData a
+  fromVectorPR  :: Vector a -> PData a
 
   -- | Convert an array to a list
   toVectorPR    :: PData a -> Vector a
