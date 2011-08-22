@@ -53,14 +53,12 @@ import Data.Array.Parallel.Prelude.Int
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
 
-import Prelude hiding (Int, undefined)
+import Prelude hiding (Int)
 
 infixl 9 !:
 infixr 5 +:+
 
-undefined :: a
-{-# NOINLINE undefined #-}
-undefined = error "Data.Array.Parallel: undefined"
+-- Vectorise Prelude.undefined
 {-# VECTORISE undefined = undefined_v #-}
 undefined_v :: forall a. PA a => a
 undefined_v = error "Data.Array.Parallel: undefined vectorised"

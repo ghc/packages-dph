@@ -20,64 +20,53 @@ import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
 import qualified Data.Array.Parallel.Unlifted as U
 
-import qualified Prelude as P
-import Prelude (Bool(..), otherwise)
-  -- NB: re-export 'Prelude.otherwise' instead of rolling a new one as the former is special-cased
-  --     in the Desugarer
-
 import Data.Bits
 
-infixr 3 &&
-infixr 2 ||
 
-(&&) :: Bool -> Bool -> Bool
-(&&) = (P.&&)
+-- We re-export 'Prelude.otherwise' as is as it is special-cased in the Desugarer
+  
 {-# VECTORISE (&&) = (&&*) #-}
 (&&*) :: Bool :-> Bool :-> Bool
 {-# INLINE (&&*) #-}
-(&&*) = closure2 (P.&&) and_l
+(&&*) = closure2 (&&) and_l
 {-# NOVECTORISE (&&*) #-}
 
 and_l :: PArray Bool -> PArray Bool -> PArray Bool
 {-# INLINE and_l #-}
 and_l (PArray n# bs) (PArray _ cs)
-  = PArray n# P.$
+  = PArray n# $
       case bs of { PBool sel1 ->
       case cs of { PBool sel2 ->
-      PBool P.$ U.tagsToSel2 (U.zipWith (.&.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
+      PBool $ U.tagsToSel2 (U.zipWith (.&.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
 {-# NOVECTORISE and_l #-}
 
-(||) :: Bool -> Bool -> Bool
-(||) = (P.||)
 {-# VECTORISE (||) = (||*) #-}
 (||*) :: Bool :-> Bool :-> Bool
 {-# INLINE (||*) #-}
-(||*) = closure2 (P.||) or_l
+(||*) = closure2 (||) or_l
 {-# NOVECTORISE (||*) #-}
 
 or_l :: PArray Bool -> PArray Bool -> PArray Bool
 {-# INLINE or_l #-}
 or_l (PArray n# bs) (PArray _ cs)
-  = PArray n# P.$
+  = PArray n# $
       case bs of { PBool sel1 ->
       case cs of { PBool sel2 ->
-      PBool P.$ U.tagsToSel2 (U.zipWith (.|.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
+      PBool $ U.tagsToSel2 (U.zipWith (.|.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
 {-# NOVECTORISE or_l #-}
 
-not :: Bool -> Bool
-not = P.not
 {-# VECTORISE not = not_v #-}
 not_v :: Bool :-> Bool
 {-# INLINE not_v #-}
-not_v = closure1 P.not not_l
+not_v = closure1 not not_l
 {-# NOVECTORISE not_v #-}
 
 not_l :: PArray Bool -> PArray Bool
 {-# INLINE not_l #-}
 not_l (PArray n# bs)
-  = PArray n# P.$
+  = PArray n# $
       case bs of { PBool sel ->
-      PBool P.$ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
+      PBool $ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
 {-# NOVECTORISE not_l #-}
 
 andP:: [:Bool:] -> Bool
