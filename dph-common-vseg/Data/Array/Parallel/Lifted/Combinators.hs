@@ -8,15 +8,22 @@
 
 -- | Define closures for each of the combinators the vectoriser uses.
 module Data.Array.Parallel.Lifted.Combinators 
-        ( lengthPP
+        ( singletonPP
+        , lengthPP
         , replicatePP
-        , mapPP
         , indexPP
+        , mapPP
+        , slicePP
+
+        -- * Tuple functions
         , unzipPP
 
+        -- * Scalar functions
         -- TODO: Shift scalar functions should go into their own class.
+        , eqPP_int
         , plusPP_int
         , multPP_double
+        , divPP_int
         , sumPP_double, sumPP_int)
 where
 import Data.Array.Parallel.Lifted.Closure
@@ -46,6 +53,19 @@ import qualified Data.Vector                    as V
 --    versions directly.
 
 
+-- singleton ------------------------------------------------------------------
+{-# INLINE_PA singletonPP #-}
+singletonPP :: PA a => a :-> PArray a
+singletonPP     = closure1 singletonPA singletonPA_l
+
+
+{-# INLINE_PA singletonPA_l #-}
+singletonPA_l :: PA a => Int -> PData a -> PData (PArray a)
+singletonPA_l c xs 
+        = replicatePA_l c (PInt $ U.replicate c 1) xs
+        
+
+
 -- length ---------------------------------------------------------------------
 -- | Take the number of elements in an array.
 {-# INLINE_PA lengthPP #-}
@@ -69,9 +89,23 @@ replicatePP     = closure2 replicatePA replicatePA_l
 
 
 {-# INLINE_PA replicatePA_l #-}
-replicatePA_l   :: PA a 
-                => Int -> PData Int -> PData a -> PData (PArray a)
-replicatePA_l = error "replciatePA_l"
+replicatePA_l   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
+replicatePA_l 0 _ _             = emptyPR
+replicatePA_l c (PInt lens) pdata
+ = let  segd    = U.lengthsToSegd lens
+   in   PNested
+        { pnested_vsegids       = U.replicate_s segd (U.enumFromTo 0 (c - 1))
+        , pnested_pseglens      = lens
+        , pnested_psegstarts    = U.indicesSegd segd
+        , pnested_psegsrcs      = U.replicate c 0
+        , pnested_psegdata      = V.singleton pdata }
+
+
+-- index ----------------------------------------------------------------------
+-- | Lookup a single element from the souce array.
+{-# INLINE_PA indexPP #-}
+indexPP :: PA a => PArray a :-> Int :-> a
+indexPP         = closure2 indexPA indexlPR
 
 
 -- map ------------------------------------------------------------------------
@@ -105,10 +139,28 @@ mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs ps
   in    unconcatPR arg arrResult
 
 
--- index ----------------------------------------------------------------------
-{-# INLINE_PA indexPP #-}
-indexPP :: PA a => PArray a :-> Int :-> a
-indexPP         = closure2 indexPA indexlPR
+-- slice ----------------------------------------------------------------------
+{-# INLINE_PA slicePP #-}
+slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
+slicePP         = closure3 slicePA slicePA_l
+
+
+{-# INLINE_PA slicePA #-}
+slicePA :: PA a => Int -> Int -> PArray a -> PArray a
+slicePA start len (PArray _ darr)
+        = PArray len (extractPR darr start len)
+
+
+{-# INLINE_PA slicePA_l #-}
+slicePA_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
+slicePA_l _ sliceStarts sliceLens arrs
+        = slicelPR sliceStarts sliceLens arrs
+
+
+-- append ---------------------------------------------------------------------
+-- {-# INLINE_PA appendPP #-}
+-- appendPP :: PA a => PArray a :-> PArray a :-> PArray a
+-- appendPP        = closure2 appendPA appendPA_l
 
 
 -- Tuple ======================================================================
@@ -119,28 +171,22 @@ unzipPP         = closure1 unzipPA unzipPA_l
 
 
 -- Scalar =====================================================================
--- sum ------------------------------------------------------------------------
+-- eq   -----------------------------------------------------------------------
+{-# INLINE_PA eqPP_int #-}
+eqPP_int        :: Int :-> Int :-> Int
+eqPP_int        = closure2 (\x y -> intOfBool (x == y))
+                          eqPP_int_l
 
-{-# INLINE_PA sumPP_double #-}
-sumPP_double :: PArray Double :-> Double
-sumPP_double    = closure1 sumPA_double sumPA_l_double
+{-# INLINE_PA eqPP_int_l #-}
+eqPP_int_l      :: Int -> PData Int -> PData Int -> PData Int
+eqPP_int_l _ (PInt arr1) (PInt arr2)
+        = PInt (U.zipWith (\x y -> intOfBool (x == y)) arr1 arr2)
 
+{-# INLINE intOfBool #-}
+intOfBool :: Bool -> Int
+intOfBool True  = 1
+intOfBool False = 0
 
-{-# INLINE_PA sumPA_double #-}
-sumPA_double   :: PArray Double -> Double
-sumPA_double (PArray _ (PDouble xs))
-        = U.sum xs
-
-
-{-# INLINE_PA sumPP_int #-}
-sumPP_int :: PArray Int :-> Int
-sumPP_int    = closure1 sumPA_int sumPA_l_int
-
-
-{-# INLINE_PA sumPA_int #-}
-sumPA_int   :: PArray Int  -> Int
-sumPA_int (PArray _ (PInt xs))
-        = U.sum xs
 
 
 -- plus -----------------------------------------------------------------------
@@ -165,4 +211,39 @@ multPP_double = closure2 (*) multPA_double_l
 multPA_double_l :: Int -> PData Double -> PData Double -> PData Double
 multPA_double_l c (PDouble arr1) (PDouble arr2)
         = PDouble (U.zipWith (*) arr1 arr2)
+
+
+-- div -----------------------------------------------------------------------
+{-# INLINE_PA divPP_int #-}
+divPP_int   :: Int :-> Int :-> Int
+divPP_int = closure2 div divPA_int_l
+
+
+{-# INLINE_PA divPA_int_l #-}
+divPA_int_l :: Int -> PData Int -> PData Int -> PData Int
+divPA_int_l c (PInt arr1) (PInt arr2)
+        = PInt (U.zipWith div arr1 arr2)
+
+
+-- sum ------------------------------------------------------------------------
+{-# INLINE_PA sumPP_double #-}
+sumPP_double :: PArray Double :-> Double
+sumPP_double    = closure1 sumPA_double sumPA_l_double
+
+
+{-# INLINE_PA sumPA_double #-}
+sumPA_double   :: PArray Double -> Double
+sumPA_double (PArray _ (PDouble xs))
+        = U.sum xs
+
+
+{-# INLINE_PA sumPP_int #-}
+sumPP_int :: PArray Int :-> Int
+sumPP_int    = closure1 sumPA_int sumPA_l_int
+
+
+{-# INLINE_PA sumPA_int #-}
+sumPA_int   :: PArray Int  -> Int
+sumPA_int (PArray _ (PInt xs))
+        = U.sum xs
 

@@ -9,7 +9,27 @@
 
 #include "fusion-phases-vseg.h"
 
-module Data.Array.Parallel.PArray.PData.Nested where
+module Data.Array.Parallel.PArray.PData.Nested 
+        ( PData(..)
+
+        -- * Testing functions. TODO: move these somewhere else
+        , validIx
+        , validLen
+        , validBool
+
+        -- * Segmentation
+        , segdOfNestedPR
+        , nestedOfSegdPR
+                
+        -- * Functions derived from PR primops
+        , concatPR
+        , unconcatPR
+        , slicelPR
+        , appendlPR
+        
+        -- * Internal functions
+        , forceSegs)
+where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base
 
@@ -27,7 +47,15 @@ data instance PData Int
 
 -- TODO: Using plain V.Vector for the psegdata field means that operations on
 --       this field aren't parallelised. In particular, when we append two
---       psegdata fields during appPR or combinePR this runs sequentially.
+--       psegdata fields during appPR or combinePR this runs sequentially
+--
+-- TODO: Split the pseglens / psegstarts / psegsrcs fields into a SSegd type
+--       and push it into the Unlifted library.
+--       SSegd = multi-source slicing segment descriptor. This should be a
+--       clean generalisation of result Segds. SSegs have the added psegsrcs
+--       field, and the segments can overlap, and don't need to cover the
+--       entire flat data array.
+--
 data instance PData (PArray a)
         = PNested
         { -- Virtual segmentation. 
@@ -63,6 +91,7 @@ instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
 deriving instance Show (PData a) 
         => Show (PData (PArray a))
 
+-- Testing --------------------------------------------------------------------
 -- TODO: shift this stuff into dph-base
 validIx  :: String -> Int -> Int -> Bool
 validIx str len ix 
@@ -77,6 +106,55 @@ validBool :: String -> Bool -> Bool
 validBool str b
         = if b  then True 
                 else error $ "validBool check failed -- " ++ str
+
+
+-- Constructors ---------------------------------------------------------------
+-- | Get a segment descriptor for a nested array.
+--   This describes the virtual segmentation of the array.
+--
+--   WARNING:
+--   Trying to take the segment descriptor of a nested array that has been
+--   constructed with replication can cause index overflow. This is because
+--   the virtual size of the corresponding flat data can be much larger than
+--   physical memory.
+-- 
+--   You should only apply this function to a nested array when you're about
+--   about to construct something with the same size as the corresponding
+--   flat array. In this case the index overflow doesn't matter too much
+--   because the program would OOM anyway.
+--          
+segdOfNestedPR :: PR a => PData (PArray a) -> U.Segd
+segdOfNestedPR arr
+        = U.lengthsToSegd 
+        $ U.bpermute (pnested_pseglens arr)
+                     (pnested_vsegids  arr)
+
+
+-- | Flatten a nested array into its segment descriptor and data.
+--
+--   WARNING: Doing this to replicated arrays can cause index overflow.
+--            See the warning in `segdOfNestedPR`.
+--
+flattenNestedPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
+flattenNestedPR arr
+        = (segdOfNestedPR arr, concatPR arr)
+
+
+-- | Construct a nested array from a physical segment descriptor and flat data.
+--
+--   In the result array, the provided segment descriptor defines the physical
+--   segmentation, and the virtual segments are 1:1 with physical segments.
+--
+nestedOfSegdPR :: PR a => U.Segd -> PData a -> PData (PArray a)
+nestedOfSegdPR segd darr
+        = PNested
+        { pnested_vsegids       = U.enumFromTo 0 (U.lengthSegd segd - 1)
+        , pnested_pseglens      = U.lengthsSegd segd
+        , pnested_psegstarts    = U.indicesSegd segd
+        , pnested_psegsrcs      = U.replicate (U.lengthSegd segd) 0
+        , pnested_psegdata      = V.singleton darr}
+
+
 
 
 -- PR Instances ---------------------------------------------------------------
@@ -288,15 +366,37 @@ instance PR a => PR (PArray a) where
      in  PNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
 
 
-  {-# INLINE_PDATA appPR #-}
-  appPR (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
-        (PNested vsegids2 pseglens2 psegstarts2 psegsrcs2 psegdata2)
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
+           (PNested vsegids2 pseglens2 psegstarts2 psegsrcs2 psegdata2)
    = PNested    (vsegids1    U.+:+ (U.map (+ (U.length vsegids1)) vsegids2))
                 (pseglens1   U.+:+ pseglens2)
                 (psegstarts1 U.+:+ psegstarts2)
                 (psegsrcs1   U.+:+ (U.map (+ (V.length psegdata1)) psegsrcs2))
                 (psegdata1   V.++  psegdata2)
 
+
+  {- INLINE_PDATA appendsPR #-}
+  appendsPR rsegd segd1 xarr segd2 yarr
+   = let (xsegd, xs)    = flattenNestedPR xarr
+         (ysegd, ys)    = flattenNestedPR yarr
+   
+         xsegd' = U.lengthsToSegd 
+                $ U.sum_s segd1 (U.lengthsSegd xsegd)
+                
+         ysegd' = U.lengthsToSegd
+                $ U.sum_s segd2 (U.lengthsSegd ysegd)
+                
+         segd'  = U.lengthsToSegd
+                $ U.append_s rsegd segd1 (U.lengthsSegd xsegd)
+                                   segd2 (U.lengthsSegd ysegd)
+
+     in  nestedOfSegdPR
+                segd'
+                (appendsPR (U.plusSegd xsegd' ysegd')
+                           xsegd' xs
+                           ysegd' ys)
+                
 
   -- Pack the vsegids to determine which of the vsegs are present in the result.
   --  eg  tags:           [0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1]   tag = 1
@@ -341,7 +441,7 @@ instance PR a => PR (PArray a) where
           , pnested_pseglens      = U.lengthsSegd segd
           , pnested_psegstarts    = U.indicesSegd segd
           , pnested_psegsrcs      = U.replicate (V.length xx) 0
-          , pnested_psegdata      = V.singleton (V.foldl1 appPR $ V.map unpackPA xx) }
+          , pnested_psegdata      = V.singleton (V.foldl1 appendPR $ V.map unpackPA xx) }
 
 
   {-# INLINE_PDATA toVectorPR #-}
@@ -372,6 +472,47 @@ unconcatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) arr
          , pnested_psegstarts   = U.map (psegstarts U.!:) vsegids
          , pnested_psegsrcs     = U.replicate segs 0
          , pnested_psegdata     = V.singleton arr }
+
+
+-------------------------------------------------------------------------------
+-- | Lifted append.
+--   Both arrays must contain the same number of elements
+appendlPR 
+        :: PR a
+        => PData (PArray a)     
+        -> PData (PArray a)
+        -> PData (PArray a)
+
+appendlPR  arr1 arr2
+ = let  (segd1, darr1)  = flattenNestedPR arr1
+        (segd2, darr2)  = flattenNestedPR arr2
+        segd'           = U.plusSegd segd1 segd2
+   in   nestedOfSegdPR segd' 
+         $ appendsPR segd' segd1 darr1 segd2 darr2
+
+
+-------------------------------------------------------------------------------
+-- | Extract some slices from some arrays.
+--   The arrays of starting indices and lengths must themselves
+--   have the same length.
+slicelPR 
+        :: PR a
+        => PData Int            -- ^ starting indices of slices
+        -> PData Int            -- ^ lengths of slices
+        -> PData (PArray a)     -- ^ arrays to slice
+        -> PData (PArray a)
+
+slicelPR (PInt sliceStarts) (PInt sliceLens)
+         (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+
+ = let  segs            = U.length vsegids
+   in   PNested
+         { pnested_vsegids      = U.enumFromTo 0 (segs - 1)
+         , pnested_pseglens     = sliceLens
+         , pnested_psegstarts   = U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts
+         , pnested_psegsrcs     = U.bpermute psegsrcs vsegids
+         , pnested_psegdata     = psegdata }
+
 
 -------------------------------------------------------------------------------
 -- | Impose virtual segmentation on a nested array.

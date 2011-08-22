@@ -89,10 +89,15 @@ instance (PR a, PR b) => PR (a, b) where
      in  PTuple2 (extractsPR xs srcids starts lens)
                  (extractsPR ys srcids starts lens)
 
-  {-# INLINE_PDATA appPR #-}
-  appPR (PTuple2 arr11 arr12) (PTuple2 arr21 arr22)
-        = PTuple2 (arr11 `appPR` arr21)
-                  (arr12 `appPR` arr22)
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PTuple2 arr11 arr12) (PTuple2 arr21 arr22)
+        = PTuple2 (arr11 `appendPR` arr21)
+                  (arr12 `appendPR` arr22)
+
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult segd1 (PTuple2 arrs11 arrs12) segd2 (PTuple2 arrs21 arrs22)
+        = PTuple2 (appendsPR segdResult segd1 arrs11 segd2 arrs21)
+                  (appendsPR segdResult segd1 arrs12 segd2 arrs22)
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PTuple2 arr1 arr2) tags tag

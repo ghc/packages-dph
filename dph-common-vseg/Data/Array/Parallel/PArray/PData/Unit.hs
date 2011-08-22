@@ -71,10 +71,14 @@ instance PR () where
   extractsPR _ _ _ lens
         = PUnit (U.sum lens)
                 
-  {-# INLINE_PDATA appPR #-}
-  appPR (PUnit len1) (PUnit len2)
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PUnit len1) (PUnit len2)
         = PUnit (len1 + len2)
 
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult _ _ _ _
+        = PUnit (U.lengthSegd segdResult)
+        
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR _ tags tag
         = PUnit (U.length $ U.filter (== tag) tags)

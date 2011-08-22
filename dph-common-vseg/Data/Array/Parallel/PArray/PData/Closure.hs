@@ -55,10 +55,12 @@ instance PR (a :-> b) where
   --       we can't just extract the env because the vector may
   --       contain closures with multiple functions.
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR _  = error "extractPR[:->]: not defined"
-  appPR _       = error "appPR[:->]: not defined"
-  combine2PR    = error "combinePR[:->]: not defined"
+  indexlPR      = error     "indexlPR[:->]: not defined"
+  extractsPR    = error    "extractPR[:->]: not defined"
+  appendPR      = error     "appendPR[:->]: not defined"
+  appendsPR     = error     "appendPR[:->]: not defined"
+  combine2PR    = error    "combinePR[:->]: not defined"
   fromVectorPR  = error "fromVectorPR[:->]: not defined"
-  toVectorPR    = error "toVectorPR[:->]: not defined"
+  toVectorPR    = error   "toVectorPR[:->]: not defined"
   fromUArrayPR  = error "fromUArrayPR[:->]: not defined"
-  toUArrayPR    = error "toUArrayPR[:->]: not defined"
+  toUArrayPR    = error   "toUArrayPR[:->]: not defined"

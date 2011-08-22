@@ -28,26 +28,30 @@ module Data.Array.Parallel.PArray
 	, indexlPA
         , extractPA
         , extractsPA
-        , appPA
+        , appendPA
         , packByTagPA
         , combine2PA
 	, fromUArrayPA
 	, toUArrayPA
         
         -- Derived operators.
+        , singletonPA
         , fromListPA
         , toListPA
-        , concatPA
-        , unconcatPA
 	, fromUArray2PA
 	, nestUSegdPA
+        , concatPA
+        , unconcatPA
+        , appendlPA
+        , slicelPA
 
         -- Wrappers used for testing only.
         , replicatesPA'
         , unsafeReplicatesPA'
         , extractsPA'
         , packByTagPA'
-        , combine2PA')
+        , combine2PA'
+        , slicelPA')
 where
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
@@ -161,10 +165,10 @@ extractsPA arrs srcids segIxs segLens
 
 
 -- | Append two arrays.
-{-# INLINE_PA appPA #-}
-appPA      :: PA a => PArray a -> PArray a -> PArray a
-appPA (PArray n1 darr1) (PArray n2 darr2)
-        = PArray (n1 + n2) (darr1 `appPR` darr2)
+{-# INLINE_PA appendPA #-}
+appendPA :: PA a => PArray a -> PArray a -> PArray a
+appendPA (PArray n1 darr1) (PArray n2 darr2)
+        = PArray (n1 + n2) (darr1 `appendPR` darr2)
 
 
 -- | Filter an array based on some tags.
@@ -197,6 +201,14 @@ fromUArrayPA uarr
 	= PArray (U.length uarr) (fromUArrayPR uarr)
 
 
+-- Derived combinators --------------------------------------------------------
+-- | Produce an array containing a single element.
+{-# INLINE_PA singletonPA #-}
+singletonPA :: PA a => a -> PArray a
+singletonPA x
+        = PArray 1 (replicatePR 1 x)
+
+
 -- | Convert a list to a `PArray`.
 {-# INLINE_PA fromListPA #-}
 fromListPA :: PA a => [a] -> PArray a
@@ -209,21 +221,6 @@ fromListPA xx
 toListPA   :: PA a => PArray a -> [a]
 toListPA (PArray _ arr)
         = V.toList $ toVectorPR arr
-
-
--- | Concatenate a nested array.
-{-# INLINE_PA concatPA #-}
-concatPA :: PA a => PArray (PArray a) -> PArray a
-concatPA (PArray n darr)
- = let  darr'   = concatPR darr
-   in   PArray (lengthPR darr') darr'
-
-
--- | Impose a nesting structure on a flat array
-{-# INLINE_PA unconcatPA #-}
-unconcatPA :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
-unconcatPA (PArray n darr1) (PArray _ darr2)
-        = PArray n (unconcatPR darr1 darr2)
 
 
 -- | Convert an unlifted array of pairs to a PArray of pairs.
@@ -257,6 +254,38 @@ nestUSegdPA segd (PArray n darr)
                         ++ "segment descriptor and data array do not match"
                 , " length of segment desciptor = " ++ show (U.elementsSegd segd)
                 , " length of data array        = " ++ show n ]
+
+
+-- | Concatenate a nested array.
+{-# INLINE_PA concatPA #-}
+concatPA :: PA a => PArray (PArray a) -> PArray a
+concatPA (PArray n darr)
+ = let  darr'   = concatPR darr
+   in   PArray (lengthPR darr') darr'
+
+
+-- | Impose a nesting structure on a flat array
+{-# INLINE_PA unconcatPA #-}
+unconcatPA :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
+unconcatPA (PArray n darr1) (PArray _ darr2)
+        = PArray n (unconcatPR darr1 darr2)
+
+
+-- | Lifted append
+--   Both arrays must have the same length
+{-# INLINE_PA appendlPA #-}
+appendlPA :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
+appendlPA (PArray n darr1) (PArray _ darr2)
+        = PArray n (appendlPR darr1 darr2)
+
+
+-- | Extract some slices from some arrays.
+--   The arrays of starting indices and lengths must themselves
+--   have the same length.
+{-# INLINE_PA slicelPA #-}
+slicelPA :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
+slicelPA (PArray c sliceStarts) (PArray _ sliceLens) (PArray _ darr)
+        = PArray c (slicelPR sliceStarts sliceLens darr)
 
 
 -------------------------------------------------------------------------------
@@ -295,3 +324,7 @@ combine2PA' sel (PArray _ darr1) (PArray _ darr2)
    in   PArray 0 darr'
 
 
+-- | Extract some slices from some arrays.
+slicelPA' :: PA a => [Int] -> [Int] -> PArray (PArray a) -> PArray (PArray a)
+slicelPA' sliceStarts sliceLens arr
+        = slicelPA (fromListPA sliceStarts) (fromListPA sliceLens) arr

@@ -78,9 +78,13 @@ instance PR Double where
         = PDouble (uextracts (V.map (\(PDouble arr) -> arr) arrs)
                         srcids ixsBase lens)
                 
-  {-# INLINE_PDATA appPR #-}
-  appPR (PDouble arr1) (PDouble arr2)
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PDouble arr1) (PDouble arr2)
         = PDouble (arr1 U.+:+ arr2)
+
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult segd1 (PDouble arr1) segd2 (PDouble arr2)
+        = PDouble $ U.append_s segdResult segd1 arr1 segd2 arr2
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PDouble arr1) arrTags tag

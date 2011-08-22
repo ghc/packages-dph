@@ -125,29 +125,38 @@ class PR a where
 
   -- | Extract a range of elements from an array.
   --   O(n). 
-  extractPR     :: PData a -> Int -> Int -> PData a
+  extractPR     :: PData a 
+                -> Int                  -- ^ starting index
+                -> Int                  -- ^ length of slice
+                -> PData a
 
   -- | Segmented extract.
   --   O(sum seglens).  
   extractsPR    :: Vector (PData a)
-                -> U.Array Int  -- ^ segment source ids
-                -> U.Array Int  -- ^ segment base indices
-                -> U.Array Int  -- ^ segment lengths
+                -> U.Array Int          -- ^ segment source ids
+                -> U.Array Int          -- ^ segment starting indices
+                -> U.Array Int          -- ^ segment lengths
                 -> PData a
 
   -- | Append two sized arrays.
-  appPR         :: PData a -> PData a -> PData a
+  appendPR      :: PData a -> PData a -> PData a
+
+  -- | Segmented append
+  appendsPR     :: U.Segd               -- ^ segd of result
+                -> U.Segd -> PData a    -- ^ segd/data of first  arrays
+                -> U.Segd -> PData a    -- ^ segd/data of second arrays
+                -> PData a
 
   -- | Filter an array based on some tags.
-  packByTagPR   :: PData a      -- ^ source array
-                -> U.Array Tag  -- ^ array of tags
-                -> Tag          -- ^ tag of elements to select
+  packByTagPR   :: PData a              -- ^ source array
+                -> U.Array Tag          -- ^ array of tags
+                -> Tag                  -- ^ tag of elements to select
                 -> PData a
 
   -- | Combine two arrays based on a selector.
-  combine2PR    :: U.Sel2       -- ^ selector
-                -> PData a      -- ^ first source array
-                -> PData a      -- ^ second source array
+  combine2PR    :: U.Sel2               -- ^ selector
+                -> PData a              -- ^ first source array
+                -> PData a              -- ^ second source array
                 -> PData a
 
   -- Conversions ---------------------

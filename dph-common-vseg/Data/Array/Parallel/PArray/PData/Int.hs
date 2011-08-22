@@ -75,9 +75,13 @@ instance PR Int where
         = PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
                         srcids ixsBase lens)
                 
-  {-# INLINE_PDATA appPR #-}
-  appPR (PInt arr1) (PInt arr2)
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PInt arr1) (PInt arr2)
         = PInt (arr1 U.+:+ arr2)
+
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult segd1 (PInt arr1) segd2 (PInt arr2)
+        = PInt $ U.append_s segdResult segd1 arr1 segd2 arr2
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PInt arr1) arrTags tag
