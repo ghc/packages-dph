@@ -72,10 +72,10 @@ instance (PR a, PR b) => PR (a, b) where
         = (indexPR arr1 ix, indexPR arr2 ix)
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR c (PNested vsegids pseglens psegstarts psegsrcs psegdata) ixs
+  indexlPR c (PNested uvsegd psegdata) ixs
    = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata 
-         xsArr          = PNested vsegids pseglens psegstarts psegsrcs xs
-         ysArr          = PNested vsegids pseglens psegstarts psegsrcs ys
+         xsArr          = PNested uvsegd xs
+         ysArr          = PNested uvsegd ys
      in  PTuple2  (indexlPR c xsArr ixs) (indexlPR c ysArr ixs)
 
   {-# INLINE_PDATA extractPR #-}
@@ -151,8 +151,8 @@ unzipPA (PArray n (PTuple2 xs ys))
 {-# INLINE_PA unzipPA_l #-}
 unzipPA_l :: (PR a, PR b)
           => Int -> PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unzipPA_l c (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+unzipPA_l c (PNested uvsegd psegdata)
  = let  (xsdata, ysdata)        = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
-   in   PTuple2 (PNested vsegids pseglens psegstarts psegsrcs xsdata)
-                (PNested vsegids pseglens psegstarts psegsrcs ysdata)
+   in   PTuple2 (PNested uvsegd xsdata)
+                (PNested uvsegd ysdata)
 

@@ -19,7 +19,6 @@ import Prelude                                  as P
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 
-
 $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray Int)
                                 ,  (),         PArray ()
                                 ,  (Int, Int), PArray (Int, Int), PArray (PArray Int, PArray Int)) |]
@@ -132,10 +131,10 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
 
 
   -- | Append two arrays.  
-  prop_app :: (PR a, Eq a) => Vector a -> Vector a -> Bool
-  prop_app xs ys
+  prop_append :: (PR a, Eq a) => Vector a -> Vector a -> Bool
+  prop_append xs ys
     = let vec'  = xs V.++ ys
-          arr'  = fromVectorPA xs `appPA` fromVectorPA ys
+          arr'  = fromVectorPA xs `appendPA` fromVectorPA ys
 
       in  validPA arr'
        && vec' == toVectorPA arr'              

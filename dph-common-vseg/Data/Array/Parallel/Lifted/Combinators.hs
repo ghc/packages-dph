@@ -28,6 +28,7 @@ module Data.Array.Parallel.Lifted.Combinators
         , divPP_int
         , sumPP_double, sumPP_int)
 where
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
@@ -78,9 +79,8 @@ lengthPP        = closure1 lengthPA lengthPA_l
 {-# INLINE_PA lengthPA_l #-}
 lengthPA_l :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
-lengthPA_l c (PNested vsegids pseglens psegstarts psegsrcs psegdata)
- = let  lens    = U.map (pseglens U.!:) vsegids
-   in   PInt lens
+lengthPA_l c (PNested uvsegd _)
+        = PInt $ lengthsUVSegd uvsegd
 
 
 -- replicate ------------------------------------------------------------------
@@ -95,12 +95,12 @@ replicatePA_l   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
 replicatePA_l 0 _ _             = emptyPR
 replicatePA_l c (PInt lens) pdata
  = let  segd    = U.lengthsToSegd lens
-   in   PNested
-        { pnested_vsegids       = U.replicate_s segd (U.enumFromTo 0 (c - 1))
-        , pnested_pseglens      = lens
-        , pnested_psegstarts    = U.indicesSegd segd
-        , pnested_psegsrcs      = U.replicate c 0
-        , pnested_psegdata      = V.singleton pdata }
+   in   mkPNested
+                (U.replicate_s segd (U.enumFromTo 0 (c - 1)))
+                lens
+                (U.indicesSegd segd)
+                (U.replicate c 0)
+                (V.singleton pdata)
 
 
 -- index ----------------------------------------------------------------------
@@ -130,11 +130,11 @@ mapPA_l :: (PR (a :-> b), PR a, PR b)
         => Int  -> PData (a :-> b) 
                 -> PData (PArray a) -> PData (PArray b)
 
-mapPA_l n (AClo fv fl envs) arg@(PNested vsegids pseglens psegstarts psegsrcs psegdata)
+mapPA_l n (AClo fv fl envs) arg@(PNested uvsegd pdata)
  = let  argFlat         = concatPR arg
         c               = lengthPR argFlat
 
-        vseglens        = U.map (pseglens   U.!:) vsegids
+        vseglens        = lengthsUVSegd uvsegd
         envsReplicated  = replicatesPR vseglens envs
         arrResult       = fl c envsReplicated argFlat
 

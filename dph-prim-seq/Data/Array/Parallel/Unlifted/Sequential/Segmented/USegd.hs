@@ -99,6 +99,7 @@ elementsUSegd :: USegd -> Int
 elementsUSegd = usegd_elements
 
 
+-- Operators ------------------------------------------------------------------
 -- | O(n). Extract a slice of a segment descriptor, avoiding copying where possible.
 --
 --   We can share the segment lengths with the original segment descriptor, 

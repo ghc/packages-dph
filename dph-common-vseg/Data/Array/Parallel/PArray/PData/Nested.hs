@@ -11,6 +11,11 @@
 
 module Data.Array.Parallel.PArray.PData.Nested 
         ( PData(..)
+        , mkPNested
+        , pnested_vsegids
+        , pnested_pseglens
+        , pnested_psegstarts
+        , pnested_psegsrcids
 
         -- * Testing functions. TODO: move these somewhere else
         , validIx
@@ -18,7 +23,6 @@ module Data.Array.Parallel.PArray.PData.Nested
         , validBool
 
         -- * Segmentation
-        , segdOfNestedPR
         , nestedOfSegdPR
                 
         -- * Functions derived from PR primops
@@ -31,6 +35,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         -- * Internal functions
         , forceSegs)
 where
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base
 
@@ -59,28 +64,33 @@ data instance PData Int
 --
 data instance PData (PArray a)
         = PNested
-        { -- Virtual segmentation. 
-          -- Defines an array of arrays based on the physical segmentation.
-          pnested_vsegids      :: U.Array Int
+        { pnested_uvsegd       :: UVSegd
+          -- ^ Virtual segmentation descriptor. 
+          --   Defines a virtual nested array based on physical data.
 
-          -- Physical segmentation.
-          -- Describes the segmentation in the underlying flat array 
-        , pnested_pseglens     :: U.Array Int
-        , pnested_psegstarts   :: U.Array Int
-        , pnested_psegsrcs     :: U.Array Int
         , pnested_psegdata     :: V.Vector (PData a) }
+        
+pnested_vsegids    = uvsegd_vsegids . pnested_uvsegd
+pnested_pseglens   = ussegd_lengths . uvsegd_ussegd . pnested_uvsegd
+pnested_psegstarts = ussegd_indices . uvsegd_ussegd . pnested_uvsegd
+pnested_psegsrcids = ussegd_srcids  . uvsegd_ussegd . pnested_uvsegd
+
+mkPNested vsegids pseglens psegstarts psegsrcids psegdata
+        = PNested
+                (UVSegd vsegids (USSegd pseglens psegstarts psegsrcids))
+                psegdata
 
 
 -- | Pretty print the physical representation of a nested array
 instance PprPhysical (PData a) => PprPhysical (PData (PArray a)) where
- pprp (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+ pprp arr
   =   text "PNested"
   $+$ (nest 4 $ vcat
-        [ text "vsegids:   " <+> text (show $ U.toList vsegids) 
-        , text "pseglens:  " <+> text (show $ U.toList pseglens) 
-        , text "psegstarts:" <+> text (show $ U.toList psegstarts) 
-        , text "psegsrcs:  " <+> text (show $ U.toList psegsrcs) ]
-        $$ vcat (map pprp $ V.toList psegdata)
+        [ text "vsegids:   " <+> text (show $ U.toList $ pnested_vsegids    arr) 
+        , text "pseglens:  " <+> text (show $ U.toList $ pnested_pseglens   arr) 
+        , text "psegstarts:" <+> text (show $ U.toList $ pnested_psegstarts arr) 
+        , text "psegsrcs:  " <+> text (show $ U.toList $ pnested_psegsrcids arr) ]
+        $$ vcat (map pprp $ V.toList $ pnested_psegdata arr)
       )
 
 
@@ -88,9 +98,10 @@ instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
  pprv arr
   =   lbrack <> hcat (punctuate comma (map pprv $ V.toList $ toVectorPR arr)) <> rbrack
 
-      
+     
 deriving instance Show (PData a) 
         => Show (PData (PArray a))
+
 
 -- Testing --------------------------------------------------------------------
 -- TODO: shift this stuff into dph-base
@@ -110,35 +121,14 @@ validBool str b
 
 
 -- Constructors ---------------------------------------------------------------
--- | Get a segment descriptor for a nested array.
---   This describes the virtual segmentation of the array.
---
---   WARNING:
---   Trying to take the segment descriptor of a nested array that has been
---   constructed with replication can cause index overflow. This is because
---   the virtual size of the corresponding flat data can be much larger than
---   physical memory.
--- 
---   You should only apply this function to a nested array when you're about
---   about to construct something with the same size as the corresponding
---   flat array. In this case the index overflow doesn't matter too much
---   because the program would OOM anyway.
---          
-segdOfNestedPR :: PR a => PData (PArray a) -> U.Segd
-segdOfNestedPR arr
-        = U.lengthsToSegd 
-        $ U.bpermute (pnested_pseglens arr)
-                     (pnested_vsegids  arr)
-
-
 -- | Flatten a nested array into its segment descriptor and data.
 --
 --   WARNING: Doing this to replicated arrays can cause index overflow.
 --            See the warning in `segdOfNestedPR`.
 --
 flattenNestedPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-flattenNestedPR arr
-        = (segdOfNestedPR arr, concatPR arr)
+flattenNestedPR arr@(PNested uvsegd _)
+        = (unsafeMaterializeUVSegd uvsegd, concatPR arr)
 
 
 -- | Construct a nested array from a physical segment descriptor and flat data.
@@ -148,12 +138,12 @@ flattenNestedPR arr
 --
 nestedOfSegdPR :: PR a => U.Segd -> PData a -> PData (PArray a)
 nestedOfSegdPR segd darr
-        = PNested
-        { pnested_vsegids       = U.enumFromTo 0 (U.lengthSegd segd - 1)
-        , pnested_pseglens      = U.lengthsSegd segd
-        , pnested_psegstarts    = U.indicesSegd segd
-        , pnested_psegsrcs      = U.replicate (U.lengthSegd segd) 0
-        , pnested_psegdata      = V.singleton darr}
+        = mkPNested
+                (U.enumFromTo 0 (U.lengthSegd segd - 1))
+                (U.lengthsSegd segd)
+                (U.indicesSegd segd)
+                (U.replicate (U.lengthSegd segd) 0)
+                (V.singleton darr)
 
 
 
@@ -164,8 +154,15 @@ instance PR a => PR (PArray a) where
   -- TODO: make this check all sub arrays as well
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
   {-# INLINE_PDATA validPR #-}
-  validPR (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+  validPR arr
    = let 
+         vsegids        = pnested_vsegids     arr
+         pseglens       = pnested_pseglens    arr
+         psegstarts     = pnested_psegstarts  arr
+         psegsrcs       = pnested_psegsrcids  arr
+         psegdata       = pnested_psegdata    arr
+
+
         -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
          fieldLensOK
                 = validBool "nested array field lengths not identical"
@@ -229,12 +226,12 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
-        = PNested
-        { pnested_vsegids       = U.empty
-        , pnested_pseglens      = U.empty
-        , pnested_psegstarts    = U.empty
-        , pnested_psegsrcs      = U.empty
-        , pnested_psegdata      = V.empty }
+        = mkPNested
+                U.empty
+                U.empty
+                U.empty
+                U.empty
+                V.empty
 
 
   {-# INLINE_PDATA nfPR #-}
@@ -242,18 +239,18 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PNested vsegids _ _ _ _)
-        = U.length vsegids
+  lengthPR (PNested uvsegd _)
+        = lengthUVSegd uvsegd
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
    = checkNotEmpty "replicatPR[PArray]" c
-   $ PNested
-        { pnested_vsegids       = U.replicate c 0
-        , pnested_pseglens      = U.replicate 1 n
-        , pnested_psegstarts    = U.replicate 1 0
-        , pnested_psegsrcs      = U.replicate 1 0
-        , pnested_psegdata      = V.singleton darr }
+   $ mkPNested
+        (U.replicate c 0)
+        (U.replicate 1 n)
+        (U.replicate 1 0)
+        (U.replicate 1 0)
+        (V.singleton darr)
                 
 
   {-# INLINE_PDATA replicatesPR #-}
@@ -262,14 +259,23 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA unsafeReplicatesPR #-}
-  unsafeReplicatesPR lens arr
-   = arr { pnested_vsegids 
-                = U.replicate_s (U.lengthsToSegd lens) (pnested_vsegids arr) }
-
+  unsafeReplicatesPR lens (PNested uvsegd pdata)
+   = PNested
+        (updateVSegsOfUVSegd 
+                (\vsegids -> U.replicate_s (U.lengthsToSegd lens) vsegids)
+                uvsegd)
+        pdata
 
   {-# INLINE_PDATA indexPR #-}
-  indexPR arr@(PNested vsegids pseglens psegstarts psegsrcs psegdatas) ix
-   = let -- Get the number of the physical segment this is indexing.
+  indexPR arr ix
+   = let 
+         vsegids        = pnested_vsegids     arr
+         pseglens       = pnested_pseglens    arr
+         psegstarts     = pnested_psegstarts  arr
+         psegsrcs       = pnested_psegsrcids  arr
+         psegdatas       = pnested_psegdata    arr
+   
+         -- Get the number of the physical segment this is indexing.
          pseg       = vsegids    U.!: ix
          pseglen    = pseglens   U.!: pseg
          psegstart  = psegstarts U.!: pseg
@@ -279,8 +285,14 @@ instance PR a => PR (PArray a) where
          
      in  PArray pseglen darr
 
-  indexlPR c arr@(PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
-   = let vsegids'       = U.enumFromTo 0 (U.length ixs - 1)
+  indexlPR c arr (PInt ixs)
+   = let vsegids        = pnested_vsegids     arr
+         pseglens       = pnested_pseglens    arr
+         psegstarts     = pnested_psegstarts  arr
+         psegsrcs       = pnested_psegsrcids  arr
+         psegdata       = pnested_psegdata    arr
+   
+         vsegids'       = U.enumFromTo 0 (U.length ixs - 1)
 
          {-# INLINE getSegInfo #-}
          getSegInfo f vsegid ix
@@ -299,20 +311,20 @@ instance PR a => PR (PArray a) where
                 let srcid       = psegsrcs   U.!: vsegid
                     darr        = psegdata   V.!  srcid
                     start       = (psegstarts U.!: vsegid) + ix
-                in  (pnested_psegsrcs darr U.!: start) + (psrcoffset V.! srcid) )
+                in  (pnested_psegsrcids darr U.!: start) + (psrcoffset V.! srcid) )
                 vsegids ixs
 
          -- All flat data arrays in the sources go into the result.
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata psegdata
 
-     in  PNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
+     in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
 
 
   {-# INLINE_PDATA extractPR #-}
-  extractPR arr start len
-   = forceSegs 
-   $ arr { pnested_vsegids
-                = U.extract (pnested_vsegids arr) start len }
+  extractPR (PNested uvsegd pdata) start len
+   = forceSegs
+   $ PNested (updateVSegsOfUVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
+             pdata
 
 
   {-# INLINE_PDATA extractsPR #-}
@@ -357,20 +369,32 @@ instance PR a => PR (PArray a) where
 
          psegsrcs'      = U.zipWith 
                                 (\srcid vsegid 
-                                        -> (pnested_psegsrcs   (arrs V.! srcid) U.!: vsegid)
+                                        -> (pnested_psegsrcids   (arrs V.! srcid) U.!: vsegid)
                                         +  psrcoffset V.! srcid)
                                 srcids' vsegids_src
 
          -- All flat data arrays in the sources go into the result.
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata arrs
    
-     in  PNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
+     in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
 
 
   {-# INLINE_PDATA appendPR #-}
-  appendPR (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
-           (PNested vsegids2 pseglens2 psegstarts2 psegsrcs2 psegdata2)
-   = PNested    (vsegids1    U.+:+ (U.map (+ (U.length vsegids1)) vsegids2))
+  appendPR arr1 arr2
+   = let vsegids1        = pnested_vsegids     arr1
+         pseglens1       = pnested_pseglens    arr1
+         psegstarts1     = pnested_psegstarts  arr1
+         psegsrcs1       = pnested_psegsrcids  arr1
+         psegdata1       = pnested_psegdata    arr1
+
+         vsegids2        = pnested_vsegids     arr2
+         pseglens2       = pnested_pseglens    arr2
+         psegstarts2     = pnested_psegstarts  arr2
+         psegsrcs2       = pnested_psegsrcids  arr2
+         psegdata2       = pnested_psegdata    arr2
+
+     in mkPNested
+                (vsegids1    U.+:+ (U.map (+ (U.length vsegids1)) vsegids2))
                 (pseglens1   U.+:+ pseglens2)
                 (psegstarts1 U.+:+ psegstarts2)
                 (psegsrcs1   U.+:+ (U.map (+ (V.length psegdata1)) psegsrcs2))
@@ -405,25 +429,34 @@ instance PR a => PR (PArray a) where
   --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
   --       
   {-# INLINE_PDATA packByTagPR #-}
-  packByTagPR arr tags tag
-   = forceSegs 
-   $ arr { pnested_vsegids
-                = U.packByTag (pnested_vsegids arr) tags tag }
-
+  packByTagPR (PNested uvsegd pdata) tags tag
+   = forceSegs
+   $ PNested (updateVSegsOfUVSegd (\vsegids -> U.packByTag vsegids tags tag) uvsegd)
+             pdata
 
   {-# INLINE_PDATA combine2PR #-}
-  combine2PR sel2 (PNested vsegids1 pseglens1 psegstarts1 psegsrcs1 psegdata1)
-                  (PNested vsegids2 pseglens2 psegstarts2 psegsrcs2 psegdata2)
-
+  combine2PR sel2 arr1 arr2
    = let -- vsegids relative to combined psegs
+         vsegids1        = pnested_vsegids     arr1
+         pseglens1       = pnested_pseglens    arr1
+         psegstarts1     = pnested_psegstarts  arr1
+         psegsrcs1       = pnested_psegsrcids  arr1
+         psegdata1       = pnested_psegdata    arr1
+
          vsegids1'      = vsegids1
          vsegids2'      = U.map (+ (U.length vsegids1)) vsegids2
 
          -- psegsrcss in combined pdatas vector
+         vsegids2        = pnested_vsegids     arr2
+         pseglens2       = pnested_pseglens    arr2
+         psegstarts2     = pnested_psegstarts  arr2
+         psegsrcs2       = pnested_psegsrcids  arr2
+         psegdata2       = pnested_psegdata    arr2
+
          psegsrcs1'     = psegsrcs1
          psegsrcs2'     = U.map (+ (V.length psegdata1)) psegsrcs2
          
-     in  PNested 
+     in  mkPNested
                 (U.combine2 (U.tagsSel2 sel2) (U.repSel2 sel2) vsegids1' vsegids2')
                 (pseglens1   U.+:+ pseglens2)
                 (psegstarts1 U.+:+ psegstarts2)
@@ -437,12 +470,12 @@ instance PR a => PR (PArray a) where
    | V.length xx == 0 = emptyPR
    | otherwise
    = let segd      = U.lengthsToSegd $ U.fromList $ V.toList $ V.map lengthPA xx
-     in  PNested
-          { pnested_vsegids       = U.enumFromTo 0 (V.length xx - 1)
-          , pnested_pseglens      = U.lengthsSegd segd
-          , pnested_psegstarts    = U.indicesSegd segd
-          , pnested_psegsrcs      = U.replicate (V.length xx) 0
-          , pnested_psegdata      = V.singleton (V.foldl1 appendPR $ V.map unpackPA xx) }
+     in  mkPNested
+                (U.enumFromTo 0 (V.length xx - 1))
+                (U.lengthsSegd segd)
+                (U.indicesSegd segd)
+                (U.replicate (V.length xx) 0)
+                (V.singleton (V.foldl1 appendPR $ V.map unpackPA xx))
 
 
   {-# INLINE_PDATA toVectorPR #-}
@@ -457,22 +490,35 @@ instance PR a => PR (PArray a) where
 
 -------------------------------------------------------------------------------
 concatPR :: PR a => PData (PArray a) -> PData a
-concatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) 
- = let  srcids          = U.bpermute psegsrcs   vsegids
+concatPR arr
+ = let  
+        vsegids        = pnested_vsegids     arr
+        pseglens       = pnested_pseglens    arr
+        psegstarts     = pnested_psegstarts  arr
+        psegsrcs       = pnested_psegsrcids  arr
+        psegdata       = pnested_psegdata    arr
+
+        srcids          = U.bpermute psegsrcs   vsegids
         segstarts       = U.bpermute psegstarts vsegids
         seglens         = U.bpermute pseglens   vsegids
    in   extractsPR psegdata srcids segstarts seglens
 
 
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
-unconcatPR (PNested vsegids pseglens psegstarts psegsrcs psegdata) arr
+unconcatPR arr1 arr
  = let  segs            = U.length vsegids
-   in   PNested 
-         { pnested_vsegids      = U.enumFromTo 0 (segs - 1)
-         , pnested_pseglens     = U.map (pseglens   U.!:) vsegids
-         , pnested_psegstarts   = U.map (psegstarts U.!:) vsegids
-         , pnested_psegsrcs     = U.replicate segs 0
-         , pnested_psegdata     = V.singleton arr }
+        vsegids        = pnested_vsegids     arr1
+        pseglens       = pnested_pseglens    arr1
+        psegstarts     = pnested_psegstarts  arr1
+        psegsrcs       = pnested_psegsrcids  arr1
+        psegdata       = pnested_psegdata    arr1
+
+   in   mkPNested 
+                (U.enumFromTo 0 (segs - 1))
+                (U.map (pseglens   U.!:) vsegids)
+                (U.map (psegstarts U.!:) vsegids)
+                (U.replicate segs 0)
+                (V.singleton arr)
 
 
 -- | Lifted concat.
@@ -509,16 +555,21 @@ slicelPR
         -> PData (PArray a)     -- ^ arrays to slice
         -> PData (PArray a)
 
-slicelPR (PInt sliceStarts) (PInt sliceLens)
-         (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 
  = let  segs            = U.length vsegids
-   in   PNested
-         { pnested_vsegids      = U.enumFromTo 0 (segs - 1)
-         , pnested_pseglens     = sliceLens
-         , pnested_psegstarts   = U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts
-         , pnested_psegsrcs     = U.bpermute psegsrcs vsegids
-         , pnested_psegdata     = psegdata }
+        vsegids        = pnested_vsegids     arr
+        pseglens       = pnested_pseglens    arr
+        psegstarts     = pnested_psegstarts  arr
+        psegsrcs       = pnested_psegsrcids  arr
+        psegdata       = pnested_psegdata    arr
+   in   
+        mkPNested
+                (U.enumFromTo 0 (segs - 1))
+                sliceLens
+                (U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts)
+                (U.bpermute psegsrcs vsegids)
+                psegdata
 
 
 -------------------------------------------------------------------------------
@@ -527,10 +578,17 @@ slicelPR (PInt sliceStarts) (PInt sliceLens)
 --   segments are filtered out, but the underlying flat data is not touched.
 --
 --  TODO: bpermuteDft isn't parallelised
+--  TODO: this is entirely an operation on the segment descriptor
 --
 forceSegs :: PData (PArray a) -> PData (PArray a)
-forceSegs (PNested vsegids pseglens psegstarts psegsrcs psegdata)
+forceSegs arr
  = let
+         vsegids        = pnested_vsegids     arr
+         pseglens       = pnested_pseglens    arr
+         psegstarts     = pnested_psegstarts  arr
+         psegsrcs       = pnested_psegsrcids  arr
+         psegdata       = pnested_psegdata    arr
+
          -- Determine which of the psegs are still reachable from the vsegs.
          -- This produces an array of flags, 
          --    with reachable   psegs corresponding to 1
@@ -577,7 +635,7 @@ forceSegs (PNested vsegids pseglens psegstarts psegsrcs psegdata)
          vsegids'
           = U.map (psegids_map U.!:) vsegids
 
-     in  PNested 
+     in  mkPNested 
                 vsegids'
                 (U.packByTag pseglens   psegids_used 1)
                 (U.packByTag psegstarts psegids_used 1)

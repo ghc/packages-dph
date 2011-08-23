@@ -19,7 +19,12 @@ Library
         Data.Array.Parallel.PArray.PData.Nested
         Data.Array.Parallel.PArray.PData.Unit
         Data.Array.Parallel.PArray.PData.Tuple
+        Data.Array.Parallel.PArray.PData.Closure
+        Data.Array.Parallel.PArray.PRepr
+        Data.Array.Parallel.Lifted.Closure
+        Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.PArray
+        Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 
   Include-Dirs:
         include
@@ -46,5 +51,5 @@ Library
         vector           == 0.7.*,
         containers       == 0.4.*,
         dph-base         == 0.5.*,
-        dph-prim-par     == 0.5.*
+        dph-prim-seq     == 0.5.*
 

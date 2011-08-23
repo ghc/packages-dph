@@ -59,12 +59,13 @@ instance PR Int where
         = arr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR _ (PNested vsegids pseglens psegstarts psegsrcs psegdata) (PInt ixs)
+  indexlPR _ arr (PInt ixs)
         = PInt
         $ U.zipWith (\vsegid ix 
-                        -> (psegdata V.! (psegsrcs   U.!: vsegid)) 
-                                   `indexPR` (psegstarts U.!: vsegid + ix))
-                    vsegids ixs
+                        -> ((pnested_psegdata arr) V.! ((pnested_psegsrcids arr)  U.!: vsegid)) 
+                                   `indexPR` ((pnested_psegstarts arr) U.!: vsegid + ix))
+                    (pnested_vsegids arr) ixs
+
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 

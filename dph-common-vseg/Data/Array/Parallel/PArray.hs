@@ -242,12 +242,12 @@ nestUSegdPA :: U.Segd -> PArray a -> PArray (PArray a)
 nestUSegdPA segd (PArray n darr)
         | U.elementsSegd segd     == n
         = PArray (U.lengthSegd segd)
-	$ PNested	
-		{ pnested_vsegids	= U.enumFromTo 0 (U.lengthSegd segd - 1)
-		, pnested_pseglens	= U.lengthsSegd segd
-		, pnested_psegstarts	= U.indicesSegd segd
-		, pnested_psegsrcs	= U.replicate (U.lengthSegd segd) 0
-		, pnested_psegdata	= V.singleton darr }
+	$ mkPNested	
+		(U.enumFromTo 0 (U.lengthSegd segd - 1))
+		(U.lengthsSegd segd)
+		(U.indicesSegd segd)
+		(U.replicate (U.lengthSegd segd) 0)
+		(V.singleton darr)
 
         | otherwise
         = error $ unlines

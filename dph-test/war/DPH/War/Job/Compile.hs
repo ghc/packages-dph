@@ -42,7 +42,7 @@ jobCompile (JobCompile
 		("ghc " ++ " -XTemplateHaskell"
 		        ++ " -iwar"
 		        ++ " -iwar/DPH"
-		        ++ " -package dph-prim-par"
+		        ++ " -package dph-prim-seq"
 		        ++ " -outputdir " ++ buildDir 
 		        ++ " --make "     ++ srcCopyHS
 		        ++ " -o "         ++ mainBin)

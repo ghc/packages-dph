@@ -55,7 +55,7 @@ streamPSegsOfNested arr
         = streamPSegs 
                 (pnested_pseglens   arr)
                 (pnested_psegstarts arr)
-                (pnested_psegsrcs   arr)
+                (pnested_psegsrcids arr)
                 (pnested_psegdata   arr)        
 
 
