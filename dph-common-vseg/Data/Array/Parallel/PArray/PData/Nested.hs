@@ -21,9 +21,6 @@ module Data.Array.Parallel.PArray.PData.Nested
         , validIx
         , validLen
         , validBool
-
-        -- * Segmentation
-        , nestedOfSegdPR
                 
         -- * Functions derived from PR primops
         , concatPR
@@ -129,7 +126,8 @@ validBool str b
 --
 flattenNestedPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
 flattenNestedPR arr@(PNested uvsegd _)
-        = (unsafeMaterializeUVSegd uvsegd, concatPR arr)
+ =      ( unsafeMaterializeUVSegd uvsegd
+        , concatPR arr)
 
 
 -- | Construct a nested array from a physical segment descriptor and flat data.
@@ -137,14 +135,6 @@ flattenNestedPR arr@(PNested uvsegd _)
 --   In the result array, the provided segment descriptor defines the physical
 --   segmentation, and the virtual segments are 1:1 with physical segments.
 --
-nestedOfSegdPR :: PR a => U.Segd -> PData a -> PData (PArray a)
-nestedOfSegdPR segd darr
-        = mkPNested
-                (U.enumFromTo 0 (U.lengthSegd segd - 1))
-                (U.lengthsSegd segd)
-                (U.indicesSegd segd)
-                (U.replicate (U.lengthSegd segd) 0)
-                (V.singleton darr)
 
 
 
@@ -417,11 +407,11 @@ instance PR a => PR (PArray a) where
                 $ U.append_s rsegd segd1 (U.lengthsSegd xsegd)
                                    segd2 (U.lengthsSegd ysegd)
 
-     in  nestedOfSegdPR
-                segd'
-                (appendsPR (U.plusSegd xsegd' ysegd')
-                           xsegd' xs
-                           ysegd' ys)
+     in  PNested (promoteUSegdToUVSegd segd')
+                 (V.singleton 
+                  $ appendsPR (U.plusSegd xsegd' ysegd')
+                            xsegd' xs
+                            ysegd' ys)
                 
 
   -- Pack the vsegids to determine which of the vsegs are present in the result.
@@ -532,7 +522,9 @@ concatlPR arr
         segd'           = U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
                                    (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))
                                    (U.elementsSegd segd2)
-   in   nestedOfSegdPR segd' darr2
+
+   in   PNested (promoteUSegdToUVSegd segd') 
+                (V.singleton darr2)
 
 
 -- | Lifted append.
@@ -542,8 +534,9 @@ appendlPR  arr1 arr2
  = let  (segd1, darr1)  = flattenNestedPR arr1
         (segd2, darr2)  = flattenNestedPR arr2
         segd'           = U.plusSegd segd1 segd2
-   in   nestedOfSegdPR segd' 
-         $ appendsPR segd' segd1 darr1 segd2 darr2
+   in   PNested (promoteUSegdToUVSegd segd' )
+                (V.singleton
+                 $ appendsPR segd' segd1 darr1 segd2 darr2)
 
 
 -- | Extract some slices from some arrays.

@@ -40,6 +40,7 @@ data USSegd
         }
         deriving (Show)
 
+
 -- Constructors ---------------------------------------------------------------
 -- | O(1). 
 --   Construct a new slice segment descriptor.
@@ -83,7 +84,7 @@ singletonUSSegd n
 
 -- | O(segs). 
 --   Promote a plain USegd to a USSegd
---      All segments are assumed to come from a flat array with sourceid 0.
+--   All segments are assumed to come from a flat array with sourceid 0.
 promoteUSegdToUSSegd :: USegd -> USSegd
 {-# INLINE promoteUSegdToUSSegd #-}
 promoteUSegdToUSSegd usegd

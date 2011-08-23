@@ -1,10 +1,17 @@
 
 -- | Segment descriptors for virtual arrays.
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
-        -- * Virtual Segment Descriptors
+        -- * Types
         UVSegd(..),
+        
+        -- * Constructors
+        promoteUSegdToUVSegd,
+        
+        -- * Projections
         lengthUVSegd,
         lengthsUVSegd,
+
+        -- * Operators
         updateVSegsOfUVSegd,
         unsafeMaterializeUVSegd,
 ) where
@@ -27,6 +34,21 @@ data UVSegd
         deriving (Show)
 
 
+-- Constructors ---------------------------------------------------------------
+-- | O(segs). 
+--   Promote a plain USegd to a UVSegd
+--   All segments are assumed to come from a flat array with sourceid 0.
+--   The result contains one virtual segment for every physical segment
+--   the provided USegd.
+--
+promoteUSegdToUVSegd :: USegd -> UVSegd
+{-# INLINE promoteUSegdToUVSegd #-}
+promoteUSegdToUVSegd usegd
+        = UVSegd (V.enumFromTo 0 (lengthUSegd usegd - 1))
+                 (promoteUSegdToUSSegd usegd)
+
+
+-- Projections ----------------------------------------------------------------
 lengthUVSegd :: UVSegd -> Int
 lengthUVSegd (UVSegd vsegids _)
         = V.length vsegids
