@@ -36,6 +36,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         , forceSegs)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base
 
