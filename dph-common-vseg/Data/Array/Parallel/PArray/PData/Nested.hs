@@ -130,15 +130,6 @@ flattenNestedPR arr@(PNested uvsegd _)
         , concatPR arr)
 
 
--- | Construct a nested array from a physical segment descriptor and flat data.
---
---   In the result array, the provided segment descriptor defines the physical
---   segmentation, and the virtual segments are 1:1 with physical segments.
---
-
-
-
-
 -- PR Instances ---------------------------------------------------------------
 instance PR a => PR (PArray a) where
 
@@ -216,13 +207,7 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA emptyPR #-}
-  emptyPR
-        = mkPNested
-                U.empty
-                U.empty
-                U.empty
-                U.empty
-                V.empty
+  emptyPR = PNested emptyUVSegd V.empty
 
 
   {-# INLINE_PDATA nfPR #-}
@@ -232,6 +217,7 @@ instance PR a => PR (PArray a) where
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (PNested uvsegd _)
         = lengthUVSegd uvsegd
+
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)

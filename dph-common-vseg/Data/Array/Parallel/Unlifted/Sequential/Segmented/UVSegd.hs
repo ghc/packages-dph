@@ -3,8 +3,14 @@
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         -- * Types
         UVSegd(..),
+
+        -- * Consistency check
+        validUVSegd,
         
         -- * Constructors
+        mkUVSegd,
+        emptyUVSegd,
+        singletonUVSegd,
         promoteUSegdToUVSegd,
         
         -- * Projections
@@ -35,6 +41,45 @@ data UVSegd
 
 
 -- Constructors ---------------------------------------------------------------
+-- | O(1). 
+--   Construct a new slice segment descriptor.
+--   All the provided arrays must have the same lengths.
+mkUVSegd
+        :: Vector Int   -- ^ array saying which physical segment to use for each
+                        --   virtual segment.
+        -> USSegd       -- ^ slice segment descriptor describing physical segments.
+        -> UVSegd
+
+{-# INLINE mkUVSegd #-}
+mkUVSegd = UVSegd
+
+
+-- | O(1).
+--   Check the internal consistency of a virutal segmentation descriptor.
+--   TODO: check that all vsegs point to a valid pseg
+validUVSegd :: UVSegd -> Bool
+{-# INLINE validUVSegd #-}
+validUVSegd (UVSegd vsegids ussegd)
+        = V.length vsegids == lengthUSSegd ussegd
+
+
+-- | O(1).
+--  Yield an empty segment descriptor, with no elements or segments.
+emptyUVSegd :: UVSegd
+{-# INLINE emptyUVSegd #-}
+emptyUVSegd = UVSegd V.empty emptyUSSegd
+
+
+-- | O(1).
+--   Yield a singleton segment descriptor.
+--   The single segment covers the given number of elements in a flat array
+--   with sourceid 0.
+singletonUVSegd :: Int -> UVSegd
+{-# INLINE singletonUVSegd #-}
+singletonUVSegd n 
+        = UVSegd (V.singleton 0) (singletonUSSegd n)
+
+
 -- | O(segs). 
 --   Promote a plain USegd to a UVSegd
 --   All segments are assumed to come from a flat array with sourceid 0.
