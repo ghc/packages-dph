@@ -122,10 +122,10 @@ validBool str b
 -- | Flatten a nested array into its segment descriptor and data.
 --
 --   WARNING: Doing this to replicated arrays can cause index overflow.
---            See the warning in `segdOfNestedPR`.
+--            See the warning in `unsafeMaterializeUVSegd`.
 --
-flattenNestedPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-flattenNestedPR arr@(PNested uvsegd _)
+unsafeFlattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
+unsafeFlattenPR arr@(PNested uvsegd _)
  =      ( unsafeMaterializeUVSegd uvsegd
         , concatPR arr)
 
@@ -212,28 +212,27 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA nfPR #-}
-  nfPR  = error "nfPR[PArray]: not defined yet"
+  nfPR    = error "nfPR[PArray]: not defined yet"
 
 
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (PNested uvsegd _)
-        = lengthUVSegd uvsegd
+          = lengthUVSegd uvsegd
 
 
+  -- When replicating an array we use the source as the single physical
+  -- segment, then point all the virtual segments to it.
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
-   = checkNotEmpty "replicatPR[PArray]" c
+   = checkNotEmpty "replicatePR[PArray]" c
    $ let 
-         -- Physical segment descriptor contains a single
-         -- segment that points to the source data.
+         -- Physical segment descriptor contains a single segment.
          ussegd  = mkUSSegd (U.replicate 1 n)
                             (U.replicate 1 0)
                             (U.replicate 1 0)
 
-         -- All virtual segments point to the same 
-         -- physical segment.
-         uvsegd  = mkUVSegd (U.replicate c 0)
-                            ussegd
+         -- All virtual segments point to the same physical segment.
+         uvsegd  = mkUVSegd (U.replicate c 0) ussegd
 
      in  PNested uvsegd (V.singleton darr)
                 
@@ -352,6 +351,9 @@ instance PR a => PR (PArray a) where
      in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
 
 
+  -- When appending two nested arrays, all physical data arrays go into
+  -- the result, and we adjust the top-level segment descriptor to point
+  -- to the correct physical segments.
   {-# INLINE_PDATA appendPR #-}
   appendPR (PNested uvsegd1 pdata1) (PNested uvsegd2 pdata2)
    = PNested    (appendUVSegd uvsegd1 (V.length pdata1) 
@@ -361,8 +363,8 @@ instance PR a => PR (PArray a) where
 
   {- INLINE_PDATA appendsPR #-}
   appendsPR rsegd segd1 xarr segd2 yarr
-   = let (xsegd, xs)    = flattenNestedPR xarr
-         (ysegd, ys)    = flattenNestedPR yarr
+   = let (xsegd, xs)    = unsafeFlattenPR xarr
+         (ysegd, ys)    = unsafeFlattenPR yarr
    
          xsegd' = U.lengthsToSegd 
                 $ U.sum_s segd1 (U.lengthsSegd xsegd)
@@ -483,8 +485,8 @@ unconcatPR arr1 arr
 --   Both arrays must contain the same number of elements.
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
 concatlPR arr
- = let  (segd1, darr1)  = flattenNestedPR arr
-        (segd2, darr2)  = flattenNestedPR darr1
+ = let  (segd1, darr1)  = unsafeFlattenPR arr
+        (segd2, darr2)  = unsafeFlattenPR darr1
         
         segd'           = U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
                                    (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))
@@ -498,8 +500,8 @@ concatlPR arr
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
 appendlPR  arr1 arr2
- = let  (segd1, darr1)  = flattenNestedPR arr1
-        (segd2, darr2)  = flattenNestedPR arr2
+ = let  (segd1, darr1)  = unsafeFlattenPR arr1
+        (segd2, darr2)  = unsafeFlattenPR arr2
         segd'           = U.plusSegd segd1 segd2
    in   PNested (promoteUSegdToUVSegd segd' )
                 (V.singleton
