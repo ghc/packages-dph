@@ -135,6 +135,7 @@ instance PR a => PR (PArray a) where
 
   -- TODO: make this check all sub arrays as well
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
+  -- TODO: shift segd checks into associated modules.
   {-# INLINE_PDATA validPR #-}
   validPR arr
    = let 
@@ -218,7 +219,7 @@ instance PR a => PR (PArray a) where
   lengthPR (PNested uvsegd _)
         = lengthUVSegd uvsegd
 
-
+
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
    = checkNotEmpty "replicatPR[PArray]" c
@@ -250,37 +251,24 @@ instance PR a => PR (PArray a) where
                 uvsegd)
         pdata
 
-  {-# INLINE_PDATA indexPR #-}
-  indexPR arr ix
-   = let 
-         vsegids        = pnested_vsegids     arr
-         pseglens       = pnested_pseglens    arr
-         psegstarts     = pnested_psegstarts  arr
-         psegsrcs       = pnested_psegsrcids  arr
-         psegdatas       = pnested_psegdata    arr
-   
-         -- Get the number of the physical segment this is indexing.
-         pseg       = vsegids    U.!: ix
-         pseglen    = pseglens   U.!: pseg
-         psegstart  = psegstarts U.!: pseg
-         psegdata   = psegdatas  V.!  (psegsrcs U.!: pseg)
-         
-         darr       = extractPR psegdata psegstart pseglen
-         
-     in  PArray pseglen darr
 
-  indexlPR c arr (PInt ixs)
+  {-# INLINE_PDATA indexPR #-}
+  indexPR (PNested uvsegd pdata) ix
+   = let (pseglen, psegstart, psegsrcid) = getSegOfUVSegd ix uvsegd
+     in  PArray pseglen $ extractPR (pdata V.! psegsrcid) psegstart pseglen
+
+
+  {-# INLINE_PDATA indexlPR #-}
+  indexlPR c arr@(PNested uvsegd pdata) (PInt ixs)
    = let vsegids        = pnested_vsegids     arr
-         pseglens       = pnested_pseglens    arr
-         psegstarts     = pnested_psegstarts  arr
-         psegsrcs       = pnested_psegsrcids  arr
          psegdata       = pnested_psegdata    arr
    
          vsegids'       = U.enumFromTo 0 (U.length ixs - 1)
 
          {-# INLINE getSegInfo #-}
          getSegInfo f vsegid ix
-                = f (psegdata V.! (psegsrcs U.!: vsegid)) U.!: ((psegstarts U.!: vsegid) + ix)
+           = let (_, psegstart, psegsrcid)  = getSegOfUVSegd vsegid uvsegd
+             in  f (psegdata V.! psegsrcid) U.!: (psegstart + ix)
                 
          pseglens'      = U.zipWith (getSegInfo pnested_pseglens)   vsegids ixs                         
          psegstarts'    = U.zipWith (getSegInfo pnested_psegstarts) vsegids ixs                         
@@ -292,10 +280,11 @@ instance PR a => PR (PArray a) where
 
          psegsrcs'
           = U.zipWith (\vsegid ix -> 
-                let srcid       = psegsrcs   U.!: vsegid
-                    darr        = psegdata   V.!  srcid
-                    start       = (psegstarts U.!: vsegid) + ix
-                in  (pnested_psegsrcids darr U.!: start) + (psrcoffset V.! srcid) )
+                let (_, psegstart, psegsrcid) = getSegOfUVSegd vsegid uvsegd
+                    darr        = pdata V.! psegsrcid
+                    start       = psegstart + ix
+                in  (pnested_psegsrcids darr U.!: (psegstart + ix)) 
+                  + (psrcoffset V.! psegsrcid) )
                 vsegids ixs
 
          -- All flat data arrays in the sources go into the result.
@@ -364,25 +353,10 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA appendPR #-}
-  appendPR arr1 arr2
-   = let vsegids1        = pnested_vsegids     arr1
-         pseglens1       = pnested_pseglens    arr1
-         psegstarts1     = pnested_psegstarts  arr1
-         psegsrcs1       = pnested_psegsrcids  arr1
-         psegdata1       = pnested_psegdata    arr1
-
-         vsegids2        = pnested_vsegids     arr2
-         pseglens2       = pnested_pseglens    arr2
-         psegstarts2     = pnested_psegstarts  arr2
-         psegsrcs2       = pnested_psegsrcids  arr2
-         psegdata2       = pnested_psegdata    arr2
-
-     in mkPNested
-                (vsegids1    U.+:+ (U.map (+ (U.length vsegids1)) vsegids2))
-                (pseglens1   U.+:+ pseglens2)
-                (psegstarts1 U.+:+ psegstarts2)
-                (psegsrcs1   U.+:+ (U.map (+ (V.length psegdata1)) psegsrcs2))
-                (psegdata1   V.++  psegdata2)
+  appendPR (PNested uvsegd1 pdata1) (PNested uvsegd2 pdata2)
+   = PNested    (appendUVSegd uvsegd1 (V.length pdata1) 
+                              uvsegd2 (V.length pdata2))
+                (pdata1 V.++ pdata2)
 
 
   {- INLINE_PDATA appendsPR #-}
@@ -565,7 +539,7 @@ slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 --   segments are filtered out, but the underlying flat data is not touched.
 --
 --  TODO: bpermuteDft isn't parallelised
---  TODO: this is entirely an operation on the segment descriptor
+--  TODO: this is entirely an operation on the segment descriptor, shift into UVSegd module.
 --
 forceSegs :: PData (PArray a) -> PData (PArray a)
 forceSegs arr

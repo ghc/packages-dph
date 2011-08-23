@@ -13,7 +13,11 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         -- * Projections
         lengthUSSegd,
         lengthsUSSegd,
-        indicesUSSegd
+        indicesUSSegd, 
+        getSegOfUSSegd,
+        
+        -- * Operators
+        appendUSSegd
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
@@ -119,3 +123,29 @@ indicesUSSegd = ussegd_indices
 elementsUSSegd :: USSegd -> Int
 {-# INLINE elementsUSSegd #-}
 elementsUSSegd = V.sum . ussegd_lengths 
+
+
+-- O(1).
+-- Get the length, starting index, and source id of a segment.
+getSegOfUSSegd :: Int -> USSegd -> (Int, Int, Int)
+getSegOfUSSegd ix (USSegd lengths starts sourceids)
+ =      ( lengths   V.! ix
+        , starts    V.! ix
+        , sourceids V.! ix)
+
+
+-- Operators ------------------------------------------------------------------
+-- | O(n)
+--   Produce a segment descriptor describing the result of appending
+--   two arrays.
+appendUSSegd 
+        :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
+        -> USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
+        -> USSegd
+
+appendUSSegd (USSegd lens1 starts1 srcs1) pdatas1
+             (USSegd lens2 starts2 srcs2) _
+        = USSegd (lens1    V.++  lens2)
+                 (starts1  V.++  starts2)
+                 (srcs1    V.++  V.map (+ pdatas1) srcs2)
+

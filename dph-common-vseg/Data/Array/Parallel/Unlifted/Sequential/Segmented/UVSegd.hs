@@ -16,8 +16,10 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         -- * Projections
         lengthUVSegd,
         lengthsUVSegd,
+        getSegOfUVSegd,
 
         -- * Operators
+        appendUVSegd,
         updateVSegsOfUVSegd,
         unsafeMaterializeUVSegd,
 ) where
@@ -29,6 +31,13 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 -- UVSegd ---------------------------------------------------------------------
 -- TODO shift this to its own module
 -- | Defines a virutal nested array based on physical segmentation.
+--
+--   Or alternatively: represents an index space transformation between
+--   indices for the nested array and indices for the physical data.
+--   
+--   TODO: It'd probably be better to represent the vsegids as a lens instead
+--         of a vector of segids. Much of the time the vsegids are just [0..n] 
+--
 data UVSegd 
         = UVSegd 
         { uvsegd_vsegids :: !(Vector Int) 
@@ -98,17 +107,42 @@ lengthUVSegd :: UVSegd -> Int
 lengthUVSegd (UVSegd vsegids _)
         = V.length vsegids
 
--- | O(segs). Yield the lengths of the individual segments.
+-- | O(segs).
+--   Yield the lengths of the individual segments described by a UVSegd.
 lengthsUVSegd :: UVSegd -> Vector Int
 {-# INLINE lengthsUVSegd #-}
 lengthsUVSegd (UVSegd vsegids ussegd)
         = V.map ((ussegd_lengths ussegd) V.!) vsegids
 
 
+-- | O(1).
+--  Get the length, starting index, and sourceid of a segment.
+getSegOfUVSegd :: Int -> UVSegd -> (Int, Int, Int)
+{-# INLINE getSegOfUVSegd #-}
+getSegOfUVSegd ix (UVSegd vsegids ussegd)
+        = getSegOfUSSegd (vsegids V.! ix) ussegd
+        
+
+-- Operators ------------------------------------------------------------------
+-- | O(n)
+--   Produce a segment descriptor describing the result of appending
+--   two arrays.
+appendUVSegd
+        :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd
+
+appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
+             (UVSegd vsegids2 ussegd2) pdatas2
+        = UVSegd (vsegids1  V.++  V.map (+ (V.length vsegids1)) vsegids2)
+                 (appendUSSegd ussegd1 pdatas1 ussegd2 pdatas2)
+
+
 -- | TODO: automatically force out unreachable psegs here.
 updateVSegsOfUVSegd :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
 updateVSegsOfUVSegd f (UVSegd vsegids ussegd)
         = UVSegd (f vsegids) ussegd
+
 
 -- | O(segs)
 --   Given an virtual segment descriptor, produce a plain USegd that
