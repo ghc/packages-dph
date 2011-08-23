@@ -106,16 +106,6 @@ class PR a where
   --   O(sum lengths). 
   replicatesPR       :: U.Array Int -> PData a -> PData a
 
-  -- | Unsafe segmented replicate is not guaranteed to preserve the validPR
-  --   condition that all psegs are referenced by some vseg. This can happen
-  --   when some of the rep counts are zero. 
-  -- 
-  --   unsafeReplicatesPR can be used when the result is passed to a function
-  --   that doesn't require this condition, such as concatPA. Doing this
-  --   saves us from needing to explicitly filter out the unused psegs.
-  unsafeReplicatesPR :: U.Array Int -> PData a -> PData a
-  unsafeReplicatesPR = replicatesPR
-
   -- | Lookup a single element from the source array.
   --   O(1). 
   indexPR       :: PData a    -> Int -> a

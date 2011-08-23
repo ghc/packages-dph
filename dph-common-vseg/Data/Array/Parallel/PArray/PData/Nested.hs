@@ -238,13 +238,9 @@ instance PR a => PR (PArray a) where
                 
 
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR lens arr
-   = forceSegs $ unsafeReplicatesPR lens arr
-
-
-  {-# INLINE_PDATA unsafeReplicatesPR #-}
-  unsafeReplicatesPR lens (PNested uvsegd pdata)
-   = PNested
+  replicatesPR lens (PNested uvsegd pdata)
+   = forceSegs 
+   $ PNested
         (updateVSegsOfUVSegd 
                 (\vsegids -> U.replicate_s (U.lengthsToSegd lens) vsegids)
                 uvsegd)

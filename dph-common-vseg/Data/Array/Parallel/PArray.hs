@@ -21,7 +21,6 @@ module Data.Array.Parallel.PArray
         , nfPA
         , replicatePA
         , replicatesPA
-        , unsafeReplicatesPA
         , fromVectorPA
         , toVectorPA
         , indexPA
@@ -48,7 +47,6 @@ module Data.Array.Parallel.PArray
 
         -- Wrappers used for testing only.
         , replicatesPA'
-        , unsafeReplicatesPA'
         , extractsPA'
         , packByTagPA'
         , combine2PA'
@@ -104,14 +102,6 @@ replicatePA n x
 replicatesPA :: PA a => U.Array Int -> PArray a -> PArray a
 replicatesPA repCounts (PArray _ darr)
         = PArray (U.sum repCounts) (replicatesPR repCounts darr)
-
-
--- | Unsafe segmented replicate.
---   O(sum lengths). 
-{-# INLINE_PA unsafeReplicatesPA #-}
-unsafeReplicatesPA :: PA a => U.Array Int -> PArray a -> PArray a
-unsafeReplicatesPA repCounts (PArray _ darr)
-        = PArray (U.sum repCounts) (unsafeReplicatesPR repCounts darr)
 
 
 -- | Convert a `Vector` to a `PArray`
@@ -304,11 +294,6 @@ slicelPA (PArray c sliceStarts) (PArray _ sliceLens) (PArray _ darr)
 replicatesPA' :: PA a => [Int] -> PArray a -> PArray a
 replicatesPA' lens arr
         = replicatesPA (U.fromList lens) arr
-
--- | Unsafe segmented replicate.
-unsafeReplicatesPA' :: PA a => [Int] -> PArray a -> PArray a
-unsafeReplicatesPA' lens arr
-        = unsafeReplicatesPA (U.fromList lens) arr
 
 
 -- | Segmented extract.
