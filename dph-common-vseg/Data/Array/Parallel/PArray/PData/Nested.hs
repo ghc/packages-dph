@@ -218,16 +218,23 @@ instance PR a => PR (PArray a) where
   lengthPR (PNested uvsegd _)
         = lengthUVSegd uvsegd
 
-
+
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
    = checkNotEmpty "replicatPR[PArray]" c
-   $ mkPNested
-        (U.replicate c 0)
-        (U.replicate 1 n)
-        (U.replicate 1 0)
-        (U.replicate 1 0)
-        (V.singleton darr)
+   $ let 
+         -- Physical segment descriptor contains a single
+         -- segment that points to the source data.
+         ussegd  = mkUSSegd (U.replicate 1 n)
+                            (U.replicate 1 0)
+                            (U.replicate 1 0)
+
+         -- All virtual segments point to the same 
+         -- physical segment.
+         uvsegd  = mkUVSegd (U.replicate c 0)
+                            ussegd
+
+     in  PNested uvsegd (V.singleton darr)
                 
 
   {-# INLINE_PDATA replicatesPR #-}
