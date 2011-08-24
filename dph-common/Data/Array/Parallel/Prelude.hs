@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fvectorise #-}
+
 -- | This module (as well as the type-specific modules 'Data.Array.Parallel.Prelude.*') are a
 --  temporary kludge needed as DPH programs cannot directly use the (non-vectorised) functions from
 --  the standard Prelude.  It also exports some conversion helpers.
