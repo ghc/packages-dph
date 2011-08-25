@@ -58,24 +58,6 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
        && vec' == toVectorPA arr'
 
 
-  -- | Applying unsafeReplicatesPA with repCounts that contain zeros yields
-  --   an arrary where some psegs are not referenced by vsegs. However, the
-  --   concatPA operator doesn't care about this, and will produce the same
-  --   result independent of whether its source was constructed with
-  --   safe or unsafe replicates.
-  prop_unsafeReplicates :: (PR b, Eq b) => Vector (Vector b) -> Property
-  prop_unsafeReplicates vec
-   =  forAll (liftM V.fromList $ vectorOf (V.length vec) (choose (0, 10))) $ \repCounts
-   -> let repCounts'    = U.fromList $ V.toList repCounts
-          arr           = fromVectorPA $ V.map fromVectorPA vec
-
-          arr1'         = concatPA $ replicatesPA       repCounts' arr
-          arr2'         = concatPA $ unsafeReplicatesPA repCounts' arr
-
-      in  validPA arr1'  && validPA arr2'
-       && arr1' == arr2'
-
-
   -- | Take a single element from an array.
   prop_index :: (PR a, Eq a) => PArray a -> Property
   prop_index arr
