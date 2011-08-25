@@ -128,61 +128,6 @@ getSegOfUVSegd ix (UVSegd vsegids ussegd)
         
 
 -- Operators ------------------------------------------------------------------
--- | O(n)
---   Produce a segment descriptor describing the result of appending
---   two arrays.
-appendUVSegd
-        :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
-        -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
-        -> UVSegd
-
-{-# INLINE appendUVSegd #-}
-appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
-             (UVSegd vsegids2 ussegd2) pdatas2
-
- = let  -- vsegids releative to appended psegs
-        vsegids1' = vsegids1
-        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
-        
-        -- append the vsegids
-        vsegids'  = vsegids1 V.++ vsegids2'
-
-        -- All data from the source arrays goes into the result
-        ussegd'   = appendUSSegd ussegd1 pdatas1
-                                 ussegd2 pdatas2
-                                 
-   in   UVSegd vsegids' ussegd'
-
-
--- | O(n)
---   Combine two virtual segment descriptors.
--- 
-combine2UVSegd
-        :: USel2
-        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
-        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
-        -> UVSegd
-        
-{-# INLINE combine2UVSegd #-}
-combine2UVSegd  usel2
-                (UVSegd vsegids1 ussegd1) pdatas1
-                (UVSegd vsegids2 ussegd2) pdatas2
-
- = let  -- vsegids relative to combined psegs
-        vsegids1' = vsegids1
-        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
-
-        -- combine the vsegids
-        vsegids'  = combine2ByTag (tagsUSel2 usel2)
-                                  vsegids1' vsegids2'
-
-         -- All data from the source arrays goes into the result
-        ussegd'   = appendUSSegd ussegd1 pdatas1
-                                 ussegd2 pdatas2
-                                  
-   in   UVSegd vsegids' ussegd'
-
-
 -- | TODO: automatically force out unreachable psegs here.
 updateVSegsOfUVSegd :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
 {-# INLINE updateVSegsOfUVSegd #-}
@@ -227,3 +172,109 @@ unsafeMaterializeUVSegd (UVSegd vsegids ussegd)
         = lengthsToUSegd 
         $ V.bpermute (lengthsUSSegd ussegd) vsegids
 
+
+-- append ---------------------------------------------------------------------
+-- | O(n)
+--   Produce a segment descriptor describing the result of appending two arrays.
+--   Note that the implementation of this is similar to `combine2UVSegd`
+--
+--   source
+--    VIRT1 [[0],[4,2],[5,6,7,8,9]]
+--    PHYS1 UVSegd  vsegids:    [0,1,2]
+--          USSegd  pseglens:   [1,2,5]
+--                  psegstarts: [0,1,3]
+--                  psegsrcs:   [0,0,0]
+--          PData   PInt [0,4,2,5,6,7,8,9]
+--
+--    VIRT2 [[1,2,3],[8,6,3],[9,3]]
+--    PHYS2 UVSegd  vsegids:    [0,1,2]
+--          USSegd  pseglens:   [3,3,2]
+--                  psegstarts: [0,3,6]
+--                  psegsrcs:   [0,0,0]
+--          PData   PInt [1,2,3,8,6,3,9,3]
+--
+---  appended
+--    VIRT  [[0],[4,2],[5,6,7,8,9],[1,2,3],[8,6,3],[9,3]]
+--          UVSegd  vsegids:    [0,1,2,3,4,5]  -- shift second half
+--          USSegd  pseglens:   [1,2,5,3,3,2]  -- appended
+--                  psegstarts: [0,1,3,0,3,6]  -- appended
+--                  psegsrcs:   [0,0,0,1,1,1]  -- shift second half
+--          PData   PInt [0,4,2,5,6,7,8,9]     -- both pdatas in result
+--                  PInt [1,2,3,8,6,3,9,3]     -- ...
+--
+appendUVSegd
+        :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd
+
+{-# INLINE appendUVSegd #-}
+appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
+             (UVSegd vsegids2 ussegd2) pdatas2
+
+ = let  -- vsegids releative to appended psegs
+        vsegids1' = vsegids1
+        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+        
+        -- append the vsegids
+        vsegids'  = vsegids1 V.++ vsegids2'
+
+        -- All data from the source arrays goes into the result
+        ussegd'   = appendUSSegd ussegd1 pdatas1
+                                 ussegd2 pdatas2
+                                 
+   in   UVSegd vsegids' ussegd'
+
+
+-- combine --------------------------------------------------------------------
+-- | O(n)
+--   Combine two virtual segment descriptors.
+--   Note that the implementation of this is similar to `appendUVSegd`
+--
+--   source
+--    VIRT1 [[0],[4,2],[5,6,7,8,9]]
+--    PHYS1 UVSegd  vsegids:    [0,1,2]
+--          USSegd  pseglens:   [1,2,5]
+--                  psegstarts: [0,1,3]
+--                  psegsrcs:   [0,0,0]
+--          PDATA   PInt [0,4,2,5,6,7,8,9]
+--
+--    VIRT2 [[1,2,3],[8,6,3],[9,3]]
+--    PHYS2 UVSegd  vsegids:    [0,1,2]
+--          USSegd  pseglens:   [3,3,2]
+--                  psegstarts: [0,3,6]
+--                  psegsrcs:   [0,0,0]
+--          PData   PInt [1,2,3,8,6,3,9,3]
+--
+--   combined with tags [1,0,0,1,0,1]
+--    VIRT  [[1,2,3],[0],[4,2],[8,6,3],[5,6,7,8,9],[9,3]]
+--    PHYS  VSSegd  vsegids:    [3,0,1,4,2,5] -- combine shifted vsegs
+--          USSegd  pseglens:   [1,2,5,3,3,2] -- appended
+--                  psegstarts: [0,1,3,0,3,6] -- appended
+--                  psegsrcs:   [0,0,0,1,1,1] -- shift second half
+--          PData   PInt [0,4,2,5,6,7,8,9]    -- both pdatas in result
+--                  PInt [1,2,3,8,6,3,9,3]
+--   
+combine2UVSegd
+        :: USel2
+        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd
+        
+{-# INLINE combine2UVSegd #-}
+combine2UVSegd  usel2
+                (UVSegd vsegids1 ussegd1) pdatas1
+                (UVSegd vsegids2 ussegd2) pdatas2
+
+ = let  -- vsegids relative to combined psegs
+        vsegids1' = vsegids1
+        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+
+        -- combine the vsegids
+        vsegids'  = combine2ByTag (tagsUSel2 usel2)
+                                  vsegids1' vsegids2'
+
+         -- All data from the source arrays goes into the result
+        ussegd'   = appendUSSegd ussegd1 pdatas1
+                                 ussegd2 pdatas2
+                                  
+   in   UVSegd vsegids' ussegd'
