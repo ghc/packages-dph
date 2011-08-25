@@ -25,6 +25,7 @@ Library
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.PArray
         Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
+        Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
 
   Include-Dirs:
         include

@@ -21,7 +21,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         -- * Operators
         appendUVSegd,
         updateVSegsOfUVSegd,
-        unsafeMaterializeUVSegd,
+        demoteUVSegdToUSSegd,
+        unsafeMaterializeUVSegd
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
@@ -108,7 +109,7 @@ lengthUVSegd (UVSegd vsegids _)
         = V.length vsegids
 
 -- | O(segs).
---   Yield the lengths of the individual segments described by a UVSegd.
+--   Yield the lengths of the segments described by a `UVSegd`.
 lengthsUVSegd :: UVSegd -> Vector Int
 {-# INLINE lengthsUVSegd #-}
 lengthsUVSegd (UVSegd vsegids ussegd)
@@ -142,6 +143,22 @@ appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
 updateVSegsOfUVSegd :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
 updateVSegsOfUVSegd f (UVSegd vsegids ussegd)
         = UVSegd (f vsegids) ussegd
+
+
+-- | O(segs)
+--   Yield a `USSegd` that describes each segment of a `UVSegd` individually.
+-- 
+--   * By doing this we lose information about virtual segments corresponding
+--     to the same physical segments.
+-- 
+--   * This operation is used in concatPR as the first step in eliminating
+--     segmentation from a nested array.
+-- 
+demoteUVSegdToUSSegd :: UVSegd -> USSegd
+demoteUVSegdToUSSegd (UVSegd vsegids ussegd)
+        = mkUSSegd (V.bpermute (lengthsUSSegd ussegd) vsegids)
+                   (V.bpermute (indicesUSSegd ussegd) vsegids)
+                   (V.bpermute (sourcesUSSegd ussegd) vsegids)
 
 
 -- | O(segs)

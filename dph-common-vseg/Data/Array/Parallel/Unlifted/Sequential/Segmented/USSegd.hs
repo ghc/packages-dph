@@ -12,8 +12,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         
         -- * Projections
         lengthUSSegd,
-        lengthsUSSegd,
-        indicesUSSegd, 
+        lengthsUSSegd, indicesUSSegd, sourcesUSSegd,
         getSegOfUSSegd,
         
         -- * Operators
@@ -29,7 +28,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 --   
 --   * SSegd segments may be drawn from multiple physical source arrays.
 --   * The segments need not cover the entire flat array.
---   * Different segments may not cover the same elements.
+--   * Different segments may point to the same elements.
 --
 data USSegd
         = USSegd
@@ -104,16 +103,22 @@ lengthUSSegd :: USSegd -> Int
 lengthUSSegd = V.length . ussegd_lengths
 
 
--- | O(1). Yield the lengths of the individual segments.
+-- | O(1). Yield the lengths of the segments of a `USSegd`
 lengthsUSSegd :: USSegd -> Vector Int
 {-# INLINE lengthsUSSegd #-}
 lengthsUSSegd = ussegd_lengths
 
 
--- | O(1). Yield the segment indices of a segment descriptor.
+-- | O(1). Yield the segment indices of a `USSegd`
 indicesUSSegd :: USSegd -> Vector Int
 {-# INLINE indicesUSSegd #-}
 indicesUSSegd = ussegd_indices
+
+
+-- | O(1). Yield the source ids of a slice segment descriptor.
+sourcesUSSegd :: USSegd -> Vector Int
+{-# INLINE sourcesUSSegd #-}
+sourcesUSSegd = ussegd_srcids
 
 
 -- | O(segs). 

@@ -246,7 +246,8 @@ instance PR a => PR (PArray a) where
                 uvsegd)
         pdata
 
-
+  -- To index into a nested array, first determine what segment the index
+  -- corresponds to, and extract that as a slice from the physical array.
   {-# INLINE_PDATA indexPR #-}
   indexPR (PNested uvsegd pdata) ix
    = let (pseglen, psegstart, psegsrcid) = getSegOfUVSegd ix uvsegd
@@ -445,19 +446,39 @@ instance PR a => PR (PArray a) where
 
 
 -------------------------------------------------------------------------------
-concatPR :: PR a => PData (PArray a) -> PData a
-concatPR arr
- = let  
-        vsegids        = pnested_vsegids     arr
-        pseglens       = pnested_pseglens    arr
-        psegstarts     = pnested_psegstarts  arr
-        psegsrcs       = pnested_psegsrcids  arr
-        psegdata       = pnested_psegdata    arr
 
-        srcids          = U.bpermute psegsrcs   vsegids
-        segstarts       = U.bpermute psegstarts vsegids
-        seglens         = U.bpermute pseglens   vsegids
-   in   extractsPR psegdata srcids segstarts seglens
+-- | O(len result)
+--   Concatenate a nested array.
+--
+--   This physically performs a 'gather' operation, whereby array data is
+--   copied through the index-space transformation defined by the segment
+--   descriptor. We need to do this because discarding the segment descriptor
+--   means that we can no-longer represent the data layout of the logical array
+--   other than by physically creating it.
+--
+--   IMPORTANT:
+--    Only the outer-most two levels of nesting are physically merged.
+--    The data for lower levels is not touched. This ensures that concat
+--    has complexity proportional to the length of the result array, instead
+--    of the total number of elements within it.
+--
+--   TODO: Depending on how the source array has been produced, if it is
+--         already represented by contiguous data then we could just append
+--         the flat arrays and not copy each segment individually.
+-- 
+concatPR :: PR a => PData (PArray a) -> PData a
+concatPR (PNested uvsegd psegdata)
+ = let  -- Flatten out the virtualization of the uvsegd so that we have
+        -- a description of each segment individually.
+        -- Example:
+        --   uvsegd: 
+        ussegd          = demoteUVSegdToUSSegd uvsegd
+
+        -- Copy these segments into a new array.
+   in   extractsPR psegdata 
+                   (sourcesUSSegd ussegd)
+                   (indicesUSSegd ussegd)
+                   (lengthsUSSegd ussegd)
 
 
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
