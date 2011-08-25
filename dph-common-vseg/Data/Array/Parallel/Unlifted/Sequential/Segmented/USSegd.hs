@@ -16,7 +16,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         getSegOfUSSegd,
         
         -- * Operators
-        appendUSSegd
+        appendUSSegd,
+        cullUSSegdOnVSegids
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
@@ -154,3 +155,63 @@ appendUSSegd (USSegd lens1 starts1 srcs1) pdatas1
                  (starts1  V.++  starts2)
                  (srcs1    V.++  V.map (+ pdatas1) srcs2)
 
+
+-- | Cull the segments in a SSegd down to only those reachable from an array
+--   of vsegids, and also update the vsegids to point to the same segments
+--   in the result.
+--
+--   TODO: bpermuteDft isn't parallelised
+--
+cullUSSegdOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
+{-# INLINE cullUSSegdOnVSegids #-}
+cullUSSegdOnVSegids vsegids (USSegd lengths indices srcids)
+ = let  -- Determine which of the psegs are still reachable from the vsegs.
+        -- This produces an array of flags, 
+        --    with reachable   psegs corresponding to 1
+        --    and  unreachable psegs corresponding to 0
+        -- 
+        --  eg  vsegids:        [0 1 1 3 5 5 6 6]
+        --   => psegids_used:   [1 1 0 1 0 1 1]
+        --  
+        --  Note that psegids '2' and '4' are not in vsegids_packed.
+        psegids_used
+         = V.bpermuteDft (V.length lengths)
+                         (const False)
+                         (V.zip vsegids (V.replicate (V.length vsegids) True))
+
+        -- Produce an array of used psegs.
+        --  eg  psegids_used:   [1 1 0 1 0 1 1]
+        --      psegids_packed: [0 1 3 5 6]
+        psegids_packed
+         = V.pack (V.enumFromTo 0 (V.length psegids_used)) psegids_used
+
+        -- Produce an array that maps psegids in the source array onto
+        -- psegids in the result array. If a particular pseg isn't present
+        -- in the result this maps onto -1.
+
+        --  Note that if psegids_used has 0 in some position, then psegids_map
+        --  has -1 in the same position, corresponding to an unused pseg.
+         
+        --  eg  psegids_packed: [0 1 3 5 6]
+        --                      [0 1 2 3 4]
+        --      psegids_map:    [0 1 -1 2 -1 3 4]
+        psegids_map
+         = V.bpermuteDft (V.length lengths)
+                         (const (-1))
+                         (V.zip psegids_packed (V.enumFromTo 0 (V.length psegids_packed - 1)))
+
+        -- Use the psegids_map to rewrite the packed vsegids to point to the 
+        -- corresponding psegs in the result.
+        -- 
+        --  eg  vsegids:        [0 1 1 3 5 5 6 6]
+        --      psegids_map:    [0 1 -1 2 -1 3 4]
+        -- 
+        --      vsegids':       [0 1 1 2 3 3 4 4]
+        --
+        vsegids'  = V.map (psegids_map V.!) vsegids
+
+        ussegd'   = USSegd (V.pack lengths psegids_used)
+                           (V.pack indices psegids_used)
+                           (V.pack srcids  psegids_used)
+
+     in  (vsegids', ussegd')

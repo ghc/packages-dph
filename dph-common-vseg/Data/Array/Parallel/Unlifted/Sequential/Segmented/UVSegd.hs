@@ -132,7 +132,8 @@ getSegOfUVSegd ix (UVSegd vsegids ussegd)
 updateVSegsOfUVSegd :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
 {-# INLINE updateVSegsOfUVSegd #-}
 updateVSegsOfUVSegd f (UVSegd vsegids ussegd)
-        = UVSegd (f vsegids) ussegd
+ = let  (vsegids', ussegd') = cullUSSegdOnVSegids (f vsegids) ussegd
+   in   UVSegd vsegids' ussegd'
 
 
 -- | O(segs)

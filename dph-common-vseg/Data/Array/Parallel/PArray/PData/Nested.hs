@@ -27,10 +27,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         , unconcatPR
         , concatlPR
         , slicelPR
-        , appendlPR
-        
-        -- * Internal functions
-        , forceSegs)
+        , appendlPR)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
@@ -226,8 +223,7 @@ instance PR a => PR (PArray a) where
   {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n darr)
    = checkNotEmpty "replicatePR[PArray]" c
-   $ let 
-         -- Physical segment descriptor contains a single segment.
+   $ let -- Physical segment descriptor contains a single segment.
          ussegd  = mkUSSegd (U.replicate 1 n)
                             (U.replicate 1 0)
                             (U.replicate 1 0)
@@ -240,12 +236,10 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (PNested uvsegd pdata)
-   = forceSegs 
-   $ PNested
-        (updateVSegsOfUVSegd 
+   = PNested (updateVSegsOfUVSegd 
                 (\vsegids -> U.replicate_s (U.lengthsToSegd lens) vsegids)
                 uvsegd)
-        pdata
+             pdata
 
   -- To index into a nested array, first determine what segment the index
   -- corresponds to, and extract that as a slice from the physical array.
@@ -292,8 +286,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PNested uvsegd pdata) start len
-   = forceSegs
-   $ PNested (updateVSegsOfUVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
+   = PNested (updateVSegsOfUVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
              pdata
 
 
@@ -396,8 +389,7 @@ instance PR a => PR (PArray a) where
   --       
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PNested uvsegd pdata) tags tag
-   = forceSegs
-   $ PNested (updateVSegsOfUVSegd (\vsegids -> U.packByTag vsegids tags tag) uvsegd)
+   = PNested (updateVSegsOfUVSegd (\vsegids -> U.packByTag vsegids tags tag) uvsegd)
              pdata
 
 
@@ -539,76 +531,5 @@ slicelPR (PInt sliceStarts) (PInt sliceLens) arr
                 sliceLens
                 (U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts)
                 (U.bpermute psegsrcs vsegids)
-                psegdata
-
-
--------------------------------------------------------------------------------
--- | Impose virtual segmentation on a nested array.
---   All physical segments that are not reachable from the virtual
---   segments are filtered out, but the underlying flat data is not touched.
---
---  TODO: bpermuteDft isn't parallelised
---  TODO: this is entirely an operation on the segment descriptor, shift into UVSegd module.
---
-forceSegs :: PData (PArray a) -> PData (PArray a)
-forceSegs arr
- = let
-         vsegids        = pnested_vsegids     arr
-         pseglens       = pnested_pseglens    arr
-         psegstarts     = pnested_psegstarts  arr
-         psegsrcs       = pnested_psegsrcids  arr
-         psegdata       = pnested_psegdata    arr
-
-         -- Determine which of the psegs are still reachable from the vsegs.
-         -- This produces an array of flags, 
-         --    with reachable   psegs corresponding to 1
-         --    and  unreachable psegs corresponding to 0
-         -- 
-         --  eg  vsegids:        [0 1 1 3 5 5 6 6]
-         --   => psegids_used:   [1 1 0 1 0 1 1]
-         --  
-         --  Note that psegids '2' and '4' are not in vsegids_packed.
-         psegids_used
-          = U.bpermuteDft (U.length pseglens)
-                          (const 0)
-                          (U.zip vsegids (U.replicate (U.length vsegids) 1))
-
-         -- Produce an array of used psegs.
-         --  eg  psegids_used:   [1 1 0 1 0 1 1]
-         --      psegids_packed: [0 1 3 5 6]
-         psegids_packed
-          = U.packByTag (U.enumFromTo 0 (U.length psegids_used)) psegids_used 1
-
-         -- Produce an array that maps psegids in the source array onto
-         -- psegids in the result array. If a particular pseg isn't present
-         -- in the result this maps onto -1.
-
-         --  Note that if psegids_used has 0 in some position, then psegids_map
-         --  has -1 in the same position, corresponding to an unused pseg.
-         
-         --  eg  psegids_packed: [0 1 3 5 6]
-         --                      [0 1 2 3 4]
-         --      psegids_map:    [0 1 -1 2 -1 3 4]
-         psegids_map
-          = U.bpermuteDft (U.length pseglens)
-                          (const (-1))
-                          (U.zip psegids_packed (U.enumFromTo 0 (U.length psegids_packed - 1)))
-
-         -- Use the psegids_map to rewrite the packed vsegids to point to the 
-         -- corresponding psegs in the result.
-         -- 
-         --  eg  vsegids:        [0 1 1 3 5 5 6 6]
-         --      psegids_map:    [0 1 -1 2 -1 3 4]
-         -- 
-         --      vsegids':       [0 1 1 2 3 3 4 4]
-         --
-         vsegids'
-          = U.map (psegids_map U.!:) vsegids
-
-     in  mkPNested 
-                vsegids'
-                (U.packByTag pseglens   psegids_used 1)
-                (U.packByTag psegstarts psegids_used 1)
-                (U.packByTag psegsrcs   psegids_used 1)
                 psegdata
 
