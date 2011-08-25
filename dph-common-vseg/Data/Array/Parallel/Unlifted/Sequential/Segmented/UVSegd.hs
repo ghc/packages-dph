@@ -20,10 +20,12 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
 
         -- * Operators
         appendUVSegd,
+        combine2UVSegd,
         updateVSegsOfUVSegd,
         demoteUVSegdToUSSegd,
         unsafeMaterializeUVSegd
 ) where
+import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
@@ -105,6 +107,7 @@ promoteUSegdToUVSegd usegd
 
 -- Projections ----------------------------------------------------------------
 lengthUVSegd :: UVSegd -> Int
+{-# INLINE lengthUVSegd #-}
 lengthUVSegd (UVSegd vsegids _)
         = V.length vsegids
 
@@ -133,14 +136,56 @@ appendUVSegd
         -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UVSegd
 
+{-# INLINE appendUVSegd #-}
 appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
              (UVSegd vsegids2 ussegd2) pdatas2
-        = UVSegd (vsegids1  V.++  V.map (+ (V.length vsegids1)) vsegids2)
-                 (appendUSSegd ussegd1 pdatas1 ussegd2 pdatas2)
+
+ = let  -- vsegids releative to appended psegs
+        vsegids1' = vsegids1
+        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+        
+        -- append the vsegids
+        vsegids'  = vsegids1 V.++ vsegids2'
+
+        -- All data from the source arrays goes into the result
+        ussegd'   = appendUSSegd ussegd1 pdatas1
+                                 ussegd2 pdatas2
+                                 
+   in   UVSegd vsegids' ussegd'
+
+
+-- | O(n)
+--   Combine two virtual segment descriptors.
+-- 
+combine2UVSegd
+        :: USel2
+        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
+        -> UVSegd
+        
+{-# INLINE combine2UVSegd #-}
+combine2UVSegd  usel2
+                (UVSegd vsegids1 ussegd1) pdatas1
+                (UVSegd vsegids2 ussegd2) pdatas2
+
+ = let  -- vsegids relative to combined psegs
+        vsegids1' = vsegids1
+        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+
+        -- combine the vsegids
+        vsegids'  = combine2ByTag (tagsUSel2 usel2)
+                                  vsegids1' vsegids2'
+
+         -- All data from the source arrays goes into the result
+        ussegd'   = appendUSSegd ussegd1 pdatas1
+                                 ussegd2 pdatas2
+                                  
+   in   UVSegd vsegids' ussegd'
 
 
 -- | TODO: automatically force out unreachable psegs here.
 updateVSegsOfUVSegd :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
+{-# INLINE updateVSegsOfUVSegd #-}
 updateVSegsOfUVSegd f (UVSegd vsegids ussegd)
         = UVSegd (f vsegids) ussegd
 
@@ -155,6 +200,7 @@ updateVSegsOfUVSegd f (UVSegd vsegids ussegd)
 --     segmentation from a nested array.
 -- 
 demoteUVSegdToUSSegd :: UVSegd -> USSegd
+{-# INLINE demoteUVSegdToUSSegd #-}
 demoteUVSegdToUSSegd (UVSegd vsegids ussegd)
         = mkUSSegd (V.bpermute (lengthsUSSegd ussegd) vsegids)
                    (V.bpermute (indicesUSSegd ussegd) vsegids)
@@ -176,6 +222,7 @@ demoteUVSegdToUSSegd (UVSegd vsegids ussegd)
 --   because the program would OOM anyway.
 --
 unsafeMaterializeUVSegd :: UVSegd -> USegd
+{-# INLINE unsafeMaterializeUVSegd #-}
 unsafeMaterializeUVSegd (UVSegd vsegids ussegd)
         = lengthsToUSegd 
         $ V.bpermute (lengthsUSSegd ussegd) vsegids

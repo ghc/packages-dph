@@ -353,8 +353,9 @@ instance PR a => PR (PArray a) where
   -- to the correct physical segments.
   {-# INLINE_PDATA appendPR #-}
   appendPR (PNested uvsegd1 pdata1) (PNested uvsegd2 pdata2)
-   = PNested    (appendUVSegd uvsegd1 (V.length pdata1) 
-                              uvsegd2 (V.length pdata2))
+   = PNested    (appendUVSegd
+                        uvsegd1 (V.length pdata1) 
+                        uvsegd2 (V.length pdata2))
                 (pdata1 V.++ pdata2)
 
 
@@ -391,34 +392,13 @@ instance PR a => PR (PArray a) where
    $ PNested (updateVSegsOfUVSegd (\vsegids -> U.packByTag vsegids tags tag) uvsegd)
              pdata
 
+
   {-# INLINE_PDATA combine2PR #-}
-  combine2PR sel2 arr1 arr2
-   = let -- vsegids relative to combined psegs
-         vsegids1        = pnested_vsegids     arr1
-         pseglens1       = pnested_pseglens    arr1
-         psegstarts1     = pnested_psegstarts  arr1
-         psegsrcs1       = pnested_psegsrcids  arr1
-         psegdata1       = pnested_psegdata    arr1
-
-         vsegids1'      = vsegids1
-         vsegids2'      = U.map (+ (U.length vsegids1)) vsegids2
-
-         -- psegsrcss in combined pdatas vector
-         vsegids2        = pnested_vsegids     arr2
-         pseglens2       = pnested_pseglens    arr2
-         psegstarts2     = pnested_psegstarts  arr2
-         psegsrcs2       = pnested_psegsrcids  arr2
-         psegdata2       = pnested_psegdata    arr2
-
-         psegsrcs1'     = psegsrcs1
-         psegsrcs2'     = U.map (+ (V.length psegdata1)) psegsrcs2
-         
-     in  mkPNested
-                (U.combine2 (U.tagsSel2 sel2) (U.repSel2 sel2) vsegids1' vsegids2')
-                (pseglens1   U.+:+ pseglens2)
-                (psegstarts1 U.+:+ psegstarts2)
-                (psegsrcs1'  U.+:+ psegsrcs2')
-                (psegdata1   V.++  psegdata2)
+  combine2PR sel2 (PNested uvsegd1 pdata1) (PNested uvsegd2 pdata2)
+   = PNested    (combine2UVSegd sel2 
+                        uvsegd1 (V.length pdata1)
+                        uvsegd2 (V.length pdata2))
+                (pdata1 V.++ pdata2)
 
 
   -- Conversions ----------------------
