@@ -125,6 +125,7 @@ validBool str b
 --            See the warning in `unsafeMaterializeUVSegd`.
 --
 unsafeFlattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
+{-# INLINE unsafeFlattenPR #-}
 unsafeFlattenPR arr@(PNested uvsegd _)
  =      ( unsafeMaterializeUVSegd uvsegd
         , concatPR arr)
@@ -348,9 +349,8 @@ instance PR a => PR (PArray a) where
      in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
 
 
-  -- When appending two nested arrays, all physical data arrays go into
-  -- the result, and we adjust the top-level segment descriptor to point
-  -- to the correct physical segments.
+  -- Append nested arrays by appending the segment descriptors,
+  -- and putting all physical arrays in the result.
   {-# INLINE_PDATA appendPR #-}
   appendPR (PNested uvsegd1 pdata1) (PNested uvsegd2 pdata2)
    = PNested    (appendUVSegd
@@ -359,6 +359,14 @@ instance PR a => PR (PArray a) where
                 (pdata1 V.++ pdata2)
 
 
+  -- Performing segmented append requires segments from the physical arrays to
+  -- be interspersed, so we need to copy data from the second level of nesting.  
+  --
+  -- In the implementation we can safely flatten out replication in the vsegs
+  -- because the source program result would have this same physical size
+  -- anyway. Once this is done we use copying segmented append on the flat 
+  -- arrays, and then reconstruct the segment descriptor.
+  --
   {- INLINE_PDATA appendsPR #-}
   appendsPR rsegd segd1 xarr segd2 yarr
    = let (xsegd, xs)    = unsafeFlattenPR xarr
@@ -393,6 +401,8 @@ instance PR a => PR (PArray a) where
              pdata
 
 
+  -- Combine nested arrays by combining the segment descriptors, 
+  -- and putting all physical arrays in the result.
   {-# INLINE_PDATA combine2PR #-}
   combine2PR sel2 (PNested uvsegd1 pdata1) (PNested uvsegd2 pdata2)
    = PNested    (combine2UVSegd sel2 
