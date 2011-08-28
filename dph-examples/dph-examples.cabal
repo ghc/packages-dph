@@ -25,7 +25,13 @@ Synopsis:            Examples using Data Parallel Haskell
 
 -- Sum of Squares -------------------------------------------------------------
 Executable dph-sumsq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  SumSquaresVector
                   SumSquaresVectorised
@@ -34,7 +40,13 @@ Executable dph-sumsq
   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-sumsq-seq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-seq == 0.5.*,
+                  dph-seq == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  SumSquaresVector
                   SumSquaresVectorised
@@ -45,7 +57,13 @@ Executable dph-sumsq-seq
 
 -- Dot Product ----------------------------------------------------------------
 Executable dph-dotp
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  DotProductVector
                   DotProductVectorised
@@ -54,7 +72,13 @@ Executable dph-dotp
   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-dotp-seq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-seq == 0.5.*,
+                  dph-seq == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  DotProductVector
                   DotProductVectorised
@@ -65,7 +89,13 @@ Executable dph-dotp-seq
 
 -- Evens ----------------------------------------------------------------------
 Executable dph-evens
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  EvensVector
                   EvensVectorised
@@ -74,7 +104,13 @@ Executable dph-evens
   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-evens-seq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-seq == 0.5.*,
+                  dph-seq == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  EvensVector
                   EvensVectorised
@@ -86,13 +122,13 @@ Executable dph-evens-seq
 -- Primes ---------------------------------------------------------------------
 -- Primes dies with a bounds check error
 -- Executable dph-primes
---  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: imaginary/Primes lib
 --  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 -- Executable dph-primes-seq
---  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: imaginary/Primes lib
 --  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -100,7 +136,13 @@ Executable dph-evens-seq
 
 -- Reverse --------------------------------------------------------------------
 Executable dph-reverse
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  ReverseVector
                   ReverseVectorised
@@ -110,7 +152,13 @@ Executable dph-reverse
 
 
 Executable dph-reverse-seq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-seq == 0.5.*,
+                  dph-seq == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  ReverseVector
                   ReverseVectorised
@@ -122,14 +170,14 @@ Executable dph-reverse-seq
 -- Words ---------------------------------------------------------------------
 -- This builds and runs, but takes ~5min. 
 -- Executable dph-words
---  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  hs-source-dirs: imaginary/Words lib
 --  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
 
 -- This one also stalls in SpecConstr, like quicksort-seq
 -- Executable dph-words-seq
---   Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--   Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --   Main-is:        Main.hs
 --   hs-source-dirs: imaginary/Words lib
 --   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
@@ -137,7 +185,13 @@ Executable dph-reverse-seq
 
 -- SMVM ---------------------------------------------------------------------
 Executable dph-smvm
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  SMVMVectorised
                   Timing
@@ -145,7 +199,13 @@ Executable dph-smvm
   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-smvm-seq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-seq == 0.5.*,
+                  dph-seq == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  SMVMVectorised
                   Timing
@@ -156,7 +216,13 @@ Executable dph-smvm-seq
 
 -- QuickHull ------------------------------------------------------------------
 Executable dph-quickhull
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  QuickHullVect
                   Timing Points2D.Types SVG
@@ -164,7 +230,13 @@ Executable dph-quickhull
   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 
 Executable dph-quickhull-seq
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-seq == 0.5.*,
+                  dph-seq == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  QuickHullVect
                   Timing Points2D.Types SVG
@@ -174,7 +246,7 @@ Executable dph-quickhull-seq
 Executable dph-quickhull-vector
   Build-depends: 
         base          == 4.*,
-        vector        == 0.7.*,    
+        vector        >= 0.7 && < 0.9,    
         old-time      == 1.0.*,
         random        == 1.0.*
   Main-is:        Main.hs
@@ -188,7 +260,13 @@ Executable dph-quickhull-vector
 
 -- QuickSort ------------------------------------------------------------------
 Executable dph-quicksort
-  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*,
+                  vector >= 0.7 && < 0.9,
+                  dph-base == 0.5.*,
+                  dph-prim-par == 0.5.*,
+                  dph-par == 0.5.*,
+                  random == 1.0.*,
+                  old-time == 1.0.*
   Main-is:        Main.hs
   other-modules:  QuickSortVect
                   Timing
@@ -197,7 +275,7 @@ Executable dph-quicksort
 
 -- This one stalls in SpecConstr then eventually runs out of memory.
 -- Executable dph-quicksort-seq
---  Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
+--  Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
 --  Main-is:        Main.hs
 --  other-modules:  QuickSortVect
 --                  Timing
@@ -215,7 +293,15 @@ Executable dph-nbody-gloss
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Gloss.MainArgs Gloss.Draw Gloss.Config
-    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
+    Build-depends:  base == 4.4.*,
+                    vector >= 0.7 && < 0.9,
+                    dph-base == 0.5.*,
+                    dph-prim-par == 0.5.*,
+                    dph-par == 0.5.*,
+                    random == 1.0.*,
+                    old-time == 1.0.*,
+                    parseargs == 0.1.*,
+                    gloss == 1.3.*
     hs-source-dirs: lib real/NBody real/NBody/Gloss
     ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
 
@@ -229,18 +315,25 @@ Executable dph-nbody-batch
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Batch.MainArgs Batch.Config
-    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
+    Build-depends:  base == 4.4.*,
+                    vector >= 0.7 && < 0.9,
+                    dph-base == 0.5.*,
+                    dph-prim-par == 0.5.*,
+                    dph-par == 0.5.*,
+                    random == 1.0.*,
+                    old-time == 1.0.*,
+                    parseargs == 0.1.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
     ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3 -fno-liberate-case
 
 -- Executable dph-nbody-seq
 --  Main-is:        Main.hs
 --  if flag(gloss)
---    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
+--    Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
 --    hs-source-dirs: lib real/NBody real/NBody/Gloss
 --    ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 --  else
---    Build-depends:  base == 4.4.*, vector == 0.7.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
+--    Build-depends:  base == 4.4.*, vector >= 0.7 && < 0.9, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
 --    hs-source-dirs: lib real/NBody real/NBody/Batch
 --    ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fsimplifier-phases=4 -fstrictness-before=3
 --  endif

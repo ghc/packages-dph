@@ -49,7 +49,7 @@ Library
         random           == 1.0.*,
         template-haskell == 2.6.*,
         pretty           == 1.1.*,
-        vector           == 0.7.*,
+        vector           >= 0.7 && < 0.9,
         containers       == 0.4.*,
         dph-base         == 0.5.*,
         dph-prim-seq     == 0.5.*
