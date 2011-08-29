@@ -28,7 +28,6 @@ module Data.Array.Parallel.Lifted.Combinators
         , divPP_int
         , sumPP_double, sumPP_int)
 where
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
@@ -79,8 +78,8 @@ lengthPP        = closure1 lengthPA lengthPA_l
 {-# INLINE_PA lengthPA_l #-}
 lengthPA_l :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
-lengthPA_l c (PNested uvsegd _)
-        = PInt $ lengthsUVSegd uvsegd
+lengthPA_l c (PNested vsegd _)
+        = PInt $ U.lengthsVSegd vsegd
 
 
 -- replicate ------------------------------------------------------------------
@@ -130,11 +129,11 @@ mapPA_l :: (PR (a :-> b), PR a, PR b)
         => Int  -> PData (a :-> b) 
                 -> PData (PArray a) -> PData (PArray b)
 
-mapPA_l n (AClo fv fl envs) arg@(PNested uvsegd pdata)
+mapPA_l n (AClo fv fl envs) arg@(PNested vsegd pdata)
  = let  argFlat         = concatPR arg
         c               = lengthPR argFlat
 
-        vseglens        = lengthsUVSegd uvsegd
+        vseglens        = U.lengthsVSegd vsegd
         envsReplicated  = replicatesPR vseglens envs
         arrResult       = fl c envsReplicated argFlat
 

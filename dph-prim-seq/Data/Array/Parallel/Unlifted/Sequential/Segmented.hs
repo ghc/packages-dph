@@ -13,13 +13,32 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   -- * Arithmetic operations
   sumSU, productSU, maximumSU, minimumSU,
   sumRU,
-  USegd,
 
-  -- * Operations on segment descriptors
+  -- * Segment Descriptors
+  USegd, mkUSegd,
   lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd,
-  lengthsToUSegd, mkUSegd
+  lengthsToUSegd,
+  
+  -- * Slice Segment Descriptors
+  USSegd, mkUSSegd, validUSSegd,
+  emptyUSSegd, singletonUSSegd,
+  promoteUSegdToUSSegd,
+  lengthUSSegd, lengthsUSSegd, indicesUSSegd, sourcesUSSegd,
+  getSegOfUSSegd, appendUSSegd,
+
+  -- * Virtual Segment Descriptors
+  UVSegd, mkUVSegd, validUVSegd,
+  emptyUVSegd, singletonUVSegd,
+  promoteUSegdToUVSegd,  unsafeMaterializeUVSegd,
+  promoteUSSegdToUVSegd, demoteUVSegdToUSSegd,
+  vsegidsUVSegd, ussegdUVSegd,
+  lengthUVSegd, lengthsUVSegd, 
+  getSegOfUVSegd, updateVSegsOfUVSegd, appendUVSegd, combine2UVSegd
+  
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums

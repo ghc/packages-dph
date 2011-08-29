@@ -1,9 +1,11 @@
-
--- | Segment descriptors for virtual arrays.
+-- | Slice Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         -- * Types
         USSegd(..),
         
+        -- * Consistency check
+        validUSSegd,
+
         -- * Constructors
         mkUSSegd,
         emptyUSSegd,
@@ -25,13 +27,19 @@ import Data.Array.Parallel.Pretty
 
 
 -- USSegd ---------------------------------------------------------------------
--- | Slice segment descriptors are a generalisation of regular 'physical'
+-- | Slice segment descriptors are a generalisation of regular 
 --   segment descriptors of type (Segd). 
 --   
 --   * SSegd segments may be drawn from multiple physical source arrays.
+--
 --   * The segments need not cover the entire flat array.
+--
 --   * Different segments may point to the same elements.
 --
+--   * As different segments may point to the same elements, we don't export
+--     a function to determine how many elements are covered by the descriptor
+--     as this value may overflow a machine word. 
+-- 
 data USSegd
         = USSegd
         { ussegd_lengths :: !(Vector Int)
@@ -72,7 +80,6 @@ mkUSSegd = USSegd
 
 -- | O(1).
 --   Check the internal consistency of a slice segment descriptor.
---   TODO: check that segments don't overlap.
 validUSSegd :: USSegd -> Bool
 {-# INLINE validUSSegd #-}
 validUSSegd (USSegd lens starts srcids)
@@ -131,15 +138,6 @@ indicesUSSegd = ussegd_indices
 sourcesUSSegd :: USSegd -> Vector Int
 {-# INLINE sourcesUSSegd #-}
 sourcesUSSegd = ussegd_srcids
-
-
--- | O(segs). 
---   Yield the total number of flat data elements covered by the segment
---   descriptor. This is the sum of all the segment length fields.
---   TODO: is O(segs) ok? Where do we use this function?
-elementsUSSegd :: USSegd -> Int
-{-# INLINE elementsUSSegd #-}
-elementsUSSegd = V.sum . ussegd_lengths 
 
 
 -- O(1).

@@ -19,6 +19,7 @@ Library
   Exposed-Modules:
         Data.Array.Parallel.Base
         Data.Array.Parallel.Stream
+        Data.Array.Parallel.Pretty
         Data.Array.Parallel.Base.DTrace
         Data.Array.Parallel.Base.TracePrim
 
@@ -47,5 +48,7 @@ Library
         ghc-prim == 0.2.*,
         array    == 0.3.*,
         random   == 1.0.*,
-        vector   >= 0.7 && < 0.9
+        vector   >= 0.7 && < 0.9,
+        pretty   == 1.1.*
+
           

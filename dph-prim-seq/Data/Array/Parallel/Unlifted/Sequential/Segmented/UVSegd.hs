@@ -1,4 +1,3 @@
-
 -- | Segment descriptors for virtual arrays.
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         -- * Types
@@ -15,6 +14,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         promoteUSSegdToUVSegd,
         
         -- * Projections
+        vsegidsUVSegd,
+        ussegdUVSegd,
         lengthUVSegd,
         lengthsUVSegd,
         getSegOfUVSegd,
@@ -127,6 +128,16 @@ promoteUSegdToUVSegd
         
 
 -- Projections ----------------------------------------------------------------
+vsegidsUVSegd :: UVSegd -> Vector Int
+{-# INLINE vsegidsUVSegd #-}
+vsegidsUVSegd (UVSegd vsegids _)
+        = vsegids
+        
+ussegdUVSegd :: UVSegd -> USSegd
+{-# INLINE ussegdUVSegd #-}
+ussegdUVSegd (UVSegd _ ussegd)
+        = ussegd
+
 lengthUVSegd :: UVSegd -> Int
 {-# INLINE lengthUVSegd #-}
 lengthUVSegd (UVSegd vsegids _)

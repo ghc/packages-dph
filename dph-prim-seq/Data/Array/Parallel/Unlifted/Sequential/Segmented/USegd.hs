@@ -1,6 +1,3 @@
-{-# LANGUAGE CPP #-}
-#include "fusion-phases.h"
-
 -- | Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   -- * Types

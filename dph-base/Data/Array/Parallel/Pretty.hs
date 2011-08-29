@@ -13,7 +13,7 @@ class PprPhysical a where
  pprp :: a -> Doc
  
  
--- | Pretty print virtual / logical structure of data.
+-- | Pretty print virtual \/ logical structure of data.
 class PprVirtual a where
  pprv :: a -> Doc
 
