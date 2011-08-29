@@ -1,5 +1,5 @@
 Name:           dph-prim-seq
-Version:        0.5.1.1
+Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
@@ -27,7 +27,8 @@ Library
   Exposed: False
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
-              BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+              BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
+              NoMonomorphismRestriction
   GHC-Options: -Odph -funbox-strict-fields -fcpr-off
 
   Build-Depends:  
