@@ -49,13 +49,6 @@ data instance PData Int
 --       this field aren't parallelised. In particular, when we append two
 --       psegdata fields during appPR or combinePR this runs sequentially
 --
--- TODO: Split the pseglens / psegstarts / psegsrcs fields into a SSegd type
---       and push it into the Unlifted library.
---       SSegd = multi-source slicing segment descriptor. This should be a
---       clean generalisation of result Segds. SSegs have the added psegsrcs
---       field, and the segments can overlap, and don't need to cover the
---       entire flat data array.
---
 data instance PData (PArray a)
         = PNested
         { pnested_uvsegd       :: U.VSegd
@@ -63,7 +56,8 @@ data instance PData (PArray a)
           --   Defines a virtual nested array based on physical data.
 
         , pnested_psegdata     :: V.Vector (PData a) }
-        
+
+-- TODO: we shouldn't be using these directly.
 pnested_vsegids    = U.vsegidsVSegd . pnested_uvsegd
 pnested_pseglens   = U.lengthsSSegd . U.ssegdVSegd . pnested_uvsegd
 pnested_psegstarts = U.indicesSSegd . U.ssegdVSegd . pnested_uvsegd
