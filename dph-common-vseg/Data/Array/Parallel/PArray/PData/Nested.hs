@@ -127,6 +127,8 @@ unsafeFlattenPR arr@(PNested uvsegd _)
         , concatPR arr)
 
 
+instance U.Elt (Int, Int, Int)
+
 -- PR Instances ---------------------------------------------------------------
 instance PR a => PR (PArray a) where
 
@@ -253,67 +255,64 @@ instance PR a => PR (PArray a) where
 
   -- Lifted indexing
   --
-  --  source
-  --     PNested
-  --        vsegids:    [0,0,0,1,2,2]
-  --        pseglens:   [2,1,7]
-  --        psegstarts: [0,2,3]
-  --        psegsrcs:   [0,0,0]
-  --        PNested
-  --            vsegids:    [0,1,2,3,4,5,6,7,8,9]
-  --            pseglens:   [1,3,5,7,1,3,1,5,1,3]
-  --            psegstarts: [0,1,0,0,7,8,11,12,17,18]
-  --            psegsrcs:   [0,0,1,2,2,2,2,2,2,2]
-  --            PInt [0,1,2,3]
-  --            PInt [5,6,7,8,9]
-  --            PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
+  -- source
+  --   VIRT [ [[0],[1,2,3]], [[0],[1,2,3]]
+  --        , [[5,6,7,8,9]], [[5,6,7,8,9]], [[5,6,7,8,9]]
+  --        , [[7,8,9,10,11,12,13],[0],[1,2,3],[0],[5,6,7,8,9],[0],[1,2,3]] ]
   --
-  {-
+  --   PHYS PNested
+  --          UVSegd vsegids: [0,0,1,1,1,2]
+  --          USSegd lengths: [2,1,7]
+  --                 indices: [0,2,3]
+  --                 srcids:  [0,0,0]
+  --          0: PNested
+  --                 UVSegd vsegids: [0,1,2,3,4,5,6,7,8,9]
+  --                 USSegd lengths: [1,3,5,7,1,3,1,5,1,3]
+  --                        indices: [0,1,0,0,7,8,11,12,17,18]
+  --                        srcids:  [0,0,1,2,2,2,2,2,2,2]
+  --                 0: PInt [0,1,2,3]
+  --                 1: PInt [5,6,7,8,9]
+  --                 2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
+  --
+  -- indexl with [1, 0, 0, 0, 0, 4]
+  --   VIRT  [[1,2,3],[0],[5,6,7,8,9],[5,6,7,8,9],[5,6,7,8,9],[1,2,3]]
+  --   PHYS  PNested
+  --           UVSegd vsegids: [0,1,2,3,4,5]
+  --           USSegd lengths: [3,1,5,5,5,3]
+  --                  indices: [1,0,0,0,0,8]
+  --                  srcids:  [0,0,1,1,1,2]
+  --           0: PInt [0,1,2,3]
+  --           1: PInt [5,6,7,8,9]
+  --           2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
+  --
   {-# INLINE_PDATA indexlPR #-}
   indexlPR c arr@(PNested uvsegd pdata) (PInt ixs)
-   = let 
-         -- length, start and id of each outer-most segment.
-         -- [(2, 0, 0), (1, 2, 0), (7, 3, 0)]
-         (pseglens, psegstarts, psegsrcids)
-                = U.unzip3 $ U.map (getSegOfUVSegd uvsegd) ixs
-        
-         --
-         (pseglens'
-                
--}
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR c arr@(PNested uvsegd pdata) (PInt ixs)
-   = let vsegids        = pnested_vsegids     arr
-         psegdata       = pnested_psegdata    arr
-   
-         vsegids'       = U.enumFromTo 0 (U.length ixs - 1)
+   = let        
+         -- See Note: psrcoffset
+         psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) pdata
 
-         {-# INLINE getSegInfo #-}
-         getSegInfo f vsegid ix
-           = let (_, psegstart, psegsrcid)  = getSegOfUVSegd uvsegd vsegid
-             in  f (psegdata V.! psegsrcid) U.!: (psegstart + ix)
-                
-         pseglens'      = U.zipWith (getSegInfo pnested_pseglens)   vsegids ixs                         
-         psegstarts'    = U.zipWith (getSegInfo pnested_psegstarts) vsegids ixs                         
+         -- length, start and srcid of the segments we're returning.
+         --   Note that we need to offset the srcid 
+         seginfo :: U.Array (Int, Int, Int)
+         seginfo 
+          = U.zipWith (\segid ix -> 
+                        let (_,       segstart,  segsrcid)   = getSegOfUVSegd uvsegd segid
+                            (PNested uvsegd' _)              = pdata V.! segsrcid
+                            (len, start, srcid)              = getSegOfUVSegd uvsegd' (segstart + ix)
+                        in  (len, start, srcid + (psrcoffset V.! segsrcid)))
+                (U.enumFromTo 0 (c - 1))
+                ixs
 
-         -- TODO: this code is shared with extracts...
-         --       when we combine pdata arrays we need to shift the source ixs.
-         --       maybe there is a more general operation here.
-         psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) psegdata
+         (pseglens', psegstarts', psegsrcs')    
+                        = U.unzip3 seginfo
 
-         psegsrcs'
-          = U.zipWith (\vsegid ix -> 
-                let (_, psegstart, psegsrcid) = getSegOfUVSegd uvsegd vsegid
-                    darr        = pdata V.! psegsrcid
-                    start       = psegstart + ix
-                in  (pnested_psegsrcids darr U.!: (psegstart + ix)) 
-                  + (psrcoffset V.! psegsrcid) )
-                vsegids ixs
-
+         uvsegd'        = promoteUSSegdToUVSegd
+                        $ mkUSSegd pseglens' psegstarts' psegsrcs'
+                                 
          -- All flat data arrays in the sources go into the result.
-         psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata psegdata
-
-     in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
+         psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata pdata
+         
+    in  PNested uvsegd' psegdata'
 
 
   -- To extract a range of elements from a nested array, perform the extract
@@ -325,6 +324,35 @@ instance PR a => PR (PArray a) where
              pdata
 
 
+  --   TODO: cleanup pnested projections
+  --         use getSegOfUVSegd like in indexlPR
+
+  -- [Note: psrcoffset]
+  -- ~~~~~~~~~~~~~~~~~~
+  -- As all the flat data arrays in the sources are present in the result array,
+  -- we need to offset the psegsrcs field when combining multiple sources.
+  -- 
+  -- Exaple
+  --  Source Arrays:
+  --   arr0  ...
+  --         psrcids  :  [0, 0, 0, 1, 1]
+  --         psegdata :  [PInt xs1, PInt xs2]
+  --
+  --   arr1  ... 
+  --         psrcids  :  [0, 0, 1, 1, 2, 2, 2]
+  --         psegdata :  [PInt ys1, PInt ys2, PInt ys3]
+  -- 
+  --   Result Array:
+  --         psrcids  :  [...]
+  --         psegdata :  [PInt xs1, PInt xs2, PInt ys1, PInt ys2, PInt ys3] 
+  --
+  --  Note that references to flatdata arrays [0, 1, 2] in arr1 need to be offset
+  --  by 2 (which is length arr0.psegdata) to refer to the same flat data arrays
+  --  in the result.
+  -- 
+  --  We encode these offsets in the psrcoffset vector:
+  --       psrcoffset :  [0, 2]
+  --
   {-# INLINE_PDATA extractsPR #-}
   extractsPR arrs segsrcs segstarts seglens 
    = let segMax         = U.sum seglens - 1
@@ -333,36 +361,14 @@ instance PR a => PR (PArray a) where
          vsegids_src    = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
          srcids'        = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
+         -- TODO: use getSegOfUVSegd like in indexlPR
          pseglens'      = U.zipWith (\srcid vsegid -> pnested_pseglens   (arrs V.! srcid) U.!: vsegid)
                                     srcids' vsegids_src
 
          psegstarts'    = U.zipWith (\srcid vsegid -> pnested_psegstarts (arrs V.! srcid) U.!: vsegid)
                                     srcids' vsegids_src
 
-         -- As all the flat data arrays in the sources are present in the result array,
-         -- we need to offset the psegsrcs field when combining multiple sources.
-         -- 
-         -- For example:
-         --  Source Arrays:
-         --   arr0  ...
-         --         psrcids  :  [0, 0, 0, 1, 1]
-         --         psegdata :  [PInt xs1, PInt xs2]
-         --
-         --   arr1  ... 
-         --         psrcids  :  [0, 0, 1, 1, 2, 2, 2]
-         --         psegdata :  [PInt ys1, PInt ys2, PInt ys3]
-         -- 
-         --   Result Array:
-         --         psrcids  :  [...]
-         --         psegdata :  [PInt xs1, PInt xs2, PInt ys1, PInt ys2, PInt ys3] 
-         --
-         --  Note that references to flatdata arrays [0, 1, 2] in arr1 need to be offset
-         --  by 2 (which is length arr0.psegdata) to refer to the same flat data arrays
-         --  in the result.
-         -- 
-         --  We encode these offsets in the psrcoffset vector:
-         --       psrcoffset :  [0, 2]
-         --
+         -- See Note: psrcoffset
          psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) arrs
 
          psegsrcs'      = U.zipWith 
@@ -498,6 +504,7 @@ concatPR (PNested uvsegd psegdata)
                    (lengthsUSSegd ussegd)
 
 
+--   TODO: cleanup pnested projections
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
 unconcatPR arr1 arr
  = let  segs            = U.length vsegids
@@ -545,6 +552,7 @@ appendlPR  arr1 arr2
 -- | Extract some slices from some arrays.
 --   The arrays of starting indices and lengths must themselves
 --   have the same length.
+--   TODO: cleanup pnested projections
 slicelPR 
         :: PR a
         => PData Int            -- ^ starting indices of slices
