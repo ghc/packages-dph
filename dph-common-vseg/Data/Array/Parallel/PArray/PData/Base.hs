@@ -22,7 +22,7 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
-import Text.PrettyPrint
+import Data.Array.Parallel.Pretty
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array. 
@@ -33,6 +33,16 @@ data PArray a
 
 deriving instance (Show (PData a), Show a)
         => Show (PArray a)
+
+instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
+ pprp (PArray n dat)
+  =   (text "PArray " <+> int n)
+  $+$ (nest 4 
+      $ pprp dat)
+
+instance PprVirtual (PData a) => PprVirtual (PArray a) where
+ pprv (PArray _ dat)
+  =   pprv dat
 
 
 -- | Take the length of an array
@@ -47,27 +57,6 @@ unpackPA :: PArray a -> PData a
 unpackPA (PArray _ d)   = d
 
 
-
--- Pretty Printer classes -----------------------------------------------------
--- | Pretty print physical structure of data.
-class PprPhysical a where
- pprp :: a -> Doc
- 
-instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
- pprp (PArray n dat)
-  =   (text "PArray " <+> int n)
-  $+$ (nest 4 
-      $ pprp dat)
- 
--- | Pretty print virtual / logical structure of data.
-class PprVirtual a where
- pprv :: a -> Doc
-
-instance PprVirtual (PData a) => PprVirtual (PArray a) where
- pprv (PArray _ dat)
-  =   pprv dat
- 
- 
 -- PData ----------------------------------------------------------------------
 -- | Parallel array data.
 data family PData a

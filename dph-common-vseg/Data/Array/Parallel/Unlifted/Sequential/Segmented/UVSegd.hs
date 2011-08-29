@@ -29,6 +29,7 @@ import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Pretty
 
 
 -- UVSegd ---------------------------------------------------------------------
@@ -50,6 +51,14 @@ data UVSegd
           -- ^ slice segment descriptor describing physical segments.
         }
         deriving (Show)
+
+
+-- | Pretty print the physical representation of a `UVSegd`
+instance PprPhysical UVSegd where
+ pprp (UVSegd vsegids ussegd)
+  =   vcat
+  [   text "UVSegd" $$ (nest 7 $ text "vsegids:" <+> (text $ show $ V.toList vsegids))
+  ,   pprp ussegd ]
 
 
 -- Constructors ---------------------------------------------------------------
@@ -121,10 +130,10 @@ lengthsUVSegd (UVSegd vsegids ussegd)
 
 -- | O(1).
 --  Get the length, starting index, and sourceid of a segment.
-getSegOfUVSegd :: Int -> UVSegd -> (Int, Int, Int)
+getSegOfUVSegd :: UVSegd -> Int -> (Int, Int, Int)
 {-# INLINE getSegOfUVSegd #-}
-getSegOfUVSegd ix (UVSegd vsegids ussegd)
-        = getSegOfUSSegd (vsegids V.! ix) ussegd
+getSegOfUVSegd (UVSegd vsegids ussegd) ix
+        = getSegOfUSSegd ussegd (vsegids V.! ix)
         
 
 -- Operators ------------------------------------------------------------------

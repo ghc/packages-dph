@@ -5,7 +5,8 @@
         MultiParamTypeClasses,
         StandaloneDeriving,
         ExistentialQuantification,
-        UndecidableInstances #-}
+        UndecidableInstances,
+        ParallelListComp #-}
 
 #include "fusion-phases-vseg.h"
 
@@ -78,15 +79,13 @@ mkPNested vsegids pseglens psegstarts psegsrcids psegdata
 
 -- | Pretty print the physical representation of a nested array
 instance PprPhysical (PData a) => PprPhysical (PData (PArray a)) where
- pprp arr
+ pprp (PNested uvsegd pdata)
   =   text "PNested"
-  $+$ (nest 4 $ vcat
-        [ text "vsegids:   " <+> text (show $ U.toList $ pnested_vsegids    arr) 
-        , text "pseglens:  " <+> text (show $ U.toList $ pnested_pseglens   arr) 
-        , text "psegstarts:" <+> text (show $ U.toList $ pnested_psegstarts arr) 
-        , text "psegsrcs:  " <+> text (show $ U.toList $ pnested_psegsrcids arr) ]
-        $$ vcat (map pprp $ V.toList $ pnested_psegdata arr)
-      )
+  $+$ (nest 4 $ vcat 
+        $ pprp uvsegd 
+        : [ int n <> colon <> text " " <> pprp pd
+                | n  <- [0..]
+                | pd <- V.toList pdata])
 
 
 instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
@@ -234,21 +233,54 @@ instance PR a => PR (PArray a) where
      in  PNested uvsegd (V.singleton darr)
                 
 
+  -- For segmented replicates, we just replicate the vsegids field.
+  -- TODO: Does replicate_s really need the whole segd,
+  --       or could we get away without creating the indices field?
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (PNested uvsegd pdata)
-   = PNested (updateVSegsOfUVSegd 
-                (\vsegids -> U.replicate_s (U.lengthsToSegd lens) vsegids)
-                uvsegd)
-             pdata
+   = let segd   = U.lengthsToSegd lens
+     in   PNested (updateVSegsOfUVSegd (\vsegids -> U.replicate_s segd vsegids) uvsegd)
+                  pdata
+
 
   -- To index into a nested array, first determine what segment the index
-  -- corresponds to, and extract that as a slice from the physical array.
+  -- corresponds to, and extract that as a slice from that physical array.
   {-# INLINE_PDATA indexPR #-}
   indexPR (PNested uvsegd pdata) ix
-   = let (pseglen, psegstart, psegsrcid) = getSegOfUVSegd ix uvsegd
+   = let (pseglen, psegstart, psegsrcid) = getSegOfUVSegd uvsegd ix
      in  PArray pseglen $ extractPR (pdata V.! psegsrcid) psegstart pseglen
 
 
+  -- Lifted indexing
+  --
+  --  source
+  --     PNested
+  --        vsegids:    [0,0,0,1,2,2]
+  --        pseglens:   [2,1,7]
+  --        psegstarts: [0,2,3]
+  --        psegsrcs:   [0,0,0]
+  --        PNested
+  --            vsegids:    [0,1,2,3,4,5,6,7,8,9]
+  --            pseglens:   [1,3,5,7,1,3,1,5,1,3]
+  --            psegstarts: [0,1,0,0,7,8,11,12,17,18]
+  --            psegsrcs:   [0,0,1,2,2,2,2,2,2,2]
+  --            PInt [0,1,2,3]
+  --            PInt [5,6,7,8,9]
+  --            PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
+  --
+  {-
+  {-# INLINE_PDATA indexlPR #-}
+  indexlPR c arr@(PNested uvsegd pdata) (PInt ixs)
+   = let 
+         -- length, start and id of each outer-most segment.
+         -- [(2, 0, 0), (1, 2, 0), (7, 3, 0)]
+         (pseglens, psegstarts, psegsrcids)
+                = U.unzip3 $ U.map (getSegOfUVSegd uvsegd) ixs
+        
+         --
+         (pseglens'
+                
+-}
   {-# INLINE_PDATA indexlPR #-}
   indexlPR c arr@(PNested uvsegd pdata) (PInt ixs)
    = let vsegids        = pnested_vsegids     arr
@@ -258,7 +290,7 @@ instance PR a => PR (PArray a) where
 
          {-# INLINE getSegInfo #-}
          getSegInfo f vsegid ix
-           = let (_, psegstart, psegsrcid)  = getSegOfUVSegd vsegid uvsegd
+           = let (_, psegstart, psegsrcid)  = getSegOfUVSegd uvsegd vsegid
              in  f (psegdata V.! psegsrcid) U.!: (psegstart + ix)
                 
          pseglens'      = U.zipWith (getSegInfo pnested_pseglens)   vsegids ixs                         
@@ -271,7 +303,7 @@ instance PR a => PR (PArray a) where
 
          psegsrcs'
           = U.zipWith (\vsegid ix -> 
-                let (_, psegstart, psegsrcid) = getSegOfUVSegd vsegid uvsegd
+                let (_, psegstart, psegsrcid) = getSegOfUVSegd uvsegd vsegid
                     darr        = pdata V.! psegsrcid
                     start       = psegstart + ix
                 in  (pnested_psegsrcids darr U.!: (psegstart + ix)) 
@@ -284,6 +316,9 @@ instance PR a => PR (PArray a) where
      in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
 
 
+  -- To extract a range of elements from a nested array, perform the extract
+  -- on the vsegids field. The `updateVSegsOfUVSegd` function will then filter
+  -- out all of the psegs that are no longer reachable from the new vsegids.
   {-# INLINE_PDATA extractPR #-}
   extractPR (PNested uvsegd pdata) start len
    = PNested (updateVSegsOfUVSegd (\vsegids -> U.extract vsegids start len) uvsegd)

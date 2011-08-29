@@ -21,6 +21,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Pretty
 
 
 -- USSegd ---------------------------------------------------------------------
@@ -43,6 +44,16 @@ data USSegd
           -- ^ which flat array to take each segment from.
         }
         deriving (Show)
+
+
+-- | Pretty print the physical representation of a `UVSegd`
+instance PprPhysical USSegd where
+ pprp (USSegd lengths indices srcids)
+  =   text "USSegd" 
+  $$  (nest 7 $ vcat
+        [ text "lengths:" <+> (text $ show $ V.toList lengths)
+        , text "indices:" <+> (text $ show $ V.toList indices)
+        , text "srcids: " <+> (text $ show $ V.toList srcids)])
 
 
 -- Constructors ---------------------------------------------------------------
@@ -133,8 +144,8 @@ elementsUSSegd = V.sum . ussegd_lengths
 
 -- O(1).
 -- Get the length, starting index, and source id of a segment.
-getSegOfUSSegd :: Int -> USSegd -> (Int, Int, Int)
-getSegOfUSSegd ix (USSegd lengths starts sourceids)
+getSegOfUSSegd :: USSegd -> Int -> (Int, Int, Int)
+getSegOfUSSegd (USSegd lengths starts sourceids) ix
  =      ( lengths   V.! ix
         , starts    V.! ix
         , sourceids V.! ix)
