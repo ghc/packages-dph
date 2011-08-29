@@ -2,15 +2,10 @@
 module Data.Array.Parallel.Unlifted.Distributed.Basics (
   eqD, neqD, toD, fromD
 ) where
-import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, gangSize)
-import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, indexD, newD, writeMD,
-  checkGangD)
-import Data.Array.Parallel.Unlifted.Distributed.Combinators (
-  zipWithD)
-import Data.Array.Parallel.Unlifted.Distributed.Scalars (
-  andD, orD)
+import Data.Array.Parallel.Unlifted.Distributed.Gang 
+import Data.Array.Parallel.Unlifted.Distributed.Types
+import Data.Array.Parallel.Unlifted.Distributed.Combinators 
+import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Control.Monad ( zipWithM_ )
 
 

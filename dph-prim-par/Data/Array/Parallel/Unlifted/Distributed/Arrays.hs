@@ -15,18 +15,12 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
 import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
-import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, gangSize, seqGang)
-import Data.Array.Parallel.Unlifted.Distributed.DistST (
-  DistST, stToDistST, myIndex )
-import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, mkDPrim, indexD, lengthD, newD, writeMD, zipD, unzipD, fstD, sndD,
-  elementsUSegdD,
-  checkGangD)
+import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.DistST
+import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
-import Data.Array.Parallel.Unlifted.Distributed.Scalars (
-  sumD)
+import Data.Array.Parallel.Unlifted.Distributed.Scalars
 
 import Data.Bits ( shiftR )
 import Control.Monad ( when )

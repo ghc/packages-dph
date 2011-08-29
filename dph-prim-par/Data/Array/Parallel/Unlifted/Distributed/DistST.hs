@@ -11,11 +11,9 @@ module Data.Array.Parallel.Unlifted.Distributed.DistST (
   DistST, stToDistST, distST_, distST, runDistST, runDistST_seq, traceDistST,
   myIndex, myD, readMyMD, writeMyMD
 ) where
-import Data.Array.Parallel.Base (
-  ST, runST)
+import Data.Array.Parallel.Base (ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT(..), Dist, MDist)
+import Data.Array.Parallel.Unlifted.Distributed.Types (DT(..), Dist, MDist)
 
 import Control.Monad (liftM)
 

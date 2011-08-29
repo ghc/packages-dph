@@ -12,12 +12,8 @@ module Data.Array.Parallel.Unlifted.Distributed.Combinators (
   mapDST_, mapDST, zipWithDST_, zipWithDST
 ) where
 import Data.Array.Parallel.Base ( ST, runST)
-import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, gangSize)
-import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, MDist, indexD, zipD, unzipD, fstD, sndD, deepSeqD,
-  newMD, writeMD, unsafeFreezeMD,
-  checkGangD, measureD, debugD)
+import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.DistST
 import Debug.Trace
 

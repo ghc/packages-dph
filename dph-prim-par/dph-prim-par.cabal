@@ -25,6 +25,13 @@ Library
         Data.Array.Parallel.Unlifted.Distributed.Scalars
         Data.Array.Parallel.Unlifted.Distributed.Arrays
         Data.Array.Parallel.Unlifted.Distributed.Basics
+        Data.Array.Parallel.Unlifted.Distributed.Types.USegd
+        Data.Array.Parallel.Unlifted.Distributed.Types.Vector
+        Data.Array.Parallel.Unlifted.Distributed.Types.Maybe
+        Data.Array.Parallel.Unlifted.Distributed.Types.Tuple
+        Data.Array.Parallel.Unlifted.Distributed.Types.Prim
+        Data.Array.Parallel.Unlifted.Distributed.Types.Unit
+        Data.Array.Parallel.Unlifted.Distributed.Types.Base
         Data.Array.Parallel.Unlifted.Parallel.Combinators
         Data.Array.Parallel.Unlifted.Parallel.Sums
         Data.Array.Parallel.Unlifted.Parallel.Basics
