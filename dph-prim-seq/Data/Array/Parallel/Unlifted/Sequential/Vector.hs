@@ -54,7 +54,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   maxIndexBy, minIndexBy,
 
   -- * Arrays of pairs
-  zip, unzip, fsts, snds,
+  zip,  unzip, fsts, snds,
+  zip3, unzip3,
 
   -- * Enumerations
   enumFromTo, enumFromThenTo, enumFromStepLen, enumFromToEach, enumFromStepLenEach,
@@ -83,7 +84,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Base ( Tag, checkEq, ST )
 
-import Data.Vector.Unboxed hiding ( slice, zip, unzip, foldl, foldl1, scanl, scanl1 )
+import Data.Vector.Unboxed 
+        hiding ( slice, zip, unzip, zip3, unzip3, foldl, foldl1, scanl, scanl1 )
+
 import qualified Data.Vector.Unboxed as V
 import qualified Data.Vector.Unboxed.Mutable as M
 import qualified Data.Vector.Unboxed.Base as VBase
@@ -96,18 +99,20 @@ import qualified Data.Vector.Generic.New as New
 import qualified Data.Vector.Fusion.Stream as S
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size ( Size(..) )
-import Prelude hiding ( length, null,
-                        replicate, (++), repeat,
-                        tail, take, drop, splitAt,
-                        reverse,
-                        map, zipWith, zipWith3, filter,
-                        foldl, foldl1, scanl, scanl1,
-                        elem, notElem,
-                        and, or, any, all,
-                        sum, product,
-                        maximum, minimum,
-                        zip, unzip,
-                        enumFromTo, enumFromThenTo )
+
+import Prelude 
+        hiding ( length, null,
+                replicate, (++), repeat,
+                tail, take, drop, splitAt,
+                reverse,
+                map, zipWith, zipWith3, filter,
+                foldl, foldl1, scanl, scanl1,
+                elem, notElem,
+                and, or, any, all,
+                sum, product,
+                maximum, minimum,
+                zip, unzip, zip3, unzip3,
+                enumFromTo, enumFromThenTo )
 import qualified Prelude
 import qualified System.Random as R
 import Foreign hiding ( new )
@@ -347,6 +352,18 @@ unzip ps = V.unzip ps
   G.stream (zip xs ys) = S.zip (G.stream xs) (G.stream ys)
 
   #-}
+
+
+zip3    :: (Unbox a, Unbox b, Unbox c)
+        => Vector a -> Vector b -> Vector c -> Vector (a,b,c)
+{-# INLINE_STREAM zip3 #-}
+zip3 !xs !ys !zs = V.zip3 xs ys zs
+
+
+unzip3  :: (Unbox a, Unbox b, Unbox c)
+        => Vector (a,b,c) -> (Vector a, Vector b, Vector c)
+{-# INLINE_STREAM unzip3 #-}
+unzip3 ps = V.unzip3 ps
 
 
 enumFromStepLen :: Int -> Int -> Int -> Vector Int

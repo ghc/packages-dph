@@ -41,6 +41,8 @@ zip                     = Seq.zip
 unzip                   = Seq.unzip
 fsts                    = Seq.fsts
 snds                    = Seq.snds
+zip3                    = Seq.zip3
+unzip3                  = Seq.unzip3
 (!:)                    = (Seq.!)
 
 elementsSel2_0          = elementsUPSel2_0

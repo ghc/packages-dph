@@ -227,6 +227,17 @@ snds :: (Elt a, Elt b) => Array (a, b) -> Array b
 {-# INLINE_BACKEND snds #-}
 
 
+-- | O(1). Takes three arrays and returns an array of corresponding triples.
+--         If one array is short, excess elements of the longer array are discarded.
+zip3 :: (Elt a, Elt b, Elt c) => Array a -> Array b -> Array c -> Array (a, b, c)
+{-# INLINE CONLIKE PHASE_BACKEND zip3 #-}
+
+
+-- | O(1).
+unzip3 :: (Elt a, Elt b, Elt c) => Array (a, b, c) -> (Array a, Array b, Array c)
+{-# INLINE_BACKEND unzip3 #-}
+
+
 -- Maps and zipWith -----------------------------------------------------------
 -- | Apply a worker function to each element of an array, yielding a new array.
 map     :: (Elt a, Elt b)

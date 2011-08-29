@@ -9,7 +9,10 @@ module Data.Array.Parallel.Unlifted.Distributed.Types (
   DT, Dist, MDist, DPrim(..),
 
   -- * Operations on immutable distributed types
-  indexD, unitD, zipD, unzipD, fstD, sndD, lengthD,
+  indexD, unitD, 
+  zipD,  unzipD, fstD, sndD, 
+  zip3D, unzip3D, 
+  lengthD,
   newD,
   -- zipSD, unzipSD, fstSD, sndSD,
   deepSeqD,
@@ -385,6 +388,60 @@ fstD = fst . unzipD
 sndD :: (DT a, DT b) => Dist (a,b) -> Dist b
 {-# INLINE_DIST sndD #-}
 sndD = snd . unzipD
+
+
+-- Triples --------------------------------------------------------------------
+instance (DT a, DT b, DT c) => DT (a,b,c) where
+  data Dist  (a,b,c)   = DProd3  !(Dist a)    !(Dist b)    !(Dist c)
+  data MDist (a,b,c) s = MDProd3 !(MDist a s) !(MDist b s) !(MDist c s)
+
+  indexD (DProd3 xs ys zs) i
+   = ( xs `indexD` i
+     , ys `indexD` i
+     , zs `indexD` i)
+
+  newMD g
+   = liftM3 MDProd3 (newMD g) (newMD g) (newMD g)
+
+  readMD  (MDProd3 xs ys zs) i
+   = liftM3 (,,) (readMD xs i) (readMD ys i) (readMD zs i)
+
+  writeMD (MDProd3 xs ys zs) i (x,y,z)
+   =  writeMD xs i x
+   >> writeMD ys i y
+   >> writeMD zs i z
+
+  unsafeFreezeMD (MDProd3 xs ys zs)
+   = liftM3 DProd3 (unsafeFreezeMD xs) (unsafeFreezeMD ys) (unsafeFreezeMD zs)
+
+  {-# INLINE deepSeqD #-}
+  deepSeqD (x,y,z) k 
+   = deepSeqD x (deepSeqD y (deepSeqD z k))
+
+  sizeD  (DProd3  x _ _) = sizeD  x
+  sizeMD (MDProd3 x _ _) = sizeMD x
+
+  measureD (x,y,z)
+   = "Triple " 
+        ++ "(" ++ measureD x ++ ") "
+        ++ "(" ++ measureD y ++ ") "
+        ++ "(" ++ measureD z ++ ")"
+
+
+-- | Pairing of distributed values.
+-- /The two values must belong to the same/ 'Gang'.
+zip3D   :: (DT a, DT b, DT c) => Dist a -> Dist b -> Dist c -> Dist (a,b,c)
+{-# INLINE [0] zip3D #-}
+zip3D !x !y !z
+        = checkEq (here "zip3DT") "Size mismatch" (sizeD x) (sizeD y) 
+        $ checkEq (here "zip3DT") "Size mismatch" (sizeD x) (sizeD z) 
+        $ DProd3 x y z
+
+
+-- | Unpairing of distributed values.
+unzip3D  :: (DT a, DT b, DT c) => Dist (a,b,c) -> (Dist a, Dist b, Dist c)
+{-# INLINE_DIST unzip3D #-}
+unzip3D (DProd3 dx dy dz) = (dx,dy,dz)
 
 
 -- Maybe ----------------------------------------------------------------------

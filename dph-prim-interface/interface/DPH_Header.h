@@ -37,7 +37,8 @@ module Data.Array.Parallel.Unlifted (
   map, zipWith, zipWith3, zipWith4,
 
   -- * Zipping and Unzipping
-  zip, unzip, fsts, snds,
+  zip,  unzip, fsts, snds,
+  zip3, unzip3,
     
   -- * Folds
   fold, fold1,
