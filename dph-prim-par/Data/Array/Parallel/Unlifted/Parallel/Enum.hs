@@ -21,25 +21,25 @@ delay_inline x = x
 
 enumFromToUP :: (Unbox a, Enum a) => a -> a -> Vector a
 {-# INLINE enumFromToUP #-}
-enumFromToUP start end = mapUP toEnum (enumFromStepLenUP start' 1 len)
-  where
-    start' = fromEnum start
-    end'   = fromEnum end
-    len    = delay_inline max (end' - start' + 1) 0
+enumFromToUP start end 
+ = mapUP toEnum (enumFromStepLenUP start' 1 len)
+ where  start' = fromEnum start
+        end'   = fromEnum end
+        len    = delay_inline max (end' - start' + 1) 0
 
 
 enumFromThenToUP :: (Unbox a, Enum a) => a -> a -> a -> Vector a
 {-# INLINE enumFromThenToUP #-}
-enumFromThenToUP start next end =
-  mapUP toEnum (enumFromStepLenUP start' delta len)
-  where
-    start' = fromEnum start
-    next'  = fromEnum next
-    end'   = fromEnum end
-    delta  = next' - start'
-    -- distance between start' and end' expressed in deltas
-    dist   = (end' - start' + delta) `divInt` delta
-    len    = max dist 0
+enumFromThenToUP start next end 
+ = mapUP toEnum (enumFromStepLenUP start' delta len)
+ where  start' = fromEnum start
+        next'  = fromEnum next
+        end'   = fromEnum end
+        delta  = next' - start'
+
+        -- distance between start' and end' expressed in deltas
+        dist   = (end' - start' + delta) `divInt` delta
+        len    = max dist 0
 
 
 enumFromStepLenUP :: Int -> Int -> Int -> Vector Int

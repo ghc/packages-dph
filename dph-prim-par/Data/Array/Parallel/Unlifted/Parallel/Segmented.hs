@@ -56,11 +56,9 @@ replicateRSUP n xs
 -- | Segmented append.
 appendSUP
         :: Unbox a
-        => UPSegd       -- ^ segment descriptor of result array
-        -> UPSegd       -- ^ segment descriptor of first array
-        -> Vector a     -- ^ data of first array
-        -> UPSegd       -- ^ segment descriptor of second array
-        -> Vector a     -- ^ data of first array
+        => UPSegd               -- ^ segment descriptor of result array
+        -> UPSegd -> Vector a   -- ^ segd/data of first array
+        -> UPSegd -> Vector a   -- ^ segd/data of second array
         -> Vector a
 
 {-# INLINE_UP appendSUP #-}

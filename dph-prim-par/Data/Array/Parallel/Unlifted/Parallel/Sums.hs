@@ -21,10 +21,12 @@ orUP :: Vector Bool -> Bool
 {-# INLINE orUP #-}
 orUP = foldUP (||) False
 
+
 -- | Check whether all the elements in a array meet the given predicate.
 allUP :: Unbox e => (e -> Bool) -> Vector e -> Bool
 {-# INLINE allUP #-}
 allUP p = andUP . mapUP p
+
 
 -- | Check whether any of the elements in a array meet the given predicate.
 anyUP :: Unbox e => (e -> Bool) -> Vector e -> Bool
@@ -50,7 +52,7 @@ maximumUP :: (DT e, Ord e, Unbox e) => Vector e -> e
 maximumUP = fold1UP max
 
 
---  |Determine the maximum element in an array under the given ordering
+-- | Determine the maximum element in an array under the given ordering
 maximumByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> e
 {-# INLINE maximumByUP #-}
 maximumByUP = fold1UP . maxBy
@@ -59,8 +61,7 @@ maximumByUP = fold1UP . maxBy
                           LT -> y
                           _  -> x
 
--- | Determine the index of the maximum element in an array under the given
---   ordering
+-- | Determine the index of the maximum element in an array under the given ordering
 maximumIndexByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> Int
 {-# INLINE maximumIndexByUP #-}
 maximumIndexByUP cmp = fst . maximumByUP cmp' . indexedUP

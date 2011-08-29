@@ -10,6 +10,9 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 
 
+-- | Drop a the element at the provided index from a vector.
 dropUP :: Unbox e => Int -> Vector e -> Vector e
-dropUP n xs = Seq.slice xs (min (max 0 n) (Seq.length xs)) (min (Seq.length xs) (Seq.length xs - n)) 
 {-# INLINE_U dropUP #-}
+dropUP n xs 
+        = Seq.slice xs  (min (max 0 n)       (Seq.length xs))
+                        (min (Seq.length xs) (Seq.length xs - n)) 
