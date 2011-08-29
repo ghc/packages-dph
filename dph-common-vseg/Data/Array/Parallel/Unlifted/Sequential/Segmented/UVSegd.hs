@@ -12,6 +12,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         emptyUVSegd,
         singletonUVSegd,
         promoteUSegdToUVSegd,
+        promoteUSSegdToUVSegd,
         
         -- * Projections
         lengthUVSegd,
@@ -102,6 +103,17 @@ singletonUVSegd n
 
 
 -- | O(segs). 
+--   Promote a plain USSegd to a UVSegd
+--   The result contains one virtual segment for every physical segment
+--   the provided USSegd.
+--
+promoteUSSegdToUVSegd :: USSegd -> UVSegd
+{-# INLINE promoteUSSegdToUVSegd #-}
+promoteUSSegdToUVSegd ussegd
+        = UVSegd (V.enumFromTo 0 (lengthUSSegd ussegd - 1))
+                 ussegd
+
+-- | O(segs). 
 --   Promote a plain USegd to a UVSegd
 --   All segments are assumed to come from a flat array with sourceid 0.
 --   The result contains one virtual segment for every physical segment
@@ -109,10 +121,10 @@ singletonUVSegd n
 --
 promoteUSegdToUVSegd :: USegd -> UVSegd
 {-# INLINE promoteUSegdToUVSegd #-}
-promoteUSegdToUVSegd usegd
-        = UVSegd (V.enumFromTo 0 (lengthUSegd usegd - 1))
-                 (promoteUSegdToUSSegd usegd)
-
+promoteUSegdToUVSegd
+        = promoteUSSegdToUVSegd
+        . promoteUSegdToUSSegd
+        
 
 -- Projections ----------------------------------------------------------------
 lengthUVSegd :: UVSegd -> Int
@@ -223,7 +235,7 @@ appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
-        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+        vsegids2' = V.map (+ lengthUSSegd ussegd1) vsegids2
         
         -- append the vsegids
         vsegids'  = vsegids1 V.++ vsegids2'
