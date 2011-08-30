@@ -24,6 +24,7 @@ Library
         Data.Array.Parallel.Unlifted.Distributed.Combinators
         Data.Array.Parallel.Unlifted.Distributed.Scalars
         Data.Array.Parallel.Unlifted.Distributed.Arrays
+        Data.Array.Parallel.Unlifted.Distributed.USegd
         Data.Array.Parallel.Unlifted.Distributed.Basics
         Data.Array.Parallel.Unlifted.Distributed.Types.USegd
         Data.Array.Parallel.Unlifted.Distributed.Types.Vector
