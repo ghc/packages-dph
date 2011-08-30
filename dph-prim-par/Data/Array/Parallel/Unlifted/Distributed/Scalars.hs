@@ -1,22 +1,20 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
--- | Distributed scalars.
+
+-- | Operations on distributed scalars.
 --   With a distributed value like (Dist Int), each thread has its own integer, 
 --   which may or may not have the same values as the ones on other threads.
 module Data.Array.Parallel.Unlifted.Distributed.Scalars (
-  unitD, scalarD,
+  scalarD,
   orD, andD, sumD
 ) where
-
-import Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang)
-import Data.Array.Parallel.Unlifted.Distributed.Types (
-  DT, Dist, unitD)
-import Data.Array.Parallel.Unlifted.Distributed.Combinators (
-  mapD, foldD)
+import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Types
+import Data.Array.Parallel.Unlifted.Distributed.Combinators
 
 
 -- | Distribute a scalar.
 --   Each thread gets its own copy of the same value.
+--   Example:  scalarD theGangN4 10 = [10, 10, 10, 10] 
 scalarD :: DT a => Gang -> a -> Dist a
 scalarD g x = mapD g (const x) (unitD g)
 

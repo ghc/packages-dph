@@ -26,7 +26,6 @@ neqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
 neqD g dx dy = orD g (zipWithD g (/=) dx dy)
 
 
-
 -- | Generate a distributed value from the first @p@ elements of a list.
 --   /NOTE:/ For debugging only, don't use in production code.
 toD :: DT a => Gang -> [a] -> Dist a

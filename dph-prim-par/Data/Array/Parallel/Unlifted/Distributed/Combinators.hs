@@ -20,14 +20,21 @@ import Data.Array.Parallel.Unlifted.Distributed.DistST
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 
--- | Create a distributed value, given a function that makes the value in each thread.
+-- | Create a distributed value, given a function to create the instance
+--   for each thread.
 generateD :: DT a => Gang -> (Int -> a) -> Dist a
 {-# NOINLINE generateD #-}
 generateD g f 
         = runDistST g (myIndex >>= return . f)
 
 
--- | Create a distributed value, but run it sequentially (I think?)
+-- | Create a distributed value, but do it sequentially.
+--  
+--   This function is used when we want to operate on a distributed value, but
+--   there isn't much data involved. For example, if we want to distribute 
+--   a single integer to each thread, then there's no need to fire up the 
+--   gang for this.
+--   
 generateD_cheap :: DT a => Gang -> (Int -> a) -> Dist a
 {-# NOINLINE generateD_cheap #-}
 generateD_cheap g f 
@@ -48,17 +55,25 @@ imapD g f d = imapD' g (\i x -> x `deepSeqD` f i x) d
 --   The worker function also gets the current thread index.
 imapD' :: (DT a, DT b) => Gang -> (Int -> a -> b) -> Dist a -> Dist b
 {-# NOINLINE imapD' #-}
-imapD' g f !d = checkGangD (here "imapD") g d
-                (runDistST g (do
-                                i <- myIndex
-                                x <- myD d
-                                return (f i x)))
+imapD' g f !d 
+  = checkGangD (here "imapD") g d
+  $ runDistST g 
+        (do i <- myIndex
+            x <- myD d
+            return (f i x))
 
 
--- | Map a function over a distributed value.
+-- | Map a function to every instance of a distributed value.
+--
+--   NOTE: this applies the function to every thread, but not every value hold
+--         by the thread. If you want that then use something like:
+-- 
+--   @mapD theGang (V.map (+ 1)) :: Dist (Vector Int) -> Dist (Vector Int)@
+--
 mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
 {-# INLINE mapD #-}
 mapD g = imapD g . const
+
 
 {-# RULES
 
@@ -110,11 +125,12 @@ izipWithD g f dx dy = imapD g (\i -> uncurry (f i)) (zipD dx dy)
 
 
 -- Folding --------------------------------------------------------------------
--- | Fold a distributed value.
+-- | Fold all the instances of a distributed value.
 foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
 {-# NOINLINE foldD #-}
-foldD g f !d = checkGangD ("here foldD") g d $
-              fold 1 (d `indexD` 0)
+foldD g f !d 
+  = checkGangD ("here foldD") g d 
+  $ fold 1 (d `indexD` 0)
   where
     !n = gangSize g
     --
@@ -122,42 +138,53 @@ foldD g f !d = checkGangD ("here foldD") g d $
              | otherwise = fold (i+1) (f x $ d `indexD` i)
 
 
--- | Prefix sum of a distributed value.
+-- | Prefix sum of the instances of a distributed value.
 scanD :: forall a. DT a => Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
 {-# NOINLINE scanD #-}
-scanD g f z !d = checkGangD (here "scanD") g d $
-                 runST (do
-                   md <- newMD g
-                   s  <- scan md 0 z
-                   d' <- unsafeFreezeMD md
-                   return (d',s))
+scanD g f z !d
+  = checkGangD (here "scanD") g d 
+  $ runST (do
+          md <- newMD g
+          s  <- scan md 0 z
+          d' <- unsafeFreezeMD md
+          return (d',s))
   where
     !n = gangSize g
+    
     scan :: forall s. MDist a s -> Int -> a -> ST s a
-    scan md i !x | i == n    = return x
-                 | otherwise = do
-                                 writeMD md i x
-                                 scan md (i+1) (f x $ d `indexD` i)
+    scan md i !x
+        | i == n    = return x
+        | otherwise
+        = do    writeMD md i x
+                scan md (i+1) (f x $ d `indexD` i)
+
 
 -- | Combination of map and fold.
-mapAccumLD :: forall a b acc. (DT a, DT b)
-           => Gang -> (acc -> a -> (acc,b))
-                   -> acc -> Dist a -> (acc,Dist b)
+mapAccumLD 
+        :: forall a b acc. (DT a, DT b)
+        => Gang
+        -> (acc -> a      -> (acc, b))
+        ->  acc -> Dist a -> (acc, Dist b)
+
 {-# INLINE_DIST mapAccumLD #-}
-mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
-                        runST (do
-                          md   <- newMD g
-                          acc' <- go md 0 acc
-                          d'   <- unsafeFreezeMD md
-                          return (acc',d'))
+mapAccumLD g f acc !d
+  = checkGangD (here "mapAccumLD") g d 
+  $ runST (do
+        md   <- newMD g
+        acc' <- go md 0 acc
+        d'   <- unsafeFreezeMD md
+        return (acc',d'))
   where
     !n = gangSize g
+    
     go :: MDist b s -> Int -> acc -> ST s acc
-    go md i acc' | i == n    = return acc'
-                 | otherwise = case f acc' (d `indexD` i) of
-                                (acc'',b) -> do
-                                              writeMD md i b
-                                              go md (i+1) acc''
+    go md i acc'
+        | i == n    = return acc'
+        | otherwise
+        = case f acc' (d `indexD` i) of
+                (acc'',b) -> do
+                      writeMD md i b
+                      go md (i+1) acc''
                                 
 
 -- Versions that work on DistST -----------------------------------------------

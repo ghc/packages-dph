@@ -5,13 +5,17 @@
 
 -- | Operations on distributed arrays.
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
+  -- * Distribution phantom parameter
+  Distribution, balanced, unbalanced,
+
+  -- * Array Lengths
   lengthD, splitLenD, splitLenIdxD,
+  
   splitAsD, splitD, joinLengthD, joinD, splitJoinD, joinDM,
   splitSegdD, splitSegdD', joinSegdD, splitSD,
 
-  permuteD, bpermuteD, atomicUpdateD,
+  permuteD, bpermuteD, atomicUpdateD
 
-  Distribution, balanced, unbalanced
 ) where
 import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
@@ -20,14 +24,11 @@ import Data.Array.Parallel.Unlifted.Distributed.DistST
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector   (Vector, MVector, Unbox, (!))
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
-
-import Data.Bits ( shiftR )
+import Data.Bits     ( shiftR )
 import Control.Monad ( when )
-
-import GHC.Base ( quotInt, remInt )
+import GHC.Base      ( quotInt, remInt )
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." Prelude.++ s
 
@@ -40,7 +41,7 @@ data Distribution
 
 balanced :: Distribution
 {-# NOINLINE balanced #-}
-balanced = error $ here "balanced: touched"
+balanced   = error $ here "balanced: touched"
 
 unbalanced :: Distribution
 {-# NOINLINE unbalanced #-}
@@ -48,25 +49,37 @@ unbalanced = error $ here "unbalanced: touched"
 
 
 -- Splitting and Joining array lengths ----------------------------------------
--- | Distribute an array length over a 'Gang'.
+-- | O(threads).
+--   Distribute an array length over a 'Gang'.
 --   Each thread holds the number of elements it's reponsible for.
+--   If the array length doesn't split evenly among the threads then the first
+--   threads get a few more elements.
+--
+--   @splitLenD theGangN4 511
+--      = [128,128,128,127]@
+-- 
 splitLenD :: Gang -> Int -> Dist Int
 {-# INLINE splitLenD #-}
 splitLenD g n = generateD_cheap g len
   where
     !p = gangSize g
     !l = n `quotInt` p
-    !m = n `remInt` p
+    !m = n `remInt`  p
 
     {-# INLINE [0] len #-}
     len i | i < m     = l+1
           | otherwise = l
 
 
--- | Distribute an array length over a 'Gang'.
+-- | O(threads).
+--   Distribute an array length over a 'Gang'.
 --   Each thread holds the number of elements it's responsible for, 
 --   and the index of the start of its chunk.
-splitLenIdxD :: Gang -> Int -> Dist (Int,Int)
+--
+--   @splitLenIdxD theGangN4 511 
+--      = [(128,0),(128,128),(128,256),(127,384)]@
+--
+splitLenIdxD :: Gang -> Int -> Dist (Int, Int)
 {-# INLINE splitLenIdxD #-}
 splitLenIdxD g n = generateD_cheap g len_idx
   where
@@ -79,8 +92,10 @@ splitLenIdxD g n = generateD_cheap g len_idx
               | otherwise = (l,   i*l + m)
 
 
--- | Get the overall length of a distributed array.
---   We ask each thread for its chunk length, and sum them all up.
+-- | O(threads).
+--   Get the overall length of a distributed array.
+--   This is implemented by reading the chunk length from each thread, 
+--   and summing them up.
 joinLengthD :: Unbox a => Gang -> Dist (Vector a) -> Int
 {-# INLINE joinLengthD #-}
 joinLengthD g = sumD g . lengthD
@@ -89,9 +104,14 @@ joinLengthD g = sumD g . lengthD
 -- Splitting and Joining arrays -----------------------------------------------
 -- | Distribute an array over a 'Gang' such that each threads gets the given
 --   number of elements.
+--
+--   @splitAsD theGangN4 (splitLenD theGangN4 10) [1 2 3 4 5 6 7 8 9 0]
+--      = [[1 2 3] [4 5 6] [7 8] [9 0]]@
+-- 
 splitAsD :: Unbox a => Gang -> Dist Int -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitAsD #-}
-splitAsD g dlen !arr = zipWithD (seqGang g) (Seq.slice arr) is dlen
+splitAsD g dlen !arr 
+  = zipWithD (seqGang g) (Seq.slice arr) is dlen
   where
     is = fst $ scanD g (+) 0 dlen
 
@@ -100,15 +120,17 @@ splitAsD g dlen !arr = zipWithD (seqGang g) (Seq.slice arr) is dlen
 --
 --   NOTE: This is defined in terms of splitD_impl to avoid introducing loops
 --         through RULES. Without it, splitJoinD would be a loop breaker.
+-- 
 splitD :: Unbox a => Gang -> Distribution -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitD #-}
 splitD g _ arr = splitD_impl g arr
 
 splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitD_impl #-}
-splitD_impl g !arr = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
+splitD_impl g !arr 
+  = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
   where
-    n = Seq.length arr
+    n  = Seq.length arr
     !p = gangSize g
     !l = n `quotInt` p
     !m = n `remInt` p
@@ -123,19 +145,24 @@ splitD_impl g !arr = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
 
 
 -- | Join a distributed array.
+--   Join sums up the array lengths of each chunk, allocates a new result array, 
+--   and copies each chunk into the result.
 --
 --   NOTE: This is defined in terms of joinD_impl to avoid introducing loops
 --         through RULES. Without it, splitJoinD would be a loop breaker.
+--
 joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
 {-# INLINE CONLIKE [1] joinD #-}
 joinD g _ darr  = joinD_impl g darr
 
 joinD_impl :: forall a. Unbox a => Gang -> Dist (Vector a) -> Vector a
 {-# INLINE_DIST joinD_impl #-}
-joinD_impl g !darr = checkGangD (here "joinD") g darr $
-                     Seq.new n (\ma -> zipWithDST_ g (copy ma) di darr)
+joinD_impl g !darr 
+  = checkGangD (here "joinD") g darr 
+  $ Seq.new n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
-    (!di,!n) = scanD g (+) 0 $ lengthD darr
+    (!di,!n)      = scanD g (+) 0 $ lengthD darr
+
     copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
     copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 
