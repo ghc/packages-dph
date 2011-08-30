@@ -23,7 +23,7 @@ instance (DT a, DT b) => DT (a,b) where
   data MDist (a,b) s = MDProd !(MDist a s) !(MDist b s)
 
   indexD d i
-   = (fstD d `indexD` i,sndD d `indexD` i)
+   = (fstD d `indexD` i, sndD d `indexD` i)
 
   newMD g
    = liftM2 MDProd (newMD g) (newMD g)

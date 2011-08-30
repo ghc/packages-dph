@@ -1,3 +1,5 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+
 -- | Basic operations on distributed types.
 module Data.Array.Parallel.Unlifted.Distributed.Basics (
   eqD, neqD, toD, fromD

@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Distributed scalars.
 --   With a distributed value like (Dist Int), each thread has its own integer, 
 --   which may or may not have the same values as the ones on other threads.

@@ -41,8 +41,8 @@ import Data.Array.Parallel.Pretty
 --   Or alternatively: represents an index space transformation between
 --   indices for the nested array and indices for the physical data.
 --   
---   TODO: It'd probably be better to represent the vsegids as a lens instead
---         of a vector of segids. Much of the time the vsegids are just [0..n] 
+--   TODO: It'd probably be better to represent the vsegids as a lens (function)
+--         instead of a vector of segids. Much of the time the vsegids are just [0..n] 
 --
 data UVSegd 
         = UVSegd 

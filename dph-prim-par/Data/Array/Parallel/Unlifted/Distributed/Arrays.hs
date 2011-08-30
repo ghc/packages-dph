@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE EmptyDataDecls, ScopedTypeVariables #-}
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
@@ -6,21 +7,22 @@
 module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   lengthD, splitLenD, splitLenIdxD,
   splitAsD, splitD, joinLengthD, joinD, splitJoinD, joinDM,
-  splitSegdD, splitSegdD', splitSD,
+  splitSegdD, splitSegdD', joinSegdD, splitSD,
 
   permuteD, bpermuteD, atomicUpdateD,
 
   Distribution, balanced, unbalanced
 ) where
 import Data.Array.Parallel.Base ( ST, runST)
-import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Distributed.DistST
 import Data.Array.Parallel.Unlifted.Distributed.Types
-import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
+
+import Data.Array.Parallel.Unlifted.Sequential.Vector   (Vector, MVector, Unbox, (!))
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
 import Data.Bits ( shiftR )
 import Control.Monad ( when )
@@ -135,7 +137,7 @@ joinD_impl g !darr = checkGangD (here "joinD") g darr $
   where
     (!di,!n) = scanD g (+) 0 $ lengthD darr
     copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
-    copy ma i arr = stToDistST (Seq.copy (mslice i (Seq.length arr) ma) arr)
+    copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 
 
 -- | Split a vector over a gang, run a distributed computation, then
@@ -162,7 +164,7 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
   where
     (!di,!n) = scanD g (+) 0 $ lengthD darr
     --
-    copy ma i arr = stToDistST (Seq.copy (mslice i (Seq.length arr) ma) arr)
+    copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 
 
 {-# RULES
@@ -246,14 +248,14 @@ splitSegdD g !segd = mapD g lengthsToUSegd
                    $ splitAsD g d lens
   where
     !d = snd
-       . mapAccumLD g chunk 0
+       . mapAccumLD g chunks 0
        . splitLenD g
        $ elementsUSegd segd
 
     n    = lengthUSegd segd
     lens = lengthsUSegd segd
 
-    chunk !i !k = let !j = go i k
+    chunks !i !k = let !j = go i k
                   in (j,j-i)
 
     go !i !k | i >= n    = i
@@ -322,9 +324,10 @@ splitSegdD' g !segd = imapD g mk
                      (# lens, l, o #) -> ((lengthsToUSegd lens,l),o)
 
 
-joinSegD :: Gang -> Dist USegd -> USegd
-{-# INLINE_DIST joinSegD #-}
-joinSegD g = lengthsToUSegd
+
+joinSegdD :: Gang -> Dist USegd -> USegd
+{-# INLINE_DIST joinSegdD #-}
+joinSegdD g = lengthsToUSegd
            . joinD g unbalanced
            . mapD g lengthsUSegd
 

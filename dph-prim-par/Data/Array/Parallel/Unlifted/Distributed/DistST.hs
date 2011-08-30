@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Distributed ST computations.
 --
@@ -44,7 +45,7 @@ myIndex = DistST return
 --   The lifted computation should be data parallel.
 stToDistST :: ST s a -> DistST s a
 {-# INLINE stToDistST #-}
-stToDistST p = DistST $ \i -> p
+stToDistST p = DistST $ \_ -> p
 
 
 -- | Yields the 'Dist' element owned by the current thread.

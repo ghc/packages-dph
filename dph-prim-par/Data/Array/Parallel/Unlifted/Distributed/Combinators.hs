@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
@@ -15,11 +16,9 @@ import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.DistST
-import Debug.Trace
 
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
-
 
 -- | Create a distributed value, given a function that makes the value in each thread.
 generateD :: DT a => Gang -> (Int -> a) -> Dist a
@@ -154,11 +153,11 @@ mapAccumLD g f acc !d = checkGangD (here "mapAccumLD") g d $
   where
     !n = gangSize g
     go :: MDist b s -> Int -> acc -> ST s acc
-    go md i acc | i == n    = return acc
-                | otherwise = case f acc (d `indexD` i) of
-                                (acc',b) -> do
+    go md i acc' | i == n    = return acc'
+                 | otherwise = case f acc' (d `indexD` i) of
+                                (acc'',b) -> do
                                               writeMD md i b
-                                              go md (i+1) acc'
+                                              go md (i+1) acc''
                                 
 
 -- Versions that work on DistST -----------------------------------------------

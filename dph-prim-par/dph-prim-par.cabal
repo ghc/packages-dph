@@ -47,7 +47,7 @@ Library
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators
-  GHC-Options: -Odph -funbox-strict-fields -fcpr-off
+  GHC-Options: -Odph -funbox-strict-fields -fcpr-off -Werror
 
   Build-Depends:  
         base     == 4.4.*,

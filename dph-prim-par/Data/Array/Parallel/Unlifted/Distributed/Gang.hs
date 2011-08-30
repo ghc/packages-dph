@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
 
 -- | Gang primitives.
@@ -20,13 +21,15 @@ module Data.Array.Parallel.Unlifted.Distributed.Gang (
 import GHC.IO
 import GHC.ST
 import GHC.Conc                  ( forkOn )
-import GHC.Exts                  ( traceEvent )
-
 import Control.Concurrent.MVar
 import Control.Exception         ( assert )
-import Control.Monad             ( zipWithM, zipWithM_ )
+import Control.Monad
 
+#if TRACE_GANG
+import GHC.Exts                  ( traceEvent )
 import System.Time ( ClockTime(..), getClockTime )
+#endif 
+
 
 -- Requests and operations on them --------------------------------------------
 -- | The 'Req' type encapsulates work requests for individual members of a gang. 
@@ -53,7 +56,7 @@ newReq p
 waitReq :: Req -> IO ()
 waitReq req
  = case req of
-	ReqDo     fn varDone	-> takeMVar varDone
+	ReqDo     _ varDone	-> takeMVar varDone
 	ReqShutdown varDone	-> takeMVar varDone
 
 
@@ -159,7 +162,9 @@ gangIO	:: Gang
 	-> (Int -> IO ())
 	-> IO ()
 
-gangIO (Gang n [] busy)  p = mapM_ p [0 .. n-1]
+gangIO (Gang n [] _)  p 
+ = mapM_ p [0 .. n-1]
+
 #if SEQ_IF_GANG_BUSY
 gangIO (Gang n mvs busy) p 
  = do	traceGang   "gangIO: issuing work requests (SEQ_IF_GANG_BUSY)"
@@ -170,7 +175,7 @@ gangIO (Gang n mvs busy) p
 	 then mapM_ p [0 .. n-1]
 	 else do
 		parIO n mvs p
-		swapMVar busy False
+		_ <- swapMVar busy False
 		return ()
 #else
 gangIO (Gang n mvs busy) p = parIO n mvs p
@@ -190,7 +195,7 @@ parIO n mvs p
 	reqs	<- sequence . replicate n $ newReq p
 
 	traceGang "parIO: issuing requests"
-	zipWithM putMVar mvs reqs
+	zipWithM_ putMVar mvs reqs
 
 	traceGang "parIO: waiting for requests to complete"
 	mapM_ waitReq reqs
