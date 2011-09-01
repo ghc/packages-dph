@@ -47,7 +47,9 @@ Library
   Exposed: False
 
   Extensions: TypeFamilies, GADTs, RankNTypes,
-              BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+              BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
+              FlexibleInstances, FlexibleContexts
+
   GHC-Options: -Odph -funbox-strict-fields -fcpr-off -Werror
 
   Build-Depends:  

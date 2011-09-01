@@ -13,6 +13,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Types.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector
+import Data.Array.Parallel.Pretty
 import Control.Monad
 import Prelude                          as P
 
@@ -57,6 +58,15 @@ instance DT USegd where
 
   measureD segd 
    = "Segd " P.++ show (lengthUSegd segd) P.++ " " P.++ show (elementsUSegd segd)
+
+
+instance PprPhysical (Dist USegd) where
+ pprp (DUSegd lens indices elements)
+  =  text "DUSegd"
+  $$ (nest 7 $ vcat
+        [ text "lengths: " <+> pprp lens
+        , text "indices: " <+> pprp indices
+        , text "elements:" <+> pprp elements])
 
 
 -- | O(1). Yield the overall number of segments.

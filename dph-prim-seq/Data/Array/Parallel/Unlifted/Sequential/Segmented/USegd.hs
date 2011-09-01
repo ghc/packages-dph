@@ -14,6 +14,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   sliceUSegd, extractUSegd
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Pretty
 
 -- | Segment descriptors represent the structure of nested arrays.
 --  For each segment, it stores the length and the starting index in the flat data array.
@@ -33,6 +34,16 @@ data USegd
         , usegd_indices  :: !(Vector Int)  -- ^ starting index of each segment in the flat array
         , usegd_elements :: !Int           -- ^ total number of elements in the flat array
         }
+
+
+-- | Pretty print the physical representation of a `UVSegd`
+instance PprPhysical USegd where
+ pprp (USegd lengths indices elements)
+  =   text "USegd" 
+  $$  (nest 7 $ vcat
+        [ text "lengths: " <+> (text $ show $ V.toList lengths)
+        , text "indices: " <+> (text $ show $ V.toList indices)
+        , text "elements:" <+> (text $ show elements)])
 
 
 -- Constructors ---------------------------------------------------------------

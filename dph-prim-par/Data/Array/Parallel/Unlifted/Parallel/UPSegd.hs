@@ -64,5 +64,5 @@ mkUPSegd lens idxs n = toUPSegd (mkUSegd lens idxs n)
 
 toUPSegd :: USegd -> UPSegd
 {-# INLINE toUPSegd #-}
-toUPSegd segd = UPSegd segd (splitSegdD' theGang segd)
+toUPSegd segd = UPSegd segd (splitSegdOnElemsD theGang segd)
 

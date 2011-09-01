@@ -2,12 +2,14 @@
 
 -- | Distribution of values of primitive types.
 module Data.Array.Parallel.Unlifted.Distributed.Types.Prim (
-        DPrim(..)
-) where
+        DPrim(..), DT(..), Dist(..)
+)
+where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Base
+import Data.Array.Parallel.Pretty
 import Data.Word
 import Control.Monad
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
@@ -146,6 +148,10 @@ instance DT Int where
   sizeMD         = primSizeMD
 
   measureD n = "Int " P.++ show n
+
+instance PprPhysical (Dist Int) where
+ pprp (DInt xs)
+  =  text "DInt" <+> text (show $ V.toList xs)
 
 
 -- Word8 ----------------------------------------------------------------------

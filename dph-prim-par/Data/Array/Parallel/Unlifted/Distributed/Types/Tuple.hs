@@ -12,6 +12,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.Tuple (
 ) where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Base
+import Data.Array.Parallel.Pretty
 import Control.Monad
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Tuple." ++ s
@@ -48,6 +49,15 @@ instance (DT a, DT b) => DT (a,b) where
 
   measureD (x, y) 
    = "Pair " ++ "(" ++ measureD x ++ ") (" ++  measureD y ++ ")"
+
+
+instance (PprPhysical (Dist a), PprPhysical (Dist b)) 
+        => PprPhysical (Dist (a, b)) where
+ pprp (DProd xs ys)
+  = text "DProd"
+  $$ (nest 8 $ vcat
+        [ pprp xs
+        , pprp ys ])
 
 
 -- | Pairing of distributed values.

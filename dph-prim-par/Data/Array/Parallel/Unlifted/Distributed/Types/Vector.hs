@@ -4,9 +4,9 @@
 module Data.Array.Parallel.Unlifted.Distributed.Types.Vector
         (lengthD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Prim      ()
-import Data.Array.Parallel.Unlifted.Distributed.Types.Base
+import Data.Array.Parallel.Unlifted.Distributed.Types.Prim
 import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.Unlifted.Sequential.Vector   as V
 import qualified Data.Vector                            as BV
 import qualified Data.Vector.Mutable                    as MBV
@@ -40,6 +40,14 @@ instance Unbox a => DT (V.Vector a) where
   sizeMD (MDVector _ a) = MBV.length a
 
   measureD xs           = "Vector " P.++ show (V.length xs)
+
+
+instance (Unbox a, Show a) => PprPhysical (Dist (V.Vector a)) where
+ pprp (DVector (DInt lengths) chunks)
+  = text "DVector"
+  $$ (nest 8 $ vcat
+        [ text "lengths:" <+> (text $ show $ V.toList lengths)
+        , text "chunks: " <+> (text $ show $ BV.toList $ BV.map V.toList chunks) ])
 
 
 -- | Yield the distributed length of a distributed array.
