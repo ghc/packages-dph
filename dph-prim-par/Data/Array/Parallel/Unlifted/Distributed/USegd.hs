@@ -136,7 +136,7 @@ chunk   :: USegd          -- ^ Segment descriptor of entire array.
                           --   slice on this thread.
         -> Int            -- ^ Number of elements in this thread.
         -> Bool           -- ^ Whether this is the last thread in the gang.
-        -> (# Vector Int  -- ^  Lengths of segment slices, 
+        -> (# Vector Int  --   Lengths of segment slices, 
             , Int         --     segid of first slice,
             , Int #)      --     offset of first slice.
 
