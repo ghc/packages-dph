@@ -21,7 +21,6 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Bits     ( shiftR )
 import Control.Monad ( when )
 
-
 -------------------------------------------------------------------------------
 -- | Split a segment descriptor across the gang, segment wise.
 --   Whole segments are placed on each thread, and we try to balance out
@@ -127,10 +126,28 @@ splitSegdOnElemsD g !segd
             (# lens, l, o #) -> ((lengthsToUSegd lens, l), o)
 
 
+
 -- | Determine what elements go on a thread.
 --   The 'chunk' refers to the a chunk of the flat array, and is defined
 --   by a set of segment slices. 
 --
+--   Example:
+--    In this picture each X represents 5 elements, and we have 5 segements in total.
+--
+-- @
+--    segs:    ----------------------- --- ------- --------------- -------------------
+--    elems:  |X X X X X X X X X|X X X X X X X X X|X X X X X X X X X|X X X X X X X X X|
+--            |     thread1     |     thread2     |     thread3     |     thread4     |
+--    segid:  0                 0                 3                 4
+--    offset: 0                 45                0                 5
+--    k:               0                 1                 3                 5
+--    k':              1                 3                 5                 5
+--    left:            0                 15                0                 45
+--    right:           45                20                5                 0
+--    left_len:        0                 1                 0                 1
+--    left_off:        0                 45                0                 5
+--    n':              1                 3                 2                 1
+-- @
 chunk   :: USegd          -- ^ Segment descriptor of entire array.
         -> Int            -- ^ Starting offset into the flat array for the first
                           --   slice on this thread.
@@ -141,13 +158,13 @@ chunk   :: USegd          -- ^ Segment descriptor of entire array.
             , Int #)      --     offset of first slice.
 
 chunk !segd !nStart !nElems is_last
-  = (# lens', k-left_len, left_off #)
+  = (# lens'', k-left_len, left_off #)
   where
     -- Lengths of all segments.
     -- eg: [60, 10, 20, 40, 50]
     lens = lengthsUSegd segd
 
-    -- Starting indices of all segments.
+    -- Indices indices of all segments.
     -- eg: [0, 60, 70, 90, 130]
     idxs = indicesUSegd segd
     
@@ -155,46 +172,84 @@ chunk !segd !nStart !nElems is_last
     -- eg: 5
     n    = Seq.length lens
 
-    -- The segid of the first segment on the thread.
-    -- eg: for nStart = 75, 
-    --              k = 2   (the third seg)
-    --
+    -- Segid of the first seg that starts after the left of this chunk.
     k    = search nStart idxs
 
-    -- The segid of the first segment on the next thread.
+    -- Segid of the first seg that starts after the right of this chunk.
     k'       | is_last     = n
              | otherwise   = search (nStart + nElems) idxs
 
+    -- The length of the left-most slice of this chunk.
     left     | k == n      = nElems
              | otherwise   = min ((idxs ! k) - nStart) nElems
 
+    -- The length of the right-most slice of this chunk.
     right    | k' == k     = 0
              | otherwise   = nStart + nElems - (idxs ! (k'-1))
 
+    -- Whether the first element in this chunk is an internal element of
+    -- of a segment. Alternatively, indicates that the first element of 
+    -- the chunk is not the first element of a segment.            
     left_len | left == 0   = 0
              | otherwise   = 1
 
+    -- If the first element of the chunk starts within a segment, 
+    -- then gives the index within that segment, otherwise 0.
     left_off | left == 0   = 0
              | otherwise   = nStart - idxs ! (k-1)
 
+    -- How many segments this chunk straddles.
     n' = left_len + (k'-k)
 
+    -- Create the lengths for this chunk by first copying out the lengths
+    -- from the original segment descriptor. If the slices on the left
+    -- and right cover partial segments, then we update the corresponding
+    -- lengths.
     !lens' 
      = runST (do
+            -- Create a new array big enough to hold all the lengths for this chunk.
             mlens' <- Seq.newM n'
 
+            -- If the first element is inside a segment, 
+            --   then update the length to be the length of the slice.
             when (left /= 0) 
              $ Seq.write mlens' 0 left
 
+            -- Copy out array lengths for this chunk.
             Seq.copy (Seq.mdrop left_len mlens')
                      (Seq.slice lens k (k'-k))
 
+            -- If the last element is inside a segment, 
+            --   then update the length to be the length of the slice.
             when (right /= 0)
              $ Seq.write mlens' (n' - 1) right
 
             Seq.unsafeFreeze mlens')
 
+    !lens'' = lens'
+{-      = trace 
+        (render $ vcat
+                [ text "CHUNK"
+                , pprp segd
+                , text "nStart:  " <+> int nStart
+                , text "nElems:  " <+> int nElems
+                , text "k:       " <+> int k
+                , text "k':      " <+> int k'
+                , text "left:    " <+> int left
+                , text "right:   " <+> int right
+                , text "left_len:" <+> int left_len
+                , text "left_off:" <+> int left_off
+                , text "n':      " <+> int n'
+                , text ""]) lens'
+-}
 
+-- O(log n).
+-- Given a monotonically increasing vector of `Int`s,
+-- find the first element that is larger than the given value.
+-- 
+-- eg  search 75 [0, 60, 70, 90, 130] = 90
+--     search 43 [0, 60, 70, 90, 130] = 60
+--
 search :: Int -> Vector Int -> Int
 search !x ys = go 0 (Seq.length ys)
   where
