@@ -54,15 +54,18 @@ module Data.Array.Parallel.Unlifted (
   fold_s, fold1_s, fold_r, sum_s,  sum_r,
   
   -- * Segment Descriptors
-  Segd, mkSegd,
-  emptySSegd, singletonSSegd,
-  lengthSegd, lengthsSegd, indicesSegd, elementsSegd, lengthsToSegd,
+  Segd, mkSegd, validSegd,
+  emptySegd, singletonSegd,
+  lengthsToSegd,
+  lengthSegd, lengthsSegd, indicesSegd, elementsSegd,
   plusSegd, 
 
-  -- * Slice Segment Descriptors
+  -- * Scattered Segment Descriptors
   SSegd, mkSSegd, validSSegd,
+  emptySSegd, singletonSSegd,
   promoteSegdToSSegd,
-  lengthSSegd, lengthsSSegd, indicesSSegd, sourcesSSegd, 
+  lengthSSegd, lengthsSSegd, indicesSSegd,
+  startsSSegd, sourcesSSegd,
   getSegOfSSegd,
   appendSSegd,
   

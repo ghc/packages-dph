@@ -58,9 +58,9 @@ data UVSegd
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical UVSegd where
  pprp (UVSegd vsegids ussegd)
-  =   vcat
-  [   text "UVSegd" $$ (nest 7 $ text "vsegids:" <+> (text $ show $ V.toList vsegids))
-  ,   pprp ussegd ]
+  = vcat
+  [ text "UVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ V.toList vsegids))
+  , pprp ussegd ]
 
 
 -- Constructors ---------------------------------------------------------------
@@ -148,17 +148,24 @@ lengthUVSegd (UVSegd vsegids _)
 lengthsUVSegd :: UVSegd -> Vector Int
 {-# INLINE lengthsUVSegd #-}
 lengthsUVSegd (UVSegd vsegids ussegd)
-        = V.map ((ussegd_lengths ussegd) V.!) vsegids
+        = V.map (lengthsUSSegd ussegd V.!) vsegids
 
 
 -- | O(1).
---  Get the length, starting index, and sourceid of a segment.
+--  Get the length, starting index, and source id of a segment.
+--
+--  NOTE: We don't return the segment index field from the USSegd as this refers
+--        to the flat index relative to the SSegd array, rather than 
+--        relative to the UVSegd array. If we tried to promote the USSegd index
+--        to a UVSegd index it could overflow.
+--
 getSegOfUVSegd :: UVSegd -> Int -> (Int, Int, Int)
 {-# INLINE getSegOfUVSegd #-}
 getSegOfUVSegd (UVSegd vsegids ussegd) ix
-        = getSegOfUSSegd ussegd (vsegids V.! ix)
-        
+ = let  (length, _index, start, source) = getSegOfUSSegd ussegd (vsegids V.! ix)
+   in   (length, start, source)
 
+   
 -- Operators ------------------------------------------------------------------
 -- | TODO: automatically force out unreachable psegs here.
 updateVSegsOfUVSegd :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
@@ -180,9 +187,11 @@ updateVSegsOfUVSegd f (UVSegd vsegids ussegd)
 demoteUVSegdToUSSegd :: UVSegd -> USSegd
 {-# INLINE demoteUVSegdToUSSegd #-}
 demoteUVSegdToUSSegd (UVSegd vsegids ussegd)
-        = mkUSSegd (V.bpermute (lengthsUSSegd ussegd) vsegids)
-                   (V.bpermute (indicesUSSegd ussegd) vsegids)
-                   (V.bpermute (sourcesUSSegd ussegd) vsegids)
+ = let  starts'         = V.bpermute (startsUSSegd ussegd)  vsegids
+        sources'        = V.bpermute (sourcesUSSegd ussegd) vsegids
+        lengths'        = V.bpermute (lengthsUSSegd ussegd) vsegids
+        usegd'          = lengthsToUSegd lengths'
+   in   mkUSSegd starts' sources' usegd'
 
 
 -- | O(segs)

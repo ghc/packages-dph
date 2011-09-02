@@ -1,4 +1,4 @@
--- | Slice Segment Descriptors
+-- | Scatter Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         -- * Types
         USSegd(..),
@@ -14,7 +14,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         
         -- * Projections
         lengthUSSegd,
-        lengthsUSSegd, indicesUSSegd, sourcesUSSegd,
+        lengthsUSSegd, indicesUSSegd,
+        sourcesUSSegd, startsUSSegd,
         getSegOfUSSegd,
         
         -- * Operators
@@ -27,51 +28,50 @@ import Data.Array.Parallel.Pretty
 
 
 -- USSegd ---------------------------------------------------------------------
--- | Slice segment descriptors are a generalisation of regular 
+-- | Scatter segment descriptors are a generalisation of regular 
 --   segment descriptors of type (Segd). 
 --   
 --   * SSegd segments may be drawn from multiple physical source arrays.
---
 --   * The segments need not cover the entire flat array.
---
 --   * Different segments may point to the same elements.
 --
---   * As different segments may point to the same elements, we don't export
---     a function to determine how many elements are covered by the descriptor
---     as this value may overflow a machine word. 
+--   * As different segments may point to the same elements, it is possible
+--     for the total number of elements covered by the segment descriptor
+--     to overflow a machine word.
 -- 
 data USSegd
         = USSegd
-        { ussegd_lengths :: !(Vector Int)
-          -- ^ length of each segment
-
-        , ussegd_indices :: !(Vector Int)
+        { ussegd_starts  :: !(Vector Int)
           -- ^ starting index of each segment in its flat array
 
-        , ussegd_srcids  :: !(Vector Int)
+        , ussegd_sources :: !(Vector Int)
           -- ^ which flat array to take each segment from.
+
+        , ussegd_usegd   :: !USegd
+          -- ^ segment descriptor with contiguous index space.
         }
         deriving (Show)
 
 
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical USSegd where
- pprp (USSegd lengths indices srcids)
-  =   text "USSegd" 
-  $$  (nest 7 $ vcat
-        [ text "lengths:" <+> (text $ show $ V.toList lengths)
-        , text "indices:" <+> (text $ show $ V.toList indices)
-        , text "srcids: " <+> (text $ show $ V.toList srcids)])
+ pprp (USSegd starts srcids ssegd)
+  = vcat
+  [ text "USSegd" 
+        $$ (nest 7 $ vcat
+                [ text "starts:  " <+> (text $ show $ V.toList starts)
+                , text "srcids:  " <+> (text $ show $ V.toList srcids) ])
+  , pprp ssegd ]
 
 
 -- Constructors ---------------------------------------------------------------
 -- | O(1). 
---   Construct a new slice segment descriptor.
+--   Construct a new scattered segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUSSegd
-        :: Vector Int   -- ^ length of each segment
-        -> Vector Int   -- ^ starting index of each segment in its flat array
-        -> Vector Int   -- ^ which flat array to take each segment from
+        :: Vector Int   -- ^ starting index of each segment in its flat array
+        -> Vector Int   -- ^ which array to take each segment from
+        -> USegd        -- ^ contiguous segment descriptor
         -> USSegd
 
 {-# INLINE mkUSSegd #-}
@@ -79,19 +79,19 @@ mkUSSegd = USSegd
 
 
 -- | O(1).
---   Check the internal consistency of a slice segment descriptor.
+--   Check the internal consistency of a scattered segment descriptor.
 validUSSegd :: USSegd -> Bool
 {-# INLINE validUSSegd #-}
-validUSSegd (USSegd lens starts srcids)
-        =  (V.length lens == V.length starts)
-        && (V.length lens == V.length srcids)
+validUSSegd (USSegd starts srcids usegd)
+        =  (V.length starts == lengthUSegd usegd)
+        && (V.length srcids == lengthUSegd usegd)
 
 
 -- | O(1).
 --  Yield an empty segment descriptor, with no elements or segments.
 emptyUSSegd :: USSegd
 {-# INLINE emptyUSSegd #-}
-emptyUSSegd = USSegd V.empty V.empty V.empty
+emptyUSSegd = USSegd V.empty V.empty emptyUSegd
 
 
 -- | O(1).
@@ -101,7 +101,7 @@ emptyUSSegd = USSegd V.empty V.empty V.empty
 singletonUSSegd :: Int -> USSegd
 {-# INLINE singletonUSSegd #-}
 singletonUSSegd n 
-        = USSegd (V.singleton n) (V.singleton 0) (V.singleton 0)
+        = USSegd (V.singleton 0) (V.singleton 0) (singletonUSegd n)
 
 
 -- | O(segs). 
@@ -110,59 +110,74 @@ singletonUSSegd n
 promoteUSegdToUSSegd :: USegd -> USSegd
 {-# INLINE promoteUSegdToUSSegd #-}
 promoteUSegdToUSSegd usegd
-        = USSegd (lengthsUSegd usegd)
-                 (indicesUSegd usegd)
+        = USSegd (indicesUSegd usegd)
                  (V.replicate (lengthUSegd usegd) 0)
+                 usegd
+                 
 
 
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 lengthUSSegd :: USSegd -> Int
 {-# INLINE lengthUSSegd #-}
-lengthUSSegd = V.length . ussegd_lengths
+lengthUSSegd = lengthUSegd . ussegd_usegd 
 
 
 -- | O(1). Yield the lengths of the segments of a `USSegd`
 lengthsUSSegd :: USSegd -> Vector Int
 {-# INLINE lengthsUSSegd #-}
-lengthsUSSegd = ussegd_lengths
+lengthsUSSegd = lengthsUSegd . ussegd_usegd
 
 
 -- | O(1). Yield the segment indices of a `USSegd`
 indicesUSSegd :: USSegd -> Vector Int
 {-# INLINE indicesUSSegd #-}
-indicesUSSegd = ussegd_indices
+indicesUSSegd = indicesUSegd . ussegd_usegd
 
 
--- | O(1). Yield the source ids of a slice segment descriptor.
+-- | O(1). Yield the starting indices of a `USSegd`
+startsUSSegd :: USSegd -> Vector Int
+{-# INLINE startsUSSegd #-}
+startsUSSegd = ussegd_starts
+
+
+-- | O(1). Yield the source ids of a `USSegd`
 sourcesUSSegd :: USSegd -> Vector Int
 {-# INLINE sourcesUSSegd #-}
-sourcesUSSegd = ussegd_srcids
+sourcesUSSegd = ussegd_sources
 
 
--- O(1).
--- Get the length, starting index, and source id of a segment.
-getSegOfUSSegd :: USSegd -> Int -> (Int, Int, Int)
-getSegOfUSSegd (USSegd lengths starts sourceids) ix
- =      ( lengths   V.! ix
-        , starts    V.! ix
-        , sourceids V.! ix)
+-- | O(1). Yield the `USegd` of a `USSegd`
+usegdUSSegd   :: USSegd -> USegd
+{-# INLINE usegdUSSegd #-}
+usegdUSSegd   = ussegd_usegd
+
+
+-- | O(1).
+--   Get the length, segment index, starting index, and source id of a segment.
+getSegOfUSSegd :: USSegd -> Int -> (Int, Int, Int, Int)
+getSegOfUSSegd (USSegd starts sources usegd) ix
+ = let  (length, index) = getSegOfUSegd usegd ix
+   in   ( length
+        , index
+        , starts  V.! ix
+        , sources V.! ix)
 
 
 -- Operators ------------------------------------------------------------------
 -- | O(n)
---   Produce a segment descriptor describing the result of appending
+--   Produce a segment descriptor that describes the result of appending
 --   two arrays.
 appendUSSegd 
         :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd
 
-appendUSSegd (USSegd lens1 starts1 srcs1) pdatas1
-             (USSegd lens2 starts2 srcs2) _
-        = USSegd (lens1    V.++  lens2)
-                 (starts1  V.++  starts2)
+appendUSSegd (USSegd starts1 srcs1 usegd1) pdatas1
+             (USSegd starts2 srcs2 usegd2) _
+        = USSegd (starts1  V.++  starts2)
                  (srcs1    V.++  V.map (+ pdatas1) srcs2)
+                 (appendUSegd usegd1 usegd2)
 
 
 -- | Cull the segments in a SSegd down to only those reachable from an array
@@ -173,7 +188,7 @@ appendUSSegd (USSegd lens1 starts1 srcs1) pdatas1
 --
 cullUSSegdOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
 {-# INLINE cullUSSegdOnVSegids #-}
-cullUSSegdOnVSegids vsegids (USSegd lengths indices srcids)
+cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
  = let  -- Determine which of the psegs are still reachable from the vsegs.
         -- This produces an array of flags, 
         --    with reachable   psegs corresponding to 1
@@ -184,7 +199,7 @@ cullUSSegdOnVSegids vsegids (USSegd lengths indices srcids)
         --  
         --  Note that psegids '2' and '4' are not in vsegids_packed.
         psegids_used
-         = V.bpermuteDft (V.length lengths)
+         = V.bpermuteDft (lengthUSegd usegd)
                          (const False)
                          (V.zip vsegids (V.replicate (V.length vsegids) True))
 
@@ -205,7 +220,7 @@ cullUSSegdOnVSegids vsegids (USSegd lengths indices srcids)
         --                      [0 1 2 3 4]
         --      psegids_map:    [0 1 -1 2 -1 3 4]
         psegids_map
-         = V.bpermuteDft (V.length lengths)
+         = V.bpermuteDft (lengthUSegd usegd)
                          (const (-1))
                          (V.zip psegids_packed (V.enumFromTo 0 (V.length psegids_packed - 1)))
 
@@ -219,8 +234,17 @@ cullUSSegdOnVSegids vsegids (USSegd lengths indices srcids)
         --
         vsegids'  = V.map (psegids_map V.!) vsegids
 
-        ussegd'   = USSegd (V.pack lengths psegids_used)
-                           (V.pack indices psegids_used)
-                           (V.pack srcids  psegids_used)
+        -- Rebuild the usegd.
+        starts'   = V.pack starts  psegids_used
+        sources'  = V.pack sources psegids_used
+
+        lengths'  = V.pack (lengthsUSegd usegd) psegids_used
+        usegd'    = lengthsToUSegd lengths'
+        
+        ussegd'   = USSegd starts' sources' usegd'
 
      in  (vsegids', ussegd')
+
+
+
+

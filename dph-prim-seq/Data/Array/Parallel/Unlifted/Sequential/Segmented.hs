@@ -15,7 +15,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   sumRU,
 
   -- * Segment Descriptors
-  USegd, mkUSegd,
+  USegd, mkUSegd, validUSegd,
+  emptyUSegd, singletonUSegd,
   lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd,
   lengthsToUSegd,
   
@@ -23,7 +24,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   USSegd, mkUSSegd, validUSSegd,
   emptyUSSegd, singletonUSSegd,
   promoteUSegdToUSSegd,
-  lengthUSSegd, lengthsUSSegd, indicesUSSegd, sourcesUSSegd,
+  lengthUSSegd, lengthsUSSegd, indicesUSSegd,
+  sourcesUSSegd, startsUSSegd,
   getSegOfUSSegd, appendUSSegd,
 
   -- * Virtual Segment Descriptors
@@ -42,5 +44,4 @@ import Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Text ()
 

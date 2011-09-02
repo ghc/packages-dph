@@ -60,12 +60,14 @@ data instance PData (PArray a)
 -- TODO: we shouldn't be using these directly.
 pnested_vsegids    = U.vsegidsVSegd . pnested_uvsegd
 pnested_pseglens   = U.lengthsSSegd . U.ssegdVSegd . pnested_uvsegd
-pnested_psegstarts = U.indicesSSegd . U.ssegdVSegd . pnested_uvsegd
+pnested_psegstarts = U.startsSSegd  . U.ssegdVSegd . pnested_uvsegd
 pnested_psegsrcids = U.sourcesSSegd . U.ssegdVSegd . pnested_uvsegd
 
 mkPNested vsegids pseglens psegstarts psegsrcids psegdata
         = PNested
-                (U.mkVSegd vsegids (U.mkSSegd pseglens psegstarts psegsrcids))
+                (U.mkVSegd vsegids 
+                        $ U.mkSSegd psegstarts psegsrcids
+                        $ U.lengthsToSegd pseglens)
                 psegdata
 
 -- | Pretty print the physical representation of a nested array
@@ -216,10 +218,8 @@ instance PR a => PR (PArray a) where
   replicatePR c (PArray n darr)
    = checkNotEmpty "replicatePR[PArray]" c
    $ let -- Physical segment descriptor contains a single segment.
-         ussegd  = U.mkSSegd (U.replicate 1 n)
-                            (U.replicate 1 0)
-                            (U.replicate 1 0)
-
+         ussegd  = U.singletonSSegd n
+         
          -- All virtual segments point to the same physical segment.
          uvsegd  = U.mkVSegd (U.replicate c 0) ussegd
 
@@ -296,9 +296,11 @@ instance PR a => PR (PArray a) where
 
          (pseglens', psegstarts', psegsrcs')    
                         = U.unzip3 seginfo
-
+                
+         -- TODO: check that doing lengthsToSegd won't cause overflow
          uvsegd'        = U.promoteSSegdToVSegd
-                        $ U.mkSSegd pseglens' psegstarts' psegsrcs'
+                        $ U.mkSSegd psegstarts' psegsrcs'
+                        $ U.lengthsToSegd pseglens'
                                  
          -- All flat data arrays in the sources go into the result.
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata pdata
@@ -491,7 +493,7 @@ concatPR (PNested uvsegd psegdata)
         -- Copy these segments into a new array.
    in   extractsPR psegdata 
                    (U.sourcesSSegd ussegd)
-                   (U.indicesSSegd ussegd)
+                   (U.startsSSegd  ussegd)
                    (U.lengthsSSegd ussegd)
 
 

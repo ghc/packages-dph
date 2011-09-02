@@ -105,6 +105,9 @@ sum_r                   = sumRU
 -- Segment Descriptors --------------------------------------------------------
 type Segd               = USegd
 mkSegd                  = mkUSegd
+validSegd               = validUSegd
+emptySegd               = emptyUSegd
+singletonSegd           = singletonUSegd
 lengthSegd              = lengthUSegd
 lengthsSegd             = lengthsUSegd
 indicesSegd             = indicesUSegd
@@ -121,6 +124,7 @@ promoteSegdToSSegd      = promoteUSegdToUSSegd
 lengthSSegd             = lengthUSSegd
 lengthsSSegd            = lengthsUSSegd
 indicesSSegd            = indicesUSSegd
+startsSSegd             = startsUSSegd
 sourcesSSegd            = sourcesUSSegd
 getSegOfSSegd           = getSegOfUSSegd
 appendSSegd             = appendUSSegd

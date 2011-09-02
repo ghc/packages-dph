@@ -24,7 +24,6 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Basics
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators
         Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums
-        Data.Array.Parallel.Unlifted.Sequential.Segmented.Text
 
   Exposed: False
 

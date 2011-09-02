@@ -159,28 +159,32 @@ data Segd
         , segd_indices  :: [Int]
         , segd_elements :: Int }
 
-mkSegd          = Segd
-lengthSegd      = length . lengthsSegd
-lengthsSegd     = segd_lengths
-indicesSegd     = segd_indices
-elementsSegd    = segd_elements
+mkSegd                  = Segd
+emptySegd               = Segd [] [] 0
+singletonSegd           = notImplemented "singletonSegd"
+validSegd               = notImplemented "validSegd"
+lengthSegd              = length . lengthsSegd
+lengthsSegd             = segd_lengths
+indicesSegd             = segd_indices
+elementsSegd            = segd_elements
 
 
 -- Slice Segment Descriptors --------------------------------------------------
 data SSegd
         = SSegd
-        { ssegd_lengths :: [Int]
-        , ssegd_indices :: [Int]
-        , ssegd_sources :: [Int] }
+        { ssegd_starts  :: [Int]
+        , ssegd_sources :: [Int]
+        , ssegd_segd    :: Segd }
 
 mkSSegd                 = SSegd
-emptySSegd              = SSegd [] [] []
+emptySSegd              = SSegd [] [] emptySegd
 singletonSSegd          = notImplemented "singletonSSegd"
 validSSegd              = notImplemented "validSSegd"
 promoteSegdToSSegd      = notImplemented "promoteSegdToSSegd"
-lengthSSegd             = length . ssegd_lengths
-lengthsSSegd            = ssegd_lengths
-indicesSSegd            = ssegd_indices
+lengthSSegd             = lengthSegd  . ssegd_segd
+lengthsSSegd            = lengthsSegd . ssegd_segd
+indicesSSegd            = indicesSegd . ssegd_segd
+startsSSegd             = ssegd_starts
 sourcesSSegd            = ssegd_sources
 getSegOfSSegd           = notImplemented "getSegOfSSegd"
 appendSSegd             = notImplemented "appendSSegd"

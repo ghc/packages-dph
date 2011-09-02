@@ -4,14 +4,15 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   USegd,
 
   -- * Constructors
-  mkUSegd,
+  mkUSegd, validUSegd,
   emptyUSegd, singletonUSegd, lengthsToUSegd,
 
   -- * Projections
   lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd, 
+  getSegOfUSegd,
 
   -- * Operations
-  sliceUSegd, extractUSegd
+  appendUSegd, sliceUSegd, extractUSegd
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import Data.Array.Parallel.Pretty
@@ -22,8 +23,8 @@ import Data.Array.Parallel.Pretty
 --   Example:
 --
 --   @
---    flat array data:  [1, 2, 3, 4, 5, 6, 7, 8]
---      (segmentation)   ----  -------  -  ----
+--    flat array data: [1 2 3 4 5 6 7 8]
+--      (segmentation)  --- ----- - ---
 --      segd  lengths: [2, 3, 1, 2]
 --            indices: [0, 2, 5, 6]
 --           elements: 8 
@@ -31,9 +32,9 @@ import Data.Array.Parallel.Pretty
 data USegd 
         = USegd 
         { usegd_lengths  :: !(Vector Int)  -- ^ length of each segment
-        , usegd_indices  :: !(Vector Int)  -- ^ starting index of each segment in the flat array
+        , usegd_indices  :: !(Vector Int)  -- ^ index of each segment in the flat array
         , usegd_elements :: !Int           -- ^ total number of elements in the flat array
-        }
+        } deriving (Show, Eq)
 
 
 -- | Pretty print the physical representation of a `UVSegd`
@@ -56,6 +57,17 @@ mkUSegd
 
 {-# INLINE mkUSegd #-}
 mkUSegd = USegd
+
+
+-- | O(1).
+--   Check the internal consistency of a scattered segment descriptor.
+--   As the indices and elemens field can be generated based on the segment
+--   lengths, we check the consistency by rebuilding these fields and 
+--   comparing the rebuilt ones against the originals.
+validUSegd :: USegd -> Bool
+{-# INLINE validUSegd #-}
+validUSegd usegd@(USegd lengths indices elems)
+        = usegd == lengthsToUSegd lengths
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
@@ -107,8 +119,26 @@ elementsUSegd :: USegd -> Int
 elementsUSegd = usegd_elements
 
 
+-- | O(1). Get the length and segment index of a segment
+getSegOfUSegd :: USegd -> Int -> (Int, Int)
+getSegOfUSegd (USegd lengths indices _ ) ix
+ =      ( lengths V.! ix
+        , indices V.! ix)
+
+
 -- Operators ------------------------------------------------------------------
--- | O(n). Extract a slice of a segment descriptor, avoiding copying where possible.
+-- | O(segs)
+--   Produce a segment descriptor that describes the result of appending 
+--   two arrays.
+appendUSegd :: USegd -> USegd -> USegd
+appendUSegd (USegd lengths1 indices1 elems1)
+            (USegd lengths2 indices2 elems2)
+ = USegd (lengths1 V.++ lengths2)
+         (indices1 V.++ V.map (+ elems1) indices2)
+         (elems1 + elems2)
+
+
+-- | Extract a slice of a segment descriptor, avoiding copying where possible.
 --
 --   We can share the segment lengths with the original segment descriptor, 
 --   but still need to recompute the starting indices of each. Hence
@@ -127,7 +157,7 @@ sliceUSegd segd i n
         = lengthsToUSegd $ V.slice (lengthsUSegd segd) i n
 
 
--- | O(n). Extract a slice of a segment descriptor, copying everything.
+-- | Extract a slice of a segment descriptor, copying everything.
 --
 --   In contrast to `sliceUSegd`, this function copies the array of 
 --   segment lengths as well as recomputing the starting indices of each.
