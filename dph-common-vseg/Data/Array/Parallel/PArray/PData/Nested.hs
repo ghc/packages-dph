@@ -36,7 +36,6 @@ import Data.Array.Parallel.Base
 import qualified Data.IntSet                    as IS
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
-import Debug.Trace
 import Text.PrettyPrint
 
 
@@ -277,7 +276,7 @@ instance PR a => PR (PArray a) where
   --           2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
   --
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR c arr@(PNested uvsegd pdata) (PInt ixs)
+  indexlPR c (PNested uvsegd pdata) (PInt ixs)
    = let        
          -- See Note: psrcoffset
          psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) pdata
@@ -288,8 +287,8 @@ instance PR a => PR (PArray a) where
          seginfo 
           = U.zipWith (\segid ix -> 
                         let (_,       segstart,  segsrcid)   = U.getSegOfVSegd uvsegd segid
-                            (PNested uvsegd' _)              = pdata V.! segsrcid
-                            (len, start, srcid)              = U.getSegOfVSegd uvsegd' (segstart + ix)
+                            (PNested uvsegd2 _)              = pdata V.! segsrcid
+                            (len, start, srcid)              = U.getSegOfVSegd uvsegd2 (segstart + ix)
                         in  (len, start, srcid + (psrcoffset V.! segsrcid)))
                 (U.enumFromTo 0 (c - 1))
                 ixs
@@ -504,8 +503,6 @@ unconcatPR arr1 arr
         vsegids        = pnested_vsegids     arr1
         pseglens       = pnested_pseglens    arr1
         psegstarts     = pnested_psegstarts  arr1
-        psegsrcs       = pnested_psegsrcids  arr1
-        psegdata       = pnested_psegdata    arr1
 
    in   mkPNested 
                 (U.enumFromTo 0 (segs - 1))
@@ -557,7 +554,6 @@ slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 
  = let  segs            = U.length vsegids
         vsegids        = pnested_vsegids     arr
-        pseglens       = pnested_pseglens    arr
         psegstarts     = pnested_psegstarts  arr
         psegsrcs       = pnested_psegsrcids  arr
         psegdata       = pnested_psegdata    arr

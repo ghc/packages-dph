@@ -33,9 +33,6 @@ import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Stream
 import Data.Array.Parallel.PArray
-import Debug.Trace
-import Text.PrettyPrint
-
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 
@@ -78,7 +75,7 @@ lengthPP        = closure1 lengthPA lengthPA_l
 {-# INLINE_PA lengthPA_l #-}
 lengthPA_l :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
-lengthPA_l c (PNested vsegd _)
+lengthPA_l _ (PNested vsegd _)
         = PInt $ U.lengthsVSegd vsegd
 
 
@@ -120,7 +117,7 @@ mapPP   = closure2 mapPA_v mapPA_l
 {-# INLINE_PA mapPA_v #-}
 mapPA_v :: (PR a, PR b)
         => (a :-> b) -> PArray a -> PArray b
-mapPA_v (Clo fv fl env) (PArray n as) 
+mapPA_v (Clo _fv fl env) (PArray n as) 
         = PArray n (fl n (replicatePR n env) as)
 
 
@@ -129,7 +126,7 @@ mapPA_l :: (PR (a :-> b), PR a, PR b)
         => Int  -> PData (a :-> b) 
                 -> PData (PArray a) -> PData (PArray b)
 
-mapPA_l n (AClo fv fl envs) arg@(PNested vsegd pdata)
+mapPA_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
  = let  argFlat         = concatPR arg
         c               = lengthPR argFlat
 
@@ -147,7 +144,7 @@ appendPP        = closure2 appendPA appendPA_l
 
 {-# INLINE_PA appendPA_l #-}
 appendPA_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendPA_l c arr1 arr2
+appendPA_l _ arr1 arr2
         = appendlPR arr1 arr2
 
 
@@ -177,7 +174,7 @@ concatPP        = closure1 concatPA concatPA_l
 
 {-# INLINE_PA concatPA_l #-}
 concatPA_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
-concatPA_l c darr
+concatPA_l _ darr
         = concatlPR darr
 
 
@@ -227,7 +224,7 @@ multPP_double = closure2 (*) multPA_double_l
 
 {-# INLINE_PA multPA_double_l #-}
 multPA_double_l :: Int -> PData Double -> PData Double -> PData Double
-multPA_double_l c (PDouble arr1) (PDouble arr2)
+multPA_double_l _ (PDouble arr1) (PDouble arr2)
         = PDouble (U.zipWith (*) arr1 arr2)
 
 
@@ -239,7 +236,7 @@ divPP_int = closure2 div divPA_int_l
 
 {-# INLINE_PA divPA_int_l #-}
 divPA_int_l :: Int -> PData Int -> PData Int -> PData Int
-divPA_int_l c (PInt arr1) (PInt arr2)
+divPA_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith div arr1 arr2)
 
 

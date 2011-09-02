@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
 
 module Data.Array.Parallel.PArray.PRepr
-        (PA(..))
+        (PA)
 where
 import Data.Array.Parallel.PArray.PData
 

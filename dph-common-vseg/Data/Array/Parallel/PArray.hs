@@ -181,7 +181,7 @@ combine2PA sel (PArray _ darr1) (PArray _ darr2)
 -- | Convert a `UArray` to a `PArray`
 {-# INLINE_PA toUArrayPA #-}
 toUArrayPA :: (U.Elt a, PA a) => PArray a -> U.Array a
-toUArrayPA (PArray n darr)
+toUArrayPA (PArray _ darr)
 	= toUArrayPR darr
 
 
@@ -250,7 +250,7 @@ nestUSegdPA segd (PArray n darr)
 -- | Concatenate a nested array.
 {-# INLINE_PA concatPA #-}
 concatPA :: PA a => PArray (PArray a) -> PArray a
-concatPA (PArray n darr)
+concatPA (PArray _ darr)
  = let  darr'   = concatPR darr
    in   PArray (lengthPR darr') darr'
 
@@ -306,7 +306,7 @@ extractsPA' arrs srcids startixs seglens
 
 -- | Filter an array based on some tags.
 packByTagPA' :: PA a => PArray a -> [Int] -> Int -> PArray a
-packByTagPA' (PArray n arr) tags tag
+packByTagPA' (PArray _ arr) tags tag
  = let  arr'    = packByTagPR arr (U.fromList tags) tag
    in   PArray (lengthPR arr') arr'
 

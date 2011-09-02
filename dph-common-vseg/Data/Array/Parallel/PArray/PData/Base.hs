@@ -13,7 +13,7 @@ module Data.Array.Parallel.PArray.PData.Base
           PArray(..)
         , lengthPA,     unpackPA
         , PprPhysical (..), PprVirtual (..)
-        , PData (..)
+        , PData
         , PR(..)
         
         , uextracts)

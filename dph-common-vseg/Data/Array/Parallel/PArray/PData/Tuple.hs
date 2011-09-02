@@ -11,7 +11,6 @@ where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.Base
-import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
@@ -51,7 +50,7 @@ instance (PR a, PR b) => PR (a, b) where
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (PTuple2 arr1 arr2)
-        = nfPR arr2 `seq` nfPR arr2 `seq` ()
+        = nfPR arr1 `seq` nfPR arr2 `seq` ()
 
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (PTuple2 arr1 _)
@@ -73,7 +72,7 @@ instance (PR a, PR b) => PR (a, b) where
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR c (PNested uvsegd psegdata) ixs
-   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata 
+   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs' ys') -> (xs', ys')) psegdata 
          xsArr          = PNested uvsegd xs
          ysArr          = PNested uvsegd ys
      in  PTuple2  (indexlPR c xsArr ixs) (indexlPR c ysArr ixs)
@@ -85,7 +84,7 @@ instance (PR a, PR b) => PR (a, b) where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR arrs srcids starts lens
-   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) arrs
+   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs' ys') -> (xs', ys')) arrs
      in  PTuple2 (extractsPR xs srcids starts lens)
                  (extractsPR ys srcids starts lens)
 
@@ -121,11 +120,11 @@ instance (PR a, PR b) => PR (a, b) where
                  (toVectorPR ys)
 
   {-# INLINE_PDATA fromUArrayPR #-}
-  fromUArrayPR xx
+  fromUArrayPR
    = error "fromUArrayPR[Tuple]: put in Scalar class, need U.Elt dictionary"
    
   {-# INLINE_PDATA toUArrayPR #-}
-  toUArrayPR xx
+  toUArrayPR
    = error "toUArrayPR[Tuple]: put in Scalar class, need U.Elt dictionary"
    
 
@@ -151,7 +150,7 @@ unzipPA (PArray n (PTuple2 xs ys))
 {-# INLINE_PA unzipPA_l #-}
 unzipPA_l :: (PR a, PR b)
           => Int -> PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unzipPA_l c (PNested uvsegd psegdata)
+unzipPA_l _ (PNested uvsegd psegdata)
  = let  (xsdata, ysdata)        = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
    in   PTuple2 (PNested uvsegd xsdata)
                 (PNested uvsegd ysdata)

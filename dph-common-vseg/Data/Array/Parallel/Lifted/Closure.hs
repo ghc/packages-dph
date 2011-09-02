@@ -46,7 +46,7 @@ data (a :-> b)
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b
 {-# INLINE_CLOSURE ($:) #-}
-($:) (Clo fv fl env) x  = fv env x
+($:) (Clo fv _fl env) x  = fv env x
    
 
 -- Array Closures -------------------------------------------------------------
@@ -112,7 +112,7 @@ closure2
 {-# INLINE_CLOSURE closure2 #-}
 closure2 fv fl
  = let  fv_1 _ xa   = Clo fv fl xa
-        fl_1 n _ xs = AClo fv fl xs
+        fl_1 _ _ xs = AClo fv fl xs
         
    in   Clo fv_1 fl_1 ()
 
@@ -128,11 +128,11 @@ closure3
 {-# INLINE_CLOSURE closure3 #-}
 closure3 fv fl
  = let  fv_1   _ xa = Clo   fv_2 fl_2 xa
-        fl_1 n _ xs = AClo  fv_2 fl_2 xs
+        fl_1 _ _ xs = AClo  fv_2 fl_2 xs
 
         -----
         fv_2 xa yb   = Clo  fv_3 fl_3 (xa, yb)
-        fl_2 n xs ys = AClo fv_3 fl_3 (PTuple2 xs ys)
+        fl_2 _ xs ys = AClo fv_3 fl_3 (PTuple2 xs ys)
 
         -----
         fv_3 (xa, yb) zc           = fv xa yb zc

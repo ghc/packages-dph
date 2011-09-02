@@ -22,7 +22,7 @@ instance PR (a :-> b) where
                 (emptyPR :: PData ())
 
   {-# INLINE_PDATA nfPR #-}
-  nfPR clo@(AClo fv fl envs)
+  nfPR (AClo fv fl envs)
         = fv `seq` fl `seq` nfPR envs `seq` ()
 
   {-# INLINE_PDATA lengthPR #-}
