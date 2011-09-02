@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
   -- * Types
@@ -66,7 +67,7 @@ mkUSegd = USegd
 --   comparing the rebuilt ones against the originals.
 validUSegd :: USegd -> Bool
 {-# INLINE validUSegd #-}
-validUSegd usegd@(USegd lengths indices elems)
+validUSegd usegd@(USegd lengths _ _)
         = usegd == lengthsToUSegd lengths
 
 

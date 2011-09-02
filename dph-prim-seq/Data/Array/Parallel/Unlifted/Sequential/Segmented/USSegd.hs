@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Scatter Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         -- * Types
@@ -16,6 +17,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         lengthUSSegd,
         lengthsUSSegd, indicesUSSegd,
         sourcesUSSegd, startsUSSegd,
+        usegdUSSegd,
         getSegOfUSSegd,
         
         -- * Operators
@@ -157,8 +159,8 @@ usegdUSSegd   = ussegd_usegd
 --   Get the length, segment index, starting index, and source id of a segment.
 getSegOfUSSegd :: USSegd -> Int -> (Int, Int, Int, Int)
 getSegOfUSSegd (USSegd starts sources usegd) ix
- = let  (length, index) = getSegOfUSegd usegd ix
-   in   ( length
+ = let  (len, index) = getSegOfUSegd usegd ix
+   in   ( len
         , index
         , starts  V.! ix
         , sources V.! ix)

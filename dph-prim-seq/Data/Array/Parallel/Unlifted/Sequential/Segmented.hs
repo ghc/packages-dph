@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Interface to operations on segmented unlifted arrays.
 module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 

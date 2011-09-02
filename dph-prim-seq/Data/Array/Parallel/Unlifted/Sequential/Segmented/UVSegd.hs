@@ -1,3 +1,4 @@
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Segment descriptors for virtual arrays.
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         -- * Types
@@ -162,8 +163,8 @@ lengthsUVSegd (UVSegd vsegids ussegd)
 getSegOfUVSegd :: UVSegd -> Int -> (Int, Int, Int)
 {-# INLINE getSegOfUVSegd #-}
 getSegOfUVSegd (UVSegd vsegids ussegd) ix
- = let  (length, _index, start, source) = getSegOfUSSegd ussegd (vsegids V.! ix)
-   in   (length, start, source)
+ = let  (len, _index, start, source) = getSegOfUSSegd ussegd (vsegids V.! ix)
+   in   (len, start, source)
 
    
 -- Operators ------------------------------------------------------------------
@@ -258,7 +259,7 @@ appendUVSegd (UVSegd vsegids1 ussegd1) pdatas1
         vsegids2' = V.map (+ lengthUSSegd ussegd1) vsegids2
         
         -- append the vsegids
-        vsegids'  = vsegids1 V.++ vsegids2'
+        vsegids'  = vsegids1' V.++ vsegids2'
 
         -- All data from the source arrays goes into the result
         ussegd'   = appendUSSegd ussegd1 pdatas1

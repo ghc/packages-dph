@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Primitive sequential combinators that work on flat, unlifted arrays.
 --
@@ -161,9 +162,9 @@ repSel2 _               = ()
 
 
 -- Selector Representations ---------------------------------------------------
-type SelRep2            = ()
-mkSelRep2 tags          = ()
-indicesSelRep2 tags _   = tagsToIndices2 tags
+type SelRep2             = ()
+mkSelRep2 _              = ()
+indicesSelRep2 tags _    = tagsToIndices2 tags
 elementsSelRep2_0 tags _ = count tags 0
 elementsSelRep2_1 tags _ = count tags 1
 

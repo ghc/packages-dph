@@ -733,6 +733,9 @@ fromList :: Elt a => [a] -> Array a
 
 
 -- Aliases for primitive operations -------------------------------------------
+-- We rename these so we can write rules based on the names, and still
+-- control exactly when they get inlined.
+
 dph_mod_index :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mod_index #-}
 dph_mod_index by idx = idx `GHC.Base.remInt` by
@@ -748,10 +751,11 @@ dph_plus x y = x Prelude.+ y
 
   #-}
 
+{- not used 
 dph_mult :: Int -> Int -> Int
 {-# INLINE_BACKEND dph_mult #-}
 dph_mult x y = x Prelude.* y
-
+-}
 
 tagZeroes :: Array Int -> Array Tag
 {-# INLINE CONLIKE PHASE_BACKEND tagZeroes #-}

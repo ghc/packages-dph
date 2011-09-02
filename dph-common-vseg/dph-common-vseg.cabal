@@ -36,7 +36,7 @@ Library
         BangPatterns, MagicHash, UnboxedTuples, TypeOperators
 
   GHC-Options: 
-        -Wall -fno-warn-orphans -fno-warn-missing-signatures -Werror
+        -Wall -fno-warn-orphans -fno-warn-missing-signatures
         -Odph 
         -funbox-strict-fields
         -fcpr-off
