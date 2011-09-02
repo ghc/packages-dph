@@ -224,6 +224,9 @@ sum_r x arr
 -- Segment Descriptors --------------------------------------------------------
 type Segd               = UPSegd
 mkSegd                  = mkUPSegd
+validSegd               = validUPSegd
+emptySegd               = emptyUPSegd
+singletonSegd           = singletonUPSegd
 lengthSegd              = lengthUPSegd
 lengthsSegd             = lengthsUPSegd
 indicesSegd             = indicesUPSegd
@@ -241,6 +244,7 @@ promoteSegdToSSegd      = Seq.promoteUSegdToUSSegd
 lengthSSegd             = Seq.lengthUSSegd
 lengthsSSegd            = Seq.lengthsUSSegd
 indicesSSegd            = Seq.indicesUSSegd
+startsSSegd             = Seq.startsUSSegd
 sourcesSSegd            = Seq.sourcesUSSegd
 getSegOfSSegd           = Seq.getSegOfUSSegd
 appendSSegd             = Seq.appendUSSegd

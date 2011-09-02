@@ -5,7 +5,8 @@
 module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
 
   -- * Types
-  UPSegd,
+  UPSegd, validUPSegd,
+  emptyUPSegd, singletonUPSegd,
 
   -- * Operations on segment descriptors
   lengthUPSegd, lengthsUPSegd, indicesUPSegd, elementsUPSegd,
@@ -20,6 +21,20 @@ import Data.Array.Parallel.Unlifted.Distributed
 data UPSegd = UPSegd { upsegd_usegd :: !USegd
                      , upsegd_dsegd :: Dist ((USegd,Int),Int)
                      }
+
+-- TODO: do an actual check
+validUPSegd :: UPSegd -> Bool
+{-# INLINE validUPSegd #-}
+validUPSegd _ = True
+
+emptyUPSegd :: UPSegd
+{-# INLINE emptyUPSegd #-}
+emptyUPSegd = toUPSegd emptyUSegd
+
+
+singletonUPSegd :: Int -> UPSegd
+{-# INLINE singletonUPSegd #-}
+singletonUPSegd n = toUPSegd $ singletonUSegd n
 
 
 lengthUPSegd :: UPSegd -> Int

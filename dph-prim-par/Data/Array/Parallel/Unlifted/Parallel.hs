@@ -1,6 +1,6 @@
 -- | Parallel operations on unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel (
-  UPSegd, UPSel2, UPSelRep2,
+  UPSel2, UPSelRep2,
 
   bpermuteUP, updateUP,
 
@@ -15,6 +15,9 @@ module Data.Array.Parallel.Unlifted.Parallel (
   selUPSel2, repUPSel2, mkUPSel2,
   mkUPSelRep2, indicesUPSelRep2, elementsUPSelRep2_0, elementsUPSelRep2_1,
 
+  -- * Segment descriptors
+  UPSegd, validUPSegd, 
+  emptyUPSegd, singletonUPSegd,
   lengthUPSegd, lengthsUPSegd, indicesUPSegd, elementsUPSegd,
   segdUPSegd, distUPSegd,
   lengthsToUPSegd, mkUPSegd,
