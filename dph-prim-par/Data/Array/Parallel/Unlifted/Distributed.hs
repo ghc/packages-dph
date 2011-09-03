@@ -25,9 +25,14 @@ module Data.Array.Parallel.Unlifted.Distributed (
   -- * Distributed arrays
   lengthD, splitLenD, splitLenIdxD,
   splitD, splitAsD, joinLengthD, joinD, splitJoinD, joinDM,
+  Distribution, balanced, unbalanced,
+
+  -- * Distributed segment descriptors
   splitSegdOnSegsD, splitSegdOnElemsD, splitSD,
   lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
-  Distribution, balanced, unbalanced,
+
+  -- * Distributed scattered segment descriptors
+  splitSSegdOnElemsD,
 
   -- * Permutations
   permuteD, bpermuteD, atomicUpdateD,
@@ -40,6 +45,7 @@ import Data.Array.Parallel.Unlifted.Distributed.TheGang
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
+import Data.Array.Parallel.Unlifted.Distributed.USSegd
 import Data.Array.Parallel.Unlifted.Distributed.USegd
 import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Types
