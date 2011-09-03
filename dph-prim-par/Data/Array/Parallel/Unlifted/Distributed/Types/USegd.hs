@@ -20,14 +20,14 @@ import Prelude                          as P
 
 instance DT USegd where
   data Dist  USegd   
-        = DUSegd  !(Dist (Vector Int))
-                  !(Dist (Vector Int))
-                  !(Dist Int)
+        = DUSegd  !(Dist (Vector Int))          -- segment lengths
+                  !(Dist (Vector Int))          -- segment indices
+                  !(Dist Int)                   -- number of elements in this chunk
 
   data MDist USegd s 
-        = MDUSegd !(MDist (Vector Int) s)
-                  !(MDist (Vector Int) s)
-                  !(MDist Int        s)
+        = MDUSegd !(MDist (Vector Int) s)       -- segment lengths
+                  !(MDist (Vector Int) s)       -- segment indices
+                  !(MDist Int        s)         -- number of elements in this chunk
 
   indexD (DUSegd lens idxs eles) i
    = mkUSegd (indexD lens i) (indexD idxs i) (indexD eles i)
