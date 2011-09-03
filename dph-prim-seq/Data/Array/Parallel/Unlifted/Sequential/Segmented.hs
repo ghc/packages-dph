@@ -21,11 +21,12 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
   lengthUSegd, lengthsUSegd, indicesUSegd, elementsUSegd,
   lengthsToUSegd,
   
-  -- * Slice Segment Descriptors
+  -- * Scattered Segment Descriptors
   USSegd, mkUSSegd, validUSSegd,
   emptyUSSegd, singletonUSSegd,
   promoteUSegdToUSSegd,
-  lengthUSSegd, lengthsUSSegd, indicesUSSegd,
+  lengthUSSegd,
+  usegdUSSegd, lengthsUSSegd, indicesUSSegd, elementsUSSegd,
   sourcesUSSegd, startsUSSegd,
   getSegOfUSSegd, appendUSSegd,
 

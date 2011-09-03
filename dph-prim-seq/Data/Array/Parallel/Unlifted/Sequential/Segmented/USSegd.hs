@@ -1,5 +1,5 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
--- | Scatter Segment Descriptors
+-- | Scattered Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         -- * Types
         USSegd(..),
@@ -15,9 +15,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         
         -- * Projections
         lengthUSSegd,
-        lengthsUSSegd, indicesUSSegd,
+        usegdUSSegd, lengthsUSSegd, indicesUSSegd, elementsUSSegd,
         sourcesUSSegd, startsUSSegd,
-        usegdUSSegd,
         getSegOfUSSegd,
         
         -- * Operators
@@ -125,6 +124,12 @@ lengthUSSegd :: USSegd -> Int
 lengthUSSegd = lengthUSegd . ussegd_usegd 
 
 
+-- | O(1). Yield the `USegd` of a `USSegd`
+usegdUSSegd   :: USSegd -> USegd
+{-# INLINE usegdUSSegd #-}
+usegdUSSegd   = ussegd_usegd
+
+
 -- | O(1). Yield the lengths of the segments of a `USSegd`
 lengthsUSSegd :: USSegd -> Vector Int
 {-# INLINE lengthsUSSegd #-}
@@ -137,6 +142,12 @@ indicesUSSegd :: USSegd -> Vector Int
 indicesUSSegd = indicesUSegd . ussegd_usegd
 
 
+-- | O(1). Yield the total number of elements covered by a `USSegd`
+elementsUSSegd :: USSegd -> Int
+{-# INLINE elementsUSSegd #-}
+elementsUSSegd = elementsUSegd . ussegd_usegd
+
+
 -- | O(1). Yield the starting indices of a `USSegd`
 startsUSSegd :: USSegd -> Vector Int
 {-# INLINE startsUSSegd #-}
@@ -147,12 +158,6 @@ startsUSSegd = ussegd_starts
 sourcesUSSegd :: USSegd -> Vector Int
 {-# INLINE sourcesUSSegd #-}
 sourcesUSSegd = ussegd_sources
-
-
--- | O(1). Yield the `USegd` of a `USSegd`
-usegdUSSegd   :: USSegd -> USegd
-{-# INLINE usegdUSSegd #-}
-usegdUSSegd   = ussegd_usegd
 
 
 -- | O(1).
