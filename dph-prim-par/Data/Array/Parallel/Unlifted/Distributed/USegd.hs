@@ -263,13 +263,29 @@ search !x ys = go 0 (Seq.length ys)
 
 
 -------------------------------------------------------------------------------
+-- | Join a distributed segment descriptor into a global one.
+--   This simply joins the distributed lengths and indices fields, 
+--   but does not reconstruct the original segment descriptor as it was 
+--   before splitting.
+-- 
+-- @> pprp $ joinSegdD theGang 
+--         $ fstD $ fstD $ splitSegdOnElemsD theGang
+--         $ lengthsToUSegd $ fromList [60, 10, 20, 40, 50]
+-- 
+--   USegd lengths:  [45,15,10,20,40,5,45]
+--         indices:  [0,45,60,70,90,130,135]
+--         elements: 180
+-- @
+-- 
 joinSegdD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegdD #-}
-joinSegdD g = lengthsToUSegd
-           . joinD g unbalanced
-           . mapD g lengthsUSegd
+joinSegdD g 
+        = lengthsToUSegd
+        . joinD g unbalanced
+        . mapD g lengthsUSegd
 
 
+-------------------------------------------------------------------------------
 splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitSD #-}
 splitSD g dsegd xs = splitAsD g (elementsUSegdD dsegd) xs

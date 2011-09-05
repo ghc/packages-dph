@@ -28,7 +28,7 @@ module Data.Array.Parallel.Unlifted.Distributed (
   Distribution, balanced, unbalanced,
 
   -- * Distributed segment descriptors
-  splitSegdOnSegsD, splitSegdOnElemsD, splitSD,
+  splitSegdOnSegsD, splitSegdOnElemsD, splitSD, joinSegdD,
   lengthUSegdD, lengthsUSegdD, indicesUSegdD, elementsUSegdD,
 
   -- * Distributed scattered segment descriptors
