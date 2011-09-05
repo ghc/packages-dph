@@ -144,28 +144,31 @@ fixupFold f !mrs !dcarry = go 1
         (k,c) = indexD dcarry i
 
 
-folds :: Unbox a => (a -> a -> a)
-              -> (USegd -> Vector a -> Vector a) -> UPSegd -> Vector a -> Vector a
+folds   :: Unbox a
+        => (a -> a -> a)
+        -> (USegd -> Vector a -> Vector a)
+        -> UPSegd -> Vector a -> Vector a
 {-# INLINE folds #-}
-folds f g segd xs = dcarry `seq` drs `seq` runST (
-  do
-    mrs <- joinDM theGang drs
-    fixupFold f mrs dcarry
-    Seq.unsafeFreeze mrs)
-  where
-    (dcarry,drs)
+folds fElem fSeg segd xs 
+ = dcarry `seq` drs `seq` 
+   runST (do
+        mrs <- joinDM theGang drs
+        fixupFold fElem mrs dcarry
+        Seq.unsafeFreeze mrs)
+
+ where  (dcarry,drs)
           = unzipD
           $ mapD theGang partial
           $ zipD (distUPSegd segd)
                  (splitD theGang balanced xs)
 
-    partial (((segd,k),off), as)
-      = let rs = g segd as
-            {-# INLINE [0] n #-}
-            n | off == 0  = 0
-              | otherwise = 1
-        in
-        ((k, Seq.take n rs), Seq.drop n rs)
+        partial (((segd, k), off), as)
+         = let rs = fSeg segd as
+               {-# INLINE [0] n #-}
+               n | off == 0  = 0
+                 | otherwise = 1
+
+           in  ((k, Seq.take n rs), Seq.drop n rs)
 
 
 foldSUP :: Unbox a => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
