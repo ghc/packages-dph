@@ -4,6 +4,7 @@
 
 -- | Distribution of Segment Descriptors
 module Data.Array.Parallel.Unlifted.Distributed.Types.USegd (
+        mkDUSegd,
         lengthUSegdD,
         lengthsUSegdD,
         indicesUSegdD,
@@ -67,6 +68,16 @@ instance PprPhysical (Dist USegd) where
         [ text "lengths: " <+> pprp lens
         , text "indices: " <+> pprp indices
         , text "elements:" <+> pprp elements])
+
+
+-- | O(1). Construct a distributed segment descriptor
+mkDUSegd 
+        :: Dist (Vector Int)    -- ^ segment lengths
+        -> Dist (Vector Int)    -- ^ segment indices
+        -> Dist Int             -- ^ number of elements in each chunk
+        -> Dist USegd
+
+mkDUSegd = DUSegd
 
 
 -- | O(1). Yield the overall number of segments.

@@ -11,9 +11,17 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays (
   -- * Array Lengths
   lengthD, splitLenD, splitLenIdxD,
   
+  -- * Splitting and joining
   splitAsD, splitD, joinLengthD, joinD, splitJoinD, joinDM,
 
-  permuteD, bpermuteD, atomicUpdateD
+  -- * Permutations
+  permuteD, bpermuteD,
+  
+  -- * Update
+  atomicUpdateD,
+  
+  -- * Carry
+  carryD
 
 ) where
 import Data.Array.Parallel.Base (ST, runST)
@@ -25,6 +33,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Sequential.Vector   (Vector, MVector, Unbox)
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import GHC.Base      ( quotInt, remInt )
+import Control.Monad
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." Prelude.++ s
 
@@ -263,4 +272,88 @@ atomicUpdateD g darr upd = runST (
     update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()
     update marr arr = stToDistST (Seq.mupdate marr arr)
 
+
+-- Carry ----------------------------------------------------------------------
+-- | Selectively combine the last elements of some chunks with the
+--   first elements of others.
+--
+--   NOTE: This runs sequentially and should only be used for testing purposes.
+--
+--   @> pprp $ splitD theGang unbalanced $ fromList [80, 10, 20, 40, 50, 10 :: Int]
+--       DVector lengths: [2,2,1,1]
+--       chunks:  [[80,10],[20,40],[50],[10]]
+-- 
+--    >  pprp $ fst 
+--            $ carryD theGang (+) 0 
+--                     (mkDPrim $ fromList [True, False, True, False]) 
+--                     (splitD theGang unbalanced $ fromList [80, 10, 20, 40, 50, 10 :: Int])
+--
+--        DVector lengths: [1,2,0,1]
+--                chunks:  [[80],[30,40],[],[60]]
+--   @
+--
+carryD  :: forall a
+        .  (Unbox a, DT a)
+        => Gang 
+        -> (a -> a -> a) -> a
+        -> Dist Bool
+        -> Dist (Vector a)
+        -> (Dist (Vector a), a)
+
+carryD gang f zero shouldCarry vec
+ = runST (do
+        md      <- newMD gang
+        acc     <- carryD' f zero shouldCarry vec md
+        d       <- unsafeFreezeMD md
+        return (d, acc))
+
+
+carryD' :: forall a s
+        .  (Unbox a, DT a)
+        => (a -> a -> a) -> a
+        -> Dist Bool
+        -> Dist (Vector a)
+        -> MDist (Vector a) s
+        -> ST s a
+
+carryD' f zero shouldCarry vec md_
+ = go md_ zero 0
+ where go (md :: MDist (Vector a) s) prev ix
+        | ix >= sizeD vec    = return prev
+        | otherwise
+        = do let chunk :: Vector a
+                 !chunk      = indexD vec ix
+             let !chunkLen   = Seq.length chunk
+
+             -- Whether to carry the last value of this chunk into the next chunk
+             let !carry      = indexD shouldCarry ix
+
+             -- The new length for this chunk
+             let !chunkLen'  
+                   | chunkLen == 0 = 0
+                   | carry         = chunkLen - 1
+                   | otherwise     = chunkLen
+
+             -- The new value of the accumulator
+             let acc            = f prev (chunk Seq.! 0)
+                
+             -- Allocate a mutable vector to hold the new chunk and copy
+             -- source elements into it.
+             mchunk' <- Seq.newM chunkLen'
+             Seq.copy mchunk' (Seq.slice chunk 0 chunkLen')
+
+             when (chunkLen' /= 0)
+              $ Seq.write mchunk' 0 acc
+
+             -- Store the new chunk in the gang
+             chunk'  <- Seq.unsafeFreeze mchunk'
+             writeMD md ix chunk'
+
+             -- What value to carry into the next chunk
+             let next
+                  | chunkLen' == 0      = acc
+                  | carry               = chunk Seq.! (chunkLen - 1)
+                  | otherwise           = zero
+                               
+             go md next (ix + 1)
 

@@ -7,7 +7,8 @@ module Data.Array.Parallel.Unlifted.Distributed.USegd (
         splitSegdOnSegsD,
         splitSegdOnElemsD,
         splitSD,
-        joinSegdD
+        joinSegdD,
+        glueSegdD,
 )
 where
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
@@ -93,7 +94,7 @@ splitSegdOnSegsD g !segd
 --    segid:  0                 0                 3                 4
 --    offset: 0                 45                0                 5
 --
---   > pprp $ splitSegdOnElemsD theGang 
+--   > pprp $ splitSegdOnElemsD theGang4
 --          $ lengthsToUSegd $ fromList [60, 10, 20, 40, 50 :: Int]
 --
 --     segd:    DUSegd lengths:  DVector lengths: [1,3,2,1]
@@ -122,7 +123,7 @@ splitSegdOnElemsD g !segd
                                    --   and offset of first slice.
 
         mk i (nElems, ixStart) 
-         = case chunk segd ixStart nElems (i == nThreads - 1) of
+         = case getChunk segd ixStart nElems (i == nThreads - 1) of
             (# lens, l, o #) -> ((lengthsToUSegd lens, l), o)
 
 
@@ -148,7 +149,8 @@ splitSegdOnElemsD g !segd
 --    left_off:        0                 45                0                 5
 --    n':              1                 3                 2                 1
 -- @
-chunk   :: USegd          -- ^ Segment descriptor of entire array.
+getChunk
+        :: USegd          -- ^ Segment descriptor of entire array.
         -> Int            -- ^ Starting offset into the flat array for the first
                           --   slice on this thread.
         -> Int            -- ^ Number of elements in this thread.
@@ -157,49 +159,49 @@ chunk   :: USegd          -- ^ Segment descriptor of entire array.
             , Int         --     segid of first slice,
             , Int #)      --     offset of first slice.
 
-chunk !segd !nStart !nElems is_last
+getChunk !segd !nStart !nElems is_last
   = (# lens'', k-left_len, left_off #)
   where
     -- Lengths of all segments.
     -- eg: [60, 10, 20, 40, 50]
-    lens = lengthsUSegd segd
+    !lens = lengthsUSegd segd
 
     -- Indices indices of all segments.
     -- eg: [0, 60, 70, 90, 130]
-    idxs = indicesUSegd segd
+    !idxs = indicesUSegd segd
     
     -- Total number of segments defined by segment descriptor.
     -- eg: 5
-    n    = Seq.length lens
+    !n    = Seq.length lens
 
     -- Segid of the first seg that starts after the left of this chunk.
-    k    = search nStart idxs
+    !k    = search nStart idxs
 
     -- Segid of the first seg that starts after the right of this chunk.
-    k'       | is_last     = n
-             | otherwise   = search (nStart + nElems) idxs
+    !k'       | is_last     = n
+              | otherwise   = search (nStart + nElems) idxs
 
     -- The length of the left-most slice of this chunk.
-    left     | k == n      = nElems
-             | otherwise   = min ((idxs ! k) - nStart) nElems
+    !left     | k == n      = nElems
+              | otherwise   = min ((idxs ! k) - nStart) nElems
 
     -- The length of the right-most slice of this chunk.
-    right    | k' == k     = 0
-             | otherwise   = nStart + nElems - (idxs ! (k'-1))
+    !right    | k' == k     = 0
+              | otherwise   = nStart + nElems - (idxs ! (k'-1))
 
     -- Whether the first element in this chunk is an internal element of
     -- of a segment. Alternatively, indicates that the first element of 
     -- the chunk is not the first element of a segment.            
-    left_len | left == 0   = 0
-             | otherwise   = 1
+    !left_len | left == 0   = 0
+              | otherwise   = 1
 
     -- If the first element of the chunk starts within a segment, 
     -- then gives the index within that segment, otherwise 0.
-    left_off | left == 0   = 0
-             | otherwise   = nStart - idxs ! (k-1)
+    !left_off | left == 0   = 0
+              | otherwise   = nStart - idxs ! (k-1)
 
     -- How many segments this chunk straddles.
-    n' = left_len + (k'-k)
+    !n' = left_len + (k'-k)
 
     -- Create the lengths for this chunk by first copying out the lengths
     -- from the original segment descriptor. If the slices on the left
@@ -208,7 +210,7 @@ chunk !segd !nStart !nElems is_last
     !lens' 
      = runST (do
             -- Create a new array big enough to hold all the lengths for this chunk.
-            mlens' <- Seq.newM n'
+            !mlens' <- Seq.newM n'
 
             -- If the first element is inside a segment, 
             --   then update the length to be the length of the slice.
@@ -263,12 +265,12 @@ search !x ys = go 0 (Seq.length ys)
 
 
 -------------------------------------------------------------------------------
--- | Join a distributed segment descriptor into a global one.
---   This simply joins the distributed lengths and indices fields, 
---   but does not reconstruct the original segment descriptor as it was 
---   before splitting.
+-- | time O(segs)
+--   Join a distributed segment descriptor into a global one.
+--   This simply joins the distributed lengths and indices fields, but does
+--   not reconstruct the original segment descriptor as it was before splitting.
 -- 
--- @> pprp $ joinSegdD theGang 
+-- @> pprp $ joinSegdD theGang4 
 --         $ fstD $ fstD $ splitSegdOnElemsD theGang
 --         $ lengthsToUSegd $ fromList [60, 10, 20, 40, 50]
 -- 
@@ -277,12 +279,42 @@ search !x ys = go 0 (Seq.length ys)
 --         elements: 180
 -- @
 -- 
+-- TODO: sequential runtime is O(segs) due to application of lengthsToUSegd
+-- 
 joinSegdD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegdD #-}
-joinSegdD g 
+joinSegdD gang
         = lengthsToUSegd
-        . joinD g unbalanced
-        . mapD g lengthsUSegd
+        . joinD gang unbalanced
+        . mapD  gang lengthsUSegd
+
+
+-------------------------------------------------------------------------------
+-- | Glue a distributed segment descriptor back into the original global one.
+--   Prop:  glueSegdD gang $ splitSegdOnElems gang usegd = usegd
+--
+--   NOTE: This is runs sequentially and should only be used for testing purposes.
+--
+glueSegdD :: Gang -> Dist ((USegd, Int), Int)  -> Dist USegd
+{-# INLINE_DIST glueSegdD #-}
+glueSegdD gang bundle
+ = let  !usegd           = fstD $ fstD $ bundle
+        !lengths         = lengthsUSegdD usegd
+                
+        !firstSegOffsets = sndD bundle
+
+        -- | Whether the last segment in this chunk extends into the next chunk.
+        segSplits :: Dist Bool
+        !segSplits
+         = generateD_cheap gang $ \ix 
+         -> if ix >= sizeD lengths - 1
+             then False
+             else indexD firstSegOffsets (ix + 1) /= 0
+
+        !lengths'       = fst $ carryD gang (+)                  0 segSplits lengths
+        !dusegd'        = mapD gang lengthsToUSegd lengths'
+
+  in    dusegd'
 
 
 -------------------------------------------------------------------------------
