@@ -234,20 +234,19 @@ elementsSegd            = elementsUPSegd
 
 
 -- Slice Segment Descriptors --------------------------------------------------
--- TODO: these point to sequential segd ops
-type SSegd              = Seq.USSegd
-mkSSegd                 = Seq.mkUSSegd
-validSSegd              = Seq.validUSSegd
-emptySSegd              = Seq.emptyUSSegd
-singletonSSegd          = Seq.singletonUSSegd
-promoteSegdToSSegd      = Seq.promoteUSegdToUSSegd
-lengthSSegd             = Seq.lengthUSSegd
-lengthsSSegd            = Seq.lengthsUSSegd
-indicesSSegd            = Seq.indicesUSSegd
-startsSSegd             = Seq.startsUSSegd
-sourcesSSegd            = Seq.sourcesUSSegd
-getSegOfSSegd           = Seq.getSegOfUSSegd
-appendSSegd             = Seq.appendUSSegd
+type SSegd              = UPSSegd
+mkSSegd                 = mkUPSSegd
+validSSegd              = validUPSSegd
+emptySSegd              = emptyUPSSegd
+singletonSSegd          = singletonUPSSegd
+promoteSegdToSSegd      = promoteUPSegdToUPSSegd
+lengthSSegd             = lengthUPSSegd
+lengthsSSegd            = lengthsUPSSegd
+indicesSSegd            = indicesUPSSegd
+startsSSegd             = startsUPSSegd
+sourcesSSegd            = sourcesUPSSegd
+getSegOfSSegd           = getSegOfUPSSegd
+appendSSegd             = appendUPSSegd
 
 
 -- Virtual Segment Descriptors ------------------------------------------------

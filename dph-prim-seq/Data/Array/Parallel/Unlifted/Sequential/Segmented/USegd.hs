@@ -77,8 +77,9 @@ emptyUSegd :: USegd
 emptyUSegd = USegd V.empty V.empty 0
 
 
--- | O(1). Yield a singleton segment descriptor.
---         The single segment covers the given number of elements.
+-- | O(1).
+--   Yield a singleton segment descriptor.
+--   The single segment covers the given number of elements.
 singletonUSegd :: Int -> USegd
 {-# INLINE singletonUSegd #-}
 singletonUSegd n = USegd (V.singleton n) (V.singleton 0) n

@@ -179,7 +179,7 @@ appendUSSegd
         :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd
-
+{-# INLINE appendUSSegd #-}
 appendUSSegd (USSegd starts1 srcs1 usegd1) pdatas1
              (USSegd starts2 srcs2 usegd2) _
         = USSegd (starts1  V.++  starts2)
