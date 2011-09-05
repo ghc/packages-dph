@@ -42,6 +42,7 @@ Library
         Data.Array.Parallel.Unlifted.Parallel.Enum
         Data.Array.Parallel.Unlifted.Parallel.Segmented
         Data.Array.Parallel.Unlifted.Parallel.Subarrays
+        Data.Array.Parallel.Unlifted.Parallel.UPSSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSel
         Data.Array.Parallel.Unlifted.Parallel.Text
