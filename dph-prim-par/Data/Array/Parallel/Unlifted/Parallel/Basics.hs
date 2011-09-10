@@ -3,7 +3,7 @@
 
 -- | Basic operations on parallel unlifted arrays.
 module Data.Array.Parallel.Unlifted.Parallel.Basics (
-  lengthUP, nullUP, indexedUP,
+  lengthUP, nullUP, emptyUP, indexedUP,
   replicateUP, repeatUP, interleaveUP
 ) where
 

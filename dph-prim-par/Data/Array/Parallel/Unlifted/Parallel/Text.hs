@@ -3,7 +3,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Text ()
 where
 
 import Data.Array.Parallel.Base (
-  Read(..), showsApp)
+  showsApp)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd (
   UPSegd, lengthsUPSegd )
 

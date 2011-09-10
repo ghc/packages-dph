@@ -1,12 +1,11 @@
 -- | Sum-like parallel combinators for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Sums (
-  andUP, orUP, sumUP
+  andUP, orUP, allUP, anyUP, sumUP, productUP, maximumUP, maximumIndexByUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  foldUP, foldl1UP, fold1UP, mapUP)
+import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Basics ( 
   indexedUP)
 

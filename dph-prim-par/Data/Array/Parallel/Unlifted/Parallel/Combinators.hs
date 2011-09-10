@@ -4,7 +4,7 @@
 -- | Parallel combinators for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, filterUP, packUP, combineUP, combine2UP,
-  zipWithUP, foldUP, fold1UP, foldl1UP, scanUP
+  zipWithUP, foldUP, foldlUP, fold1UP, foldl1UP, scanUP
 ) where
 
 import Data.Array.Parallel.Base

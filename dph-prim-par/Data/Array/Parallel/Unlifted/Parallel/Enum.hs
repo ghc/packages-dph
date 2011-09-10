@@ -6,9 +6,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Enum (
   enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromStepLenEachUP    
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
-import Data.Array.Parallel.Unlifted.Distributed (
-  mapD, scanD, zipD, splitLenIdxD, joinD, splitD, balanced, unbalanced,
-  theGang)
+import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP)
 import GHC.Base ( divInt )

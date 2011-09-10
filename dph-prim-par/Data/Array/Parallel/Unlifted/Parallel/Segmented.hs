@@ -10,14 +10,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented (
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, zipWithUP, packUP, combineUP)
-import Data.Array.Parallel.Unlifted.Parallel.Sums (
-  sumUP )
-import Data.Array.Parallel.Unlifted.Parallel.Basics (
-  replicateUP, repeatUP)
-import Data.Array.Parallel.Unlifted.Parallel.Enum
-import Data.Array.Parallel.Unlifted.Parallel.Permute ( bpermuteUP )
+import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import qualified Data.Vector.Fusion.Stream as S
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
