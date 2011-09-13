@@ -4,7 +4,7 @@ module Data.Array.Parallel.Lifted.Closure (
   mkClosure, mkClosureP, ($:), ($:^),
   closure, liftedClosure, liftedApply,
 
-  closure1, closure2, closure3
+  closure1, closure2, closure3, closure4
 ) where
 import Data.Array.Parallel.PArray.PReprInstances ()
 import Data.Array.Parallel.PArray.PDataInstances
@@ -192,7 +192,6 @@ closure1 :: (a -> b) -> (PArray a -> PArray b) -> (a :-> b)
 {-# INLINE closure1 #-}
 closure1 fv fl = mkClosure (\_ -> fv) (\_ -> fl) ()
 
-
 -- | Arity-2 closures.
 closure2 :: PA a
          => (a -> b -> c)
@@ -204,7 +203,6 @@ closure2 fv fl = mkClosure fv_1 fl_1 ()
   where
     fv_1 _ x  = mkClosure  fv fl x
     fl_1 _ xs = mkClosureP fv fl xs
-
 
 -- | Arity-3 closures.
 closure3 :: (PA a, PA b)
@@ -224,3 +222,23 @@ closure3 fv fl = mkClosure fv_1 fl_1 ()
     fv_3 (x,y) z = fv x y z
     fl_3 ps zs = case unzipPA# ps of (xs,ys) -> fl xs ys zs
 
+-- | Arity-4 closures.
+closure4 :: (PA a, PA b, PA c)
+         => (a -> b -> c -> d -> e)
+         -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e)
+         -> (a :-> b :-> c :-> d :-> e)
+
+{-# INLINE closure4 #-}
+closure4 fv fl = mkClosure fv_1 fl_1 ()
+  where
+    fv_1 _  x  = mkClosure  fv_2 fl_2 x
+    fl_1 _  xs = mkClosureP fv_2 fl_2 xs
+
+    fv_2 x  y  = mkClosure  fv_3 fl_3 (x, y)
+    fl_2 xs ys = mkClosureP fv_3 fl_3 (zipPA# xs ys)
+
+    fv_3 (x, y)  z  = mkClosure  fv_4 fl_4 (x, y, z)
+    fl_3 xys     zs = case unzipPA# xys of (xs, ys) -> mkClosureP fv_4 fl_4 (zip3PA# xs ys zs)
+
+    fv_4 (x, y, z) v = fv x y z v
+    fl_4 ps vs = case unzip3PA# ps of (xs, ys, zs) -> fl xs ys zs vs

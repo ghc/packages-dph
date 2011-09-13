@@ -36,7 +36,7 @@ module Data.Array.Parallel (
   (+:+), concatP,
   mapP, filterP, combineP,
   {- minimumP, maximumP, sumP, productP, -}  -- removed until we support type classes
-  zipP, unzipP, zipWithP,
+  zipP, zip3P, unzipP, unzip3P, zipWithP, zipWith3P,
   {- enumFromToP, enumFromThenToP, -}        -- removed until we support type classes
   bpermuteP, updateP, indexedP, sliceP,
   crossMapP,
@@ -135,15 +135,30 @@ zipP :: [:a:] -> [:b:] -> [:(a, b):]
 zipP !_ !_ = [::]
 {-# VECTORISE zipP = zipPA #-}
 
+zip3P :: [:a:] -> [:b:] -> [:c:] -> [:(a, b, c):]
+{-# NOINLINE zip3P #-}
+zip3P !_ !_ !_ = [::]
+{-# VECTORISE zip3P = zip3PA #-}
+
 unzipP :: [:(a, b):] -> ([:a:], [:b:])
 {-# NOINLINE unzipP #-}
 unzipP !_ = ([::], [::])
 {-# VECTORISE unzipP = unzipPA #-}
 
+unzip3P :: [:(a, b, c):] -> ([:a:], [:b:], [:c:])
+{-# NOINLINE unzip3P #-}
+unzip3P !_ = ([::], [::], [::])
+{-# VECTORISE unzip3P = unzip3PA #-}
+
 zipWithP :: (a -> b -> c) -> [:a:] -> [:b:] -> [:c:]
 {-# NOINLINE zipWithP #-}
 zipWithP !_ !_ !_ = [::]
 {-# VECTORISE zipWithP = zipWithPA #-}
+
+zipWith3P :: (a -> b -> c -> d) -> [:a:] -> [:b:] -> [:c:] -> [:d:]
+{-# NOINLINE zipWith3P #-}
+zipWith3P !_ !_ !_ !_ = [::]
+{-# VECTORISE zipWith3P = zipWith3PA #-}
 
 -- enumFromToP :: Enum a => a -> a -> [:a:]
 -- {-# NOINLINE enumFromToP #-}

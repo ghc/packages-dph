@@ -23,7 +23,7 @@
 --
 module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
-  zipWithPA, zipPA, unzipPA, 
+  zipPA, zip3PA, zipWithPA, zipWith3PA, unzipPA, unzip3PA, 
   packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
   indexedPA, slicePA, updatePA, bpermutePA,
 
@@ -157,26 +157,43 @@ crossMapPA_l ass fs = copySegdPA# bss (zipPA# as' (concatPA# bss))
 
 
 -- zip ------------------------------------------------------------------------
--- | Takes two arrays and returns an array of corresponding pairs.
---   If one array is short, excess elements of the longer array are discarded.
-zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a,b)
+-- |Turns a tuple of arrays into an array of the corresponding tuples.
+--
+--  If one array is short, excess elements of the longer array are discarded.
+
+zipPA :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a, b)
 {-# INLINE zipPA #-}
 zipPA = closure2 zipPA_v zipPA_l
 
-zipPA_v :: (PA a, PA b) => PArray a -> PArray b -> PArray (a,b)
+zipPA_v :: (PA a, PA b) => PArray a -> PArray b -> PArray (a, b)
 {-# INLINE_PA zipPA_v #-}
 zipPA_v xs ys = zipPA# xs ys
 
 zipPA_l :: (PA a, PA b)
-        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a,b))
+        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
 {-# INLINE_PA zipPA_l #-}
 zipPA_l (PArray n# (PNested segd xs)) (PArray _ (PNested _ ys))
   = PArray n# (PNested segd (P_2 xs ys))
 
 
+zip3PA :: (PA a, PA b, PA c) => PArray a :-> PArray b :-> PArray c :-> PArray (a, b, c)
+{-# INLINE zip3PA #-}
+zip3PA = closure3 zip3PA_v zip3PA_l
+
+zip3PA_v :: (PA a, PA b, PA c) => PArray a -> PArray b -> PArray c -> PArray (a, b, c)
+{-# INLINE_PA zip3PA_v #-}
+zip3PA_v xs ys = zip3PA# xs ys
+
+zip3PA_l :: (PA a, PA b, PA c)
+         => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray c) -> PArray (PArray (a, b, c))
+{-# INLINE_PA zip3PA_l #-}
+zip3PA_l (PArray n# (PNested segd xs)) (PArray _ (PNested _ ys)) (PArray _ (PNested _ zs))
+  = PArray n# (PNested segd (P_3 xs ys zs))
+
+
 -- zipWith --------------------------------------------------------------------
--- | zipWith generalises zip by zipping with the function given as the first
---   argument, instead of a tupling function.
+-- |Map a function over multiple arrays at once.
+
 zipWithPA :: (PA a, PA b, PA c)
           => (a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c
 {-# INLINE zipWithPA #-}
@@ -196,22 +213,56 @@ zipWithPA_l fs ass bss
       (replicatelPA# (segdPA# ass) fs $:^ concatPA# ass $:^ concatPA# bss)
 
 
+zipWith3PA :: (PA a, PA b, PA c, PA d)
+           => (a :-> b :-> c :-> d) :-> PArray a :-> PArray b :-> PArray c :-> PArray d
+{-# INLINE zipWith3PA #-}
+zipWith3PA = closure4 zipWith3PA_v zipWith3PA_l
+
+zipWith3PA_v :: (PA a, PA b, PA c, PA d)
+             => (a :-> b :-> c :-> d) -> PArray a -> PArray b -> PArray c -> PArray d
+{-# INLINE_PA zipWith3PA_v #-}
+zipWith3PA_v f as bs cs = replicatePA# (lengthPA# as) f $:^ as $:^ bs $:^ cs
+
+zipWith3PA_l :: (PA a, PA b, PA c, PA d)
+             => PArray (a :-> b :-> c :-> d) 
+             -> PArray (PArray a) -> PArray (PArray b) -> PArray (PArray c)
+             -> PArray (PArray d)
+{-# INLINE_PA zipWith3PA_l #-}
+zipWith3PA_l fs ass bss css
+  = copySegdPA# ass
+      (replicatelPA# (segdPA# ass) fs $:^ concatPA# ass $:^ concatPA# bss $:^ concatPA# css)
+
+
 -- unzip ----------------------------------------------------------------------
--- | Transform an array into an array of the first components,
---   and an array of the second components.
-unzipPA:: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
+-- |Transform an array of tuples into a tuple of arrays.
+
+unzipPA :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
 {-# INLINE unzipPA #-}
 unzipPA = closure1 unzipPA_v unzipPA_l
 
-unzipPA_v:: (PA a, PA b) => PArray (a,b) -> (PArray a, PArray b)
+unzipPA_v :: (PA a, PA b) => PArray (a, b) -> (PArray a, PArray b)
 {-# INLINE_PA unzipPA_v #-}
 unzipPA_v abs' = unzipPA# abs'
 
-unzipPA_l:: (PA a, PA b) => PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
+unzipPA_l :: (PA a, PA b) => PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 {-# INLINE_PA unzipPA_l #-}
 unzipPA_l xyss = zipPA# (copySegdPA# xyss xs) (copySegdPA# xyss ys)
   where
     (xs, ys) = unzipPA# (concatPA# xyss)
+
+unzip3PA :: (PA a, PA b, PA c) => PArray (a, b, c) :-> (PArray a, PArray b, PArray c)
+{-# INLINE unzip3PA #-}
+unzip3PA = closure1 unzip3PA_v unzip3PA_l
+
+unzip3PA_v :: (PA a, PA b, PA c) => PArray (a, b, c) -> (PArray a, PArray b, PArray c)
+{-# INLINE_PA unzip3PA_v #-}
+unzip3PA_v abs' = unzip3PA# abs'
+
+unzip3PA_l :: (PA a, PA b) => PArray (PArray (a, b, c)) -> PArray (PArray a, PArray b, PArray c)
+{-# INLINE_PA unzip3PA_l #-}
+unzip3PA_l xyzss = zip3PA# (copySegdPA# xyzss xs) (copySegdPA# xyzss ys) (copySegdPA# xyzss zs)
+  where
+    (xs, ys, zs) = unzip3PA# (concatPA# xyzss)
 
 
 -- packPA ---------------------------------------------------------------------

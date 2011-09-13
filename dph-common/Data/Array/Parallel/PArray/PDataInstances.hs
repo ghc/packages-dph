@@ -11,7 +11,7 @@ module Data.Array.Parallel.PArray.PDataInstances(
   punit,
 
   -- * Operators on arrays of tuples
-  zipPA#,  unzipPA#, zip3PA#,
+  zipPA#,  unzipPA#, zip3PA#, unzip3PA#,
   
   -- * Operators on nested arrays
   segdPA#, concatPA#, segmentPA#, copySegdPA#
@@ -264,11 +264,15 @@ unzipPA# :: PArray (a, b) -> (PArray a, PArray b)
 unzipPA# (PArray n# (P_2 xs ys))
   = (PArray n# xs, PArray n# ys)
 
-
 zip3PA# :: PArray a -> PArray b -> PArray c -> PArray (a, b, c)
 {-# INLINE_PA zip3PA# #-}
 zip3PA# (PArray n# xs) (PArray _ ys) (PArray _ zs)
   = PArray n# (P_3 xs ys zs)
+
+unzip3PA# :: PArray (a, b, c) -> (PArray a, PArray b, PArray c)
+{-# INLINE_PA unzip3PA# #-}
+unzip3PA# (PArray n# (P_3 xs ys zs))
+  = (PArray n# xs, PArray n# ys, PArray n# zs)
 
 
 -- Sums -----------------------------------------------------------------------
