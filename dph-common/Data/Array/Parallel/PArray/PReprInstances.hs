@@ -182,6 +182,222 @@ instance (PA a, PA b, PA c, PA d, PA e) => PA (a,b,c,d,e) where
         = P_5 as bs cs ds es
 
 
+-- Tuple6 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f) => PA (a,b,c,d,e,f) where
+  toPRepr (a, b, c, d, e, f)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f)
+        = (a, b, c, d, e, f)
+
+  toArrPRepr (P_6 as bs cs ds es fs)
+        = P_6 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) 
+
+  fromArrPRepr (P_6 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs))
+        = P_6 as bs cs ds es fs
+
+
+-- Tuple7 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g) => PA (a,b,c,d,e,f,g) where
+  toPRepr (a, b, c, d, e, f, g)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g)
+        = (a, b, c, d, e, f, g)
+
+  toArrPRepr (P_7 as bs cs ds es fs gs)
+        = P_7 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+
+  fromArrPRepr (P_7 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs))
+        = P_7 as bs cs ds es fs gs
+
+
+-- Tuple8 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h) => PA (a,b,c,d,e,f,g,h) where
+  toPRepr (a, b, c, d, e, f, g, h)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h)
+        = (a, b, c, d, e, f, g, h)
+
+  toArrPRepr (P_8 as bs cs ds es fs gs hs)
+        = P_8 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+              (PWrap hs)
+
+  fromArrPRepr (P_8 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                    (PWrap hs))
+        = P_8 as bs cs ds es fs gs hs
+
+
+-- Tuple9 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i) => PA (a,b,c,d,e,f,g,h,i) where
+  toPRepr (a, b, c, d, e, f, g, h, i)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i)
+        = (a, b, c, d, e, f, g, h, i)
+
+  toArrPRepr (P_9 as bs cs ds es fs gs hs is)
+        = P_9 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+              (PWrap hs) (PWrap is)
+
+  fromArrPRepr (P_9 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                    (PWrap hs) (PWrap is))
+        = P_9 as bs cs ds es fs gs hs is
+
+
+-- Tuple10 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i,j)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i, PA j) 
+  => PA (a,b,c,d,e,f,g,h,i,j) where
+  toPRepr (a, b, c, d, e, f, g, h, i, j)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j)
+        = (a, b, c, d, e, f, g, h, i, j)
+
+  toArrPRepr (P_10 as bs cs ds es fs gs hs is js)
+        = P_10 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+               (PWrap hs) (PWrap is) (PWrap js)
+
+  fromArrPRepr (P_10 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                     (PWrap hs) (PWrap is) (PWrap js))
+        = P_10 as bs cs ds es fs gs hs is js
+
+
+-- Tuple11 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i,j,k)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i, PA j, PA k) 
+  => PA (a,b,c,d,e,f,g,h,i,j,k) where
+  toPRepr (a, b, c, d, e, f, g, h, i, j, k)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k)
+        = (a, b, c, d, e, f, g, h, i, j, k)
+
+  toArrPRepr (P_11 as bs cs ds es fs gs hs is js ks)
+        = P_11 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+               (PWrap hs) (PWrap is) (PWrap js) (PWrap ks)
+
+  fromArrPRepr (P_11 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                     (PWrap hs) (PWrap is) (PWrap js) (PWrap ks))
+        = P_11 as bs cs ds es fs gs hs is js ks
+
+
+-- Tuple12 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i,j,k,l)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i, PA j, PA k, PA l) 
+  => PA (a,b,c,d,e,f,g,h,i,j,k,l) where
+  toPRepr (a, b, c, d, e, f, g, h, i, j, k, l)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+             Wrap l)
+        = (a, b, c, d, e, f, g, h, i, j, k, l)
+
+  toArrPRepr (P_12 as bs cs ds es fs gs hs is js ks ls)
+        = P_12 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+               (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls)
+
+  fromArrPRepr (P_12 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                     (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls))
+        = P_12 as bs cs ds es fs gs hs is js ks ls
+
+
+-- Tuple13 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i,j,k,l,m)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l, Wrap m)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i, PA j, PA k, PA l, PA m) 
+  => PA (a,b,c,d,e,f,g,h,i,j,k,l,m) where
+  toPRepr (a, b, c, d, e, f, g, h, i, j, k, l, m)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l, Wrap m)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+             Wrap l, Wrap m)
+        = (a, b, c, d, e, f, g, h, i, j, k, l, m)
+
+  toArrPRepr (P_13 as bs cs ds es fs gs hs is js ks ls ms)
+        = P_13 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+               (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls) (PWrap ms)
+
+  fromArrPRepr (P_13 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                     (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls) (PWrap ms))
+        = P_13 as bs cs ds es fs gs hs is js ks ls ms
+
+
+-- Tuple14 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i,j,k,l,m,n)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l, Wrap m, Wrap n)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i, PA j, PA k, PA l, PA m, PA n) 
+  => PA (a,b,c,d,e,f,g,h,i,j,k,l,m,n) where
+  toPRepr (a, b, c, d, e, f, g, h, i, j, k, l, m, n)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l, Wrap m, Wrap n)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+             Wrap l, Wrap m, Wrap n)
+        = (a, b, c, d, e, f, g, h, i, j, k, l, m, n)
+
+  toArrPRepr (P_14 as bs cs ds es fs gs hs is js ks ls ms ns)
+        = P_14 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+               (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls) (PWrap ms) (PWrap ns)
+
+  fromArrPRepr (P_14 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                     (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls) (PWrap ms) (PWrap ns))
+        = P_14 as bs cs ds es fs gs hs is js ks ls ms ns
+
+
+-- Tuple15 ---------------------------------------------------------------------
+type instance PRepr (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l, Wrap m, Wrap n, Wrap o)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h, PA i, PA j, PA k, PA l, PA m, PA n, PA o) 
+  => PA (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) where
+  toPRepr (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+           Wrap l, Wrap m, Wrap n, Wrap o)
+
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g, Wrap h, Wrap i, Wrap j, Wrap k,
+             Wrap l, Wrap m, Wrap n, Wrap o)
+        = (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)
+
+  toArrPRepr (P_15 as bs cs ds es fs gs hs is js ks ls ms ns os)
+        = P_15 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+               (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls) (PWrap ms) (PWrap ns)
+               (PWrap os)
+
+  fromArrPRepr (P_15 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+                     (PWrap hs) (PWrap is) (PWrap js) (PWrap ks) (PWrap ls) (PWrap ms) (PWrap ns)
+                     (PWrap os))
+        = P_15 as bs cs ds es fs gs hs is js ks ls ms ns os
+
+
 -- PArray ---------------------------------------------------------------------
 type instance PRepr (PArray a)
         = PArray (PRepr a)
