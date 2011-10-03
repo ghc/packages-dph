@@ -53,6 +53,9 @@ module Data.Array.Parallel.Unlifted (
   -- * Segmented Folds
   fold_s, fold1_s, fold_r, sum_s,  sum_r,
   
+  -- * Scattered Segmented Folds
+  fold_ss, fold1_ss,
+  
   -- * Segment Descriptors
   Segd, mkSegd, validSegd,
   emptySegd, singletonSegd,

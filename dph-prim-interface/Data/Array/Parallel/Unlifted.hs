@@ -152,6 +152,11 @@ sum_r segSize xs
         = notImplemented "sum_r"
 
 
+-- Scattered Segmented Folds --------------------------------------------------
+fold_ss  = notImplemented "fold_ss"
+fold1_ss = notImplemented "fold1_ss"
+
+
 -- Segment Descriptors --------------------------------------------------------
 data Segd 
         = Segd 

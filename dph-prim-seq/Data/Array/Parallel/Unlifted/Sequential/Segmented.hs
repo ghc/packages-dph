@@ -4,7 +4,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented (
 
   replicateSU, replicateRSU, appendSU, indicesSU, indicesSU',
 
-  foldlSU, foldSU, fold1SU,
+  foldlSU,
+  foldSU,   foldSSU,
+  fold1SU,  fold1SSU,
   foldlRU,
   combineSU,
 

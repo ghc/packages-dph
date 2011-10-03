@@ -103,6 +103,11 @@ fold_r                  = foldlRU
 sum_r                   = sumRU
 
 
+-- Scattered Segmented Folds --------------------------------------------------
+fold_ss                 = foldSSU
+fold1_ss                = fold1SSU
+
+
 -- Segment Descriptors --------------------------------------------------------
 type Segd               = USegd
 mkSegd                  = mkUSegd

@@ -31,7 +31,7 @@ where
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
-import Data.Array.Parallel.PArray.Stream
+import Data.Array.Parallel.PArray.Sums
 import Data.Array.Parallel.PArray
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
@@ -169,7 +169,8 @@ slicePA_l _ sliceStarts sliceLens arrs
 -- concat ---------------------------------------------------------------------
 {-# INLINE_PA concatPP #-}
 concatPP :: PA a => PArray (PArray a) :-> PArray a
-concatPP        = closure1 concatPA concatPA_l
+concatPP
+        = closure1 concatPA concatPA_l
 
 
 {-# INLINE_PA concatPA_l #-}
@@ -182,7 +183,7 @@ concatPA_l _ darr
 -- unzip ----------------------------------------------------------------------
 {-# INLINE_PA unzipPP #-}
 unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
-unzipPP         = closure1 unzipPA unzipPA_l
+unzipPP = closure1 unzipPA unzipPA_l
 
 
 -- Scalar =====================================================================
@@ -206,8 +207,9 @@ intOfBool False = 0
 
 -- plus -----------------------------------------------------------------------
 {-# INLINE_PA plusPP_int #-}
-plusPP_int       :: Int :-> Int :-> Int
-plusPP_int       = closure2 (+) plusPA_int_l
+plusPP_int      :: Int :-> Int :-> Int
+plusPP_int
+        = closure2 (+) plusPA_int_l
 
 
 {-# INLINE_PA plusPA_int_l #-}
@@ -219,7 +221,8 @@ plusPA_int_l _ (PInt arr1) (PInt arr2)
 -- mult -----------------------------------------------------------------------
 {-# INLINE_PA multPP_double #-}
 multPP_double   :: Double :-> Double :-> Double
-multPP_double = closure2 (*) multPA_double_l
+multPP_double
+        = closure2 (*) multPA_double_l
 
 
 {-# INLINE_PA multPA_double_l #-}
@@ -231,7 +234,8 @@ multPA_double_l _ (PDouble arr1) (PDouble arr2)
 -- div -----------------------------------------------------------------------
 {-# INLINE_PA divPP_int #-}
 divPP_int   :: Int :-> Int :-> Int
-divPP_int = closure2 div divPA_int_l
+divPP_int
+        = closure2 div divPA_int_l
 
 
 {-# INLINE_PA divPA_int_l #-}
@@ -243,22 +247,11 @@ divPA_int_l _ (PInt arr1) (PInt arr2)
 -- sum ------------------------------------------------------------------------
 {-# INLINE_PA sumPP_double #-}
 sumPP_double :: PArray Double :-> Double
-sumPP_double    = closure1 sumPA_double sumPA_l_double
-
-
-{-# INLINE_PA sumPA_double #-}
-sumPA_double   :: PArray Double -> Double
-sumPA_double (PArray _ (PDouble xs))
-        = U.sum xs
+sumPP_double
+        = closure1 sumPA_double sumPA_l_double
 
 
 {-# INLINE_PA sumPP_int #-}
 sumPP_int :: PArray Int :-> Int
-sumPP_int    = closure1 sumPA_int sumPA_l_int
-
-
-{-# INLINE_PA sumPA_int #-}
-sumPA_int   :: PArray Int  -> Int
-sumPA_int (PArray _ (PInt xs))
-        = U.sum xs
-
+sumPP_int
+        = closure1 sumPA_int sumPA_l_int

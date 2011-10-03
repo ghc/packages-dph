@@ -1,4 +1,4 @@
-{-# LANGUAGE PackageImports, CPP #-}
+{-# LANGUAGE PackageImports, CPP, NoMonomorphismRestriction #-}
 
 -- | Primitive parallel combinators that work on flat, unlifted arrays.
 --   Some of them don't actually have parallel implementations, so we bail out
@@ -219,6 +219,11 @@ fold_r f z segSize arr
 sum_r x arr
         =  tracePrim (TraceSum_r (Seq.length arr))
         $! sumRUP x arr
+
+
+-- Scattered Segmented Folds --------------------------------------------------
+fold_ss                 = foldSSUP
+fold1_ss                = fold1SSUP
 
 
 -- Segment Descriptors --------------------------------------------------------

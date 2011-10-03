@@ -5,16 +5,27 @@
 -- | Parallel combinators for segmented unboxed arrays
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   replicateSUP, replicateRSUP, appendSUP, indicesSUP,
-  foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP
+  foldSUP,      foldSSUP,
+  fold1SUP,     fold1SSUP,
+  foldRUP,
+  sumSUP,
+  sumRUP
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Segmented
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Basics
+import Data.Array.Parallel.Unlifted.Parallel.Combinators (mapUP, zipWithUP, packUP, combineUP)
+import Data.Array.Parallel.Unlifted.Parallel.Sums        (sumUP )
+import Data.Array.Parallel.Unlifted.Parallel.Basics      (replicateUP, repeatUP)
+import Data.Array.Parallel.Unlifted.Parallel.Enum
+import Data.Array.Parallel.Unlifted.Parallel.Permute     (bpermuteUP)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd
-import qualified Data.Vector.Fusion.Stream as S
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
+import qualified Data.Vector.Fusion.Stream              as S
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
+import qualified Data.Vector                            as V
 import Control.Monad.ST ( ST, runST )
 
 
@@ -164,26 +175,43 @@ folds fElem fSeg segd xs
            in  ((k, Seq.take n rs), Seq.drop n rs)
 
 
-foldSUP :: Unbox a => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
+-- fold -----------------------------------------------------------------------
+foldSUP :: Unbox a
+        => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
 {-# INLINE foldSUP #-}
 foldSUP f !z = folds f (foldlSU f z)
 
 
-fold1SUP :: Unbox a => (a -> a -> a) -> UPSegd -> Vector a -> Vector a
+-- TODO: make this parallel
+foldSSUP :: Unbox a
+         => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE foldSSUP #-}
+foldSSUP f z upssegd xss
+        = foldSSU f z (ssegdUPSSegd upssegd) xss
+
+
+-- fold1 ----------------------------------------------------------------------
+fold1SUP :: Unbox a
+         => (a -> a -> a) -> UPSegd -> Vector a -> Vector a
 {-# INLINE fold1SUP #-}
 fold1SUP f = folds f (fold1SU f)
 
 
+-- TODO: Make this parallel
+fold1SSUP :: Unbox a
+          => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE fold1SSUP #-}
+fold1SSUP f upssegd xss
+        = fold1SSU f (ssegdUPSSegd upssegd) xss
+
+
+-- sumS -----------------------------------------------------------------------
 sumSUP :: (Num e, Unbox e) => UPSegd -> Vector e -> Vector e
 {-# INLINE sumSUP #-}
 sumSUP = foldSUP (+) 0
 
 
-sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
-{-# INLINE sumRUP #-}
-sumRUP = foldRUP (+) 0
-
-
+-- foldR ----------------------------------------------------------------------
 foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
 {-# INLINE foldRUP #-}
 foldRUP f z !segSize xs = 
@@ -194,6 +222,13 @@ foldRUP f z !segSize xs =
   where
     noOfSegs = Seq.length xs `div` segSize
     dlen = splitLenD theGang noOfSegs
+
+
+-- sumR -----------------------------------------------------------------------
+sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
+{-# INLINE sumRUP #-}
+sumRUP = foldRUP (+) 0
+
 
 
 -- indices --------------------------------------------------------------------

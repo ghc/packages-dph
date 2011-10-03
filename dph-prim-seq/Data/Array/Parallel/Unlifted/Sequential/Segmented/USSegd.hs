@@ -21,10 +21,17 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         
         -- * Operators
         appendUSSegd,
-        cullUSSegdOnVSegids
+        cullUSSegdOnVSegids,
+        
+        -- * Streams
+        streamSegsFromUSSegd
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
-import Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
+import qualified Data.Vector                                    as V
+import qualified Data.Vector.Fusion.Stream                      as S
+import qualified Data.Vector.Fusion.Stream.Size                 as S
+import qualified Data.Vector.Fusion.Stream.Monadic              as M
 import Data.Array.Parallel.Pretty
 
 
@@ -60,8 +67,8 @@ instance PprPhysical USSegd where
   = vcat
   [ text "USSegd" 
         $$ (nest 7 $ vcat
-                [ text "starts:  " <+> (text $ show $ V.toList starts)
-                , text "srcids:  " <+> (text $ show $ V.toList srcids) ])
+                [ text "starts:  " <+> (text $ show $ U.toList starts)
+                , text "srcids:  " <+> (text $ show $ U.toList srcids) ])
   , pprp ssegd ]
 
 
@@ -84,15 +91,15 @@ mkUSSegd = USSegd
 validUSSegd :: USSegd -> Bool
 {-# INLINE validUSSegd #-}
 validUSSegd (USSegd starts srcids usegd)
-        =  (V.length starts == lengthUSegd usegd)
-        && (V.length srcids == lengthUSegd usegd)
+        =  (U.length starts == lengthUSegd usegd)
+        && (U.length srcids == lengthUSegd usegd)
 
 
 -- | O(1).
 --  Yield an empty segment descriptor, with no elements or segments.
 emptyUSSegd :: USSegd
 {-# INLINE emptyUSSegd #-}
-emptyUSSegd = USSegd V.empty V.empty emptyUSegd
+emptyUSSegd = USSegd U.empty U.empty emptyUSegd
 
 
 -- | O(1).
@@ -102,7 +109,7 @@ emptyUSSegd = USSegd V.empty V.empty emptyUSegd
 singletonUSSegd :: Int -> USSegd
 {-# INLINE singletonUSSegd #-}
 singletonUSSegd n 
-        = USSegd (V.singleton 0) (V.singleton 0) (singletonUSegd n)
+        = USSegd (U.singleton 0) (U.singleton 0) (singletonUSegd n)
 
 
 -- | O(segs). 
@@ -112,7 +119,7 @@ promoteUSegdToUSSegd :: USegd -> USSegd
 {-# INLINE promoteUSegdToUSSegd #-}
 promoteUSegdToUSSegd usegd
         = USSegd (indicesUSegd usegd)
-                 (V.replicate (lengthUSegd usegd) 0)
+                 (U.replicate (lengthUSegd usegd) 0)
                  usegd
                  
 
@@ -167,8 +174,8 @@ getSegOfUSSegd (USSegd starts sources usegd) ix
  = let  (len, index) = getSegOfUSegd usegd ix
    in   ( len
         , index
-        , starts  V.! ix
-        , sources V.! ix)
+        , starts  U.! ix
+        , sources U.! ix)
 
 
 -- Operators ------------------------------------------------------------------
@@ -182,8 +189,8 @@ appendUSSegd
 {-# INLINE appendUSSegd #-}
 appendUSSegd (USSegd starts1 srcs1 usegd1) pdatas1
              (USSegd starts2 srcs2 usegd2) _
-        = USSegd (starts1  V.++  starts2)
-                 (srcs1    V.++  V.map (+ pdatas1) srcs2)
+        = USSegd (starts1  U.++  starts2)
+                 (srcs1    U.++  U.map (+ pdatas1) srcs2)
                  (appendUSegd usegd1 usegd2)
 
 
@@ -206,15 +213,15 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
         --  
         --  Note that psegids '2' and '4' are not in vsegids_packed.
         psegids_used
-         = V.bpermuteDft (lengthUSegd usegd)
+         = U.bpermuteDft (lengthUSegd usegd)
                          (const False)
-                         (V.zip vsegids (V.replicate (V.length vsegids) True))
+                         (U.zip vsegids (U.replicate (U.length vsegids) True))
 
         -- Produce an array of used psegs.
         --  eg  psegids_used:   [1 1 0 1 0 1 1]
         --      psegids_packed: [0 1 3 5 6]
         psegids_packed
-         = V.pack (V.enumFromTo 0 (V.length psegids_used)) psegids_used
+         = U.pack (U.enumFromTo 0 (U.length psegids_used)) psegids_used
 
         -- Produce an array that maps psegids in the source array onto
         -- psegids in the result array. If a particular pseg isn't present
@@ -227,9 +234,9 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
         --                      [0 1 2 3 4]
         --      psegids_map:    [0 1 -1 2 -1 3 4]
         psegids_map
-         = V.bpermuteDft (lengthUSegd usegd)
+         = U.bpermuteDft (lengthUSegd usegd)
                          (const (-1))
-                         (V.zip psegids_packed (V.enumFromTo 0 (V.length psegids_packed - 1)))
+                         (U.zip psegids_packed (U.enumFromTo 0 (U.length psegids_packed - 1)))
 
         -- Use the psegids_map to rewrite the packed vsegids to point to the 
         -- corresponding psegs in the result.
@@ -239,13 +246,13 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
         -- 
         --      vsegids':       [0 1 1 2 3 3 4 4]
         --
-        vsegids'  = V.map (psegids_map V.!) vsegids
+        vsegids'  = U.map (psegids_map U.!) vsegids
 
         -- Rebuild the usegd.
-        starts'   = V.pack starts  psegids_used
-        sources'  = V.pack sources psegids_used
+        starts'   = U.pack starts  psegids_used
+        sources'  = U.pack sources psegids_used
 
-        lengths'  = V.pack (lengthsUSegd usegd) psegids_used
+        lengths'  = U.pack (lengthsUSegd usegd) psegids_used
         usegd'    = lengthsToUSegd lengths'
         
         ussegd'   = USSegd starts' sources' usegd'
@@ -253,5 +260,42 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
      in  (vsegids', ussegd')
 
 
+
+-- | Stream some physical segments from many data arrays.
+--   TODO: make this more efficient, and fix fusion.
+--         We should be able to eliminate a lot of the indexing happening in the 
+--         inner loop by being cleverer about the loop state.
+streamSegsFromUSSegd
+        :: Unbox a
+        => USSegd               -- ^ Segment descriptor defining segments based on source vectors.
+        -> V.Vector (Vector a)  -- ^ Source vectors.
+        -> S.Stream a
+        
+streamSegsFromUSSegd ussegd@(USSegd starts sources usegd) pdatas
+ = let  
+        -- length of each segment
+        pseglens        = lengthsUSegd usegd
+ 
+        -- We've finished streaming this pseg
+        {-# INLINE fn #-}
+        fn (pseg, ix)
+         -- All psegs are done.
+         | pseg >= lengthUSSegd ussegd
+         = return $ S.Done
+         
+         -- Current pseg is done
+         | ix   >= pseglens U.! pseg 
+         = fn (pseg + 1, 0)
+
+         -- Stream an element from this pseg
+         | otherwise
+         = let  srcid   = sources    U.! pseg
+                pdata   = pdatas     V.!  srcid
+                start   = starts     U.! pseg
+                result  = pdata U.! (start + ix)
+           in   return $ S.Yield result 
+                                (pseg, ix + 1)
+
+   in   M.Stream fn (0, 0) S.Unknown
 
 

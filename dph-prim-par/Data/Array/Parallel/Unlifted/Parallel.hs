@@ -36,7 +36,11 @@ module Data.Array.Parallel.Unlifted.Parallel (
  
   -- * Segmented operators
   replicateSUP, replicateRSUP, appendSUP, indicesSUP,
-  foldSUP, foldRUP, fold1SUP, sumSUP, sumRUP,
+  foldSUP,  foldSSUP,
+  fold1SUP, fold1SSUP,
+  foldRUP,
+  sumSUP,
+  sumRUP,
 
   indexedUP, replicateUP, repeatUP, interleaveUP,
 

@@ -20,7 +20,9 @@ Library
         Data.Array.Parallel.PArray.PData.Unit
         Data.Array.Parallel.PArray.PData.Tuple
         Data.Array.Parallel.PArray.PData.Closure
+        Data.Array.Parallel.PArray.PData
         Data.Array.Parallel.PArray.PRepr
+        Data.Array.Parallel.PArray.Sums
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.PArray

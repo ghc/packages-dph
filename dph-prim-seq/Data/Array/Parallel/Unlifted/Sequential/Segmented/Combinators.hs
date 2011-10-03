@@ -3,43 +3,105 @@
 
 -- | Standard combinators for segmented unlifted arrays.
 module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
-  foldlSU, foldSU, foldl1SU, fold1SU, {-scanSU,-} {-scan1SU,-}
+  foldlSU,      foldlSSU,
+  foldSU,       foldSSU,
+  foldl1SU,     foldl1SSU,
+  fold1SU,      fold1SSU,
   foldlRU,
   combineSU
 ) where
-import Data.Array.Parallel.Stream (
-  foldSS, fold1SS, combineSS, foldValuesR )
-import Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Stream
+import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
+import qualified Data.Vector                                    as V
 import Debug.Trace
 
 
+-- foldl ----------------------------------------------------------------------
 -- | Segmented array reduction proceeding from the left
-foldlSU :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> USegd -> Vector a -> Vector b
+foldlSU  :: (Unbox a, Unbox b)
+         => (b -> a -> b) -> b -> USegd -> Vector a -> Vector b
 {-# INLINE_U foldlSU #-}
 foldlSU f z segd xs 
         = unstream
-         $ foldSS f z (stream (lengthsUSegd segd)) (stream xs)
+        $ foldSS f z    (stream (lengthsUSegd segd))
+                        (stream xs)
+
+-- | Segmented array reduction proceeding from the left.
+--   For scattered segments.
+foldlSSU :: (Unbox a, Unbox b)
+         => (b -> a -> b) -> b -> USSegd -> V.Vector (Vector a) -> Vector b
+{-# INLINE_U foldlSSU #-}
+foldlSSU f z ssegd xss
+        = unstream
+        $ foldSS f z    (stream (lengthsUSSegd ssegd))
+                        (streamSegsFromUSSegd ssegd xss)
 
 
+-- fold -----------------------------------------------------------------------
 -- | Segmented array reduction that requires an associative combination
 --   function with its unit
-foldSU :: Unbox a => (a -> a -> a) -> a -> USegd -> Vector a -> Vector a
+foldSU  :: Unbox a
+        => (a -> a -> a) -> a -> USegd -> Vector a -> Vector a
+{-# INLINE_U foldSU #-}
 foldSU = foldlSU
 
 
+-- | Segmented array reduction that requires an associative combination
+--   function with its unit. For scattered segments.
+foldSSU :: Unbox a
+        => (a -> a -> a) -> a -> USSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE_U foldSSU #-}
+foldSSU = foldlSSU       
+
+
+-- foldl1 ---------------------------------------------------------------------
 -- | Segmented array reduction from left to right with non-empty subarrays only
-foldl1SU :: Unbox a => (a -> a -> a) -> USegd -> Vector a -> Vector a
+foldl1SU :: Unbox a
+         => (a -> a -> a) -> USegd -> Vector a -> Vector a
 {-# INLINE_U foldl1SU #-}
 foldl1SU f segd xs 
         = unstream
-        $ fold1SS f (stream (lengthsUSegd segd)) (stream xs)
+        $ fold1SS f     (stream (lengthsUSegd segd))
+                        (stream xs)
+
+
+-- | Segmented array reduction from left to right with non-empty subarrays only.
+--   For scattered segments.
+foldl1SSU :: Unbox a
+          => (a -> a -> a) -> USSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE_U foldl1SSU #-}
+foldl1SSU f ssegd xxs
+        = unstream
+        $ fold1SS f     (stream (lengthsUSSegd ssegd))
+                        (streamSegsFromUSSegd ssegd xxs)
+
+
+-- fold1 ----------------------------------------------------------------------
+-- | Segmented array reduction with non-empty subarrays and an associative
+--   combination function.
+fold1SU :: Unbox a
+        => (a -> a -> a) -> USegd -> Vector a -> Vector a
+{-# INLINE_U fold1SU #-}
+fold1SU = foldl1SU
 
 
 -- | Segmented array reduction with non-empty subarrays and an associative
---   combination function
-fold1SU :: Unbox a => (a -> a -> a) -> USegd -> Vector a -> Vector a
-fold1SU = foldl1SU
+--   combination function. For scattered segments.
+fold1SSU :: Unbox a
+        => (a -> a -> a) -> USSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE_U fold1SSU #-}
+fold1SSU = foldl1SSU
+
+
+
+-- foldlR ---------------------------------------------------------------------
+-- | Regular arrar reduction 
+foldlRU :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
+{-# INLINE_U foldlRU #-}
+foldlRU f z segSize
+        = unstream . foldValuesR f z segSize . stream
 
 
 -- | Merge two segmented arrays according to flag array
@@ -50,11 +112,4 @@ combineSU bs xd xs yd ys
         $ combineSS (stream bs)
                     (stream (lengthsUSegd xd)) (stream xs)
                     (stream (lengthsUSegd yd)) (stream ys)
-
-
--- | Regular arrar reduction 
-foldlRU :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
-{-# INLINE_U foldlRU #-}
-foldlRU f z segSize
-        = unstream . foldValuesR f z segSize . stream
 
