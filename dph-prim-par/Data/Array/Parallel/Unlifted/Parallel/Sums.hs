@@ -1,6 +1,7 @@
 -- | Sum-like parallel combinators for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Sums (
-  andUP, orUP, allUP, anyUP, sumUP, productUP, maximumUP, maximumIndexByUP
+  andUP, orUP, allUP, anyUP, sumUP, productUP,
+  maximumUP, maximumByUP, maximumIndexByUP
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq

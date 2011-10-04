@@ -1,40 +1,74 @@
+
 -- | Parallel operations on unlifted arrays
+--
+--   NOTE: Each of the sections in the export list corresponds to one of the
+--         Parallel modules, and the names are in the same order as in those
+--         modules.
+--
 module Data.Array.Parallel.Unlifted.Parallel (
-  UPSel2, UPSelRep2,
+  -- * Basics
+  lengthUP,
+  nullUP,
+  emptyUP,
+  indexedUP,
+  replicateUP,
+  repeatUP,
+  interleaveUP,
+  
+  -- * Combinators
+  mapUP,
+  filterUP,
+  packUP,
+  combineUP,  combine2UP,
+  zipWithUP,
+  foldUP,     fold1UP,
+  foldlUP,    foldl1UP,
+  scanUP,
+  
+  -- * Enum
+  enumFromToUP,
+  enumFromThenToUP,
+  enumFromStepLenUP,
+  enumFromStepLenEachUP,
+  
+  -- * Permute
+  bpermuteUP,
+  updateUP,
 
-  bpermuteUP, updateUP,
+  -- * Segmented
+  replicateRSUP,
+  appendSUP,
+  foldSSUP,
+  fold1SSUP,
+  foldRUP,
+  sumRUP,
 
-  enumFromToUP, enumFromThenToUP, enumFromStepLenUP, enumFromStepLenEachUP,
+  -- * Subarrays
+  dropUP,
+  
+  -- * Sums
+  andUP,
+  orUP,
+  allUP,     anyUP,
+  sumUP,     productUP,
+  maximumUP, maximumByUP,
+  maximumIndexByUP,  
 
-  mapUP, filterUP, packUP, combineUP, combine2UP,
-  zipWithUP, foldUP, scanUP,
+  -- * Selector Types
+  UPSel2,
 
-  andUP, sumUP,
-
-  -- * Selectors
-  tagsUPSel2, indicesUPSel2, elementsUPSel2_0, elementsUPSel2_1,
-  selUPSel2, repUPSel2, mkUPSel2,
-  mkUPSelRep2, indicesUPSelRep2, elementsUPSelRep2_0, elementsUPSelRep2_1,
- 
-  -- * Scattered segment descriptors
-  UPSSegd, validUPSSegd,
-  mkUPSSegd,
-  emptyUPSSegd, singletonUPSSegd,
-  promoteUPSegdToUPSSegd,
-  lengthUPSSegd, lengthsUPSSegd, indicesUPSSegd, elementsUPSSegd,
-  startsUPSSegd, sourcesUPSSegd,
-  getSegOfUPSSegd,
-  ssegdUPSSegd, distUPSSegd,
-  appendUPSSegd,
+  -- * Segment Descriptor Types
+  UPSegd, UPSSegd,
 ) where
-import Data.Array.Parallel.Unlifted.Parallel.Permute
-import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Basics
-import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Enum
+import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.Segmented
+import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
-import Data.Array.Parallel.Unlifted.Parallel.UPSel
-import Data.Array.Parallel.Unlifted.Parallel.Text ()
+import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Parallel.UPSel      (UPSel2)
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd     (UPSegd)
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd    (UPSSegd)
 

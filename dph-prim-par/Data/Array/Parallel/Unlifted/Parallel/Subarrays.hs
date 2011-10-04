@@ -7,7 +7,6 @@ module Data.Array.Parallel.Unlifted.Parallel.Subarrays (
   dropUP
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
--- import Data.Array.Parallel.Unlifted.Distributed
 
 
 -- | Drop a the element at the provided index from a vector.

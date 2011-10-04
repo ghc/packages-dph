@@ -18,14 +18,9 @@ import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Base.TracePrim
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 
-import Data.Array.Parallel.Unlifted.Parallel.Basics
-import Data.Array.Parallel.Unlifted.Parallel.Combinators
-import Data.Array.Parallel.Unlifted.Parallel.Enum
-import Data.Array.Parallel.Unlifted.Parallel.Permute
-import Data.Array.Parallel.Unlifted.Parallel.Segmented
-import Data.Array.Parallel.Unlifted.Parallel.Subarrays
-import Data.Array.Parallel.Unlifted.Parallel.Sums
-import Data.Array.Parallel.Unlifted.Parallel.Text
+import Data.Array.Parallel.Unlifted.Parallel
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
+import Data.Array.Parallel.Unlifted.Parallel.UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
