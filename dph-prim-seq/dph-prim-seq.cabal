@@ -35,6 +35,6 @@ Library
   Build-Depends:  
         base     == 4.4.*,
         random   == 1.0.*,
-        vector   >= 0.7 && < 0.9,
+        vector   >= 0.7 && < 1.0,
         dph-base == 0.5.*,
         dph-prim-interface == 0.5.*
