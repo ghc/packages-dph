@@ -47,8 +47,8 @@ import Data.Array.Parallel.Unlifted.Distributed.TheGang
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
-import Data.Array.Parallel.Unlifted.Distributed.USSegd
 import Data.Array.Parallel.Unlifted.Distributed.USegd
+import Data.Array.Parallel.Unlifted.Distributed.USSegd
 import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang (Gang, forkGang, gangSize)
