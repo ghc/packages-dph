@@ -16,7 +16,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
 ) where
 
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Distributed
 
 -- | A Parallel segment descriptor holds the original descriptor,

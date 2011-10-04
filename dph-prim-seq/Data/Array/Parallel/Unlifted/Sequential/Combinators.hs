@@ -2,7 +2,7 @@
 #include "fusion-phases.h"
 
 -- | Standard combinators for segmented unlifted arrays.
-module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
+module Data.Array.Parallel.Unlifted.Sequential.Combinators (
   foldlSU,      foldlSSU,
   foldSU,       foldSSU,
   foldl1SU,     foldl1SSU,
@@ -12,8 +12,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
 ) where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd
 import qualified Data.Vector                                    as V
 import Debug.Trace
 

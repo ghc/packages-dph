@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Scattered Segment Descriptors
-module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
+module Data.Array.Parallel.Unlifted.Sequential.USSegd (
         -- * Types
         USSegd(..),
         
@@ -26,7 +26,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd (
         -- * Streams
         streamSegsFromUSSegd
 ) where
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import qualified Data.Vector                                    as V
 import qualified Data.Vector.Fusion.Stream                      as S

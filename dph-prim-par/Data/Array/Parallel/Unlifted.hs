@@ -17,8 +17,12 @@
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Base.TracePrim
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
+
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Segmented      as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as Seq
+
 import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox,Vector)
 import Prelude (($!))
 
@@ -222,6 +226,7 @@ sum_r x arr
 
 
 -- Scattered Segmented Folds --------------------------------------------------
+-- TODO: add tracing
 fold_ss                 = foldSSUP
 fold1_ss                = fold1SSUP
 

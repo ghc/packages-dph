@@ -1,13 +1,11 @@
 -- | Sum-like operations on segmented list-like combinators.
-module Data.Array.Parallel.Unlifted.Sequential.Segmented.Sums (
+module Data.Array.Parallel.Unlifted.Sequential.Sums (
   andSU, orSU, sumSU, productSU, maximumSU, minimumSU,
   sumRU
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
-  USegd )
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.Combinators (
-  foldSU, fold1SU, foldlRU)
+import Data.Array.Parallel.Unlifted.Sequential.USegd 
+import Data.Array.Parallel.Unlifted.Sequential.Combinators
 
 
 -- | Compute the boolean AND of all segments in a segmented array.

@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Segment descriptors for virtual arrays.
-module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
+module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
         -- * Types
         UVSegd(..),
 
@@ -29,8 +29,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Segmented.UVSegd (
         unsafeMaterializeUVSegd
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.USel
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import Data.Array.Parallel.Pretty
 

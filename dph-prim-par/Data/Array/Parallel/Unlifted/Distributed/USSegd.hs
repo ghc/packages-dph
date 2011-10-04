@@ -11,7 +11,8 @@ import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Sequential.Segmented
+import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, (!))
 import Data.Array.Parallel.Base
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq

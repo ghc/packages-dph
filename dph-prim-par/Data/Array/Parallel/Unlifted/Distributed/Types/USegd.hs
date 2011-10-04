@@ -12,7 +12,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.USegd (
 ) where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Pretty
 import Control.Monad

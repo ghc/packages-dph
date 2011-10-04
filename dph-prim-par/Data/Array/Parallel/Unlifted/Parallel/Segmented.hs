@@ -11,20 +11,26 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   sumSUP,
   sumRUP
 ) where
-import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
-import Data.Array.Parallel.Unlifted.Sequential.Segmented
+
 import Data.Array.Parallel.Unlifted.Distributed
+
 import Data.Array.Parallel.Unlifted.Parallel.Basics
-import Data.Array.Parallel.Unlifted.Parallel.Combinators (mapUP, zipWithUP, packUP, combineUP)
-import Data.Array.Parallel.Unlifted.Parallel.Sums        (sumUP )
-import Data.Array.Parallel.Unlifted.Parallel.Basics      (replicateUP, repeatUP)
+import Data.Array.Parallel.Unlifted.Parallel.Combinators
+import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Enum
-import Data.Array.Parallel.Unlifted.Parallel.Permute     (bpermuteUP)
+import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
-import qualified Data.Vector.Fusion.Stream              as S
+
+import Data.Array.Parallel.Unlifted.Sequential.Basics           as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Combinators      as Seq
+import Data.Array.Parallel.Unlifted.Sequential.USegd            as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
+
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
+import qualified Data.Vector.Fusion.Stream              as S
 import qualified Data.Vector                            as V
 import Control.Monad.ST ( ST, runST )
 

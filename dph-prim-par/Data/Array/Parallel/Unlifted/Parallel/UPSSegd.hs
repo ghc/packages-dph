@@ -21,8 +21,8 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd
-import Data.Array.Parallel.Unlifted.Sequential.Segmented.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import Data.Array.Parallel.Unlifted.Distributed
 

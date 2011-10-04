@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 -- | Segment Descriptors
-module Data.Array.Parallel.Unlifted.Sequential.Segmented.USegd (
+module Data.Array.Parallel.Unlifted.Sequential.USegd (
   -- * Types
   USegd,
 
