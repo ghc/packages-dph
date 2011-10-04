@@ -4,25 +4,24 @@
 
 -- | Distribution of Segment Descriptors
 module Data.Array.Parallel.Unlifted.Distributed.Types.USSegd (
-        lengthUSSegdD,
-        lengthsUSSegdD,
-        indicesUSSegdD,
-        elementsUSSegdD,
-        startsUSSegdD,
-        sourcesUSSegdD,
-        usegdUSSegdD
+        lengthD,
+        takeLengthsD,
+        takeIndicesD,
+        takeElementsD,
+        takeStartsD,
+        takeSourcesD,
+        takeUSegdD
 ) where
-import Data.Array.Parallel.Unlifted.Distributed.Types.USegd
-import Data.Array.Parallel.Unlifted.Distributed.Types.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
-import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector
+import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import Data.Array.Parallel.Pretty
 import Control.Monad
-import Prelude                          as P
-
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
+import Prelude                                                          as P
+import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USegd   as DUSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.Types.Vector  as DV
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 
 
 instance DT USSegd where
@@ -79,49 +78,49 @@ instance PprPhysical (Dist USSegd) where
 
 
 -- | O(1). Yield the overall number of segments.
-lengthUSSegdD :: Dist USSegd -> Dist Int
-{-# INLINE_DIST lengthUSSegdD #-}
-lengthUSSegdD (DUSSegd starts _ _) 
-        = lengthD starts
+lengthD :: Dist USSegd -> Dist Int
+{-# INLINE_DIST lengthD #-}
+lengthD (DUSSegd starts _ _) 
+        = DV.lengthD starts
 
 
 -- | O(1). Yield the lengths of the individual segments.
-lengthsUSSegdD :: Dist USSegd -> Dist (Vector Int)
-{-# INLINE_DIST lengthsUSSegdD #-}
-lengthsUSSegdD (DUSSegd _ _ usegds)
-        = lengthsUSegdD usegds
+takeLengthsD :: Dist USSegd -> Dist (Vector Int)
+{-# INLINE_DIST takeLengthsD #-}
+takeLengthsD (DUSSegd _ _ usegds)
+        = DUSegd.takeLengthsD usegds
 
 
 -- | O(1). Yield the segment indices.
-indicesUSSegdD :: Dist USSegd -> Dist (Vector Int)
-{-# INLINE_DIST indicesUSSegdD #-}
-indicesUSSegdD (DUSSegd _ _ usegds)
-        = indicesUSegdD usegds
+takeIndicesD :: Dist USSegd -> Dist (Vector Int)
+{-# INLINE_DIST takeIndicesD #-}
+takeIndicesD (DUSSegd _ _ usegds)
+        = DUSegd.takeIndicesD usegds
 
 
 -- | O(1). Yield the number of data elements.
-elementsUSSegdD :: Dist USSegd -> Dist Int
-{-# INLINE_DIST elementsUSSegdD #-}
-elementsUSSegdD (DUSSegd _ _ usegds)
-        = elementsUSegdD usegds
+takeElementsD :: Dist USSegd -> Dist Int
+{-# INLINE_DIST takeElementsD #-}
+takeElementsD (DUSSegd _ _ usegds)
+        = DUSegd.takeElementsD usegds
 
 
 -- | O(1). Yield the starting indices.
-startsUSSegdD :: Dist USSegd -> Dist (Vector Int)
-{-# INLINE_DIST startsUSSegdD #-}
-startsUSSegdD (DUSSegd starts _ _)
+takeStartsD :: Dist USSegd -> Dist (Vector Int)
+{-# INLINE_DIST takeStartsD #-}
+takeStartsD (DUSSegd starts _ _)
         = starts
         
 -- | O(1). Yield the source ids
-sourcesUSSegdD :: Dist USSegd -> Dist (Vector Int)
-{-# INLINE_DIST sourcesUSSegdD #-}
-sourcesUSSegdD (DUSSegd _ sources _)
+takeSourcesD :: Dist USSegd -> Dist (Vector Int)
+{-# INLINE_DIST takeSourcesD #-}
+takeSourcesD (DUSSegd _ sources _)
         = sources
 
 
 -- | O(1). Yield the USegd
-usegdUSSegdD :: Dist USSegd -> Dist USegd
-{-# INLINE_DIST usegdUSSegdD #-}
-usegdUSSegdD (DUSSegd _ _ usegd)
+takeUSegdD :: Dist USSegd -> Dist USegd
+{-# INLINE_DIST takeUSegdD #-}
+takeUSegdD (DUSSegd _ _ usegd)
         = usegd
 

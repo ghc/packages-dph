@@ -11,15 +11,15 @@ import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, (!))
+import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, (!))
 import Data.Array.Parallel.Base
-import Data.Bits     ( shiftR )
-import Control.Monad ( when )
-
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+import Data.Bits                                                        (shiftR)
+import Control.Monad                                                    (when)
+import Data.Array.Parallel.Unlifted.Distributed.Types.USSegd            ()
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 
 
 -------------------------------------------------------------------------------

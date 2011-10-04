@@ -15,14 +15,15 @@ import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, Unbox, (!))
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, Unbox, (!))
 import Data.Array.Parallel.Base
-import Data.Bits     ( shiftR )
-import Control.Monad ( when )
+import Data.Bits                                                        (shiftR)
+import Control.Monad                                                    (when)
+import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USegd   as DUSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
 -------------------------------------------------------------------------------
 -- | Split a segment descriptor across the gang, segment wise.
@@ -301,7 +302,7 @@ glueSegdD :: Gang -> Dist ((USegd, Int), Int)  -> Dist USegd
 {-# INLINE_DIST glueSegdD #-}
 glueSegdD gang bundle
  = let  !usegd           = fstD $ fstD $ bundle
-        !lengths         = lengthsUSegdD usegd
+        !lengths         = DUSegd.takeLengthsD usegd
                 
         !firstSegOffsets = sndD bundle
 
@@ -322,7 +323,8 @@ glueSegdD gang bundle
 -------------------------------------------------------------------------------
 splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitSD #-}
-splitSD g dsegd xs = splitAsD g (elementsUSegdD dsegd) xs
+splitSD g dsegd xs
+        = splitAsD g (DUSegd.takeElementsD dsegd) xs
 
 {-# RULES
 

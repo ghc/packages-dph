@@ -5,20 +5,19 @@
 -- | Distribution of Segment Descriptors
 module Data.Array.Parallel.Unlifted.Distributed.Types.USegd (
         mkDUSegd,
-        lengthUSegdD,
-        lengthsUSegdD,
-        indicesUSegdD,
-        elementsUSegdD
+        lengthD,
+        takeLengthsD,
+        takeIndicesD,
+        takeElementsD
 ) where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import Data.Array.Parallel.Pretty
 import Control.Monad
-import Prelude                          as P
-
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
+import Prelude                                                          as P
+import qualified Data.Array.Parallel.Unlifted.Distributed.Types.Vector  as DV
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 
 
 instance DT USegd where
@@ -84,29 +83,28 @@ mkDUSegd = DUSegd
 
 
 -- | O(1). Yield the overall number of segments.
-lengthUSegdD :: Dist USegd -> Dist Int
-{-# INLINE_DIST lengthUSegdD #-}
-lengthUSegdD (DUSegd lens _ _) 
-        = lengthD lens
+lengthD :: Dist USegd -> Dist Int
+{-# INLINE_DIST lengthD #-}
+lengthD (DUSegd lens _ _) 
+        = DV.lengthD lens
 
 
 -- | O(1). Yield the lengths of the individual segments.
-lengthsUSegdD :: Dist USegd -> Dist (Vector Int)
-{-# INLINE_DIST lengthsUSegdD #-}
-lengthsUSegdD (DUSegd lens _ _ )
+takeLengthsD :: Dist USegd -> Dist (Vector Int)
+{-# INLINE_DIST takeLengthsD #-}
+takeLengthsD (DUSegd lens _ _ )
         = lens
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
-indicesUSegdD :: Dist USegd -> Dist (Vector Int)
-{-# INLINE_DIST indicesUSegdD #-}
-indicesUSegdD (DUSegd _ idxs _)
+takeIndicesD :: Dist USegd -> Dist (Vector Int)
+{-# INLINE_DIST takeIndicesD #-}
+takeIndicesD (DUSegd _ idxs _)
         = idxs
 
 
 -- | O(1). Yield the number of data elements.
-elementsUSegdD :: Dist USegd -> Dist Int
-{-# INLINE_DIST elementsUSegdD #-}
-elementsUSegdD (DUSegd _ _ dns)
+takeElementsD :: Dist USegd -> Dist Int
+{-# INLINE_DIST takeElementsD #-}
+takeElementsD (DUSegd _ _ dns)
         = dns
-

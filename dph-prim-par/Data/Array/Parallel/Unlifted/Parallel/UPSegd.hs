@@ -29,8 +29,8 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
   indicesWith
 ) where
 import Data.Array.Parallel.Unlifted.Distributed
-
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import qualified Data.Array.Parallel.Unlifted.Distributed.USegd         as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
@@ -83,7 +83,7 @@ mkUPSegd lens idxs n
 --  it across the gang.
 fromUSegd :: USegd -> UPSegd
 {-# INLINE fromUSegd #-}
-fromUSegd segd   = UPSegd segd (splitSegdOnElemsD theGang segd)
+fromUSegd segd   = UPSegd segd (USegd.splitSegdOnElemsD theGang segd)
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
