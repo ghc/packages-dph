@@ -4,11 +4,9 @@
 
 -- | Parallel combinators for segmented unboxed arrays
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  replicateSUP, replicateRSUP, appendSUP, indicesSUP,
-  foldSUP,      foldSSUP,
-  fold1SUP,     fold1SSUP,
+  replicateRSUP, appendSUP,
+  foldSSUP, fold1SSUP,
   foldRUP,
-  sumSUP,
   sumRUP
 ) where
 
@@ -20,8 +18,9 @@ import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Permute
-import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
 
 import Data.Array.Parallel.Unlifted.Sequential.Basics           as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Combinators      as Seq
@@ -37,18 +36,6 @@ import Control.Monad.ST ( ST, runST )
 
 -- replicate ------------------------------------------------------------------
 
--- | Segmented replication, using a segment descriptor.
-replicateSUP :: Unbox a => UPSegd -> Vector a -> Vector a
-{-# INLINE_UP replicateSUP #-}
-replicateSUP segd !xs 
-  = joinD theGang balanced
-  . mapD theGang rep
-  $ distUPSegd segd
-  where
-    rep ((dsegd,di),_)
-      = replicateSU dsegd (Seq.slice xs di (lengthUSegd dsegd))
-
-
 -- | Segmented replication.
 --   Each element in the vector is replicated the given number of times.
 --   
@@ -59,10 +46,10 @@ replicateSUP segd !xs
 replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_UP replicateRSUP #-}
 replicateRSUP n xs
-        = replicateSUP (lengthsToUPSegd (replicateUP (Seq.length xs) n)) xs
+        = UPSegd.replicateWith (UPSegd.fromLengths (replicateUP (Seq.length xs) n)) xs
 
 
--- append ---------------------------------------------------------------------
+-- Append ---------------------------------------------------------------------
 -- | Segmented append.
 appendSUP
         :: Unbox a
@@ -75,15 +62,15 @@ appendSUP
 appendSUP segd !xd !xs !yd !ys
   = joinD theGang balanced
   . mapD  theGang append
-  $ distUPSegd segd
+  $ UPSegd.takeDistributed segd
   where append ((segd,seg_off),el_off)
          = Seq.unstream
-         $ appendSegS (segdUPSegd xd) xs
-                      (segdUPSegd yd) ys
+         $ appendSegS (UPSegd.takeUSegd xd) xs
+                      (UPSegd.takeUSegd yd) ys
                       (elementsUSegd segd)
                       seg_off el_off
 
-
+-- append ---------------------------------------------------------------------
 appendSegS
         :: Unbox a      
         => USegd        -- ^ segment descriptor of first array
@@ -137,57 +124,6 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
 
 
 -- fold -----------------------------------------------------------------------
-fixupFold :: Unbox a => (a -> a -> a) -> MVector s a
-          -> Dist (Int,Vector a) -> ST s ()
-{-# NOINLINE fixupFold #-}
-fixupFold f !mrs !dcarry = go 1
-  where
-    !p = gangSize theGang
-
-    go i | i >= p = return ()
-         | Seq.null c = go (i+1)
-         | otherwise   = do
-                           x <- Seq.read mrs k
-                           Seq.write mrs k (f x (c ! 0))
-                           go (i+1)
-      where
-        (k,c) = indexD dcarry i
-
-
-folds   :: Unbox a
-        => (a -> a -> a)
-        -> (USegd -> Vector a -> Vector a)
-        -> UPSegd -> Vector a -> Vector a
-{-# INLINE folds #-}
-folds fElem fSeg segd xs 
- = dcarry `seq` drs `seq` 
-   runST (do
-        mrs <- joinDM theGang drs
-        fixupFold fElem mrs dcarry
-        Seq.unsafeFreeze mrs)
-
- where  (dcarry,drs)
-          = unzipD
-          $ mapD theGang partial
-          $ zipD (distUPSegd segd)
-                 (splitD theGang balanced xs)
-
-        partial (((segd, k), off), as)
-         = let rs = fSeg segd as
-               {-# INLINE [0] n #-}
-               n | off == 0  = 0
-                 | otherwise = 1
-
-           in  ((k, Seq.take n rs), Seq.drop n rs)
-
-
--- fold -----------------------------------------------------------------------
-foldSUP :: Unbox a
-        => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
-{-# INLINE foldSUP #-}
-foldSUP f !z = folds f (foldlSU f z)
-
-
 -- TODO: make this parallel
 foldSSUP :: Unbox a
          => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
@@ -197,24 +133,12 @@ foldSSUP f z upssegd xss
 
 
 -- fold1 ----------------------------------------------------------------------
-fold1SUP :: Unbox a
-         => (a -> a -> a) -> UPSegd -> Vector a -> Vector a
-{-# INLINE fold1SUP #-}
-fold1SUP f = folds f (fold1SU f)
-
-
 -- TODO: Make this parallel
 fold1SSUP :: Unbox a
           => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
 {-# INLINE fold1SSUP #-}
 fold1SSUP f upssegd xss
         = fold1SSU f (ssegdUPSSegd upssegd) xss
-
-
--- sumS -----------------------------------------------------------------------
-sumSUP :: (Num e, Unbox e) => UPSegd -> Vector e -> Vector e
-{-# INLINE sumSUP #-}
-sumSUP = foldSUP (+) 0
 
 
 -- foldR ----------------------------------------------------------------------
@@ -235,14 +159,4 @@ sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
 {-# INLINE sumRUP #-}
 sumRUP = foldRUP (+) 0
 
-
-
--- indices --------------------------------------------------------------------
-indicesSUP :: UPSegd -> Vector Int
-{-# INLINE_UP indicesSUP #-}
-indicesSUP = joinD theGang balanced
-           . mapD theGang indices
-           . distUPSegd
-  where
-    indices ((segd,k),off) = indicesSU' off segd
 

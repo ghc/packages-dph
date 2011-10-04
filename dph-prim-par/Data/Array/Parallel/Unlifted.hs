@@ -18,10 +18,21 @@ import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Base.TracePrim
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 
+import Data.Array.Parallel.Unlifted.Parallel.Basics
+import Data.Array.Parallel.Unlifted.Parallel.Combinators
+import Data.Array.Parallel.Unlifted.Parallel.Enum
+import Data.Array.Parallel.Unlifted.Parallel.Permute
+import Data.Array.Parallel.Unlifted.Parallel.Segmented
+import Data.Array.Parallel.Unlifted.Parallel.Subarrays
+import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Parallel.Text
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as Seq
+
 
 import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox,Vector)
 import Prelude (($!))
@@ -185,7 +196,7 @@ scan f x arr
 -- Segmented Constructors -----------------------------------------------------
 replicate_s segd arr
         =  tracePrim (TraceReplicate_s (Seq.length arr))
-        $! replicateSUP segd arr
+        $! UPSegd.replicateWith segd arr
 
 
 replicate_rs n arr
@@ -200,19 +211,19 @@ append_s segd xd xs yd ys
 
 -- Segmented Projections ------------------------------------------------------
 indices_s segd
- = let  arr     = indicesSUP segd
+ = let  arr     = UPSegd.indicesWith segd
    in   tracePrim (TraceIndices_s (Seq.length arr)) arr
 
 
 -- Segmented Folds ------------------------------------------------------------
 fold_s f x segd arr
         =  tracePrim (TraceFold_s (Seq.length arr))
-        $! foldSUP f x segd arr
+        $! UPSegd.foldWith f x segd arr
 
         
 fold1_s f segd arr
         =  tracePrim (TraceFold1_s (Seq.length arr))
-        $! fold1SUP f segd arr
+        $! UPSegd.fold1With f segd arr
 
 
 fold_r f z segSize arr
@@ -232,15 +243,15 @@ fold1_ss                = fold1SSUP
 
 
 -- Segment Descriptors --------------------------------------------------------
-type Segd               = UPSegd
-mkSegd                  = mkUPSegd
-validSegd               = validUPSegd
-emptySegd               = emptyUPSegd
-singletonSegd           = singletonUPSegd
-lengthSegd              = lengthUPSegd
-lengthsSegd             = lengthsUPSegd
-indicesSegd             = indicesUPSegd
-elementsSegd            = elementsUPSegd
+type Segd               = UPSegd.UPSegd
+mkSegd                  = UPSegd.mkUPSegd
+validSegd               = UPSegd.valid
+emptySegd               = UPSegd.empty
+singletonSegd           = UPSegd.singleton
+lengthSegd              = UPSegd.length
+lengthsSegd             = UPSegd.takeLengths
+indicesSegd             = UPSegd.takeIndices
+elementsSegd            = UPSegd.takeElements
 
 
 -- Slice Segment Descriptors --------------------------------------------------

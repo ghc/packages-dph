@@ -5,7 +5,7 @@ where
 import Data.Array.Parallel.Base (
   showsApp)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd (
-  UPSegd, lengthsUPSegd )
+  UPSegd, takeLengths )
 
 instance Show UPSegd where
-  showsPrec k = showsApp k "toUPSegd" . lengthsUPSegd
+  showsPrec k = showsApp k "toUPSegd" . takeLengths

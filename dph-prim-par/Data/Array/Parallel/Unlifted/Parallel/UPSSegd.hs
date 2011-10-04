@@ -23,8 +23,10 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.USSegd
-import Data.Array.Parallel.Unlifted.Parallel.UPSegd
 import Data.Array.Parallel.Unlifted.Distributed
+
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
 
 -- | A Parallel segment descriptor holds the original descriptor,
 --   and a distributed one that describes how to distribute the work
@@ -97,7 +99,7 @@ singletonUPSSegd n  = toUPSSegd $ singletonUSSegd n
 promoteUPSegdToUPSSegd :: UPSegd -> UPSSegd
 {-# INLINE promoteUPSegdToUPSSegd #-}
 promoteUPSegdToUPSSegd upsegd
- = toUPSSegd $ promoteUSegdToUSSegd $ segdUPSegd upsegd
+ = toUPSSegd $ promoteUSegdToUSSegd $ UPSegd.takeUSegd upsegd
 
 
 -- Projections ----------------------------------------------------------------

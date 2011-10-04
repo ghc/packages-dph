@@ -4,20 +4,42 @@
 -- | Parallel segment descriptors.
 module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
   -- * Types
-  UPSegd, validUPSegd,
+  UPSegd, valid,
 
   -- * Constructors
-  mkUPSegd, emptyUPSegd, singletonUPSegd,
-  lengthsToUPSegd, 
+  mkUPSegd, empty, singleton,
+  fromLengths,
   
   -- * Projections
-  lengthUPSegd, lengthsUPSegd, indicesUPSegd, elementsUPSegd,
-  segdUPSegd, distUPSegd,
+  length,
+  takeLengths,
+  takeIndices,
+  takeElements,
+  takeUSegd,
+  takeDistributed,
+  
+  -- * Replicate
+  replicateWith,
+    
+  -- * Segmented Folds
+  foldSegsWith,
+  foldWith,
+  fold1With,
+  sumWith,
+  indicesWith
 ) where
-
-import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
-import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Distributed
+
+import Data.Array.Parallel.Unlifted.Sequential.USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
+
+import Control.Monad.ST
+import Prelude  hiding (length)
+
 
 -- | A Parallel segment descriptor holds the original descriptor,
 --   and a distributed one that describes how to distribute the work
@@ -38,9 +60,9 @@ data UPSegd
 -- | O(1).
 --   Check the internal consistency of a scattered segment descriptor.
 --   TODO: doesn't do any checks yet
-validUPSegd :: UPSegd -> Bool
-{-# INLINE validUPSegd #-}
-validUPSegd _ = True
+valid :: UPSegd -> Bool
+{-# INLINE valid #-}
+valid _ = True
 
 
 -- Constructors ---------------------------------------------------------------
@@ -52,7 +74,8 @@ mkUPSegd
         -> UPSegd
 
 {-# INLINE mkUPSegd #-}
-mkUPSegd lens idxs n = toUPSegd (mkUSegd lens idxs n)
+mkUPSegd lens idxs n
+        = toUPSegd (mkUSegd lens idxs n)
 
 
 -- | O(1).
@@ -60,21 +83,21 @@ mkUPSegd lens idxs n = toUPSegd (mkUSegd lens idxs n)
 --  it across the gang.
 toUPSegd :: USegd -> UPSegd
 {-# INLINE toUPSegd #-}
-toUPSegd segd = UPSegd segd (splitSegdOnElemsD theGang segd)
+toUPSegd segd   = UPSegd segd (splitSegdOnElemsD theGang segd)
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
-emptyUPSegd :: UPSegd
-{-# INLINE emptyUPSegd #-}
-emptyUPSegd = toUPSegd emptyUSegd
+empty :: UPSegd
+{-# INLINE empty #-}
+empty           = toUPSegd emptyUSegd
 
 
 -- | O(1).
 --   Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
-singletonUPSegd :: Int -> UPSegd
-{-# INLINE singletonUPSegd #-}
-singletonUPSegd n = toUPSegd $ singletonUSegd n
+singleton :: Int -> UPSegd
+{-# INLINE singleton #-}
+singleton n     = toUPSegd $ singletonUSegd n
 
 
 -- | O(n). Convert a length array into a segment descriptor.
@@ -82,44 +105,147 @@ singletonUPSegd n = toUPSegd $ singletonUSegd n
 --   The array contains the length of each segment, and we compute the 
 --   indices from that. Runtime is O(n) in the number of segments.
 --
-lengthsToUPSegd :: Vector Int -> UPSegd
-{-# INLINE lengthsToUPSegd #-}
-lengthsToUPSegd = toUPSegd . lengthsToUSegd
+fromLengths :: Vector Int -> UPSegd
+{-# INLINE fromLengths #-}
+fromLengths     = toUPSegd . lengthsToUSegd
 
 
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
-lengthUPSegd :: UPSegd -> Int
-{-# INLINE lengthUPSegd #-}
-lengthUPSegd = lengthUSegd . upsegd_usegd
+length :: UPSegd -> Int
+{-# INLINE length #-}
+length          = lengthUSegd . upsegd_usegd
 
 
 -- | O(1). Yield the lengths of the individual segments.
-lengthsUPSegd :: UPSegd -> Vector Int
-{-# INLINE lengthsUPSegd #-}
-lengthsUPSegd = lengthsUSegd . upsegd_usegd
+takeLengths :: UPSegd -> Vector Int
+{-# INLINE takeLengths #-}
+takeLengths     = lengthsUSegd . upsegd_usegd
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
-indicesUPSegd :: UPSegd -> Vector Int
-{-# INLINE indicesUPSegd #-}
-indicesUPSegd = indicesUSegd . upsegd_usegd
+takeIndices :: UPSegd -> Vector Int
+{-# INLINE takeIndices #-}
+takeIndices     = indicesUSegd . upsegd_usegd
 
 
 -- | O(1). Yield the number of data elements.
-elementsUPSegd :: UPSegd -> Int
-{-# INLINE elementsUPSegd #-}
-elementsUPSegd = elementsUSegd . upsegd_usegd
+takeElements :: UPSegd -> Int
+{-# INLINE takeElements #-}
+takeElements    = elementsUSegd . upsegd_usegd
 
 
 -- | O(1). Yield the global `USegd` of a `UPSegd`
-segdUPSegd :: UPSegd -> USegd
-{-# INLINE segdUPSegd #-}
-segdUPSegd = upsegd_usegd
+takeUSegd :: UPSegd -> USegd
+{-# INLINE takeUSegd #-}
+takeUSegd       = upsegd_usegd
 
 
 -- | O(1). Yield the distributed `USegd` of a `UPSegd`
-distUPSegd :: UPSegd -> Dist ((USegd,Int),Int)
-{-# INLINE distUPSegd #-}
-distUPSegd = upsegd_dsegd
+takeDistributed :: UPSegd -> Dist ((USegd,Int),Int)
+{-# INLINE takeDistributed #-}
+takeDistributed = upsegd_dsegd
 
+
+-- Indices --------------------------------------------------------------------
+indicesWith :: UPSegd -> Vector Int
+{-# INLINE_UP indicesWith #-}
+indicesWith
+        = joinD theGang balanced
+        . mapD theGang indices
+        . takeDistributed
+  where
+    indices ((segd,k),off) = Seq.indicesSU' off segd
+
+
+-- Replicate ------------------------------------------------------------------
+-- | Segmented replication.
+replicateWith :: Unbox a => UPSegd -> Vector a -> Vector a
+{-# INLINE_UP replicateWith #-}
+replicateWith segd !xs 
+  = joinD theGang balanced
+  . mapD theGang rep
+  $ takeDistributed segd
+  where
+    rep ((dsegd,di),_)
+      = Seq.replicateSU dsegd (Seq.slice xs di (lengthUSegd dsegd))
+
+
+-- Fold -----------------------------------------------------------------------
+-- | Fold segments specified by a UPSegd.
+foldWith :: Unbox a
+         => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
+{-# INLINE foldWith #-}
+foldWith f !z
+        = foldSegsWith f (Seq.foldlSU f z)
+
+
+-- | Fold segments specified by a UPSegd, with a non-empty vector.
+fold1With :: Unbox a
+         => (a -> a -> a) -> UPSegd -> Vector a -> Vector a
+{-# INLINE fold1With #-}
+fold1With f
+        = foldSegsWith f (Seq.fold1SU f)
+
+
+-- | Sum up segments specified by a UPSegd.
+sumWith :: (Num e, Unbox e) => UPSegd -> Vector e -> Vector e
+{-# INLINE sumWith #-}
+sumWith = foldWith (+) 0
+
+
+-- | Fold the segments specified by a UPSegd.
+--
+--   Low level function takes a per-element worker and a per-segment worker.
+--   It folds all the segments with the per-segment worker, then uses the
+--   per-element worker to fixup the partial results when a segment 
+--   is split across multiple threads.
+--   
+foldSegsWith
+        :: Unbox a
+        => (a -> a -> a)
+        -> (USegd -> Vector a -> Vector a)
+        -> UPSegd -> Vector a -> Vector a
+
+{-# INLINE foldSegsWith #-}
+foldSegsWith fElem fSeg segd xs 
+ = dcarry `seq` drs `seq` 
+   runST (do
+        mrs <- joinDM theGang drs
+        fixupFold fElem mrs dcarry
+        Seq.unsafeFreeze mrs)
+
+ where  (dcarry,drs)
+          = unzipD
+          $ mapD theGang partial
+          $ zipD (takeDistributed segd)
+                 (splitD theGang balanced xs)
+
+        partial (((segd, k), off), as)
+         = let rs = fSeg segd as
+               {-# INLINE [0] n #-}
+               n | off == 0  = 0
+                 | otherwise = 1
+
+           in  ((k, Seq.take n rs), Seq.drop n rs)
+
+
+fixupFold
+        :: Unbox a
+        => (a -> a -> a)
+        -> MVector s a
+        -> Dist (Int,Vector a)
+        -> ST s ()
+{-# NOINLINE fixupFold #-}
+fixupFold f !mrs !dcarry = go 1
+  where
+    !p = gangSize theGang
+
+    go i | i >= p = return ()
+         | Seq.null c = go (i+1)
+         | otherwise   = do
+                           x <- Seq.read mrs k
+                           Seq.write mrs k (f x (c Seq.! 0))
+                           go (i + 1)
+      where
+        (k,c) = indexD dcarry i
