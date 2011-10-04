@@ -22,11 +22,10 @@ import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
-
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as Seq
 
 
 import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox,Vector)
@@ -267,23 +266,23 @@ appendSSegd             = UPSSegd.appendWith
 
 -- Virtual Segment Descriptors ------------------------------------------------
 -- TODO: these point to sequential segd ops.
-type VSegd              = Seq.UVSegd
-mkVSegd                 = Seq.mkUVSegd
-validVSegd              = Seq.validUVSegd
-emptyVSegd              = Seq.emptyUVSegd
-singletonVSegd          = Seq.singletonUVSegd
-promoteSegdToVSegd      = Seq.promoteUSegdToUVSegd
-unsafeMaterializeVSegd  = Seq.unsafeMaterializeUVSegd
-promoteSSegdToVSegd     = Seq.promoteUSSegdToUVSegd
-demoteVSegdToSSegd      = Seq.demoteUVSegdToUSSegd
-vsegidsVSegd            = Seq.vsegidsUVSegd
-ssegdVSegd              = Seq.ussegdUVSegd
-lengthVSegd             = Seq.lengthUVSegd
-lengthsVSegd            = Seq.lengthsUVSegd
-getSegOfVSegd           = Seq.getSegOfUVSegd
-updateVSegsOfVSegd      = Seq.updateVSegsOfUVSegd
-appendVSegd             = Seq.appendUVSegd
-combine2VSegd           = Seq.combine2UVSegd
+type VSegd              = UVSegd.UVSegd
+mkVSegd                 = UVSegd.mkUVSegd
+validVSegd              = UVSegd.valid
+emptyVSegd              = UVSegd.empty
+singletonVSegd          = UVSegd.singleton
+promoteSegdToVSegd      = UVSegd.fromUSegd
+unsafeMaterializeVSegd  = UVSegd.unsafeMaterialize
+promoteSSegdToVSegd     = UVSegd.fromUSSegd
+demoteVSegdToSSegd      = UVSegd.toUSSegd
+vsegidsVSegd            = UVSegd.takeVSegids
+ssegdVSegd              = UVSegd.takeUSSegd
+lengthVSegd             = UVSegd.length
+lengthsVSegd            = UVSegd.takeLengths
+getSegOfVSegd           = UVSegd.getSeg
+updateVSegsOfVSegd      = UVSegd.updateVSegs
+appendVSegd             = UVSegd.append
+combine2VSegd           = UVSegd.combine2
 
 
 -- Selectors ------------------------------------------------------------------

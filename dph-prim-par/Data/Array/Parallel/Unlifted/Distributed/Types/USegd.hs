@@ -12,11 +12,13 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.USegd (
 ) where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Pretty
 import Control.Monad
 import Prelude                          as P
+
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 
 
 instance DT USegd where
@@ -31,18 +33,18 @@ instance DT USegd where
                   !(MDist Int        s)         -- number of elements in this chunk
 
   indexD (DUSegd lens idxs eles) i
-   = mkUSegd (indexD lens i) (indexD idxs i) (indexD eles i)
+   = USegd.mkUSegd (indexD lens i) (indexD idxs i) (indexD eles i)
 
   newMD g
    = liftM3 MDUSegd (newMD g) (newMD g) (newMD g)
 
   readMD (MDUSegd lens idxs eles) i
-   = liftM3 mkUSegd (readMD lens i) (readMD idxs i) (readMD eles i)
+   = liftM3 USegd.mkUSegd (readMD lens i) (readMD idxs i) (readMD eles i)
 
   writeMD (MDUSegd lens idxs eles) i segd
-   = do writeMD lens i (lengthsUSegd  segd)
-        writeMD idxs i (indicesUSegd  segd)
-        writeMD eles i (elementsUSegd segd)
+   = do writeMD lens i (USegd.takeLengths  segd)
+        writeMD idxs i (USegd.takeIndices  segd)
+        writeMD eles i (USegd.takeElements segd)
 
   unsafeFreezeMD (MDUSegd lens idxs eles)
    = liftM3 DUSegd (unsafeFreezeMD lens)
@@ -50,15 +52,16 @@ instance DT USegd where
                    (unsafeFreezeMD eles)
 
   deepSeqD segd z
-   = deepSeqD (lengthsUSegd  segd)
-   $ deepSeqD (indicesUSegd  segd)
-   $ deepSeqD (elementsUSegd segd) z
+   = deepSeqD (USegd.takeLengths  segd)
+   $ deepSeqD (USegd.takeIndices  segd)
+   $ deepSeqD (USegd.takeElements segd) z
 
   sizeD  (DUSegd  _ _ eles) = sizeD eles
   sizeMD (MDUSegd _ _ eles) = sizeMD eles
 
   measureD segd 
-   = "Segd " P.++ show (lengthUSegd segd) P.++ " " P.++ show (elementsUSegd segd)
+   = "Segd " P.++ show (USegd.length segd)
+   P.++ " "  P.++ show (USegd.takeElements segd)
 
 
 instance PprPhysical (Dist USegd) where

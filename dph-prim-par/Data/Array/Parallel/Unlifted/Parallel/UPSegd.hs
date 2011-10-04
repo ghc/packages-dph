@@ -30,11 +30,11 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
 ) where
 import Data.Array.Parallel.Unlifted.Distributed
 
-import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
 
 import Control.Monad.ST
@@ -75,21 +75,21 @@ mkUPSegd
 
 {-# INLINE mkUPSegd #-}
 mkUPSegd lens idxs n
-        = toUPSegd (mkUSegd lens idxs n)
+        = fromUSegd (USegd.mkUSegd lens idxs n)
 
 
 -- | O(1).
 --  Convert a global `USegd` to a distributed `UPSegd` by splitting
 --  it across the gang.
-toUPSegd :: USegd -> UPSegd
-{-# INLINE toUPSegd #-}
-toUPSegd segd   = UPSegd segd (splitSegdOnElemsD theGang segd)
+fromUSegd :: USegd -> UPSegd
+{-# INLINE fromUSegd #-}
+fromUSegd segd   = UPSegd segd (splitSegdOnElemsD theGang segd)
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSegd
 {-# INLINE empty #-}
-empty           = toUPSegd emptyUSegd
+empty           = fromUSegd USegd.empty
 
 
 -- | O(1).
@@ -97,7 +97,7 @@ empty           = toUPSegd emptyUSegd
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSegd
 {-# INLINE singleton #-}
-singleton n     = toUPSegd $ singletonUSegd n
+singleton n     = fromUSegd $ USegd.singleton n
 
 
 -- | O(n). Convert a length array into a segment descriptor.
@@ -107,32 +107,32 @@ singleton n     = toUPSegd $ singletonUSegd n
 --
 fromLengths :: Vector Int -> UPSegd
 {-# INLINE fromLengths #-}
-fromLengths     = toUPSegd . lengthsToUSegd
+fromLengths     = fromUSegd . USegd.fromLengths
 
 
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 length :: UPSegd -> Int
 {-# INLINE length #-}
-length          = lengthUSegd . upsegd_usegd
+length          = USegd.length . upsegd_usegd
 
 
 -- | O(1). Yield the lengths of the individual segments.
 takeLengths :: UPSegd -> Vector Int
 {-# INLINE takeLengths #-}
-takeLengths     = lengthsUSegd . upsegd_usegd
+takeLengths     = USegd.takeLengths . upsegd_usegd
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
 takeIndices :: UPSegd -> Vector Int
 {-# INLINE takeIndices #-}
-takeIndices     = indicesUSegd . upsegd_usegd
+takeIndices     = USegd.takeIndices . upsegd_usegd
 
 
 -- | O(1). Yield the number of data elements.
 takeElements :: UPSegd -> Int
 {-# INLINE takeElements #-}
-takeElements    = elementsUSegd . upsegd_usegd
+takeElements    = USegd.takeElements . upsegd_usegd
 
 
 -- | O(1). Yield the global `USegd` of a `UPSegd`
@@ -168,7 +168,7 @@ replicateWith segd !xs
   $ takeDistributed segd
   where
     rep ((dsegd,di),_)
-      = Seq.replicateSU dsegd (Seq.slice xs di (lengthUSegd dsegd))
+      = Seq.replicateSU dsegd (Seq.slice xs di (USegd.length dsegd))
 
 
 -- Fold -----------------------------------------------------------------------

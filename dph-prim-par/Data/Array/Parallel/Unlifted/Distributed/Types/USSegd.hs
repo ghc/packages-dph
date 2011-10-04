@@ -15,12 +15,14 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.USSegd (
 import Data.Array.Parallel.Unlifted.Distributed.Types.USegd
 import Data.Array.Parallel.Unlifted.Distributed.Types.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Sequential.USSegd
-import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Pretty
 import Control.Monad
 import Prelude                          as P
+
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 
 
 instance DT USSegd where
@@ -35,18 +37,18 @@ instance DT USSegd where
                    !(MDist USegd        s)      -- distributed usegd
 
   indexD (DUSSegd starts sources usegds) i
-   = mkUSSegd (indexD starts i) (indexD sources i) (indexD usegds i)
+   = USSegd.mkUSSegd (indexD starts i) (indexD sources i) (indexD usegds i)
 
   newMD g
    = liftM3 MDUSSegd (newMD g) (newMD g) (newMD g)
 
   readMD (MDUSSegd starts sources usegds) i
-   = liftM3 mkUSSegd (readMD starts i) (readMD sources i) (readMD usegds i)
+   = liftM3 USSegd.mkUSSegd (readMD starts i) (readMD sources i) (readMD usegds i)
 
   writeMD (MDUSSegd starts sources usegds) i ussegd
-   = do writeMD starts  i (startsUSSegd  ussegd)
-        writeMD sources i (sourcesUSSegd ussegd)
-        writeMD usegds  i (usegdUSSegd   ussegd)
+   = do writeMD starts  i (USSegd.takeStarts  ussegd)
+        writeMD sources i (USSegd.takeSources ussegd)
+        writeMD usegds  i (USSegd.takeUSegd   ussegd)
 
   unsafeFreezeMD (MDUSSegd starts sources usegds)
    = liftM3 DUSSegd (unsafeFreezeMD starts)
@@ -54,17 +56,17 @@ instance DT USSegd where
                     (unsafeFreezeMD usegds)
 
   deepSeqD ussegd z
-   = deepSeqD (startsUSSegd  ussegd)
-   $ deepSeqD (sourcesUSSegd ussegd)
-   $ deepSeqD (usegdUSSegd   ussegd) z
+   = deepSeqD (USSegd.takeStarts  ussegd)
+   $ deepSeqD (USSegd.takeSources ussegd)
+   $ deepSeqD (USSegd.takeUSegd   ussegd) z
 
   sizeD  (DUSSegd  _ _ usegd) = sizeD usegd
   sizeMD (MDUSSegd _ _ usegd) = sizeMD usegd
 
   measureD ussegd 
-   = "USSegd "  P.++ show (startsUSSegd    ussegd)
-   P.++ " "     P.++ show (sourcesUSSegd   ussegd)
-   P.++ " "     P.++ measureD (usegdUSSegd ussegd)
+   = "USSegd "  P.++ show (USSegd.takeStarts    ussegd)
+   P.++ " "     P.++ show (USSegd.takeSources   ussegd)
+   P.++ " "     P.++ measureD (USSegd.takeUSegd ussegd)
 
 
 instance PprPhysical (Dist USSegd) where

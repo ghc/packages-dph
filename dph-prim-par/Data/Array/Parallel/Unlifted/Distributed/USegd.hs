@@ -15,12 +15,14 @@ import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, Unbox, (!))
 import Data.Array.Parallel.Base
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Bits     ( shiftR )
 import Control.Monad ( when )
+
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
 -------------------------------------------------------------------------------
 -- | Split a segment descriptor across the gang, segment wise.
@@ -53,16 +55,16 @@ import Control.Monad ( when )
 splitSegdOnSegsD :: Gang -> USegd -> Dist USegd
 {-# NOINLINE splitSegdOnSegsD #-}
 splitSegdOnSegsD g !segd 
-  = mapD g lengthsToUSegd
+  = mapD g USegd.fromLengths
   $ splitAsD g d lens
   where
     !d   = snd
          . mapAccumLD g chunks 0
          . splitLenD g
-         $ elementsUSegd segd
+         $ USegd.takeElements segd
 
-    n    = lengthUSegd segd
-    lens = lengthsUSegd segd
+    n    = USegd.length segd
+    lens = USegd.takeLengths segd
 
     chunks !i !k 
       = let !j = go i k
@@ -110,7 +112,7 @@ splitSegdOnSegsD g !segd
 splitSegdOnElemsD :: Gang -> USegd -> Dist ((USegd,Int),Int)
 {-# INLINE splitSegdOnElemsD #-}
 splitSegdOnElemsD g !segd 
-  = imapD g mk (splitLenIdxD g (elementsUSegd segd))
+  = imapD g mk (splitLenIdxD g (USegd.takeElements segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g
@@ -124,7 +126,7 @@ splitSegdOnElemsD g !segd
 
         mk i (nElems, ixStart) 
          = case getChunk segd ixStart nElems (i == nThreads - 1) of
-            (# lens, l, o #) -> ((lengthsToUSegd lens, l), o)
+            (# lens, l, o #) -> ((USegd.fromLengths lens, l), o)
 
 
 
@@ -164,11 +166,11 @@ getChunk !segd !nStart !nElems is_last
   where
     -- Lengths of all segments.
     -- eg: [60, 10, 20, 40, 50]
-    !lens = lengthsUSegd segd
+    !lens = USegd.takeLengths segd
 
     -- Indices indices of all segments.
     -- eg: [0, 60, 70, 90, 130]
-    !idxs = indicesUSegd segd
+    !idxs = USegd.takeIndices segd
     
     -- Total number of segments defined by segment descriptor.
     -- eg: 5
@@ -284,9 +286,9 @@ search !x ys = go 0 (Seq.length ys)
 joinSegdD :: Gang -> Dist USegd -> USegd
 {-# INLINE_DIST joinSegdD #-}
 joinSegdD gang
-        = lengthsToUSegd
+        = USegd.fromLengths
         . joinD gang unbalanced
-        . mapD  gang lengthsUSegd
+        . mapD  gang USegd.takeLengths
 
 
 -------------------------------------------------------------------------------
@@ -312,7 +314,7 @@ glueSegdD gang bundle
              else indexD firstSegOffsets (ix + 1) /= 0
 
         !lengths'       = fst $ carryD gang (+)                  0 segSplits lengths
-        !dusegd'        = mapD gang lengthsToUSegd lengths'
+        !dusegd'        = mapD gang USegd.fromLengths lengths'
 
   in    dusegd'
 

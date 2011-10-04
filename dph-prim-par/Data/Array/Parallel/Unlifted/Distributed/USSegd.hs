@@ -11,13 +11,15 @@ import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Sequential.USegd
-import Data.Array.Parallel.Unlifted.Sequential.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, (!))
 import Data.Array.Parallel.Base
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Bits     ( shiftR )
 import Control.Monad ( when )
+
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
 
 -------------------------------------------------------------------------------
@@ -54,7 +56,7 @@ import Control.Monad ( when )
 splitSSegdOnElemsD :: Gang -> USSegd -> Dist ((USSegd,Int),Int)
 {-# INLINE splitSSegdOnElemsD #-}
 splitSSegdOnElemsD g !segd 
-  = imapD g mk (splitLenIdxD g (elementsUSegd $ usegdUSSegd segd))
+  = imapD g mk (splitLenIdxD g (USegd.takeElements $ USSegd.takeUSegd segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g
@@ -65,8 +67,8 @@ splitSSegdOnElemsD g !segd
         --   generated from the lengths.
         buildUSSegd :: Vector Int -> Vector Int -> Vector Int -> USSegd
         buildUSSegd lengths starts sources
-                = mkUSSegd starts sources
-                $ lengthsToUSegd lengths
+                = USSegd.mkUSSegd starts sources
+                $ USegd.fromLengths lengths
 
 
         -- Determine what elements go on a thread
@@ -120,17 +122,17 @@ chunk !ussegd !nStart !nElems is_last
   where
     -- Lengths of all segments.
     -- eg: [60, 10, 20, 40, 50]
-    lengths     = lengthsUSSegd ussegd
+    lengths     = USSegd.takeLengths ussegd
 
     -- Indices indices of all segments.
     -- eg: [0, 60, 70, 90, 130]
-    indices     = indicesUSSegd ussegd
+    indices     = USSegd.takeIndices ussegd
 
     -- Starting indices for all segments.
-    starts      = startsUSSegd ussegd
+    starts      = USSegd.takeStarts ussegd
 
     -- Source ids for all segments.
-    sources     = sourcesUSSegd ussegd
+    sources     = USSegd.takeSources ussegd
     
     -- Total number of segments defined by segment descriptor.
     -- eg: 5

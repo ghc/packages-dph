@@ -15,12 +15,14 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.UVSegd (
 ) where
 import Data.Array.Parallel.Unlifted.Distributed.Types.USSegd
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Sequential.UVSegd
-import Data.Array.Parallel.Unlifted.Sequential.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.UVSegd           (UVSegd)
+import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Pretty
 import Control.Monad
 import Prelude                          as P
+
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
 
 
 instance DT UVSegd where
@@ -33,32 +35,32 @@ instance DT UVSegd where
                    !(MDist USSegd       s)      -- distributed ussegd
 
   indexD (DUVSegd vsegids ussegds) i
-   = mkUVSegd (indexD vsegids i) (indexD ussegds i)
+   = UVSegd.mkUVSegd (indexD vsegids i) (indexD ussegds i)
 
   newMD g
    = liftM2 MDUVSegd (newMD g) (newMD g)
 
   readMD (MDUVSegd vsegids ussegds) i
-   = liftM2 mkUVSegd (readMD vsegids i) (readMD ussegds i)
+   = liftM2 UVSegd.mkUVSegd (readMD vsegids i) (readMD ussegds i)
 
   writeMD (MDUVSegd vsegids ussegds) i uvsegd
-   = do writeMD vsegids  i (vsegidsUVSegd  uvsegd)
-        writeMD ussegds  i (ussegdUVSegd   uvsegd)
+   = do writeMD vsegids  i (UVSegd.takeVSegids  uvsegd)
+        writeMD ussegds  i (UVSegd.takeUSSegd   uvsegd)
 
   unsafeFreezeMD (MDUVSegd vsegids ussegds)
    = liftM2 DUVSegd (unsafeFreezeMD vsegids)
                     (unsafeFreezeMD ussegds)
 
   deepSeqD uvsegd z
-   = deepSeqD (vsegidsUVSegd  uvsegd)
-   $ deepSeqD (ussegdUVSegd   uvsegd) z
+   = deepSeqD (UVSegd.takeVSegids  uvsegd)
+   $ deepSeqD (UVSegd.takeUSSegd   uvsegd) z
 
   sizeD  (DUVSegd  _ ussegd) = sizeD ussegd
   sizeMD (MDUVSegd _ ussegd) = sizeMD ussegd
 
   measureD uvsegd 
-   = "UVSegd " P.++ show (vsegidsUVSegd    uvsegd)
-   P.++ " "    P.++ measureD (ussegdUVSegd uvsegd)
+   = "UVSegd " P.++ show (UVSegd.takeVSegids    uvsegd)
+   P.++ " "    P.++ measureD (UVSegd.takeUSSegd uvsegd)
 
 
 instance PprPhysical (Dist UVSegd) where

@@ -17,15 +17,17 @@ import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Permute
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd            (UPSSegd)
-import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd                    (UPSSegd)
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
 
-import Data.Array.Parallel.Unlifted.Sequential.Basics           as Seq
-import Data.Array.Parallel.Unlifted.Sequential.Combinators      as Seq
-import Data.Array.Parallel.Unlifted.Sequential.USegd            as Seq
-import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
@@ -67,7 +69,7 @@ appendSUP segd !xd !xs !yd !ys
          = Seq.unstream
          $ appendSegS (UPSegd.takeUSegd xd) xs
                       (UPSegd.takeUSegd yd) ys
-                      (elementsUSegd segd)
+                      (USegd.takeElements segd)
                       seg_off el_off
 
 -- append ---------------------------------------------------------------------
@@ -86,24 +88,24 @@ appendSegS
 appendSegS !xd !xs !yd !ys !n seg_off el_off
   = Stream next state (Exact n)
   where
-    !xlens = lengthsUSegd xd
-    !ylens = lengthsUSegd yd
+    !xlens = USegd.takeLengths xd
+    !ylens = USegd.takeLengths yd
 
     state
       | n == 0 = Nothing
       | el_off < xlens ! seg_off
-      = let i = (indicesUSegd xd ! seg_off) + el_off
-            j = indicesUSegd yd ! seg_off
-            k = (lengthsUSegd xd ! seg_off) - el_off
+      = let i = (USegd.takeIndices xd ! seg_off) + el_off
+            j =  USegd.takeIndices yd ! seg_off
+            k = (USegd.takeLengths xd ! seg_off) - el_off
         in  Just (False, seg_off, i, j, k, n)
 
       | otherwise
       = let -- NOTE: *not* indicesUSegd xd ! (seg_off+1) since seg_off+1
             -- might be out of bounds
-            i       = (indicesUSegd xd ! seg_off) + (lengthsUSegd xd ! seg_off)
-            el_off' = el_off - lengthsUSegd xd ! seg_off
-            j       = (indicesUSegd yd ! seg_off) + el_off'
-            k       = (lengthsUSegd yd ! seg_off) - el_off'
+            i       = (USegd.takeIndices xd ! seg_off) + (USegd.takeLengths xd ! seg_off)
+            el_off' = el_off - USegd.takeLengths xd ! seg_off
+            j       = (USegd.takeIndices yd ! seg_off) + el_off'
+            k       = (USegd.takeLengths yd ! seg_off) - el_off'
         in  Just (True, seg_off, i, j, k, n)
 
     {-# INLINE next #-}
@@ -129,7 +131,7 @@ foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector
 foldRUP f z !segSize xs = 
    joinD theGang unbalanced
     (mapD theGang 
-      (foldlRU f z segSize)
+      (Seq.foldlRU f z segSize)
       (splitAsD theGang (mapD theGang (*segSize) dlen) xs))
   where
     noOfSegs = Seq.length xs `div` segSize

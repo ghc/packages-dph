@@ -29,15 +29,16 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   fold1With,
   foldSegsWith
 ) where
-import Data.Array.Parallel.Pretty                               hiding (empty)
+import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Unlifted.Sequential.USegd
-import Data.Array.Parallel.Unlifted.Sequential.USSegd
-import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
-import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, MVector, Unbox)
-import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
 
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
 
@@ -88,22 +89,22 @@ mkUPSSegd
 
 {-# INLINE mkUPSSegd #-}
 mkUPSSegd starts sources usegd
-        = toUPSSegd (mkUSSegd starts sources usegd)
+        = fromUSSegd (USSegd.mkUSSegd starts sources usegd)
 
 
 -- | O(1).
 --  Convert a global `USegd` to a distributed `UPSegd` by splitting
 --  it across the gang.
-toUPSSegd :: USSegd -> UPSSegd
-{-# INLINE toUPSSegd #-}
-toUPSSegd ssegd 
+fromUSSegd :: USSegd -> UPSSegd
+{-# INLINE fromUSSegd #-}
+fromUSSegd ssegd 
         = UPSSegd ssegd (splitSSegdOnElemsD theGang ssegd)
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSSegd
 {-# INLINE empty #-}
-empty   = toUPSSegd emptyUSSegd
+empty   = fromUSSegd USSegd.empty
 
 
 -- | O(1).
@@ -111,7 +112,7 @@ empty   = toUPSSegd emptyUSSegd
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSSegd
 {-# INLINE singleton #-}
-singleton n  = toUPSSegd $ singletonUSSegd n
+singleton n  = fromUSSegd $ USSegd.singleton n
 
 
 -- | O(segs). 
@@ -124,20 +125,20 @@ singleton n  = toUPSSegd $ singletonUSSegd n
 fromUPSegd :: UPSegd -> UPSSegd
 {-# INLINE fromUPSegd #-}
 fromUPSegd upsegd
- = toUPSSegd $ promoteUSegdToUSSegd $ UPSegd.takeUSegd upsegd
+        = fromUSSegd $ USSegd.fromUSegd $ UPSegd.takeUSegd upsegd
 
 
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 length :: UPSSegd -> Int
 {-# INLINE length #-}
-length = lengthUSSegd . upssegd_ussegd
+length          = USSegd.length . upssegd_ussegd
 
 
 -- | O(1). Yield the global `USegd` of a `UPSegd`
 takeUSSegd :: UPSSegd -> USSegd
 {-# INLINE takeUSSegd #-}
-takeUSSegd = upssegd_ussegd
+takeUSSegd      = upssegd_ussegd
 
 
 -- | O(1). Yield the distributed `USegd` of a `UPSegd`
@@ -149,31 +150,31 @@ takeDistributed = upssegd_dssegd
 -- | O(1). Yield the lengths of the individual segments.
 takeLengths :: UPSSegd -> Vector Int
 {-# INLINE takeLengths #-}
-takeLengths = lengthsUSSegd . upssegd_ussegd
+takeLengths     = USSegd.takeLengths . upssegd_ussegd
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
 takeIndices :: UPSSegd -> Vector Int
 {-# INLINE takeIndices #-}
-takeIndices = indicesUSSegd . upssegd_ussegd
+takeIndices     = USSegd.takeIndices . upssegd_ussegd
 
 
 -- | O(1). Yield the number of data elements.
 takeElements :: UPSSegd -> Int
 {-# INLINE takeElements #-}
-takeElements = elementsUSSegd . upssegd_ussegd
+takeElements    = USSegd.takeElements . upssegd_ussegd
 
 
 -- | O(1). Yield the starting indices of a `UPSSegd`
 takeStarts :: UPSSegd -> Vector Int
 {-# INLINE takeStarts #-}
-takeStarts = startsUSSegd . upssegd_ussegd
+takeStarts      = USSegd.takeStarts . upssegd_ussegd
 
 
 -- | O(1). Yield the source ids of a `UPSSegd`
 takeSources :: UPSSegd -> Vector Int
 {-# INLINE takeSources #-}
-takeSources = sourcesUSSegd . upssegd_ussegd 
+takeSources     = USSegd.takeSources . upssegd_ussegd 
 
 
 -- | O(1).
@@ -181,7 +182,7 @@ takeSources = sourcesUSSegd . upssegd_ussegd
 getSeg :: UPSSegd -> Int -> (Int, Int, Int, Int)
 {-# INLINE getSeg #-}
 getSeg upssegd ix
-        = getSegOfUSSegd (upssegd_ussegd upssegd) ix
+        = USSegd.getSeg (upssegd_ussegd upssegd) ix
 
 
 -- Append ---------------------------------------------------------------------
@@ -198,9 +199,9 @@ appendWith
 appendWith
         upssegd1 pdatas1
         upssegd2 pdatas2
- = toUPSSegd 
- $ appendUSSegd (upssegd_ussegd upssegd1) pdatas1
-                (upssegd_ussegd upssegd2) pdatas2
+ = fromUSSegd 
+ $ USSegd.append (upssegd_ussegd upssegd1) pdatas1
+                 (upssegd_ussegd upssegd2) pdatas2
 
 
 -- Fold -----------------------------------------------------------------------
