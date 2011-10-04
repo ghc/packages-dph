@@ -18,10 +18,9 @@ import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
-import Data.Array.Parallel.Unlifted.Sequential.USel
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import Data.Array.Parallel.Unlifted.Sequential.USSegd
-import Data.Array.Parallel.Unlifted.Sequential.UVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
 
 #include "DPH_Interface.h"
 
@@ -127,39 +126,39 @@ elementsSegd            = USegd.takeElements
 
 
 -- Slice Segment Descriptors --------------------------------------------------
-type SSegd              = USSegd
-mkSSegd                 = mkUSSegd
-validSSegd              = validUSSegd
-emptySSegd              = emptyUSSegd
-singletonSSegd          = singletonUSSegd
-promoteSegdToSSegd      = promoteUSegdToUSSegd
-lengthSSegd             = lengthUSSegd
-lengthsSSegd            = lengthsUSSegd
-indicesSSegd            = indicesUSSegd
-startsSSegd             = startsUSSegd
-sourcesSSegd            = sourcesUSSegd
-getSegOfSSegd           = getSegOfUSSegd
-appendSSegd             = appendUSSegd
+type SSegd              = USSegd.USSegd
+mkSSegd                 = USSegd.mkUSSegd
+validSSegd              = USSegd.valid
+emptySSegd              = USSegd.empty
+singletonSSegd          = USSegd.singleton
+promoteSegdToSSegd      = USSegd.fromUSegd
+lengthSSegd             = USSegd.length
+lengthsSSegd            = USSegd.takeLengths
+indicesSSegd            = USSegd.takeIndices
+startsSSegd             = USSegd.takeStarts
+sourcesSSegd            = USSegd.takeSources
+getSegOfSSegd           = USSegd.getSeg
+appendSSegd             = USSegd.append
 
 
 -- Virtual Segment Descriptors ------------------------------------------------
-type VSegd              = UVSegd
-mkVSegd                 = mkUVSegd
-validVSegd              = validUVSegd
-emptyVSegd              = emptyUVSegd
-singletonVSegd          = singletonUVSegd
-promoteSegdToVSegd      = promoteUSegdToUVSegd
-unsafeMaterializeVSegd  = unsafeMaterializeUVSegd
-promoteSSegdToVSegd     = promoteUSSegdToUVSegd
-demoteVSegdToSSegd      = demoteUVSegdToUSSegd
-vsegidsVSegd            = vsegidsUVSegd
-ssegdVSegd              = ussegdUVSegd
-lengthVSegd             = lengthUVSegd
-lengthsVSegd            = lengthsUVSegd
-getSegOfVSegd           = getSegOfUVSegd
-updateVSegsOfVSegd      = updateVSegsOfUVSegd
-appendVSegd             = appendUVSegd
-combine2VSegd           = combine2UVSegd
+type VSegd              = UVSegd.UVSegd
+mkVSegd                 = UVSegd.mkUVSegd
+validVSegd              = UVSegd.valid
+emptyVSegd              = UVSegd.empty
+singletonVSegd          = UVSegd.singleton
+promoteSegdToVSegd      = UVSegd.fromUSegd
+unsafeMaterializeVSegd  = UVSegd.unsafeMaterialize
+promoteSSegdToVSegd     = UVSegd.fromUSegd
+demoteVSegdToSSegd      = UVSegd.toUSSegd
+vsegidsVSegd            = UVSegd.takeVSegids
+ssegdVSegd              = UVSegd.takeUSSegd
+lengthVSegd             = UVSegd.length
+lengthsVSegd            = UVSegd.takeLengths
+getSegOfVSegd           = UVSegd.getSeg
+updateVSegsOfVSegd      = UVSegd.updateVSegs
+appendVSegd             = UVSegd.append
+combine2VSegd           = UVSegd.combine2
 
 
 -- Selectors ------------------------------------------------------------------

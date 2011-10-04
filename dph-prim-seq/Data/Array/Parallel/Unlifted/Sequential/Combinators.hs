@@ -12,8 +12,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Combinators (
 ) where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
-import Data.Array.Parallel.Unlifted.Sequential.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
 import Debug.Trace
@@ -36,8 +37,8 @@ foldlSSU :: (Unbox a, Unbox b)
 {-# INLINE_U foldlSSU #-}
 foldlSSU f z ssegd xss
         = unstream
-        $ foldSS f z    (stream (lengthsUSSegd ssegd))
-                        (streamSegsFromUSSegd ssegd xss)
+        $ foldSS f z    (stream (USSegd.takeLengths ssegd))
+                        (USSegd.streamSegs ssegd xss)
 
 
 -- fold -----------------------------------------------------------------------
@@ -75,8 +76,8 @@ foldl1SSU :: Unbox a
 {-# INLINE_U foldl1SSU #-}
 foldl1SSU f ssegd xxs
         = unstream
-        $ fold1SS f     (stream (lengthsUSSegd ssegd))
-                        (streamSegsFromUSSegd ssegd xxs)
+        $ fold1SS f     (stream (USSegd.takeLengths ssegd))
+                        (USSegd.streamSegs ssegd xxs)
 
 
 -- fold1 ----------------------------------------------------------------------
