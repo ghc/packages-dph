@@ -233,8 +233,8 @@ sum_r x arr
 
 -- Scattered Segmented Folds --------------------------------------------------
 -- TODO: add tracing
-fold_ss                 = foldSSUP
-fold1_ss                = fold1SSUP
+fold_ss                 = UPSegd.foldWith
+fold1_ss                = UPSegd.fold1With
 
 
 -- Segment Descriptors --------------------------------------------------------

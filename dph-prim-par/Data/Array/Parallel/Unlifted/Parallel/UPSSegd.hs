@@ -21,20 +21,30 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   takeDistributed,
   getSeg,
   
-  -- * Operators
-  appendWith
+  -- * Append
+  appendWith,
   
+  -- * Segmented Folds
+  foldWith,
+  fold1With,
+  foldSegsWith
 ) where
+import Data.Array.Parallel.Pretty                               hiding (empty)
+import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.USSegd
-import Data.Array.Parallel.Unlifted.Distributed
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
+import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, MVector, Unbox)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+
+import qualified Data.Vector                                            as V
+import Control.Monad.ST
 import Prelude hiding (length)
+
 
 -- | A Parallel segment descriptor holds the original descriptor,
 --   and a distributed one that describes how to distribute the work
@@ -50,6 +60,14 @@ data UPSSegd
           --   and the offset of that slice in its segment.
           --   See docs of `splitSegdOfElemsD` for an example.
         }
+
+
+instance PprPhysical UPSSegd where
+ pprp (UPSSegd ussegd dssegd)
+  =  text "UPSSegd"
+  $$ (nest 7 $ vcat
+        [ text "ussegd:  " <+> pprp ussegd
+        , text "dssegd:  " <+> pprp dssegd])
 
 
 -- | O(1).
@@ -166,7 +184,7 @@ getSeg upssegd ix
         = getSegOfUSSegd (upssegd_ussegd upssegd) ix
 
 
--- Operators ------------------------------------------------------------------
+-- Append ---------------------------------------------------------------------
 -- | O(n)
 --   Produce a segment descriptor that describes the result of appending.
 --   
@@ -184,3 +202,82 @@ appendWith
  $ appendUSSegd (upssegd_ussegd upssegd1) pdatas1
                 (upssegd_ussegd upssegd2) pdatas2
 
+
+-- Fold -----------------------------------------------------------------------
+-- | Fold segments specified by a UPSegd.
+foldWith :: Unbox a
+         => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE foldWith #-}
+foldWith f !z
+        = foldSegsWith f (Seq.foldlSSU f z)
+
+
+-- | Fold segments specified by a UPSegd, with a non-empty vector.
+fold1With :: Unbox a
+         => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE fold1With #-}
+fold1With f
+        = foldSegsWith f (Seq.fold1SSU f)
+
+
+-- | Sum up segments specified by a UPSegd.
+sumWith :: (Num a, Unbox a)
+        => UPSSegd -> V.Vector (Vector a) -> Vector a
+{-# INLINE sumWith #-}
+sumWith = foldWith (+) 0
+
+
+-- | Fold the segments specified by a UPSSegd
+--
+--   Low level function takes a per-element worker and a per-segment worker.
+--   It folds all the segments with the per-segment worker, then uses the
+--   per-element worker to fixup the partial results when a segment 
+--   is split across multiple threads.
+--   
+foldSegsWith
+        :: Unbox a
+        => (a -> a -> a)
+        -> (USSegd -> V.Vector (Vector a) -> Vector a)
+        -> UPSSegd -> V.Vector (Vector a) -> Vector a
+
+{-# INLINE foldSegsWith #-}
+foldSegsWith fElem fSeg segd xss 
+ = dcarry `seq` drs `seq` 
+   runST (do
+        mrs <- joinDM theGang drs
+        fixupFold fElem mrs dcarry
+        Seq.unsafeFreeze mrs)
+
+ where  (dcarry,drs)
+          = unzipD
+          $ mapD theGang partial (takeDistributed segd)
+
+        partial ((ssegd, k), off)
+         = let rs = fSeg ssegd xss
+               {-# INLINE [0] n #-}
+               n | off == 0  = 0
+                 | otherwise = 1
+
+           in  ((k, Seq.take n rs), Seq.drop n rs)
+
+
+fixupFold
+        :: Unbox a
+        => (a -> a -> a)
+        -> MVector s a
+        -> Dist (Int,Vector a)
+        -> ST s ()
+
+{-# NOINLINE fixupFold #-}
+fixupFold f !mrs !dcarry = go 1
+  where
+    !p = gangSize theGang
+
+    go i | i >= p = return ()
+         | Seq.null c = go (i+1)
+         | otherwise   = do
+                           x <- Seq.read mrs k
+                           Seq.write mrs k (f x (c Seq.! 0))
+                           go (i + 1)
+      where
+        (k,c) = indexD dcarry i

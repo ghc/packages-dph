@@ -38,8 +38,6 @@ module Data.Array.Parallel.Unlifted.Parallel (
   -- * Segmented
   replicateRSUP,
   appendSUP,
-  foldSSUP,
-  fold1SSUP,
   foldRUP,
   sumRUP,
 

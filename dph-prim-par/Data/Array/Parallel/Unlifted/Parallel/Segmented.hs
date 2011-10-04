@@ -5,7 +5,6 @@
 -- | Parallel combinators for segmented unboxed arrays
 module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   replicateRSUP, appendSUP,
-  foldSSUP, fold1SSUP,
   foldRUP,
   sumRUP
 ) where
@@ -122,24 +121,6 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
         in  return $ Skip (Just (False, seg', i, j, xlens ! seg', n))
 
       | otherwise = return $ Yield (ys!j) (Just (True, seg, i, j+1, k-1, n-1))
-
-
--- fold -----------------------------------------------------------------------
--- TODO: make this parallel
-foldSSUP :: Unbox a
-         => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE foldSSUP #-}
-foldSSUP f z upssegd xss
-        = foldSSU f z (UPSSegd.takeUSSegd upssegd) xss
-
-
--- fold1 ----------------------------------------------------------------------
--- TODO: Make this parallel
-fold1SSUP :: Unbox a
-          => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE fold1SSUP #-}
-fold1SSUP f upssegd xss
-        = fold1SSU f (UPSSegd.takeUSSegd upssegd) xss
 
 
 -- foldR ----------------------------------------------------------------------
