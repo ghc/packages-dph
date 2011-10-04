@@ -7,7 +7,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Basics (
 ) where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector
-import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector.Fusion.Stream as S
 
 
@@ -17,8 +18,8 @@ replicateSU :: Unbox a => USegd -> Vector a -> Vector a
 {-# INLINE_U replicateSU #-}
 replicateSU segd xs 
         = unstream
-             (replicateEachS (elementsUSegd segd)
-             (S.zip (stream (lengthsUSegd segd)) (stream xs)))
+             (replicateEachS (USegd.takeElements segd)
+             (S.zip (stream (USegd.takeLengths segd)) (stream xs)))
 
 
 replicateRSU :: Unbox a => Int -> Vector a -> Vector a
@@ -37,8 +38,8 @@ appendSU :: Unbox a
 {-# INLINE_U appendSU #-}
 appendSU xd xs yd ys
         = unstream
-        $ appendSS (stream (lengthsUSegd xd)) (stream xs)
-                   (stream (lengthsUSegd yd)) (stream ys)
+        $ appendSS (stream (USegd.takeLengths xd)) (stream xs)
+                   (stream (USegd.takeLengths yd)) (stream ys)
 
 
 -- | Segmented indices.
@@ -50,7 +51,7 @@ indicesSU' :: Int -> USegd -> Vector Int
 {-# INLINE_U indicesSU' #-}
 indicesSU' i segd
         = unstream
-        . indicesSS (elementsUSegd segd) i
+        . indicesSS (USegd.takeElements segd) i
         . stream
-        $ lengthsUSegd segd
+        $ USegd.takeLengths segd
 

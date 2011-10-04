@@ -18,8 +18,8 @@ import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
-import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.USel
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import Data.Array.Parallel.Unlifted.Sequential.USSegd
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd
 
@@ -115,15 +115,15 @@ fold1_ss                = fold1SSU
 
 
 -- Segment Descriptors --------------------------------------------------------
-type Segd               = USegd
-mkSegd                  = mkUSegd
-validSegd               = validUSegd
-emptySegd               = emptyUSegd
-singletonSegd           = singletonUSegd
-lengthSegd              = lengthUSegd
-lengthsSegd             = lengthsUSegd
-indicesSegd             = indicesUSegd
-elementsSegd            = elementsUSegd
+type Segd               = USegd.USegd
+mkSegd                  = USegd.mkUSegd
+validSegd               = USegd.valid
+emptySegd               = USegd.empty
+singletonSegd           = USegd.singleton
+lengthSegd              = USegd.length
+lengthsSegd             = USegd.takeLengths
+indicesSegd             = USegd.takeIndices
+elementsSegd            = USegd.takeElements
 
 
 -- Slice Segment Descriptors --------------------------------------------------

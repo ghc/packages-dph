@@ -26,8 +26,9 @@ module Data.Array.Parallel.Unlifted.Sequential.USSegd (
         -- * Streams
         streamSegsFromUSSegd
 ) where
-import Data.Array.Parallel.Unlifted.Sequential.USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
 import qualified Data.Vector.Fusion.Stream                      as S
 import qualified Data.Vector.Fusion.Stream.Size                 as S
@@ -91,15 +92,15 @@ mkUSSegd = USSegd
 validUSSegd :: USSegd -> Bool
 {-# INLINE validUSSegd #-}
 validUSSegd (USSegd starts srcids usegd)
-        =  (U.length starts == lengthUSegd usegd)
-        && (U.length srcids == lengthUSegd usegd)
+        =  (U.length starts == USegd.length usegd)
+        && (U.length srcids == USegd.length usegd)
 
 
 -- | O(1).
 --  Yield an empty segment descriptor, with no elements or segments.
 emptyUSSegd :: USSegd
 {-# INLINE emptyUSSegd #-}
-emptyUSSegd = USSegd U.empty U.empty emptyUSegd
+emptyUSSegd = USSegd U.empty U.empty USegd.empty
 
 
 -- | O(1).
@@ -109,7 +110,7 @@ emptyUSSegd = USSegd U.empty U.empty emptyUSegd
 singletonUSSegd :: Int -> USSegd
 {-# INLINE singletonUSSegd #-}
 singletonUSSegd n 
-        = USSegd (U.singleton 0) (U.singleton 0) (singletonUSegd n)
+        = USSegd (U.singleton 0) (U.singleton 0) (USegd.singleton n)
 
 
 -- | O(segs). 
@@ -118,8 +119,8 @@ singletonUSSegd n
 promoteUSegdToUSSegd :: USegd -> USSegd
 {-# INLINE promoteUSegdToUSSegd #-}
 promoteUSegdToUSSegd usegd
-        = USSegd (indicesUSegd usegd)
-                 (U.replicate (lengthUSegd usegd) 0)
+        = USSegd (USegd.takeIndices usegd)
+                 (U.replicate (USegd.length usegd) 0)
                  usegd
                  
 
@@ -128,7 +129,7 @@ promoteUSegdToUSSegd usegd
 -- | O(1). Yield the overall number of segments.
 lengthUSSegd :: USSegd -> Int
 {-# INLINE lengthUSSegd #-}
-lengthUSSegd = lengthUSegd . ussegd_usegd 
+lengthUSSegd = USegd.length . ussegd_usegd 
 
 
 -- | O(1). Yield the `USegd` of a `USSegd`
@@ -140,19 +141,19 @@ usegdUSSegd   = ussegd_usegd
 -- | O(1). Yield the lengths of the segments of a `USSegd`
 lengthsUSSegd :: USSegd -> Vector Int
 {-# INLINE lengthsUSSegd #-}
-lengthsUSSegd = lengthsUSegd . ussegd_usegd
+lengthsUSSegd = USegd.takeLengths . ussegd_usegd
 
 
 -- | O(1). Yield the segment indices of a `USSegd`
 indicesUSSegd :: USSegd -> Vector Int
 {-# INLINE indicesUSSegd #-}
-indicesUSSegd = indicesUSegd . ussegd_usegd
+indicesUSSegd = USegd.takeIndices . ussegd_usegd
 
 
 -- | O(1). Yield the total number of elements covered by a `USSegd`
 elementsUSSegd :: USSegd -> Int
 {-# INLINE elementsUSSegd #-}
-elementsUSSegd = elementsUSegd . ussegd_usegd
+elementsUSSegd = USegd.takeElements . ussegd_usegd
 
 
 -- | O(1). Yield the starting indices of a `USSegd`
@@ -171,7 +172,7 @@ sourcesUSSegd = ussegd_sources
 --   Get the length, segment index, starting index, and source id of a segment.
 getSegOfUSSegd :: USSegd -> Int -> (Int, Int, Int, Int)
 getSegOfUSSegd (USSegd starts sources usegd) ix
- = let  (len, index) = getSegOfUSegd usegd ix
+ = let  (len, index) = USegd.getSeg usegd ix
    in   ( len
         , index
         , starts  U.! ix
@@ -191,7 +192,7 @@ appendUSSegd (USSegd starts1 srcs1 usegd1) pdatas1
              (USSegd starts2 srcs2 usegd2) _
         = USSegd (starts1  U.++  starts2)
                  (srcs1    U.++  U.map (+ pdatas1) srcs2)
-                 (appendUSegd usegd1 usegd2)
+                 (USegd.append usegd1 usegd2)
 
 
 -- | Cull the segments in a SSegd down to only those reachable from an array
@@ -213,7 +214,7 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
         --  
         --  Note that psegids '2' and '4' are not in vsegids_packed.
         psegids_used
-         = U.bpermuteDft (lengthUSegd usegd)
+         = U.bpermuteDft (USegd.length usegd)
                          (const False)
                          (U.zip vsegids (U.replicate (U.length vsegids) True))
 
@@ -234,7 +235,7 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
         --                      [0 1 2 3 4]
         --      psegids_map:    [0 1 -1 2 -1 3 4]
         psegids_map
-         = U.bpermuteDft (lengthUSegd usegd)
+         = U.bpermuteDft (USegd.length usegd)
                          (const (-1))
                          (U.zip psegids_packed (U.enumFromTo 0 (U.length psegids_packed - 1)))
 
@@ -252,8 +253,8 @@ cullUSSegdOnVSegids vsegids (USSegd starts sources usegd)
         starts'   = U.pack starts  psegids_used
         sources'  = U.pack sources psegids_used
 
-        lengths'  = U.pack (lengthsUSegd usegd) psegids_used
-        usegd'    = lengthsToUSegd lengths'
+        lengths'  = U.pack (USegd.takeLengths usegd) psegids_used
+        usegd'    = USegd.fromLengths lengths'
         
         ussegd'   = USSegd starts' sources' usegd'
 
@@ -274,7 +275,7 @@ streamSegsFromUSSegd
 streamSegsFromUSSegd ussegd@(USSegd starts sources usegd) pdatas
  = let  
         -- length of each segment
-        pseglens        = lengthsUSegd usegd
+        pseglens        = USegd.takeLengths usegd
  
         -- We've finished streaming this pseg
         {-# INLINE fn #-}

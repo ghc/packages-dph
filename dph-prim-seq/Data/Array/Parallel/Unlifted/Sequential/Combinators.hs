@@ -12,8 +12,9 @@ module Data.Array.Parallel.Unlifted.Sequential.Combinators (
 ) where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
-import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.USSegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
 import Debug.Trace
 
@@ -25,7 +26,7 @@ foldlSU  :: (Unbox a, Unbox b)
 {-# INLINE_U foldlSU #-}
 foldlSU f z segd xs 
         = unstream
-        $ foldSS f z    (stream (lengthsUSegd segd))
+        $ foldSS f z    (stream (USegd.takeLengths segd))
                         (stream xs)
 
 -- | Segmented array reduction proceeding from the left.
@@ -63,7 +64,7 @@ foldl1SU :: Unbox a
 {-# INLINE_U foldl1SU #-}
 foldl1SU f segd xs 
         = unstream
-        $ fold1SS f     (stream (lengthsUSegd segd))
+        $ fold1SS f     (stream (USegd.takeLengths segd))
                         (stream xs)
 
 
@@ -110,6 +111,6 @@ combineSU :: Unbox a => Vector Bool -> USegd -> Vector a -> USegd -> Vector a ->
 combineSU bs xd xs yd ys
         = unstream
         $ combineSS (stream bs)
-                    (stream (lengthsUSegd xd)) (stream xs)
-                    (stream (lengthsUSegd yd)) (stream ys)
+                    (stream (USegd.takeLengths xd)) (stream xs)
+                    (stream (USegd.takeLengths yd)) (stream ys)
 

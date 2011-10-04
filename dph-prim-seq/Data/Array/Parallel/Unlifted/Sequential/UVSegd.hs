@@ -30,9 +30,10 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.USSegd
-import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Unlifted.Sequential.USegd  (USegd)
 import Data.Array.Parallel.Pretty
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 
 
 -- UVSegd ---------------------------------------------------------------------
@@ -191,7 +192,7 @@ demoteUVSegdToUSSegd (UVSegd vsegids ussegd)
  = let  starts'         = V.bpermute (startsUSSegd ussegd)  vsegids
         sources'        = V.bpermute (sourcesUSSegd ussegd) vsegids
         lengths'        = V.bpermute (lengthsUSSegd ussegd) vsegids
-        usegd'          = lengthsToUSegd lengths'
+        usegd'          = USegd.fromLengths lengths'
    in   mkUSSegd starts' sources' usegd'
 
 
@@ -212,7 +213,7 @@ demoteUVSegdToUSSegd (UVSegd vsegids ussegd)
 unsafeMaterializeUVSegd :: UVSegd -> USegd
 {-# INLINE unsafeMaterializeUVSegd #-}
 unsafeMaterializeUVSegd (UVSegd vsegids ussegd)
-        = lengthsToUSegd 
+        = USegd.fromLengths
         $ V.bpermute (lengthsUSSegd ussegd) vsegids
 
 
