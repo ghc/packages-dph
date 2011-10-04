@@ -18,9 +18,10 @@ import Data.Array.Parallel.Unlifted.Parallel.Sums
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Permute
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd            (UPSSegd)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
 
 import Data.Array.Parallel.Unlifted.Sequential.Basics           as Seq
 import Data.Array.Parallel.Unlifted.Sequential.Combinators      as Seq
@@ -129,7 +130,7 @@ foldSSUP :: Unbox a
          => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
 {-# INLINE foldSSUP #-}
 foldSSUP f z upssegd xss
-        = foldSSU f z (ssegdUPSSegd upssegd) xss
+        = foldSSU f z (UPSSegd.takeUSSegd upssegd) xss
 
 
 -- fold1 ----------------------------------------------------------------------
@@ -138,7 +139,7 @@ fold1SSUP :: Unbox a
           => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
 {-# INLINE fold1SSUP #-}
 fold1SSUP f upssegd xss
-        = fold1SSU f (ssegdUPSSegd upssegd) xss
+        = fold1SSU f (UPSSegd.takeUSSegd upssegd) xss
 
 
 -- foldR ----------------------------------------------------------------------

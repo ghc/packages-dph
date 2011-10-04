@@ -19,9 +19,9 @@ import Data.Array.Parallel.Base.TracePrim
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 
 import Data.Array.Parallel.Unlifted.Parallel
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
@@ -249,20 +249,20 @@ indicesSegd             = UPSegd.takeIndices
 elementsSegd            = UPSegd.takeElements
 
 
--- Slice Segment Descriptors --------------------------------------------------
-type SSegd              = UPSSegd
-mkSSegd                 = mkUPSSegd
-validSSegd              = validUPSSegd
-emptySSegd              = emptyUPSSegd
-singletonSSegd          = singletonUPSSegd
-promoteSegdToSSegd      = promoteUPSegdToUPSSegd
-lengthSSegd             = lengthUPSSegd
-lengthsSSegd            = lengthsUPSSegd
-indicesSSegd            = indicesUPSSegd
-startsSSegd             = startsUPSSegd
-sourcesSSegd            = sourcesUPSSegd
-getSegOfSSegd           = getSegOfUPSSegd
-appendSSegd             = appendUPSSegd
+-- Scattered Segment Descriptors ----------------------------------------------
+type SSegd              = UPSSegd.UPSSegd
+mkSSegd                 = UPSSegd.mkUPSSegd
+validSSegd              = UPSSegd.valid
+emptySSegd              = UPSSegd.empty
+singletonSSegd          = UPSSegd.singleton
+promoteSegdToSSegd      = UPSSegd.fromUPSegd
+lengthSSegd             = UPSSegd.length
+lengthsSSegd            = UPSSegd.takeLengths
+indicesSSegd            = UPSSegd.takeIndices
+startsSSegd             = UPSSegd.takeStarts
+sourcesSSegd            = UPSSegd.takeSources
+getSegOfSSegd           = UPSSegd.getSeg
+appendSSegd             = UPSSegd.appendWith
 
 
 -- Virtual Segment Descriptors ------------------------------------------------

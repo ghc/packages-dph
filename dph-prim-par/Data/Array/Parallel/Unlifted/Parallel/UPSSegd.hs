@@ -4,29 +4,37 @@
 -- | Parallel segment descriptors.
 module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   -- * Types
-  UPSSegd, validUPSSegd,
+  UPSSegd, valid,
 
   -- * Constructors
-  mkUPSSegd, emptyUPSSegd, singletonUPSSegd,
-  promoteUPSegdToUPSSegd,
+  mkUPSSegd, empty, singleton,
+  fromUPSegd,
   
   -- * Projections
-  lengthUPSSegd, lengthsUPSSegd, indicesUPSSegd, elementsUPSSegd,
-  startsUPSSegd, sourcesUPSSegd,
-  getSegOfUPSSegd,
-  ssegdUPSSegd, distUPSSegd,
+  length,
+  takeLengths,
+  takeIndices,
+  takeElements,
+  takeStarts,
+  takeSources,
+  takeUSSegd,
+  takeDistributed,
+  getSeg,
   
   -- * Operators
-  appendUPSSegd
+  appendWith
   
 ) where
-import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.USegd
 import Data.Array.Parallel.Unlifted.Sequential.USSegd
 import Data.Array.Parallel.Unlifted.Distributed
 
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+
+import Prelude hiding (length)
 
 -- | A Parallel segment descriptor holds the original descriptor,
 --   and a distributed one that describes how to distribute the work
@@ -47,9 +55,9 @@ data UPSSegd
 -- | O(1).
 --   Check the internal consistency of a scattered segment descriptor.
 --   TODO: doesn't do any checks yet
-validUPSSegd :: UPSSegd -> Bool
-{-# INLINE validUPSSegd #-}
-validUPSSegd _ = True
+valid :: UPSSegd -> Bool
+{-# INLINE valid #-}
+valid _ = True
 
 
 -- Constructors ---------------------------------------------------------------
@@ -75,18 +83,17 @@ toUPSSegd ssegd
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
-emptyUPSSegd :: UPSSegd
-{-# INLINE emptyUPSSegd #-}
-emptyUPSSegd
-        = toUPSSegd emptyUSSegd
+empty :: UPSSegd
+{-# INLINE empty #-}
+empty   = toUPSSegd emptyUSSegd
 
 
 -- | O(1).
 --   Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
-singletonUPSSegd :: Int -> UPSSegd
-{-# INLINE singletonUPSSegd #-}
-singletonUPSSegd n  = toUPSSegd $ singletonUSSegd n
+singleton :: Int -> UPSSegd
+{-# INLINE singleton #-}
+singleton n  = toUPSSegd $ singletonUSSegd n
 
 
 -- | O(segs). 
@@ -96,66 +103,66 @@ singletonUPSSegd n  = toUPSSegd $ singletonUSSegd n
 --   TODO: Sequential construction of the indices and source field.
 --         We throw out the existing distributed usegd here,
 --          maybe we can do the promotion while keeping some of the existing fields.
-promoteUPSegdToUPSSegd :: UPSegd -> UPSSegd
-{-# INLINE promoteUPSegdToUPSSegd #-}
-promoteUPSegdToUPSSegd upsegd
+fromUPSegd :: UPSegd -> UPSSegd
+{-# INLINE fromUPSegd #-}
+fromUPSegd upsegd
  = toUPSSegd $ promoteUSegdToUSSegd $ UPSegd.takeUSegd upsegd
 
 
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
-lengthUPSSegd :: UPSSegd -> Int
-{-# INLINE lengthUPSSegd #-}
-lengthUPSSegd = lengthUSSegd . upssegd_ussegd
+length :: UPSSegd -> Int
+{-# INLINE length #-}
+length = lengthUSSegd . upssegd_ussegd
 
 
 -- | O(1). Yield the global `USegd` of a `UPSegd`
-ssegdUPSSegd :: UPSSegd -> USSegd
-{-# INLINE ssegdUPSSegd #-}
-ssegdUPSSegd = upssegd_ussegd
+takeUSSegd :: UPSSegd -> USSegd
+{-# INLINE takeUSSegd #-}
+takeUSSegd = upssegd_ussegd
 
 
 -- | O(1). Yield the distributed `USegd` of a `UPSegd`
-distUPSSegd :: UPSSegd -> Dist ((USSegd, Int), Int)
-{-# INLINE distUPSSegd #-}
-distUPSSegd = upssegd_dssegd
+takeDistributed :: UPSSegd -> Dist ((USSegd, Int), Int)
+{-# INLINE takeDistributed #-}
+takeDistributed = upssegd_dssegd
 
 
 -- | O(1). Yield the lengths of the individual segments.
-lengthsUPSSegd :: UPSSegd -> Vector Int
-{-# INLINE lengthsUPSSegd #-}
-lengthsUPSSegd = lengthsUSSegd . upssegd_ussegd
+takeLengths :: UPSSegd -> Vector Int
+{-# INLINE takeLengths #-}
+takeLengths = lengthsUSSegd . upssegd_ussegd
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
-indicesUPSSegd :: UPSSegd -> Vector Int
-{-# INLINE indicesUPSSegd #-}
-indicesUPSSegd = indicesUSSegd . upssegd_ussegd
+takeIndices :: UPSSegd -> Vector Int
+{-# INLINE takeIndices #-}
+takeIndices = indicesUSSegd . upssegd_ussegd
 
 
 -- | O(1). Yield the number of data elements.
-elementsUPSSegd :: UPSSegd -> Int
-{-# INLINE elementsUPSSegd #-}
-elementsUPSSegd = elementsUSSegd . upssegd_ussegd
+takeElements :: UPSSegd -> Int
+{-# INLINE takeElements #-}
+takeElements = elementsUSSegd . upssegd_ussegd
 
 
 -- | O(1). Yield the starting indices of a `UPSSegd`
-startsUPSSegd :: UPSSegd -> Vector Int
-{-# INLINE startsUPSSegd #-}
-startsUPSSegd = startsUSSegd . upssegd_ussegd
+takeStarts :: UPSSegd -> Vector Int
+{-# INLINE takeStarts #-}
+takeStarts = startsUSSegd . upssegd_ussegd
 
 
 -- | O(1). Yield the source ids of a `UPSSegd`
-sourcesUPSSegd :: UPSSegd -> Vector Int
-{-# INLINE sourcesUPSSegd #-}
-sourcesUPSSegd = sourcesUSSegd . upssegd_ussegd 
+takeSources :: UPSSegd -> Vector Int
+{-# INLINE takeSources #-}
+takeSources = sourcesUSSegd . upssegd_ussegd 
 
 
 -- | O(1).
 --   Get the length, segment index, starting index, and source id of a segment.
-getSegOfUPSSegd :: UPSSegd -> Int -> (Int, Int, Int, Int)
-{-# INLINE getSegOfUPSSegd #-}
-getSegOfUPSSegd upssegd ix
+getSeg :: UPSSegd -> Int -> (Int, Int, Int, Int)
+{-# INLINE getSeg #-}
+getSeg upssegd ix
         = getSegOfUSSegd (upssegd_ussegd upssegd) ix
 
 
@@ -165,12 +172,12 @@ getSegOfUPSSegd upssegd ix
 --   
 --   TODO: This calls out to the sequential version.
 --
-appendUPSSegd 
+appendWith
         :: UPSSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> UPSSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> UPSSegd
-{-# INLINE appendUPSSegd #-}
-appendUPSSegd
+{-# INLINE appendWith #-}
+appendWith
         upssegd1 pdatas1
         upssegd2 pdatas2
  = toUPSSegd 
