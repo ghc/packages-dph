@@ -57,10 +57,10 @@ data instance PData (PArray a)
         , pnested_psegdata     :: V.Vector (PData a) }
 
 -- TODO: we shouldn't be using these directly.
-pnested_vsegids    = U.vsegidsVSegd . pnested_uvsegd
-pnested_pseglens   = U.lengthsSSegd . U.ssegdVSegd . pnested_uvsegd
-pnested_psegstarts = U.startsSSegd  . U.ssegdVSegd . pnested_uvsegd
-pnested_psegsrcids = U.sourcesSSegd . U.ssegdVSegd . pnested_uvsegd
+pnested_vsegids    = U.takeVSegidsOfVSegd . pnested_uvsegd
+pnested_pseglens   = U.lengthsSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+pnested_psegstarts = U.startsSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
+pnested_psegsrcids = U.sourcesSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
 
 mkPNested vsegids pseglens psegstarts psegsrcids psegdata
         = PNested
@@ -115,7 +115,7 @@ validBool str b
 unsafeFlattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
 {-# INLINE unsafeFlattenPR #-}
 unsafeFlattenPR arr@(PNested uvsegd _)
- =      ( U.unsafeMaterializeVSegd uvsegd
+ =      ( U.demoteToSegdOfVSegd uvsegd
         , concatPR arr)
 
 
@@ -208,7 +208,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (PNested uvsegd _)
-          = U.lengthVSegd uvsegd
+          = U.lengthOfVSegd uvsegd
 
 
   -- When replicating an array we use the source as the single physical
@@ -487,7 +487,7 @@ concatPR (PNested uvsegd psegdata)
         -- a description of each segment individually.
         -- Example:
         --   uvsegd: 
-        ussegd          = U.demoteVSegdToSSegd uvsegd
+        ussegd          = U.demoteToSSegdOfVSegd uvsegd
 
         -- Copy these segments into a new array.
    in   extractsPR psegdata 

@@ -26,10 +26,10 @@ sumPA_l_double _ (PNested vsegd datas)
         pdatas          = V.map toUArrayPR datas
 
         -- Sum up each physical segment individually.
-        psegResults     = U.fold_ss (+) 0 (U.ssegdVSegd vsegd) pdatas
+        psegResults     = U.fold_ss (+) 0 (U.takeSSegdOfVSegd vsegd) pdatas
 
         -- Replicate the physical results according to the vsegids.
-        vsegResults     = U.bpermute psegResults (U.vsegidsVSegd vsegd) 
+        vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
 
    in   PDouble vsegResults
 
@@ -52,9 +52,9 @@ sumPA_l_int _ (PNested vsegd datas)
         pdatas          = V.map toUArrayPR datas
 
         -- Sum up each physical segment individually.
-        psegResults     = U.fold_ss (+) 0 (U.ssegdVSegd vsegd) pdatas
+        psegResults     = U.fold_ss (+) 0 (U.takeSSegdOfVSegd vsegd) pdatas
 
         -- Replicate the physical results according to the vsegids.
-        vsegResults     = U.bpermute psegResults (U.vsegidsVSegd vsegd) 
+        vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
 
    in   PInt vsegResults

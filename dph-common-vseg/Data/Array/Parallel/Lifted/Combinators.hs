@@ -76,7 +76,7 @@ lengthPP        = closure1 lengthPA lengthPA_l
 lengthPA_l :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
 lengthPA_l _ (PNested vsegd _)
-        = PInt $ U.lengthsVSegd vsegd
+        = PInt $ U.takeLengthsOfVSegd vsegd
 
 
 -- replicate ------------------------------------------------------------------
@@ -130,7 +130,7 @@ mapPA_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
  = let  argFlat         = concatPR arg
         c               = lengthPR argFlat
 
-        vseglens        = U.lengthsVSegd vsegd
+        vseglens        = U.takeLengthsOfVSegd vsegd
         envsReplicated  = replicatesPR vseglens envs
         arrResult       = fl c envsReplicated argFlat
 
