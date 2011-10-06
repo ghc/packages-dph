@@ -279,11 +279,11 @@ atomicUpdateD g darr upd = runST (
 --
 --   NOTE: This runs sequentially and should only be used for testing purposes.
 --
---   @> pprp $ splitD theGang unbalanced $ fromList [80, 10, 20, 40, 50, 10 :: Int]
+--   @   pprp $ splitD theGang unbalanced $ fromList [80, 10, 20, 40, 50, 10 :: Int]
 --       DVector lengths: [2,2,1,1]
 --       chunks:  [[80,10],[20,40],[50],[10]]
 -- 
---    >  pprp $ fst 
+--       pprp $ fst 
 --            $ carryD theGang (+) 0 
 --                     (mkDPrim $ fromList [True, False, True, False]) 
 --                     (splitD theGang unbalanced $ fromList [80, 10, 20, 40, 50, 10 :: Int])

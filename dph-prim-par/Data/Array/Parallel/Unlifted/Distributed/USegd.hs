@@ -90,14 +90,13 @@ splitSegdOnSegsD g !segd
 --   Example:
 --    In this picture each X represents 5 elements, and we have 5 segements in total.
 --
--- @
---    segs:    ----------------------- --- ------- --------------- -------------------
+-- @  segs:    ----------------------- --- ------- --------------- -------------------
 --    elems:  |X X X X X X X X X|X X X X X X X X X|X X X X X X X X X|X X X X X X X X X|
 --            |     thread1     |     thread2     |     thread3     |     thread4     |
 --    segid:  0                 0                 3                 4
 --    offset: 0                 45                0                 5
 --
---   > pprp $ splitSegdOnElemsD theGang4
+--    pprp $ splitSegdOnElemsD theGang4
 --          $ lengthsToUSegd $ fromList [60, 10, 20, 40, 50 :: Int]
 --
 --     segd:    DUSegd lengths:  DVector lengths: [1,3,2,1]
@@ -273,7 +272,7 @@ search !x ys = go 0 (Seq.length ys)
 --   This simply joins the distributed lengths and indices fields, but does
 --   not reconstruct the original segment descriptor as it was before splitting.
 -- 
--- @> pprp $ joinSegdD theGang4 
+-- @ > pprp $ joinSegdD theGang4 
 --         $ fstD $ fstD $ splitSegdOnElemsD theGang
 --         $ lengthsToUSegd $ fromList [60, 10, 20, 40, 50]
 -- 
