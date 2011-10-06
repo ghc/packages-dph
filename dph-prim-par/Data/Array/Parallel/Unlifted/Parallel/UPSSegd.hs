@@ -1,34 +1,33 @@
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
--- | Parallel segment descriptors.
+-- | Parallel scattered segment descriptors.
 module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   -- * Types
   UPSSegd, valid,
 
   -- * Constructors
-  mkUPSSegd, empty, singleton,
-  fromUPSegd,
+  mkUPSSegd, fromUSSegd, fromUPSegd,
+  empty, singleton,
   
   -- * Projections
   length,
+  takeUSSegd,
+  takeDistributed,
   takeLengths,
   takeIndices,
   takeElements,
   takeStarts,
   takeSources,
-  takeUSSegd,
-  takeDistributed,
   getSeg,
   
   -- * Append
   appendWith,
   
   -- * Segmented Folds
-  foldWith,
-  fold1With,
-  sumWith,
-  foldSegsWith
+  foldWithP,
+  fold1WithP,
+  foldSegsWithP
 ) where
 import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
@@ -38,6 +37,8 @@ import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
 
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd        as DUSSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
@@ -47,9 +48,11 @@ import Control.Monad.ST
 import Prelude hiding (length)
 
 
--- | A Parallel segment descriptor holds the original descriptor,
---   and a distributed one that describes how to distribute the work
---   on such a segmented array.
+-- | A parallel scattered segment descriptor is an extension of `UPSegd` 
+--   that allows the segments to be scattered through multiple flat arrays.
+--
+--   Each segment is associated with a source id that indicates what 
+--   flat array it is in, along with the starting index in that flat array.
 data UPSSegd 
         = UPSSegd 
         { upssegd_ussegd :: !USSegd
@@ -61,7 +64,7 @@ data UPSSegd
           --   and the offset of that slice in its segment.
           --   See docs of `splitSegdOfElemsD` for an example.
         }
-
+        deriving Show
 
 instance PprPhysical UPSSegd where
  pprp (UPSSegd ussegd dssegd)
@@ -73,7 +76,8 @@ instance PprPhysical UPSSegd where
 
 -- | O(1).
 --   Check the internal consistency of a scattered segment descriptor.
---   TODO: doesn't do any checks yet
+-- 
+--   * TODO: this doesn't do any checks yet
 valid :: UPSSegd -> Bool
 {-# INLINE valid #-}
 valid _ = True
@@ -82,9 +86,9 @@ valid _ = True
 -- Constructors ---------------------------------------------------------------
 -- | O(1). Construct a new segment descriptor.
 mkUPSSegd 
-        :: Vector Int   -- ^ starting index of each segment in its flat array
-        -> Vector Int   -- ^ which array to take each segment from
-        -> USegd        -- ^ contiguous segment descriptor
+        :: Vector Int   -- ^ Starting index of each segment in its flat array.
+        -> Vector Int   -- ^ Source id of the flat array to tach each segment from.
+        -> USegd        -- ^ Contiguous (unscattered) segment descriptor.
         -> UPSSegd
 
 {-# INLINE mkUPSSegd #-}
@@ -92,13 +96,26 @@ mkUPSSegd starts sources usegd
         = fromUSSegd (USSegd.mkUSSegd starts sources usegd)
 
 
--- | O(1).
---  Convert a global `USegd` to a distributed `UPSegd` by splitting
---  it across the gang.
+-- | Promote a global `USSegd` to a parallel `UPSSegd` by distributing
+--   it across the gang.
 fromUSSegd :: USSegd -> UPSSegd
 {-# INLINE fromUSSegd #-}
 fromUSSegd ssegd 
-        = UPSSegd ssegd (splitSSegdOnElemsD theGang ssegd)
+        = UPSSegd ssegd (DUSSegd.splitSSegdOnElemsD theGang ssegd)
+
+
+-- | Promote a plain `UPSegd` to a `UPSSegd`, by assuming that all segments
+--   come from a single flat array with source id 0.
+--
+--   * TODO:
+--     This sequentially constructs the indices and source fields, and we
+--     throw out the existing distributed `USegd`. We could probably keep
+--     some of the existing fields and save reconstructing them.
+--
+fromUPSegd :: UPSegd -> UPSSegd
+{-# INLINE fromUPSegd #-}
+fromUPSegd upsegd
+        = fromUSSegd $ USSegd.fromUSegd $ UPSegd.takeUSegd upsegd
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
@@ -112,20 +129,7 @@ empty   = fromUSSegd USSegd.empty
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSSegd
 {-# INLINE singleton #-}
-singleton n  = fromUSSegd $ USSegd.singleton n
-
-
--- | O(segs). 
---   Promote a plain USSegd to a UPSSegd
---   All segments are assumed to come from a flat array with sourceid 0.
-
---   TODO: Sequential construction of the indices and source field.
---         We throw out the existing distributed usegd here,
---          maybe we can do the promotion while keeping some of the existing fields.
-fromUPSegd :: UPSegd -> UPSSegd
-{-# INLINE fromUPSegd #-}
-fromUPSegd upsegd
-        = fromUSSegd $ USSegd.fromUSegd $ UPSegd.takeUSegd upsegd
+singleton n = fromUSSegd $ USSegd.singleton n
 
 
 -- Projections ----------------------------------------------------------------
@@ -153,25 +157,28 @@ takeLengths :: UPSSegd -> Vector Int
 takeLengths     = USSegd.takeLengths . upssegd_ussegd
 
 
--- | O(1). Yield the segment indices of a segment descriptor.
+-- | O(1). Yield the segment indices.
 takeIndices :: UPSSegd -> Vector Int
 {-# INLINE takeIndices #-}
 takeIndices     = USSegd.takeIndices . upssegd_ussegd
 
 
--- | O(1). Yield the number of data elements.
+-- | O(1). Yield the total number of data elements.
+--
+--  @takeElements upssegd = sum (takeLengths upssegd)@
+--
 takeElements :: UPSSegd -> Int
 {-# INLINE takeElements #-}
 takeElements    = USSegd.takeElements . upssegd_ussegd
 
 
--- | O(1). Yield the starting indices of a `UPSSegd`
+-- | O(1). Yield the starting indices.
 takeStarts :: UPSSegd -> Vector Int
 {-# INLINE takeStarts #-}
 takeStarts      = USSegd.takeStarts . upssegd_ussegd
 
 
--- | O(1). Yield the source ids of a `UPSSegd`
+-- | O(1). Yield the source ids.
 takeSources :: UPSSegd -> Vector Int
 {-# INLINE takeSources #-}
 takeSources     = USSegd.takeSources . upssegd_ussegd 
@@ -187,62 +194,69 @@ getSeg upssegd ix
 
 -- Append ---------------------------------------------------------------------
 -- | O(n)
---   Produce a segment descriptor that describes the result of appending.
+--   Produce a segment descriptor that describes the result of appending two
+--   segmented arrays.
 --   
---   TODO: This calls out to the sequential version.
+--   * TODO: This calls out to the sequential version.
+--
+--   * Appending two nested arrays is an index space transformation. Because
+--     a `UPSSegd` can contain segments from multiple flat data arrays, we can
+--     represent the result of the append without copying elements from the
+--     underlying flat data arrays.
 --
 appendWith
-        :: UPSSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
-        -> UPSSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
+        :: UPSSegd              -- ^ Segment descriptor of first nested array.
+        -> Int                  -- ^ Number of flat data arrays used to represent first nested array.
+        -> UPSSegd              -- ^ Segment descriptor of second nested array. 
+        -> Int                  -- ^ Number of flat data arrays used to represent second nested array.
         -> UPSSegd
 {-# INLINE appendWith #-}
-appendWith
-        upssegd1 pdatas1
-        upssegd2 pdatas2
+appendWith upssegd1 pdatas1
+           upssegd2 pdatas2
  = fromUSSegd 
  $ USSegd.append (upssegd_ussegd upssegd1) pdatas1
                  (upssegd_ussegd upssegd2) pdatas2
 
 
 -- Fold -----------------------------------------------------------------------
--- | Fold segments specified by a UPSegd.
-foldWith :: Unbox a
+-- | Fold segments specified by a `UPSSegd`.
+foldWithP :: Unbox a
          => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE foldWith #-}
-foldWith f !z
-        = foldSegsWith f (Seq.foldlSSU f z)
+{-# INLINE foldWithP #-}
+foldWithP f !z
+        = foldSegsWithP f (Seq.foldlSSU f z)
 
 
--- | Fold segments specified by a UPSegd, with a non-empty vector.
-fold1With :: Unbox a
+-- | Fold segments specified by a `UPSSegd`, with a non-empty vector.
+fold1WithP :: Unbox a
          => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE fold1With #-}
-fold1With f
-        = foldSegsWith f (Seq.fold1SSU f)
+{-# INLINE fold1WithP #-}
+fold1WithP f
+        = foldSegsWithP f (Seq.fold1SSU f)
 
 
--- | Sum up segments specified by a UPSegd.
-sumWith :: (Num a, Unbox a)
+-- | Sum up segments specified by a `UPSSegd`.
+sumWithP :: (Num a, Unbox a)
         => UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE sumWith #-}
-sumWith = foldWith (+) 0
+{-# INLINE sumWithP #-}
+sumWithP = foldWithP (+) 0
 
 
--- | Fold the segments specified by a UPSSegd
+-- | Fold the segments specified by a `UPSSegd`.
 --
 --   Low level function takes a per-element worker and a per-segment worker.
 --   It folds all the segments with the per-segment worker, then uses the
 --   per-element worker to fixup the partial results when a segment 
 --   is split across multiple threads.
 --   
-foldSegsWith
+foldSegsWithP
         :: Unbox a
         => (a -> a -> a)
         -> (USSegd -> V.Vector (Vector a) -> Vector a)
         -> UPSSegd -> V.Vector (Vector a) -> Vector a
 
-{-# INLINE foldSegsWith #-}
-foldSegsWith fElem fSeg segd xss 
+{-# INLINE foldSegsWithP #-}
+foldSegsWithP fElem fSeg segd xss 
  = dcarry `seq` drs `seq` 
    runST (do
         mrs <- joinDM theGang drs

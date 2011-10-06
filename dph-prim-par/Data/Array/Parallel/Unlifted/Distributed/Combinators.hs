@@ -65,8 +65,8 @@ imapD' g f !d
 
 -- | Map a function to every instance of a distributed value.
 --
---   NOTE: this applies the function to every thread, but not every value hold
---         by the thread. If you want that then use something like:
+--   This applies the function to every thread, but not every value held
+--   by the thread. If you want that then use something like:
 -- 
 --   @mapD theGang (V.map (+ 1)) :: Dist (Vector Int) -> Dist (Vector Int)@
 --

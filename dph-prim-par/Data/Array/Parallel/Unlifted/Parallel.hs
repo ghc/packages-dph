@@ -50,13 +50,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
   allUP,     anyUP,
   sumUP,     productUP,
   maximumUP, maximumByUP,
-  maximumIndexByUP,  
-
-  -- * Selector Types
-  UPSel2,
-
-  -- * Segment Descriptor Types
-  UPSegd, UPSSegd,
+  maximumIndexByUP
 ) where
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
@@ -66,7 +60,3 @@ import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 import Data.Array.Parallel.Unlifted.Parallel.Sums
-import Data.Array.Parallel.Unlifted.Parallel.UPSel      (UPSel2)
-import Data.Array.Parallel.Unlifted.Parallel.UPSegd     (UPSegd)
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd    (UPSSegd)
-

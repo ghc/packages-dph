@@ -28,9 +28,6 @@ module Data.Array.Parallel.Unlifted.Distributed (
   glueSegdD, carryD,
   Distribution, balanced, unbalanced,
 
-  -- * Distributed scattered segment descriptors
-  splitSSegdOnElemsD,
-
   -- * Permutations
   permuteD, bpermuteD, atomicUpdateD,
 

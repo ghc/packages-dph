@@ -27,13 +27,15 @@ neqD g dx dy = orD g (zipWithD g (/=) dx dy)
 
 
 -- | Generate a distributed value from the first @p@ elements of a list.
---   /NOTE:/ For debugging only, don't use in production code.
+-- 
+--   * For debugging only, don't use in production code.
 toD :: DT a => Gang -> [a] -> Dist a
 toD g xs = newD g (\md -> zipWithM_ (writeMD md) [0 .. gangSize g - 1] xs)
 
 
 -- | Yield all elements of a distributed value.
---   /NOTE:/ For debugging only, don't use in production code.
+--
+--   * For debugging only, don't use in production code.
 fromD :: DT a => Gang -> Dist a -> [a]
 fromD g dt = checkGangD (here "fromDT") g dt $
              map (indexD dt) [0 .. gangSize g - 1]

@@ -41,13 +41,11 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 
 
 -- UVSegd ---------------------------------------------------------------------
--- TODO shift this to its own module
--- | Defines a virutal nested array based on physical segmentation.
---
---   Or alternatively: represents an index space transformation between
---   indices for the nested array and indices for the physical data.
+-- | Virtual segment descriptors. 
+--   Represents an index space transformation between indices for the nested
+--   array and indices for the physical data.
 --   
---   TODO: It'd probably be better to represent the vsegids as a lens (function)
+--   TODO: It would probably be better to represent the vsegids as a lens (function)
 --         instead of a vector of segids. Much of the time the vsegids are just [0..n] 
 --
 data UVSegd 
@@ -71,7 +69,7 @@ instance PprPhysical UVSegd where
 
 -- Constructors ---------------------------------------------------------------
 -- | O(1). 
---   Construct a new slice segment descriptor.
+--   Construct a new virtual segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUVSegd
         :: Vector Int   -- ^ array saying which physical segment to use for each
@@ -226,7 +224,8 @@ unsafeMaterialize (UVSegd vsegids ussegd)
 --   Produce a segment descriptor describing the result of appending two arrays.
 --   Note that the implementation of this is similar to `combine2UVSegd`
 --
---   source
+-- @
+--  source1
 --    VIRT1 [[0],[4,2],[5,6,7,8,9]]
 --    PHYS1 UVSegd  vsegids:    [0,1,2]
 --          USSegd  pseglens:   [1,2,5]
@@ -234,6 +233,7 @@ unsafeMaterialize (UVSegd vsegids ussegd)
 --                  psegsrcs:   [0,0,0]
 --          PData   PInt [0,4,2,5,6,7,8,9]
 --
+--  source2
 --    VIRT2 [[1,2,3],[8,6,3],[9,3]]
 --    PHYS2 UVSegd  vsegids:    [0,1,2]
 --          USSegd  pseglens:   [3,3,2]
@@ -241,7 +241,7 @@ unsafeMaterialize (UVSegd vsegids ussegd)
 --                  psegsrcs:   [0,0,0]
 --          PData   PInt [1,2,3,8,6,3,9,3]
 --
----  appended
+--   appended
 --    VIRT  [[0],[4,2],[5,6,7,8,9],[1,2,3],[8,6,3],[9,3]]
 --          UVSegd  vsegids:    [0,1,2,3,4,5]  -- shift second half
 --          USSegd  pseglens:   [1,2,5,3,3,2]  -- appended
@@ -249,7 +249,8 @@ unsafeMaterialize (UVSegd vsegids ussegd)
 --                  psegsrcs:   [0,0,0,1,1,1]  -- shift second half
 --          PData   PInt [0,4,2,5,6,7,8,9]     -- both pdatas in result
 --                  PInt [1,2,3,8,6,3,9,3]     -- ...
---
+-- @
+-- 
 append  :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UVSegd
@@ -277,7 +278,8 @@ append  (UVSegd vsegids1 ussegd1) pdatas1
 --   Combine two virtual segment descriptors.
 --   Note that the implementation of this is similar to `appendUVSegd`
 --
---   source
+-- @
+-- source1
 --    VIRT1 [[0],[4,2],[5,6,7,8,9]]
 --    PHYS1 UVSegd  vsegids:    [0,1,2]
 --          USSegd  pseglens:   [1,2,5]
@@ -285,6 +287,7 @@ append  (UVSegd vsegids1 ussegd1) pdatas1
 --                  psegsrcs:   [0,0,0]
 --          PDATA   PInt [0,4,2,5,6,7,8,9]
 --
+-- source2
 --    VIRT2 [[1,2,3],[8,6,3],[9,3]]
 --    PHYS2 UVSegd  vsegids:    [0,1,2]
 --          USSegd  pseglens:   [3,3,2]
@@ -300,7 +303,8 @@ append  (UVSegd vsegids1 ussegd1) pdatas1
 --                  psegsrcs:   [0,0,0,1,1,1] -- shift second half
 --          PData   PInt [0,4,2,5,6,7,8,9]    -- both pdatas in result
 --                  PInt [1,2,3,8,6,3,9,3]
---   
+-- @  
+-- 
 combine2
         :: USel2
         -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays

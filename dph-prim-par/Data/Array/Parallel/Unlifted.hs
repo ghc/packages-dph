@@ -188,7 +188,7 @@ scan f x arr
 -- Segmented Constructors -----------------------------------------------------
 replicate_s segd arr
         =  tracePrim (TraceReplicate_s (Seq.length arr))
-        $! UPSegd.replicateWith segd arr
+        $! UPSegd.replicateWithP segd arr
 
 
 replicate_rs n arr
@@ -203,19 +203,19 @@ append_s segd xd xs yd ys
 
 -- Segmented Projections ------------------------------------------------------
 indices_s segd
- = let  arr     = UPSegd.indicesWith segd
+ = let  arr     = UPSegd.indicesP segd
    in   tracePrim (TraceIndices_s (Seq.length arr)) arr
 
 
 -- Segmented Folds ------------------------------------------------------------
 fold_s f x segd arr
         =  tracePrim (TraceFold_s (Seq.length arr))
-        $! UPSegd.foldWith f x segd arr
+        $! UPSegd.foldWithP f x segd arr
 
         
 fold1_s f segd arr
         =  tracePrim (TraceFold1_s (Seq.length arr))
-        $! UPSegd.fold1With f segd arr
+        $! UPSegd.fold1WithP f segd arr
 
 
 fold_r f z segSize arr
@@ -230,8 +230,8 @@ sum_r x arr
 
 -- Scattered Segmented Folds --------------------------------------------------
 -- TODO: add tracing
-fold_ss                 = UPSegd.foldWith
-fold1_ss                = UPSegd.fold1With
+fold_ss                 = UPSegd.foldWithP
+fold1_ss                = UPSegd.fold1WithP
 
 
 -- Segment Descriptors --------------------------------------------------------

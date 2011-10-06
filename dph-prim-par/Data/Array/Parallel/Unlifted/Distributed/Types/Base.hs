@@ -45,21 +45,25 @@ class DT a where
   -- | Unsafely freeze a mutable distributed value.
   unsafeFreezeMD :: MDist a s             -> ST s (Dist a)
 
+  -- | Ensure a distributed value is fully evaluated.
   deepSeqD       :: a -> b -> b
   deepSeqD = seq
 
 
   -- Debugging ------------------------
   -- | Number of elements in the distributed value.
-  --   For debugging only, as we shouldn't depend on the size of the gang.
+  -- 
+  --   * For debugging only, as code shouldn't be sensitive to the return value.
   sizeD :: Dist a -> Int
 
   -- | Number of elements in the mutable distributed value.
-  --   For debugging only, as we shouldn't care about the actual number.
+  --  
+  --   * For debugging only, as code shouldn't be sensitive to the return value.
   sizeMD :: MDist a s -> Int
 
   -- | Show a distributed value.
-  --   For debugging only.
+  --
+  --   * For debugging only.
   measureD :: a -> String
   measureD _ = "None"
 

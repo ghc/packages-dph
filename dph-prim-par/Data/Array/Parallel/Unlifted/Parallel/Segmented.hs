@@ -39,7 +39,7 @@ import qualified Data.Vector.Fusion.Stream              as S
 replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_UP replicateRSUP #-}
 replicateRSUP n xs
-        = UPSegd.replicateWith (UPSegd.fromLengths (replicateUP (Seq.length xs) n)) xs
+        = UPSegd.replicateWithP (UPSegd.fromLengths (replicateUP (Seq.length xs) n)) xs
 
 
 -- Append ---------------------------------------------------------------------
