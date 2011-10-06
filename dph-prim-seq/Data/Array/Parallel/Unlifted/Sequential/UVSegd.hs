@@ -1,4 +1,5 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+
 -- | Segment descriptors for virtual arrays.
 module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
         -- * Types
@@ -9,10 +10,10 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
         
         -- * Constructors
         mkUVSegd,
-        empty,
-        singleton,
         fromUSegd,
         fromUSSegd,
+        empty,
+        singleton,
         
         -- * Projections
         length,
@@ -67,6 +68,16 @@ instance PprPhysical UVSegd where
   , pprp ussegd ]
 
 
+
+-- | O(1).
+--   Check the internal consistency of a virutal segmentation descriptor.
+--   TODO: check that all vsegs point to a valid pseg
+valid :: UVSegd -> Bool
+{-# INLINE valid #-}
+valid (UVSegd vsegids ussegd)
+        = V.length vsegids == USSegd.length ussegd
+
+
 -- Constructors ---------------------------------------------------------------
 -- | O(1). 
 --   Construct a new virtual segment descriptor.
@@ -79,32 +90,6 @@ mkUVSegd
 
 {-# INLINE mkUVSegd #-}
 mkUVSegd = UVSegd
-
-
--- | O(1).
---   Check the internal consistency of a virutal segmentation descriptor.
---   TODO: check that all vsegs point to a valid pseg
-valid :: UVSegd -> Bool
-{-# INLINE valid #-}
-valid (UVSegd vsegids ussegd)
-        = V.length vsegids == USSegd.length ussegd
-
-
--- | O(1).
---  Yield an empty segment descriptor, with no elements or segments.
-empty :: UVSegd
-{-# INLINE empty #-}
-empty = UVSegd V.empty USSegd.empty
-
-
--- | O(1).
---   Yield a singleton segment descriptor.
---   The single segment covers the given number of elements in a flat array
---   with sourceid 0.
-singleton :: Int -> UVSegd
-{-# INLINE singleton #-}
-singleton n 
-        = UVSegd (V.singleton 0) (USSegd.singleton n)
 
 
 -- | O(segs). 
@@ -127,8 +112,25 @@ fromUSSegd ussegd
 fromUSegd :: USegd -> UVSegd
 {-# INLINE fromUSegd #-}
 fromUSegd
-        = fromUSSegd
-        . USSegd.fromUSegd
+        = fromUSSegd . USSegd.fromUSegd
+
+
+-- | O(1).
+--  Yield an empty segment descriptor, with no elements or segments.
+empty :: UVSegd
+{-# INLINE empty #-}
+empty   = UVSegd V.empty USSegd.empty
+
+
+-- | O(1).
+--   Yield a singleton segment descriptor.
+--   The single segment covers the given number of elements in a flat array
+--   with sourceid 0.
+singleton :: Int -> UVSegd
+{-# INLINE singleton #-}
+singleton n 
+        = UVSegd (V.singleton 0) (USSegd.singleton n)
+
         
 
 -- Projections ----------------------------------------------------------------
@@ -136,27 +138,27 @@ takeVSegids :: UVSegd -> Vector Int
 {-# INLINE takeVSegids #-}
 takeVSegids (UVSegd vsegids _)
         = vsegids
+
         
 takeUSSegd :: UVSegd -> USSegd
 {-# INLINE takeUSSegd #-}
 takeUSSegd (UVSegd _ ussegd)
         = ussegd
 
+
 length :: UVSegd -> Int
 {-# INLINE length #-}
 length (UVSegd vsegids _)
         = V.length vsegids
 
--- | O(segs).
---   Yield the lengths of the segments described by a `UVSegd`.
+-- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
 {-# INLINE takeLengths #-}
 takeLengths (UVSegd vsegids ussegd)
         = V.map (USSegd.takeLengths ussegd V.!) vsegids
 
 
--- | O(1).
---  Get the length, starting index, and source id of a segment.
+-- | O(1). Get the length, starting index, and source id of a segment.
 --
 --  NOTE: We don't return the segment index field from the USSegd as this refers
 --        to the flat index relative to the SSegd array, rather than 

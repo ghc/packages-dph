@@ -21,7 +21,7 @@ import Data.Array.Parallel.Unlifted.Distributed ( DT )
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
 
@@ -249,10 +249,10 @@ elementsSegd            = UPSegd.takeElements
 -- Scattered Segment Descriptors ----------------------------------------------
 type SSegd              = UPSSegd.UPSSegd
 mkSSegd                 = UPSSegd.mkUPSSegd
+promoteSegdToSSegd      = UPSSegd.fromUPSegd
 validSSegd              = UPSSegd.valid
 emptySSegd              = UPSSegd.empty
 singletonSSegd          = UPSSegd.singleton
-promoteSegdToSSegd      = UPSSegd.fromUPSegd
 lengthSSegd             = UPSSegd.length
 lengthsSSegd            = UPSSegd.takeLengths
 indicesSSegd            = UPSSegd.takeIndices
@@ -264,23 +264,23 @@ appendSSegd             = UPSSegd.appendWith
 
 -- Virtual Segment Descriptors ------------------------------------------------
 -- TODO: these point to sequential segd ops.
-type VSegd              = UVSegd.UVSegd
-mkVSegd                 = UVSegd.mkUVSegd
-validVSegd              = UVSegd.valid
-emptyVSegd              = UVSegd.empty
-singletonVSegd          = UVSegd.singleton
-promoteSegdToVSegd      = UVSegd.fromUSegd
-unsafeMaterializeVSegd  = UVSegd.unsafeMaterialize
-promoteSSegdToVSegd     = UVSegd.fromUSSegd
-demoteVSegdToSSegd      = UVSegd.toUSSegd
-vsegidsVSegd            = UVSegd.takeVSegids
-ssegdVSegd              = UVSegd.takeUSSegd
-lengthVSegd             = UVSegd.length
-lengthsVSegd            = UVSegd.takeLengths
-getSegOfVSegd           = UVSegd.getSeg
-updateVSegsOfVSegd      = UVSegd.updateVSegs
-appendVSegd             = UVSegd.append
-combine2VSegd           = UVSegd.combine2
+type VSegd              = UPVSegd.UPVSegd
+mkVSegd                 = UPVSegd.mkUPVSegd
+validVSegd              = UPVSegd.valid
+promoteSegdToVSegd      = UPVSegd.fromUPSegd
+promoteSSegdToVSegd     = UPVSegd.fromUPSSegd
+emptyVSegd              = UPVSegd.empty
+singletonVSegd          = UPVSegd.singleton
+lengthOfVSegd           = UPVSegd.length
+takeVSegidsOfVSegd      = UPVSegd.takeVSegids
+takeSSegdOfVSegd        = UPVSegd.takeUPSSegd
+takeLengthsOfVSegd      = UPVSegd.takeLengths
+getSegOfVSegd           = UPVSegd.getSeg
+demoteToSSegdOfVSegd    = UPVSegd.demoteToUPSSegd
+demoteToSegdOfVSegd     = UPVSegd.unsafeDemoteToUPSegd
+updateVSegsOfVSegd      = UPVSegd.updateVSegs
+appendVSegd             = UPVSegd.appendWith
+combine2VSegd           = UPVSegd.combine2
 
 
 -- Selectors ------------------------------------------------------------------

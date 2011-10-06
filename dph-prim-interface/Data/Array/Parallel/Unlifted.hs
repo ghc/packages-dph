@@ -202,18 +202,18 @@ data VSegd
         , vsegd_ssegd   :: SSegd }
 
 mkVSegd                 = VSegd
-emptyVSegd              = VSegd [] emptySSegd
-singletonVSegd          = notImplemented "singletonVSegd"
 validVSegd              = notImplemented "validSSegd"       
 promoteSegdToVSegd      = notImplemented "promoteSegdToVSegd"
-unsafeMaterializeVSegd  = notImplemented "unsafeMaterializeVSegd"
 promoteSSegdToVSegd     = notImplemented "promoteSSegdToVSegd"
-demoteVSegdToSSegd      = notImplemented "demoteVSegdToSSegd"
-vsegidsVSegd            = vsegd_vsegids
-ssegdVSegd              = vsegd_ssegd
-lengthVSegd             = notImplemented "lengthVSegd"
-lengthsVSegd            = notImplemented "lengthsVSegd"
+emptyVSegd              = VSegd [] emptySSegd
+singletonVSegd          = notImplemented "singletonVSegd"
+lengthOfVSegd           = notImplemented "lengthOfVSegd"
+takeVSegidsOfVSegd      = vsegd_vsegids
+takeSSegdOfVSegd        = vsegd_ssegd
+takeLengthsOfVSegd      = notImplemented "takeLengthsOfVSegd"
 getSegOfVSegd           = notImplemented "getSegOfVSegd"
+demoteToSSegdOfVSegd    = notImplemented "demoteToSSegdOfVSegd"
+demoteToSegdOfVSegd     = notImplemented "demoteToSegdOfVSegd"
 updateVSegsOfVSegd      = notImplemented "updateVSegsOfVSegd"
 appendVSegd             = notImplemented "appendVSegd"
 combine2VSegd           = notImplemented "combine2VSegd"

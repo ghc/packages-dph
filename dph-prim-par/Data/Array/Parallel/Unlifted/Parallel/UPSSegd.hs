@@ -84,16 +84,16 @@ valid _ = True
 
 
 -- Constructors ---------------------------------------------------------------
--- | O(1). Construct a new segment descriptor.
+-- | Construct a new segment descriptor.
 mkUPSSegd 
         :: Vector Int   -- ^ Starting index of each segment in its flat array.
         -> Vector Int   -- ^ Source id of the flat array to tach each segment from.
-        -> USegd        -- ^ Contiguous (unscattered) segment descriptor.
+        -> UPSegd       -- ^ Contiguous (unscattered) segment descriptor.
         -> UPSSegd
 
 {-# INLINE mkUPSSegd #-}
-mkUPSSegd starts sources usegd
-        = fromUSSegd (USSegd.mkUSSegd starts sources usegd)
+mkUPSSegd starts sources upsegd
+        = fromUSSegd (USSegd.mkUSSegd starts sources (UPSegd.takeUSegd upsegd))
 
 
 -- | Promote a global `USSegd` to a parallel `UPSSegd` by distributing

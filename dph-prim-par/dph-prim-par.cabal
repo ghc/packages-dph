@@ -19,6 +19,7 @@ Library
         Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Unlifted.Parallel.UPSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSSegd
+        Data.Array.Parallel.Unlifted.Parallel.UPVSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSel
         Data.Array.Parallel.Unlifted
 
