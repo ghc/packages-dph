@@ -3,14 +3,6 @@
 
 -- | Gang primitives.
 --
--- /TODO:/
---
--- * Implement busy waiting.
---
--- * Benchmark.
---
--- * Generalise thread indices?
-
 #define SEQ_IF_GANG_BUSY 1
 #define TRACE_GANG 0
 
@@ -62,8 +54,6 @@ waitReq req
 
 -- Thread gangs and operations on them ----------------------------------------
 -- | A 'Gang' is a group of threads which execute arbitrary work requests.
---   To get the gang to do work, write Req-uest values
---   to its MVars
 data Gang = Gang !Int           -- Number of 'Gang' threads
                  [MVar Req]     -- One 'MVar' per thread
                  (MVar Bool)    -- Indicates whether the 'Gang' is busy
@@ -147,16 +137,13 @@ forkGang n
 	return $ Gang n mvs busy
 
 
--- | The number of threads in the 'Gang'.
+-- | O(1). Yield the number of threads in the 'Gang'.
 gangSize :: Gang -> Int
 gangSize (Gang n _ _) = n
 
 
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
---   If the gang is already busy then just run the action in the
---   requesting thread. 
---
---   TODO: We might want to print a configurable warning that this is happening.
+--   If the gang is already busy then just run the action in the requesting thread. 
 --
 gangIO	:: Gang
 	-> (Int -> IO ())
@@ -219,6 +206,7 @@ getGangTime
 diffTime :: Integer -> Integer -> String
 diffTime x y = show (y-x)
 
+-- | Emit a GHC event for debugging.
 traceGang :: String -> IO ()
 traceGang s
  = do	t <- getGangTime
@@ -231,11 +219,13 @@ getGangTime = return ()
 diffTime :: () -> () -> String
 diffTime _ _ = ""
 
+-- | Emit a GHC event for debugging.
 traceGang :: String -> IO ()
 traceGang _ = return ()
 
 #endif
 
+-- | Emit a GHC event for debugging, in the `ST` monad.
 traceGangST :: String -> ST s ()
 traceGangST s = unsafeIOToST (traceGang s)
 

@@ -14,6 +14,8 @@ Build-Type:     Simple
 Library
   Exposed-Modules:
         Data.Array.Parallel.Unlifted.Distributed
+        Data.Array.Parallel.Unlifted.Distributed.Gang
+        Data.Array.Parallel.Unlifted.Distributed.TheGang
         Data.Array.Parallel.Unlifted.Parallel
         Data.Array.Parallel.Unlifted.Parallel.UPSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSSegd
@@ -21,8 +23,6 @@ Library
         Data.Array.Parallel.Unlifted
 
   Other-Modules:
-        Data.Array.Parallel.Unlifted.Distributed.Gang
-        Data.Array.Parallel.Unlifted.Distributed.TheGang
         Data.Array.Parallel.Unlifted.Distributed.DistST
         Data.Array.Parallel.Unlifted.Distributed.Types
         Data.Array.Parallel.Unlifted.Distributed.Combinators
