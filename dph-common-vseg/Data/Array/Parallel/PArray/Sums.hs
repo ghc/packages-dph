@@ -20,7 +20,7 @@ sumPA_l_double
         :: Int
         -> PData (PArray Double)
         -> PData Double
-{-# INLINE sumPA_l_double #-}        
+{-# NOINLINE sumPA_l_double #-}        
 sumPA_l_double _ (PNested vsegd datas)
  = let  -- Grab all the flat source vectors.
         pdatas          = V.map toUArrayPR datas
@@ -46,7 +46,7 @@ sumPA_l_int
         :: Int
         -> PData (PArray Int)
         -> PData Int
-{-# INLINE sumPA_l_int #-}
+{-# NOINLINE sumPA_l_int #-}
 sumPA_l_int _ (PNested vsegd datas)
  = let  -- Grab all the flat source vectors.
         pdatas          = V.map toUArrayPR datas
