@@ -1,5 +1,6 @@
 {-# LANGUAGE
         CPP,
+        BangPatterns,
         TypeFamilies,
         FlexibleInstances, FlexibleContexts,
         MultiParamTypeClasses,
@@ -13,6 +14,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 
 data instance PData Double
@@ -62,12 +64,21 @@ instance PR Double where
         = arr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR _ arr (PInt ixs)
-        = PDouble
-        $ U.zipWith (\vsegid ix 
-                        -> ((pnested_psegdata arr) V.! ((pnested_psegsrcids arr)  U.!: vsegid)) 
-                                   `indexPR` ((pnested_psegstarts arr) U.!: vsegid + ix))
-                    (pnested_vsegids arr) ixs
+  indexlPR _ arr@(PNested vsegd psegdatas) (PInt ixs)
+   = PDouble $ U.zipWith get (pnested_vsegids arr) ixs
+   where
+         -- Unbox these vectors outside the get loop.
+         !psegsrcids    = U.takeVSegidsOfVSegd vsegd
+         !psegstarts    = U.startsSSegd $ U.takeSSegdOfVSegd vsegd
+
+         -- Lookup a single element from a virtual segment.
+         get !vsegid !ix
+          = let !psegsrcid       = psegsrcids `VU.unsafeIndex` vsegid
+                !psegdata        = psegdatas  `V.unsafeIndex`  psegsrcid
+                !psegstart       = psegstarts `VU.unsafeIndex` vsegid
+                !elemIx          = psegstart + ix
+                !elemVal         = psegdata `indexPR` elemIx
+            in  elemVal
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
