@@ -53,7 +53,6 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 -- @
 --
 splitSSegdOnElemsD :: Gang -> USSegd -> Dist ((USSegd,Int),Int)
-{-# INLINE splitSSegdOnElemsD #-}
 splitSSegdOnElemsD g !segd 
   = imapD g mk (splitLenIdxD g (USegd.takeElements $ USSegd.takeUSegd segd))
   where 
@@ -69,7 +68,6 @@ splitSSegdOnElemsD g !segd
                 = USSegd.mkUSSegd starts sources
                 $ USegd.fromLengths lengths
 
-
         -- Determine what elements go on a thread
         mk :: Int                  -- Thread index.
            -> (Int, Int)           -- Number of elements on this thread,
@@ -82,8 +80,13 @@ splitSSegdOnElemsD g !segd
             (# lengths, starts, sources, l, o #) 
              -> ((buildUSSegd lengths starts sources, l), o)
 
+{-# NOINLINE splitSSegdOnElemsD #-}
+--  NOINLINE because it's complicated and won't fuse with anything.
+--  This function has a large body of code and we don't want to blow up
+--  the client modules by inlining it everywhere.
 
 
+-------------------------------------------------------------------------------
 -- | Determine what elements go on a thread.
 --   The 'chunk' refers to the a chunk of the flat array, and is defined
 --   by a set of segment slices. 
@@ -199,7 +202,6 @@ chunk !ussegd !nStart !nElems is_last
             csources' <- Seq.unsafeFreeze msources'
             return (clengths', cstarts', csources'))
 
-
 {-      = trace 
         (render $ vcat
                 [ text "CHUNK"
@@ -216,6 +218,12 @@ chunk !ussegd !nStart !nElems is_last
                 , text ""]) lens'
 -}
 
+{-# INLINE chunk #-}
+--  INLINE even though it should be inlined into splitSSegdOnElemsD anyway
+--  because that function contains the only use.
+
+
+-------------------------------------------------------------------------------
 -- O(log n).
 -- Given a monotonically increasing vector of `Int`s,
 -- find the first element that is larger than the given value.

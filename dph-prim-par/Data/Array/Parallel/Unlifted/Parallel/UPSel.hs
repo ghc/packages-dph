@@ -82,41 +82,43 @@ data UPSel2
 type UPSelRep2
         = Dist ((Int,Int), (Int,Int))
 
+-- Projections ----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
 
 -- | O(1). Get the tags of a selector.
 tagsUPSel2 :: UPSel2 -> Vector Tag
-{-# INLINE_UP tagsUPSel2 #-}
-tagsUPSel2 = tagsUSel2 .  upsel2_usel
+tagsUPSel2      = tagsUSel2 .  upsel2_usel
+{-# INLINE tagsUPSel2 #-}
 
 
 -- | O(1). Get the indices of a selector.
 indicesUPSel2 :: UPSel2 -> Vector Int
-{-# INLINE_UP indicesUPSel2 #-}
-indicesUPSel2 = indicesUSel2 . upsel2_usel
+indicesUPSel2   = indicesUSel2 . upsel2_usel
+{-# INLINE indicesUPSel2 #-}
 
 
 -- | O(1). TODO: What is this for?
 elementsUPSel2_0 :: UPSel2 -> Int
-{-# INLINE_UP elementsUPSel2_0 #-}
 elementsUPSel2_0 = elementsUSel2_0 . upsel2_usel
+{-# INLINE elementsUPSel2_0 #-}
 
 
 -- | O(1). TODO: What is this for?
 elementsUPSel2_1 :: UPSel2 -> Int
-{-# INLINE_UP elementsUPSel2_1 #-}
 elementsUPSel2_1 = elementsUSel2_1 . upsel2_usel
+{-# INLINE elementsUPSel2_1 #-}
 
 
 -- | O(1). TODO: What is this for?
 selUPSel2 :: UPSel2 -> USel2
-{-# INLINE_UP selUPSel2 #-}
-selUPSel2 = upsel2_usel
+selUPSel2       = upsel2_usel
+{-# INLINE selUPSel2 #-}
 
 
 -- | O(1). TODO: What is this for?
 repUPSel2 :: UPSel2 -> UPSelRep2
-{-# INLINE_UP repUPSel2 #-}
-repUPSel2 = upsel2_rep
+repUPSel2       = upsel2_rep
+{-# INLINE repUPSel2 #-}
 
 
 -- Representation selectors ---------------------------------------------------
@@ -141,10 +143,11 @@ mkUPSelRep2 tags = zipD idxs lens
 
 indicesUPSelRep2 :: Vector Tag -> UPSelRep2 -> Vector Int
 {-# INLINE_UP indicesUPSelRep2 #-}
-indicesUPSelRep2 tags rep = joinD theGang balanced
-                          $ zipWithD theGang indices
-                                             (splitD theGang balanced tags)
-                                              rep
+indicesUPSelRep2 tags rep 
+        = joinD theGang balanced
+        $ zipWithD theGang indices
+             (splitD theGang balanced tags)
+              rep
   where
     indices tags ((i,j), (m,n))
       = Seq.combine2ByTag tags (Seq.enumFromStepLen i 1 m)

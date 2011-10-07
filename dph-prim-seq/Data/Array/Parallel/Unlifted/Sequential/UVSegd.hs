@@ -1,4 +1,6 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+#include "fusion-phases.h"
 
 -- | Segment descriptors for virtual arrays.
 module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
@@ -73,14 +75,14 @@ instance PprPhysical UVSegd where
 --   Check the internal consistency of a virutal segmentation descriptor.
 --   TODO: check that all vsegs point to a valid pseg
 valid :: UVSegd -> Bool
-{-# INLINE_U valid #-}
 valid (UVSegd vsegids ussegd)
         = V.length vsegids == USSegd.length ussegd
+{-# NOINLINE valid #-}
+--  NOINLINE because it's only enabled during debugging anyway.
 
 
 -- Constructors ---------------------------------------------------------------
--- | O(1). 
---   Construct a new virtual segment descriptor.
+-- | O(1). Construct a new virtual segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUVSegd
         :: Vector Int   -- ^ array saying which physical segment to use for each
@@ -88,74 +90,73 @@ mkUVSegd
         -> USSegd       -- ^ slice segment descriptor describing physical segments.
         -> UVSegd
 
-{-# INLINE_U mkUVSegd #-}
 mkUVSegd = UVSegd
+{-# INLINE mkUVSegd #-}
 
 
--- | O(segs). 
---   Promote a plain USSegd to a UVSegd
+-- | O(segs). Promote a plain USSegd to a UVSegd
 --   The result contains one virtual segment for every physical segment
 --   the provided USSegd.
 --
 fromUSSegd :: USSegd -> UVSegd
-{-# INLINE_U fromUSSegd #-}
 fromUSSegd ussegd
         = UVSegd (V.enumFromTo 0 (USSegd.length ussegd - 1))
                  ussegd
+{-# INLINE_U fromUSSegd #-}
 
--- | O(segs). 
---   Promote a plain USegd to a UVSegd
+
+-- | O(segs). Promote a plain USegd to a UVSegd
 --   All segments are assumed to come from a flat array with sourceid 0.
 --   The result contains one virtual segment for every physical segment
 --   the provided USegd.
 --
 fromUSegd :: USegd -> UVSegd
-{-# INLINE_U fromUSegd #-}
 fromUSegd
         = fromUSSegd . USSegd.fromUSegd
+{-# INLINE_U fromUSegd #-}
 
 
--- | O(1).
---  Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UVSegd
-{-# INLINE_U empty #-}
 empty   = UVSegd V.empty USSegd.empty
+{-# INLINE_U empty #-}
 
 
--- | O(1).
---   Yield a singleton segment descriptor.
+-- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> UVSegd
-{-# INLINE_U singleton #-}
 singleton n 
         = UVSegd (V.singleton 0) (USSegd.singleton n)
+{-# INLINE_U singleton #-}
 
         
 
 -- Projections ----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
+
+-- | O(1). Yield the vsegids of a `UVSegd`
 takeVSegids :: UVSegd -> Vector Int
-{-# INLINE_U takeVSegids #-}
-takeVSegids (UVSegd vsegids _)
-        = vsegids
+takeVSegids     = uvsegd_vsegids
+{-# INLINE takeVSegids #-}
 
-        
+
+-- | O(1). Yield the `USSegd` of a `UVSegd`.
 takeUSSegd :: UVSegd -> USSegd
-{-# INLINE_U takeUSSegd #-}
-takeUSSegd (UVSegd _ ussegd)
-        = ussegd
+takeUSSegd      = uvsegd_ussegd
+{-# INLINE takeUSSegd #-}
 
-
+-- | O(1). Yield the overall number of segments described by a `UVSegd`.
 length :: UVSegd -> Int
-{-# INLINE_U length #-}
-length (UVSegd vsegids _)
-        = V.length vsegids
+length          = V.length . uvsegd_vsegids
+{-# INLINE length #-}
+
 
 -- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
-{-# INLINE_U takeLengths #-}
 takeLengths (UVSegd vsegids ussegd)
         = V.map (USSegd.takeLengths ussegd V.!) vsegids
+{-# INLINE_U takeLengths #-}
 
 
 -- | O(1). Get the length, starting index, and source id of a segment.
@@ -166,23 +167,22 @@ takeLengths (UVSegd vsegids ussegd)
 --        to a UVSegd index it could overflow.
 --
 getSeg :: UVSegd -> Int -> (Int, Int, Int)
-{-# INLINE_U getSeg #-}
 getSeg (UVSegd vsegids ussegd) ix
  = let  (len, _index, start, source) = USSegd.getSeg ussegd (vsegids V.! ix)
    in   (len, start, source)
+{-# INLINE_U getSeg #-}
 
    
 -- Operators ------------------------------------------------------------------
 -- | TODO: automatically force out unreachable psegs here.
 updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
-{-# INLINE_U updateVSegs #-}
 updateVSegs f (UVSegd vsegids ussegd)
  = let  (vsegids', ussegd') = USSegd.cullOnVSegids (f vsegids) ussegd
    in   UVSegd vsegids' ussegd'
+{-# INLINE_U updateVSegs #-}
 
 
--- | O(segs)
---   Yield a `USSegd` that describes each segment of a `UVSegd` individually.
+-- | O(segs). Yield a `USSegd` that describes each segment of a `UVSegd` individually.
 -- 
 --   * By doing this we lose information about virtual segments corresponding
 --     to the same physical segments.
@@ -191,17 +191,17 @@ updateVSegs f (UVSegd vsegids ussegd)
 --     segmentation from a nested array.
 -- 
 toUSSegd :: UVSegd -> USSegd
-{-# INLINE_U toUSSegd #-}
 toUSSegd (UVSegd vsegids ussegd)
  = let  starts'         = V.bpermute (USSegd.takeStarts  ussegd)  vsegids
         sources'        = V.bpermute (USSegd.takeSources ussegd) vsegids
         lengths'        = V.bpermute (USSegd.takeLengths ussegd) vsegids
         usegd'          = USegd.fromLengths lengths'
    in   USSegd.mkUSSegd starts' sources' usegd'
+{-# NOINLINE toUSSegd #-}
+--  NOINLINE because it's complicated and won't fuse with anything.
 
 
--- | O(segs)
---   Given an virtual segment descriptor, produce a plain USegd that
+-- | O(segs). Given an virtual segment descriptor, produce a plain USegd that
 --   that describes the entire array.
 --
 --   WARNING:
@@ -215,10 +215,11 @@ toUSSegd (UVSegd vsegids ussegd)
 --   because the program would OOM anyway.
 --
 unsafeMaterialize :: UVSegd -> USegd
-{-# INLINE_U unsafeMaterialize #-}
 unsafeMaterialize (UVSegd vsegids ussegd)
         = USegd.fromLengths
         $ V.bpermute (USSegd.takeLengths ussegd) vsegids
+{-# NOINLINE unsafeMaterialize #-}
+--  NOINLINE because it won't fuse with anything.
 
 
 -- append ---------------------------------------------------------------------
@@ -257,7 +258,6 @@ append  :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arra
         -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UVSegd
 
-{-# INLINE_U append #-}
 append  (UVSegd vsegids1 ussegd1) pdatas1
         (UVSegd vsegids2 ussegd2) pdatas2
 
@@ -273,6 +273,7 @@ append  (UVSegd vsegids1 ussegd1) pdatas1
                                   ussegd2 pdatas2
                                  
    in   UVSegd vsegids' ussegd'
+{-# INLINE_U append #-}
 
 
 -- combine --------------------------------------------------------------------
@@ -313,7 +314,6 @@ combine2
         -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
         -> UVSegd
         
-{-# INLINE_U combine2 #-}
 combine2  usel2
         (UVSegd vsegids1 ussegd1) pdatas1
         (UVSegd vsegids2 ussegd2) pdatas2
@@ -331,3 +331,4 @@ combine2  usel2
                                   ussegd2 pdatas2
                                   
    in   UVSegd vsegids' ussegd'
+{-# INLINE_U combine2 #-}

@@ -65,8 +65,9 @@ data UPSegd
 -- 
 --   * TODO: this doesn't do any checks yet
 valid :: UPSegd -> Bool
-{-# INLINE_UP valid #-}
 valid _ = True
+{-# NOINLINE valid #-}
+--  NOINLINE because it's only used during debugging anyway.
 
 
 -- Constructors ---------------------------------------------------------------
@@ -77,30 +78,29 @@ mkUPSegd
         -> Int          -- ^ Total number of elements in the flat array.
         -> UPSegd
 
-{-# INLINE_UP mkUPSegd #-}
 mkUPSegd lens idxs n
         = fromUSegd (USegd.mkUSegd lens idxs n)
+{-# INLINE_UP mkUPSegd #-}
 
 
 -- | Convert a global `USegd` to a parallel `UPSegd` by distributing 
 --   it across the gang.
 fromUSegd :: USegd -> UPSegd
-{-# INLINE_UP fromUSegd #-}
 fromUSegd segd   = UPSegd segd (USegd.splitSegdOnElemsD theGang segd)
+{-# INLINE_UP fromUSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSegd
-{-# INLINE_UP empty #-}
 empty           = fromUSegd USegd.empty
+{-# INLINE_UP empty #-}
 
 
--- | O(1).
---   Yield a singleton segment descriptor.
+-- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSegd
-{-# INLINE_UP singleton #-}
 singleton n     = fromUSegd $ USegd.singleton n
+{-# INLINE_UP singleton #-}
 
 
 -- | O(n). Convert an array of segment lengths into a parallel segment descriptor.
@@ -109,21 +109,23 @@ singleton n     = fromUSegd $ USegd.singleton n
 --   indices from that. Runtime is O(n) in the number of segments.
 --
 fromLengths :: Vector Int -> UPSegd
-{-# INLINE_UP fromLengths #-}
 fromLengths     = fromUSegd . USegd.fromLengths
+{-# INLINE_UP fromLengths #-}
 
 
 -- Projections ----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
+
 -- | O(1). Yield the overall number of segments.
 length :: UPSegd -> Int
-{-# INLINE_UP length #-}
 length          = USegd.length . upsegd_usegd
+{-# INLINE length #-}
 
 
 -- | O(1). Yield the global `USegd` of a `UPSegd`.
 takeUSegd :: UPSegd -> USegd
-{-# INLINE_UP takeUSegd #-}
 takeUSegd       = upsegd_usegd
+{-# INLINE takeUSegd #-}
 
 
 -- | O(1). Yield the distributed `USegd` of a `UPSegd`.
@@ -132,20 +134,20 @@ takeUSegd       = upsegd_usegd
 --  slice in the chunk, and the starting offset of that slice in its segment.
 -- 
 takeDistributed :: UPSegd -> Dist ((USegd,Int),Int)
-{-# INLINE_UP takeDistributed #-}
 takeDistributed = upsegd_dsegd
+{-# INLINE takeDistributed #-}
 
 
 -- | O(1). Yield the lengths of the individual segments.
 takeLengths :: UPSegd -> Vector Int
-{-# INLINE_UP takeLengths #-}
 takeLengths     = USegd.takeLengths . upsegd_usegd
+{-# INLINE takeLengths #-}
 
 
 -- | O(1). Yield the segment indices.
 takeIndices :: UPSegd -> Vector Int
-{-# INLINE_UP takeIndices #-}
 takeIndices     = USegd.takeIndices . upsegd_usegd
+{-# INLINE takeIndices #-}
 
 
 -- | O(1). Yield the total number of array elements.
@@ -153,8 +155,8 @@ takeIndices     = USegd.takeIndices . upsegd_usegd
 --  @takeElements upsegd = sum (takeLengths upsegd)@
 --
 takeElements :: UPSegd -> Int
-{-# INLINE_UP takeElements #-}
 takeElements    = USegd.takeElements . upsegd_usegd
+{-# INLINE takeElements #-}
 
 
 -- Indices --------------------------------------------------------------------
@@ -164,13 +166,13 @@ takeElements    = USegd.takeElements . upsegd_usegd
 --  @indicesP (fromLengths [5, 2, 3]) = [0,1,2,3,4,0,1,0,1,2]@
 --
 indicesP :: UPSegd -> Vector Int
-{-# INLINE_UP indicesP #-}
 indicesP
         = joinD theGang balanced
         . mapD  theGang indices
         . takeDistributed
   where
     indices ((segd,k),off) = Seq.indicesSU' off segd
+{-# INLINE_UP indicesP #-}
 
 
 -- Replicate ------------------------------------------------------------------
@@ -180,7 +182,6 @@ indicesP
 --   @replicateWith (fromLengths [3, 1, 2]) [5, 6, 7] = [5, 5, 5, 6, 7, 7]@
 --
 replicateWithP :: Unbox a => UPSegd -> Vector a -> Vector a
-{-# INLINE_UP replicateWithP #-}
 replicateWithP segd !xs 
   = joinD theGang balanced
   . mapD  theGang rep
@@ -188,29 +189,28 @@ replicateWithP segd !xs
   where
     rep ((dsegd,di),_)
       = Seq.replicateSU dsegd (Seq.slice xs di (USegd.length dsegd))
+{-# INLINE_UP replicateWithP #-}
 
 
 -- Fold -----------------------------------------------------------------------
 -- | Fold segments specified by a `UPSegd`.
 foldWithP :: Unbox a
          => (a -> a -> a) -> a -> UPSegd -> Vector a -> Vector a
+foldWithP f !z  = foldSegsWithP f (Seq.foldlSU f z)
 {-# INLINE_UP foldWithP #-}
-foldWithP f !z
-        = foldSegsWithP f (Seq.foldlSU f z)
 
 
 -- | Fold segments specified by a `UPSegd`, with a non-empty vector.
 fold1WithP :: Unbox a
          => (a -> a -> a) -> UPSegd -> Vector a -> Vector a
+fold1WithP f    = foldSegsWithP f (Seq.fold1SU f)
 {-# INLINE_UP fold1WithP #-}
-fold1WithP f
-        = foldSegsWithP f (Seq.fold1SU f)
 
 
 -- | Sum up segments specified by a `UPSegd`.
 sumWithP :: (Num e, Unbox e) => UPSegd -> Vector e -> Vector e
-{-# INLINE_UP sumWithP #-}
 sumWithP = foldWithP (+) 0
+{-# INLINE_UP sumWithP #-}
 
 
 -- | Fold the segments specified by a `UPSegd`.

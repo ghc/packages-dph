@@ -1,3 +1,6 @@
+{-# LANGUAGE CPP #-}
+#include "fusion-phases.h"
+
 -- | Sum-like operations on segmented list-like combinators.
 module Data.Array.Parallel.Unlifted.Sequential.Sums (
   andSU, orSU, sumSU, productSU, maximumSU, minimumSU,

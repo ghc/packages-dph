@@ -110,7 +110,6 @@ splitSegdOnSegsD g !segd
 -- @
 --
 splitSegdOnElemsD :: Gang -> USegd -> Dist ((USegd,Int),Int)
-{-# INLINE splitSegdOnElemsD #-}
 splitSegdOnElemsD g !segd 
   = imapD g mk (splitLenIdxD g (USegd.takeElements segd))
   where 
@@ -128,8 +127,12 @@ splitSegdOnElemsD g !segd
          = case getChunk segd ixStart nElems (i == nThreads - 1) of
             (# lens, l, o #) -> ((USegd.fromLengths lens, l), o)
 
+{-# NOINLINE splitSegdOnElemsD #-}
+--  NOINLINE because this function has a large body of code and we don't want to blow up
+--  the client modules by inlining it everywhere.
 
 
+-------------------------------------------------------------------------------
 -- | Determine what elements go on a thread.
 --   The 'chunk' refers to the a chunk of the flat array, and is defined
 --   by a set of segment slices. 
@@ -247,8 +250,13 @@ getChunk !segd !nStart !nElems is_last
                 , text ""]) lens'
 -}
 
--- O(log n).
--- Given a monotonically increasing vector of `Int`s,
+{-# INLINE getChunk #-}
+--  INLINE even though it should be inlined into splitSSegdOnElemsD anyway
+--  because that function contains the only use.
+
+
+-------------------------------------------------------------------------------
+-- O(log n). Given a monotonically increasing vector of `Int`s,
 -- find the first element that is larger than the given value.
 -- 
 -- eg  search 75 [0, 60, 70, 90, 130] = 90
@@ -263,7 +271,6 @@ search !x ys = go 0 (Seq.length ys)
       where
         half = n `shiftR` 1
         mid  = i + half
-
 
 
 -------------------------------------------------------------------------------

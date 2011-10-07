@@ -1,4 +1,7 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+#include "fusion-phases.h"
+
 -- | Segment Descriptors
 module Data.Array.Parallel.Unlifted.Sequential.USegd (
   -- * Types
@@ -18,7 +21,7 @@ module Data.Array.Parallel.Unlifted.Sequential.USegd (
   append, slice, extract
 ) where
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
-import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, MVector)
+import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
 
@@ -62,8 +65,8 @@ mkUSegd
         -> Int          -- ^ total number of elements in the flat array
         -> USegd
 
-{-# INLINE_U mkUSegd #-}
 mkUSegd = USegd
+{-# INLINE mkUSegd #-}
 
 
 -- | O(1). Check the internal consistency of a scattered segment descriptor.
@@ -71,22 +74,24 @@ mkUSegd = USegd
 --   lengths, we check the consistency by rebuilding these fields and 
 --   comparing the rebuilt ones against the originals.
 valid :: USegd -> Bool
-{-# INLINE_U valid #-}
 valid usegd@(USegd lengths _ _)
         = usegd == fromLengths lengths
+{-# NOINLINE valid #-}
+--  NOINLINE because it's only enabled during debugging anyway.
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: USegd
+empty   = USegd V.empty V.empty 0
 {-# INLINE_U empty #-}
-empty = USegd V.empty V.empty 0
 
 
 -- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> USegd
+singleton n
+        = USegd (V.singleton n) (V.singleton 0) n
 {-# INLINE_U singleton #-}
-singleton n = USegd (V.singleton n) (V.singleton 0) n
 
 
 -- | O(n). Convert a length array into a segment descriptor.
@@ -95,54 +100,56 @@ singleton n = USegd (V.singleton n) (V.singleton 0) n
 --   indices from that. Runtime is O(n) in the number of segments.
 --
 fromLengths :: Vector Int -> USegd
-{-# INLINE_U fromLengths #-}
 fromLengths lens
         = USegd lens (V.scanl (+) 0 lens) (V.sum lens)
+{-# INLINE_U fromLengths #-}
 
 
 -- Projections ----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
+
 -- | O(1). Yield the overall number of segments.
 length :: USegd -> Int
-{-# INLINE_U length #-}
-length = V.length . usegd_lengths
+length          = V.length . usegd_lengths
+{-# INLINE length #-}
 
 
 -- | O(1). Yield the lengths of the individual segments.
 takeLengths :: USegd -> Vector Int
-{-# INLINE_U takeLengths #-}
-takeLengths = usegd_lengths
+takeLengths     = usegd_lengths
+{-# INLINE takeLengths #-}
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
 takeIndices :: USegd -> Vector Int
-{-# INLINE_U takeIndices #-}
-takeIndices = usegd_indices
+takeIndices     = usegd_indices
+{-# INLINE takeIndices #-}
 
 
 -- | O(1). Yield the number of data elements.
 takeElements :: USegd -> Int
-{-# INLINE_U takeElements #-}
-takeElements = usegd_elements
+takeElements    = usegd_elements
+{-# INLINE takeElements #-}
 
 
 -- | O(1). Get the length and segment index of a segment
 getSeg :: USegd -> Int -> (Int, Int)
-{-# INLINE_U getSeg #-}
 getSeg (USegd lengths indices _ ) ix
  =      ( lengths V.! ix
         , indices V.! ix)
+{-# INLINE_U getSeg #-}
 
 
 -- Operators ------------------------------------------------------------------
 -- | O(segs). Produce a segment descriptor that describes the result of appending 
 --   two arrays.
 append :: USegd -> USegd -> USegd
-{-# INLINE_U append #-}
 append (USegd lengths1 indices1 elems1)
             (USegd lengths2 indices2 elems2)
  = USegd (lengths1 V.++ lengths2)
          (indices1 V.++ V.map (+ elems1) indices2)
          (elems1 + elems2)
+{-# INLINE_U append #-}
 
 
 -- | Extract a slice of a segment descriptor, avoiding copying where possible.
@@ -158,10 +165,9 @@ slice
         -> Int          -- ^ index of first segment
         -> Int          -- ^ number of segments to slice out
         -> USegd
-        
-{-# INLINE_U slice #-}
 slice segd i n
         = fromLengths $ V.slice (takeLengths segd) i n
+{-# INLINE_U slice #-}
 
 
 -- | Extract a slice of a segment descriptor, copying everything.
@@ -176,8 +182,7 @@ extract
         -> Int          -- ^ index of the first segment
         -> Int          -- ^ number of segments to extract out
         -> USegd
-
-{-# INLINE_U extract #-}
 extract segd i n 
         = fromLengths $ V.extract (takeLengths segd) i n
+{-# INLINE_U extract #-}
 

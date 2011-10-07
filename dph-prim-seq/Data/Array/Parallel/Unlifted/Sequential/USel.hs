@@ -62,53 +62,55 @@ mkUSel2 :: Vector Tag           -- ^ tags array
         -> Int                  -- ^ number of elements taken from first array
         -> Int                  -- ^ number of elements taken from second array
         -> USel2
-{-# INLINE_U mkUSel2 #-}
 mkUSel2 = USel2
+{-# INLINE mkUSel2 #-}
 
+
+-- Projections ----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
 
 -- | O(1). Get the number of elements represented by this selector.
 --         This is the length of the array returned by `combine`.
 lengthUSel2 :: USel2 -> Int
-{-# INLINE_U lengthUSel2 #-}
-lengthUSel2 = V.length . usel2_tags
+lengthUSel2     = V.length . usel2_tags
+{-# INLINE lengthUSel2 #-}
 
 
 -- | O(1). Get the tags array of a selector.
 tagsUSel2 :: USel2 -> Vector Tag
-{-# INLINE_U tagsUSel2 #-}
-tagsUSel2 = usel2_tags
+{-# INLINE tagsUSel2 #-}
+tagsUSel2       = usel2_tags
 
 
 -- | O(1). Get the indices array of a selector.
 indicesUSel2 :: USel2 -> Vector Int
-{-# INLINE_U indicesUSel2 #-}
-indicesUSel2 = usel2_indices
+indicesUSel2    = usel2_indices
+{-# INLINE indicesUSel2 #-}
 
 
 -- | O(1). Get the number of elements that will be taken from the first array.
 elementsUSel2_0 :: USel2 -> Int
-{-# INLINE_U elementsUSel2_0 #-}
 elementsUSel2_0 = usel2_elements0
+{-# INLINE elementsUSel2_0 #-}
 
 
 -- | O(1). Get the number of elements that will be taken from the second array.
 elementsUSel2_1 :: USel2 -> Int
-{-# INLINE_U elementsUSel2_1 #-}
 elementsUSel2_1 = usel2_elements1
+{-# INLINE elementsUSel2_1 #-}
 
 
 -- | O(n). Compute the source index for each element of the result array.
 tagsToIndices2 :: Vector Tag -> Vector Int
-{-# INLINE_U tagsToIndices2 #-}
 tagsToIndices2 tags 
   = unstream (mapAccumS add (0,0) (stream tags))
   where
     add (i,j) 0 = ((i+1,j),i)
     add (i,j) _ = ((i,j+1),j)
+{-# INLINE_STREAM tagsToIndices2 #-}
 
 
 mapAccumS :: (acc -> a -> (acc,b)) -> acc -> S.Stream a -> S.Stream b
-{-# INLINE_STREAM mapAccumS #-}
 mapAccumS f acc (Stream step s n)
   = Stream step' (acc,s) n
   where
@@ -120,3 +122,4 @@ mapAccumS f acc (Stream step s n)
                           in return $ S.Yield y (acc',s')
           S.Skip    s' -> return $ S.Skip (acc,s')
           S.Done       -> return S.Done
+{-# INLINE_STREAM mapAccumS #-}

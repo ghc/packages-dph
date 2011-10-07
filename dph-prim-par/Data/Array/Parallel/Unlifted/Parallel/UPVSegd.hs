@@ -58,8 +58,8 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
 --
 data UPVSegd 
         = UPVSegd 
-        { _upvsegd_vsegids       :: !(Vector Int)
-        , _upvsegd_upssegd       :: !UPSSegd }
+        { upvsegd_vsegids       :: !(Vector Int)
+        , upvsegd_upssegd       :: !UPSSegd }
         deriving (Show)
 
 
@@ -76,9 +76,11 @@ instance PprPhysical UPVSegd where
 --   * TODO: this doesn't do any checks yet.
 --
 valid :: UPVSegd -> Bool
-{-# INLINE_UP valid #-}
 valid (UPVSegd _ _)
         = True
+{-# NOINLINE valid #-}
+--  NOINLINE because it's only used during debugging anyway.
+
 
 -- Constructors ---------------------------------------------------------------
 -- | O(1). Construct a new virtual segment descriptor.
@@ -87,8 +89,8 @@ mkUPVSegd
         -> UPSSegd      -- ^ Scattered segment descriptor defining the physical segments.
         -> UPVSegd
 
-{-# INLINE_UP mkUPVSegd #-}
 mkUPVSegd = UPVSegd
+{-# INLINE_UP mkUPVSegd #-}
 
 
 -- | O(segs). Promote a `UPSSegd` to a `UPVSegd`.
@@ -98,11 +100,12 @@ mkUPVSegd = UPVSegd
 --   TODO: make this parallel, use parallel version of enumFromTo.
 --
 fromUPSSegd :: UPSSegd -> UPVSegd
-{-# INLINE_UP fromUPSSegd #-}
 fromUPSSegd upssegd
         = UPVSegd 
                 (V.enumFromTo 0 (UPSSegd.length upssegd - 1))
                 upssegd
+{-# INLINE_UP fromUPSSegd #-}
+
 
 -- | O(segs). Promote a `UPSegd` to a `UPVSegd`.
 --   All segments are assumed to come from a flat array with sourceid 0.
@@ -110,53 +113,50 @@ fromUPSSegd upssegd
 --   the provided `UPSegd`.
 --
 fromUPSegd :: UPSegd -> UPVSegd
+fromUPSegd      = fromUPSSegd . UPSSegd.fromUPSegd
 {-# INLINE_UP fromUPSegd #-}
-fromUPSegd
-        = fromUPSSegd . UPSSegd.fromUPSegd
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPVSegd
+empty           = UPVSegd V.empty UPSSegd.empty
 {-# INLINE_UP empty #-}
-empty   = UPVSegd V.empty UPSSegd.empty
 
 
 -- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> UPVSegd
+singleton n     = UPVSegd (V.singleton 0) (UPSSegd.singleton n)
 {-# INLINE_UP singleton #-}
-singleton n 
-        = UPVSegd (V.singleton 0) (UPSSegd.singleton n)
 
 
 -- Projections ----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
+
 -- | O(1). Yield the overall number of segments.
 length :: UPVSegd -> Int
-{-# INLINE_UP length #-}
-length (UPVSegd vsegids _)
-        = V.length vsegids
+length          = V.length . upvsegd_vsegids
+{-# INLINE length #-}
 
 
 -- | O(1). Yield the virtual segment ids of `UPVSegd`.
 takeVSegids :: UPVSegd -> Vector Int
-{-# INLINE_UP takeVSegids #-}
-takeVSegids (UPVSegd vsegids _)
-        = vsegids
+takeVSegids     = upvsegd_vsegids
+{-# INLINE takeVSegids #-}
 
 
 -- | O(1). Yield the `UPSSegd` of `UPVSegd`.
 takeUPSSegd :: UPVSegd -> UPSSegd
-{-# INLINE_UP takeUPSSegd #-}
-takeUPSSegd (UPVSegd _ upssegd)
-        = upssegd
+takeUPSSegd     = upvsegd_upssegd
+{-# INLINE takeUPSSegd #-}
 
 
 -- | O(segs). Yield the lengths of the segments described by a `UPVSegd`.
 takeLengths :: UPVSegd -> Vector Int
-{-# INLINE_UP takeLengths #-}
 takeLengths (UPVSegd vsegids upssegd)
         = V.map (UPSSegd.takeLengths upssegd V.!) vsegids
+{-# INLINE_UP takeLengths #-}
 
 
 -- | O(1). Get the length, starting index, and source id of a segment.
@@ -167,10 +167,10 @@ takeLengths (UPVSegd vsegids upssegd)
 --        to a UVSegd index it could overflow.
 --
 getSeg :: UPVSegd -> Int -> (Int, Int, Int)
-{-# INLINE_UP getSeg #-}
 getSeg (UPVSegd vsegids upssegd) ix
  = let  (len, _index, start, source) = UPSSegd.getSeg upssegd (vsegids V.! ix)
    in   (len, start, source)
+{-# INLINE_UP getSeg #-}
 
 
 -- Demotion -------------------------------------------------------------------
@@ -184,13 +184,15 @@ getSeg (UPVSegd vsegids upssegd) ix
 --     segmentation from a nested array.
 -- 
 demoteToUPSSegd :: UPVSegd -> UPSSegd
-{-# INLINE_UP demoteToUPSSegd #-}
 demoteToUPSSegd (UPVSegd vsegids upssegd)
  = let  starts'         = bpermuteUP (UPSSegd.takeStarts  upssegd) vsegids
         sources'        = bpermuteUP (UPSSegd.takeSources upssegd) vsegids
         lengths'        = bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
         upsegd'         = UPSegd.fromLengths lengths'
    in   UPSSegd.mkUPSSegd starts' sources' upsegd'
+{-# NOINLINE demoteToUPSSegd #-}
+--  NOINLINE because it's complicated and won't fuse with anything.
+--  In core we want to see when VSegds are being demoted.
 
 
 -- | O(segs). Given an virtual segment descriptor, produce a `UPSegd` that
@@ -207,10 +209,12 @@ demoteToUPSSegd (UPVSegd vsegids upssegd)
 --   because the program would OOM anyway.
 --
 unsafeDemoteToUPSegd :: UPVSegd -> UPSegd
-{-# INLINE_UP unsafeDemoteToUPSegd #-}
 unsafeDemoteToUPSegd (UPVSegd vsegids upssegd)
         = UPSegd.fromLengths
         $ bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
+{-# NOINLINE unsafeDemoteToUPSegd #-}
+--  NOINLINE because it's complicated and won't fuse with anything.
+--  In core we want to see when VSegds are being demoted.
 
 
 -- Operators ------------------------------------------------------------------
@@ -221,13 +225,13 @@ unsafeDemoteToUPSegd (UPVSegd vsegids upssegd)
 --     the UPSSegd.
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-{-# INLINE_UP updateVSegs #-}
 updateVSegs f (UPVSegd vsegids upssegd)
  = let  (vsegids', ussegd') 
                 = USSegd.cullOnVSegids (f vsegids) 
                 $ UPSSegd.takeUSSegd upssegd
 
    in   UPVSegd vsegids' (UPSSegd.fromUSSegd ussegd')
+{-# INLINE_UP updateVSegs #-}
 
 
 -- Append ---------------------------------------------------------------------
@@ -240,7 +244,6 @@ appendWith
         -> UPVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UPVSegd
 
-{-# INLINE_UP appendWith #-}
 appendWith
         (UPVSegd vsegids1 upssegd1) pdatas1
         (UPVSegd vsegids2 upssegd2) pdatas2
@@ -258,6 +261,7 @@ appendWith
                                 upssegd2 pdatas2
                                  
    in   UPVSegd vsegids' upssegd'
+{-# INLINE_UP appendWith #-}
 
 
 -- Combine --------------------------------------------------------------------
@@ -271,7 +275,6 @@ combine2
         -> UPVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
         -> UPVSegd
         
-{-# INLINE_UP combine2 #-}
 combine2
         upsel2
         (UPVSegd vsegids1 upssegd1) pdatas1
@@ -291,3 +294,5 @@ combine2
                                 upssegd2 pdatas2
                                   
    in   UPVSegd vsegids' upssegd'
+{-# INLINE_UP combine2 #-}
+
