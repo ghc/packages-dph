@@ -18,7 +18,7 @@ delay_inline x = x
 
 
 enumFromToUP :: (Unbox a, Enum a) => a -> a -> Vector a
-{-# INLINE enumFromToUP #-}
+{-# INLINE_UP enumFromToUP #-}
 enumFromToUP start end 
  = mapUP toEnum (enumFromStepLenUP start' 1 len)
  where  start' = fromEnum start
@@ -27,7 +27,7 @@ enumFromToUP start end
 
 
 enumFromThenToUP :: (Unbox a, Enum a) => a -> a -> a -> Vector a
-{-# INLINE enumFromThenToUP #-}
+{-# INLINE_UP enumFromThenToUP #-}
 enumFromThenToUP start next end 
  = mapUP toEnum (enumFromStepLenUP start' delta len)
  where  start' = fromEnum start
@@ -41,7 +41,7 @@ enumFromThenToUP start next end
 
 
 enumFromStepLenUP :: Int -> Int -> Int -> Vector Int
-{-# INLINE enumFromStepLenUP #-}
+{-# INLINE_UP enumFromStepLenUP #-}
 enumFromStepLenUP start delta len =
   joinD theGang balanced
   (mapD theGang gen
@@ -51,7 +51,7 @@ enumFromStepLenUP start delta len =
 
 
 enumFromStepLenEachUP :: Int -> Vector Int -> Vector Int -> Vector Int -> Vector Int
-{-# INLINE enumFromStepLenEachUP #-}
+{-# INLINE_UP enumFromStepLenEachUP #-}
 enumFromStepLenEachUP n starts steps lens
   = joinD theGang unbalanced
   $ mapD theGang enum

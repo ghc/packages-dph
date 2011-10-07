@@ -4,7 +4,7 @@
         FlexibleInstances, FlexibleContexts,
         StandaloneDeriving, ExplicitForAll,
         MultiParamTypeClasses #-}
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Tuple 
 where

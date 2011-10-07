@@ -1,4 +1,5 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE CPP, ScopedTypeVariables #-}
+#include "fusion-phases.h"
 
 -- | Parallel permutations for unlifted arrays
 module Data.Array.Parallel.Unlifted.Parallel.Permute (
@@ -9,7 +10,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 
 
 bpermuteUP :: Unbox a => Vector a -> Vector Int -> Vector a
-{-# INLINE bpermuteUP #-}
+{-# INLINE_UP bpermuteUP #-}
 bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
 
 {-
@@ -30,7 +31,7 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
 -}
 
 updateUP :: forall a. Unbox a => Vector a -> Vector (Int,a) -> Vector a
-{-# INLINE updateUP #-}
+{-# INLINE_UP updateUP #-}
 updateUP as us
   {- hasAtomicWriteMU (undefined :: a) 
   = atomicUpdateD theGang (splitD theGang unbalanced as)

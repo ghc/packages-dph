@@ -1,5 +1,0 @@
-#define INLINE_PDATA   INLINE
-#define INLINE_PA      INLINE
-#define INLINE_CLOSURE INLINE
-#define INLINE_USER    INLINE
-

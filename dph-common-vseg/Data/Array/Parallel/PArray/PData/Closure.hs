@@ -3,7 +3,7 @@
         TypeOperators,
         FlexibleInstances,
         MultiParamTypeClasses #-}
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Closure where
 import Data.Array.Parallel.PArray.PData.Base

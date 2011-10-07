@@ -19,14 +19,17 @@ import GHC.Base ( remInt )
 
 -- | Test whether the given array is empty
 nullUP :: Unbox e => Vector e -> Bool
+{-# INLINE_UP nullUP #-}
 nullUP  = (== 0) . Seq.length
 
 
 -- | Yield an empty array
 emptyUP :: Unbox e => Vector e
+{-# INLINE_UP emptyUP #-}
 emptyUP = Seq.new 0 (const $ return ())
 
 lengthUP :: Unbox e => Vector e -> Int
+{-# INLINE_UP lengthUP #-}
 lengthUP = Seq.length
 
 
@@ -63,12 +66,11 @@ interleaveUP xs ys
 
 -- | Associate each element of the array with its index
 indexedUP :: (DT e, Unbox e) => Vector e -> Vector (Int,e)
-{-# INLINE_U indexedUP #-}
+{-# INLINE_UP indexedUP #-}
 indexedUP 
  = splitJoinD theGang indexedFn 
  where
     sizes  arr   = fst $ scanD theGang (+) 0 $ lengthD arr
     indexedFn    = \arr -> zipWithD theGang (\o -> Seq.map (\(x,y) -> (x + o, y))) (sizes arr) 
                         $  mapD theGang Seq.indexed arr
-
 

@@ -87,14 +87,14 @@ mkUSSegd
         -> USegd        -- ^ contiguous segment descriptor
         -> USSegd
 
-{-# INLINE mkUSSegd #-}
+{-# INLINE_U mkUSSegd #-}
 mkUSSegd = USSegd
 
 
 -- | O(1).
 --   Check the internal consistency of a scattered segment descriptor.
 valid :: USSegd -> Bool
-{-# INLINE valid #-}
+{-# INLINE_U valid #-}
 valid (USSegd starts srcids usegd)
         =  (U.length starts == USegd.length usegd)
         && (U.length srcids == USegd.length usegd)
@@ -103,7 +103,7 @@ valid (USSegd starts srcids usegd)
 -- | O(1).
 --  Yield an empty segment descriptor, with no elements or segments.
 empty :: USSegd
-{-# INLINE empty #-}
+{-# INLINE_U empty #-}
 empty = USSegd U.empty U.empty USegd.empty
 
 
@@ -112,7 +112,7 @@ empty = USSegd U.empty U.empty USegd.empty
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> USSegd
-{-# INLINE singleton #-}
+{-# INLINE_U singleton #-}
 singleton n 
         = USSegd (U.singleton 0) (U.singleton 0) (USegd.singleton n)
 
@@ -121,7 +121,7 @@ singleton n
 --   Promote a plain USegd to a USSegd
 --   All segments are assumed to come from a flat array with sourceid 0.
 fromUSegd :: USegd -> USSegd
-{-# INLINE fromUSegd #-}
+{-# INLINE_U fromUSegd #-}
 fromUSegd usegd
         = USSegd (USegd.takeIndices usegd)
                  (U.replicate (USegd.length usegd) 0)
@@ -132,50 +132,50 @@ fromUSegd usegd
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 length :: USSegd -> Int
-{-# INLINE length #-}
+{-# INLINE_U length #-}
 length = USegd.length . ussegd_usegd 
 
 
 -- | O(1). Yield the `USegd` of a `USSegd`
 takeUSegd   :: USSegd -> USegd
-{-# INLINE takeUSegd #-}
+{-# INLINE_U takeUSegd #-}
 takeUSegd   = ussegd_usegd
 
 
 -- | O(1). Yield the lengths of the segments of a `USSegd`
 takeLengths :: USSegd -> Vector Int
-{-# INLINE takeLengths #-}
+{-# INLINE_U takeLengths #-}
 takeLengths = USegd.takeLengths . ussegd_usegd
 
 
 -- | O(1). Yield the segment indices of a `USSegd`
 takeIndices :: USSegd -> Vector Int
-{-# INLINE takeIndices #-}
+{-# INLINE_U takeIndices #-}
 takeIndices = USegd.takeIndices . ussegd_usegd
 
 
 -- | O(1). Yield the total number of elements covered by a `USSegd`
 takeElements :: USSegd -> Int
-{-# INLINE takeElements #-}
+{-# INLINE_U takeElements #-}
 takeElements = USegd.takeElements . ussegd_usegd
 
 
 -- | O(1). Yield the starting indices of a `USSegd`
 takeStarts :: USSegd -> Vector Int
-{-# INLINE takeStarts #-}
+{-# INLINE_U takeStarts #-}
 takeStarts = ussegd_starts
 
 
 -- | O(1). Yield the source ids of a `USSegd`
 takeSources :: USSegd -> Vector Int
-{-# INLINE takeSources #-}
+{-# INLINE_U takeSources #-}
 takeSources = ussegd_sources
 
 
 -- | O(1).
 --   Get the length, segment index, starting index, and source id of a segment.
 getSeg :: USSegd -> Int -> (Int, Int, Int, Int)
-{-# INLINE getSeg #-}
+{-# INLINE_U getSeg #-}
 getSeg (USSegd starts sources usegd) ix
  = let  (len, index) = USegd.getSeg usegd ix
    in   ( len
@@ -192,7 +192,7 @@ append
         :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd
-{-# INLINE append #-}
+{-# INLINE_U append #-}
 append (USSegd starts1 srcs1 usegd1) pdatas1
              (USSegd starts2 srcs2 usegd2) _
         = USSegd (starts1  U.++  starts2)
@@ -207,7 +207,7 @@ append (USSegd starts1 srcs1 usegd1) pdatas1
 --   TODO: bpermuteDft isn't parallelised
 --
 cullOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
-{-# INLINE cullOnVSegids #-}
+{-# INLINE_U cullOnVSegids #-}
 cullOnVSegids vsegids (USSegd starts sources usegd)
  = let  -- Determine which of the psegs are still reachable from the vsegs.
         -- This produces an array of flags, 
@@ -276,7 +276,7 @@ streamSegs
         => USSegd               -- ^ Segment descriptor defining segments based on source vectors.
         -> V.Vector (Vector a)  -- ^ Source vectors.
         -> S.Stream a
-        
+{-# INLINE_U streamSegs #-}
 streamSegs ussegd@(USSegd starts sources usegd) pdatas
  = let  
         -- length of each segment

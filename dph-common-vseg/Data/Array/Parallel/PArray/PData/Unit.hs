@@ -3,7 +3,7 @@
         TypeFamilies, MultiParamTypeClasses,
         FlexibleInstances,
         StandaloneDeriving #-}
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Unit where
 import Data.Array.Parallel.PArray.PData.Base

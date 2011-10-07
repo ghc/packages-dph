@@ -3,7 +3,7 @@
         NoMonomorphismRestriction,
         TypeOperators, RankNTypes,
         FlexibleContexts #-}
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module SMVMVectorised (smvmPA) 
 where

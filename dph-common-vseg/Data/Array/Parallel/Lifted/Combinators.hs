@@ -4,7 +4,7 @@
         FlexibleInstances, FlexibleContexts,
         RankNTypes, ExistentialQuantification,
         StandaloneDeriving, TypeOperators #-}
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 -- | Define closures for each of the combinators the vectoriser uses.
 module Data.Array.Parallel.Lifted.Combinators 

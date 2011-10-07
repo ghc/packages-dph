@@ -118,7 +118,7 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
 
 -- foldR ----------------------------------------------------------------------
 foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
-{-# INLINE foldRUP #-}
+{-# INLINE_UP foldRUP #-}
 foldRUP f z !segSize xs = 
    joinD theGang unbalanced
     (mapD theGang 
@@ -131,7 +131,7 @@ foldRUP f z !segSize xs =
 
 -- sumR -----------------------------------------------------------------------
 sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
-{-# INLINE sumRUP #-}
+{-# INLINE_UP sumRUP #-}
 sumRUP = foldRUP (+) 0
 
 

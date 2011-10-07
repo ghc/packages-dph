@@ -4,7 +4,7 @@
         TypeFamilies, Rank2Types, MultiParamTypeClasses, 
         StandaloneDeriving, FlexibleContexts #-}
 
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.Lifted.Closure (
   -- * Closures.

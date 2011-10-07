@@ -6,7 +6,7 @@
         UndecidableInstances #-}
         -- Undeciable instances only need for derived Show instance
 
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.

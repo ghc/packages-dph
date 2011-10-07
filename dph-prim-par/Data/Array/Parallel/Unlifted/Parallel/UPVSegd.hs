@@ -76,7 +76,7 @@ instance PprPhysical UPVSegd where
 --   * TODO: this doesn't do any checks yet.
 --
 valid :: UPVSegd -> Bool
-{-# INLINE valid #-}
+{-# INLINE_UP valid #-}
 valid (UPVSegd _ _)
         = True
 
@@ -87,7 +87,7 @@ mkUPVSegd
         -> UPSSegd      -- ^ Scattered segment descriptor defining the physical segments.
         -> UPVSegd
 
-{-# INLINE mkUPVSegd #-}
+{-# INLINE_UP mkUPVSegd #-}
 mkUPVSegd = UPVSegd
 
 
@@ -98,7 +98,7 @@ mkUPVSegd = UPVSegd
 --   TODO: make this parallel, use parallel version of enumFromTo.
 --
 fromUPSSegd :: UPSSegd -> UPVSegd
-{-# INLINE fromUPSSegd #-}
+{-# INLINE_UP fromUPSSegd #-}
 fromUPSSegd upssegd
         = UPVSegd 
                 (V.enumFromTo 0 (UPSSegd.length upssegd - 1))
@@ -110,14 +110,14 @@ fromUPSSegd upssegd
 --   the provided `UPSegd`.
 --
 fromUPSegd :: UPSegd -> UPVSegd
-{-# INLINE fromUPSegd #-}
+{-# INLINE_UP fromUPSegd #-}
 fromUPSegd
         = fromUPSSegd . UPSSegd.fromUPSegd
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPVSegd
-{-# INLINE empty #-}
+{-# INLINE_UP empty #-}
 empty   = UPVSegd V.empty UPSSegd.empty
 
 
@@ -125,7 +125,7 @@ empty   = UPVSegd V.empty UPSSegd.empty
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> UPVSegd
-{-# INLINE singleton #-}
+{-# INLINE_UP singleton #-}
 singleton n 
         = UPVSegd (V.singleton 0) (UPSSegd.singleton n)
 
@@ -133,28 +133,28 @@ singleton n
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 length :: UPVSegd -> Int
-{-# INLINE length #-}
+{-# INLINE_UP length #-}
 length (UPVSegd vsegids _)
         = V.length vsegids
 
 
 -- | O(1). Yield the virtual segment ids of `UPVSegd`.
 takeVSegids :: UPVSegd -> Vector Int
-{-# INLINE takeVSegids #-}
+{-# INLINE_UP takeVSegids #-}
 takeVSegids (UPVSegd vsegids _)
         = vsegids
 
 
 -- | O(1). Yield the `UPSSegd` of `UPVSegd`.
 takeUPSSegd :: UPVSegd -> UPSSegd
-{-# INLINE takeUPSSegd #-}
+{-# INLINE_UP takeUPSSegd #-}
 takeUPSSegd (UPVSegd _ upssegd)
         = upssegd
 
 
 -- | O(segs). Yield the lengths of the segments described by a `UPVSegd`.
 takeLengths :: UPVSegd -> Vector Int
-{-# INLINE takeLengths #-}
+{-# INLINE_UP takeLengths #-}
 takeLengths (UPVSegd vsegids upssegd)
         = V.map (UPSSegd.takeLengths upssegd V.!) vsegids
 
@@ -167,7 +167,7 @@ takeLengths (UPVSegd vsegids upssegd)
 --        to a UVSegd index it could overflow.
 --
 getSeg :: UPVSegd -> Int -> (Int, Int, Int)
-{-# INLINE getSeg #-}
+{-# INLINE_UP getSeg #-}
 getSeg (UPVSegd vsegids upssegd) ix
  = let  (len, _index, start, source) = UPSSegd.getSeg upssegd (vsegids V.! ix)
    in   (len, start, source)
@@ -184,7 +184,7 @@ getSeg (UPVSegd vsegids upssegd) ix
 --     segmentation from a nested array.
 -- 
 demoteToUPSSegd :: UPVSegd -> UPSSegd
-{-# INLINE demoteToUPSSegd #-}
+{-# INLINE_UP demoteToUPSSegd #-}
 demoteToUPSSegd (UPVSegd vsegids upssegd)
  = let  starts'         = bpermuteUP (UPSSegd.takeStarts  upssegd) vsegids
         sources'        = bpermuteUP (UPSSegd.takeSources upssegd) vsegids
@@ -207,7 +207,7 @@ demoteToUPSSegd (UPVSegd vsegids upssegd)
 --   because the program would OOM anyway.
 --
 unsafeDemoteToUPSegd :: UPVSegd -> UPSegd
-{-# INLINE unsafeDemoteToUPSegd #-}
+{-# INLINE_UP unsafeDemoteToUPSegd #-}
 unsafeDemoteToUPSegd (UPVSegd vsegids upssegd)
         = UPSegd.fromLengths
         $ bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
@@ -221,7 +221,7 @@ unsafeDemoteToUPSegd (UPVSegd vsegids upssegd)
 --     the UPSSegd.
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-{-# INLINE updateVSegs #-}
+{-# INLINE_UP updateVSegs #-}
 updateVSegs f (UPVSegd vsegids upssegd)
  = let  (vsegids', ussegd') 
                 = USSegd.cullOnVSegids (f vsegids) 
@@ -240,7 +240,7 @@ appendWith
         -> UPVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UPVSegd
 
-{-# INLINE appendWith #-}
+{-# INLINE_UP appendWith #-}
 appendWith
         (UPVSegd vsegids1 upssegd1) pdatas1
         (UPVSegd vsegids2 upssegd2) pdatas2
@@ -271,7 +271,7 @@ combine2
         -> UPVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
         -> UPVSegd
         
-{-# INLINE combine2 #-}
+{-# INLINE_UP combine2 #-}
 combine2
         upsel2
         (UPVSegd vsegids1 upssegd1) pdatas1

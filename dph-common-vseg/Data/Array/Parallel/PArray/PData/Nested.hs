@@ -8,7 +8,7 @@
         UndecidableInstances,
         ParallelListComp #-}
 
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Nested 
         ( PData(..)
@@ -482,6 +482,7 @@ instance PR a => PR (PArray a) where
 --         the flat arrays and not copy each segment individually.
 -- 
 concatPR :: PR a => PData (PArray a) -> PData a
+{-# INLINE_PDATA concatPR #-}
 concatPR (PNested uvsegd psegdata)
  = let  -- Flatten out the virtualization of the uvsegd so that we have
         -- a description of each segment individually.
@@ -498,6 +499,7 @@ concatPR (PNested uvsegd psegdata)
 
 --   TODO: cleanup pnested projections
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
+{-# INLINE_PDATA unconcatPR #-}
 unconcatPR arr1 arr
  = let  segs            = U.length vsegids
         vsegids        = pnested_vsegids     arr1
@@ -515,6 +517,7 @@ unconcatPR arr1 arr
 -- | Lifted concat.
 --   Both arrays must contain the same number of elements.
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
+{-# INLINE_PDATA concatlPR #-}
 concatlPR arr
  = let  (segd1, darr1)  = unsafeFlattenPR arr
         (segd2, darr2)  = unsafeFlattenPR darr1
@@ -530,6 +533,7 @@ concatlPR arr
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
+{-# INLINE_PDATA appendlPR #-}
 appendlPR  arr1 arr2
  = let  (segd1, darr1)  = unsafeFlattenPR arr1
         (segd2, darr2)  = unsafeFlattenPR arr2
@@ -549,7 +553,7 @@ slicelPR
         -> PData Int            -- ^ lengths of slices
         -> PData (PArray a)     -- ^ arrays to slice
         -> PData (PArray a)
-
+{-# INLINE_PDATA slicelPR #-}
 slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 
  = let  segs            = U.length vsegids

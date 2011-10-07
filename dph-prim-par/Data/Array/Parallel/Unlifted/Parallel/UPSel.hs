@@ -85,37 +85,37 @@ type UPSelRep2
 
 -- | O(1). Get the tags of a selector.
 tagsUPSel2 :: UPSel2 -> Vector Tag
-{-# INLINE tagsUPSel2 #-}
+{-# INLINE_UP tagsUPSel2 #-}
 tagsUPSel2 = tagsUSel2 .  upsel2_usel
 
 
 -- | O(1). Get the indices of a selector.
 indicesUPSel2 :: UPSel2 -> Vector Int
-{-# INLINE indicesUPSel2 #-}
+{-# INLINE_UP indicesUPSel2 #-}
 indicesUPSel2 = indicesUSel2 . upsel2_usel
 
 
 -- | O(1). TODO: What is this for?
 elementsUPSel2_0 :: UPSel2 -> Int
-{-# INLINE elementsUPSel2_0 #-}
+{-# INLINE_UP elementsUPSel2_0 #-}
 elementsUPSel2_0 = elementsUSel2_0 . upsel2_usel
 
 
 -- | O(1). TODO: What is this for?
 elementsUPSel2_1 :: UPSel2 -> Int
-{-# INLINE elementsUPSel2_1 #-}
+{-# INLINE_UP elementsUPSel2_1 #-}
 elementsUPSel2_1 = elementsUSel2_1 . upsel2_usel
 
 
 -- | O(1). TODO: What is this for?
 selUPSel2 :: UPSel2 -> USel2
-{-# INLINE selUPSel2 #-}
+{-# INLINE_UP selUPSel2 #-}
 selUPSel2 = upsel2_usel
 
 
 -- | O(1). TODO: What is this for?
 repUPSel2 :: UPSel2 -> UPSelRep2
-{-# INLINE repUPSel2 #-}
+{-# INLINE_UP repUPSel2 #-}
 repUPSel2 = upsel2_rep
 
 
@@ -124,7 +124,7 @@ repUPSel2 = upsel2_rep
 -- | Computes a `UPSelRep2` from an array of tags. This is used when parallelising
 --   a `combine` operation. See the docs for `UPSelRep2` for details.
 mkUPSelRep2 :: Vector Tag -> UPSelRep2
-{-# INLINE mkUPSelRep2 #-}
+{-# INLINE_UP mkUPSelRep2 #-}
 mkUPSelRep2 tags = zipD idxs lens
   where
     lens = mapD   theGang count
@@ -140,7 +140,7 @@ mkUPSelRep2 tags = zipD idxs lens
 
 
 indicesUPSelRep2 :: Vector Tag -> UPSelRep2 -> Vector Int
-{-# INLINE indicesUPSelRep2 #-}
+{-# INLINE_UP indicesUPSelRep2 #-}
 indicesUPSelRep2 tags rep = joinD theGang balanced
                           $ zipWithD theGang indices
                                              (splitD theGang balanced tags)
@@ -153,18 +153,21 @@ indicesUPSelRep2 tags rep = joinD theGang balanced
 
 -- | O(n).
 elementsUPSelRep2_0 :: Vector Tag -> UPSelRep2 -> Int
-{-# INLINE elementsUPSelRep2_0 #-}
-elementsUPSelRep2_0 _ = sumD theGang . fstD . sndD
+{-# INLINE_UP elementsUPSelRep2_0 #-}
+elementsUPSelRep2_0 _
+        = sumD theGang . fstD . sndD
 
 
 -- | O(n).
 elementsUPSelRep2_1 :: Vector Tag -> UPSelRep2 -> Int
-{-# INLINE elementsUPSelRep2_1 #-}
-elementsUPSelRep2_1 _ = sumD theGang . sndD . sndD
+{-# INLINE_UP elementsUPSelRep2_1 #-}
+elementsUPSelRep2_1 _
+        = sumD theGang . sndD . sndD
 
 
 -- | O(1). Construct a selector. Wrapper for `UPSel2`.
 mkUPSel2 :: Vector Tag -> Vector Int -> Int -> Int -> UPSelRep2 -> UPSel2
-{-# INLINE mkUPSel2 #-}
-mkUPSel2 tags is n0 n1 rep = UPSel2 (mkUSel2 tags is n0 n1) rep
+{-# INLINE_UP mkUPSel2 #-}
+mkUPSel2 tags is n0 n1 rep
+        = UPSel2 (mkUSel2 tags is n0 n1) rep
 

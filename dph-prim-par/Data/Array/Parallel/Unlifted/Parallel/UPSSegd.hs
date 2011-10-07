@@ -79,7 +79,7 @@ instance PprPhysical UPSSegd where
 -- 
 --   * TODO: this doesn't do any checks yet
 valid :: UPSSegd -> Bool
-{-# INLINE valid #-}
+{-# INLINE_UP valid #-}
 valid _ = True
 
 
@@ -91,7 +91,7 @@ mkUPSSegd
         -> UPSegd       -- ^ Contiguous (unscattered) segment descriptor.
         -> UPSSegd
 
-{-# INLINE mkUPSSegd #-}
+{-# INLINE_UP mkUPSSegd #-}
 mkUPSSegd starts sources upsegd
         = fromUSSegd (USSegd.mkUSSegd starts sources (UPSegd.takeUSegd upsegd))
 
@@ -99,7 +99,7 @@ mkUPSSegd starts sources upsegd
 -- | Promote a global `USSegd` to a parallel `UPSSegd` by distributing
 --   it across the gang.
 fromUSSegd :: USSegd -> UPSSegd
-{-# INLINE fromUSSegd #-}
+{-# INLINE_UP fromUSSegd #-}
 fromUSSegd ssegd 
         = UPSSegd ssegd (DUSSegd.splitSSegdOnElemsD theGang ssegd)
 
@@ -113,14 +113,14 @@ fromUSSegd ssegd
 --     some of the existing fields and save reconstructing them.
 --
 fromUPSegd :: UPSegd -> UPSSegd
-{-# INLINE fromUPSegd #-}
+{-# INLINE_UP fromUPSegd #-}
 fromUPSegd upsegd
         = fromUSSegd $ USSegd.fromUSegd $ UPSegd.takeUSegd upsegd
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSSegd
-{-# INLINE empty #-}
+{-# INLINE_UP empty #-}
 empty   = fromUSSegd USSegd.empty
 
 
@@ -128,38 +128,38 @@ empty   = fromUSSegd USSegd.empty
 --   Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSSegd
-{-# INLINE singleton #-}
+{-# INLINE_UP singleton #-}
 singleton n = fromUSSegd $ USSegd.singleton n
 
 
 -- Projections ----------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 length :: UPSSegd -> Int
-{-# INLINE length #-}
+{-# INLINE_UP length #-}
 length          = USSegd.length . upssegd_ussegd
 
 
 -- | O(1). Yield the global `USegd` of a `UPSegd`
 takeUSSegd :: UPSSegd -> USSegd
-{-# INLINE takeUSSegd #-}
+{-# INLINE_UP takeUSSegd #-}
 takeUSSegd      = upssegd_ussegd
 
 
 -- | O(1). Yield the distributed `USegd` of a `UPSegd`
 takeDistributed :: UPSSegd -> Dist ((USSegd, Int), Int)
-{-# INLINE takeDistributed #-}
+{-# INLINE_UP takeDistributed #-}
 takeDistributed = upssegd_dssegd
 
 
 -- | O(1). Yield the lengths of the individual segments.
 takeLengths :: UPSSegd -> Vector Int
-{-# INLINE takeLengths #-}
+{-# INLINE_UP takeLengths #-}
 takeLengths     = USSegd.takeLengths . upssegd_ussegd
 
 
 -- | O(1). Yield the segment indices.
 takeIndices :: UPSSegd -> Vector Int
-{-# INLINE takeIndices #-}
+{-# INLINE_UP takeIndices #-}
 takeIndices     = USSegd.takeIndices . upssegd_ussegd
 
 
@@ -168,26 +168,26 @@ takeIndices     = USSegd.takeIndices . upssegd_ussegd
 --  @takeElements upssegd = sum (takeLengths upssegd)@
 --
 takeElements :: UPSSegd -> Int
-{-# INLINE takeElements #-}
+{-# INLINE_UP takeElements #-}
 takeElements    = USSegd.takeElements . upssegd_ussegd
 
 
 -- | O(1). Yield the starting indices.
 takeStarts :: UPSSegd -> Vector Int
-{-# INLINE takeStarts #-}
+{-# INLINE_UP takeStarts #-}
 takeStarts      = USSegd.takeStarts . upssegd_ussegd
 
 
 -- | O(1). Yield the source ids.
 takeSources :: UPSSegd -> Vector Int
-{-# INLINE takeSources #-}
+{-# INLINE_UP takeSources #-}
 takeSources     = USSegd.takeSources . upssegd_ussegd 
 
 
 -- | O(1).
 --   Get the length, segment index, starting index, and source id of a segment.
 getSeg :: UPSSegd -> Int -> (Int, Int, Int, Int)
-{-# INLINE getSeg #-}
+{-# INLINE_UP getSeg #-}
 getSeg upssegd ix
         = USSegd.getSeg (upssegd_ussegd upssegd) ix
 
@@ -210,7 +210,7 @@ appendWith
         -> UPSSegd              -- ^ Segment descriptor of second nested array. 
         -> Int                  -- ^ Number of flat data arrays used to represent second nested array.
         -> UPSSegd
-{-# INLINE appendWith #-}
+{-# INLINE_UP appendWith #-}
 appendWith upssegd1 pdatas1
            upssegd2 pdatas2
  = fromUSSegd 
@@ -222,7 +222,7 @@ appendWith upssegd1 pdatas1
 -- | Fold segments specified by a `UPSSegd`.
 foldWithP :: Unbox a
          => (a -> a -> a) -> a -> UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE foldWithP #-}
+{-# INLINE_UP foldWithP #-}
 foldWithP f !z
         = foldSegsWithP f (Seq.foldlSSU f z)
 
@@ -230,7 +230,7 @@ foldWithP f !z
 -- | Fold segments specified by a `UPSSegd`, with a non-empty vector.
 fold1WithP :: Unbox a
          => (a -> a -> a) -> UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE fold1WithP #-}
+{-# INLINE_UP fold1WithP #-}
 fold1WithP f
         = foldSegsWithP f (Seq.fold1SSU f)
 
@@ -238,7 +238,7 @@ fold1WithP f
 -- | Sum up segments specified by a `UPSSegd`.
 sumWithP :: (Num a, Unbox a)
         => UPSSegd -> V.Vector (Vector a) -> Vector a
-{-# INLINE sumWithP #-}
+{-# INLINE_UP sumWithP #-}
 sumWithP = foldWithP (+) 0
 
 
@@ -255,7 +255,7 @@ foldSegsWithP
         -> (USSegd -> V.Vector (Vector a) -> Vector a)
         -> UPSSegd -> V.Vector (Vector a) -> Vector a
 
-{-# INLINE foldSegsWithP #-}
+{-# INLINE_UP foldSegsWithP #-}
 foldSegsWithP fElem fSeg segd xss 
  = dcarry `seq` drs `seq` 
    runST (do

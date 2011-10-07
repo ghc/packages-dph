@@ -15,14 +15,14 @@ import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
 -- | Apply a worker to all elements of a vector.
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
-{-# INLINE mapUP #-}
+{-# INLINE_UP mapUP #-}
 mapUP f xs 
         = splitJoinD theGang (mapD theGang (Seq.map f)) xs
 
 
 -- | Keep elements that match the given predicate.
 filterUP :: Unbox a => (a -> Bool) -> Vector a -> Vector a
-{-# INLINE filterUP #-}
+{-# INLINE_UP filterUP #-}
 filterUP f
         = joinD  theGang unbalanced
         . mapD   theGang (Seq.filter f)
@@ -76,7 +76,7 @@ combine2UP tags rep !xs !ys
 -- | Combine two vectors into a third.
 zipWithUP :: (Unbox a, Unbox b, Unbox c) 
           => (a -> b -> c) -> Vector a -> Vector b -> Vector c
-{-# INLINE zipWithUP #-}
+{-# INLINE_UP zipWithUP #-}
 zipWithUP f xs ys
         = splitJoinD theGang 
                 (mapD theGang (Seq.map (uncurry f))) 
@@ -96,7 +96,7 @@ zipWithUP f xs ys
 --   then we fold together all the results in the main thread.
 --
 foldUP  :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
-{-# INLINE foldUP #-}
+{-# INLINE_UP foldUP #-}
 foldUP f !z xs
         = foldD theGang f
                 (mapD   theGang (Seq.fold f z)
@@ -119,7 +119,7 @@ foldlUP f z arr
 
 -- | Alias for `foldl1UP`
 fold1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
-{-# INLINE fold1UP #-}
+{-# INLINE_UP fold1UP #-}
 fold1UP = foldl1UP
 
 
@@ -134,7 +134,7 @@ fold1UP = foldl1UP
 --   TODO: The two type class constraints are in a different order. Does that matter?
 --
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
-{-# INLINE_U foldl1UP #-}
+{-# INLINE_UP foldl1UP #-}
 foldl1UP f arr 
         = (maybe z (f z)
         . foldD  theGang combine

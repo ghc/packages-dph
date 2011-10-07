@@ -6,7 +6,7 @@
         StandaloneDeriving,
         ExistentialQuantification #-}
 
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Int where
 import Data.Array.Parallel.PArray.PData.Base

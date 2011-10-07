@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-#include "fusion-phases-vseg.h"
+#include "fusion-phases.h"
 
 -- | Functions that work directly on PArrays.
 

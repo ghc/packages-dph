@@ -62,44 +62,44 @@ mkUSel2 :: Vector Tag           -- ^ tags array
         -> Int                  -- ^ number of elements taken from first array
         -> Int                  -- ^ number of elements taken from second array
         -> USel2
-{-# INLINE mkUSel2 #-}
+{-# INLINE_U mkUSel2 #-}
 mkUSel2 = USel2
 
 
 -- | O(1). Get the number of elements represented by this selector.
 --         This is the length of the array returned by `combine`.
 lengthUSel2 :: USel2 -> Int
-{-# INLINE lengthUSel2 #-}
+{-# INLINE_U lengthUSel2 #-}
 lengthUSel2 = V.length . usel2_tags
 
 
 -- | O(1). Get the tags array of a selector.
 tagsUSel2 :: USel2 -> Vector Tag
-{-# INLINE tagsUSel2 #-}
+{-# INLINE_U tagsUSel2 #-}
 tagsUSel2 = usel2_tags
 
 
 -- | O(1). Get the indices array of a selector.
 indicesUSel2 :: USel2 -> Vector Int
-{-# INLINE indicesUSel2 #-}
+{-# INLINE_U indicesUSel2 #-}
 indicesUSel2 = usel2_indices
 
 
 -- | O(1). Get the number of elements that will be taken from the first array.
 elementsUSel2_0 :: USel2 -> Int
-{-# INLINE elementsUSel2_0 #-}
+{-# INLINE_U elementsUSel2_0 #-}
 elementsUSel2_0 = usel2_elements0
 
 
 -- | O(1). Get the number of elements that will be taken from the second array.
 elementsUSel2_1 :: USel2 -> Int
-{-# INLINE elementsUSel2_1 #-}
+{-# INLINE_U elementsUSel2_1 #-}
 elementsUSel2_1 = usel2_elements1
 
 
 -- | O(n). Compute the source index for each element of the result array.
 tagsToIndices2 :: Vector Tag -> Vector Int
-{-# INLINE tagsToIndices2 #-}
+{-# INLINE_U tagsToIndices2 #-}
 tagsToIndices2 tags 
   = unstream (mapAccumS add (0,0) (stream tags))
   where
