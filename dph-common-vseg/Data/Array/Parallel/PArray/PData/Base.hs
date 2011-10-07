@@ -1,5 +1,6 @@
 {-# LANGUAGE 
         CPP,
+        BangPatterns,
         TypeFamilies, MultiParamTypeClasses,
         FlexibleContexts, ExplicitForAll,
         StandaloneDeriving,
@@ -20,6 +21,7 @@ module Data.Array.Parallel.PArray.PData.Base
 where
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
@@ -185,11 +187,15 @@ uextracts arrs srcids ixBase lens
         -- starting indices for each of the segments in the result
         startixs' = U.replicate_s segd startixs
 
-        result    = U.zipWith3
-                        (\ixDst ixSegDst (ixSegSrcBase, srcid)
-                                -> (arrs V.!  srcid) U.!: (ixDst - ixSegDst + ixSegSrcBase))
+        {-# INLINE get #-}
+        get ixDst ixSegDst (ixSegSrcBase, srcid)
+         = let  !arr    = arrs `V.unsafeIndex` srcid
+                !ix     = ixDst - ixSegDst + ixSegSrcBase
+           in   arr `VU.unsafeIndex` ix
+         
+        result    = U.zipWith3 get
                         (U.enumFromTo 0 (dstLen - 1))
                         startixs'
                         (U.zip baseixs srcids')
-   in result
 
+   in result

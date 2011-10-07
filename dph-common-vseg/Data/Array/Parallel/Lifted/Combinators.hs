@@ -4,6 +4,7 @@
         FlexibleInstances, FlexibleContexts,
         RankNTypes, ExistentialQuantification,
         StandaloneDeriving, TypeOperators #-}
+{-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
 -- | Define closures for each of the combinators the vectoriser uses.

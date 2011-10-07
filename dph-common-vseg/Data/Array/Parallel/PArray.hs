@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
 -- | Functions that work directly on PArrays.
@@ -227,17 +228,12 @@ fromUArray2PA arr
 -- | O(1). Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-{-# INLINE_PA nestUSegdPA #-}
+{-# NOINLINE nestUSegdPA #-}
 nestUSegdPA :: U.Segd -> PArray a -> PArray (PArray a)
-nestUSegdPA segd (PArray n darr)
+nestUSegdPA segd (PArray n pdata)
         | U.elementsSegd segd     == n
         = PArray (U.lengthSegd segd)
-	$ mkPNested	
-		(U.enumFromTo 0 (U.lengthSegd segd - 1))
-		(U.lengthsSegd segd)
-		(U.indicesSegd segd)
-		(U.replicate (U.lengthSegd segd) 0)
-		(V.singleton darr)
+	$ PNested (U.promoteSegdToVSegd segd) (V.singleton pdata)	
 
         | otherwise
         = error $ unlines

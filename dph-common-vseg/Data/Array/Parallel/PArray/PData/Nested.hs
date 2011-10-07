@@ -9,6 +9,8 @@
         UndecidableInstances,
         ParallelListComp #-}
 
+{-# OPTIONS -fno-spec-constr #-}
+
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Nested 
@@ -35,8 +37,9 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base
 
 import qualified Data.IntSet                    as IS
-import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 
 
@@ -348,34 +351,37 @@ instance PR a => PR (PArray a) where
   --  We encode these offsets in the psrcoffset vector:
   --       psrcoffset :  [0, 2]
   --
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE extractsPR #-}
   extractsPR arrs segsrcs segstarts seglens 
-   = let segMax         = U.sum seglens - 1
-         vsegids'       = U.enumFromTo 0 segMax
-
-         vsegids_src    = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
-         srcids'        = U.replicate_s (U.lengthsToSegd seglens) segsrcs
-
-         -- TODO: use getSegOfUVSegd like in indexlPR
-         pseglens'      = U.zipWith (\srcid vsegid -> pnested_pseglens   (arrs V.! srcid) U.!: vsegid)
-                                    srcids' vsegids_src
-
-         psegstarts'    = U.zipWith (\srcid vsegid -> pnested_psegstarts (arrs V.! srcid) U.!: vsegid)
-                                    srcids' vsegids_src
+   = let vsegids_src      = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
+         srcids'          = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
          -- See Note: psrcoffset
-         psrcoffset     = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) arrs
+         psrcoffset       = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) arrs
 
-         psegsrcs'      = U.zipWith 
-                                (\srcid vsegid 
-                                        -> (pnested_psegsrcids   (arrs V.! srcid) U.!: vsegid)
-                                        +  psrcoffset V.! srcid)
-                                srcids' vsegids_src
+         !arrs_pseglens   = V.map pnested_pseglens   arrs
+         !arrs_psegstarts = V.map pnested_psegstarts arrs
+         !arrs_psegsrcids = V.map pnested_psegsrcids arrs
+
+         {-# INLINE get #-}
+         get srcid vsegid
+          = let !pseglen        = (arrs_pseglens   `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid
+                !psegstart      = (arrs_psegstarts `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid
+                !psegsrcid      = (arrs_psegsrcids `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid  
+                                + psrcoffset `V.unsafeIndex` srcid
+            in  (pseglen, psegstart, psegsrcid)
+            
+         (pseglens', psegstarts', psegsrcs')
+                = U.unzip3 $ U.zipWith get srcids' vsegids_src
 
          -- All flat data arrays in the sources go into the result.
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata arrs
    
-     in  mkPNested vsegids' pseglens' psegstarts' psegsrcs' psegdata'
+         vsegd'         = U.promoteSSegdToVSegd
+                        $ U.mkSSegd psegstarts' psegsrcs'
+                        $ U.lengthsToSegd pseglens'
+   
+     in  PNested vsegd' psegdata'
 
 
   -- Append nested arrays by appending the segment descriptors,
@@ -486,7 +492,7 @@ instance PR a => PR (PArray a) where
 --    and not copy each segment individually.
 -- 
 concatPR :: PR a => PData (PArray a) -> PData a
-{-# INLINE_PDATA concatPR #-}
+{-# INLINE concatPR #-}
 concatPR (PNested uvsegd psegdata)
  = let  -- Flatten out the virtualization of the uvsegd so that we have
         -- a description of each segment individually.
@@ -508,7 +514,7 @@ concatPR (PNested uvsegd psegdata)
 --   segmentation of the template array.
 --
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
-{-# INLINE_PDATA unconcatPR #-}
+{-# INLINE unconcatPR #-}
 unconcatPR (PNested vsegd pdatas) arr
  = let  
         -- Get the lengths of all the vsegs individually.
@@ -525,7 +531,7 @@ unconcatPR (PNested vsegd pdatas) arr
 -- | Lifted concat.
 --   Both arrays must contain the same number of elements.
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
-{-# NOINLINE concatlPR #-}
+{-# INLINE concatlPR #-}
 concatlPR arr
  = let  (segd1, darr1)  = unsafeFlattenPR arr
         (segd2, darr2)  = unsafeFlattenPR darr1
