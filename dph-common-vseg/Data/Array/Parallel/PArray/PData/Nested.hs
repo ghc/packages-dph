@@ -1,5 +1,6 @@
 {-# LANGUAGE
         CPP,
+        BangPatterns,
         TypeFamilies,
         FlexibleInstances, FlexibleContexts,
         MultiParamTypeClasses,
@@ -50,11 +51,11 @@ data instance PData Int
 --
 data instance PData (PArray a)
         = PNested
-        { pnested_uvsegd       :: U.VSegd
+        { pnested_uvsegd       :: !U.VSegd
           -- ^ Virtual segmentation descriptor. 
           --   Defines a virtual nested array based on physical data.
 
-        , pnested_psegdata     :: V.Vector (PData a) }
+        , pnested_psegdata     :: !(V.Vector (PData a)) }
 
 -- TODO: we shouldn't be using these directly.
 pnested_vsegids    = U.takeVSegidsOfVSegd . pnested_uvsegd
@@ -213,7 +214,7 @@ instance PR a => PR (PArray a) where
 
   -- When replicating an array we use the source as the single physical
   -- segment, then point all the virtual segments to it.
-  {-# INLINE_PDATA replicatePR #-}
+  {-# NOINLINE replicatePR #-}
   replicatePR c (PArray n darr)
    = checkNotEmpty "replicatePR[PArray]" c
    $ let -- Physical segment descriptor contains a single segment.
@@ -239,8 +240,10 @@ instance PR a => PR (PArray a) where
   -- corresponds to, and extract that as a slice from that physical array.
   {-# INLINE_PDATA indexPR #-}
   indexPR (PNested uvsegd pdata) ix
-   = let (pseglen, psegstart, psegsrcid) = U.getSegOfVSegd uvsegd ix
-     in  PArray pseglen $ extractPR (pdata V.! psegsrcid) psegstart pseglen
+   | (pseglen, psegstart, psegsrcid)    <- U.getSegOfVSegd uvsegd ix
+   = let !psrc          = pdata `V.unsafeIndex` psegsrcid
+         !pdata'        = extractPR psrc psegstart pseglen
+     in  PArray pseglen pdata'
 
 
   -- Lifted indexing
@@ -275,7 +278,7 @@ instance PR a => PR (PArray a) where
   --           1: PInt [5,6,7,8,9]
   --           2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
   --
-  {-# INLINE_PDATA indexlPR #-}
+  {-# NOINLINE indexlPR #-}
   indexlPR c (PNested uvsegd pdata) (PInt ixs)
    = let        
          -- See Note: psrcoffset
@@ -310,7 +313,7 @@ instance PR a => PR (PArray a) where
   -- To extract a range of elements from a nested array, perform the extract
   -- on the vsegids field. The `updateVSegsOfUVSegd` function will then filter
   -- out all of the psegs that are no longer reachable from the new vsegids.
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PNested uvsegd pdata) start len
    = PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
              pdata
@@ -345,7 +348,7 @@ instance PR a => PR (PArray a) where
   --  We encode these offsets in the psrcoffset vector:
   --       psrcoffset :  [0, 2]
   --
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR arrs segsrcs segstarts seglens 
    = let segMax         = U.sum seglens - 1
          vsegids'       = U.enumFromTo 0 segMax
@@ -477,18 +480,17 @@ instance PR a => PR (PArray a) where
 --    has complexity proportional to the length of the result array, instead
 --    of the total number of elements within it.
 --
---   TODO: Depending on how the source array has been produced, if it is
---         already represented by contiguous data then we could just append
---         the flat arrays and not copy each segment individually.
+--   TODO:
+--    Depending on how the source array has been produced, if it is already
+--    represented by contiguous data then we could just append the flat arrays
+--    and not copy each segment individually.
 -- 
 concatPR :: PR a => PData (PArray a) -> PData a
 {-# INLINE_PDATA concatPR #-}
 concatPR (PNested uvsegd psegdata)
  = let  -- Flatten out the virtualization of the uvsegd so that we have
         -- a description of each segment individually.
-        -- Example:
-        --   uvsegd: 
-        ussegd          = U.demoteToSSegdOfVSegd uvsegd
+        ussegd  = U.demoteToSSegdOfVSegd uvsegd
 
         -- Copy these segments into a new array.
    in   extractsPR psegdata 
@@ -497,27 +499,33 @@ concatPR (PNested uvsegd psegdata)
                    (U.lengthsSSegd ussegd)
 
 
---   TODO: cleanup pnested projections
+-- | Build a nested array given a single flat data vector, 
+--   and a template nested array that defines the segmentation.
+-- 
+--   Although the template nested array may be using vsegids to describe
+--   internal sharing, the provided data array has manifest elements
+--   for every segment. Because of this we need flatten out the virtual
+--   segmentation of the template array.
+--
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
 {-# INLINE_PDATA unconcatPR #-}
-unconcatPR arr1 arr
- = let  segs            = U.length vsegids
-        vsegids        = pnested_vsegids     arr1
-        pseglens       = pnested_pseglens    arr1
-        psegstarts     = pnested_psegstarts  arr1
+unconcatPR (PNested vsegd pdatas) arr
+ = let  
+        -- Get the lengths of all the vsegs individually.
+        !vseglens       = U.takeLengthsOfVSegd vsegd
 
-   in   mkPNested 
-                (U.enumFromTo 0 (segs - 1))
-                (U.map (pseglens   U.!:) vsegids)
-                (U.map (psegstarts U.!:) vsegids)
-                (U.replicate segs 0)
-                (V.singleton arr)
+        -- Rebuild the segd based on these lengths, 
+        -- the resulting segd contains no sharing.
+        !vsegd'         = U.promoteSegdToVSegd
+                        $ U.lengthsToSegd vseglens
+
+   in   PNested vsegd' (V.singleton arr)
 
 
 -- | Lifted concat.
 --   Both arrays must contain the same number of elements.
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
-{-# INLINE_PDATA concatlPR #-}
+{-# NOINLINE concatlPR #-}
 concatlPR arr
  = let  (segd1, darr1)  = unsafeFlattenPR arr
         (segd2, darr2)  = unsafeFlattenPR darr1
@@ -533,7 +541,7 @@ concatlPR arr
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-{-# INLINE_PDATA appendlPR #-}
+{-# NOINLINE appendlPR #-}
 appendlPR  arr1 arr2
  = let  (segd1, darr1)  = unsafeFlattenPR arr1
         (segd2, darr2)  = unsafeFlattenPR arr2
@@ -553,7 +561,7 @@ slicelPR
         -> PData Int            -- ^ lengths of slices
         -> PData (PArray a)     -- ^ arrays to slice
         -> PData (PArray a)
-{-# INLINE_PDATA slicelPR #-}
+{-# NOINLINE slicelPR #-}
 slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 
  = let  segs            = U.length vsegids
