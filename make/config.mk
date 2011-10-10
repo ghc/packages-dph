@@ -4,38 +4,47 @@
 #   and assign the appropdiate variables there.
 
 # -- Tools --------------------------------------------------------------------
-GHC		= ghc
+GHC_DPH         = ghc
+GHC_PKG         = ghc-pkg
+GHC_FRAMEWORK   = ghc
 
 # -- Backend ------------------------------------------------------------------
 # What unlifted backend to use when compiling the dph-common libraries.
 # Options are {par, seq}
-BACKEND		= par
+BACKEND         = par
 
 # What lifted frontend to use for vectorised code.
 # Options are {copy, vseg}
-FRONTEND	= vseg
+FRONTEND        = vseg
 
 # -- Flags --------------------------------------------------------------------
 # How many threads to use with make
-THREADS_MAKE	= 4
+THREADS_MAKE    = 4
 
 # Optimisations to compile with.
 GHC_OPTS = \
-	-Odph \
-	-fno-liberate-case
+        -Odph \
+        -fno-liberate-case
 
 # GHC language extensions that DPH code needs.
-GHC_EXTS	= \
-	-XCPP \
-	-XBangPatterns \
-	-XNoMonomorphismRestriction \
-	-XRankNTypes \
-	-XTypeFamilies \
-	-XFlexibleInstances \
-	-XFlexibleContexts \
-	-XMagicHash \
-	-XUnboxedTuples 
+GHC_EXTS = \
+        -XCPP \
+        -XBangPatterns \
+        -XNoMonomorphismRestriction \
+        -XTypeOperators \
+        -XExistentialQuantification \
+        -XRankNTypes \
+        -XTypeFamilies \
+        -XFlexibleInstances \
+        -XFlexibleContexts \
+        -XMagicHash \
+        -XUnboxedTuples \
+        -XTemplateHaskell
 
+# External packages that we need
+GHC_PACKAGES = \
+        ghc
+        
 
 # -- Override -----------------------------------------------------------------
 # Override the above config.
