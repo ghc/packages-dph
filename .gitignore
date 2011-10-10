@@ -22,3 +22,7 @@ dph-seq/
 war-std-std
 /dph-test/bin/
 /dph-common-vseg/dist/
+/dph-lifted-copy-seq/
+/dph-lifted-copy-par/
+/dph-lifted-vseg-par/
+/dph-lifted-vseg-seq/
