@@ -296,7 +296,6 @@ module GHC.PArr (
   indexOfP              -- :: (a -> Bool) -> [:a:] -> [:Int:]
 ) where
 
-#ifndef __HADDOCK__
 
 import Prelude
 

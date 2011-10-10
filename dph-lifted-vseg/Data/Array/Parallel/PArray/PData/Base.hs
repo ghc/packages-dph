@@ -161,6 +161,9 @@ class PR a where
 -- extra unlifted primitives should be moved into unlifted library ------------
 -------------------------------------------------------------------------------
 
+-- TODO: zip srcids ixBase and startsix before calling replicate_s
+--       don't want to replicate_s multiple times on same segd.
+
 {-# INLINE uextracts #-}
 uextracts 
         :: U.Elt a 

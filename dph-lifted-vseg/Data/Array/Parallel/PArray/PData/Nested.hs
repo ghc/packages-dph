@@ -281,7 +281,7 @@ instance PR a => PR (PArray a) where
   --           1: PInt [5,6,7,8,9]
   --           2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
   --
-  {-# NOINLINE indexlPR #-}
+  {-# INLINE indexlPR #-}
   indexlPR c (PNested uvsegd pdata) (PInt ixs)
    = let        
          -- See Note: psrcoffset
@@ -354,15 +354,19 @@ instance PR a => PR (PArray a) where
   {-# INLINE extractsPR #-}
   extractsPR arrs segsrcs segstarts seglens 
    = let vsegids_src      = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
+
          srcids'          = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
          -- See Note: psrcoffset
          psrcoffset       = V.prescanl (+) 0 $ V.map (V.length . pnested_psegdata) arrs
 
+         -- Unpack the lens and srcids arrays so we don't need to 
+         -- go though all the segment descriptors each time.
          !arrs_pseglens   = V.map pnested_pseglens   arrs
          !arrs_psegstarts = V.map pnested_psegstarts arrs
          !arrs_psegsrcids = V.map pnested_psegsrcids arrs
 
+         -- Function to get one element of the result.
          {-# INLINE get #-}
          get srcid vsegid
           = let !pseglen        = (arrs_pseglens   `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid
@@ -377,6 +381,7 @@ instance PR a => PR (PArray a) where
          -- All flat data arrays in the sources go into the result.
          psegdata'      = V.concat $ V.toList $ V.map pnested_psegdata arrs
    
+         -- Build the result segment descriptor.
          vsegd'         = U.promoteSSegdToVSegd
                         $ U.mkSSegd psegstarts' psegsrcs'
                         $ U.lengthsToSegd pseglens'
@@ -492,6 +497,16 @@ instance PR a => PR (PArray a) where
 --    and not copy each segment individually.
 -- 
 concatPR :: PR a => PData (PArray a) -> PData a
+
+{-
+TODO: when concatting and unconcatting we need to avoid pulling data
+      through the segd if we know it's already flat and contiguous.
+      this is true for the data we get from nestUSegdPA. 
+      We also don't want to create distributed segment descriptors
+      unless we actually need them, as this is probably expensive.
+      The dist part of the segd should not be strict.
+-}
+    
 {-# INLINE concatPR #-}
 concatPR (PNested uvsegd psegdata)
  = let  -- Flatten out the virtualization of the uvsegd so that we have
