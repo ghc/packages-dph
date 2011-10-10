@@ -15,13 +15,17 @@ include make/config.mk
 # -- Mega Targets -------------------------------------------------------------
 .PHONY : all
 all : 
-	@echo THREADS = $(THREADS_MAKE)
 	@$(MAKE) -f make/Makefile deps
 	@$(MAKE) -f make/Makefile -j $(THREADS_MAKE) \
 		prim-seq prim-par \
 		lifted-$(FRONTEND)
 
+test :
+	@$(MAKE) -f make/Makefile deps
+	@$(MAKE) -f make/Makefile test-prims
+	
 
+# -- Targets ------------------------------------------------------------------
 # Unlifted array primitives (backend)
 .PHONY : prim-seq 
 prim-seq : \
@@ -36,11 +40,11 @@ prim-par : \
 
 # Lifted array primitives (frontend)
 .PHONY : lifted-copy
-lifted-copy 	: dph-lifted-copy/Data/Array/Parallel.o
+lifted-copy : dph-lifted-copy/Data/Array/Parallel.o
 
 
 .PHONY : lifted-vseg 
-lifted-vseg 	: dph-lifted-vseg/Data/Array/Parallel/PArray.o
+lifted-vseg : dph-lifted-vseg/Data/Array/Parallel/PArray.o
 
 
 # -- Source Files -------------------------------------------------------------
@@ -66,16 +70,19 @@ dph_src_hs	  = $(filter-out %/Unlifted.hs,$(dph_src_hs_all))
 	
 %.o : %.hs
 	@echo "* Compiling $<"
-	@$(GHC) $(GHC_EXTS) \
+	@$(GHC_DPH) $(GHC_EXTS) \
 		$(GHC_OPTS) \
 		$(patsubst %,-I%,$(dph_inc_dirs)) \
 		$(patsubst %,-i%,$(dph_src_dirs)) \
+		$(patsubst %,-package %,$(GHC_PACKAGES)) \
 		-c $<
 
 
-# -- Build Targets -----------------------------------------------------------
+# -- Other Targets ------------------------------------------------------------
 include make/targets/clean.mk
 include make/targets/deps.mk
-
+include make/targets/packages.mk
+include make/targets/test.mk
+include make/targets/examples.mk
 
 -include make/Makefile.deps.inc

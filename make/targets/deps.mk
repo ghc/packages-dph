@@ -8,9 +8,10 @@ PRIM_Unlifted	= dph-prim-$(BACKEND)/Data/Array/Parallel/Unlifted.hs
 make/Makefile.deps : $(dph_src_hs) $(PRIM_Unlifted)
 	@echo "* Building dependencies"
 
-	$(GHC) $(GHC_EXTS) \
+	@$(GHC_DPH) $(GHC_EXTS) \
 		$(patsubst %,-I%,$(dph_inc_dirs)) \
 		$(patsubst %,-i%,$(dph_src_dirs)) \
+		$(patsubst %,-package %,$(GHC_PACKAGES)) \
 		-M $^ -dep-makefile -optdepmake/Makefile.deps
 
 	@rm -f make/Makefile.deps.bak
