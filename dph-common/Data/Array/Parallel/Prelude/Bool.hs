@@ -23,7 +23,7 @@ import qualified Data.Array.Parallel.Unlifted as U
 import Data.Bits
 
 
--- {-# VECTORISE type Bool #-}
+{-# VECTORISE type Bool = Bool #-}
 
 -- We re-export 'Prelude.otherwise' as is as it is special-cased in the Desugarer
   
