@@ -27,8 +27,8 @@ import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Prelude.Int    (Int)  -- get the vectorised version
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
+import Data.Array.Parallel.Prelude.Bool
 
-import Prelude (Bool)
 import Data.Word (Word8)
 import qualified Prelude as P
 

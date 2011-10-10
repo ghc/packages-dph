@@ -35,8 +35,9 @@ import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Prelude.Int    (Int)  -- get the vectorised version
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
+import Data.Array.Parallel.Prelude.Bool
 
-import Prelude (Float, Bool)
+import Prelude (Float)
 import qualified Prelude as P
 
 infixr 8 **

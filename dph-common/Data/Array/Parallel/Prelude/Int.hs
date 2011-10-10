@@ -28,8 +28,9 @@ import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
+import Data.Array.Parallel.Prelude.Bool
 
-import Prelude (Int, Bool)
+import Prelude (Int)
 import qualified Prelude as P
 
 infixl 7 *
