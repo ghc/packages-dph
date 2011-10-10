@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts, UndecidableInstances, ScopedTypeVariables #-}
-
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.PArray.PData.Base

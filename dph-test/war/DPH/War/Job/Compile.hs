@@ -39,12 +39,29 @@ jobCompile (JobCompile
 	(time, (code, strOut, strErr))
 	  <- runTimedCommand
 	  $  systemTee False
-		("ghc " ++ " -XTemplateHaskell"
-		        ++ " -iwar"
-		        ++ " -iwar/DPH"
-		        ++ " -package dph-prim-seq"
+		("ghc " ++ " -XCPP"
+		        ++ " -XBangPatterns"
+		        ++ " -XNoMonomorphismRestriction"
+                        ++ " -XTypeOperators"
+                        ++ " -XExistentialQuantification"
+		        ++ " -XRankNTypes"
+		        ++ " -XTypeFamilies"
+		        ++ " -XFlexibleInstances"
+		        ++ " -XFlexibleContexts"
+		        ++ " -XMagicHash"
+		        ++ " -XUnboxedTuples"
+		        ++ " -XTemplateHaskell"
+		        ++ " -Idph-prim-interface/interface"
+		        ++ " -Idph-base/include"
+		        ++ " -idph-test/war"
+		        ++ " -idph-test/war/DPH"
+		        ++ " -idph-base"
+		        ++ " -idph-prim-par"
+		        ++ " -idph-prim-seq"
+		        ++ " -idph-lifted-vseg"
+		        ++ " -Odph -fno-liberate-case"
 		        ++ " -outputdir " ++ buildDir 
-		        ++ " --make "     ++ srcCopyHS
+		        ++ " -c "     ++ srcCopyHS
 		        ++ " -o "         ++ mainBin)
 		""
 
