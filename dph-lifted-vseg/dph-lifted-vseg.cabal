@@ -1,4 +1,4 @@
-Name:           dph-common-vseg
+Name:           dph-vseg-DPHWAY
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -53,5 +53,9 @@ Library
         vector           >= 0.7 && < 1.0,
         containers       == 0.4.*,
         dph-base         == 0.5.*,
-        dph-prim-par     == 0.5.*
+        dph-prim-DPHWAY  == 0.5.*
+
+  GHC-Options: -fdph-this
+
+  GHC-Options: -package-name dph-DPHWAY
 
