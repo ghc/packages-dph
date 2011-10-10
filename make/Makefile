@@ -19,27 +19,27 @@ include make/config.mk
 # -- Mega Targets -------------------------------------------------------------
 .PHONY : all
 all : 
-        @$(MAKE) -f make/Makefile deps
-        @$(MAKE) -f make/Makefile -j $(THREADS_MAKE) \
-                prim-seq prim-par \
-                lifted-$(FRONTEND)
+	@$(MAKE) -f make/Makefile deps
+	@$(MAKE) -f make/Makefile -j $(THREADS_MAKE) \
+		prim-seq prim-par \
+		lifted-$(FRONTEND)
 
 test :
-        @$(MAKE) -f make/Makefile deps
-        @$(MAKE) -f make/Makefile test-prims
+	@$(MAKE) -f make/Makefile deps
+	@$(MAKE) -f make/Makefile test-prims
         
 
 # -- Targets ------------------------------------------------------------------
 # Unlifted array primitives (backend)
 .PHONY : prim-seq 
 prim-seq : \
-        dph-prim-seq/Data/Array/Parallel/Unlifted/Sequential.o
+	dph-prim-seq/Data/Array/Parallel/Unlifted/Sequential.o
 
 
 .PHONY : prim-par
 prim-par : \
-        dph-prim-par/Data/Array/Parallel/Unlifted/Parallel.o \
-        dph-prim-par/Data/Array/Parallel/Unlifted/Distributed.o 
+	dph-prim-par/Data/Array/Parallel/Unlifted/Parallel.o \
+	dph-prim-par/Data/Array/Parallel/Unlifted/Distributed.o 
         
 
 # Lifted array primitives (frontend)
@@ -70,11 +70,11 @@ dph_src_hs        = $(filter-out %/Unlifted.hs,$(dph_src_hs_all))
 
 # -- Default Rules -----------------------------------------------------------
 %.hi : %.o
-        @true
+	@true
         
 %.o : %.hs
-        @echo "* Compiling $<"
-        @$(GHC_DPH) $(GHC_EXTS) \
+	@echo "* Compiling $<"
+	@$(GHC_DPH) $(GHC_EXTS) \
                 $(GHC_OPTS) \
                 $(patsubst %,-I%,$(dph_inc_dirs)) \
                 $(patsubst %,-i%,$(dph_src_dirs)) \
