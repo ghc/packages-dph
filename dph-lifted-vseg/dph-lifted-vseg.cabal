@@ -1,4 +1,4 @@
-Name:           dph-vseg-DPHWAY
+Name:           dph-lifted-vseg-DPHWAY
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -12,6 +12,11 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
+  -- This Cabal file is CPPed,
+  --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
+  -- We therefore need to point back at the original location for where to find the sources
+  HS-Source-Dirs: ../dph-lifted-vseg
+
   Exposed-Modules:
         Data.Array.Parallel.PArray.PData.Base
         Data.Array.Parallel.PArray.PData.Double
@@ -29,9 +34,6 @@ Library
 
   Include-Dirs:
         include
-
-  Install-Includes:
-        fusion-phases-vseg.h
 
   Extensions:
         TypeFamilies, GADTs, RankNTypes, CPP,
@@ -57,5 +59,5 @@ Library
 
   GHC-Options: -fdph-this
 
-  GHC-Options: -package-name dph-DPHWAY
+  GHC-Options: -package-name dph-lifted-vseg-DPHWAY
 
