@@ -23,5 +23,10 @@ clean :
 		-follow | xargs -n 1 rm -Rf
 
 	@rm -Rf sdist
+	@rm -Rf dph-lifted-copy-seq
+	@rm -Rf dph-lifted-copy-par
+	@rm -Rf dph-lifted-vseg-seq
+	@rm -Rf dph-lifted-vseg-par
+	
 
 	@echo

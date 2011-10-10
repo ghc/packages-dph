@@ -5,6 +5,10 @@
 #	packages	-- build   the cabal packages.
 #	install		-- install the cabal packages.
 #
+#       front           -- create stub packages under ./build for the frontend.
+#       sdist           -- create packages under ./sdist ready for uploading to Hackage
+#
+#
 #   (Cleaning up)
 #	clean		-- clean everything
 #
