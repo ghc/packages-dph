@@ -9,11 +9,11 @@ GHC_PKG         = ghc-pkg
 GHC_FRAMEWORK   = ghc
 
 # -- Backend ------------------------------------------------------------------
-# What unlifted backend to use when compiling the dph-common libraries.
+# What unlifted backend to use when compiling in-place.
 # Options are {par, seq}
 BACKEND         = par
 
-# What lifted frontend to use for vectorised code.
+# What lifted frontend to use when compiling in-place.
 # Options are {copy, vseg}
 FRONTEND        = vseg
 

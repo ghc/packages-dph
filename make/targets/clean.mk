@@ -27,6 +27,5 @@ clean :
 	@rm -Rf dph-lifted-copy-par
 	@rm -Rf dph-lifted-vseg-seq
 	@rm -Rf dph-lifted-vseg-par
-	
 
 	@echo

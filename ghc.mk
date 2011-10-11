@@ -1,12 +1,21 @@
-DPH_DIR = libraries/dph
+DPH_DIR  = libraries/dph
 DPH_WAYS = par seq
-DPH_BASE_PACKAGES = dph-base \
-		    dph-prim-interface \
-		    dph-prim-seq \
-		    dph-prim-par
-DPH_PACKAGES = $(DPH_BASE_PACKAGES) \
-               $(foreach way, $(DPH_WAYS), dph-$(way))
 
+# Backend packages that are only compiled in one way.
+DPH_BASE_PACKAGES = \
+	dph-base \
+	dph-prim-interface \
+	dph-prim-seq \
+	dph-prim-par
+
+# Frontend packages are compiled multiple times against the different backend packages.
+DPH_PACKAGES = \
+	$(DPH_BASE_PACKAGES) \
+        $(foreach way, $(DPH_WAYS), dph-lifted-copy-$(way))
+
+
+# -----------------------------------------------------------------------------
+# Create stubs for the front-end packages.
 define dph_create
 
 ifneq "$(BINDIST)" "YES"
@@ -16,12 +25,14 @@ $(DPH_DIR)/dph-$1/dph-$1.cabal : $(DPH_DIR)/dph-common/ghc.mk $(DPH_DIR)/dph-com
 	mkdir $(DPH_DIR)/dph-$1.tmp
 	cp $(DPH_DIR)/dph-common/Setup.hs $(DPH_DIR)/dph-$1.tmp/Setup.hs
 	cp $(DPH_DIR)/dph-common/LICENSE $(DPH_DIR)/dph-$1.tmp/LICENSE
+
 	sed "s/DPHWAY/$1/g" $(DPH_DIR)/dph-common/dph-common.cabal > $(DPH_DIR)/dph-$1.tmp/dph-$1.cabal
-	sed "s/common/$1/g" $(DPH_DIR)/dph-common/ghc.mk > $(DPH_DIR)/dph-$1.tmp/ghc.mk
-	sed "s/common/$1/g" $(DPH_DIR)/dph-common/GNUmakefile > $(DPH_DIR)/dph-$1.tmp/GNUmakefile
+	sed "s/common/$1/g" $(DPH_DIR)/dph-common/ghc.mk           > $(DPH_DIR)/dph-$1.tmp/ghc.mk
+	sed "s/common/$1/g" $(DPH_DIR)/dph-common/GNUmakefile      > $(DPH_DIR)/dph-$1.tmp/GNUmakefile
+
 	mv $(DPH_DIR)/dph-$1.tmp $(DPH_DIR)/dph-$1
 
-$(DPH_DIR)/dph-$1/ghc.mk : $(DPH_DIR)/dph-$1/dph-$1.cabal
+$(DPH_DIR)/dph-$1/ghc.mk      : $(DPH_DIR)/dph-$1/dph-$1.cabal
 $(DPH_DIR)/dph-$1/GNUmakefile : $(DPH_DIR)/dph-$1/dph-$1.cabal
 endif
 endif
@@ -30,6 +41,8 @@ endef
 
 $(foreach way, $(DPH_WAYS), $(eval $(call dph_create,$(way))))
 
+
+# -----------------------------------------------------------------------------
 .PHONY: all_$(DPH_DIR)
 all_$(DPH_DIR) : $(foreach pkg, $(DPH_PACKAGES), all_$(DPH_DIR)/$(pkg))
 
@@ -50,6 +63,8 @@ endef
 $(foreach pkg, $(DPH_PACKAGES), $(eval $(call dph_package,$(pkg))))
 
 
+
+# -----------------------------------------------------------------------------
 # When compiling modules that use TH.Repr, we will try to run some TH,
 # which means using the vanilla TH.Repr object files. If we are not
 # building in the vanilla way then we need to be sure that the vanilla
@@ -62,7 +77,7 @@ libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1
 libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : libraries/dph/dph-$2/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${v_osuf}
 endif
 
-# HACKS ***********************************************************************
+# HACKS -----------------------------------------------------------------------
 # The following modules use Template Haskell, or contain ANN pragmas. Both of
 # these features use compile-time evaluation. During this evaluation we may
 # need to load the dph-prim-* packages, but if they haven't been build yet the
