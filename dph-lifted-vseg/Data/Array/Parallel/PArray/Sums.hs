@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+#include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.Sums
         ( sumPA_double, sumPA_l_double
