@@ -10,6 +10,9 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   mkUPSSegd, fromUSSegd, fromUPSegd,
   empty, singleton,
   
+  -- * Predicates
+  isContiguous,
+  
   -- * Projections
   length,
   takeUSSegd,
@@ -56,10 +59,10 @@ import Prelude hiding (length)
 --   flat array it is in, along with the starting index in that flat array.
 data UPSSegd 
         = UPSSegd 
-        { upssegd_ussegd :: !USSegd
+        { upssegd_ussegd        :: !USSegd
           -- ^ Segment descriptor that describes the whole array.
 
-        , upssegd_dssegd :: Dist ((USSegd,Int),Int)
+        , upssegd_dssegd        :: Dist ((USSegd,Int),Int)
           -- ^ Segment descriptor for each chunk, 
           --   along with segment id of first slice in the chunk,
           --   and the offset of that slice in its segment.
@@ -94,7 +97,7 @@ mkUPSSegd
 
 mkUPSSegd starts sources upsegd
         = fromUSSegd (USSegd.mkUSSegd starts sources (UPSegd.takeUSegd upsegd))
-{-# INLINE_UP mkUPSSegd #-}
+{-# NOINLINE mkUPSSegd #-}
 
 
 -- | Promote a global `USSegd` to a parallel `UPSSegd` by distributing
@@ -102,7 +105,7 @@ mkUPSSegd starts sources upsegd
 fromUSSegd :: USSegd -> UPSSegd
 fromUSSegd ssegd 
         = UPSSegd ssegd (DUSSegd.splitSSegdOnElemsD theGang ssegd)
-{-# INLINE_UP fromUSSegd #-}
+{-# NOINLINE fromUSSegd #-}
 
 
 -- | Promote a plain `UPSegd` to a `UPSSegd`, by assuming that all segments
@@ -116,13 +119,13 @@ fromUSSegd ssegd
 fromUPSegd :: UPSegd -> UPSSegd
 fromUPSegd upsegd
         = fromUSSegd $ USSegd.fromUSegd $ UPSegd.takeUSegd upsegd
-{-# INLINE_UP fromUPSegd #-}
+{-# NOINLINE fromUPSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSSegd
 empty   = fromUSSegd USSegd.empty
-{-# INLINE_UP empty #-}
+{-# NOINLINE empty #-}
 
 
 -- | O(1).
@@ -130,7 +133,20 @@ empty   = fromUSSegd USSegd.empty
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSSegd
 singleton n = fromUSSegd $ USSegd.singleton n
-{-# INLINE_UP singleton #-}
+{-# NOINLINE singleton #-}
+
+
+-- Predicates -----------------------------------------------------------------
+-- | O(1). True when the starts are identical to the usegd indices field and
+--   the sources are all 0's. 
+--
+--   In this case all the data elements are in one contiguous flat
+--   array, and consumers can avoid looking at the real starts and
+--   sources fields.
+--
+isContiguous :: UPSSegd -> Bool
+isContiguous    = USSegd.isContiguous . upssegd_ussegd
+{-# INLINE isContiguous #-}
 
 
 -- Projections ----------------------------------------------------------------
@@ -216,7 +232,7 @@ appendWith upssegd1 pdatas1
  = fromUSSegd 
  $ USSegd.append (upssegd_ussegd upssegd1) pdatas1
                  (upssegd_ussegd upssegd2) pdatas2
-{-# INLINE_UP appendWith #-}
+{-# NOINLINE appendWith #-}
 
 
 -- Fold -----------------------------------------------------------------------

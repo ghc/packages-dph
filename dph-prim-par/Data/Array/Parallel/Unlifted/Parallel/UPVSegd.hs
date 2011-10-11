@@ -18,6 +18,10 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd (
         empty,
         singleton,
         
+        -- * Predicates
+        isManifest,
+        isContiguous,
+        
         -- * Projections
         length,
         takeVSegids,
@@ -58,7 +62,7 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
 --
 data UPVSegd 
         = UPVSegd 
-        { _upvsegd_vsegsManifest :: !Bool
+        { upvsegd_manifest      :: !Bool
           -- ^ When the vsegids field holds a lazy (V.enumFromTo 0 (len - 1))
           --   then this field is True. This lets us perform some operations like
           --   demoteToUPSSegd without actually creating it.
@@ -102,7 +106,7 @@ mkUPVSegd
         -> UPVSegd
 
 mkUPVSegd = UPVSegd False
-{-# INLINE_UP mkUPVSegd #-}
+{-# NOINLINE mkUPVSegd #-}
 
 
 -- | O(segs). Promote a `UPSSegd` to a `UPVSegd`.
@@ -116,7 +120,7 @@ fromUPSSegd upssegd
     = UPVSegd   True
                 (V.enumFromTo 0 (UPSSegd.length upssegd - 1))
                 upssegd
-{-# INLINE_UP fromUPSSegd #-}
+{-# NOINLINE fromUPSSegd #-}
 
 
 -- | O(segs). Promote a `UPSegd` to a `UPVSegd`.
@@ -126,13 +130,13 @@ fromUPSSegd upssegd
 --
 fromUPSegd :: UPSegd -> UPVSegd
 fromUPSegd      = fromUPSSegd . UPSSegd.fromUPSegd
-{-# INLINE_UP fromUPSegd #-}
+{-# NOINLINE fromUPSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPVSegd
 empty           = UPVSegd True V.empty UPSSegd.empty
-{-# INLINE_UP empty #-}
+{-# NOINLINE empty #-}
 
 
 -- | O(1). Yield a singleton segment descriptor.
@@ -140,7 +144,32 @@ empty           = UPVSegd True V.empty UPSSegd.empty
 --   with sourceid 0.
 singleton :: Int -> UPVSegd
 singleton n     = UPVSegd True (V.singleton 0) (UPSSegd.singleton n)
-{-# INLINE_UP singleton #-}
+{-# NOINLINE singleton #-}
+
+
+-- Predicates -----------------------------------------------------------------
+-- | O(1). Checks whether all the segments are manifest (unshared / non-virtual).
+--   If this is the case, then the vsegids field will be [0..len-1]. 
+--
+--   Consumers can check this field, avoid demanding the vsegids field.
+--   This can avoid the need for it to be generated in the first place, due to
+--   lazy evaluation.
+--
+isManifest :: UPVSegd -> Bool
+isManifest      = upvsegd_manifest
+{-# INLINE isManifest #-}
+
+
+-- | O(1). True when the starts are identical to the usegd indices field and
+--   the sources are all 0's. 
+--
+--   In this case all the data elements are in one contiguous flat
+--   array, and consumers can avoid looking at the real starts and
+--   sources fields.
+--
+isContiguous :: UPVSegd -> Bool
+isContiguous    = UPSSegd.isContiguous . upvsegd_upssegd
+{-# INLINE isContiguous #-}
 
 
 -- Projections ----------------------------------------------------------------
@@ -247,7 +276,7 @@ updateVSegs f (UPVSegd _ vsegids upssegd)
                 $ UPSSegd.takeUSSegd upssegd
 
    in   UPVSegd False vsegids' (UPSSegd.fromUSSegd ussegd')
-{-# INLINE_UP updateVSegs #-}
+{-# NOINLINE updateVSegs #-}
 
 
 -- Append ---------------------------------------------------------------------

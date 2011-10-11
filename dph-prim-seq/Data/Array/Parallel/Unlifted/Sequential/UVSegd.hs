@@ -17,6 +17,10 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
         empty,
         singleton,
         
+        -- * Predicates
+        isManifest,
+        isContiguous,
+        
         -- * Projections
         length,
         takeVSegids,
@@ -53,10 +57,15 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 --
 data UVSegd 
         = UVSegd 
-        { uvsegd_vsegids :: !(Vector Int) 
+        { uvsegd_manifest       :: !Bool
+          -- ^ When the vsegids field holds a lazy (V.enumFromTo 0 (len - 1))
+          --   then this field is True. This lets us perform some operations like
+          --   demoteToUPSSegd without actually creating it.
+          
+        , uvsegd_vsegids        :: (Vector Int) 
           -- ^ array saying which physical segment to use for each virtual segment 
 
-        , uvsegd_ussegd  :: !USSegd
+        , uvsegd_ussegd         :: !USSegd
           -- ^ slice segment descriptor describing physical segments.
         }
         deriving (Show)
@@ -64,7 +73,7 @@ data UVSegd
 
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical UVSegd where
- pprp (UVSegd vsegids ussegd)
+ pprp (UVSegd _ vsegids ussegd)
   = vcat
   [ text "UVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ V.toList vsegids))
   , pprp ussegd ]
@@ -75,7 +84,7 @@ instance PprPhysical UVSegd where
 --   Check the internal consistency of a virutal segmentation descriptor.
 --   TODO: check that all vsegs point to a valid pseg
 valid :: UVSegd -> Bool
-valid (UVSegd vsegids ussegd)
+valid (UVSegd _ vsegids ussegd)
         = V.length vsegids == USSegd.length ussegd
 {-# NOINLINE valid #-}
 --  NOINLINE because it's only enabled during debugging anyway.
@@ -90,7 +99,7 @@ mkUVSegd
         -> USSegd       -- ^ slice segment descriptor describing physical segments.
         -> UVSegd
 
-mkUVSegd = UVSegd
+mkUVSegd = UVSegd False
 {-# INLINE mkUVSegd #-}
 
 
@@ -100,7 +109,8 @@ mkUVSegd = UVSegd
 --
 fromUSSegd :: USSegd -> UVSegd
 fromUSSegd ussegd
-        = UVSegd (V.enumFromTo 0 (USSegd.length ussegd - 1))
+        = UVSegd True
+                 (V.enumFromTo 0 (USSegd.length ussegd - 1))
                  ussegd
 {-# INLINE_U fromUSSegd #-}
 
@@ -118,7 +128,7 @@ fromUSegd
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UVSegd
-empty   = UVSegd V.empty USSegd.empty
+empty   = UVSegd True V.empty USSegd.empty
 {-# INLINE_U empty #-}
 
 
@@ -127,10 +137,34 @@ empty   = UVSegd V.empty USSegd.empty
 --   with sourceid 0.
 singleton :: Int -> UVSegd
 singleton n 
-        = UVSegd (V.singleton 0) (USSegd.singleton n)
+        = UVSegd True (V.singleton 0) (USSegd.singleton n)
 {-# INLINE_U singleton #-}
 
-        
+
+-- Predicates -----------------------------------------------------------------
+-- | O(1). Checks whether all the segments are manifest (unshared / non-virtual).
+--   If this is the case, then the vsegids field will be [0..len-1]. 
+--
+--   Consumers can check this field, avoid demanding the vsegids field.
+--   This can avoid the need for it to be generated in the first place, due to
+--   lazy evaluation.
+--
+isManifest :: UVSegd -> Bool
+isManifest      = uvsegd_manifest
+{-# INLINE isManifest #-}
+
+
+-- | O(1). True when the starts are identical to the usegd indices field and
+--   the sources are all 0's. 
+--
+--   In this case all the data elements are in one contiguous flat
+--   array, and consumers can avoid looking at the real starts and
+--   sources fields.
+--
+isContiguous :: UVSegd -> Bool
+isContiguous    = USSegd.isContiguous . uvsegd_ussegd
+{-# INLINE isContiguous #-}
+
 
 -- Projections ----------------------------------------------------------------
 -- INLINE trivial projections as they'll expand to a single record selector.
@@ -154,7 +188,7 @@ length          = V.length . uvsegd_vsegids
 
 -- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
-takeLengths (UVSegd vsegids ussegd)
+takeLengths (UVSegd _ vsegids ussegd)
         = V.map (USSegd.takeLengths ussegd V.!) vsegids
 {-# INLINE_U takeLengths #-}
 
@@ -167,7 +201,7 @@ takeLengths (UVSegd vsegids ussegd)
 --        to a UVSegd index it could overflow.
 --
 getSeg :: UVSegd -> Int -> (Int, Int, Int)
-getSeg (UVSegd vsegids ussegd) ix
+getSeg (UVSegd _ vsegids ussegd) ix
  = let  (len, _index, start, source) = USSegd.getSeg ussegd (vsegids V.! ix)
    in   (len, start, source)
 {-# INLINE_U getSeg #-}
@@ -176,9 +210,9 @@ getSeg (UVSegd vsegids ussegd) ix
 -- Operators ------------------------------------------------------------------
 -- | TODO: automatically force out unreachable psegs here.
 updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
-updateVSegs f (UVSegd vsegids ussegd)
+updateVSegs f (UVSegd _ vsegids ussegd)
  = let  (vsegids', ussegd') = USSegd.cullOnVSegids (f vsegids) ussegd
-   in   UVSegd vsegids' ussegd'
+   in   UVSegd False vsegids' ussegd'
 {-# INLINE_U updateVSegs #-}
 
 
@@ -191,7 +225,7 @@ updateVSegs f (UVSegd vsegids ussegd)
 --     segmentation from a nested array.
 -- 
 toUSSegd :: UVSegd -> USSegd
-toUSSegd (UVSegd vsegids ussegd)
+toUSSegd (UVSegd _ vsegids ussegd)
  = let  starts'         = V.bpermute (USSegd.takeStarts  ussegd)  vsegids
         sources'        = V.bpermute (USSegd.takeSources ussegd) vsegids
         lengths'        = V.bpermute (USSegd.takeLengths ussegd) vsegids
@@ -215,7 +249,7 @@ toUSSegd (UVSegd vsegids ussegd)
 --   because the program would OOM anyway.
 --
 unsafeMaterialize :: UVSegd -> USegd
-unsafeMaterialize (UVSegd vsegids ussegd)
+unsafeMaterialize (UVSegd _ vsegids ussegd)
         = USegd.fromLengths
         $ V.bpermute (USSegd.takeLengths ussegd) vsegids
 {-# NOINLINE unsafeMaterialize #-}
@@ -258,8 +292,8 @@ append  :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arra
         -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
         -> UVSegd
 
-append  (UVSegd vsegids1 ussegd1) pdatas1
-        (UVSegd vsegids2 ussegd2) pdatas2
+append  (UVSegd _ vsegids1 ussegd1) pdatas1
+        (UVSegd _ vsegids2 ussegd2) pdatas2
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
@@ -272,7 +306,7 @@ append  (UVSegd vsegids1 ussegd1) pdatas1
         ussegd'   = USSegd.append ussegd1 pdatas1
                                   ussegd2 pdatas2
                                  
-   in   UVSegd vsegids' ussegd'
+   in   UVSegd False vsegids' ussegd'
 {-# INLINE_U append #-}
 
 
@@ -315,8 +349,8 @@ combine2
         -> UVSegd
         
 combine2  usel2
-        (UVSegd vsegids1 ussegd1) pdatas1
-        (UVSegd vsegids2 ussegd2) pdatas2
+        (UVSegd _ vsegids1 ussegd1) pdatas1
+        (UVSegd _ vsegids2 ussegd2) pdatas2
 
  = let  -- vsegids relative to combined psegs
         vsegids1' = vsegids1
@@ -330,5 +364,5 @@ combine2  usel2
         ussegd'   = USSegd.append ussegd1 pdatas1
                                   ussegd2 pdatas2
                                   
-   in   UVSegd vsegids' ussegd'
+   in   UVSegd False vsegids' ussegd'
 {-# INLINE_U combine2 #-}

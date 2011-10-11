@@ -83,10 +83,10 @@ instance (PR a, PR b) => PR (a, b) where
                   (extractPR arr2 start len)
 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR arrs srcids starts lens
+  extractsPR arrs ussegd
    = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs' ys') -> (xs', ys')) arrs
-     in  PTuple2 (extractsPR xs srcids starts lens)
-                 (extractsPR ys srcids starts lens)
+     in  PTuple2 (extractsPR xs ussegd)
+                 (extractsPR ys ussegd)
 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PTuple2 arr11 arr12) (PTuple2 arr21 arr22)

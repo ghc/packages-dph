@@ -59,7 +59,7 @@ singletonPP :: PA a => a :-> PArray a
 singletonPP     = closure1 singletonPA singletonPA_l
 
 
-{-# INLINE_PA singletonPA_l #-}
+{-# INLINE singletonPA_l #-}
 singletonPA_l :: PA a => Int -> PData a -> PData (PArray a)
 singletonPA_l c xs 
         = replicatePA_l c (PInt $ U.replicate c 1) xs
@@ -73,7 +73,7 @@ lengthPP   :: PA a => PArray a :-> Int
 lengthPP        = closure1 lengthPA lengthPA_l
 
 
-{-# INLINE_PA lengthPA_l #-}
+{-# INLINE lengthPA_l #-}
 lengthPA_l :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
 lengthPA_l _ (PNested vsegd _)
@@ -87,7 +87,7 @@ replicatePP     :: PA a => Int :-> a :-> PArray a
 replicatePP     = closure2 replicatePA replicatePA_l
 
 
-{-# INLINE_PA replicatePA_l #-}
+{-# INLINE replicatePA_l #-}
 replicatePA_l   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
 replicatePA_l 0 _ _             = emptyPR
 replicatePA_l c (PInt lens) pdata
@@ -115,14 +115,14 @@ mapPP   :: (PA a, PA b)
 mapPP   = closure2 mapPA_v mapPA_l
 
 
-{-# INLINE_PA mapPA_v #-}
+{-# INLINE mapPA_v #-}
 mapPA_v :: (PR a, PR b)
         => (a :-> b) -> PArray a -> PArray b
 mapPA_v (Clo _fv fl env) (PArray n as) 
         = PArray n (fl n (replicatePR n env) as)
 
 
-{-# INLINE_PA mapPA_l #-}
+{-# INLINE mapPA_l #-}
 mapPA_l :: (PR (a :-> b), PR a, PR b)
         => Int  -> PData (a :-> b) 
                 -> PData (PArray a) -> PData (PArray b)
@@ -143,7 +143,7 @@ mapPA_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
 appendPP :: PA a => PArray a :-> PArray a :-> PArray a
 appendPP        = closure2 appendPA appendPA_l
 
-{-# INLINE_PA appendPA_l #-}
+{-# INLINE appendPA_l #-}
 appendPA_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
 appendPA_l _ arr1 arr2
         = appendlPR arr1 arr2
@@ -155,13 +155,13 @@ slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
 slicePP         = closure3 slicePA slicePA_l
 
 
-{-# INLINE_PA slicePA #-}
+{-# INLINE slicePA #-}
 slicePA :: PA a => Int -> Int -> PArray a -> PArray a
 slicePA start len (PArray _ darr)
         = PArray len (extractPR darr start len)
 
 
-{-# INLINE_PA slicePA_l #-}
+{-# INLINE slicePA_l #-}
 slicePA_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
 slicePA_l _ sliceStarts sliceLens arrs
         = slicelPR sliceStarts sliceLens arrs
@@ -174,7 +174,7 @@ concatPP
         = closure1 concatPA concatPA_l
 
 
-{-# INLINE_PA concatPA_l #-}
+{-# INLINE concatPA_l #-}
 concatPA_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
 concatPA_l _ darr
         = concatlPR darr
@@ -194,7 +194,7 @@ eqPP_int        :: Int :-> Int :-> Int
 eqPP_int        = closure2 (\x y -> intOfBool (x == y))
                           eqPP_int_l
 
-{-# INLINE_PA eqPP_int_l #-}
+{-# INLINE eqPP_int_l #-}
 eqPP_int_l      :: Int -> PData Int -> PData Int -> PData Int
 eqPP_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith (\x y -> intOfBool (x == y)) arr1 arr2)
@@ -213,7 +213,7 @@ plusPP_int
         = closure2 (+) plusPA_int_l
 
 
-{-# INLINE_PA plusPA_int_l #-}
+{-# INLINE plusPA_int_l #-}
 plusPA_int_l    :: Int -> PData Int -> PData Int -> PData Int
 plusPA_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith (+) arr1 arr2)
@@ -226,7 +226,7 @@ multPP_double
         = closure2 (*) multPA_double_l
 
 
-{-# INLINE_PA multPA_double_l #-}
+{-# INLINE multPA_double_l #-}
 multPA_double_l :: Int -> PData Double -> PData Double -> PData Double
 multPA_double_l _ (PDouble arr1) (PDouble arr2)
         = PDouble (U.zipWith (*) arr1 arr2)
@@ -239,7 +239,7 @@ divPP_int
         = closure2 div divPA_int_l
 
 
-{-# INLINE_PA divPA_int_l #-}
+{-# INLINE divPA_int_l #-}
 divPA_int_l :: Int -> PData Int -> PData Int -> PData Int
 divPA_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith div arr1 arr2)

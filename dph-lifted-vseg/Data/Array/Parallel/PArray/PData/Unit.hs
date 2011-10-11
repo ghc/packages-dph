@@ -67,8 +67,8 @@ instance PR () where
         = PUnit len
         
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR _ _ _ lens
-        = PUnit (U.sum lens)
+  extractsPR _ ussegd
+        = PUnit (U.sum $ U.lengthsSSegd ussegd)
                 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PUnit len1) (PUnit len2)

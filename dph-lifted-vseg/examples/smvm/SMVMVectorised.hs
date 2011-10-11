@@ -19,7 +19,7 @@ smvmPA :: PArray (PArray (Int, Double)) -> PArray Double -> PArray Double
 smvmPA m v
         = v_smvm $: m $: v
 
-{-# INLINE_CLOSURE lap #-}
+{-# INLINE lap #-}
 lap = liftedApply
 
 -- smvm = (\m v. mapP (\r. sumP (mapP (\z. case z of (i, x) -> x * (v !: i)))) m)

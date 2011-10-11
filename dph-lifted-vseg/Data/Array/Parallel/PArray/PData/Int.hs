@@ -72,9 +72,12 @@ instance PR Int where
         = PInt (U.extract arr start len)
 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR arrs srcids ixsBase lens
-        = PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
-                        srcids ixsBase lens)
+  extractsPR arrs ussegd
+   = let segsrcs        = U.sourcesSSegd ussegd
+         segstarts      = U.startsSSegd  ussegd
+         seglens        = U.lengthsSSegd ussegd
+     in  PInt (uextracts (V.map (\(PInt arr) -> arr) arrs)
+                        segsrcs segstarts seglens)
                 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PInt arr1) (PInt arr2)

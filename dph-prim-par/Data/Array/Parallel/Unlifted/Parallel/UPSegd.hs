@@ -80,27 +80,27 @@ mkUPSegd
 
 mkUPSegd lens idxs n
         = fromUSegd (USegd.mkUSegd lens idxs n)
-{-# INLINE_UP mkUPSegd #-}
+{-# NOINLINE mkUPSegd #-}
 
 
 -- | Convert a global `USegd` to a parallel `UPSegd` by distributing 
 --   it across the gang.
 fromUSegd :: USegd -> UPSegd
 fromUSegd segd   = UPSegd segd (USegd.splitSegdOnElemsD theGang segd)
-{-# INLINE_UP fromUSegd #-}
+{-# NOINLINE fromUSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSegd
 empty           = fromUSegd USegd.empty
-{-# INLINE_UP empty #-}
+{-# NOINLINE empty #-}
 
 
 -- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSegd
 singleton n     = fromUSegd $ USegd.singleton n
-{-# INLINE_UP singleton #-}
+{-# NOINLINE singleton #-}
 
 
 -- | O(n). Convert an array of segment lengths into a parallel segment descriptor.
@@ -110,7 +110,7 @@ singleton n     = fromUSegd $ USegd.singleton n
 --
 fromLengths :: Vector Int -> UPSegd
 fromLengths     = fromUSegd . USegd.fromLengths
-{-# INLINE_UP fromLengths #-}
+{-# NOINLINE fromLengths #-}
 
 
 -- Projections ----------------------------------------------------------------
@@ -172,7 +172,7 @@ indicesP
         . takeDistributed
   where
     indices ((segd,k),off) = Seq.indicesSU' off segd
-{-# INLINE_UP indicesP #-}
+{-# NOINLINE indicesP #-}
 
 
 -- Replicate ------------------------------------------------------------------
@@ -189,7 +189,7 @@ replicateWithP segd !xs
   where
     rep ((dsegd,di),_)
       = Seq.replicateSU dsegd (Seq.slice xs di (USegd.length dsegd))
-{-# INLINE_UP replicateWithP #-}
+{-# NOINLINE replicateWithP #-}
 
 
 -- Fold -----------------------------------------------------------------------

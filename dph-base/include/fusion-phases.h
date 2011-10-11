@@ -46,7 +46,7 @@
 -- Stuff that works on PArrays
 -- dph-common-vseg:D.A.P.Lifted.Combinators
 -- dph-common-vseg:D.A.P.PArray
-#define INLINE_PA      INLINE PHASE_PA
+#define INLINE_PA      INLINE PHASE_USER
 
 -- dph-common-vseg:D.A.P.PArray.PData
 #define INLINE_PDATA   INLINE PHASE_PA

@@ -48,7 +48,7 @@ module Data.Array.Parallel.PArray
 
         -- Wrappers used for testing only.
         , replicatesPA'
-        , extractsPA'
+ --       , extractsPA'
         , packByTagPA'
         , combine2PA'
         , slicelPA')
@@ -145,15 +145,13 @@ extractPA (PArray _ arr) start len
 extractsPA 
         :: PA a 
         => Vector (PArray a)    -- ^ source array
-        -> U.Array Int          -- ^ segment source ids
-        -> U.Array Int          -- ^ segment base indices
-        -> U.Array Int          -- ^ segment lengths
+        -> U.SSegd
         -> PArray a
 
-extractsPA arrs srcids segIxs segLens
+extractsPA arrs ssegd
  = let vecs     = V.map (\(PArray _ vec) -> vec) arrs
-   in  PArray   (U.sum segLens)
-                (extractsPR vecs srcids segIxs segLens)
+   in  PArray   (U.sum $ U.lengthsSSegd ssegd)
+                (extractsPR vecs ssegd)
 
 
 -- | Append two arrays.
@@ -293,12 +291,14 @@ replicatesPA' lens arr
 
 
 -- | Segmented extract.
-extractsPA' :: PA a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
+{-extractsPA' :: PA a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
 extractsPA' arrs srcids startixs seglens
         = PArray (sum seglens) 
-        $ extractsPR (V.map unpackPA arrs) 
+        $ extractsPR
+                (V.map unpackPA arrs) 
+                (U.
                      (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
-
+-}
 
 -- | Filter an array based on some tags.
 packByTagPA' :: PA a => PArray a -> [Int] -> Int -> PArray a

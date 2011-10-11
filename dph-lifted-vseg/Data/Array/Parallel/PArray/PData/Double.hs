@@ -61,7 +61,7 @@ instance PR Double where
                 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix
-        = arr U.!: ix
+        = arr `VU.unsafeIndex` ix
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR _ arr@(PNested vsegd psegdatas) (PInt ixs)
@@ -85,9 +85,12 @@ instance PR Double where
         = PDouble (U.extract arr start len)
 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR arrs srcids ixsBase lens
-        = PDouble (uextracts (V.map (\(PDouble arr) -> arr) arrs)
-                        srcids ixsBase lens)
+  extractsPR arrs ussegd
+   = let segsrcs        = U.sourcesSSegd ussegd
+         segstarts      = U.startsSSegd  ussegd
+         seglens        = U.lengthsSSegd ussegd
+     in  PDouble (uextracts (V.map (\(PDouble arr) -> arr) arrs)
+                        segsrcs segstarts seglens)
                 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PDouble arr1) (PDouble arr2)

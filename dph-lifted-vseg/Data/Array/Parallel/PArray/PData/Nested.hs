@@ -281,7 +281,7 @@ instance PR a => PR (PArray a) where
   --           1: PInt [5,6,7,8,9]
   --           2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
   --
-  {-# INLINE indexlPR #-}
+  {-# INLINE_PDATA indexlPR #-}
   indexlPR c (PNested uvsegd pdata) (PInt ixs)
    = let        
          -- See Note: psrcoffset
@@ -351,9 +351,13 @@ instance PR a => PR (PArray a) where
   --  We encode these offsets in the psrcoffset vector:
   --       psrcoffset :  [0, 2]
   --
-  {-# INLINE extractsPR #-}
-  extractsPR arrs segsrcs segstarts seglens 
-   = let vsegids_src      = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
+  {-# NOINLINE extractsPR #-}
+  extractsPR arrs ussegd
+   = let segsrcs        = U.sourcesSSegd ussegd
+         segstarts      = U.startsSSegd  ussegd
+         seglens        = U.lengthsSSegd ussegd
+
+         vsegids_src      = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
 
          srcids'          = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
@@ -476,48 +480,46 @@ instance PR a => PR (PArray a) where
 
 -------------------------------------------------------------------------------
 
--- | O(len result)
---   Concatenate a nested array.
+-- | O(len result). Concatenate a nested array.
 --
---   This physically performs a 'gather' operation, whereby array data is
---   copied through the index-space transformation defined by the segment
---   descriptor. We need to do this because discarding the segment descriptor
---   means that we can no-longer represent the data layout of the logical array
---   other than by physically creating it.
+--   This physically performs a 'gather' operation, whereby array data is copied
+--   through the index-space transformation defined by the segment descriptor.
+--   We need to do this because discarding the segment descriptor means that we
+--   can no-longer represent the data layout of the logical array other than by
+--   physically creating it.
+--
+--   The segment descriptor keeps track of the layout of the data, and if it 
+--   knows that the segments are already in a single, contiguous array with
+--   no sharing then we can just return that array directly in O(1) time.
 --
 --   IMPORTANT:
---    Only the outer-most two levels of nesting are physically merged.
---    The data for lower levels is not touched. This ensures that concat
---    has complexity proportional to the length of the result array, instead
---    of the total number of elements within it.
+--   In the case where there is sharing between segments, or they are scattered
+--   through multiple arrays, only outer-most two levels of nesting are physically
+--   merged. The data for lower levels is not touched. This ensures that concat
+--   has complexity proportional to the length of the result array, instead
+--   of the total number of elements within it.
 --
---   TODO:
---    Depending on how the source array has been produced, if it is already
---    represented by contiguous data then we could just append the flat arrays
---    and not copy each segment individually.
--- 
 concatPR :: PR a => PData (PArray a) -> PData a
+{-# NOINLINE concatPR #-}
+concatPR (PNested vsegd pdatas)
+        -- If we know that the segments are in a single contiguous array, 
+        -- and there is no sharing between them, then we can just return
+        -- that array directly.
+        | U.isManifestVSegd   vsegd
+        , U.isContiguousVSegd vsegd
+        , V.length pdatas == 1
+        = pdatas `V.unsafeIndex` 0
 
-{-
-TODO: when concatting and unconcatting we need to avoid pulling data
-      through the segd if we know it's already flat and contiguous.
-      this is true for the data we get from nestUSegdPA. 
-      We also don't want to create distributed segment descriptors
-      unless we actually need them, as this is probably expensive.
-      The dist part of the segd should not be strict.
--}
-    
-{-# INLINE concatPR #-}
-concatPR (PNested uvsegd psegdata)
- = let  -- Flatten out the virtualization of the uvsegd so that we have
-        -- a description of each segment individually.
-        ussegd  = U.demoteToSSegdOfVSegd uvsegd
+        -- Otherwise we have to pull all the segments through the index 
+        -- space transform defined by the vsegd, which copies them
+        -- into a single contiguous array.
+        | otherwise
+        = let   -- Flatten out the virtualization of the vsegd so that we have
+                -- a description of each segment individually.
+                ussegd  = U.demoteToSSegdOfVSegd vsegd
 
-        -- Copy these segments into a new array.
-   in   extractsPR psegdata 
-                   (U.sourcesSSegd ussegd)
-                   (U.startsSSegd  ussegd)
-                   (U.lengthsSSegd ussegd)
+                -- Copy these segments into a new array.
+          in   extractsPR pdatas ussegd
 
 
 -- | Build a nested array given a single flat data vector, 
@@ -528,8 +530,9 @@ concatPR (PNested uvsegd psegdata)
 --   for every segment. Because of this we need flatten out the virtual
 --   segmentation of the template array.
 --
+
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
-{-# INLINE unconcatPR #-}
+{-# NOINLINE unconcatPR #-}
 unconcatPR (PNested vsegd pdatas) arr
  = let  
         -- Get the lengths of all the vsegs individually.

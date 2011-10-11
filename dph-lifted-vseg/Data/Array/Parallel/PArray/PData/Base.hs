@@ -114,9 +114,7 @@ class PR a where
   -- | Segmented extract.
   --   O(sum seglens).  
   extractsPR    :: Vector (PData a)
-                -> U.Array Int          -- ^ segment source ids
-                -> U.Array Int          -- ^ segment starting indices
-                -> U.Array Int          -- ^ segment lengths
+                -> U.SSegd              -- ^ segment descriptor describing scattering of data.
                 -> PData a
 
   -- | Append two sized arrays.
@@ -163,8 +161,11 @@ class PR a where
 
 -- TODO: zip srcids ixBase and startsix before calling replicate_s
 --       don't want to replicate_s multiple times on same segd.
+--
+-- TODO: pass in a projection function to get the correct array from the vector, 
+--       to avoid unpackig all the arrays from PDatas with a big map traversal.
 
-{-# INLINE uextracts #-}
+{-# NOINLINE uextracts #-}
 uextracts 
         :: U.Elt a 
         => V.Vector (U.Array a) 

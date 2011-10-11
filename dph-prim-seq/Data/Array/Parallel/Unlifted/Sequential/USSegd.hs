@@ -16,6 +16,9 @@ module Data.Array.Parallel.Unlifted.Sequential.USSegd (
         singleton,
         fromUSegd,
         
+        -- * Predicates
+        isContiguous,
+        
         -- * Projections
         length,
         takeUSegd, takeLengths, takeIndices, takeElements,
@@ -57,21 +60,33 @@ import qualified Data.Vector.Fusion.Stream.Monadic              as M
 -- 
 data USSegd
         = USSegd
-        { ussegd_starts  :: !(Vector Int)
-          -- ^ starting index of each segment in its flat array
+        { ussegd_contiguous     :: !Bool
+          -- ^ True when the starts are identical to the usegd indices field
+          --        and the sources are all 0's. 
+          --   In this case all the data elements are in one contiguous flat
+          --   array, and consumers can avoid looking at the real starts and
+          --   sources fields.
 
-        , ussegd_sources :: !(Vector Int)
-          -- ^ which flat array to take each segment from.
+        , ussegd_starts         :: Vector Int
+          -- ^ Starting index of each segment in its flat array
+          --   IMPORTANT: this field is lazy so we can avoid creating it when
+          --              the flat array is contiguous.
 
-        , ussegd_usegd   :: !USegd
-          -- ^ segment descriptor with contiguous index space.
+        , ussegd_sources        :: Vector Int
+          -- ^ Which flat array to take each segment from.
+          --   IMPORTANT: this field is lazy so we can avoid creating it when
+          --              the flat array is contiguous.
+
+        , ussegd_usegd          :: !USegd
+          -- ^ Segment descriptor relative to a contiguous index space.
+          --   This defines the length of each segment.
         }
         deriving (Show)
 
 
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical USSegd where
- pprp (USSegd starts srcids ssegd)
+ pprp (USSegd _ starts srcids ssegd)
   = vcat
   [ text "USSegd" 
         $$ (nest 7 $ vcat
@@ -81,8 +96,7 @@ instance PprPhysical USSegd where
 
 
 -- Constructors ---------------------------------------------------------------
--- | O(1). 
---   Construct a new scattered segment descriptor.
+-- | O(1). Construct a new scattered segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUSSegd
         :: Vector Int   -- ^ starting index of each segment in its flat array
@@ -90,14 +104,13 @@ mkUSSegd
         -> USegd        -- ^ contiguous segment descriptor
         -> USSegd
 
-mkUSSegd = USSegd
+mkUSSegd = USSegd False
 {-# INLINE mkUSSegd #-}
 
 
--- | O(1).
---   Check the internal consistency of a scattered segment descriptor.
+-- | O(1). Check the internal consistency of a scattered segment descriptor.
 valid :: USSegd -> Bool
-valid (USSegd starts srcids usegd)
+valid (USSegd _ starts srcids usegd)
         =  (U.length starts == USegd.length usegd)
         && (U.length srcids == USegd.length usegd)
 
@@ -105,32 +118,36 @@ valid (USSegd starts srcids usegd)
 --  NOINLINE because it's only enabled during debugging anyway.
 
 
--- | O(1).
---  Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: USSegd
-empty   = USSegd U.empty U.empty USegd.empty
+empty   = USSegd True U.empty U.empty USegd.empty
 {-# INLINE_U empty #-}
 
 
--- | O(1).
---   Yield a singleton segment descriptor.
+-- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> USSegd
 singleton n 
-        = USSegd (U.singleton 0) (U.singleton 0) (USegd.singleton n)
+        = USSegd True (U.singleton 0) (U.singleton 0) (USegd.singleton n)
 {-# INLINE_U singleton #-}
 
 
--- | O(segs). 
---   Promote a plain USegd to a USSegd
+-- | O(segs). Promote a plain USegd to a USSegd
 --   All segments are assumed to come from a flat array with sourceid 0.
 fromUSegd :: USegd -> USSegd
 fromUSegd usegd
-        = USSegd (USegd.takeIndices usegd)
+        = USSegd True 
+                 (USegd.takeIndices usegd)
                  (U.replicate (USegd.length usegd) 0)
                  usegd
 {-# INLINE_U fromUSegd #-}
+
+
+-- Predicates -----------------------------------------------------------------
+isContiguous :: USSegd -> Bool
+isContiguous    = ussegd_contiguous
+{-# INLINE isContiguous #-}
 
 
 -- Projections ----------------------------------------------------------------
@@ -178,10 +195,9 @@ takeSources     = ussegd_sources
 {-# INLINE takeSources #-}
 
 
--- | O(1).
---   Get the length, segment index, starting index, and source id of a segment.
+-- | O(1). Get the length, segment index, starting index, and source id of a segment.
 getSeg :: USSegd -> Int -> (Int, Int, Int, Int)
-getSeg (USSegd starts sources usegd) ix
+getSeg (USSegd _ starts sources usegd) ix
  = let  (len, index) = USegd.getSeg usegd ix
    in   ( len
         , index
@@ -191,16 +207,15 @@ getSeg (USSegd starts sources usegd) ix
 
 
 -- Operators ------------------------------------------------------------------
--- | O(n)
---   Produce a segment descriptor that describes the result of appending
+-- | O(n). Produce a segment descriptor that describes the result of appending
 --   two arrays.
-append
-        :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
+append  :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
         -> USSegd
-append (USSegd starts1 srcs1 usegd1) pdatas1
-             (USSegd starts2 srcs2 usegd2) _
-        = USSegd (starts1  U.++  starts2)
+append (USSegd _ starts1 srcs1 usegd1) pdatas1
+       (USSegd _ starts2 srcs2 usegd2) _
+        = USSegd False
+                 (starts1  U.++  starts2)
                  (srcs1    U.++  U.map (+ pdatas1) srcs2)
                  (USegd.append usegd1 usegd2)
 
@@ -214,7 +229,7 @@ append (USSegd starts1 srcs1 usegd1) pdatas1
 --   TODO: bpermuteDft isn't parallelised
 --
 cullOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
-cullOnVSegids vsegids (USSegd starts sources usegd)
+cullOnVSegids vsegids (USSegd _ starts sources usegd)
  = let  -- Determine which of the psegs are still reachable from the vsegs.
         -- This produces an array of flags, 
         --    with reachable   psegs corresponding to 1
@@ -267,7 +282,7 @@ cullOnVSegids vsegids (USSegd starts sources usegd)
         lengths'  = U.pack (USegd.takeLengths usegd) psegids_used
         usegd'    = USegd.fromLengths lengths'
         
-        ussegd'   = USSegd starts' sources' usegd'
+        ussegd'   = USSegd False starts' sources' usegd'
 
      in  (vsegids', ussegd')
 
@@ -281,12 +296,19 @@ cullOnVSegids vsegids (USSegd starts sources usegd)
 --   TODO: make this more efficient, and fix fusion.
 --         We should be able to eliminate a lot of the indexing happening in the 
 --         inner loop by being cleverer about the loop state.
+--
+--   TODO: If this is contiguous then we can stream the lot without worrying 
+--         about jumping between segments. EXCEPT that this information must be
+--         statically visible else streamSegs won't fuse, so we can't have an 
+--         ifThenElse checking the manifest flag.
+
 streamSegs
         :: Unbox a
         => USSegd               -- ^ Segment descriptor defining segments based on source vectors.
         -> V.Vector (Vector a)  -- ^ Source vectors.
         -> S.Stream a
-streamSegs ussegd@(USSegd starts sources usegd) pdatas
+
+streamSegs ussegd@(USSegd _ starts sources usegd) pdatas
  = let  
         -- length of each segment
         pseglens        = USegd.takeLengths usegd
