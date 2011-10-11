@@ -24,14 +24,15 @@ sumPA_l_double
         -> PData Double
 {-# NOINLINE sumPA_l_double #-}        
 sumPA_l_double _ (PNested vsegd datas)
- = let  -- Grab all the flat source vectors.
-        pdatas          = V.map toUArrayPR datas
+ = {-# SCC "sumPA_l_double" #-}
+   let  -- Grab all the flat source vectors.
+        !pdatas          = V.map toUArrayPR datas
 
         -- Sum up each physical segment individually.
-        psegResults     = U.fold_ss (+) 0 (U.takeSSegdOfVSegd vsegd) pdatas
+        !psegResults     = U.fold_ss (+) 0 (U.takeSSegdOfVSegd vsegd) pdatas
 
         -- Replicate the physical results according to the vsegids.
-        vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
+        !vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
 
    in   PDouble vsegResults
 
@@ -50,7 +51,8 @@ sumPA_l_int
         -> PData Int
 {-# NOINLINE sumPA_l_int #-}
 sumPA_l_int _ (PNested vsegd datas)
- = let  -- Grab all the flat source vectors.
+ = {-# SCC "sumPA_l_int" #-}
+   let  -- Grab all the flat source vectors.
         pdatas          = V.map toUArrayPR datas
 
         -- Sum up each physical segment individually.

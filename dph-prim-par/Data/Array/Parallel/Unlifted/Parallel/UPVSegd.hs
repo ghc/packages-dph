@@ -270,13 +270,14 @@ unsafeDemoteToUPSegd (UPVSegd _ vsegids upssegd)
 --     the UPSSegd.
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-updateVSegs f (UPVSegd _ vsegids upssegd)
+updateVSegs fUpdate (UPVSegd _ vsegids upssegd)
  = let  (vsegids', ussegd') 
-                = USSegd.cullOnVSegids (f vsegids) 
+                = USSegd.cullOnVSegids (fUpdate vsegids) 
                 $ UPSSegd.takeUSSegd upssegd
 
    in   UPVSegd False vsegids' (UPSSegd.fromUSSegd ussegd')
-{-# NOINLINE updateVSegs #-}
+{-# INLINE_UP updateVSegs #-}
+--  INLINE_UP because we want to inline the parameter function fUpdate.
 
 
 -- Append ---------------------------------------------------------------------

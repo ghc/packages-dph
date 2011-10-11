@@ -189,7 +189,7 @@ replicateWithP segd !xs
   where
     rep ((dsegd,di),_)
       = Seq.replicateSU dsegd (Seq.slice xs di (USegd.length dsegd))
-{-# NOINLINE replicateWithP #-}
+{-# INLINE_UP replicateWithP #-}
 
 
 -- Fold -----------------------------------------------------------------------

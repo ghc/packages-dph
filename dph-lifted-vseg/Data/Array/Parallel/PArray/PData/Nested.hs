@@ -500,8 +500,8 @@ instance PR a => PR (PArray a) where
 --   of the total number of elements within it.
 --
 concatPR :: PR a => PData (PArray a) -> PData a
-{-# NOINLINE concatPR #-}
-concatPR (PNested vsegd pdatas)
+concatPR arr = {-# SCC "concatPR" #-} concatPR' arr
+concatPR' (PNested vsegd pdatas)
         -- If we know that the segments are in a single contiguous array, 
         -- and there is no sharing between them, then we can just return
         -- that array directly.
@@ -521,6 +521,8 @@ concatPR (PNested vsegd pdatas)
                 -- Copy these segments into a new array.
           in   extractsPR pdatas ussegd
 
+{-# NOINLINE concatPR  #-}
+
 
 -- | Build a nested array given a single flat data vector, 
 --   and a template nested array that defines the segmentation.
@@ -530,10 +532,9 @@ concatPR (PNested vsegd pdatas)
 --   for every segment. Because of this we need flatten out the virtual
 --   segmentation of the template array.
 --
-
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
-{-# NOINLINE unconcatPR #-}
-unconcatPR (PNested vsegd pdatas) arr
+unconcatPR arr1 arr2 = {-# SCC "unconcatPR" #-} unconcatPR' arr1 arr2
+unconcatPR' (PNested vsegd pdatas) arr
  = let  
         -- Get the lengths of all the vsegs individually.
         !vseglens       = U.takeLengthsOfVSegd vsegd
@@ -545,11 +546,12 @@ unconcatPR (PNested vsegd pdatas) arr
 
    in   PNested vsegd' (V.singleton arr)
 
+{-# NOINLINE unconcatPR #-}
+
 
 -- | Lifted concat.
 --   Both arrays must contain the same number of elements.
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
-{-# INLINE concatlPR #-}
 concatlPR arr
  = let  (segd1, darr1)  = unsafeFlattenPR arr
         (segd2, darr2)  = unsafeFlattenPR darr1
@@ -561,6 +563,7 @@ concatlPR arr
    in   PNested (U.promoteSegdToVSegd segd') 
                 (V.singleton darr2)
 
+{-# INLINE concatlPR #-}
 
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.

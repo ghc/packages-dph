@@ -18,7 +18,7 @@ import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 
 data instance PData Double
-        = PDouble (U.Array Double)
+        = PDouble !(U.Array Double)
 
 deriving instance Show (PData Double)
 
@@ -70,14 +70,15 @@ instance PR Double where
          -- Unbox these vectors outside the get loop.
          !psegsrcids    = U.takeVSegidsOfVSegd vsegd
          !psegstarts    = U.startsSSegd $ U.takeSSegdOfVSegd vsegd
+         !psegvecs      = V.map (\(PDouble vec) -> vec) psegdatas
 
          -- Lookup a single element from a virtual segment.
          get !vsegid !ix
           = let !psegsrcid       = psegsrcids `VU.unsafeIndex` vsegid
-                !psegdata        = psegdatas  `V.unsafeIndex`  psegsrcid
+                !psegvec         = psegvecs   `V.unsafeIndex`  psegsrcid
                 !psegstart       = psegstarts `VU.unsafeIndex` vsegid
                 !elemIx          = psegstart + ix
-                !elemVal         = psegdata `indexPR` elemIx
+                !elemVal         = psegvec `VU.unsafeIndex` elemIx
             in  elemVal
 
   {-# INLINE_PDATA extractPR #-}

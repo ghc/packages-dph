@@ -44,6 +44,7 @@ import qualified Data.Vector                                    as V
 import qualified Data.Vector.Fusion.Stream                      as S
 import qualified Data.Vector.Fusion.Stream.Size                 as S
 import qualified Data.Vector.Fusion.Stream.Monadic              as M
+import qualified Data.Vector.Unboxed            as VU
 
 
 -- USSegd ---------------------------------------------------------------------
@@ -314,24 +315,23 @@ streamSegs ussegd@(USSegd _ starts sources usegd) pdatas
         pseglens        = USegd.takeLengths usegd
  
         -- We've finished streaming this pseg
-        {-# INLINE fn #-}
+        {-# INLINE_INNER fn #-}
         fn (pseg, ix)
          -- All psegs are done.
          | pseg >= length ussegd
          = return $ S.Done
          
          -- Current pseg is done
-         | ix   >= pseglens U.! pseg 
-         = fn (pseg + 1, 0)
+         | ix   >= pseglens `VU.unsafeIndex` pseg 
+         = return $ S.Skip (pseg + 1, 0)
 
          -- Stream an element from this pseg
          | otherwise
-         = let  srcid   = sources    U.! pseg
-                pdata   = pdatas     V.!  srcid
-                start   = starts     U.! pseg
-                result  = pdata U.! (start + ix)
-           in   return $ S.Yield result 
-                                (pseg, ix + 1)
+         = let  !srcid   = sources `VU.unsafeIndex` pseg
+                !pdata   = pdatas   `V.unsafeIndex` srcid
+                !start   = starts  `VU.unsafeIndex` pseg
+                !result  = pdata   `VU.unsafeIndex` (start + ix)
+           in   return $ S.Yield result (pseg, ix + 1)
 
    in   M.Stream fn (0, 0) S.Unknown
 
