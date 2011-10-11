@@ -27,6 +27,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   -- * Segmented Folds
   foldWithP,
   fold1WithP,
+  sumWithP,
   foldSegsWithP
 ) where
 import Data.Array.Parallel.Pretty                                       hiding (empty)
