@@ -37,7 +37,8 @@ Library
 
   Extensions:
         TypeFamilies, GADTs, RankNTypes, CPP,
-        BangPatterns, MagicHash, UnboxedTuples, TypeOperators
+        BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
+        PatternGuards
 
   GHC-Options: 
         -Wall -fno-warn-orphans -fno-warn-missing-signatures
