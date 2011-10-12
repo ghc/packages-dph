@@ -9,6 +9,9 @@ module Points2D.Types
 	, ysOf, ysOfPA)
 where
 import Data.Array.Parallel
+import Data.Array.Parallel.Prelude.Double
+import qualified Data.Array.Parallel.Prelude.Double as D
+import qualified Prelude as P
 
 type Point = (Double, Double)
 type Line  = (Point, Point)
