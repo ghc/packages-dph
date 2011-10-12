@@ -54,7 +54,8 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 --
 splitSSegdOnElemsD :: Gang -> USSegd -> Dist ((USSegd,Int),Int)
 splitSSegdOnElemsD g !segd 
-  = imapD g mk (splitLenIdxD g (USegd.takeElements $ USSegd.takeUSegd segd))
+  = {-# SCC "splitSSegdOnElemsD" #-}
+    imapD g mk (splitLenIdxD g (USegd.takeElements $ USSegd.takeUSegd segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g

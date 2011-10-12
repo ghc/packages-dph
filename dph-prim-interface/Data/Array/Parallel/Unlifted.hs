@@ -182,10 +182,11 @@ data SSegd
         , ssegd_segd    :: Segd }
 
 mkSSegd                 = SSegd
+validSSegd              = notImplemented "validSSegd"
 emptySSegd              = SSegd [] [] emptySegd
 singletonSSegd          = notImplemented "singletonSSegd"
-validSSegd              = notImplemented "validSSegd"
 promoteSegdToSSegd      = notImplemented "promoteSegdToSSegd"
+isContiguousSSegd       = notImplemented "isContiguousSSegd"
 lengthSSegd             = lengthSegd  . ssegd_segd
 lengthsSSegd            = lengthsSegd . ssegd_segd
 indicesSSegd            = indicesSegd . ssegd_segd
@@ -205,6 +206,8 @@ mkVSegd                 = VSegd
 validVSegd              = notImplemented "validSSegd"       
 promoteSegdToVSegd      = notImplemented "promoteSegdToVSegd"
 promoteSSegdToVSegd     = notImplemented "promoteSSegdToVSegd"
+isContiguousVSegd       = notImplemented "isContiguousVSegd"
+isManifestVSegd         = notImplemented "isManifestVSegd"
 emptyVSegd              = VSegd [] emptySSegd
 singletonVSegd          = notImplemented "singletonVSegd"
 lengthOfVSegd           = notImplemented "lengthOfVSegd"

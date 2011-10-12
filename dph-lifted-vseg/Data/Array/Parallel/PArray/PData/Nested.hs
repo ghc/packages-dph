@@ -219,7 +219,8 @@ instance PR a => PR (PArray a) where
   -- segment, then point all the virtual segments to it.
   {-# NOINLINE replicatePR #-}
   replicatePR c (PArray n darr)
-   = checkNotEmpty "replicatePR[PArray]" c
+   = {-# SCC "replicatePR" #-}
+     checkNotEmpty "replicatePR[PArray]" c
    $ let -- Physical segment descriptor contains a single segment.
          ussegd  = U.singletonSSegd n
          
@@ -318,7 +319,8 @@ instance PR a => PR (PArray a) where
   -- out all of the psegs that are no longer reachable from the new vsegids.
   {-# NOINLINE extractPR #-}
   extractPR (PNested uvsegd pdata) start len
-   = PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
+   = {-# SCC "extractPR" #-}
+     PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
              pdata
 
 
@@ -353,7 +355,8 @@ instance PR a => PR (PArray a) where
   --
   {-# NOINLINE extractsPR #-}
   extractsPR arrs ussegd
-   = let segsrcs        = U.sourcesSSegd ussegd
+   = {-# SCC "extractsPR" #-}
+     let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
 

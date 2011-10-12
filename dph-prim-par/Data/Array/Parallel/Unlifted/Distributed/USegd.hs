@@ -111,7 +111,8 @@ splitSegdOnSegsD g !segd
 --
 splitSegdOnElemsD :: Gang -> USegd -> Dist ((USegd,Int),Int)
 splitSegdOnElemsD g !segd 
-  = imapD g mk (splitLenIdxD g (USegd.takeElements segd))
+  = {-# SCC "splitSegdOnElemsD" #-} 
+    imapD g mk (splitLenIdxD g (USegd.takeElements segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g
