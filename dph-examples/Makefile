@@ -32,7 +32,8 @@ DPH_OPTIONS_PAR = \
         -fdph-par \
         -fcpr-off \
         -fsimplifier-phases=4 \
-        -fstrictness-before=3 
+        -fstrictness-before=3 \
+        -fsimpl-tick-factor=1000 
 
 DPH_OPTIONS_SEQ = \
         -rtsopts \
@@ -42,7 +43,8 @@ DPH_OPTIONS_SEQ = \
         -fdph-seq \
         -fcpr-off \
         -fsimplifier-phases=4 \
-        -fstrictness-before=3 
+        -fstrictness-before=3 \
+        -fsimpl-tick-factor=1000 
 
 .PHONY : all
 all : dph-examples.cabal
