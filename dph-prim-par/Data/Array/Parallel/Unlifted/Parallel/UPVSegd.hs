@@ -24,8 +24,8 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd (
         
         -- * Projections
         length,
-        takeVSegids,
-        takeUPSSegd,
+        takeVSegids, takeVSegidsRedundant,
+        takeUPSSegd, takeUPSSegdRedundant,
         takeLengths,
         getSeg,
 
@@ -67,24 +67,46 @@ data UPVSegd
         { upvsegd_manifest      :: !Bool
           -- ^ When the vsegids field holds a lazy (V.enumFromTo 0 (len - 1))
           --   then this field is True. This lets us perform some operations like
-          --   demoteToUPSSegd without actually creating it.
+          --   demoteToUPSSegd without actually creating the vsegids field.
         
-        , upvsegd_vsegids       :: Vector Int
-          -- ^ Virtual segment identifiers that indicate what physical segment
-          --   to use for each virtual segment. 
-          --
-          --   IMPORTANT:
-          ---   This field must be lazy (no bang) because when it has the value
-          --    (V.enumFromTo 0 (len - 1)) we want to avoid building the enumeration
-          --    unless it's strictly demanded.
-          
-        , upvsegd_upssegd       :: !UPSSegd }
+          -- | Virtual segment identifiers that indicate what physical segment
+          --   to use for each virtual segment.
+        , upvsegd_vsegids_redundant     :: Vector Int           -- LAZY FIELD 
+        , upvsegd_vsegids_culled        :: Vector Int           -- LAZY FIELD
+        
+          -- | Scattered segment descriptor that defines how physical segments
+          --   are layed out in memory.
+        , upvsegd_upssegd_redundant     :: UPSSegd              -- LAZY FIELD
+        , upvsegd_upssegd_culled        :: UPSSegd              -- LAZY FIELD
+        
+          -- IMPORTANT:
+          -- When vsegids are transformed due to a segmented replication operation, 
+          -- if some of the segment lengths were zero, then we will end up with 
+          -- physical segments that are unreachable from the vsegids.
+          -- 
+          -- For some operations (like indexing) the fact that we have unreachable
+          -- psegids doesn't matter, but for others (like segmented fold) it does.
+          -- The problem is that we perform segmented fold by first folding all 
+          -- the physical segments, then replicating the results according to the 
+          -- vsegids. If no vsegids referenced a physical segment then we didn't 
+          -- need to fold it.
+          -- 
+          -- When vsegids are updated the version that may have unreachable psegs
+          -- is stored in the vsegids_redundant and upssegd_redundant. The _culled
+          -- versions are then set to a SUSPENDED call to callOnVSegids. If no
+          -- consumers every demand the culled version then we never need to compute
+          -- it.
+          -- 
+          -- The vsegids_redundant field must also be lazy (no bang) because when it
+          -- has the value (V.enumFromTo 0 (len - 1)) we want to avoid building the
+          -- enumeration unless it's strictly demanded.
+        }
         deriving (Show)
 
 
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical UPVSegd where
- pprp (UPVSegd _ vsegids upssegd)
+ pprp (UPVSegd _ _ vsegids _ upssegd)
   = vcat
   [ text "UPVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ V.toList vsegids))
   , pprp upssegd ]
@@ -110,8 +132,9 @@ mkUPVSegd
         -> UPSSegd      -- ^ Scattered segment descriptor defining the physical segments.
         -> UPVSegd
 
-mkUPVSegd = UPVSegd False
-{-# NOINLINE mkUPVSegd #-}
+mkUPVSegd vsegids ussegd
+        = UPVSegd False vsegids vsegids ussegd ussegd
+{-# INLINE_UP mkUPVSegd #-}
 
 
 -- | O(segs). Promote a `UPSSegd` to a `UPVSegd`.
@@ -122,10 +145,9 @@ mkUPVSegd = UPVSegd False
 --
 fromUPSSegd :: UPSSegd -> UPVSegd
 fromUPSSegd upssegd
-    = UPVSegd   True
-                (V.enumFromTo 0 (UPSSegd.length upssegd - 1))
-                upssegd
-{-# NOINLINE fromUPSSegd #-}
+ = let  vsegids = V.enumFromTo 0 (UPSSegd.length upssegd - 1)
+   in   UPVSegd True vsegids vsegids upssegd upssegd
+{-# INLINE_UP fromUPSSegd #-}
 
 
 -- | O(segs). Promote a `UPSegd` to a `UPVSegd`.
@@ -135,21 +157,27 @@ fromUPSSegd upssegd
 --
 fromUPSegd :: UPSegd -> UPVSegd
 fromUPSegd      = fromUPSSegd . UPSSegd.fromUPSegd
-{-# NOINLINE fromUPSegd #-}
+{-# INLINE_UP fromUPSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPVSegd
-empty           = UPVSegd True V.empty UPSSegd.empty
-{-# NOINLINE empty #-}
+empty
+ = let  vsegids = V.empty
+        upssegd = UPSSegd.empty
+   in   UPVSegd True vsegids vsegids upssegd upssegd
+{-# INLINE_UP empty #-}
 
 
 -- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> UPVSegd
-singleton n     = UPVSegd True (V.singleton 0) (UPSSegd.singleton n)
-{-# NOINLINE singleton #-}
+singleton n
+ = let  vsegids = V.singleton 0
+        upssegd = UPSSegd.singleton n
+   in   UPVSegd True vsegids vsegids upssegd upssegd
+{-# INLINE_UP singleton #-}
 
 
 -- Predicates -----------------------------------------------------------------
@@ -172,8 +200,8 @@ isManifest      = upvsegd_manifest
 --   array, and consumers can avoid looking at the real starts and
 --   sources fields.
 --
-isContiguous :: UPVSegd -> Bool
-isContiguous    = UPSSegd.isContiguous . upvsegd_upssegd
+isContiguous    :: UPVSegd -> Bool
+isContiguous    = UPSSegd.isContiguous . upvsegd_upssegd_culled
 {-# INLINE isContiguous #-}
 
 
@@ -182,20 +210,32 @@ isContiguous    = UPSSegd.isContiguous . upvsegd_upssegd
 
 -- | O(1). Yield the overall number of segments.
 length :: UPVSegd -> Int
-length          = V.length . upvsegd_vsegids
+length          = V.length . upvsegd_vsegids_redundant
 {-# INLINE length #-}
 
 
 -- | O(1). Yield the virtual segment ids of `UPVSegd`.
 takeVSegids :: UPVSegd -> Vector Int
-takeVSegids     = upvsegd_vsegids
+takeVSegids     = upvsegd_vsegids_culled
 {-# INLINE takeVSegids #-}
+
+
+-- | O(1). Yield the redundant virtual segment ids of `UPVSegd`.
+takeVSegidsRedundant :: UPVSegd -> Vector Int
+takeVSegidsRedundant = upvsegd_vsegids_redundant
+{-# INLINE takeVSegidsRedundant #-}
 
 
 -- | O(1). Yield the `UPSSegd` of `UPVSegd`.
 takeUPSSegd :: UPVSegd -> UPSSegd
-takeUPSSegd     = upvsegd_upssegd
+takeUPSSegd     = upvsegd_upssegd_culled
 {-# INLINE takeUPSSegd #-}
+
+
+-- | O(1). Yield the redundant `UPSSegd` of `UPVSegd`.
+takeUPSSegdRedundant :: UPVSegd -> UPSSegd
+takeUPSSegdRedundant    = upvsegd_upssegd_redundant
+{-# INLINE takeUPSSegdRedundant #-}
 
 
 -- | O(segs). Yield the lengths of the segments described by a `UPVSegd`.
@@ -203,7 +243,7 @@ takeUPSSegd     = upvsegd_upssegd
 --   TODO: This is slow and sequential.
 --
 takeLengths :: UPVSegd -> Vector Int
-takeLengths (UPVSegd manifest vsegids upssegd)
+takeLengths (UPVSegd manifest _ vsegids _ upssegd)
  | manifest     = UPSSegd.takeLengths upssegd
  | otherwise    = V.map (UPSSegd.takeLengths upssegd V.!) vsegids
 {-# NOINLINE takeLengths #-}
@@ -219,8 +259,11 @@ takeLengths (UPVSegd manifest vsegids upssegd)
 --        to a UVSegd index it could overflow.
 --
 getSeg :: UPVSegd -> Int -> (Int, Int, Int)
-getSeg (UPVSegd _ vsegids upssegd) ix
- = let  (len, _index, start, source) = UPSSegd.getSeg upssegd (vsegids V.! ix)
+getSeg upvsegd ix
+ = let  vsegids = upvsegd_vsegids_redundant upvsegd
+        upssegd = upvsegd_upssegd_redundant upvsegd
+        (len, _index, start, source)
+                = UPSSegd.getSeg upssegd (vsegids V.! ix)
    in   (len, start, source)
 {-# INLINE_UP getSeg #-}
 
@@ -236,12 +279,12 @@ getSeg (UPVSegd _ vsegids upssegd) ix
 --     segmentation from a nested array.
 -- 
 demoteToUPSSegd :: UPVSegd -> UPSSegd
-demoteToUPSSegd (UPVSegd True _vsegids upssegd)
- = upssegd
-
-demoteToUPSSegd (UPVSegd False vsegids upssegd)
- = {-# SCC "demoteToUPSegd" #-}
-   let  starts'         = bpermuteUP (UPSSegd.takeStarts  upssegd) vsegids
+demoteToUPSSegd upvsegd
+ | upvsegd_manifest upvsegd     = upvsegd_upssegd_culled upvsegd
+ | otherwise
+ = let  vsegids         = upvsegd_vsegids_culled upvsegd
+        upssegd         = upvsegd_upssegd_culled upvsegd
+        starts'         = bpermuteUP (UPSSegd.takeStarts  upssegd) vsegids
         sources'        = bpermuteUP (UPSSegd.takeSources upssegd) vsegids
         lengths'        = bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
         upsegd'         = UPSegd.fromLengths lengths'
@@ -267,7 +310,7 @@ demoteToUPSSegd (UPVSegd False vsegids upssegd)
 --   TODO: if the upvsegd is manifest and contiguous this can be O(1).
 --
 unsafeDemoteToUPSegd :: UPVSegd -> UPSegd
-unsafeDemoteToUPSegd (UPVSegd _ vsegids upssegd)
+unsafeDemoteToUPSegd (UPVSegd _ _ vsegids _ upssegd)
         = {-# SCC "unsafeDemoteToUPSegd" #-}
           UPSegd.fromLengths
         $ bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
@@ -289,12 +332,24 @@ unsafeDemoteToUPSegd (UPVSegd _ vsegids upssegd)
 --     It runs the sequential 'cull' then reconstructs the UPSSegd.
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-updateVSegs fUpdate (UPVSegd _ vsegids upssegd)
- = let  (vsegids', ussegd') 
-                = USSegd.cullOnVSegids (fUpdate vsegids) 
-                $ UPSSegd.takeUSSegd upssegd
+updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _)
+ = let  
+        -- When we transform the vsegids, we don't know whether they all 
+        -- made it into the result. 
+        vsegids_redundant      = fUpdate vsegids
+ 
+        -- Cull the psegs down to just those reachable from the vsegids, 
+        -- but do it lazilly so consumers can avoid demanding this 
+        -- culled version and save creating it.
+        (  vsegids_culled
+         , ussegd_culled)       = USSegd.cullOnVSegids vsegids_redundant
+                                $ UPSSegd.takeUSSegd upssegd
 
-   in   UPVSegd False vsegids' (UPSSegd.fromUSSegd ussegd')
+        upssegd_culled          = UPSSegd.fromUSSegd ussegd_culled
+
+   in   UPVSegd False
+                vsegids_redundant vsegids_culled
+                upssegd           upssegd_culled
 {-# INLINE_UP updateVSegs #-}
 --  INLINE_UP because we want to inline the parameter function fUpdate.
 
@@ -312,8 +367,9 @@ updateVSegs fUpdate (UPVSegd _ vsegids upssegd)
 --     but can be expensive in absolute terms.
 --   
 updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-updateVSegsReachable fUpdate (UPVSegd _ vsegids upssegd)
- = UPVSegd False (fUpdate vsegids) upssegd
+updateVSegsReachable fUpdate (UPVSegd _ _ vsegids _ upssegd)
+ = let  vsegids' = fUpdate vsegids
+   in   UPVSegd False vsegids' vsegids' upssegd upssegd
 {-# INLINE_UP updateVSegsReachable #-}
 --  INLINE_UP because we want to inline the parameter function fUpdate.
 
@@ -332,8 +388,8 @@ appendWith
         -> UPVSegd
 
 appendWith
-        (UPVSegd _ vsegids1 upssegd1) pdatas1
-        (UPVSegd _ vsegids2 upssegd2) pdatas2
+        (UPVSegd _ _ vsegids1 _ upssegd1) pdatas1
+        (UPVSegd _ _ vsegids2 _ upssegd2) pdatas2
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
@@ -347,7 +403,7 @@ appendWith
                                 upssegd1 pdatas1
                                 upssegd2 pdatas2
                                  
-   in   UPVSegd False vsegids' upssegd'
+   in   UPVSegd False vsegids' vsegids' upssegd' upssegd'
 {-# NOINLINE appendWith #-}
 
 
@@ -367,8 +423,8 @@ combine2
         
 combine2
         upsel2
-        (UPVSegd _ vsegids1 upssegd1) pdatas1
-        (UPVSegd _ vsegids2 upssegd2) pdatas2
+        (UPVSegd _ _ vsegids1 _ upssegd1) pdatas1
+        (UPVSegd _ _ vsegids2 _ upssegd2) pdatas2
 
  = let  -- vsegids relative to combined psegs
         vsegids1' = vsegids1
@@ -383,6 +439,6 @@ combine2
                                 upssegd1 pdatas1
                                 upssegd2 pdatas2
                                   
-   in   UPVSegd False vsegids' upssegd'
+   in   UPVSegd False vsegids' vsegids' upssegd' upssegd'
 {-# NOINLINE combine2 #-}
 

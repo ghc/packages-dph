@@ -65,11 +65,13 @@ instance PR Double where
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR _ arr@(PNested vsegd psegdatas) (PInt ixs)
-   = PDouble $ U.zipWith get (pnested_vsegids arr) ixs
+   = PDouble $ U.zipWith get vsegids ixs
    where
          -- Unbox these vectors outside the get loop.
-         !psegsrcids    = U.takeVSegidsOfVSegd vsegd
-         !psegstarts    = U.startsSSegd $ U.takeSSegdOfVSegd vsegd
+         !vsegids       = U.takeVSegidsRedundantOfVSegd vsegd
+         !ssegd         = U.takeSSegdRedundantOfVSegd vsegd
+         !psegsrcids    = U.sourcesSSegd ssegd
+         !psegstarts    = U.startsSSegd  ssegd
          !psegvecs      = V.map (\(PDouble vec) -> vec) psegdatas
 
          -- Lookup a single element from a virtual segment.

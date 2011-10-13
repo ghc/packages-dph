@@ -143,26 +143,28 @@ appendSSegd             = USSegd.append
 
 
 -- Virtual Segment Descriptors ------------------------------------------------
-type VSegd              = UVSegd.UVSegd
-mkVSegd                 = UVSegd.mkUVSegd
-validVSegd              = UVSegd.valid
-promoteSegdToVSegd      = UVSegd.fromUSegd
-promoteSSegdToVSegd     = UVSegd.fromUSSegd
-isManifestVSegd         = UVSegd.isManifest
-isContiguousVSegd       = UVSegd.isContiguous
-emptyVSegd              = UVSegd.empty
-singletonVSegd          = UVSegd.singleton
-lengthOfVSegd           = UVSegd.length
-takeVSegidsOfVSegd      = UVSegd.takeVSegids
-takeSSegdOfVSegd        = UVSegd.takeUSSegd
-takeLengthsOfVSegd      = UVSegd.takeLengths
-getSegOfVSegd           = UVSegd.getSeg
-demoteToSSegdOfVSegd    = UVSegd.toUSSegd
-demoteToSegdOfVSegd     = UVSegd.unsafeMaterialize
-updateVSegsOfVSegd      = UVSegd.updateVSegs
-updateVSegsReachableOfVSegd = UVSegd.updateVSegsReachable
-appendVSegd             = UVSegd.append
-combine2VSegd           = UVSegd.combine2
+type VSegd                      = UVSegd.UVSegd
+mkVSegd                         = UVSegd.mkUVSegd
+validVSegd                      = UVSegd.valid
+promoteSegdToVSegd              = UVSegd.fromUSegd
+promoteSSegdToVSegd             = UVSegd.fromUSSegd
+isManifestVSegd                 = UVSegd.isManifest
+isContiguousVSegd               = UVSegd.isContiguous
+emptyVSegd                      = UVSegd.empty
+singletonVSegd                  = UVSegd.singleton
+lengthOfVSegd                   = UVSegd.length
+takeVSegidsOfVSegd              = UVSegd.takeVSegids
+takeVSegidsRedundantOfVSegd     = UVSegd.takeVSegids
+takeSSegdOfVSegd                = UVSegd.takeUSSegd
+takeSSegdRedundantOfVSegd       = UVSegd.takeUSSegd
+takeLengthsOfVSegd              = UVSegd.takeLengths
+getSegOfVSegd                   = UVSegd.getSeg
+demoteToSSegdOfVSegd            = UVSegd.toUSSegd
+demoteToSegdOfVSegd             = UVSegd.unsafeMaterialize
+updateVSegsOfVSegd              = UVSegd.updateVSegs
+updateVSegsReachableOfVSegd     = UVSegd.updateVSegsReachable
+appendVSegd                     = UVSegd.append
+combine2VSegd                   = UVSegd.combine2
 
 
 -- Selectors ------------------------------------------------------------------

@@ -242,7 +242,7 @@ instance PR a => PR (PArray a) where
   --
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR segd (PNested uvsegd pdata)
-   = PNested (U.updateVSegsOfVSegd      -- TODO use updateReachable if there are no zero len segments.
+   = PNested (U.updateVSegsOfVSegd
                 (\vsegids -> U.replicate_s segd vsegids) uvsegd)
              pdata  
 

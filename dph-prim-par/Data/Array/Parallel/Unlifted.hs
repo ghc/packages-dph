@@ -264,26 +264,28 @@ appendSSegd             = UPSSegd.appendWith
 
 
 -- Virtual Segment Descriptors ------------------------------------------------
-type VSegd              = UPVSegd.UPVSegd
-mkVSegd                 = UPVSegd.mkUPVSegd
-validVSegd              = UPVSegd.valid
-promoteSegdToVSegd      = UPVSegd.fromUPSegd
-promoteSSegdToVSegd     = UPVSegd.fromUPSSegd
-emptyVSegd              = UPVSegd.empty
-singletonVSegd          = UPVSegd.singleton
-isManifestVSegd         = UPVSegd.isManifest
-isContiguousVSegd       = UPVSegd.isContiguous
-lengthOfVSegd           = UPVSegd.length
-takeVSegidsOfVSegd      = UPVSegd.takeVSegids
-takeSSegdOfVSegd        = UPVSegd.takeUPSSegd
-takeLengthsOfVSegd      = UPVSegd.takeLengths
-getSegOfVSegd           = UPVSegd.getSeg
-demoteToSSegdOfVSegd    = UPVSegd.demoteToUPSSegd
-demoteToSegdOfVSegd     = UPVSegd.unsafeDemoteToUPSegd
-updateVSegsOfVSegd      = UPVSegd.updateVSegs
-updateVSegsReachableOfVSegd = UPVSegd.updateVSegsReachable
-appendVSegd             = UPVSegd.appendWith
-combine2VSegd           = UPVSegd.combine2
+type VSegd                      = UPVSegd.UPVSegd
+mkVSegd                         = UPVSegd.mkUPVSegd
+validVSegd                      = UPVSegd.valid
+promoteSegdToVSegd              = UPVSegd.fromUPSegd
+promoteSSegdToVSegd             = UPVSegd.fromUPSSegd
+emptyVSegd                      = UPVSegd.empty
+singletonVSegd                  = UPVSegd.singleton
+isManifestVSegd                 = UPVSegd.isManifest
+isContiguousVSegd               = UPVSegd.isContiguous
+lengthOfVSegd                   = UPVSegd.length
+takeVSegidsOfVSegd              = UPVSegd.takeVSegids
+takeVSegidsRedundantOfVSegd     = UPVSegd.takeVSegidsRedundant
+takeSSegdOfVSegd                = UPVSegd.takeUPSSegd
+takeSSegdRedundantOfVSegd       = UPVSegd.takeUPSSegdRedundant
+takeLengthsOfVSegd              = UPVSegd.takeLengths
+getSegOfVSegd                   = UPVSegd.getSeg
+demoteToSSegdOfVSegd            = UPVSegd.demoteToUPSSegd
+demoteToSegdOfVSegd             = UPVSegd.unsafeDemoteToUPSegd
+updateVSegsOfVSegd              = UPVSegd.updateVSegs
+updateVSegsReachableOfVSegd     = UPVSegd.updateVSegsReachable
+appendVSegd                     = UPVSegd.appendWith
+combine2VSegd                   = UPVSegd.combine2
 
 
 -- Selectors ------------------------------------------------------------------
