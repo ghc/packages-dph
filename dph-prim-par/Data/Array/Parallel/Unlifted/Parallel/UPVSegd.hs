@@ -35,6 +35,8 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd (
 
         -- * Operators
         updateVSegs,
+        updateVSegsReachable,
+
         appendWith,
         combine2,
 ) where
@@ -99,6 +101,9 @@ valid UPVSegd{} = True
 
 
 -- Constructors ---------------------------------------------------------------
+-- NOTE: these are NOINLINE for now just so it's easier to read the core.
+--       we can INLINE them later.
+
 -- | O(1). Construct a new virtual segment descriptor.
 mkUPVSegd
         :: Vector Int   -- ^ Array saying which physical segment to use for each virtual segment.
@@ -194,11 +199,16 @@ takeUPSSegd     = upvsegd_upssegd
 
 
 -- | O(segs). Yield the lengths of the segments described by a `UPVSegd`.
+--
+--   TODO: This is slow and sequential.
+--
 takeLengths :: UPVSegd -> Vector Int
 takeLengths (UPVSegd manifest vsegids upssegd)
  | manifest     = UPSSegd.takeLengths upssegd
  | otherwise    = V.map (UPSSegd.takeLengths upssegd V.!) vsegids
 {-# NOINLINE takeLengths #-}
+--  NOINLINE because we don't want a case expression due to the test on the 
+--  manifest flag to appear in the core program.
 
 
 -- | O(1). Get the length, starting index, and source id of a segment.
@@ -230,7 +240,8 @@ demoteToUPSSegd (UPVSegd True _vsegids upssegd)
  = upssegd
 
 demoteToUPSSegd (UPVSegd False vsegids upssegd)
- = let  starts'         = bpermuteUP (UPSSegd.takeStarts  upssegd) vsegids
+ = {-# SCC "demoteToUPSegd" #-}
+   let  starts'         = bpermuteUP (UPSSegd.takeStarts  upssegd) vsegids
         sources'        = bpermuteUP (UPSSegd.takeSources upssegd) vsegids
         lengths'        = bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
         upsegd'         = UPSegd.fromLengths lengths'
@@ -253,9 +264,12 @@ demoteToUPSSegd (UPVSegd False vsegids upssegd)
 --   flat array. In this case the index overflow doesn't matter too much
 --   because the program would OOM anyway.
 --
+--   TODO: if the upvsegd is manifest and contiguous this can be O(1).
+--
 unsafeDemoteToUPSegd :: UPVSegd -> UPSegd
 unsafeDemoteToUPSegd (UPVSegd _ vsegids upssegd)
-        = UPSegd.fromLengths
+        = {-# SCC "unsafeDemoteToUPSegd" #-}
+          UPSegd.fromLengths
         $ bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
 {-# NOINLINE unsafeDemoteToUPSegd #-}
 --  NOINLINE because it's complicated and won't fuse with anything.
@@ -263,11 +277,16 @@ unsafeDemoteToUPSegd (UPVSegd _ vsegids upssegd)
 
 
 -- Operators ------------------------------------------------------------------
--- | Update the virtual segment ids of a UPVSegd and force out unreachable
---   physical segments from the contained UPSSegd.
+-- | Update the virtual segment ids of a `UPVSegd`, and then cull the physical
+--   segment descriptor so that all phsyical segments are reachable from
+--   some virtual segment.
 --
---   * TODO: make this parallel. It runs the sequential 'cull' then reconstructs
---     the UPSSegd.
+--   This function lets you perform filtering operations on the virtual segments,
+--   while maintaining the invariant that all physical segments are referenced
+--   by some virtual segment.
+--
+--   * TODO: make this parallel.
+--     It runs the sequential 'cull' then reconstructs the UPSSegd.
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
 updateVSegs fUpdate (UPVSegd _ vsegids upssegd)
@@ -280,7 +299,29 @@ updateVSegs fUpdate (UPVSegd _ vsegids upssegd)
 --  INLINE_UP because we want to inline the parameter function fUpdate.
 
 
+-- | Update the virtual segment ids of `UPVSegd`, where the result covers
+--   all physical segments.
+--
+--   * The resulting vsegids must cover all physical segments.
+--     If they do not then there will be physical segments that are not 
+--     reachable from some virtual segment, and performing operations like
+--     segmented fold will waste work.
+--
+--   * Using this version saves performing the 'cull' operation which 
+--     discards unreachable physical segments. This is O(result segments), 
+--     but can be expensive in absolute terms.
+--   
+updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
+updateVSegsReachable fUpdate (UPVSegd _ vsegids upssegd)
+ = UPVSegd False (fUpdate vsegids) upssegd
+{-# INLINE_UP updateVSegsReachable #-}
+--  INLINE_UP because we want to inline the parameter function fUpdate.
+
+
 -- Append ---------------------------------------------------------------------
+-- NOTE: these are NOINLINE for now just so it's easier to read the core.
+--       we can INLINE them later.
+
 -- | Produce a segment descriptor that describes the result of appending two arrays.
 -- 
 --   * TODO: make this parallel.
@@ -311,6 +352,9 @@ appendWith
 
 
 -- Combine --------------------------------------------------------------------
+-- NOTE: these are NOINLINE for now just so it's easier to read the core.
+--       we can INLINE them later.
+
 -- | Combine two virtual segment descriptors.
 --
 --   * TODO: make this parallel. 

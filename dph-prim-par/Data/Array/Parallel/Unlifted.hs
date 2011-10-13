@@ -264,7 +264,6 @@ appendSSegd             = UPSSegd.appendWith
 
 
 -- Virtual Segment Descriptors ------------------------------------------------
--- TODO: these point to sequential segd ops.
 type VSegd              = UPVSegd.UPVSegd
 mkVSegd                 = UPVSegd.mkUPVSegd
 validVSegd              = UPVSegd.valid
@@ -282,6 +281,7 @@ getSegOfVSegd           = UPVSegd.getSeg
 demoteToSSegdOfVSegd    = UPVSegd.demoteToUPSSegd
 demoteToSegdOfVSegd     = UPVSegd.unsafeDemoteToUPSegd
 updateVSegsOfVSegd      = UPVSegd.updateVSegs
+updateVSegsReachableOfVSegd = UPVSegd.updateVSegsReachable
 appendVSegd             = UPVSegd.appendWith
 combine2VSegd           = UPVSegd.combine2
 

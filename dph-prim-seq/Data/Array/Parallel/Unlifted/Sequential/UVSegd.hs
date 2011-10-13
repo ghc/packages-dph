@@ -208,12 +208,39 @@ getSeg (UVSegd _ vsegids ussegd) ix
 
    
 -- Operators ------------------------------------------------------------------
--- | TODO: automatically force out unreachable psegs here.
+-- | Update the virtual segment ids of a `UPVSegd`, and then cull the physical
+--   segment descriptor so that all phsyical segments are reachable from
+--   some virtual segment.
+--
+--   This function lets you perform filtering operations on the virtual segments,
+--   while maintaining the invariant that all physical segments are referenced
+--   by some virtual segment.
+-- 
 updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
 updateVSegs f (UVSegd _ vsegids ussegd)
- = let  (vsegids', ussegd') = USSegd.cullOnVSegids (f vsegids) ussegd
+ = let  (vsegids', ussegd') = cullOnVSegids (f vsegids) ussegd
    in   UVSegd False vsegids' ussegd'
 {-# INLINE_U updateVSegs #-}
+--  INLINE_UP because we want to inline the parameter function fUpdate.
+
+
+-- | Update the virtual segment ids of `UPVSegd`, where the result covers
+--   all physical segments.
+--
+--   * The resulting vsegids must cover all physical segments.
+--     If they do not then there will be physical segments that are not 
+--     reachable from some virtual segment, and performing operations like
+--     segmented fold will waste work.
+--
+--   * Using this version saves performing the 'cull' operation which 
+--     discards unreachable physical segments. This is O(result segments), 
+--     but can be expensive in absolute terms.
+--   
+updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
+updateVSegsReachable fUpdate (UPVSegd _ vsegids upssegd)
+ = UPVSegd False (fUpdate vsegids) upssegd
+{-# INLINE_UP updateVSegsReachable #-}
+--  INLINE_UP because we want to inline the parameter function fUpdate.
 
 
 -- | O(segs). Yield a `USSegd` that describes each segment of a `UVSegd` individually.

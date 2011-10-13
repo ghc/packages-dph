@@ -97,6 +97,7 @@ module Data.Array.Parallel.Unlifted (
   demoteToSSegdOfVSegd,
   demoteToSegdOfVSegd,
   updateVSegsOfVSegd,
+  updateVSegsReachableOfVSegd,
   appendVSegd,
   combine2VSegd,
   
