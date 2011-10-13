@@ -87,6 +87,7 @@ valid _ = True
 {-# NOINLINE valid #-}
 --  NOINLINE because it's only used during debugging anyway.
 
+
 -- Constructors ---------------------------------------------------------------
 -- | Construct a new segment descriptor.
 mkUPSSegd 
@@ -97,7 +98,7 @@ mkUPSSegd
 
 mkUPSSegd starts sources upsegd
         = fromUSSegd (USSegd.mkUSSegd starts sources (UPSegd.takeUSegd upsegd))
-{-# NOINLINE mkUPSSegd #-}
+{-# INLINE_UP mkUPSSegd #-}
 
 
 -- | Promote a global `USSegd` to a parallel `UPSSegd` by distributing
@@ -105,7 +106,7 @@ mkUPSSegd starts sources upsegd
 fromUSSegd :: USSegd -> UPSSegd
 fromUSSegd ssegd 
         = UPSSegd ssegd (DUSSegd.splitSSegdOnElemsD theGang ssegd)
-{-# NOINLINE fromUSSegd #-}
+{-# INLINE_UP fromUSSegd #-}
 
 
 -- | Promote a plain `UPSegd` to a `UPSSegd`, by assuming that all segments
@@ -119,13 +120,13 @@ fromUSSegd ssegd
 fromUPSegd :: UPSegd -> UPSSegd
 fromUPSegd upsegd
         = fromUSSegd $ USSegd.fromUSegd $ UPSegd.takeUSegd upsegd
-{-# NOINLINE fromUPSegd #-}
+{-# INLINE_UP fromUPSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSSegd
 empty   = fromUSSegd USSegd.empty
-{-# NOINLINE empty #-}
+{-# INLINE_UP empty #-}
 
 
 -- | O(1).
@@ -133,10 +134,12 @@ empty   = fromUSSegd USSegd.empty
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSSegd
 singleton n = fromUSSegd $ USSegd.singleton n
-{-# NOINLINE singleton #-}
+{-# INLINE_UP singleton #-}
 
 
 -- Predicates -----------------------------------------------------------------
+-- INLINE trivial predicates as they'll expand to a simple calls.
+
 -- | O(1). True when the starts are identical to the usegd indices field and
 --   the sources are all 0's. 
 --
@@ -233,6 +236,7 @@ appendWith upssegd1 pdatas1
  $ USSegd.append (upssegd_ussegd upssegd1) pdatas1
                  (upssegd_ussegd upssegd2) pdatas2
 {-# NOINLINE appendWith #-}
+--  NOINLINE because we're not using it yet.
 
 
 -- Fold -----------------------------------------------------------------------

@@ -160,6 +160,7 @@ getSegOfVSegd           = UVSegd.getSeg
 demoteToSSegdOfVSegd    = UVSegd.toUSSegd
 demoteToSegdOfVSegd     = UVSegd.unsafeMaterialize
 updateVSegsOfVSegd      = UVSegd.updateVSegs
+updateVSegsReachableOfVSegd = UVSegd.updateVSegsReachable
 appendVSegd             = UVSegd.append
 combine2VSegd           = UVSegd.combine2
 

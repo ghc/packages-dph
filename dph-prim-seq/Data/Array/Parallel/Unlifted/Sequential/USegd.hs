@@ -66,7 +66,7 @@ mkUSegd
         -> USegd
 
 mkUSegd = USegd
-{-# INLINE mkUSegd #-}
+{-# INLINE_U mkUSegd #-}
 
 
 -- | O(1). Check the internal consistency of a scattered segment descriptor.

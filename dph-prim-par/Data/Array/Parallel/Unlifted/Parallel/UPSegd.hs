@@ -80,27 +80,27 @@ mkUPSegd
 
 mkUPSegd lens idxs n
         = fromUSegd (USegd.mkUSegd lens idxs n)
-{-# NOINLINE mkUPSegd #-}
+{-# INLINE_UP mkUPSegd #-}
 
 
 -- | Convert a global `USegd` to a parallel `UPSegd` by distributing 
 --   it across the gang.
 fromUSegd :: USegd -> UPSegd
 fromUSegd segd   = UPSegd segd (USegd.splitSegdOnElemsD theGang segd)
-{-# NOINLINE fromUSegd #-}
+{-# INLINE_UP fromUSegd #-}
 
 
 -- | O(1). Yield an empty segment descriptor, with no elements or segments.
 empty :: UPSegd
 empty           = fromUSegd USegd.empty
-{-# NOINLINE empty #-}
+{-# INLINE_UP empty #-}
 
 
 -- | O(1). Yield a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSegd
 singleton n     = fromUSegd $ USegd.singleton n
-{-# NOINLINE singleton #-}
+{-# INLINE_UP singleton #-}
 
 
 -- | O(n). Convert an array of segment lengths into a parallel segment descriptor.
@@ -110,7 +110,7 @@ singleton n     = fromUSegd $ USegd.singleton n
 --
 fromLengths :: Vector Int -> UPSegd
 fromLengths     = fromUSegd . USegd.fromLengths
-{-# NOINLINE fromLengths #-}
+{-# INLINE_UP fromLengths #-}
 
 
 -- Projections ----------------------------------------------------------------
@@ -173,6 +173,7 @@ indicesP
   where
     indices ((segd,k),off) = Seq.indicesSU' off segd
 {-# NOINLINE indicesP #-}
+--  NOINLINE because we're not using it yet.
 
 
 -- Replicate ------------------------------------------------------------------

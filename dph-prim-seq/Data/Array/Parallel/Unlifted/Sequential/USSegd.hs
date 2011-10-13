@@ -146,6 +146,7 @@ fromUSegd usegd
 
 
 -- Predicates -----------------------------------------------------------------
+-- INLINE trivial projections as they'll expand to a single record selector.
 isContiguous :: USSegd -> Bool
 isContiguous    = ussegd_contiguous
 {-# INLINE isContiguous #-}
@@ -231,7 +232,8 @@ append (USSegd _ starts1 srcs1 usegd1) pdatas1
 --
 cullOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
 cullOnVSegids vsegids (USSegd _ starts sources usegd)
- = let  -- Determine which of the psegs are still reachable from the vsegs.
+ = {-# SCC "cullOnVSegids" #-}
+ let    -- Determine which of the psegs are still reachable from the vsegs.
         -- This produces an array of flags, 
         --    with reachable   psegs corresponding to 1
         --    and  unreachable psegs corresponding to 0
@@ -289,10 +291,10 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
 
 {-# NOINLINE cullOnVSegids #-}
 --  NOINLINE because it's complicated and won't fuse with anything
+--  This can also be expensive and we want to see the SCC in profiling builds.
 
 
-
-
+-- Stream Functions -----------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
 --   TODO: make this more efficient, and fix fusion.
 --         We should be able to eliminate a lot of the indexing happening in the 
@@ -305,10 +307,12 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
 
 streamSegs
         :: Unbox a
-        => USSegd               -- ^ Segment descriptor defining segments based on source vectors.
+        => USSegd               -- ^ Segment descriptor defining segments base
+                                --   on source vectors.
         -> V.Vector (Vector a)  -- ^ Source vectors.
         -> S.Stream a
 
+{-# INLINE_STREAM streamSegs #-}
 streamSegs ussegd@(USSegd _ starts sources usegd) pdatas
  = let  
         -- length of each segment
@@ -335,5 +339,4 @@ streamSegs ussegd@(USSegd _ starts sources usegd) pdatas
 
    in   M.Stream fn (0, 0) S.Unknown
 
-{-# INLINE_STREAM streamSegs #-}
 
