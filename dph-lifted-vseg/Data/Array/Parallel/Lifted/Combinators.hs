@@ -131,8 +131,10 @@ mapPA_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
  = let  argFlat         = concatPR arg
         c               = lengthPR argFlat
 
-        vseglens        = U.takeLengthsOfVSegd vsegd
-        envsReplicated  = replicatesPR vseglens envs
+        -- TODO: rename this as unsafeDemoteToSegdOfVSegd.. it might overflow
+        segd            = U.demoteToSegdOfVSegd vsegd
+
+        envsReplicated  = replicatesPR segd envs
         arrResult       = fl c envsReplicated argFlat
 
   in    unconcatPR arg arrResult

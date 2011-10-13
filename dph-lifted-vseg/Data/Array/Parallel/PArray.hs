@@ -102,7 +102,7 @@ replicatePA n x
 {-# INLINE_PA replicatesPA #-}
 replicatesPA :: PA a => U.Array Int -> PArray a -> PArray a
 replicatesPA repCounts (PArray _ darr)
-        = PArray (U.sum repCounts) (replicatesPR repCounts darr)
+        = PArray (U.sum repCounts) (replicatesPR (U.lengthsToSegd repCounts) darr)
 
 
 -- | Convert a `Vector` to a `PArray`

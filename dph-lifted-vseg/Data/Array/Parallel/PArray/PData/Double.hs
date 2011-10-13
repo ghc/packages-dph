@@ -56,8 +56,8 @@ instance PR Double where
         = PDouble (U.replicate len x)
 
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR lens (PDouble arr)
-        = PDouble (U.replicate_s (U.lengthsToSegd lens) arr)
+  replicatesPR segd (PDouble arr)
+        = PDouble (U.replicate_s segd arr)
                 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix

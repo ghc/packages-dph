@@ -51,8 +51,8 @@ instance PR Int where
         = PInt (U.replicate len x)
 
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR lens (PInt arr)
-        = PInt (U.replicate_s (U.lengthsToSegd lens) arr)
+  replicatesPR segd (PInt arr)
+        = PInt (U.replicate_s segd arr)
                 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PInt arr) ix

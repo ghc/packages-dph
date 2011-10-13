@@ -93,9 +93,13 @@ class PR a where
                 -> a            -- ^ element to replicate.
                 -> PData a
 
-  -- | Segmented replicate.
-  --   O(sum lengths). 
-  replicatesPR       :: U.Array Int -> PData a -> PData a
+  -- | O(sum lengths). Segmented replicate.
+  --   NOTE: This takes a whole Segd instead of just the lengths, because we can
+  --   do it more efficiently if we know there are no zero lengths.
+  --   TODO: the Segd should actually keep track of whether there are zero lengths.
+  replicatesPR  :: U.Segd               -- ^ segment descriptor defining the lengths of the segments.
+                -> PData a              -- ^ data elements to replicate
+                -> PData a
 
   -- | Lookup a single element from the source array.
   --   O(1). 

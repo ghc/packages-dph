@@ -51,8 +51,8 @@ instance PR () where
         = PUnit n
 
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR lens _
-        = PUnit (U.sum lens)
+  replicatesPR segd _
+        = PUnit (U.elementsSegd segd)
         
   {-# INLINE_PDATA indexPR #-}
   indexPR _ _

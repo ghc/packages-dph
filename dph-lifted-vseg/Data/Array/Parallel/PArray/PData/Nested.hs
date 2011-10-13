@@ -217,7 +217,6 @@ instance PR a => PR (PArray a) where
 
   -- When replicating an array we use the source as the single physical
   -- segment, then point all the virtual segments to it.
-  {-# NOINLINE replicatePR #-}
   replicatePR c (PArray n darr)
    = {-# SCC "replicatePR" #-}
      checkNotEmpty "replicatePR[PArray]" c
@@ -228,16 +227,24 @@ instance PR a => PR (PArray a) where
          uvsegd  = U.mkVSegd (U.replicate c 0) ussegd
 
      in  PNested uvsegd (V.singleton darr)
+  {-# NOINLINE replicatePR #-}
+  --  NOINLINE because it's a cheap segment descriptor operation, 
+  --  and doesn't need to fuse with anything.
                 
 
   -- For segmented replicates, we just replicate the vsegids field.
+  --
   -- TODO: Does replicate_s really need the whole segd,
   --       or could we get away without creating the indices field?
+  --
+  -- TODO: If we know the lens does not contain zeros, then we don't need
+  --       to cull down the psegs.
+  --
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR lens (PNested uvsegd pdata)
-   = let segd   = U.lengthsToSegd lens
-     in   PNested (U.updateVSegsOfVSegd (\vsegids -> U.replicate_s segd vsegids) uvsegd)
-                  pdata
+  replicatesPR segd (PNested uvsegd pdata)
+   = PNested (U.updateVSegsOfVSegd      -- TODO use updateReachable if there are no zero len segments.
+                (\vsegids -> U.replicate_s segd vsegids) uvsegd)
+             pdata  
 
 
   -- To index into a nested array, first determine what segment the index
@@ -482,7 +489,6 @@ instance PR a => PR (PArray a) where
 
 
 -------------------------------------------------------------------------------
-
 -- | O(len result). Concatenate a nested array.
 --
 --   This physically performs a 'gather' operation, whereby array data is copied
@@ -525,6 +531,8 @@ concatPR' (PNested vsegd pdatas)
           in   extractsPR pdatas ussegd
 
 {-# NOINLINE concatPR  #-}
+--  TODO: we'll need to inline this when we take the second branch, 
+--  to get specialisation for extractsPR.
 
 
 -- | Build a nested array given a single flat data vector, 
@@ -536,20 +544,24 @@ concatPR' (PNested vsegd pdatas)
 --   segmentation of the template array.
 --
 unconcatPR :: PR a => PData (PArray a) -> PData b -> PData (PArray b)
-unconcatPR arr1 arr2 = {-# SCC "unconcatPR" #-} unconcatPR' arr1 arr2
-unconcatPR' (PNested vsegd pdatas) arr
- = let  
-        -- Get the lengths of all the vsegs individually.
-        !vseglens       = U.takeLengthsOfVSegd vsegd
+unconcatPR (PNested vsegd pdatas) arr
+ = {-# SCC "unconcatPR" #-}
+   let  
+        -- Demote the vsegd to a manifest vsegd so it contains all the segment
+        -- lengths individually without going through the vsegids.
+        !segd           = U.demoteToSegdOfVSegd vsegd
 
-        -- Rebuild the segd based on these lengths, 
-        -- the resulting segd contains no sharing.
-        !vsegd'         = U.promoteSegdToVSegd
-                        $ U.lengthsToSegd vseglens
+        -- Rebuild the vsegd based on the manifest vsegd. 
+        -- The vsegids will be just [0..len-1], but this field is constructed
+        -- lazilly and consumers aren't required to demand it.
+        !vsegd'         = U.promoteSegdToVSegd segd
 
    in   PNested vsegd' (V.singleton arr)
 
 {-# NOINLINE unconcatPR #-}
+--  NOINLINE because it won't fuse with anything.
+--  The operations is also entierly on the segment descriptor, so we don't 
+--  need to inline it to specialise it for the element type.
 
 
 -- | Lifted concat.
@@ -567,6 +579,7 @@ concatlPR arr
                 (V.singleton darr2)
 
 {-# INLINE concatlPR #-}
+
 
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
