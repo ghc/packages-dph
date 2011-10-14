@@ -32,6 +32,7 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
         append,
         combine2,
         updateVSegs,
+        updateVSegsReachable,
         toUSSegd,
         unsafeMaterialize
 ) where
@@ -218,7 +219,7 @@ getSeg (UVSegd _ vsegids ussegd) ix
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
 updateVSegs f (UVSegd _ vsegids ussegd)
- = let  (vsegids', ussegd') = cullOnVSegids (f vsegids) ussegd
+ = let  (vsegids', ussegd') = USSegd.cullOnVSegids (f vsegids) ussegd
    in   UVSegd False vsegids' ussegd'
 {-# INLINE_U updateVSegs #-}
 --  INLINE_UP because we want to inline the parameter function fUpdate.
@@ -236,9 +237,9 @@ updateVSegs f (UVSegd _ vsegids ussegd)
 --     discards unreachable physical segments. This is O(result segments), 
 --     but can be expensive in absolute terms.
 --   
-updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-updateVSegsReachable fUpdate (UPVSegd _ vsegids upssegd)
- = UPVSegd False (fUpdate vsegids) upssegd
+updateVSegsReachable :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
+updateVSegsReachable fUpdate (UVSegd _ vsegids upssegd)
+ = UVSegd False (fUpdate vsegids) upssegd
 {-# INLINE_UP updateVSegsReachable #-}
 --  INLINE_UP because we want to inline the parameter function fUpdate.
 
