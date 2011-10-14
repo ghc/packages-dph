@@ -9,7 +9,8 @@
 
 -- | Define closures for each of the combinators the vectoriser uses.
 module Data.Array.Parallel.Lifted.Combinators 
-        ( singletonPP
+        ( emptyPP
+        , singletonPP
         , lengthPP
         , replicatePP
         , indexPP
@@ -52,17 +53,22 @@ import qualified Data.Vector                    as V
 --    up in a closure. The code produced by the vectoriser uses the *PP
 --    versions directly.
 
+-- empty ----------------------------------------------------------------------
+{-# INLINE_PA emptyPP #-}
+emptyPP :: PA a => PArray a
+emptyPP         = emptyPA 
+
 
 -- singleton ------------------------------------------------------------------
 {-# INLINE_PA singletonPP #-}
 singletonPP :: PA a => a :-> PArray a
-singletonPP     = closure1 singletonPA singletonPA_l
+singletonPP     = closure1 singletonPA singletonPD_l
 
 
-{-# INLINE singletonPA_l #-}
-singletonPA_l :: PA a => Int -> PData a -> PData (PArray a)
-singletonPA_l c xs 
-        = replicatePA_l c (PInt $ U.replicate c 1) xs
+{-# INLINE singletonPD_l #-}
+singletonPD_l :: PA a => Int -> PData a -> PData (PArray a)
+singletonPD_l c xs 
+        = replicatePD_l c (PInt $ U.replicate c 1) xs
         
 
 
@@ -70,13 +76,13 @@ singletonPA_l c xs
 -- | Take the number of elements in an array.
 {-# INLINE_PA lengthPP #-}
 lengthPP   :: PA a => PArray a :-> Int
-lengthPP        = closure1 lengthPA lengthPA_l
+lengthPP        = closure1 lengthPA lengthPD_l
 
 
-{-# INLINE lengthPA_l #-}
-lengthPA_l :: PA (PArray a)
+{-# INLINE lengthPD_l #-}
+lengthPD_l :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
-lengthPA_l _ (PNested vsegd _)
+lengthPD_l _ (PNested vsegd _)
         = PInt $ U.takeLengthsOfVSegd vsegd
 
 
@@ -84,13 +90,13 @@ lengthPA_l _ (PNested vsegd _)
 -- | Produce a new array by replicating a single element the given number of times.
 {-# INLINE_PA replicatePP #-}
 replicatePP     :: PA a => Int :-> a :-> PArray a
-replicatePP     = closure2 replicatePA replicatePA_l
+replicatePP     = closure2 replicatePA replicatePD_l
 
 
-{-# INLINE replicatePA_l #-}
-replicatePA_l   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
-replicatePA_l 0 _ _             = emptyPR
-replicatePA_l c (PInt lens) pdata
+{-# INLINE replicatePD_l #-}
+replicatePD_l   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
+replicatePD_l 0 _ _     = emptyPD
+replicatePD_l c (PInt lens) pdata
  = let  segd    = U.lengthsToSegd lens
    in   mkPNested
                 (U.replicate_s segd (U.enumFromTo 0 (c - 1)))
@@ -104,7 +110,7 @@ replicatePA_l c (PInt lens) pdata
 -- | Lookup a single element from the souce array.
 {-# INLINE_PA indexPP #-}
 indexPP :: PA a => PArray a :-> Int :-> a
-indexPP         = closure2 indexPA indexlPR
+indexPP         = closure2 indexPA indexlPD
 
 
 -- map ------------------------------------------------------------------------
@@ -112,60 +118,60 @@ indexPP         = closure2 indexPA indexlPR
 mapPP   :: (PA a, PA b) 
         => (a :-> b) :-> PArray a :-> PArray b
 
-mapPP   = closure2 mapPA_v mapPA_l
+mapPP   = closure2 mapPA_v mapPD_l
 
 
 {-# INLINE mapPA_v #-}
-mapPA_v :: (PR a, PR b)
+mapPA_v :: (PA a, PA b)
         => (a :-> b) -> PArray a -> PArray b
 mapPA_v (Clo _fv fl env) (PArray n as) 
-        = PArray n (fl n (replicatePR n env) as)
+        = PArray n (fl n (replicatePD n env) as)
 
 
-{-# INLINE mapPA_l #-}
-mapPA_l :: (PR (a :-> b), PR a, PR b)
+{-# INLINE mapPD_l #-}
+mapPD_l :: (PA (a :-> b), PA a, PA b)
         => Int  -> PData (a :-> b) 
                 -> PData (PArray a) -> PData (PArray b)
 
-mapPA_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
- = let  argFlat         = concatPR arg
-        c               = lengthPR argFlat
+mapPD_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
+ = let  argFlat         = concatPD arg
+        c               = lengthPD argFlat
 
         -- TODO: rename this as unsafeDemoteToSegdOfVSegd.. it might overflow
         segd            = U.demoteToSegdOfVSegd vsegd
 
-        envsReplicated  = replicatesPR segd envs
+        envsReplicated  = replicatesPD segd envs
         arrResult       = fl c envsReplicated argFlat
 
-  in    unconcatPR arg arrResult
+  in    unconcatPD arg arrResult
 
 
 -- append ---------------------------------------------------------------------
 {-# INLINE_PA appendPP #-}
 appendPP :: PA a => PArray a :-> PArray a :-> PArray a
-appendPP        = closure2 appendPA appendPA_l
+appendPP        = closure2 appendPA appendPD_l
 
-{-# INLINE appendPA_l #-}
-appendPA_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendPA_l _ arr1 arr2
-        = appendlPR arr1 arr2
+{-# INLINE appendPD_l #-}
+appendPD_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
+appendPD_l _ arr1 arr2
+        = appendlPD arr1 arr2
 
 
 -- slice ----------------------------------------------------------------------
 {-# INLINE_PA slicePP #-}
 slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
-slicePP         = closure3 slicePA slicePA_l
+slicePP         = closure3 slicePA slicePD_l
 
 
 {-# INLINE slicePA #-}
 slicePA :: PA a => Int -> Int -> PArray a -> PArray a
 slicePA start len (PArray _ darr)
-        = PArray len (extractPR darr start len)
+        = PArray len (extractPD darr start len)
 
 
-{-# INLINE slicePA_l #-}
-slicePA_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
-slicePA_l _ sliceStarts sliceLens arrs
+{-# INLINE slicePD_l #-}
+slicePD_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
+slicePD_l _ sliceStarts sliceLens arrs
         = slicelPR sliceStarts sliceLens arrs
 
 
@@ -173,20 +179,25 @@ slicePA_l _ sliceStarts sliceLens arrs
 {-# INLINE_PA concatPP #-}
 concatPP :: PA a => PArray (PArray a) :-> PArray a
 concatPP
-        = closure1 concatPA concatPA_l
+        = closure1 concatPA concatPD_l
 
 
-{-# INLINE concatPA_l #-}
-concatPA_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
-concatPA_l _ darr
-        = concatlPR darr
+{-# INLINE concatPD_l #-}
+concatPD_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
+concatPD_l _ darr
+        = concatlPD darr
 
 
 -- Tuple ======================================================================
 -- unzip ----------------------------------------------------------------------
 {-# INLINE_PA unzipPP #-}
 unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
-unzipPP = closure1 unzipPA unzipPA_l
+unzipPP = closure1 unzipPA unzipPD_l
+
+
+{-# INLINE unzipPD_l #-}
+unzipPD_l :: (PA a, PA b) => Int -> PData (PArray (a, b)) -> PData (PArray a, PArray b)
+unzipPD_l _ arr = unziplPD arr
 
 
 -- Scalar =====================================================================
@@ -212,12 +223,12 @@ intOfBool False = 0
 {-# INLINE_PA plusPP_int #-}
 plusPP_int      :: Int :-> Int :-> Int
 plusPP_int
-        = closure2 (+) plusPA_int_l
+        = closure2 (+) plusPD_int_l
 
 
-{-# INLINE plusPA_int_l #-}
-plusPA_int_l    :: Int -> PData Int -> PData Int -> PData Int
-plusPA_int_l _ (PInt arr1) (PInt arr2)
+{-# INLINE plusPD_int_l #-}
+plusPD_int_l    :: Int -> PData Int -> PData Int -> PData Int
+plusPD_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith (+) arr1 arr2)
 
 
@@ -225,12 +236,12 @@ plusPA_int_l _ (PInt arr1) (PInt arr2)
 {-# INLINE_PA multPP_double #-}
 multPP_double   :: Double :-> Double :-> Double
 multPP_double
-        = closure2 (*) multPA_double_l
+        = closure2 (*) multPD_double_l
 
 
-{-# INLINE multPA_double_l #-}
-multPA_double_l :: Int -> PData Double -> PData Double -> PData Double
-multPA_double_l _ (PDouble arr1) (PDouble arr2)
+{-# INLINE multPD_double_l #-}
+multPD_double_l :: Int -> PData Double -> PData Double -> PData Double
+multPD_double_l _ (PDouble arr1) (PDouble arr2)
         = PDouble (U.zipWith (*) arr1 arr2)
 
 
@@ -238,12 +249,12 @@ multPA_double_l _ (PDouble arr1) (PDouble arr2)
 {-# INLINE_PA divPP_int #-}
 divPP_int   :: Int :-> Int :-> Int
 divPP_int
-        = closure2 div divPA_int_l
+        = closure2 div divPD_int_l
 
 
-{-# INLINE divPA_int_l #-}
-divPA_int_l :: Int -> PData Int -> PData Int -> PData Int
-divPA_int_l _ (PInt arr1) (PInt arr2)
+{-# INLINE divPD_int_l #-}
+divPD_int_l :: Int -> PData Int -> PData Int -> PData Int
+divPD_int_l _ (PInt arr1) (PInt arr2)
         = PInt (U.zipWith div arr1 arr2)
 
 

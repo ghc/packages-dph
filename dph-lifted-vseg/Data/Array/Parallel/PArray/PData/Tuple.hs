@@ -147,10 +147,11 @@ unzipPA (PArray n (PTuple2 xs ys))
         = (PArray n xs, PArray n ys)
 
 
-{-# INLINE_PA unzipPA_l #-}
-unzipPA_l :: (PR a, PR b)
-          => Int -> PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unzipPA_l _ (PNested uvsegd psegdata)
+-- | Lifted unzip.
+{-# INLINE_PA unziplPR #-}
+unziplPR  :: (PR a, PR b)
+          => PData (PArray (a, b)) -> PData (PArray a, PArray b)
+unziplPR (PNested uvsegd psegdata)
  = let  (xsdata, ysdata)        = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
    in   PTuple2 (PNested uvsegd xsdata)
                 (PNested uvsegd ysdata)

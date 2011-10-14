@@ -143,10 +143,10 @@ class PR a where
                 -> PData a
 
   -- Conversions ---------------------
-  -- | Convert a list to an array
+  -- | Convert a boxed vector to an array.
   fromVectorPR  :: Vector a -> PData a
 
-  -- | Convert an array to a list
+  -- | Convert an array to a boxed vector.
   toVectorPR    :: PData a -> Vector a
 
   -- TODO: Shift these into the Scalar class like existing library.  

@@ -34,6 +34,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         , appendlPR)
 where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.Base
 
 import qualified Data.IntSet                    as IS
@@ -108,19 +109,6 @@ validBool :: String -> Bool -> Bool
 validBool str b
         = if b  then True 
                 else error $ "validBool check failed -- " ++ str
-
-
--- Constructors ---------------------------------------------------------------
--- | Flatten a nested array into its segment descriptor and data.
---
---   WARNING: Doing this to replicated arrays can cause index overflow.
---            See the warning in `unsafeMaterializeUVSegd`.
---
-unsafeFlattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-{-# INLINE unsafeFlattenPR #-}
-unsafeFlattenPR arr@(PNested uvsegd _)
- =      ( U.demoteToSegdOfVSegd uvsegd
-        , concatPR arr)
 
 
 instance U.Elt (Int, Int, Int)
@@ -489,6 +477,19 @@ instance PR a => PR (PArray a) where
 
 
 -------------------------------------------------------------------------------
+-- | Flatten a nested array into its segment descriptor and data.
+--
+--   WARNING: Doing this to replicated arrays can cause index overflow.
+--            See the warning in `unsafeMaterializeUVSegd`.
+--
+unsafeFlattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
+{-# INLINE unsafeFlattenPR #-}
+unsafeFlattenPR arr@(PNested uvsegd _)
+ =      ( U.demoteToSegdOfVSegd uvsegd
+        , concatPR arr)
+
+
+-------------------------------------------------------------------------------
 -- | O(len result). Concatenate a nested array.
 --
 --   This physically performs a 'gather' operation, whereby array data is copied
@@ -599,8 +600,7 @@ appendlPR  arr1 arr2
 --   have the same length.
 --   TODO: cleanup pnested projections
 slicelPR 
-        :: PR a
-        => PData Int            -- ^ starting indices of slices
+        :: PData Int            -- ^ starting indices of slices
         -> PData Int            -- ^ lengths of slices
         -> PData (PArray a)     -- ^ arrays to slice
         -> PData (PArray a)
