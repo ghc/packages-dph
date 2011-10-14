@@ -18,22 +18,29 @@ Library
   HS-Source-Dirs: ../dph-lifted-vseg
 
   Exposed-Modules:
+        Data.Array.Parallel.Lifted.Closure
+        Data.Array.Parallel.Lifted.Combinators
+        Data.Array.Parallel.Lifted
         Data.Array.Parallel.PArray.PData.Base
-        Data.Array.Parallel.PArray.PData.Unit
-        Data.Array.Parallel.PArray.PData.Wrap
         Data.Array.Parallel.PArray.PData.Double
         Data.Array.Parallel.PArray.PData.Int
         Data.Array.Parallel.PArray.PData.Nested
         Data.Array.Parallel.PArray.PData.Tuple
+        Data.Array.Parallel.PArray.PData.Unit
+        Data.Array.Parallel.PArray.PData.Wrap
         Data.Array.Parallel.PArray.PData
-        Data.Array.Parallel.PArray.Scalar
-        Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.PRepr.Base
         Data.Array.Parallel.PArray.PRepr.Instances
+        Data.Array.Parallel.PArray.PRepr.Nested
+        Data.Array.Parallel.PArray.PRepr.Tuple
+        Data.Array.Parallel.PArray.PRepr
+        Data.Array.Parallel.PArray.Scalar
         Data.Array.Parallel.PArray.Sums
-        Data.Array.Parallel.Lifted.Closure
-        Data.Array.Parallel.Lifted.Combinators
+        Data.Array.Parallel.PArray.Types
         Data.Array.Parallel.PArray
+        Data.Array.Parallel.Prelude.Double
+        Data.Array.Parallel.Prelude.Int
+        Data.Array.Parallel
 
   Include-Dirs:
         include
