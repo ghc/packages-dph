@@ -202,24 +202,27 @@ data VSegd
         { vsegd_vsegids :: [Int]
         , vsegd_ssegd   :: SSegd }
 
-mkVSegd                 = VSegd
-validVSegd              = notImplemented "validSSegd"       
-promoteSegdToVSegd      = notImplemented "promoteSegdToVSegd"
-promoteSSegdToVSegd     = notImplemented "promoteSSegdToVSegd"
-isContiguousVSegd       = notImplemented "isContiguousVSegd"
-isManifestVSegd         = notImplemented "isManifestVSegd"
-emptyVSegd              = VSegd [] emptySSegd
-singletonVSegd          = notImplemented "singletonVSegd"
-lengthOfVSegd           = notImplemented "lengthOfVSegd"
-takeVSegidsOfVSegd      = vsegd_vsegids
-takeSSegdOfVSegd        = vsegd_ssegd
-takeLengthsOfVSegd      = notImplemented "takeLengthsOfVSegd"
-getSegOfVSegd           = notImplemented "getSegOfVSegd"
-demoteToSSegdOfVSegd    = notImplemented "demoteToSSegdOfVSegd"
-demoteToSegdOfVSegd     = notImplemented "demoteToSegdOfVSegd"
-updateVSegsOfVSegd      = notImplemented "updateVSegsOfVSegd"
-appendVSegd             = notImplemented "appendVSegd"
-combine2VSegd           = notImplemented "combine2VSegd"
+mkVSegd                         = VSegd
+validVSegd                      = notImplemented "validSSegd"       
+promoteSegdToVSegd              = notImplemented "promoteSegdToVSegd"
+promoteSSegdToVSegd             = notImplemented "promoteSSegdToVSegd"
+isContiguousVSegd               = notImplemented "isContiguousVSegd"
+isManifestVSegd                 = notImplemented "isManifestVSegd"
+emptyVSegd                      = VSegd [] emptySSegd
+singletonVSegd                  = notImplemented "singletonVSegd"
+lengthOfVSegd                   = notImplemented "lengthOfVSegd"
+takeVSegidsOfVSegd              = vsegd_vsegids
+takeVSegidsRedundantOfVSegd     = vsegd_vsegids
+takeSSegdOfVSegd                = vsegd_ssegd
+takeSSegdRedundantOfVSegd       = vsegd_ssegd
+takeLengthsOfVSegd              = notImplemented "takeLengthsOfVSegd"
+getSegOfVSegd                   = notImplemented "getSegOfVSegd"
+demoteToSSegdOfVSegd            = notImplemented "demoteToSSegdOfVSegd"
+demoteToSegdOfVSegd             = notImplemented "demoteToSegdOfVSegd"
+updateVSegsOfVSegd              = notImplemented "updateVSegsOfVSegd"
+updateVSegsReachableOfVSegd     = notImplemented "updateVSegsReachableOfVSegd"
+appendVSegd                     = notImplemented "appendVSegd"
+combine2VSegd                   = notImplemented "combine2VSegd"
 
 
 -- Selectors ------------------------------------------------------------------
