@@ -10,14 +10,12 @@ where
 import Data.Array.Parallel.VectDepend
 -- IMPORTANT: see Note [Vectoriser dependencies] in the same module
 
+import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted
 import qualified Prelude as P
 import Prelude (Double)
         
 {-# VECTORISE SCALAR type Double #-}
-
-nope    = P.error "Data.Array.Parallel.Prelude.Int: can't use unvectorised definition"
-{-# NOVECTORISE nope #-}
 
 -- Basics ---------------------------------------------------------------------
 (+), (-), (*) :: Double -> Double -> Double
@@ -34,7 +32,7 @@ nope    = P.error "Data.Array.Parallel.Prelude.Int: can't use unvectorised defin
 
 -- Folds ----------------------------------------------------------------------
 sumP    :: [:Double:] -> Double
-sumP    = nope
+sumP !arr       = indexPArr arr 0
 {-# NOINLINE  sumP #-}
 {-# VECTORISE sumP = sumPP_double #-}
 

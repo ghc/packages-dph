@@ -17,6 +17,9 @@ module Data.Array.Parallel.Lifted (
         -- * Traversals
         mapPP,
 
+        -- * Filtering
+        filterPP,
+
         -- * Zipping and Unzipping
         unzipPP,
 

@@ -15,6 +15,7 @@ module Data.Array.Parallel.Lifted.Combinators
         , replicatePP
         , indexPP
         , mapPP
+        , filterPP
         , appendPP
         , slicePP
         , concatPP
@@ -37,6 +38,10 @@ import Data.Array.Parallel.PArray.Sums
 import Data.Array.Parallel.PArray
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+
+
+nope    = error "Data.Array.Parallel.Lifted.Combinators: can't use unvectorised definition"
+
 
 --   For each combinator:
 --    The *PA_v version is the "vectorised" version that has had its parameters
@@ -144,6 +149,14 @@ mapPD_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
         arrResult       = fl c envsReplicated argFlat
 
   in    unconcatPD arg arrResult
+
+
+-- filter ---------------------------------------------------------------------
+-- | Extract the elements from an array that match the given predicate.
+filterPP :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
+{-# INLINE filterPP #-}
+filterPP = nope
+
 
 
 -- append ---------------------------------------------------------------------
