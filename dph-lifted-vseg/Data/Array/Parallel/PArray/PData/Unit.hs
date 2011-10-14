@@ -18,6 +18,9 @@ import Text.PrettyPrint
 data instance PData ()
         = PUnit Int
 
+punit :: PData ()
+punit =  PUnit 0
+
 deriving instance Show (PData ())
 
 instance PprPhysical (PData ()) where

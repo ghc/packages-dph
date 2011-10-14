@@ -56,6 +56,7 @@ Library
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
               FlexibleInstances, FlexibleContexts
 
+
   GHC-Options: -Odph -funbox-strict-fields -fcpr-off -Werror
 
   Build-Depends:  

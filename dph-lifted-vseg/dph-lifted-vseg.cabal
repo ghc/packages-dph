@@ -50,7 +50,8 @@ Library
         BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
         PatternGuards,
         FlexibleContexts,
-        FlexibleInstances
+        FlexibleInstances,
+        EmptyDataDecls
         
 
   GHC-Options: 

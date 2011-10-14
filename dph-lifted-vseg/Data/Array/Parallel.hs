@@ -81,30 +81,29 @@ nope    = P.error "Data.Array.Parallel: can't use unvectorised definition"
 -- Constructors ---------------------------------------------------------------
 -- | Construct an empty array, with no elements.
 emptyP :: [:a:]
-emptyP          = [::]
+emptyP          = emptyPArr
 {-# NOINLINE  emptyP #-}
 {-# VECTORISE emptyP = emptyPP #-}
 
 
 -- | Construct an array with a single element.
 singletonP :: a -> [:a:]
-singletonP !_   = [::]
+singletonP      = singletonPArr
 {-# NOINLINE  singletonP #-}
 {-# VECTORISE singletonP = singletonPP #-}
 
 
 -- | Construct an array by replicating the given element some number of times.
 replicateP :: Int -> a -> [:a:]
-replicateP !_ !_  = [::]
+replicateP      = replicatePArr
 {-# NOINLINE  replicateP #-}
 {-# VECTORISE replicateP = replicatePP #-}
-
 
 
 -- Projections ----------------------------------------------------------------
 -- | Lookup a single element from the source array.
 (!:) :: [:a:] -> Int -> a
-(!:) !arr !ix   = indexPArr arr ix
+(!:)            = indexPArr
 {-# NOINLINE  (!:) #-}
 {-# VECTORISE (!:) = indexPP #-}
 
