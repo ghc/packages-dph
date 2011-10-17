@@ -1,11 +1,3 @@
-{-# LANGUAGE
-        CPP,
-        TypeFamilies,
-        FlexibleInstances, FlexibleContexts,
-        MultiParamTypeClasses,
-        StandaloneDeriving,
-        ExistentialQuantification #-}
-
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Int where
@@ -15,6 +7,8 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
+
+-- Show -----------------------------------------------------------------------
 deriving instance Show (PData Int)
 
 
@@ -29,6 +23,7 @@ instance PprVirtual (PData Int) where
    = text (show $ U.toList vec)
 
 
+-- PR -------------------------------------------------------------------------
 instance PR Int where
   {-# INLINE_PDATA validPR #-}
   validPR _

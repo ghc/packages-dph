@@ -21,7 +21,8 @@ module Data.Array.Parallel.PArray.PRepr.Base (
         extractPD,      extractsPD,
         appendPD,       appendsPD,
         packByTagPD,
-        combine2PD
+        combine2PD,
+        fromVectorPD,   toVectorPD
 )
 where
 import Data.Array.Parallel.PArray.PData.Base
@@ -30,7 +31,6 @@ import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 
-nope    = error "Data.Array.Parallel.PArray.PRepr.Base: nope"
 
 -- | Representable types.
 --
@@ -59,7 +59,7 @@ class PR (PRepr a) => PA a where
   -- PROBLEM: 
   --  The new library needs these conversion functions, but the default
   --  conversion isn't O(1). Perhaps we should be using an (Int -> PData a)
-  --  functioninstead of a vector, then conversion would just be 
+  --  function instead of a vector, then conversion would just be 
   --  function composition.
   toArrPReprs           :: Vector (PData a)         -> Vector (PData (PRepr a))
   toArrPReprs arrs
@@ -180,3 +180,19 @@ combine2PD      :: PA a => U.Sel2 -> PData a -> PData a -> PData a
 combine2PD sel xs ys
  = fromArrPRepr
  $ combine2PR sel (toArrPRepr xs) (toArrPRepr ys)
+ 
+ 
+{-# INLINE_PA fromVectorPD #-}
+fromVectorPD    :: PA a => Vector a -> PData a
+fromVectorPD vec
+ = fromArrPRepr
+ $ fromVectorPR (V.map toPRepr vec)
+
+
+{-# INLINE_PA toVectorPD #-}
+toVectorPD      :: PA a => PData a -> Vector a
+toVectorPD pdata
+ = V.map fromPRepr
+ $ toVectorPR (toArrPRepr pdata)
+
+ 

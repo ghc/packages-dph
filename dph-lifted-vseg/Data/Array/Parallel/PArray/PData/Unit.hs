@@ -7,6 +7,7 @@ import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
 
+-------------------------------------------------------------------------------
 -- | NOTE: We're only maintaining the length temporarilly. 
 --         This is done so that the validPA checks work, but in future we'll 
 --         fix validPA so it handles 'defined everywhere' arrays.
@@ -16,6 +17,8 @@ data instance PData ()
 punit :: PData ()
 punit =  PUnit 0
 
+
+-- Show -----------------------------------------------------------------------
 deriving instance Show (PData ())
 
 instance PprPhysical (PData ()) where
@@ -27,6 +30,7 @@ instance PprVirtual (PData ()) where
    = text $ "[ () x " ++ show n ++ " ]"
 
 
+-- PR -------------------------------------------------------------------------
 instance PR () where
   {-# INLINE_PDATA validPR #-}
   validPR _

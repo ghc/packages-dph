@@ -1,16 +1,14 @@
 
 module Data.Array.Parallel.PArray.PData.Wrap where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Vector.Unboxed                      (Vector)
+import qualified Data.Vector                    as V
 
 newtype instance PData (Wrap a)
         = PWrap (PData a)
-
-newtype instance Vector (Wrap a)
-        = VWrap (Vector a)
-        
 
 instance PA a => PR (Wrap a) where       
 
@@ -35,14 +33,17 @@ instance PA a => PR (Wrap a) where
   indexPR (PWrap xs) ix
         = Wrap  $ indexPD xs ix
 
---  indexlPR n (PNested ) ixs                   -- hmm
---        = PWrap (indexlPD n xs ixs)
+  -- PROBLEM: unwrapping isn't O(1).
+  indexlPR n (PNested vsegd pdatas) ixs
+   = let pdatas' = V.map (\(PWrap a) -> a) pdatas
+     in  PWrap (indexlPD n (PNested vsegd pdatas') ixs)
 
   extractPR (PWrap xs) ix n
         = PWrap $ extractPD xs ix n
         
+  -- PROBLEM: unwrapping isn't O(1).
   extractsPR vecs ssegd
-        = PWrap $ extractsPD (V.map (\(PWrap xs) -> xs) vecs) ssegd
+        = PWrap $ extractsPD (V.map (\(PWrap a) -> a) vecs) ssegd
 
   appendPR (PWrap xs) (PWrap ys)
         = PWrap $ appendPD xs ys
@@ -55,3 +56,9 @@ instance PA a => PR (Wrap a) where
 
   combine2PR sel (PWrap xs) (PWrap ys)
         = PWrap $ combine2PD sel xs ys
+
+  fromVectorPR vec 
+        = PWrap $ fromVectorPD $ V.map unWrap vec
+        
+  toVectorPR (PWrap pdata)
+        = V.map Wrap $ toVectorPD pdata

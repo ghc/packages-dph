@@ -9,10 +9,13 @@ import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import GHC.Exts
 
+
+-------------------------------------------------------------------------------
 data instance PData (a, b)
         = PTuple2 (PData a) (PData b)
 
 
+-- Show -----------------------------------------------------------------------
 deriving instance (Show (PData a), Show (PData b)) 
         => Show (PData (a, b))
 
@@ -32,6 +35,7 @@ instance ( PR a, PR b, Show a, Show b
               (V.toList $ toVectorPR ys)
 
 
+-- PR -------------------------------------------------------------------------
 instance (PR a, PR b) => PR (a, b) where
   {-# INLINE_PDATA validPR #-}
   validPR (PTuple2 xs ys)
@@ -115,6 +119,7 @@ instance (PR a, PR b) => PR (a, b) where
                  (toVectorPR ys)
 
 
+-- Derived --------------------------------------------------------------------
 -- | Zip a pair of arrays into an array of pairs.
 --   The two arrays must have the same length, else `error`. 
 {-# INLINE_PA zipPA #-}
@@ -139,7 +144,8 @@ unzipPA (PArray n# (PTuple2 xs ys))
 unziplPR  :: (PR a, PR b)
           => PData (PArray (a, b)) -> PData (PArray a, PArray b)
 unziplPR (PNested uvsegd psegdata)
- = let  (xsdata, ysdata)        = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
+ = let  (xsdata, ysdata)        
+         = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
    in   PTuple2 (PNested uvsegd xsdata)
                 (PNested uvsegd ysdata)
 

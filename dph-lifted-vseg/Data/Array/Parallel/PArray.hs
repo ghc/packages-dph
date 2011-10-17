@@ -1,4 +1,4 @@
-{-# GHC_OPTIONS -fno-spec-constr #-}
+{-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
 -- | Functions that work directly on PArrays.
@@ -21,8 +21,6 @@ module Data.Array.Parallel.PArray
         , nfPA
         , replicatePA
         , replicatesPA
---      , fromVectorPA
---        , toVectorPA
         , indexPA
 	, indexlPA
         , extractPA
@@ -30,13 +28,13 @@ module Data.Array.Parallel.PArray
         , appendPA
         , packByTagPA
         , combine2PA
-	, fromUArrayPA
-	, toUArrayPA
-        
+        , fromVectorPA
+        , toVectorPA
+
         -- Derived operators.
         , singletonPA
---        , fromListPA
---        , toListPA
+        , fromListPA
+        , toListPA
 	, fromUArray2PA
 	, nestUSegdPA
         , concatPA
@@ -54,10 +52,10 @@ module Data.Array.Parallel.PArray
 
         -- Wrappers used for testing only.
         , replicatesPA'
- --       , extractsPA'
+        , extractsPA'
         , packByTagPA'
-        , combine2PA')
---        , slicelPA')
+        , combine2PA'
+        , slicelPA')
 where
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
@@ -68,11 +66,11 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import GHC.Exts
 
-{-
+
 instance (Eq a, PA a)  => Eq (PArray a) where
- (==) (PArray _ xs) (PArray _ ys) = toVectorPA xs == toVectorPA ys
- (/=) (PArray _ xs) (PArray _ ys) = toVectorPA xs /= toVectorPA ys
--}
+ (==) (PArray _ xs) (PArray _ ys) = toVectorPD xs == toVectorPD ys
+ (/=) (PArray _ xs) (PArray _ ys) = toVectorPD xs /= toVectorPD ys
+
 
 -- | Check that an array has a valid internal representation.
 {-# INLINE_PA validPA #-}
@@ -115,7 +113,7 @@ replicatesPA repCounts (PArray _ darr)
    in   PArray  n#
                 (replicatesPD (U.lengthsToSegd repCounts) darr)
 
-{-
+
 -- | Convert a `Vector` to a `PArray`
 {-# INLINE_PA fromVectorPA #-}
 fromVectorPA :: PA a => Vector a -> PArray a
@@ -129,7 +127,7 @@ fromVectorPA vec
 toVectorPA   :: PA a => PArray a -> Vector a
 toVectorPA (PArray _ arr)
         = toVectorPD arr
--}
+
 
 -- | Lookup a single element from the source array.
 {-# INLINE_PA indexPA #-}
@@ -199,7 +197,7 @@ singletonPA :: PA a => a -> PArray a
 singletonPA x
         = PArray 1# (replicatePD 1 x)
 
-{-
+
 -- | Convert a list to a `PArray`.
 {-# INLINE_PA fromListPA #-}
 fromListPA :: PA a => [a] -> PArray a
@@ -213,7 +211,7 @@ fromListPA xx
 toListPA   :: PA a => PArray a -> [a]
 toListPA (PArray _ arr)
         = V.toList $ toVectorPD arr
--}
+
 
 -- | Convert an unlifted array of pairs to a PArray of pairs.
 {-# INLINE_PA fromUArray2PA #-}
@@ -298,14 +296,14 @@ replicatesPA' lens arr
 
 
 -- | Segmented extract.
-{-extractsPA' :: PA a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
+extractsPA' :: PA a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
 extractsPA' arrs srcids startixs seglens
-        = PArray (sum seglens) 
-        $ extractsPR
+ = let  !(I# n#) = sum seglens
+   in   PArray n#
+        $ extractsPD
                 (V.map unpackPA arrs) 
-                (U.
-                     (U.fromList srcids) (U.fromList startixs) (U.fromList seglens)
--}
+                (U.mkSSegd (U.fromList srcids) (U.fromList startixs)
+                        $ U.lengthsToSegd (U.fromList seglens))
 
 -- | Filter an array based on some tags.
 packByTagPA' :: PA a => PArray a -> [Int] -> Int -> PArray a
@@ -320,9 +318,10 @@ combine2PA' sel (PArray _ darr1) (PArray _ darr2)
  = let  darr'   = combine2PD (U.tagsToSel2 (U.fromList sel)) darr1 darr2
    in   PArray 0# darr'
 
-{-
+
 -- | Extract some slices from some arrays.
 slicelPA' :: PA a => [Int] -> [Int] -> PArray (PArray a) -> PArray (PArray a)
 slicelPA' sliceStarts sliceLens arr
         = slicelPA (fromListPA sliceStarts) (fromListPA sliceLens) arr
--}
+
+
