@@ -1,13 +1,4 @@
-{-# LANGUAGE
-        CPP,
-        BangPatterns,
-        TypeFamilies,
-        FlexibleInstances, FlexibleContexts,
-        MultiParamTypeClasses,
-        StandaloneDeriving,
-        ExistentialQuantification,
-        UndecidableInstances,
-        ParallelListComp #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS -fno-spec-constr #-}
 
@@ -42,6 +33,7 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
+import GHC.Exts
 
 
 -- Nested arrays --------------------------------------------------------------
@@ -205,11 +197,11 @@ instance PR a => PR (PArray a) where
 
   -- When replicating an array we use the source as the single physical
   -- segment, then point all the virtual segments to it.
-  replicatePR c (PArray n darr)
+  replicatePR c (PArray n# darr)
    = {-# SCC "replicatePR" #-}
      checkNotEmpty "replicatePR[PArray]" c
    $ let -- Physical segment descriptor contains a single segment.
-         ussegd  = U.singletonSSegd n
+         ussegd  = U.singletonSSegd (I# n#)
          
          -- All virtual segments point to the same physical segment.
          uvsegd  = U.mkVSegd (U.replicate c 0) ussegd
@@ -239,10 +231,10 @@ instance PR a => PR (PArray a) where
   -- corresponds to, and extract that as a slice from that physical array.
   {-# INLINE_PDATA indexPR #-}
   indexPR (PNested uvsegd pdata) ix
-   | (pseglen, psegstart, psegsrcid)    <- U.getSegOfVSegd uvsegd ix
+   | (pseglen@(I# pseglen#), psegstart, psegsrcid)    <- U.getSegOfVSegd uvsegd ix
    = let !psrc          = pdata `V.unsafeIndex` psegsrcid
          !pdata'        = extractPR psrc psegstart pseglen
-     in  PArray pseglen pdata'
+     in  PArray pseglen# pdata'
 
 
   -- Lifted indexing

@@ -1,16 +1,18 @@
-
-{-# LANGUAGE CPP, NoMonomorphismRestriction #-}
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.Scalar 
         ( Scalar(..)
+        , toUArrayPA,   fromUArrayPA
+        , fromUArrayPA_2
+
         , scalar_map
         , scalar_zipWith
         , scalar_zipWith3)
 where
 import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.PArray.PRepr
 import qualified Data.Array.Parallel.Unlifted   as U
-
+import GHC.Exts
 
 class U.Elt a => Scalar a where
   fromScalarPData :: PData a -> U.Array a
@@ -30,6 +32,36 @@ instance Scalar Double where
 from    = fromScalarPData
 to      = toScalarPData
 
+
+-- Array Conversions -------------------------------------------------------
+{-# INLINE_PA fromUArrayPA #-}
+fromUArrayPA  :: (Scalar a, U.Elt a) => U.Array a -> PArray a
+fromUArrayPA uarr
+ = let  I# n#    = U.length uarr
+   in   PArray n# (toScalarPData uarr) 
+ 
+ 
+{-# INLINE_PA toUArrayPA #-}
+toUArrayPA    :: (PA a, Scalar a) => PArray a -> U.Array a
+toUArrayPA (PArray n# pdata)
+        = fromScalarPData pdata
+ 
+
+-- Tuple Conversions ----------------------------------------------------------
+-- | Convert an U.Array of pairs to a PArray.
+fromUArrayPA_2
+        :: (Scalar a, Scalar b)
+        => U.Array (a,b) -> PArray (a,b)
+{-# INLINE fromUArrayPA_2 #-}
+fromUArrayPA_2 ps
+ = let  I# n#   = U.length ps
+        (xs,ys) = U.unzip ps
+    in  PArray n# (PTuple2 (toScalarPData xs) (toScalarPData  ys))
+    
+
+-- Scalar Operators -----------------------------------------------------------
+-- These work on PArrays of scalar elements.
+-- TODO: Why do we need these versions as well as the standard ones?
 
 -- | Apply a worker function to every element of an array, yielding a new array.
 scalar_map 

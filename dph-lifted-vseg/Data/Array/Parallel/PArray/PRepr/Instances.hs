@@ -1,3 +1,4 @@
+#include "fusion-phases.h"
 
 -- | Instances for the PRRepr/PA family and class.
 --
@@ -20,39 +21,47 @@ import Data.Array.Parallel.PArray.PData.Double
 type instance PRepr Void = Void
 
 instance PA Void where
-  toPRepr      = id
-  fromPRepr    = id
-  toArrPRepr   = id
-  fromArrPRepr = id
+  toPRepr               = id
+  fromPRepr             = id
+  toArrPRepr            = id
+  fromArrPRepr          = id
+  toArrPReprs           = id
+  toNestedArrPRepr      = id
 
 
 -- Unit -----------------------------------------------------------------------
 type instance PRepr () = ()
 
 instance PA () where
-  toPRepr      = id
-  fromPRepr    = id
-  toArrPRepr   = id
-  fromArrPRepr = id
+  toPRepr               = id
+  fromPRepr             = id
+  toArrPRepr            = id
+  fromArrPRepr          = id
+  toArrPReprs           = id
+  toNestedArrPRepr      = id
 
 
 -- Int ------------------------------------------------------------------------
 type instance PRepr Int = Int
 
 instance PA Int where
-  toPRepr      = id
-  fromPRepr    = id
-  toArrPRepr   = id
-  fromArrPRepr = id
+  toPRepr               = id
+  fromPRepr             = id
+  toArrPRepr            = id
+  fromArrPRepr          = id
+  toArrPReprs           = id
+  toNestedArrPRepr      = id
 
 
 -- Double ---------------------------------------------------------------------
 type instance PRepr Double = Double
 
 instance PA Double where
-  toPRepr      = id
-  fromPRepr    = id
-  toArrPRepr   = id
-  fromArrPRepr = id
+  toPRepr               = id
+  fromPRepr             = id
+  toArrPRepr            = id
+  fromArrPRepr          = id
+  toArrPReprs           = id
+  toNestedArrPRepr      = id
   
   

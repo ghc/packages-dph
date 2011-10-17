@@ -1,4 +1,4 @@
-{-# LANGUAGE ParallelArrays, UnboxedTuples, MagicHash #-}
+{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 {-# OPTIONS_HADDOCK hide #-}
 

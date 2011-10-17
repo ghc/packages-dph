@@ -13,6 +13,7 @@ smvmPA :: PArray (PArray (Int, Double)) -> PArray Double -> PArray Double
 {-# NOINLINE smvmPA #-}
 smvmPA m v = toPArrayP (smvm (fromNestedPArrayP m) (fromPArrayP v))
 
+
 smvm :: [:[: (Int, Double) :]:] -> [:Double:] -> [:Double:]
 smvm m v = [: D.sumP [: x D.* (v !: i) | (i,x) <- row :] | row <- m :]
 

@@ -29,6 +29,12 @@
 --
 module Data.Array.Parallel (
         -- [::]         -- Built-in syntax
+        PArray,
+
+        -- * Conversions
+        fromPArrayP,
+        toPArrayP,
+        fromNestedPArrayP,
         
         -- * Constructors
         emptyP,
@@ -50,6 +56,7 @@ import Data.Array.Parallel.VectDepend
 
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted
+import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Prelude.Int   (Int)
 import Data.Array.Parallel.Prelude.Bool  (Bool)
 import qualified Prelude        as P
@@ -77,6 +84,25 @@ nope    = P.error "Data.Array.Parallel: can't use unvectorised definition"
 --  The bindings have NOINLINE pragmas because we never want to use the
 --  actual body code (because it's fake anyway).
 --
+
+-- Conversions ----------------------------------------------------------------
+fromPArrayP :: PArray a -> [:a:]
+fromPArrayP !_  = emptyP
+{-# NOINLINE  fromPArrayP #-}
+{-# VECTORISE fromPArrayP = fromPArrayPP #-}
+
+
+toPArrayP :: [:a:] -> PArray a
+toPArrayP !_    = PArray 0# nope
+{-# NOINLINE  toPArrayP #-}
+{-# VECTORISE toPArrayP = toPArrayPP #-}
+
+
+fromNestedPArrayP :: PArray (PArray a) -> [:[:a:]:]
+fromNestedPArrayP !_ = emptyP
+{-# NOINLINE  fromNestedPArrayP #-}
+{-# VECTORISE fromNestedPArrayP = fromNestedPArrayPP #-}
+
 
 -- Constructors ---------------------------------------------------------------
 -- | Construct an empty array, with no elements.
@@ -109,7 +135,6 @@ replicateP      = replicatePArr
 
 
 -- Traversals -----------------------------------------------------------------
--- | Apply 
 mapP :: (a -> b) -> [:a:] -> [:b:]
 mapP !_ !_      = [::]
 {-# NOINLINE  mapP #-}

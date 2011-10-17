@@ -1,23 +1,31 @@
-{-# LANGUAGE
-        CPP,
-        TypeFamilies, MultiParamTypeClasses, 
-        FlexibleInstances, FlexibleContexts,
-        RankNTypes, ExistentialQuantification,
-        StandaloneDeriving, TypeOperators #-}
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
 -- | Define closures for each of the combinators the vectoriser uses.
 module Data.Array.Parallel.Lifted.Combinators 
-        ( emptyPP
+        ( -- * Conversions
+          fromPArrayPP
+        , toPArrayPP
+        , fromNestedPArrayPP
+        
+          -- * Constructors
+        , emptyPP
         , singletonPP
-        , lengthPP
         , replicatePP
-        , indexPP
-        , mapPP
-        , filterPP
         , appendPP
+
+          -- * Projections
+        , lengthPP
+        , indexPP
         , slicePP
+
+          -- * Traversals
+        , mapPP
+
+          -- * Filtering
+        , filterPP
+
+          -- * Concatenation
         , concatPP
 
         -- * Tuple functions
@@ -38,11 +46,36 @@ import Data.Array.Parallel.PArray.Sums
 import Data.Array.Parallel.PArray
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-
+import GHC.Exts
 
 nope    = error "Data.Array.Parallel.Lifted.Combinators: can't use unvectorised definition"
 
 
+-- Conversions ================================================================
+-- The following identity functions are used as the vectorised versions of the
+-- functions that convert between the source level array type [:a:] and the 
+-- PArray type which is used in the library. 
+
+-- | Identity function, used as the vectorised version of fromPArrayP.
+fromPArrayPP :: PA a => PArray a :-> PArray a
+fromPArrayPP            = closure1 (\x -> x) (\_ xs -> xs)
+{-# INLINE fromPArrayPP #-}
+
+
+-- | Identity function, used as the vectorised version of toPArrayP.
+toPArrayPP :: PA a => PArray a :-> PArray a
+toPArrayPP              = closure1 (\x -> x) (\_ xs -> xs)
+{-# INLINE toPArrayPP #-}
+
+
+-- | Identity function, used as the vectorised version of fromNesterPArrayP
+fromNestedPArrayPP :: PA a => (PArray (PArray a) :-> PArray (PArray a))
+fromNestedPArrayPP      = closure1 (\xs -> xs) (\_ xss -> xss)
+{-# INLINE fromNestedPArrayPP #-}
+
+
+
+-- Operators ==================================================================
 --   For each combinator:
 --    The *PA_v version is the "vectorised" version that has had its parameters
 --    closure converted. For first-order functions, the *PA_v version is
@@ -58,6 +91,7 @@ nope    = error "Data.Array.Parallel.Lifted.Combinators: can't use unvectorised 
 --    up in a closure. The code produced by the vectoriser uses the *PP
 --    versions directly.
 
+-- Constructors ===============================================================
 -- empty ----------------------------------------------------------------------
 {-# INLINE_PA emptyPP #-}
 emptyPP :: PA a => PArray a
@@ -74,21 +108,6 @@ singletonPP     = closure1 singletonPA singletonPD_l
 singletonPD_l :: PA a => Int -> PData a -> PData (PArray a)
 singletonPD_l c xs 
         = replicatePD_l c (PInt $ U.replicate c 1) xs
-        
-
-
--- length ---------------------------------------------------------------------
--- | Take the number of elements in an array.
-{-# INLINE_PA lengthPP #-}
-lengthPP   :: PA a => PArray a :-> Int
-lengthPP        = closure1 lengthPA lengthPD_l
-
-
-{-# INLINE lengthPD_l #-}
-lengthPD_l :: PA (PArray a)
-           => Int -> PData (PArray a) -> PData Int
-lengthPD_l _ (PNested vsegd _)
-        = PInt $ U.takeLengthsOfVSegd vsegd
 
 
 -- replicate ------------------------------------------------------------------
@@ -111,6 +130,33 @@ replicatePD_l c (PInt lens) pdata
                 (V.singleton pdata)
 
 
+-- append ---------------------------------------------------------------------
+{-# INLINE_PA appendPP #-}
+appendPP :: PA a => PArray a :-> PArray a :-> PArray a
+appendPP        = closure2 appendPA appendPD_l
+
+{-# INLINE appendPD_l #-}
+appendPD_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
+appendPD_l _ arr1 arr2
+        = appendlPD arr1 arr2
+
+
+
+-- Projections ================================================================
+-- length ---------------------------------------------------------------------
+-- | Take the number of elements in an array.
+{-# INLINE_PA lengthPP #-}
+lengthPP   :: PA a => PArray a :-> Int
+lengthPP        = closure1 lengthPA lengthPD_l
+
+
+{-# INLINE lengthPD_l #-}
+lengthPD_l :: PA (PArray a)
+           => Int -> PData (PArray a) -> PData Int
+lengthPD_l _ (PNested vsegd _)
+        = PInt $ U.takeLengthsOfVSegd vsegd
+
+
 -- index ----------------------------------------------------------------------
 -- | Lookup a single element from the souce array.
 {-# INLINE_PA indexPP #-}
@@ -118,6 +164,26 @@ indexPP :: PA a => PArray a :-> Int :-> a
 indexPP         = closure2 indexPA indexlPD
 
 
+-- slice ----------------------------------------------------------------------
+{-# INLINE_PA slicePP #-}
+slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
+slicePP         = closure3 slicePA slicePD_l
+
+
+{-# INLINE slicePA #-}
+slicePA :: PA a => Int -> Int -> PArray a -> PArray a
+slicePA start len@(I# len#) (PArray _ darr)
+        = PArray len# (extractPD darr start len)
+
+
+{-# INLINE slicePD_l #-}
+slicePD_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
+slicePD_l _ sliceStarts sliceLens arrs
+        = slicelPR sliceStarts sliceLens arrs
+
+
+
+-- Traversals =================================================================
 -- map ------------------------------------------------------------------------
 {-# INLINE_PA mapPP #-}
 mapPP   :: (PA a, PA b) 
@@ -129,8 +195,8 @@ mapPP   = closure2 mapPA_v mapPD_l
 {-# INLINE mapPA_v #-}
 mapPA_v :: (PA a, PA b)
         => (a :-> b) -> PArray a -> PArray b
-mapPA_v (Clo _fv fl env) (PArray n as) 
-        = PArray n (fl n (replicatePD n env) as)
+mapPA_v (Clo _fv fl env) (PArray n# as) 
+        = PArray n# (fl (I# n#) (replicatePD (I# n#) env) as)
 
 
 {-# INLINE mapPD_l #-}
@@ -151,44 +217,14 @@ mapPD_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
   in    unconcatPD arg arrResult
 
 
--- filter ---------------------------------------------------------------------
+-- Filtering =================================================================
 -- | Extract the elements from an array that match the given predicate.
 filterPP :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
 {-# INLINE filterPP #-}
 filterPP = nope
 
 
-
--- append ---------------------------------------------------------------------
-{-# INLINE_PA appendPP #-}
-appendPP :: PA a => PArray a :-> PArray a :-> PArray a
-appendPP        = closure2 appendPA appendPD_l
-
-{-# INLINE appendPD_l #-}
-appendPD_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendPD_l _ arr1 arr2
-        = appendlPD arr1 arr2
-
-
--- slice ----------------------------------------------------------------------
-{-# INLINE_PA slicePP #-}
-slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
-slicePP         = closure3 slicePA slicePD_l
-
-
-{-# INLINE slicePA #-}
-slicePA :: PA a => Int -> Int -> PArray a -> PArray a
-slicePA start len (PArray _ darr)
-        = PArray len (extractPD darr start len)
-
-
-{-# INLINE slicePD_l #-}
-slicePD_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
-slicePD_l _ sliceStarts sliceLens arrs
-        = slicelPR sliceStarts sliceLens arrs
-
-
--- concat ---------------------------------------------------------------------
+-- Concatenation ==============================================================
 {-# INLINE_PA concatPP #-}
 concatPP :: PA a => PArray (PArray a) :-> PArray a
 concatPP
@@ -201,7 +237,7 @@ concatPD_l _ darr
         = concatlPD darr
 
 
--- Tuple ======================================================================
+-- Tuple Functions ============================================================
 -- unzip ----------------------------------------------------------------------
 {-# INLINE_PA unzipPP #-}
 unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
@@ -213,7 +249,7 @@ unzipPD_l :: (PA a, PA b) => Int -> PData (PArray (a, b)) -> PData (PArray a, PA
 unzipPD_l _ arr = unziplPD arr
 
 
--- Scalar =====================================================================
+-- Scalar Functions ===========================================================
 -- eq   -----------------------------------------------------------------------
 {-# INLINE_PA eqPP_int #-}
 eqPP_int        :: Int :-> Int :-> Int
@@ -229,7 +265,6 @@ eqPP_int_l _ (PInt arr1) (PInt arr2)
 intOfBool :: Bool -> Int
 intOfBool True  = 1
 intOfBool False = 0
-
 
 
 -- plus -----------------------------------------------------------------------

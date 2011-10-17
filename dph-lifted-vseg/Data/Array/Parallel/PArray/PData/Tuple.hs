@@ -1,9 +1,3 @@
-{-# LANGUAGE
-        CPP,
-        TypeFamilies,
-        FlexibleInstances, FlexibleContexts,
-        StandaloneDeriving, ExplicitForAll,
-        MultiParamTypeClasses #-}
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Tuple 
@@ -13,6 +7,7 @@ import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.Base
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
+import GHC.Exts
 
 data instance PData (a, b)
         = PTuple2 (PData a) (PData b)
@@ -132,9 +127,9 @@ instance (PR a, PR b) => PR (a, b) where
 --   The two arrays must have the same length, else `error`. 
 {-# INLINE_PA zipPA #-}
 zipPA :: PArray a -> PArray b -> PArray (a, b)
-zipPA (PArray n1 xs) (PArray n2 ys)
-        | n1 == n2
-        = PArray n1 (PTuple2 xs ys)
+zipPA (PArray n1# xs) (PArray n2# ys)
+        | I# n1# == I# n2#
+        = PArray n1# (PTuple2 xs ys)
         
         | otherwise
         = error "Data.Array.Parallel.PArray.zipPA: arrays are not the same length"
@@ -143,8 +138,8 @@ zipPA (PArray n1 xs) (PArray n2 ys)
 -- | Unzip an array of pairs into a pair of arrays.
 {-# INLINE_PA unzipPA #-}
 unzipPA :: PArray (a, b) -> (PArray a, PArray b)
-unzipPA (PArray n (PTuple2 xs ys))
-        = (PArray n xs, PArray n ys)
+unzipPA (PArray n# (PTuple2 xs ys))
+        = (PArray n# xs, PArray n# ys)
 
 
 -- | Lifted unzip.

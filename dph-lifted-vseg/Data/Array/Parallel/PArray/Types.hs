@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls #-}
+#include "fusion-phases.h"
 
 -- | Defines the extra types we use when representing algebraic data in parallel arrays.
 --   We don't store values of user defined algebraic type directly in PArrays. Instead,

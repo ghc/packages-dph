@@ -1,4 +1,3 @@
-
 {-# OPTIONS_GHC -fvectorise #-}
 {-# OPTIONS_HADDOCK hide #-}
 
@@ -33,3 +32,4 @@ import Data.Array.Parallel.PArray.Scalar                ()
 import Data.Array.Parallel.Lifted.Closure               ()
 import Data.Array.Parallel.Lifted.Combinators           ()
 import Data.Array.Parallel.Prelude.Tuple                ()
+import Data.Array.Parallel.Prim                         ()

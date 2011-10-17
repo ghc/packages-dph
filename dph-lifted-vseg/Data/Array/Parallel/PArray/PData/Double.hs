@@ -1,12 +1,3 @@
-{-# LANGUAGE
-        CPP,
-        BangPatterns,
-        TypeFamilies,
-        FlexibleInstances, FlexibleContexts,
-        MultiParamTypeClasses,
-        StandaloneDeriving,
-        ExistentialQuantification #-}
-
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Double where

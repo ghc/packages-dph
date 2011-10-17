@@ -1,14 +1,8 @@
-{-# LANGUAGE
-        CPP,
-        TypeOperators, ScopedTypeVariables, ExistentialQuantification,
-        TypeFamilies, Rank2Types, MultiParamTypeClasses, 
-        StandaloneDeriving, FlexibleContexts #-}
-
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Lifted.Closure (
   -- * Closures.
-  (:->)(..), closure, liftedClosure,
+  (:->)(..),
   ($:),
   closure1, closure2, closure3,
   
@@ -49,35 +43,6 @@ data (a :-> b)
 {-# INLINE_CLOSURE ($:) #-}
 ($:) (Clo fv _fl env) x  = fv env x
 
-
--- Stuff needed by the vectoriser ----------------------------------------------
--- | This version is used by the vectoriser.
-closure :: forall a b e
-        .  PA e
-        => (e -> a -> b)                           -- ^ vectorised function, with explicit environment.
-        -> (Int# -> PData e -> PData a -> PData b) -- ^ lifted function, taking an array of environments.
-        -> e                                       -- ^ environment
-        -> (a :-> b)
-{-# INLINE closure #-}
-closure fv fl e 
- = Clo fv 
-       (\(I# c) v x -> fl c v x)
-       e
-
-liftedClosure
-        :: forall a b e
-        .  PA e
-        => (e -> a -> b)
-        -> (Int# -> PData e -> PData a -> PData b)
-        -> PData e
-        -> PData (a :-> b)
-{-# INLINE liftedClosure #-}
-liftedClosure fv fl es
- = AClo fv 
-        (\(I# c) v x -> fl c v x)
-        es
-
-   
 
 -- Array Closures -------------------------------------------------------------
 -- | Arrays of closures (aka array closures)

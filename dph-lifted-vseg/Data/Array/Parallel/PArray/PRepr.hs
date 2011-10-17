@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances, UndecidableInstances #-}
 
 module Data.Array.Parallel.PArray.PRepr
         ( module Data.Array.Parallel.PArray.PRepr.Base

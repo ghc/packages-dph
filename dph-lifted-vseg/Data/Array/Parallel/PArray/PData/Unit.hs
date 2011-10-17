@@ -1,8 +1,3 @@
-{-# LANGUAGE 
-        CPP,
-        TypeFamilies, MultiParamTypeClasses,
-        FlexibleInstances,
-        StandaloneDeriving #-}
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Unit where

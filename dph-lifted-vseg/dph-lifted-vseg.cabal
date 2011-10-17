@@ -41,17 +41,33 @@ Library
         Data.Array.Parallel.Prelude.Double
         Data.Array.Parallel.Prelude.Int
         Data.Array.Parallel
+        Data.Array.Parallel.Prim
 
   Include-Dirs:
         include
 
   Extensions:
-        TypeFamilies, GADTs, RankNTypes, CPP,
-        BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
-        PatternGuards,
+        CPP,
+        BangPatterns,
+        PatternGuards
+        TypeFamilies,
+        TypeOperators,
+        RankNTypes,
+        BangPatterns,
+        MagicHash,
+        UnboxedTuples,
+        TypeOperators,
         FlexibleContexts,
         FlexibleInstances,
-        EmptyDataDecls
+        EmptyDataDecls,
+        NoMonomorphismRestriction,
+        MultiParamTypeClasses,
+        EmptyDataDecls,
+        StandaloneDeriving,
+        ExplicitForAll,
+        ParallelListComp,
+        ExistentialQuantification,
+        ScopedTypeVariables
         
 
   GHC-Options: 

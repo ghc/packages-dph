@@ -1,11 +1,5 @@
-{-# LANGUAGE 
-        CPP,
-        BangPatterns,
-        TypeFamilies, MultiParamTypeClasses,
-        FlexibleContexts, ExplicitForAll,
-        StandaloneDeriving,
-        UndecidableInstances #-}
-        -- Undeciable instances only need for derived Show instance
+{-# LANGUAGE UndecidableInstances #-}
+-- Undeciable instances only need for derived Show instance
 
 #include "fusion-phases.h"
 
@@ -25,20 +19,31 @@ import qualified Data.Vector.Unboxed            as VU
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
+import GHC.Exts
+import SpecConstr
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array. 
 --   PArrays always contain a finite (sized) number of elements, which means
 --   they have a length.
+--
+--   IMPORTANT: 
+--    The vectoriser requires the data constructor to have this specific form,
+--    because it builds them explicitly.
+--    In particular, the array length must be unboxed.
+--
+--   TODO: Why do we need the NoSpecConstr annotation?
+-- 
+{-# ANN type PArray NoSpecConstr #-}
 data PArray a
-        = PArray Int (PData  a)
+        = PArray Int# (PData  a)
 
 deriving instance (Show (PData a), Show a)
         => Show (PArray a)
 
 instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
- pprp (PArray n dat)
-  =   (text "PArray " <+> int n)
+ pprp (PArray n# dat)
+  =   (text "PArray " <+> int (I# n#))
   $+$ (nest 4 
       $ pprp dat)
 
@@ -50,7 +55,7 @@ instance PprVirtual (PData a) => PprVirtual (PArray a) where
 -- | Take the length of an array
 {-# INLINE_PA lengthPA #-}
 lengthPA :: forall a. PArray a -> Int
-lengthPA (PArray n _)   = n
+lengthPA (PArray n# _)   = (I# n#)
 
 
 -- | Take the data from an array.
