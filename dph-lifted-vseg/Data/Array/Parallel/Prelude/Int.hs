@@ -3,8 +3,16 @@
 
 module Data.Array.Parallel.Prelude.Int (
         Int,
+     
+        -- Ord
+        (==), (/=), (<), (<=), (>), (>=), min, max,
+     
+        -- Num
         (+), (-), (*),
-        sumP
+        sumP,
+        
+        -- Integral
+        div, mod
 )
 where
 import Data.Array.Parallel.VectDepend
@@ -12,12 +20,43 @@ import Data.Array.Parallel.VectDepend
 
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted
+import Data.Array.Parallel.Prelude.Bool
 import qualified Prelude as P
 import Prelude (Int)
         
 {-# VECTORISE SCALAR type Int #-}
 
--- Basics ---------------------------------------------------------------------
+-- Ord ------------------------------------------------------------------------
+(==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
+
+(==) = (P.==)
+{-# VECTORISE SCALAR (==) #-}
+
+(/=) = (P./=)
+{-# VECTORISE SCALAR (/=) #-}
+
+(<=) = (P.<=)
+{-# VECTORISE SCALAR (<=) #-}
+
+(<)  = (P.<)
+{-# VECTORISE SCALAR (<) #-}
+
+(>=) = (P.>=)
+{-# VECTORISE SCALAR (>=) #-}
+
+(>)  = (P.>)
+{-# VECTORISE SCALAR (>) #-}
+
+
+min, max :: Int -> Int -> Int
+min = P.min
+{-# VECTORISE SCALAR min #-}
+
+max = P.max
+{-# VECTORISE SCALAR max #-}
+
+
+-- Num ------------------------------------------------------------------------
 (+), (-), (*) :: Int -> Int -> Int
 
 (+) = (P.+)
@@ -30,10 +69,18 @@ import Prelude (Int)
 {-# VECTORISE SCALAR (*) #-}
 
 
--- Folds ----------------------------------------------------------------------
 sumP    :: [:Int:] -> Int
 sumP !arr       = indexPArr arr 0
 {-# NOINLINE  sumP #-}
 {-# VECTORISE sumP = sumPP_int #-}
 
+
+-- Integral -------------------------------------------------------------------
+div, mod :: Int -> Int -> Int
+
+div = P.div
+{-# VECTORISE SCALAR div #-}
+
+mod = P.mod
+{-# VECTORISE SCALAR mod #-}
 

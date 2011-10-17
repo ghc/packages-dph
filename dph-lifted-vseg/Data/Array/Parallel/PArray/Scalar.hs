@@ -11,6 +11,7 @@ module Data.Array.Parallel.PArray.Scalar
 where
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
+import Data.Array.Parallel.Base
 import qualified Data.Array.Parallel.Unlifted   as U
 import GHC.Exts
 
@@ -18,7 +19,12 @@ class U.Elt a => Scalar a where
   fromScalarPData :: PData a -> U.Array a
   toScalarPData   :: U.Array a -> PData a
 
+-- Shorthands used in this module only
+from    = fromScalarPData
+to      = toScalarPData
 
+
+-- Instances --------------------------------------------------------------
 instance Scalar Int where
   fromScalarPData (PInt xs)     = xs
   toScalarPData                 = PInt
@@ -27,10 +33,14 @@ instance Scalar Double where
   fromScalarPData (PDouble xs)  = xs
   toScalarPData                 = PDouble
 
+instance Scalar Bool where
+  {-# INLINE toScalarPData #-}
+  toScalarPData bs
+    = PBool (U.tagsToSel2 (U.map fromBool bs))
 
--- Shorthands used in this module only
-from    = fromScalarPData
-to      = toScalarPData
+  {-# INLINE fromScalarPData #-}
+  fromScalarPData (PBool sel) = U.map toBool (U.tagsSel2 sel)
+
 
 
 -- Array Conversions -------------------------------------------------------

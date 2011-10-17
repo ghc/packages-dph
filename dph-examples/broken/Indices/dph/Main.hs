@@ -18,15 +18,15 @@ main
 
 
 run "vectorised" count
- = do   let arr = P.fromList [0 .. count - 1]
+ = do   let arr = P.fromListPA [0 .. count - 1]
         arr `seq` return ()     
                 
         (arrResult, tElapsed)
          <- time
          $  let  arr'    = ID.indicesPA arr arr
-            in   P.nf arr' `seq` return arr'
+            in   P.nfPA arr' `seq` return arr'
 
-        print   $ P.length arrResult
+        print   $ P.lengthPA arrResult
         putStr  $ prettyTime tElapsed
 
 run _ _

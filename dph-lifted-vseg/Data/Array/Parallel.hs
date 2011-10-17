@@ -28,8 +28,7 @@
 --  at all!
 --
 module Data.Array.Parallel (
-        -- [::]         -- Built-in syntax
-        PArray,
+        module Data.Array.Parallel.Prelude,
 
         -- * Conversions
         fromPArrayP,
@@ -40,9 +39,13 @@ module Data.Array.Parallel (
         emptyP,
         singletonP,
         replicateP,
+        appendP, (+:+),
+        concatP,
         
         -- * Projections
-        (!:),
+        lengthP,
+        indexP, (!:),
+        sliceP,
         
         -- * Traversals
         mapP,
@@ -57,6 +60,7 @@ import Data.Array.Parallel.VectDepend
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.PArray
+import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Int   (Int)
 import Data.Array.Parallel.Prelude.Bool  (Bool)
 import qualified Prelude        as P
@@ -126,19 +130,54 @@ replicateP      = replicatePArr
 {-# VECTORISE replicateP = replicatePP #-}
 
 
+-- | Append two arrays.
+appendP, (+:+) :: [:a:] -> [:a:] -> [:a:]
+(+:+) !_ !_     = [::]
+{-# NOINLINE  (+:+) #-}
+{-# VECTORISE (+:+)     = appendPP #-}
+
+appendP !_ !_   = [::]
+{-# NOINLINE  appendP #-}
+{-# VECTORISE appendP   = appendPP #-}
+
+
+-- | Concatenate an array of arrays.
+concatP :: [:[:a:]:] -> [:a:]
+concatP !_      = [::]
+{-# NOINLINE  concatP #-}
+{-# VECTORISE concatP = concatPP #-}
+
+
 -- Projections ----------------------------------------------------------------
+-- | Take the length of an array.
+lengthP :: [:a:] -> Int
+lengthP = lengthPArr
+{-# NOINLINE  lengthP #-}
+{-# VECTORISE lengthP   = lengthPP #-}
+
 -- | Lookup a single element from the source array.
-(!:) :: [:a:] -> Int -> a
+indexP, (!:) :: [:a:] -> Int -> a
 (!:)            = indexPArr
 {-# NOINLINE  (!:) #-}
-{-# VECTORISE (!:) = indexPP #-}
+{-# VECTORISE (!:)      = indexPP #-}
+
+indexP            = indexPArr
+{-# NOINLINE  indexP #-}
+{-# VECTORISE indexP    = indexPP #-}
+
+
+-- | Extract a slice from an array.
+sliceP :: Int -> Int -> [:a:] -> [:a:]
+sliceP !_ !_ !_ = [::]
+{-# NOINLINE sliceP #-}
+{-# VECTORISE sliceP    = slicePP #-}
 
 
 -- Traversals -----------------------------------------------------------------
 mapP :: (a -> b) -> [:a:] -> [:b:]
 mapP !_ !_      = [::]
 {-# NOINLINE  mapP #-}
-{-# VECTORISE mapP = mapPP #-}
+{-# VECTORISE mapP      = mapPP #-}
 
 
 -- Filtering -----------------------------------------------------------------

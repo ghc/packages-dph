@@ -13,9 +13,11 @@ import Data.Array.Parallel.PArray.PData.Void
 import Data.Array.Parallel.PArray.PData.Wrap
 import Data.Array.Parallel.PArray.PData.Unit
 import Data.Array.Parallel.PArray.PData.Nested
+import Data.Array.Parallel.PArray.PData.Sum2
 import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PData.Int
 import Data.Array.Parallel.PArray.PData.Double
+import qualified Data.Array.Parallel.Unlifted   as U
 
 -- Void -----------------------------------------------------------------------
 type instance PRepr Void = Void
@@ -64,4 +66,28 @@ instance PA Double where
   toArrPReprs           = id
   toNestedArrPRepr      = id
   
+  
+-- Bool -----------------------------------------------------------------------
+data instance PData Bool
+  = PBool U.Sel2
+
+type instance PRepr Bool
+  = Sum2 Void Void
+
+instance PA Bool where
+  {-# INLINE toPRepr #-}
+  toPRepr False          = Alt2_1 void
+  toPRepr True           = Alt2_2 void
+
+  {-# INLINE fromPRepr #-}
+  fromPRepr (Alt2_1 _)   = False
+  fromPRepr (Alt2_2 _)   = True
+
+  {-# INLINE toArrPRepr #-}
+  toArrPRepr (PBool sel) = PSum2 sel pvoid pvoid
+
+  {-# INLINE fromArrPRepr #-}
+  fromArrPRepr (PSum2 sel _ _)
+   = PBool sel
+
   
