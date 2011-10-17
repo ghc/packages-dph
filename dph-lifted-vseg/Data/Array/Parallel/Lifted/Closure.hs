@@ -192,8 +192,6 @@ instance PR (a :-> b) where
   combine2PR    = error    "combinePR[:->]: not defined"
   fromVectorPR  = error "fromVectorPR[:->]: not defined"
   toVectorPR    = error   "toVectorPR[:->]: not defined"
-  fromUArrayPR  = error "fromUArrayPR[:->]: not defined"
-  toUArrayPR    = error   "toUArrayPR[:->]: not defined"
 
 
 -- PRepr Instance -------------------------------------------------------------

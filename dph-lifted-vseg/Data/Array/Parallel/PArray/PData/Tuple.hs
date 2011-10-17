@@ -114,14 +114,6 @@ instance (PR a, PR b) => PR (a, b) where
         = V.zip  (toVectorPR xs)
                  (toVectorPR ys)
 
-  {-# INLINE_PDATA fromUArrayPR #-}
-  fromUArrayPR
-   = error "fromUArrayPR[Tuple]: put in Scalar class, need U.Elt dictionary"
-   
-  {-# INLINE_PDATA toUArrayPR #-}
-  toUArrayPR
-   = error "toUArrayPR[Tuple]: put in Scalar class, need U.Elt dictionary"
-   
 
 -- | Zip a pair of arrays into an array of pairs.
 --   The two arrays must have the same length, else `error`. 

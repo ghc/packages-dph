@@ -154,15 +154,6 @@ class PR a where
   -- | Convert an array to a boxed vector.
   toVectorPR    :: PData a -> Vector a
 
-  -- TODO: Shift these into the Scalar class like existing library.  
-  -- | Convert an unlifted array to a PData. 
-  fromUArrayPR  :: U.Elt a => U.Array a -> PData a
-  
-  -- | Convert a PData into an unlifted array.
-  toUArrayPR    :: U.Elt a => PData a -> U.Array a
-
-
-
 
 -------------------------------------------------------------------------------
 -- extra unlifted primitives should be moved into unlifted library ------------

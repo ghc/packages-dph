@@ -93,10 +93,3 @@ instance PR () where
   toVectorPR (PUnit len)
         = V.replicate len ()
 
-  {-# INLINE_PDATA fromUArrayPR #-}
-  fromUArrayPR uarr
-        = PUnit (U.length uarr)
-
-  {-# INLINE_PDATA toUArrayPR #-}
-  toUArrayPR (PUnit len)
-        = U.replicate len ()

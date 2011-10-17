@@ -111,11 +111,3 @@ instance PR Double where
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PDouble arr)
         = V.fromList $ U.toList arr
-
-  {-# INLINE_PDATA fromUArrayPR #-}
-  fromUArrayPR xx
-        = PDouble xx
-
-  {-# INLINE_PDATA toUArrayPR #-}
-  toUArrayPR (PDouble xx)
-        = xx

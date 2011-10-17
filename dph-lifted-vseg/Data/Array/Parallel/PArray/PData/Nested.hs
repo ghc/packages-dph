@@ -464,10 +464,6 @@ instance PR a => PR (PArray a) where
    $ indexPR arr
 
 
-  fromUArrayPR  = error "fromUArrayPR[PArray]: not defined yet"   
-  toUArrayPR    = error "toUArrayPR[PArray]: not defined et"
-
-
 -------------------------------------------------------------------------------
 -- | Flatten a nested array into its segment descriptor and data.
 --

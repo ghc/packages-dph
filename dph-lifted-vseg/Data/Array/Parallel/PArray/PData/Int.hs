@@ -105,10 +105,3 @@ instance PR Int where
   toVectorPR (PInt arr)
         = V.fromList $ U.toList arr
 
-  {-# INLINE_PDATA fromUArrayPR #-}
-  fromUArrayPR xx
-        = PInt xx
-
-  {-# INLINE_PDATA toUArrayPR #-}
-  toUArrayPR (PInt xx)
-        = xx

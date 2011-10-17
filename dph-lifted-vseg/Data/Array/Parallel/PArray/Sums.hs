@@ -5,6 +5,7 @@ module Data.Array.Parallel.PArray.Sums
         , sumPA_int,    sumPA_l_int)
 where
 import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.PArray.Scalar
 import qualified Data.Vector                            as V
 import qualified Data.Array.Parallel.Unlifted           as U
 
@@ -25,7 +26,7 @@ sumPA_l_double
 sumPA_l_double _ (PNested vsegd datas)
  = {-# SCC "sumPA_l_double" #-}
    let  -- Grab all the flat source vectors.
-        !pdatas          = V.map toUArrayPR datas
+        !pdatas          = V.map fromScalarPData datas
 
         -- Sum up each physical segment individually.
         !psegResults     = U.fold_ss (+) 0 (U.takeSSegdOfVSegd vsegd) pdatas
@@ -52,7 +53,7 @@ sumPA_l_int
 sumPA_l_int _ (PNested vsegd datas)
  = {-# SCC "sumPA_l_int" #-}
    let  -- Grab all the flat source vectors.
-        pdatas          = V.map toUArrayPR datas
+        pdatas          = V.map fromScalarPData datas
 
         -- Sum up each physical segment individually.
         psegResults     = U.fold_ss (+) 0 (U.takeSSegdOfVSegd vsegd) pdatas
