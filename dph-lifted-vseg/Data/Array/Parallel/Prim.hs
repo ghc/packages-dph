@@ -45,12 +45,12 @@ import Data.Array.Parallel.Lifted.Closure     ((:->)(..))
 -- for some of the arguments.
 {-# INLINE emptyPD# #-}
 emptyPD# :: PA a => PData a
-emptyPD# = emptyPD
+emptyPD# = emptyPA
 
 {-# INLINE replicatePD# #-}
 replicatePD# :: PA a => Int# -> a -> PData a
 replicatePD# r x 
-        = replicatePD (I# r) x
+        = replicatePA (I# r) x
 
 
 -- Closures -------------------------------------------------------------------
@@ -148,13 +148,13 @@ closure3 fv fl
 {-# INLINE packByTagPD# #-}
 packByTagPD# :: PA a => PData a -> Int# -> U.Array Tag -> Int# -> PData a
 packByTagPD# arr _ tags t
-        = packByTagPD arr tags (I# t)
+        = packByTagPA arr tags (I# t)
 
 
 {-# INLINE combine2PD# #-}
 combine2PD# :: PA a => Int# -> U.Sel2 -> PData a -> PData a -> PData a
 combine2PD# _ sel pdata1 pdata2
-        = combine2PD sel pdata1 pdata2
+        = combine2PA sel pdata1 pdata2
 
 
 -- Selector functions ---------------------------------------------------------

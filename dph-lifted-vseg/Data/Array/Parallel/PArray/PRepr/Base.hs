@@ -5,25 +5,24 @@
 --   This module is kept separate from PRepr.Base to break an import cycle
 --   between PRepr.Base PRepr.Instances and PArray.PData.Wrap
 --
-module Data.Array.Parallel.PArray.PRepr.Base (
-        PRepr,
-        PA (..),
-        
-        -- PD functions are the same as the methods of the PR class, 
+module Data.Array.Parallel.PArray.PRepr.Base 
+        ( PRepr
+        , PA (..)
+
+        -- PA functions are the same as the methods of the PR class, 
         -- except that they take a PA dictinoary instead of a PR 
         -- dictionary.
-        validPD,
-        emptyPD,
-        nfPD,
-        lengthPD,
-        replicatePD,    replicatesPD,
-        indexPD,        indexlPD,
-        extractPD,      extractsPD,
-        appendPD,       appendsPD,
-        packByTagPD,
-        combine2PD,
-        fromVectorPD,   toVectorPD
-)
+        , validPA
+        , emptyPA
+        , nfPA
+        , lengthPA
+        , replicatePA,    replicatesPA
+        , indexPA,        indexlPA
+        , extractPA,      extractsPA
+        , appendPA,       appendsPA
+        , packByTagPA
+        , combine2PA
+        , fromVectorPA,   toVectorPA)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Vector                              (Vector)
@@ -86,112 +85,112 @@ class PR (PRepr a) => PA a where
 --
 --  See the D.A.P.PArray.PData.Base for docs on what these functions do.
 --
-{-# INLINE_PA validPD #-}
-validPD         :: PA a => PData a -> Bool
-validPD arr
+{-# INLINE_PA validPA #-}
+validPA         :: PA a => PData a -> Bool
+validPA arr
  = validPR (toArrPRepr arr)
 
 
-{-# INLINE_PA emptyPD #-}
-emptyPD         :: PA a => PData a
-emptyPD 
+{-# INLINE_PA emptyPA #-}
+emptyPA         :: PA a => PData a
+emptyPA 
   = fromArrPRepr emptyPR
 
 
-{-# INLINE_PA nfPD #-}
-nfPD            :: PA a => PData a -> ()
-nfPD arr
+{-# INLINE_PA nfPA #-}
+nfPA            :: PA a => PData a -> ()
+nfPA arr
  = nfPR 
  $ toArrPRepr arr
 
 
-{-# INLINE_PA lengthPD #-}
-lengthPD        :: PA a => PData a -> Int
-lengthPD arr
+{-# INLINE_PA lengthPA #-}
+lengthPA        :: PA a => PData a -> Int
+lengthPA arr
  = lengthPR 
  $ toArrPRepr arr
  
 
-{-# INLINE_PA replicatePD #-}
-replicatePD     :: PA a => Int -> a -> PData a
-replicatePD n x
+{-# INLINE_PA replicatePA #-}
+replicatePA     :: PA a => Int -> a -> PData a
+replicatePA n x
  = fromArrPRepr
  $ replicatePR n $ toPRepr x
 
 
-{-# INLINE_PA replicatesPD #-}
-replicatesPD    :: PA a => U.Segd -> PData a -> PData a
-replicatesPD segd xs
+{-# INLINE_PA replicatesPA #-}
+replicatesPA    :: PA a => U.Segd -> PData a -> PData a
+replicatesPA segd xs
  = fromArrPRepr
  $ replicatesPR segd (toArrPRepr xs)
 
 
-{-# INLINE_PA indexPD #-}
-indexPD         :: PA a => PData a    -> Int -> a
-indexPD xs i
+{-# INLINE_PA indexPA #-}
+indexPA         :: PA a => PData a    -> Int -> a
+indexPA xs i
  = fromPRepr 
  $ indexPR (toArrPRepr xs) i
 
 
-{-# INLINE_PA indexlPD #-}
-indexlPD        :: PA a => Int -> PData (PArray a) -> PData Int -> PData a
-indexlPD n xss ixs
+{-# INLINE_PA indexlPA #-}
+indexlPA        :: PA a => Int -> PData (PArray a) -> PData Int -> PData a
+indexlPA n xss ixs
  = fromArrPRepr
  $ indexlPR n (toNestedArrPRepr xss) ixs
 
 
-{-# INLINE_PA extractPD #-}
-extractPD       :: PA a => PData a -> Int -> Int -> PData a
-extractPD xs start len
+{-# INLINE_PA extractPA #-}
+extractPA       :: PA a => PData a -> Int -> Int -> PData a
+extractPA xs start len
  = fromArrPRepr
  $ extractPR (toArrPRepr xs) start len
 
 
-{-# INLINE_PA extractsPD #-}
-extractsPD      :: PA a => Vector (PData a) -> U.SSegd -> PData a
-extractsPD xss segd
+{-# INLINE_PA extractsPA #-}
+extractsPA      :: PA a => Vector (PData a) -> U.SSegd -> PData a
+extractsPA xss segd
  = fromArrPRepr
  $ extractsPR (toArrPReprs xss) segd
 
 
-{-# INLINE_PA appendPD #-}
-appendPD        :: PA a => PData a -> PData a -> PData a
-appendPD xs ys
+{-# INLINE_PA appendPA #-}
+appendPA        :: PA a => PData a -> PData a -> PData a
+appendPA xs ys
  = fromArrPRepr
  $ appendPR (toArrPRepr xs) (toArrPRepr ys)
 
 
-{-# INLINE_PA appendsPD #-}
-appendsPD       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd -> PData a -> PData a
-appendsPD segdResult segd1 xs segd2 ys
+{-# INLINE_PA appendsPA #-}
+appendsPA       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd -> PData a -> PData a
+appendsPA segdResult segd1 xs segd2 ys
  = fromArrPRepr
  $ appendsPR segdResult segd1 (toArrPRepr xs) segd2 (toArrPRepr ys)
 
 
-{-# INLINE_PA packByTagPD #-}
-packByTagPD     :: PA a => PData a -> U.Array Tag -> Tag -> PData a
-packByTagPD xs tags tag
+{-# INLINE_PA packByTagPA #-}
+packByTagPA     :: PA a => PData a -> U.Array Tag -> Tag -> PData a
+packByTagPA xs tags tag
  = fromArrPRepr
  $ packByTagPR (toArrPRepr xs) tags tag
 
 
-{-# INLINE_PA combine2PD #-}
-combine2PD      :: PA a => U.Sel2 -> PData a -> PData a -> PData a
-combine2PD sel xs ys
+{-# INLINE_PA combine2PA #-}
+combine2PA      :: PA a => U.Sel2 -> PData a -> PData a -> PData a
+combine2PA sel xs ys
  = fromArrPRepr
  $ combine2PR sel (toArrPRepr xs) (toArrPRepr ys)
  
  
-{-# INLINE_PA fromVectorPD #-}
-fromVectorPD    :: PA a => Vector a -> PData a
-fromVectorPD vec
+{-# INLINE_PA fromVectorPA #-}
+fromVectorPA    :: PA a => Vector a -> PData a
+fromVectorPA vec
  = fromArrPRepr
  $ fromVectorPR (V.map toPRepr vec)
 
 
-{-# INLINE_PA toVectorPD #-}
-toVectorPD      :: PA a => PData a -> Vector a
-toVectorPD pdata
+{-# INLINE_PA toVectorPA #-}
+toVectorPA      :: PA a => PData a -> Vector a
+toVectorPA pdata
  = V.map fromPRepr
  $ toVectorPR (toArrPRepr pdata)
 

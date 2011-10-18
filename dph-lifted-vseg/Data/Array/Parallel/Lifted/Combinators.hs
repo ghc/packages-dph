@@ -101,26 +101,26 @@ emptyPP         = PA.empty
 -- singleton ------------------------------------------------------------------
 {-# INLINE_PA singletonPP #-}
 singletonPP :: PA a => a :-> PArray a
-singletonPP     = closure1 PA.singleton singletonPD_l
+singletonPP     = closure1 PA.singleton singletonlPA
 
 
-{-# INLINE singletonPD_l #-}
-singletonPD_l :: PA a => Int -> PData a -> PData (PArray a)
-singletonPD_l c xs 
-        = replicatePD_l c (PInt $ U.replicate c 1) xs
+{-# INLINE singletonlPA #-}
+singletonlPA :: PA a => Int -> PData a -> PData (PArray a)
+singletonlPA c xs 
+        = replicatelPA' c (PInt $ U.replicate c 1) xs
 
 
 -- replicate ------------------------------------------------------------------
 -- | Produce a new array by replicating a single element the given number of times.
 {-# INLINE_PA replicatePP #-}
 replicatePP     :: PA a => Int :-> a :-> PArray a
-replicatePP     = closure2 PA.replicate replicatePD_l
+replicatePP     = closure2 PA.replicate replicatelPA'
 
 
-{-# INLINE replicatePD_l #-}
-replicatePD_l   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
-replicatePD_l 0 _ _     = emptyPD
-replicatePD_l c (PInt lens) pdata
+{-# INLINE replicatelPA' #-}
+replicatelPA'   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
+replicatelPA' 0 _ _     = emptyPA
+replicatelPA' c (PInt lens) pdata
  = let  segd    = U.lengthsToSegd lens
    in   mkPNested
                 (U.replicate_s segd (U.enumFromTo 0 (c - 1)))
@@ -133,12 +133,12 @@ replicatePD_l c (PInt lens) pdata
 -- append ---------------------------------------------------------------------
 {-# INLINE_PA appendPP #-}
 appendPP :: PA a => PArray a :-> PArray a :-> PArray a
-appendPP        = closure2 PA.append appendPD_l
+appendPP        = closure2 PA.append appendlPA'
 
-{-# INLINE appendPD_l #-}
-appendPD_l :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendPD_l _ arr1 arr2
-        = appendlPD arr1 arr2
+{-# INLINE appendlPA' #-}
+appendlPA' :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
+appendlPA' _ arr1 arr2
+        = appendlPA arr1 arr2
 
 
 
@@ -147,13 +147,13 @@ appendPD_l _ arr1 arr2
 -- | Take the number of elements in an array.
 {-# INLINE_PA lengthPP #-}
 lengthPP   :: PA a => PArray a :-> Int
-lengthPP        = closure1 PA.length lengthPD_l
+lengthPP        = closure1 PA.length lengthlPA'
 
 
-{-# INLINE lengthPD_l #-}
-lengthPD_l :: PA (PArray a)
+{-# INLINE lengthlPA' #-}
+lengthlPA' :: PA (PArray a)
            => Int -> PData (PArray a) -> PData Int
-lengthPD_l _ (PNested vsegd _)
+lengthlPA' _ (PNested vsegd _)
         = PInt $ U.takeLengthsOfVSegd vsegd
 
 
@@ -161,19 +161,19 @@ lengthPD_l _ (PNested vsegd _)
 -- | Lookup a single element from the souce array.
 {-# INLINE_PA indexPP #-}
 indexPP :: PA a => PArray a :-> Int :-> a
-indexPP         = closure2 PA.index indexlPD
+indexPP         = closure2 PA.index indexlPA
 
 
 -- slice ----------------------------------------------------------------------
 {-# INLINE_PA slicePP #-}
 slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
-slicePP         = closure3 PA.slice slicePD_l
+slicePP         = closure3 PA.slice slicelPA'
 
 
-{-# INLINE slicePD_l #-}
-slicePD_l :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
-slicePD_l _ sliceStarts sliceLens arrs
-        = slicelPR sliceStarts sliceLens arrs
+{-# INLINE slicelPA' #-}
+slicelPA' :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
+slicelPA' _ sliceStarts sliceLens arrs
+        = slicelDD sliceStarts sliceLens arrs
 
 
 -- Traversals =================================================================
@@ -189,7 +189,7 @@ mapPP   = closure2 mapPA_v mapPD_l
 mapPA_v :: (PA a, PA b)
         => (a :-> b) -> PArray a -> PArray b
 mapPA_v (Clo _fv fl env) (PArray n# as) 
-        = PArray n# (fl (I# n#) (replicatePD (I# n#) env) as)
+        = PArray n# (fl (I# n#) (replicatePA (I# n#) env) as)
 
 
 {-# INLINE mapPD_l #-}
@@ -198,16 +198,23 @@ mapPD_l :: (PA (a :-> b), PA a, PA b)
                 -> PData (PArray a) -> PData (PArray b)
 
 mapPD_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
- = let  argFlat         = concatPD arg
-        c               = lengthPD argFlat
+ = let  argFlat         = concatPA arg
+        c               = lengthPA argFlat
 
         -- TODO: rename this as unsafeDemoteToSegdOfVSegd.. it might overflow
         segd            = U.demoteToSegdOfVSegd vsegd
 
-        envsReplicated  = replicatesPD segd envs
+        envsReplicated  = replicatesPA segd envs
         arrResult       = fl c envsReplicated argFlat
 
-  in    unconcatPD arg arrResult
+  in    unconcatPA arg arrResult
+
+{-
+mapPD_l c fs ass
+        =   unconcatPD ass 
+        $   liftedApply c (replicatesPD (unsafeDemoteSegdPD ass) fs)
+        $   concatPD ass
+-}      
 
 
 -- Filtering =================================================================
@@ -226,7 +233,7 @@ concatPP = closure1 PA.concat concatPD_l
 {-# INLINE concatPD_l #-}
 concatPD_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
 concatPD_l _ darr
-        = concatlPD darr
+        = concatlPA darr
 
 
 -- Tuple Functions ============================================================

@@ -199,42 +199,42 @@ closure3' fv fl
 instance PR (a :-> b) where
   {-# INLINE_PDATA validPR #-}
   validPR (AClo _ _ env)
-        = validPD env
+        = validPA env
 
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
         = AClo  (\_ _ -> error "empty array closure")
                 (\_ _ -> error "empty array closure")
-                (emptyPD :: PData ())
+                (emptyPA :: PData ())
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (AClo fv fl envs)
-        = fv `seq` fl `seq` nfPD envs `seq` ()
+        = fv `seq` fl `seq` nfPA envs `seq` ()
 
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (AClo _ _ envs)
-        = lengthPD envs
+        = lengthPA envs
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n (Clo fv fl envs)
-        = AClo fv fl (replicatePD n envs)
+        = AClo fv fl (replicatePA n envs)
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR lens (AClo fv fl envs)
-        = AClo fv fl (replicatesPD lens envs)
+        = AClo fv fl (replicatesPA lens envs)
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (AClo fv fl envs) ix
-        = Clo fv fl (indexPD envs ix)
+        = Clo fv fl (indexPA envs ix)
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (AClo fv fl envs) start len
-        = AClo fv fl (extractPD envs start len)
+        = AClo fv fl (extractPA envs start len)
         
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (AClo fv fl envs) tags tag
-        = AClo fv fl (packByTagPD envs tags tag)
+        = AClo fv fl (packByTagPA envs tags tag)
 
 
   -- TODO: not sure about these.

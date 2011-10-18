@@ -13,52 +13,52 @@ newtype instance PData (Wrap a)
 instance PA a => PR (Wrap a) where       
 
   validPR (PWrap pdata)  
-        = validPD pdata
+        = validPA pdata
  
   emptyPR               
-        = PWrap emptyPD
+        = PWrap emptyPA
   
   nfPR (PWrap pdata)      
-        = nfPD pdata
+        = nfPA pdata
         
   lengthPR (PWrap pdata)
-        = lengthPD pdata
+        = lengthPA pdata
         
   replicatePR n (Wrap x)
-        = PWrap $ replicatePD n x
+        = PWrap $ replicatePA n x
 
   replicatesPR segd (PWrap xs)
-        = PWrap $ replicatesPD segd xs
+        = PWrap $ replicatesPA segd xs
 
   indexPR (PWrap xs) ix
-        = Wrap  $ indexPD xs ix
+        = Wrap  $ indexPA xs ix
 
   -- PROBLEM: unwrapping isn't O(1).
   indexlPR n (PNested vsegd pdatas) ixs
    = let pdatas' = V.map (\(PWrap a) -> a) pdatas
-     in  PWrap (indexlPD n (PNested vsegd pdatas') ixs)
+     in  PWrap (indexlPA n (PNested vsegd pdatas') ixs)
 
   extractPR (PWrap xs) ix n
-        = PWrap $ extractPD xs ix n
+        = PWrap $ extractPA xs ix n
         
   -- PROBLEM: unwrapping isn't O(1).
   extractsPR vecs ssegd
-        = PWrap $ extractsPD (V.map (\(PWrap a) -> a) vecs) ssegd
+        = PWrap $ extractsPA (V.map (\(PWrap a) -> a) vecs) ssegd
 
   appendPR (PWrap xs) (PWrap ys)
-        = PWrap $ appendPD xs ys
+        = PWrap $ appendPA xs ys
         
   appendsPR segdResult segd1 (PWrap xs) segd2 (PWrap ys)
-        = PWrap $ appendsPD segdResult segd1 xs segd2 ys
+        = PWrap $ appendsPA segdResult segd1 xs segd2 ys
         
   packByTagPR (PWrap xs) tags tag
-        = PWrap $ packByTagPD xs tags tag
+        = PWrap $ packByTagPA xs tags tag
 
   combine2PR sel (PWrap xs) (PWrap ys)
-        = PWrap $ combine2PD sel xs ys
+        = PWrap $ combine2PA sel xs ys
 
   fromVectorPR vec 
-        = PWrap $ fromVectorPD $ V.map unWrap vec
+        = PWrap $ fromVectorPA $ V.map unWrap vec
         
   toVectorPR (PWrap pdata)
-        = V.map Wrap $ toVectorPD pdata
+        = V.map Wrap $ toVectorPA pdata

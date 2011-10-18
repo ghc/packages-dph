@@ -3,10 +3,10 @@
 -- | PRepr instance for nested arrays, 
 --   and PD wrappers for other functions defined in D.A.P.PArray.PData.Nested.
 module Data.Array.Parallel.PArray.PRepr.Nested
-        ( concatPD
-        , unconcatPD
-        , concatlPD
-        , appendlPD)
+        ( concatPA
+        , unconcatPA
+        , concatlPA
+        , appendlPA)
 where
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
@@ -42,32 +42,32 @@ instance PA a => PA (PArray a) where
         = PNested segd $ toArrPReprs pdatas
 
 
--- PD Wrappers ----------------------------------------------------------------
+-- PA Wrappers ----------------------------------------------------------------
 -- These wrappers have the same types in the ones in D.A.P.PArray.PData.Nested,
 -- except that they take a PA dictionary instead of a PR dictionary.
 --
 -- See D.A.P.PArray.PRepr.Base   for docs on why we need the wrappers.
 -- See D.A.P.PArray.PData.Nested for docs on what the PR versions do.
 --
-{-# INLINE_PA concatPD #-}
-concatPD        :: PA a => PData (PArray a) -> PData a
-concatPD arr
+{-# INLINE_PA concatPA #-}
+concatPA        :: PA a => PData (PArray a) -> PData a
+concatPA arr
  = fromArrPRepr $ concatPR $ toArrPRepr arr
  
  
-{-# INLINE_PA unconcatPD #-}
-unconcatPD      :: (PA a, PA b) => PData (PArray a) -> PData b -> PData (PArray b)
-unconcatPD arr1 arr2
- = fromArrPRepr $ unconcatPR (toArrPRepr arr1) (toArrPRepr arr2)
+{-# INLINE_PA unconcatPA #-}
+unconcatPA      :: (PA a, PA b) => PData (PArray a) -> PData b -> PData (PArray b)
+unconcatPA arr1 arr2
+ = fromArrPRepr $ unconcatDD (toArrPRepr arr1) (toArrPRepr arr2)
 
 
-{-# INLINE_PA concatlPD #-}
-concatlPD       :: PA a => PData (PArray (PArray a)) -> PData (PArray a)
-concatlPD arr
+{-# INLINE_PA concatlPA #-}
+concatlPA       :: PA a => PData (PArray (PArray a)) -> PData (PArray a)
+concatlPA arr
  = fromArrPRepr $ concatlPR (toArrPRepr arr)
 
 
-{-# INLINE_PA appendlPD #-}
-appendlPD       :: PA a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendlPD arr1 arr2
+{-# INLINE_PA appendlPA #-}
+appendlPA       :: PA a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
+appendlPA arr1 arr2
  = fromArrPRepr $ appendlPR (toArrPRepr arr1) (toArrPRepr arr2)
