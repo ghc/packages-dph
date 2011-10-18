@@ -7,7 +7,7 @@ module Data.Array.Parallel.Lifted.Closure (
 
   -- * Array Closures.
   PData(..),
-  liftedApply,
+  ($:^), liftedApply,
 
   -- * Closure Construction.
   closure1,  closure2,  closure3,
@@ -69,6 +69,13 @@ data instance PData (a :-> b)
         => AClo (env -> a -> b)
                 (Int -> PData env -> PData a -> PData b)
                 (PData env)
+
+
+-- | Lifted closure application.
+($:^) :: forall a b. PArray (a :-> b) -> PArray a -> PArray b
+PArray n# (AClo _ f es) $:^ PArray _ as 
+        = PArray n# (f (I# n#) es as)
+{-# INLINE ($:^) #-}
 
 
 -- | Lifted closure application.

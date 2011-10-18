@@ -140,45 +140,20 @@ slicePP         = closure3' PA.slice PA.slicel
 {-# INLINE_PA slicePP #-}
 
 
--- Traversals =================================================================
--- map ------------------------------------------------------------------------
-{-# INLINE_PA mapPP #-}
+-- Traversals -----------------------------------------------------------------
+-- | Apply a worker function to every element of an array.
 mapPP   :: (PA a, PA b) 
         => (a :-> b) :-> PArray a :-> PArray b
 
-mapPP   = closure2 mapPA_v mapPD_l
+{-# INLINE_PA mapPP #-}
+mapPP   = closure2' mapPP_v mapPP_l
+ where
+        {-# INLINE mapPP_v #-}
+        mapPP_v f as    = PA.replicate (PA.length as) f $:^ as
 
-
-{-# INLINE mapPA_v #-}
-mapPA_v :: (PA a, PA b)
-        => (a :-> b) -> PArray a -> PArray b
-mapPA_v (Clo _fv fl env) (PArray n# as) 
-        = PArray n# (fl (I# n#) (replicatePA (I# n#) env) as)
-
-
-{-# INLINE mapPD_l #-}
-mapPD_l :: (PA (a :-> b), PA a, PA b)
-        => Int  -> PData (a :-> b) 
-                -> PData (PArray a) -> PData (PArray b)
-
-mapPD_l _ (AClo _fv fl envs) arg@(PNested vsegd _pdata)
- = let  argFlat         = concatPA arg
-        c               = lengthPA argFlat
-
-        -- TODO: rename this as unsafeDemoteToSegdOfVSegd.. it might overflow
-        segd            = U.demoteToSegdOfVSegd vsegd
-
-        envsReplicated  = replicatesPA segd envs
-        arrResult       = fl c envsReplicated argFlat
-
-  in    unconcatPA arg arrResult
-
-{-
-mapPD_l c fs ass
-        =   unconcatPD ass 
-        $   liftedApply c (replicatesPD (unsafeDemoteSegdPD ass) fs)
-        $   concatPD ass
--}      
+        {-# INLINE mapPP_l #-}
+        mapPP_l fs ass  = PA.unconcat ass 
+                        $ PA.replicates (PA.unsafeTakeSegd ass) fs $:^ PA.concat ass
 
 
 -- Filtering ------------------------------------------------------------------

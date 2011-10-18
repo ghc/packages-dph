@@ -28,6 +28,7 @@ module Data.Array.Parallel.PArray
         , extract,      extracts
         , slice,        slicel
         , unpack
+        , unsafeTakeSegd
 
         -- * Pack and Combine
         , packByTag
@@ -129,11 +130,10 @@ replicatel (PArray n# (PInt lens)) (PArray _ pdata)
 
 
 -- | O(sum lengths). Segmented replicate.
-replicates :: PA a => U.Array Int -> PArray a -> PArray a
-replicates repCounts (PArray _ darr)
- = let  I# n#   = U.sum repCounts
-   in   PArray  n#
-                (replicatesPA (U.lengthsToSegd repCounts) darr)
+replicates :: PA a => U.Segd -> PArray a -> PArray a
+replicates segd (PArray _ pdata)
+ = let  !(I# n#) = U.elementsSegd segd
+   in   PArray n# $ replicatesPA segd pdata
 {-# INLINE_PA replicates #-}
 
 
@@ -169,7 +169,7 @@ concatl (PArray n# pdata1)
 
 
 -- | Impose a nesting structure on a flat array
-unconcat :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
+unconcat :: PA a => PArray (PArray a) -> PArray b -> PArray (PArray b)
 unconcat (PArray n# pdata1) (PArray _ pdata2)
         = PArray n# $ unconcatPD pdata1 pdata2
 {-# INLINE_PA unconcat #-}
@@ -247,6 +247,14 @@ slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArra
 slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
         = PArray n# (slicelPD sliceStarts sliceLens darr)
 {-# INLINE_PA slicel #-}
+
+
+-- | Take the segment descriptor from a nested array and demote it to a
+--   plain Segd. This is unsafe because it can cause index space overflow.
+unsafeTakeSegd :: PArray (PArray a) -> U.Segd
+unsafeTakeSegd (PArray _ pdata)
+        = unsafeTakeSegdPD pdata
+{-# INLINE unsafeTakeSegd #-}
 
 
 -- Pack and Combine -----------------------------------------------------------
