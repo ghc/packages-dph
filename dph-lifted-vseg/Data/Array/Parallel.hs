@@ -27,32 +27,36 @@
 --  `-fvectorise` option.  Without vectorisation these functions will not work
 --  at all!
 --
-module Data.Array.Parallel (
-        module Data.Array.Parallel.Prelude,
-
+module Data.Array.Parallel 
+        ( module Data.Array.Parallel.Prelude
+        
         -- * Conversions
-        fromPArrayP,
-        toPArrayP,
-        fromNestedPArrayP,
+        , fromPArrayP
+        , toPArrayP
+        , fromNestedPArrayP
         
         -- * Constructors
-        emptyP,
-        singletonP,
-        replicateP,
-        appendP, (+:+),
-        concatP,
+        , emptyP
+        , singletonP
+        , replicateP
+        , appendP, (+:+)
+        , concatP
         
         -- * Projections
-        lengthP,
-        indexP, (!:),
-        sliceP,
+        , lengthP
+        , indexP,  (!:)
+        , sliceP
         
         -- * Traversals
-        mapP,
+        , mapP
+        , zipWithP
 
         -- * Filtering
-        filterP
-)
+        , filterP
+        
+        -- * Ziping and Unzipping
+        , zipP
+        , unzipP)
 where
 import Data.Array.Parallel.VectDepend
 -- IMPORTANT: see Note [Vectoriser dependencies] in the same module
@@ -173,10 +177,17 @@ sliceP !_ !_ !_ = [::]
 
 
 -- Traversals -----------------------------------------------------------------
+-- | Apply a worker function to every element of an array.
 mapP :: (a -> b) -> [:a:] -> [:b:]
-mapP !_ !_      = [::]
+mapP !_ !_              = [::]
 {-# NOINLINE  mapP #-}
 {-# VECTORISE mapP      = mapPP #-}
+
+-- | Apply a worker function to every pair of two arrays.
+zipWithP :: (a -> b -> c) -> [:a:] -> [:b:] -> [:c:]
+zipWithP !_ !_ !_       = [::]
+{-# NOINLINE  zipWithP #-}
+{-# VECTORISE zipWithP  = zipWithPP #-}
 
 
 -- Filtering -----------------------------------------------------------------
@@ -185,3 +196,17 @@ filterP !_ !_   = [::]
 {-# NOINLINE  filterP #-}
 {-# VECTORISE filterP = filterPP #-}
 
+
+-- Zipping and Unzipping ------------------------------------------------------
+-- | Zip a pair of arrays into an array of pairs.
+zipP :: [:a:] -> [:b:] -> [:(a, b):]
+zipP !_ !_      = [::]
+{-# NOINLINE  zipP #-}
+{-# VECTORISE zipP      = zipPP #-}
+
+
+-- | Unzip an array of pairs into a pair of arrays.
+unzipP :: [:(a, b):] -> ([:a:], [:b:])
+unzipP !_       = ([::], [::])
+{-# NOINLINE  unzipP #-}
+{-# VECTORISE unzipP    = unzipPP #-}

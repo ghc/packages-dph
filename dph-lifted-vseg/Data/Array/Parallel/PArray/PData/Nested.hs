@@ -49,6 +49,9 @@ data instance PData Int
 --       this field aren't parallelised. In particular, when we append two
 --       psegdata fields during appPR or combinePR this runs sequentially
 --
+-- TODO: Should make a new type familty PDatas to hold the vector of datas 
+--       for all the segment slices.
+--
 data instance PData (PArray a)
         = PNested
         { pnested_uvsegd       :: !U.VSegd

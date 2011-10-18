@@ -23,6 +23,7 @@ import GHC.Exts
 -- Closures -------------------------------------------------------------------
 -- | Define the fixity of the closure type constructor.
 infixr 0 :->
+infixl 1 $:, $:^
 
 -- | The type of closures.
 --   This bundles up:

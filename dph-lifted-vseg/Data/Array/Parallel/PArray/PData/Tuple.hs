@@ -3,6 +3,7 @@
 module Data.Array.Parallel.PArray.PData.Tuple 
         ( PData(..)
         , zip,          zipPD
+        , zipl,         ziplPD
         , unzip,        unzipPD
         , unzipl,       unziplPD)
 where
@@ -131,8 +132,14 @@ instance (PR a, PR b) => PR (a, b) where
 --   The two arrays must have the same length, else `error`. 
 zip :: PArray a -> PArray b -> PArray (a, b)
 zip (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# (zipPD pdata1 pdata2)
+        = PArray n# $ zipPD pdata1 pdata2
 {-# INLINE_PA zip #-}
+
+
+-- | Lifted zip.
+zipl :: PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
+zipl (PArray n# xs) (PArray _ ys)
+        = PArray n# $ ziplPD xs ys
 
 
 -- | O(1). Unzip an array of pairs into a pair of arrays.
@@ -157,6 +164,14 @@ zipPD   = PTuple2
 {-# INLINE_PA zipPD #-}
 
 
+-- | Lifted zip.
+--   PROBLEM: This probably isn't O(1), though it could be dep on Vector represtation.
+ziplPD   :: PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
+ziplPD (PNested vsegd pdatas1) (PNested _ pdatas2)
+        = PNested vsegd $ V.zipWith PTuple2 pdatas1 pdatas2
+{-# INLINE_PA ziplPD #-}
+
+
 -- | O(1). Unzip an array of pairs into a pair of arrays.
 unzipPD :: PData (a, b) -> (PData a, PData b)
 unzipPD (PTuple2 xs ys) = (xs, ys)
@@ -164,6 +179,7 @@ unzipPD (PTuple2 xs ys) = (xs, ys)
 
 
 -- | Lifted unzip.
+--   PROBLEM: this isn't O(1), need adaptive PDatas representation.
 {-# INLINE_PA unziplPD #-}
 unziplPD  :: PData (PArray (a, b)) -> PData (PArray a, PArray b)
 unziplPD (PNested uvsegd psegdata)
@@ -171,6 +187,5 @@ unziplPD (PNested uvsegd psegdata)
          = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
    in   PTuple2 (PNested uvsegd xsdata)
                 (PNested uvsegd ysdata)
-
 
 

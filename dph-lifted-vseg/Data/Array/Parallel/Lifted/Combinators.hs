@@ -29,6 +29,7 @@ module Data.Array.Parallel.Lifted.Combinators
 
         -- * Traversals
         , mapPP
+        , zipWithPP
 
         -- * Filtering
         , filterPP
@@ -37,6 +38,7 @@ module Data.Array.Parallel.Lifted.Combinators
         , concatPP
 
         -- * Tuple functions
+        , zipPP
         , unzipPP)
 where
 import Data.Array.Parallel.Lifted.Closure
@@ -149,11 +151,34 @@ mapPP   :: (PA a, PA b)
 mapPP   = closure2' mapPP_v mapPP_l
  where
         {-# INLINE mapPP_v #-}
-        mapPP_v f as    = PA.replicate (PA.length as) f $:^ as
+        mapPP_v f as
+                = PA.replicate (PA.length as) f $:^ as
 
         {-# INLINE mapPP_l #-}
-        mapPP_l fs ass  = PA.unconcat ass 
-                        $ PA.replicates (PA.unsafeTakeSegd ass) fs $:^ PA.concat ass
+        mapPP_l fs ass
+                =   PA.unconcat ass 
+                $   PA.replicates (PA.unsafeTakeSegd ass) fs
+                $:^ PA.concat ass
+
+
+-- | Apply a worker function to every pair of two arrays.
+zipWithPP 
+        :: (PA a, PA b, PA c)
+        => (a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c
+
+{-# INLINE_PA zipWithPP #-}
+zipWithPP = closure3' zipWithPP_v zipWithPP_l
+ where
+        {-# INLINE zipWithPP_v #-}
+        zipWithPP_v f as bs
+                = PA.replicate (PA.length as) f $:^ as $:^ bs
+
+        {-# INLINE zipWithPP_l #-}
+        zipWithPP_l fs ass bss
+                =   PA.unconcat ass
+                $   PA.replicates (PA.unsafeTakeSegd ass) fs
+                $:^ PA.concat ass
+                $:^ PA.concat bss
 
 
 -- Filtering ------------------------------------------------------------------
@@ -164,8 +189,13 @@ filterPP = nope
 
 
 -- Tuple Functions ------------------------------------------------------------
+-- | Zip a pair of arrays into an array of pairs.
+zipPP :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a, b)
+zipPP           = closure2' PA.zip PA.zipl
+{-# INLINE_PA zipPP #-}
+
 -- | Unzip an array of pairs into a pair of arrays.
 unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
-unzipPP = closure1' PA.unzip PA.unzipl
+unzipPP         = closure1' PA.unzip PA.unzipl
 {-# INLINE_PA unzipPP #-}
 

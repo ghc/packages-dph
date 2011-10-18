@@ -35,11 +35,11 @@ module Data.Array.Parallel.PArray
         , combine2
 
         -- * Enumerations
-        , enumFromTo,   enumFromTol     -- From D.A.P.PArray.Scalar
+        , enumFromTo,   enumFromTol     -- from D.A.P.PArray.Scalar
 
         -- * Tuples
-        , zip
-        , unzip,        unzipl
+        , zip,          zipl            -- from D.A.P.PArray.Tuple
+        , unzip,        unzipl          -- from D.A.P.PArray.Tuple
 
         -- * Conversions
         , fromVector,   toVector
