@@ -24,10 +24,10 @@ module Data.Array.Parallel.PArray.PData.Nested
         , slicelPR
         , appendlPR)
 where
-import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.Base
 
+import Data.Array.Parallel.PArray.PData.Base    as PA
 import qualified Data.IntSet                    as IS
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
@@ -304,7 +304,7 @@ instance PR a => PR (PArray a) where
   -- To extract a range of elements from a nested array, perform the extract
   -- on the vsegids field. The `updateVSegsOfUVSegd` function will then filter
   -- out all of the psegs that are no longer reachable from the new vsegids.
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PNested uvsegd pdata) start len
    = {-# SCC "extractPR" #-}
      PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
@@ -340,7 +340,7 @@ instance PR a => PR (PArray a) where
   --  We encode these offsets in the psrcoffset vector:
   --       psrcoffset :  [0, 2]
   --
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE_PDATA extractsPR #-}
   extractsPR arrs ussegd
    = {-# SCC "extractsPR" #-}
      let segsrcs        = U.sourcesSSegd ussegd
@@ -401,7 +401,7 @@ instance PR a => PR (PArray a) where
   -- anyway. Once this is done we use copying segmented append on the flat 
   -- arrays, and then reconstruct the segment descriptor.
   --
-  {- INLINE_PDATA appendsPR #-}
+  {-# INLINE_PDATA appendsPR #-}
   appendsPR rsegd segd1 xarr segd2 yarr
    = let (xsegd, xs)    = unsafeFlattenPR xarr
          (ysegd, ys)    = unsafeFlattenPR yarr
@@ -449,13 +449,13 @@ instance PR a => PR (PArray a) where
   fromVectorPR xx
    | V.length xx == 0 = emptyPR
    | otherwise
-   = let segd      = U.lengthsToSegd $ U.fromList $ V.toList $ V.map lengthPA xx
+   = let segd      = U.lengthsToSegd $ U.fromList $ V.toList $ V.map PA.length xx
      in  mkPNested
                 (U.enumFromTo 0 (V.length xx - 1))
                 (U.lengthsSegd segd)
                 (U.indicesSegd segd)
                 (U.replicate (V.length xx) 0)
-                (V.singleton (V.foldl1 appendPR $ V.map unpackPA xx))
+                (V.singleton (V.foldl1 appendPR $ V.map PA.unpack xx))
 
 
   {-# INLINE_PDATA toVectorPR #-}
@@ -519,9 +519,7 @@ concatPR' (PNested vsegd pdatas)
                 -- Copy these segments into a new array.
           in   extractsPR pdatas ussegd
 
-{-# NOINLINE concatPR  #-}
---  TODO: we'll need to inline this when we take the second branch, 
---  to get specialisation for extractsPR.
+{-# INLINE_PDATA concatPR  #-}
 
 
 -- | Build a nested array given a single flat data vector, 
@@ -573,7 +571,7 @@ concatlPR arr
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-{-# NOINLINE appendlPR #-}
+{-# INLINE_PDATA appendlPR #-}
 appendlPR  arr1 arr2
  = let  (segd1, darr1)  = unsafeFlattenPR arr1
         (segd2, darr2)  = unsafeFlattenPR arr2
@@ -592,7 +590,7 @@ slicelPR
         -> PData Int            -- ^ lengths of slices
         -> PData (PArray a)     -- ^ arrays to slice
         -> PData (PArray a)
-{-# NOINLINE slicelPR #-}
+{-# INLINE_PDATA slicelPR #-}
 slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 
  = let  segs            = U.length vsegids

@@ -5,10 +5,11 @@ where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.Base
-import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import GHC.Exts
-
+import Prelude hiding (zip, unzip)
+import qualified Data.Vector                    as V
+import qualified Prelude                        as P
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
@@ -31,8 +32,8 @@ instance ( PR a, PR b, Show a, Show b
         => PprVirtual (PData (a, b)) where
  pprv   (PTuple2 xs ys)
         = text $ show 
-        $ zip (V.toList $ toVectorPR xs) 
-              (V.toList $ toVectorPR ys)
+        $ P.zip (V.toList $ toVectorPR xs) 
+                (V.toList $ toVectorPR ys)
 
 
 -- PR -------------------------------------------------------------------------
@@ -122,9 +123,9 @@ instance (PR a, PR b) => PR (a, b) where
 -- Derived --------------------------------------------------------------------
 -- | Zip a pair of arrays into an array of pairs.
 --   The two arrays must have the same length, else `error`. 
-{-# INLINE_PA zipPA #-}
-zipPA :: PArray a -> PArray b -> PArray (a, b)
-zipPA (PArray n1# xs) (PArray n2# ys)
+{-# INLINE_PA zip #-}
+zip :: PArray a -> PArray b -> PArray (a, b)
+zip (PArray n1# xs) (PArray n2# ys)
         | I# n1# == I# n2#
         = PArray n1# (PTuple2 xs ys)
         
@@ -133,9 +134,9 @@ zipPA (PArray n1# xs) (PArray n2# ys)
 
 
 -- | Unzip an array of pairs into a pair of arrays.
-{-# INLINE_PA unzipPA #-}
-unzipPA :: PArray (a, b) -> (PArray a, PArray b)
-unzipPA (PArray n# (PTuple2 xs ys))
+{-# INLINE_PA unzip #-}
+unzip :: PArray (a, b) -> (PArray a, PArray b)
+unzip (PArray n# (PTuple2 xs ys))
         = (PArray n# xs, PArray n# ys)
 
 

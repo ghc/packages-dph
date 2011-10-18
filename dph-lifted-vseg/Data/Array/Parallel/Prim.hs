@@ -21,12 +21,19 @@ module Data.Array.Parallel.Prim
         , pickSel2#
         , tagsSel2
         , elementsSel2_0#
-        , elementsSel2_1#)
+        , elementsSel2_1#
+        
+        -- * Scalar functions
+        , scalar_map
+        , scalar_zipWith
+        , scalar_zipWith3)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PRepr.Base
 import GHC.Exts
 import Data.Array.Parallel.Base
+import Data.Array.Parallel.PArray.Scalar                (Scalar(..))
+import qualified Data.Array.Parallel.PArray.Scalar      as Scalar
 import qualified Data.Array.Parallel.Unlifted           as U
 
 import qualified Data.Array.Parallel.Lifted.Closure     as C
@@ -191,3 +198,29 @@ elementsSel2_0# sel
 elementsSel2_1# :: Sel2 -> Int#
 elementsSel2_1# sel
         = case U.elementsSel2_1 sel of { I# n# -> n# }
+
+
+-- Scalar functions -----------------------------------------------------------
+
+{-# INLINE scalar_map #-}
+scalar_map 
+        :: (Scalar a, Scalar b) 
+        => (a -> b) -> PArray a -> PArray b
+
+scalar_map      = Scalar.map
+
+
+{-# INLINE scalar_zipWith #-}
+scalar_zipWith
+        :: (Scalar a, Scalar b, Scalar c)
+        => (a -> b -> c) -> PArray a -> PArray b -> PArray c
+
+scalar_zipWith  = Scalar.zipWith
+
+
+{-# INLINE scalar_zipWith3 #-}
+scalar_zipWith3
+        :: (Scalar a, Scalar b, Scalar c, Scalar d)
+        => (a -> b -> c -> d) -> PArray a -> PArray b -> PArray c -> PArray d
+
+scalar_zipWith3 = Scalar.zipWith3

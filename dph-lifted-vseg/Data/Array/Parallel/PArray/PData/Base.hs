@@ -6,7 +6,7 @@
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
-        , lengthPA,     unpackPA
+        , length, unpack
         , PprPhysical (..), PprVirtual (..)
         , PData
         , PR(..)
@@ -21,6 +21,7 @@ import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
 import GHC.Exts
 import SpecConstr
+import Prelude hiding (length)
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array. 
@@ -53,15 +54,15 @@ instance PprVirtual (PData a) => PprVirtual (PArray a) where
 
 
 -- | Take the length of an array
-{-# INLINE_PA lengthPA #-}
-lengthPA :: forall a. PArray a -> Int
-lengthPA (PArray n# _)   = (I# n#)
+{-# INLINE_PA length #-}
+length :: PArray a -> Int
+length (PArray n# _)   = (I# n#)
 
 
 -- | Take the data from an array.
-{-# INLINE_PA unpackPA #-}
-unpackPA :: PArray a -> PData a
-unpackPA (PArray _ d)   = d
+{-# INLINE_PA unpack #-}
+unpack :: PArray a -> PData a
+unpack (PArray _ d)   = d
 
 
 -- PData ----------------------------------------------------------------------
@@ -193,9 +194,9 @@ uextracts arrs srcids ixBase lens
 
         {-# INLINE get #-}
         get ixDst ixSegDst (ixSegSrcBase, srcid)
-         = let  !arr    = arrs `V.unsafeIndex` srcid
+         = let  !arr    = arrs V.! srcid                         -- TODO: use unsafeIndex
                 !ix     = ixDst - ixSegDst + ixSegSrcBase
-           in   arr `VU.unsafeIndex` ix
+           in   arr U.!: ix                         -- TODO unsafe unsafeIndex
          
         result    = U.zipWith3 get
                         (U.enumFromTo 0 (dstLen - 1))

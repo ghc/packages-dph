@@ -9,62 +9,54 @@
 --   * The functions in this module may also be used directly by user programs.
 --
 module Data.Array.Parallel.PArray 
-        ( 
-        -- Things re-exported from D.A.P.PArray.PData.Base
-          PArray(..)
-        , lengthPA
-        , unpackPA
+        ( PArray(..)
+        , valid
+        , nf
 
-        -- PA versions of PR functions.
-        , validPA
-        , emptyPA
-        , nfPA
-        , replicatePA
-        , replicatesPA
-        , indexPA
-	, indexlPA
-        , extractPA
-        , extractsPA
-        , appendPA
-        , packByTagPA
-        , combine2PA
-        , fromVectorPA
-        , toVectorPA
+        -- * Constructors
+        , empty
+        , singleton
+        , replicate,    replicates
+        , append,       appendl
+        , concat,       concatl
+        , nestUSegd,    unconcat
 
-        -- Derived operators.
-        , singletonPA
-        , fromListPA
-        , toListPA
-	, fromUArray2PA
-	, nestUSegdPA
-        , concatPA
-        , unconcatPA
-        , concatlPA
-        , appendlPA
-        , slicelPA
+        -- * Projections
+        , length
+        , unpack
+        , index,        indexl
+        , extract,      extracts
+        , slice,        slicel
 
-        -- Scalar conversion functions, from the D.A.P.PArray.Scalar
-        , fromUArrayPA
-        , toUArrayPA
+        -- * Pack and Combine
+        , packByTag
+        , combine2
 
-        -- Tuple conversion functions
-        , fromUArrayPA_2
+        -- * Enumerations
+        , enumFromTo,   enumFromTol
 
-        -- Wrappers used for testing only.
-        , replicatesPA'
-        , extractsPA'
-        , packByTagPA'
-        , combine2PA'
-        , slicelPA')
+        -- * Tuples
+        , zip,          unzip           -- from D.A.P.PArray.Tuple
+
+        -- * Conversions
+        , fromVector,   toVector
+        , fromList,     toList
+        , fromUArray,   toUArray        -- from D.A.P.PArray.Scalar
+	, fromUArray2)                  -- from D.A.P.PArray.Scalar
 where
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
+import GHC.Exts
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import GHC.Exts
+import qualified Prelude                        as P
+import Prelude hiding 
+        ( length, replicate, concat
+        , enumFromTo
+        , zip, unzip)
 
 
 instance (Eq a, PA a)  => Eq (PArray a) where
@@ -72,166 +64,91 @@ instance (Eq a, PA a)  => Eq (PArray a) where
  (/=) (PArray _ xs) (PArray _ ys) = toVectorPD xs /= toVectorPD ys
 
 
+-- Basics ---------------------------------------------------------------------
 -- | Check that an array has a valid internal representation.
-{-# INLINE_PA validPA #-}
-validPA :: PA a => PArray a -> Bool
-validPA (PArray n# darr1)
+{-# INLINE_PA valid #-}
+valid :: PA a => PArray a -> Bool
+valid (PArray n# darr1)
         =  validPD darr1
         && validBool "parray length" (I# n# == lengthPD darr1)
 
 
--- | An empty array.
-{-# INLINE_PA emptyPA #-}
-emptyPA :: PA a => PArray a
-emptyPA
-        = PArray 0# emptyPD
-
-
 -- | Force an array to normal form.
-{-# INLINE_PA nfPA #-}
-nfPA :: PA a => PArray a -> ()
-nfPA (PArray n# d)
+{-# INLINE_PA nf #-}
+nf :: PA a => PArray a -> ()
+nf (PArray n# d)
         = nfPD d
 
 
--- | Define an array of the given size, that maps all elements to the same value.
+-- Constructors ----------------------------------------------------------------
+-- | O(1). An empty array.
+{-# INLINE_PA empty #-}
+empty :: PA a => PArray a
+empty   = PArray 0# emptyPD
+
+
+-- | O(1). Produce an array containing a single element.
+{-# INLINE_PA singleton #-}
+singleton :: PA a => a -> PArray a
+singleton x
+        = PArray 1# (replicatePD 1 x)
+
+
+-- | O(n). Define an array of the given size, that maps all elements to the same value.
 --   We require the replication count to be > 0 so that it's easier to maintain
 --   the validPR invariants for nested arrays.
---   O(n). 
-{-# INLINE_PA replicatePA #-}
-replicatePA :: PA a => Int -> a -> PArray a
-replicatePA (I# n#) x
+{-# INLINE_PA replicate #-}
+replicate :: PA a => Int -> a -> PArray a
+replicate (I# n#) x
         = PArray n# (replicatePD (I# n#) x)
 
 
--- | Segmented replicate.
---   O(sum lengths). 
-{-# INLINE_PA replicatesPA #-}
-replicatesPA :: PA a => U.Array Int -> PArray a -> PArray a
-replicatesPA repCounts (PArray _ darr)
+-- | O(sum lengths). Segmented replicate.
+{-# INLINE_PA replicates #-}
+replicates :: PA a => U.Array Int -> PArray a -> PArray a
+replicates repCounts (PArray _ darr)
  = let  I# n#   = U.sum repCounts
    in   PArray  n#
                 (replicatesPD (U.lengthsToSegd repCounts) darr)
 
 
--- | Convert a `Vector` to a `PArray`
-{-# INLINE_PA fromVectorPA #-}
-fromVectorPA :: PA a => Vector a -> PArray a
-fromVectorPA vec
- = let I# n#      = V.length vec
-   in  PArray n#  (fromVectorPD vec)
-
-
--- | Convert a `PArray` to a `Vector`        
-{-# INLINE_PA toVectorPA #-}
-toVectorPA   :: PA a => PArray a -> Vector a
-toVectorPA (PArray _ arr)
-        = toVectorPD arr
-
-
--- | Lookup a single element from the source array.
-{-# INLINE_PA indexPA #-}
-indexPA    :: PA a => PArray a -> Int -> a
-indexPA (PArray _ arr) ix
-        = indexPD arr ix
-
-
--- | Lookup a several elements from several source arrays
-{-# INLINE_PA indexlPA #-}
-indexlPA    :: PA a => PArray (PArray a) -> PArray Int -> PArray a
-indexlPA (PArray n# darr) (PArray _ ixs)
-        = PArray n# (indexlPD (I# n#) darr ixs)
-
-
--- | Extract a range of elements from an array.
-{-# INLINE_PA extractPA #-}
-extractPA  :: PA a => PArray a -> Int -> Int -> PArray a
-extractPA (PArray _ arr) start len@(I# len#)
-        = PArray len# (extractPD arr start len)
-
-
--- | Segmented extract.
-{-# INLINE_PA extractsPA #-}
-extractsPA 
-        :: PA a 
-        => Vector (PArray a)    -- ^ source array
-        -> U.SSegd
-        -> PArray a
-
-extractsPA arrs ssegd
- = let  vecs            = V.map (\(PArray _ vec) -> vec) arrs
-        !(I# n#)        = (U.sum $ U.lengthsSSegd ssegd)
-   in  PArray   n#
-                (extractsPD vecs ssegd)
-
-
 -- | Append two arrays.
-{-# INLINE_PA appendPA #-}
-appendPA :: PA a => PArray a -> PArray a -> PArray a
-appendPA (PArray n1# darr1) (PArray n2# darr2)
+{-# INLINE_PA append #-}
+append :: PA a => PArray a -> PArray a -> PArray a
+append (PArray n1# darr1) (PArray n2# darr2)
         = PArray (n1# +# n2#) (appendPD darr1 darr2)
 
 
--- | Filter an array based on some tags.
-{-# INLINE_PA packByTagPA #-}
-packByTagPA :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
-packByTagPA (PArray _ darr) tags tag
- = let  darr'           = packByTagPD darr tags tag
-        !(I# n#)        = lengthPD darr'
-   in   PArray n# darr'
+-- | Lifted append.
+--   Both arrays must have the same length
+{-# INLINE_PA appendl #-}
+appendl :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
+appendl (PArray n# pdata1) (PArray _ pdata2)
+        = PArray n# $ appendlPD pdata1 pdata2
 
 
--- | Combine two arrays based on a selector.
-{-# INLINE_PA combine2PA #-}
-combine2PA  :: PA a => U.Sel2 -> PArray a -> PArray a -> PArray a
-combine2PA sel (PArray _ darr1) (PArray _ darr2)
- = let  darr'           = combine2PD sel darr1 darr2
-        !(I# n#)        = lengthPD darr'
-   in   PArray n# darr'
+-- | Concatenate a nested array.
+{-# INLINE_PA concat #-}
+concat :: PA a => PArray (PArray a) -> PArray a
+concat (PArray _ darr)
+ = let  darr'   = concatPD darr
+        I# n#   = lengthPD darr'
+   in   PArray  n# darr'
 
 
--- Derived combinators --------------------------------------------------------
--- | Produce an array containing a single element.
-{-# INLINE_PA singletonPA #-}
-singletonPA :: PA a => a -> PArray a
-singletonPA x
-        = PArray 1# (replicatePD 1 x)
+-- | Lifted concat.
+{-# INLINE_PA concatl #-}
+concatl :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
+concatl (PArray n# pdata1)
+        = PArray n# $ concatlPD pdata1
 
 
--- | Convert a list to a `PArray`.
-{-# INLINE_PA fromListPA #-}
-fromListPA :: PA a => [a] -> PArray a
-fromListPA xx
- = let  I# n#   = length xx
-   in   PArray n# (fromVectorPD $ V.fromList xx)
-
-
--- | Convert a `PArray` to a list.
-{-# INLINE_PA toListPA #-}
-toListPA   :: PA a => PArray a -> [a]
-toListPA (PArray _ arr)
-        = V.toList $ toVectorPD arr
-
-
--- | Convert an unlifted array of pairs to a PArray of pairs.
-{-# INLINE_PA fromUArray2PA #-}
-fromUArray2PA   :: (Scalar a, PA a, Scalar b, PA b) 
-                => U.Array (a, b) -> PArray (a, b)
-fromUArray2PA arr
- = let  (xs, ys)        = U.unzip arr
-        PArray _ pdata1 = fromUArrayPA xs
-        PArray _ pdata2 = fromUArrayPA ys
-        I# n#           = U.length arr
-   in   PArray  n#
-                (PTuple2 pdata1 pdata2)
-
-
--- | O(1). Create a nested array from a segment descriptor and some flat data.
+-- | Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-{-# NOINLINE nestUSegdPA #-}
-nestUSegdPA :: U.Segd -> PArray a -> PArray (PArray a)
-nestUSegdPA segd (PArray n# pdata)
+{-# NOINLINE nestUSegd #-}
+nestUSegd :: U.Segd -> PArray a -> PArray (PArray a)
+nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
@@ -245,83 +162,108 @@ nestUSegdPA segd (PArray n# pdata)
                 , " length of data array        = " ++ show (I# n#) ]
 
 
--- | Concatenate a nested array.
-{-# INLINE_PA concatPA #-}
-concatPA :: PA a => PArray (PArray a) -> PArray a
-concatPA (PArray _ darr)
- = let  darr'   = concatPD darr
-        I# n#   = lengthPD darr'
-   in   PArray  n# darr'
-
-
 -- | Impose a nesting structure on a flat array
-{-# INLINE_PA unconcatPA #-}
-unconcatPA :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
-unconcatPA (PArray n# pdata1) (PArray _ pdata2)
+{-# INLINE_PA unconcat #-}
+unconcat :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
+unconcat (PArray n# pdata1) (PArray _ pdata2)
         = PArray n# $ unconcatPD pdata1 pdata2
 
 
--- | Lifted concat
-{-# INLINE_PA concatlPA #-}
-concatlPA :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
-concatlPA (PArray n# pdata1)
-        = PArray n# $ concatlPD pdata1
+-- Projections  ---------------------------------------------------------------
+-- | O(1). Lookup a single element from the source array.
+{-# INLINE_PA index #-}
+index    :: PA a => PArray a -> Int -> a
+index (PArray _ arr) ix
+        = indexPD arr ix
 
 
--- | Lifted append
---   Both arrays must have the same length
-{-# INLINE_PA appendlPA #-}
-appendlPA :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
-appendlPA (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# $ appendlPD pdata1 pdata2
+-- | O(len indices). Lookup a several elements from several source arrays
+{-# INLINE_PA indexl #-}
+indexl    :: PA a => PArray (PArray a) -> PArray Int -> PArray a
+indexl (PArray n# darr) (PArray _ ixs)
+        = PArray n# (indexlPD (I# n#) darr ixs)
+
+
+-- | Extract a range of elements from an array.
+{-# INLINE_PA extract #-}
+extract  :: PA a => PArray a -> Int -> Int -> PArray a
+extract (PArray _ arr) start len@(I# len#)
+        = PArray len# (extractPD arr start len)
+
+
+-- | Segmented extract.
+{-# INLINE_PA extracts #-}
+extracts :: PA a => Vector (PArray a) -> U.SSegd -> PArray a
+extracts arrs ssegd
+ = let  vecs            = V.map (\(PArray _ vec) -> vec) arrs
+        !(I# n#)        = (U.sum $ U.lengthsSSegd ssegd)
+   in  PArray   n#
+                (extractsPD vecs ssegd)
+
+
+-- | Extract a range of elements from an arrary.
+--   Like `extract` but with the parameters in a different order.
+{-# INLINE_PA slice #-}
+slice :: PA a => Int -> Int -> PArray a -> PArray a
+slice start len@(I# len#) (PArray _ darr)
+        = PArray len# (extractPD darr start len)
 
 
 -- | Extract some slices from some arrays.
 --   The arrays of starting indices and lengths must themselves
 --   have the same length.
-{-# INLINE_PA slicelPA #-}
-slicelPA :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
-slicelPA (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
+{-# INLINE_PA slicel #-}
+slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
+slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
         = PArray n# (slicelPR sliceStarts sliceLens darr)
 
 
--------------------------------------------------------------------------------
--- These PArray functions are just for testing 
--------------------------------------------------------------------------------
-
--- | Segmented replicate.
-replicatesPA' :: PA a => [Int] -> PArray a -> PArray a
-replicatesPA' lens arr
-        = replicatesPA (U.fromList lens) arr
-
-
--- | Segmented extract.
-extractsPA' :: PA a => V.Vector (PArray a) -> [Int] ->  [Int] -> [Int] -> PArray a
-extractsPA' arrs srcids startixs seglens
- = let  !(I# n#) = sum seglens
-   in   PArray n#
-        $ extractsPD
-                (V.map unpackPA arrs) 
-                (U.mkSSegd (U.fromList srcids) (U.fromList startixs)
-                        $ U.lengthsToSegd (U.fromList seglens))
-
+-- Pack and Combine -----------------------------------------------------------
 -- | Filter an array based on some tags.
-packByTagPA' :: PA a => PArray a -> [Int] -> Int -> PArray a
-packByTagPA' (PArray _ arr) tags tag
- = let  arr'    = packByTagPD arr (U.fromList tags) tag
-        I# n#   = lengthPD arr'
-   in   PArray n#  arr'
+{-# INLINE_PA packByTag #-}
+packByTag :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
+packByTag (PArray _ darr) tags tag
+ = let  darr'           = packByTagPD darr tags tag
+        !(I# n#)        = lengthPD darr'
+   in   PArray n# darr'
 
 
-combine2PA' :: PA a => [Int] -> PArray a -> PArray a -> PArray a
-combine2PA' sel (PArray _ darr1) (PArray _ darr2)
- = let  darr'   = combine2PD (U.tagsToSel2 (U.fromList sel)) darr1 darr2
-   in   PArray 0# darr'
+-- | Combine two arrays based on a selector.
+{-# INLINE_PA combine2 #-}
+combine2  :: PA a => U.Sel2 -> PArray a -> PArray a -> PArray a
+combine2 sel (PArray _ darr1) (PArray _ darr2)
+ = let  darr'           = combine2PD sel darr1 darr2
+        !(I# n#)        = lengthPD darr'
+   in   PArray n# darr'
 
 
--- | Extract some slices from some arrays.
-slicelPA' :: PA a => [Int] -> [Int] -> PArray (PArray a) -> PArray (PArray a)
-slicelPA' sliceStarts sliceLens arr
-        = slicelPA (fromListPA sliceStarts) (fromListPA sliceLens) arr
+-- Conversions ----------------------------------------------------------------
+-- | Convert a `Vector` to a `PArray`
+{-# INLINE_PA fromVector #-}
+fromVector :: PA a => Vector a -> PArray a
+fromVector vec
+ = let !(I# n#) = V.length vec
+   in  PArray n#  (fromVectorPD vec)
 
+
+-- | Convert a `PArray` to a `Vector`        
+{-# INLINE_PA toVector #-}
+toVector   :: PA a => PArray a -> Vector a
+toVector (PArray _ arr)
+        = toVectorPD arr
+
+
+-- | Convert a list to a `PArray`.
+{-# INLINE_PA fromList #-}
+fromList :: PA a => [a] -> PArray a
+fromList xx
+ = let  !(I# n#) = P.length xx
+   in   PArray n# (fromVectorPD $ V.fromList xx)
+
+
+-- | Convert a `PArray` to a list.
+{-# INLINE_PA toList #-}
+toList   :: PA a => PArray a -> [a]
+toList (PArray _ arr)
+        = V.toList $ toVectorPD arr
 

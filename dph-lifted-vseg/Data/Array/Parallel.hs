@@ -61,12 +61,11 @@ import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Prelude
-import Data.Array.Parallel.Prelude.Int   (Int)
-import Data.Array.Parallel.Prelude.Bool  (Bool)
+import Data.Array.Parallel.Prelude.Bool         (Bool)
+import Data.Array.Parallel.Prelude.Int          (Int)
+import Data.Array.Parallel.Prelude.Double       (Double)
 import qualified Prelude        as P
 
-nope    = P.error "Data.Array.Parallel: can't use unvectorised definition"
-{-# NOVECTORISE nope #-}
 
 -------------------------------------------------------------------------------
 -- IMPORTANT:
@@ -97,7 +96,7 @@ fromPArrayP !_  = emptyP
 
 
 toPArrayP :: [:a:] -> PArray a
-toPArrayP !_    = PArray 0# nope
+toPArrayP !_    = PArray 0# (P.error "toPArrayP: unvectorised")
 {-# NOINLINE  toPArrayP #-}
 {-# VECTORISE toPArrayP = toPArrayPP #-}
 

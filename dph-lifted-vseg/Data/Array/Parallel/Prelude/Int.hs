@@ -1,26 +1,33 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
-module Data.Array.Parallel.Prelude.Int (
-        Int,
-     
+module Data.Array.Parallel.Prelude.Int 
+        ( Int
+          
         -- Ord
-        (==), (/=), (<), (<=), (>), (>=), min, max,
+        , (==), (/=), (<), (<=), (>), (>=), min, max
+        , maximumP, minimumP
      
         -- Num
-        (+), (-), (*),
-        sumP,
+        , (+), (-), (*)
+        , negate, abs
+        , sumP, productP
         
         -- Integral
-        div, mod
-)
+        , div, mod
+        
+        -- Enum
+        , enumFromToP)
 where
 import Data.Array.Parallel.VectDepend
 -- IMPORTANT: see Note [Vectoriser dependencies] in the same module
 
-import Data.Array.Parallel.PArr
-import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Prelude.Bool
+import Data.Array.Parallel.PArr
+import Data.Array.Parallel.PArray
+import Data.Array.Parallel.Lifted                       ((:->)(..))
+import qualified Data.Array.Parallel.Lifted             as L
+import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
 import Prelude (Int)
         
@@ -48,12 +55,35 @@ import Prelude (Int)
 {-# VECTORISE SCALAR (>) #-}
 
 
+-- min/max ----------------------------
 min, max :: Int -> Int -> Int
+
 min = P.min
 {-# VECTORISE SCALAR min #-}
 
 max = P.max
 {-# VECTORISE SCALAR max #-}
+
+
+-- minimum/maximum --------------------
+minimumP, maximumP :: [:Int:] -> Int
+
+minimumP arr    = headPArr arr
+{-# NOINLINE  minimumP #-}
+{-# VECTORISE minimumP = minimumPP #-}
+
+maximumP arr    = headPArr arr
+{-# NOINLINE  maximumP #-}
+{-# VECTORISE maximumP = maximumPP #-}
+
+minimumPP, maximumPP :: PArray Int :-> Int
+minimumPP      = L.closure1' (SC.fold1 P.min) (SC.fold1s P.min)
+{-# INLINE      minimumPP #-}
+{-# NOVECTORISE minimumPP #-}
+
+maximumPP      = L.closure1' (SC.fold1 P.max) (SC.fold1s P.max)
+{-# INLINE      maximumPP #-}
+{-# NOVECTORISE maximumPP #-}
 
 
 -- Num ------------------------------------------------------------------------
@@ -69,10 +99,35 @@ max = P.max
 {-# VECTORISE SCALAR (*) #-}
 
 
-sumP    :: [:Int:] -> Int
-sumP !arr       = indexPArr arr 0
+-- negate/abs -------------------------
+negate, abs :: Int -> Int
+
+negate  = P.negate
+{-# VECTORISE SCALAR negate #-}
+
+abs     = P.abs
+{-# VECTORISE SCALAR abs #-}
+
+
+-- sum/product ------------------------
+sumP, productP :: [:Int:] -> Int
+
+sumP arr        = headPArr arr
 {-# NOINLINE  sumP #-}
-{-# VECTORISE sumP = sumPP_int #-}
+{-# VECTORISE sumP      = sumPP #-}
+
+productP arr    = headPArr arr
+{-# NOINLINE  productP #-}
+{-# VECTORISE productP  = productPP #-}
+
+sumPP, productPP :: PArray Int :-> Int
+sumPP          = L.closure1' (SC.fold (+) 0) (SC.folds (+) 0)
+{-# INLINE      sumPP #-}
+{-# NOVECTORISE sumPP #-}
+
+productPP      = L.closure1' (SC.fold (*) 1) (SC.folds (*) 1)
+{-# INLINE      productPP #-}
+{-# NOVECTORISE productPP #-}
 
 
 -- Integral -------------------------------------------------------------------
@@ -84,3 +139,14 @@ div = P.div
 mod = P.mod
 {-# VECTORISE SCALAR mod #-}
 
+
+-- Enum -----------------------------------------------------------------------
+enumFromToP :: Int -> Int -> [:Int:]
+enumFromToP !_ !_       = emptyPArr
+{-# NOINLINE  enumFromToP #-}
+{-# VECTORISE enumFromToP = enumFromToPP #-}
+
+enumFromToPP :: Int :-> Int :-> PArray Int
+enumFromToPP    = L.closure2' SC.enumFromTo SC.enumFromTol
+{-# INLINE      enumFromToPP #-}
+{-# NOVECTORISE enumFromToPP #-}

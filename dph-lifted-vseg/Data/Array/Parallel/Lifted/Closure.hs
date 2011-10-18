@@ -4,11 +4,14 @@ module Data.Array.Parallel.Lifted.Closure (
   -- * Closures.
   (:->)(..),
   ($:),
-  closure1, closure2, closure3,
-  
+
   -- * Array Closures.
   PData(..),
-  liftedApply
+  liftedApply,
+
+  -- * Closure Construction.
+  closure1,  closure2,  closure3,
+  closure1', closure2', closure3'  
 ) where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Unit
@@ -134,6 +137,59 @@ closure3 fv fl
         fl_3 n (PTuple2 xs ys) zs  = fl n xs ys zs
 
    in   Clo fv_1 fl_1 ()
+
+
+-- Closure Wrappers that take PArrays -----------------------------------------
+-- These versions are useful when defining prelude functions such as in 
+-- D.A.P.Prelude.Int, when we want to promote functions that work on PArrays 
+-- directly to closures. 
+
+-- | Construct an arity-1 closure.
+closure1'
+        :: forall a b
+        .  (a -> b)
+        -> (PArray a -> PArray b)
+        -> (a :-> b)
+
+{-# INLINE_CLOSURE closure1' #-}
+closure1' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) pdata
+         = case fl (PArray n# pdata) of
+                 PArray _ pdata' -> pdata'
+   in   closure1 fv fl'
+
+
+-- | Construct an arity-2 closure.
+closure2'
+        :: forall a b c. PA a
+        => (a -> b -> c)
+        -> (PArray a -> PArray b -> PArray c)
+        -> (a :-> b :-> c)
+
+{-# INLINE_CLOSURE closure2' #-}
+closure2' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) pdata1 pdata2
+         = case fl (PArray n# pdata1) (PArray n# pdata2) of
+                 PArray _ pdata' -> pdata'
+   in   closure2 fv fl'
+
+
+-- | Construct an arity-3 closure.
+closure3'
+        :: forall a b c d. (PA a, PA b) 
+        => (a -> b -> c -> d)
+        -> (PArray a -> PArray b -> PArray c -> PArray d)
+        -> (a :-> b :-> c :-> d) 
+
+{-# INLINE_CLOSURE closure3' #-}
+closure3' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) pdata1 pdata2 pdata3
+         = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) of
+                 PArray _ pdata' -> pdata'
+   in   closure3 fv fl'
 
 
 -- PData Instance -------------------------------------------------------------

@@ -68,9 +68,13 @@ instance PA Double where
   
   
 -- Bool -----------------------------------------------------------------------
+-- | Bools are represented generically by just using the tag part of an
+--   altenative.
 data instance PData Bool
   = PBool U.Sel2
 
+-- | We use the `Void` type for both sides because we only care about the tag.
+--   The `Void` fields don't use any space at runtime.
 type instance PRepr Bool
   = Sum2 Void Void
 

@@ -16,7 +16,7 @@ module Data.Array.Parallel.Prelude
 where
 import Data.Array.Parallel.Prelude.Bool
 import Data.Array.Parallel.Prelude.Tuple
-import Data.Array.Parallel.PArray        
 import Data.Array.Parallel.PArray.Scalar
+import Data.Array.Parallel.PArray        
 
 {-# VECTORISE type () = () #-}

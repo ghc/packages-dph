@@ -7,13 +7,13 @@
 --   type. These are used internally in the DPH library, but the user never
 --   sees them. Only vectorised functions are visible in the DPH client programs.
 --
-module Data.Array.Parallel.PArr (
-        emptyPArr,
-        replicatePArr,
-        singletonPArr,
-        indexPArr,
-        lengthPArr
-) 
+module Data.Array.Parallel.PArr 
+        ( emptyPArr
+        , replicatePArr
+        , singletonPArr
+        , indexPArr
+        , headPArr
+        , lengthPArr)
 where
 import GHC.ST
 import GHC.Base
@@ -57,6 +57,11 @@ indexPArr (PArr n arr#) i@(I# i#)
   = error $  "indexPArr: out of bounds parallel array index; " 
           ++ "idx = " ++ show i ++ ", arr len = "
           ++ show n
+
+-- | Take the first element of the source array, 
+--   or `error` if there isn't one.
+headPArr :: [:a:] -> a
+headPArr arr = indexPArr arr 0
 
 
 -------------------------------------------------------------------------------

@@ -60,10 +60,10 @@ Library
   GHC-Options: -Odph -funbox-strict-fields -fcpr-off -Werror
 
   Build-Depends:  
-        base     == 4.4.*,
-        random   == 1.0.*,
-        vector   >= 0.7 && < 1.0,
-        old-time == 1.0.*,
-        dph-base == 0.5.*,
+        base               == 4.4.*,
+        random             == 1.0.*,
+        vector             == 0.9,
+        old-time           == 1.0.*,
+        dph-base           == 0.5.*,
         dph-prim-interface == 0.5.*,
         dph-prim-seq       == 0.5.*
