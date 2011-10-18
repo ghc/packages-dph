@@ -38,7 +38,7 @@ unregister :
 %/dist/package.conf.inplace : %
 	@cd $(patsubst %/dist/package.conf.inplace,%,$@) ; \
 	 $(GHC_DPH) --make Setup.hs ; \
-	 ./Setup configure ; \
+	 ./Setup configure --user ; \
 	 ./Setup build ; \
 	 ./Setup install
 	
