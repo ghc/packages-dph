@@ -24,8 +24,9 @@ module Data.Array.Parallel.PArray.PData.Nested
 
         -- * Functions that work on nested PData arrays but don't care
         --   about the element type, and need no dictionary.
-        , unconcatDD
-        , slicelDD)
+        , unsafeDemoteSegdPD
+        , unconcatPD
+        , slicelPD)
 where
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.Base
@@ -556,11 +557,19 @@ appendlPR  arr1 arr2
 
 
 
--- DD Functions ---------------------------------------------------------------
+-- PD Functions ---------------------------------------------------------------
 -- These functions work on nested PData arrays, but don't need a PR or PA
 -- dictionary. They are segment descriptor operations that only care about the
 -- outermost later of segmentation, and thus are oblivous to the element type.
 --
+
+-- | Take the segment descriptor from a nested array and demote it to a
+--   plain Segd. This is unsafe because it can cause index space overflow.
+unsafeDemoteSegdPD :: PData (PArray a) -> U.Segd
+unsafeDemoteSegdPD (PNested vsegd _) 
+        = U.demoteToSegdOfVSegd vsegd
+{-# INLINE_PDATA unsafeDemoteSegdPD #-}
+
 
 -- | Build a nested array given a single flat data vector, 
 --   and a template nested array that defines the segmentation.
@@ -570,9 +579,9 @@ appendlPR  arr1 arr2
 --   for every segment. Because of this we need flatten out the virtual
 --   segmentation of the template array.
 --
-unconcatDD :: PData (PArray a) -> PData b -> PData (PArray b)
-unconcatDD (PNested vsegd pdatas) arr
- = {-# SCC "unconcatDD" #-}
+unconcatPD :: PData (PArray a) -> PData b -> PData (PArray b)
+unconcatPD (PNested vsegd pdatas) arr
+ = {-# SCC "unconcatPD" #-}
    let  
         -- Demote the vsegd to a manifest vsegd so it contains all the segment
         -- lengths individually without going through the vsegids.
@@ -585,7 +594,7 @@ unconcatDD (PNested vsegd pdatas) arr
 
    in   PNested vsegd' (V.singleton arr)
 
-{-# NOINLINE unconcatDD #-}
+{-# NOINLINE unconcatPD #-}
 --  NOINLINE because it won't fuse with anything.
 --  The operation is also entierly on the segment descriptor, so we don't 
 --  need to inline it to specialise it for the element type.
@@ -595,13 +604,13 @@ unconcatDD (PNested vsegd pdatas) arr
 --   The arrays of starting indices and lengths must themselves
 --   have the same length.
 --   TODO: cleanup pnested projections
-slicelDD
+slicelPD
         :: PData Int            -- ^ starting indices of slices
         -> PData Int            -- ^ lengths of slices
         -> PData (PArray a)     -- ^ arrays to slice
         -> PData (PArray a)
 
-slicelDD (PInt sliceStarts) (PInt sliceLens) arr
+slicelPD (PInt sliceStarts) (PInt sliceLens) arr
  = {-# SCC "slicelDD" #-}
    let  segs            = U.length vsegids
         vsegids        = pnested_vsegids     arr
@@ -616,8 +625,9 @@ slicelDD (PInt sliceStarts) (PInt sliceLens) arr
                 (U.bpermute psegsrcs vsegids)
                 psegdata
 
-{-# NOINLINE slicelDD #-}
+{-# NOINLINE slicelPD #-}
 --  NOINLINE because it won't fuse with anything.
 --  The operation is also entierly on the segment descriptor, so we don't 
 --  need to inline it to specialise it for the element type.
+
 

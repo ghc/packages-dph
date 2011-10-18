@@ -34,10 +34,11 @@ module Data.Array.Parallel.PArray
         , combine2
 
         -- * Enumerations
-        , enumFromTo,   enumFromTol
+        , enumFromTo,   enumFromTol     -- From D.A.P.PArray.Scalar
 
         -- * Tuples
-        , zip,          unzip
+        , zip
+        , unzip,        unzipl
 
         -- * Conversions
         , fromVector,   toVector
@@ -170,7 +171,7 @@ concatl (PArray n# pdata1)
 -- | Impose a nesting structure on a flat array
 unconcat :: PA a => PArray (PArray a) -> PArray a -> PArray (PArray a)
 unconcat (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# $ unconcatDD pdata1 pdata2
+        = PArray n# $ unconcatPD pdata1 pdata2
 {-# INLINE_PA unconcat #-}
 
 
@@ -244,7 +245,7 @@ slice start len@(I# len#) (PArray _ darr)
 --   have the same length.
 slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
 slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
-        = PArray n# (slicelDD sliceStarts sliceLens darr)
+        = PArray n# (slicelPD sliceStarts sliceLens darr)
 {-# INLINE_PA slicel #-}
 
 
