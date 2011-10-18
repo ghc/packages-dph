@@ -35,7 +35,6 @@ Library
         Data.Array.Parallel.PArray.PRepr.Tuple
         Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.Scalar
-        Data.Array.Parallel.PArray.Sums
         Data.Array.Parallel.PArray.Types
         Data.Array.Parallel.PArray
         Data.Array.Parallel.Prelude.Double
