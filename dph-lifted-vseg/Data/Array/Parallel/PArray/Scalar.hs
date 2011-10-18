@@ -23,8 +23,9 @@ module Data.Array.Parallel.PArray.Scalar
         , zipWith3
         
         -- * Folds
-        , fold,  folds
-        , fold1, fold1s
+        , fold,         folds
+        , fold1,        fold1s
+        , fold1Index,   fold1sIndex
         
         -- * Enumerations
         , enumFromTo, enumFromTol)
@@ -41,7 +42,7 @@ import Prelude hiding
 
 -- | Class of Scalar data that can be converted to and from single unboxed
 --   vectors.
-class U.Elt a => Scalar a where
+class (PA a, U.Elt a) => Scalar a where
   fromScalarPData :: PData a -> U.Array a
   toScalarPData   :: U.Array a -> PData a
 
@@ -74,14 +75,14 @@ instance Scalar Double where
 
 -- Conversions ----------------------------------------------------------------
 {-# INLINE_PA fromUArray #-}
-fromUArray  :: (Scalar a, U.Elt a) => U.Array a -> PArray a
+fromUArray  :: Scalar a => U.Array a -> PArray a
 fromUArray uarr
  = let  !(I# n#) = U.length uarr
    in   PArray n# (toScalarPData uarr) 
  
  
 {-# INLINE_PA toUArray #-}
-toUArray    :: (PA a, Scalar a) => PArray a -> U.Array a
+toUArray    :: Scalar a => PArray a -> U.Array a
 toUArray (PArray n# pdata)
         = fromScalarPData pdata
  
@@ -183,6 +184,36 @@ fold1s f (PArray _ (PNested vsegd pdatas))
         vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
 
    in   fromUArray vsegResults
+
+
+-- | Left fold over an array, also passing the index of each element
+--   to the parameter function.
+fold1Index
+        :: Scalar a
+        => ((Int, a) -> (Int, a) -> (Int, a)) -> PArray a -> Int
+
+{-# INLINE_PA fold1Index #-}
+fold1Index f
+        = fst . U.fold1 f . U.indexed . toUArray
+
+
+-- | Segmented fold over an array, also passing the index of each 
+--   element to the parameter function.
+fold1sIndex
+        :: Scalar a
+        => ((Int, a) -> (Int, a) -> (Int, a))
+        -> PArray (PArray a) -> PArray Int
+
+{-# INLINE_PA fold1sIndex #-}
+fold1sIndex f (PArray n# pdata)
+ = let  segd    = unsafeTakeSegdPD pdata
+        xs      = concatPA pdata
+   in   PArray n#
+         $ toScalarPData
+         $ U.fsts
+         $ U.fold1_s f segd
+         $ U.zip (U.indices_s segd)
+         $ fromScalarPData xs
 
 
 -- Enumerations --------------------------------------------------------------

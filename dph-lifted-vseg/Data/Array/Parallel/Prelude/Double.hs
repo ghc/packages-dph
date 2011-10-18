@@ -4,16 +4,17 @@
 module Data.Array.Parallel.Prelude.Double 
         ( Double
         
-        -- Ord
+        -- * Ord
         , (==), (/=), (<), (<=), (>), (>=), min, max
-        , maximumP, minimumP
-        
-        -- Num
+        , maximumP,  minimumP
+        , maxIndexP, minIndexP
+
+        -- * Num
         , (+), (-), (*)
         , negate, abs
-        , sumP,   productP
+        , sumP, productP
         
-        -- Floating
+        -- * Floating
         , pi
         , sqrt
         , exp, (**)
@@ -23,7 +24,7 @@ module Data.Array.Parallel.Prelude.Double
         ,  sinh,  tanh,  cosh
         , asinh, atanh, acosh
         
-        -- RealFrac
+        -- * RealFrac
         , fromInt)
 where
 import Data.Array.Parallel.VectDepend
@@ -92,6 +93,37 @@ minimumPP      = L.closure1' (SC.fold1 P.min) (SC.fold1s P.min)
 maximumPP      = L.closure1' (SC.fold1 P.max) (SC.fold1s P.max)
 {-# INLINE      maximumPP #-}
 {-# NOVECTORISE maximumPP #-}
+
+
+-- minIndex/maxIndex ------------------
+minIndexP :: [:Double:] -> Int
+minIndexP !_    = 0 
+{-# NOINLINE  minIndexP #-}
+{-# VECTORISE minIndexP = minIndexPP #-}
+
+minIndexPP :: PArray Double :-> Int
+minIndexPP      = L.closure1' (SC.fold1Index min') (SC.fold1sIndex min')
+{-# INLINE      minIndexPP #-}
+{-# NOVECTORISE minIndexPP #-}
+
+min' (i,x) (j,y) | x P.<= y    = (i,x)
+                 | P.otherwise = (j,y)
+{-# NOVECTORISE min' #-}
+
+
+maxIndexP :: [:Double:] -> Int
+maxIndexP _     = 0
+{-# NOINLINE  maxIndexP #-}
+{-# VECTORISE maxIndexP = maxIndexPP #-}
+
+maxIndexPP :: PArray Double :-> Int
+maxIndexPP      = L.closure1' (SC.fold1Index max') (SC.fold1sIndex max')
+{-# INLINE      maxIndexPP #-}
+{-# NOVECTORISE maxIndexPP #-}
+
+max' (i,x) (j,y) | x P.>= y    = (i,x)
+                 | P.otherwise = (j,y)
+{-# NOVECTORISE max' #-}
 
 
 -- Num ---------------------------------------------------------------------

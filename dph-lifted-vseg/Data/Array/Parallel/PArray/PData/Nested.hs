@@ -21,6 +21,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         , concatPR
         , concatlPR
         , appendlPR
+        , unsafeFlattenPR
 
         -- * Functions that work on nested PData arrays but don't care
         --   about the element type, and need no dictionary.
