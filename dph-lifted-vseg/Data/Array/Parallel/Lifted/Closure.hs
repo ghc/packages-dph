@@ -139,7 +139,7 @@ closure3 fv fl
    in   Clo fv_1 fl_1 ()
 
 
--- Closure Wrappers that take PArrays -----------------------------------------
+-- Closure constructors that take PArrays -------------------------------------
 -- These versions are useful when defining prelude functions such as in 
 -- D.A.P.Prelude.Int, when we want to promote functions that work on PArrays 
 -- directly to closures. 

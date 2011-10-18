@@ -2,9 +2,7 @@
 
 -- | PRepr instance for tuples
 --   and PD wrappers for other functions defined in D.A.P.PArray.PData.Tuple.
-module Data.Array.Parallel.PArray.PRepr.Tuple
-        (unziplPD)
-where
+module Data.Array.Parallel.PArray.PRepr.Tuple where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
@@ -39,16 +37,3 @@ instance (PA a, PA b) => PA (a,b) where
   toNestedArrPRepr (PNested _vsegd _pdatas)
         = error "Data.Array.Parallel.PArray.PRepr.Tuple: doh, what do do?"
         
-
-
--- PD Wrappers ----------------------------------------------------------------
--- These wrappers have the same types in the ones in D.A.P.PArray.PData.Tuple,
--- except that they take a PA dictionary instead of a PR dictionary.
---
--- See D.A.P.PArray.PRepr.Base   for docs on why we need the wrappers.
--- See D.A.P.PArray.PData.Tuple  for docs on what the PR versions do.
---
-{-# INLINE_PA unziplPD #-}
-unziplPD        :: (PA a, PA b) => PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unziplPD arr    = error "unziplPD: not implemented"
-

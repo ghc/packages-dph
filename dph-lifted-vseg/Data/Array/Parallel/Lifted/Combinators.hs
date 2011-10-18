@@ -74,7 +74,6 @@ fromNestedPArrayPP      = closure1 (\xs -> xs) (\_ xss -> xss)
 {-# INLINE fromNestedPArrayPP #-}
 
 
-
 -- Operators ==================================================================
 --   For each combinator:
 --    The *PA_v version is the "vectorised" version that has had its parameters
@@ -91,89 +90,55 @@ fromNestedPArrayPP      = closure1 (\xs -> xs) (\_ xss -> xss)
 --    up in a closure. The code produced by the vectoriser uses the *PP
 --    versions directly.
 
--- Constructors ===============================================================
--- empty ----------------------------------------------------------------------
-{-# INLINE_PA emptyPP #-}
+
+-- Constructors ---------------------------------------------------------------
+-- | O(1). An empty array.
 emptyPP :: PA a => PArray a
 emptyPP         = PA.empty
+{-# INLINE_PA emptyPP #-}
 
 
--- singleton ------------------------------------------------------------------
-{-# INLINE_PA singletonPP #-}
+-- | O(1). Produce an array containing a single element.
 singletonPP :: PA a => a :-> PArray a
-singletonPP     = closure1 PA.singleton singletonlPA
+singletonPP     = closure1' PA.singleton PA.singletonl
+{-# INLINE_PA singletonPP #-}
 
 
-{-# INLINE singletonlPA #-}
-singletonlPA :: PA a => Int -> PData a -> PData (PArray a)
-singletonlPA c xs 
-        = replicatelPA' c (PInt $ U.replicate c 1) xs
-
-
--- replicate ------------------------------------------------------------------
--- | Produce a new array by replicating a single element the given number of times.
-{-# INLINE_PA replicatePP #-}
+-- | O(n). Define an array of the given size, that maps all elements to the same value.
 replicatePP     :: PA a => Int :-> a :-> PArray a
-replicatePP     = closure2 PA.replicate replicatelPA'
+replicatePP     = closure2' PA.replicate PA.replicatel
+{-# INLINE_PA replicatePP #-}
 
 
-{-# INLINE replicatelPA' #-}
-replicatelPA'   :: PA a => Int -> PData Int -> PData a -> PData (PArray a)
-replicatelPA' 0 _ _     = emptyPA
-replicatelPA' c (PInt lens) pdata
- = let  segd    = U.lengthsToSegd lens
-   in   mkPNested
-                (U.replicate_s segd (U.enumFromTo 0 (c - 1)))
-                lens
-                (U.indicesSegd segd)
-                (U.replicate c 0)
-                (V.singleton pdata)
-
-
--- append ---------------------------------------------------------------------
-{-# INLINE_PA appendPP #-}
+-- | O(len result). Append two arrays.
 appendPP :: PA a => PArray a :-> PArray a :-> PArray a
-appendPP        = closure2 PA.append appendlPA'
-
-{-# INLINE appendlPA' #-}
-appendlPA' :: PA a => Int -> PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendlPA' _ arr1 arr2
-        = appendlPA arr1 arr2
+appendPP        = closure2' PA.append PA.appendl
+{-# INLINE_PA appendPP #-}
 
 
+-- | O(len result). Concatenate some arrays.
+concatPP :: PA a => PArray (PArray a) :-> PArray a
+concatPP        = closure1' PA.concat PA.concatl
+{-# INLINE_PA concatPP #-}
 
--- Projections ================================================================
--- length ---------------------------------------------------------------------
--- | Take the number of elements in an array.
-{-# INLINE_PA lengthPP #-}
+
+-- Projections ----------------------------------------------------------------
+-- | O(1). Take the number of elements in an array.
 lengthPP   :: PA a => PArray a :-> Int
-lengthPP        = closure1 PA.length lengthlPA'
+lengthPP        = closure1' PA.length PA.lengthl
+{-# INLINE_PA lengthPP #-}
 
 
-{-# INLINE lengthlPA' #-}
-lengthlPA' :: PA (PArray a)
-           => Int -> PData (PArray a) -> PData Int
-lengthlPA' _ (PNested vsegd _)
-        = PInt $ U.takeLengthsOfVSegd vsegd
-
-
--- index ----------------------------------------------------------------------
--- | Lookup a single element from the souce array.
-{-# INLINE_PA indexPP #-}
+-- | O(1). Lookup a single element from the source array.
 indexPP :: PA a => PArray a :-> Int :-> a
-indexPP         = closure2 PA.index indexlPA
+indexPP         = closure2' PA.index PA.indexl
+{-# INLINE_PA indexPP #-}
 
 
--- slice ----------------------------------------------------------------------
-{-# INLINE_PA slicePP #-}
+-- | O(len slice). Extract a range of elements from an array.
 slicePP :: PA a => Int :-> Int :-> PArray a :-> PArray a
-slicePP         = closure3 PA.slice slicelPA'
-
-
-{-# INLINE slicelPA' #-}
-slicelPA' :: PA a => Int -> PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
-slicelPA' _ sliceStarts sliceLens arrs
-        = slicelDD sliceStarts sliceLens arrs
+slicePP         = closure3' PA.slice PA.slicel
+{-# INLINE_PA slicePP #-}
 
 
 -- Traversals =================================================================
@@ -217,33 +182,16 @@ mapPD_l c fs ass
 -}      
 
 
--- Filtering =================================================================
+-- Filtering ------------------------------------------------------------------
 -- | Extract the elements from an array that match the given predicate.
 filterPP :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
 {-# INLINE filterPP #-}
 filterPP = nope
 
 
--- Concatenation ==============================================================
-{-# INLINE_PA concatPP #-}
-concatPP :: PA a => PArray (PArray a) :-> PArray a
-concatPP = closure1 PA.concat concatPD_l
-
-
-{-# INLINE concatPD_l #-}
-concatPD_l :: PA a => Int -> PData (PArray (PArray a)) -> PData (PArray a)
-concatPD_l _ darr
-        = concatlPA darr
-
-
--- Tuple Functions ============================================================
--- unzip ----------------------------------------------------------------------
-{-# INLINE_PA unzipPP #-}
+-- Tuple Functions ------------------------------------------------------------
+-- | Unzip an array of pairs into a pair of arrays.
 unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)
-unzipPP = closure1 PA.unzip unzipPD_l
-
-
-{-# INLINE unzipPD_l #-}
-unzipPD_l :: (PA a, PA b) => Int -> PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unzipPD_l _ arr = unziplPD arr
+unzipPP = closure1' PA.unzip PA.unzipl
+{-# INLINE_PA unzipPP #-}
 

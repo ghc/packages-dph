@@ -1,6 +1,10 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Tuple 
+        ( PData(..)
+        , zip,          zipDD
+        , unzip,        unzipDD
+        , unzipl,       unziplDD)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
@@ -120,33 +124,53 @@ instance (PR a, PR b) => PR (a, b) where
                  (toVectorPR ys)
 
 
--- Derived --------------------------------------------------------------------
--- | Zip a pair of arrays into an array of pairs.
+-- PArray functions -----------------------------------------------------------
+-- These work on PArrays of tuples, but don't need a PA or PR dictionary.
+
+-- | O(1). Zip a pair of arrays into an array of pairs.
 --   The two arrays must have the same length, else `error`. 
-{-# INLINE_PA zip #-}
 zip :: PArray a -> PArray b -> PArray (a, b)
-zip (PArray n1# xs) (PArray n2# ys)
-        | I# n1# == I# n2#
-        = PArray n1# (PTuple2 xs ys)
-        
-        | otherwise
-        = error "Data.Array.Parallel.PArray.zipPA: arrays are not the same length"
+zip (PArray n# pdata1) (PArray _ pdata2)
+        = PArray n# (zipDD pdata1 pdata2)
+{-# INLINE_PA zip #-}
 
 
--- | Unzip an array of pairs into a pair of arrays.
-{-# INLINE_PA unzip #-}
+-- | O(1). Unzip an array of pairs into a pair of arrays.
 unzip :: PArray (a, b) -> (PArray a, PArray b)
 unzip (PArray n# (PTuple2 xs ys))
         = (PArray n# xs, PArray n# ys)
+{-# INLINE_PA unzip #-}
+
+
+-- | Lifted unzip
+unzipl :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
+unzipl (PArray n# pdata)
+        = PArray n# $ unziplDD pdata
+
+
+-- DD Functions ---------------------------------------------------------------
+-- These work on PData arrays of tuples, but don't need a PA or PR dictionary
+
+-- | O(1). Zip a pair of arrays into an array of pairs.
+zipDD   :: PData a -> PData b -> PData (a, b)
+zipDD   = PTuple2
+{-# INLINE_PA zipDD #-}
+
+
+-- | O(1). Unzip an array of pairs into a pair of arrays.
+unzipDD :: PData (a, b) -> (PData a, PData b)
+unzipDD (PTuple2 xs ys) = (xs, ys)
+{-# INLINE_PA unzipDD #-}
 
 
 -- | Lifted unzip.
-{-# INLINE_PA unziplPR #-}
-unziplPR  :: (PR a, PR b)
-          => PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unziplPR (PNested uvsegd psegdata)
+{-# INLINE_PA unziplDD #-}
+unziplDD  :: PData (PArray (a, b)) -> PData (PArray a, PArray b)
+unziplDD (PNested uvsegd psegdata)
  = let  (xsdata, ysdata)        
          = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
    in   PTuple2 (PNested uvsegd xsdata)
                 (PNested uvsegd ysdata)
+
+
 
