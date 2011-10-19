@@ -62,7 +62,7 @@ Library
   Build-Depends:  
         base               == 4.4.*,
         random             == 1.0.*,
-        vector             == 0.8,
+        vector             == 0.9.*,
         old-time           == 1.0.*,
         dph-base           == 0.5.*,
         dph-prim-interface == 0.5.*,
