@@ -41,26 +41,31 @@ module Data.Array.Parallel.Unlifted (
   zip3, unzip3,
     
   -- * Folds
-  fold, fold1,
-  and, sum, scan,
+  fold,  fold_s,  fold_ss, fold_r,
+  fold1, fold1_s, fold1_ss,
+  sum,   sum_s,   sum_ss,  sum_r,
+  count, count_s, count_ss,
+  scan,
+  and, 
 
   -- * Segmented Constructors
-  append_s, replicate_s, replicate_rs, 
+  append_s,
+  replicate_s, replicate_rs, 
 
   -- * Segmented Projections
   indices_s,
-
-  -- * Segmented Folds
-  fold_s, fold1_s, fold_r, sum_s,  sum_r,
-  
-  -- * Scattered Segmented Folds
-  fold_ss, fold1_ss,
-  
+    
   -- * Segment Descriptors
-  Segd, mkSegd, validSegd,
-  emptySegd, singletonSegd,
+  Segd,
+  mkSegd,
+  validSegd,
+  emptySegd,
+  singletonSegd,
   lengthsToSegd,
-  lengthSegd, lengthsSegd, indicesSegd, elementsSegd,
+  lengthSegd,
+  lengthsSegd,
+  indicesSegd,
+  elementsSegd,
   plusSegd, 
 
   -- * Scattered Segment Descriptors
@@ -111,9 +116,6 @@ module Data.Array.Parallel.Unlifted (
   -- * Packing and picking
   packByTag, pick,
   
-  -- * Counting
-  count, count_s,
-
   -- * Random arrays
   randoms, randomRs,
   
@@ -127,4 +129,4 @@ import System.IO                  (IO, Handle)
 import Data.Word                  (Word8)
 import qualified System.Random
 import qualified Prelude
-
+import qualified Data.Vector    as VV

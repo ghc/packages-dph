@@ -480,8 +480,8 @@ fold_r :: Elt a => (a -> a -> a) -> a -> Int -> Array a -> Array a
 {-# INLINE_BACKEND fold_r #-}
 
 sum_s :: (Num a, Elt a) => Segd -> Array a -> Array a
-{-# INLINE sum_s #-}
 sum_s = fold_s (Prelude.+) 0
+{-# INLINE sum_s #-}
 
 sum_r :: (Num a, Elt a) => Int ->Array a -> Array a
 {-# INLINE_BACKEND sum_r #-}
@@ -496,6 +496,18 @@ sum_r :: (Num a, Elt a) => Int ->Array a -> Array a
     = fold_r f z n xs
 
   #-}
+
+
+-- Scattered Segmented Folds --------------------------------------------------
+fold_ss :: Elt a => (a -> a -> a) -> a -> SSegd -> VV.Vector (Array a) -> Array a
+{-# INLINE_BACKEND fold_ss #-}
+
+fold1_ss :: Elt a => (a -> a -> a) -> SSegd -> VV.Vector (Array a) -> Array a
+{-# INLINE_BACKEND fold1_ss #-}
+
+sum_ss :: (Num a, Elt a) => SSegd -> VV.Vector (Array a) -> Array a
+sum_ss = fold_ss (Prelude.+) 0
+{-# INLINE sum_ss #-}
 
 
 -- Operations on Segment Descriptors ------------------------------------------
@@ -675,18 +687,26 @@ pick xs !x = map (x==) xs
 
 
 
-
 -- Counting -------------------------------------------------------------------
 -- | Count the number of elements in array that are equal to the given value.
 count :: (Elt a, Eq a) => Array a -> a -> Int
-{-# INLINE_BACKEND count #-}
 count xs !x = sum (map (tagToInt . fromBool . (==) x) xs)
+{-# INLINE_BACKEND count #-}
 
 
 -- | Count the number of elements in segments that are equal to the given value.
 count_s :: (Elt a, Eq a) => Segd -> Array a -> a -> Array Int
+count_s segd xs !x
+        = sum_s segd (map (tagToInt . fromBool . (==) x) xs)
 {-# INLINE_BACKEND count_s #-}
-count_s segd xs !x = sum_s segd (map (tagToInt . fromBool . (==) x) xs)
+
+
+-- | Count the number of elements in segments that are equal to the given value.
+--   TODO: Adding V.map here will probably break fusion with sum_ss.
+count_ss :: (Elt a, Eq a) => SSegd -> VV.Vector (Array a) -> a -> Array Int
+{-# INLINE_BACKEND count_ss #-}
+count_ss ssegd xs !x
+        = sum_ss ssegd (VV.map (map (tagToInt . fromBool . (==) x)) xs)
 
 
 {-# RULES

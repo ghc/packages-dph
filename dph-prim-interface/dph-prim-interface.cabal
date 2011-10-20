@@ -31,5 +31,6 @@ Library
   Build-Depends: 
         base     == 4.4.*,
         random   == 1.0.*,
-        dph-base == 0.5.*
+        dph-base == 0.5.*,
+        vector   == 0.9
 

@@ -13,7 +13,7 @@
 
 #include "DPH_Header.h"
 
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox, Vector)
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
@@ -21,6 +21,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Sums
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 
 #include "DPH_Interface.h"
 
