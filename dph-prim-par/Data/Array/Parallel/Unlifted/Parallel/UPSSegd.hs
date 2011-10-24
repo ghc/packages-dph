@@ -36,13 +36,11 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
 import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
-import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
 
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd        as DUSSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
