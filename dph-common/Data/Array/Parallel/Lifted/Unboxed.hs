@@ -4,7 +4,7 @@
 
 module Data.Array.Parallel.Lifted.Unboxed (
   Segd, elementsSegd#, mkSegd#,
-  Sel2, elementsSel2_0#, elementsSel2_1#, replicateSel2#, pickSel2#, tagsSel2,
+  Sel2, elementsSel2_0#, elementsSel2_1#, replicateSel2#, {-pickSel2#,-} tagsSel2,
 
   PArray_Int#,
   lengthPA_Int#, emptyPA_Int#,
@@ -86,9 +86,10 @@ replicateSel2# n# tag# = U.mkSel2 (U.replicate n (intToTag tag))
     n = I# n#
     tag = I# tag#
 
-pickSel2# :: Sel2 -> Int# -> U.Array Bool
-{-# INLINE pickSel2# #-}
-pickSel2# sel tag# = U.pick (U.tagsSel2 sel) (intToTag (I# tag#))
+-- unused
+-- pickSel2# :: Sel2 -> Int# -> U.Array Bool
+-- {-# INLINE pickSel2# #-}
+-- pickSel2# sel tag# = U.pick (U.tagsSel2 sel) (intToTag (I# tag#))
 
 tagsSel2 :: Sel2 -> U.Array Tag
 {-# INLINE tagsSel2 #-}

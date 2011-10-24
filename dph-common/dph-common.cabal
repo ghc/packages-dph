@@ -26,6 +26,7 @@ Library
         Data.Array.Parallel.Prelude.Float
         Data.Array.Parallel.Prelude.Double
         Data.Array.Parallel.PArray
+        Data.Array.Parallel.Prim
 
   Other-Modules:
         Data.Array.Parallel.PArr
@@ -45,7 +46,6 @@ Library
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Prelude.Tuple
         Data.Array.Parallel.Prelude.Bool
-        Data.Array.Parallel.VectDepend
 
   Exposed: False
 
