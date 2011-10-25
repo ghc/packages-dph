@@ -49,8 +49,6 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import GHC.Exts
 
-nope    = error "Data.Array.Parallel.Lifted.Combinators: can't use unvectorised definition"
-
 
 -- Conversions ================================================================
 -- The following identity functions are used as the vectorised versions of the
@@ -147,18 +145,24 @@ slicePP         = closure3' PA.slice PA.slicel
 mapPP   :: (PA a, PA b) 
         => (a :-> b) :-> PArray a :-> PArray b
 
-{-# INLINE_PA mapPP #-}
 mapPP   = closure2' mapPP_v mapPP_l
- where
-        {-# INLINE mapPP_v #-}
-        mapPP_v f as
-                = PA.replicate (PA.length as) f $:^ as
+{-# INLINE_PA mapPP #-}
 
-        {-# INLINE mapPP_l #-}
-        mapPP_l fs ass
-                =   PA.unconcat ass 
-                $   PA.replicates (PA.unsafeTakeSegd ass) fs
-                $:^ PA.concat ass
+
+mapPP_v :: (PA a, PA b)
+        => (a :-> b) -> PArray a -> PArray b
+mapPP_v f as
+        =   PA.replicate (PA.length as) f $:^ as
+{-# INLINE mapPP_v #-}
+
+
+mapPP_l :: (PA a, PA b)
+        => (PArray (a :-> b)) -> PArray (PArray a) -> PArray (PArray b)
+mapPP_l fs ass
+        =   PA.unconcat ass 
+        $   PA.replicates (PA.unsafeTakeSegd ass) fs
+        $:^ PA.concat ass
+{-# INLINE mapPP_l #-}
 
 
 -- | Apply a worker function to every pair of two arrays.
@@ -185,7 +189,13 @@ zipWithPP = closure3' zipWithPP_v zipWithPP_l
 -- | Extract the elements from an array that match the given predicate.
 filterPP :: PA a => (a :-> Bool) :-> PArray a :-> PArray a
 {-# INLINE filterPP #-}
-filterPP = nope
+filterPP = closure2' filterPP_v filterPP_l
+ where
+        {-# INLINE filterPP_v #-}
+        filterPP_v p xs    = PA.pack xs   (mapPP_v p xs)
+        
+        {-# INLINE filterPP_l #-}
+        filterPP_l ps xss  = PA.packl xss (mapPP_l ps xss)
 
 
 -- Tuple Functions ------------------------------------------------------------

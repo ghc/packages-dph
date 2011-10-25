@@ -58,7 +58,7 @@ concatPA arr
 {-# INLINE_PA unconcatPA #-}
 unconcatPA      :: (PA a, PA b) => PData (PArray a) -> PData b -> PData (PArray b)
 unconcatPA arr1 arr2
- = fromArrPRepr $ unconcatPD (toArrPRepr arr1) (toArrPRepr arr2)
+ = fromArrPRepr $ unconcatPR (toArrPRepr arr1) (toArrPRepr arr2)
 
 
 {-# INLINE_PA concatlPA #-}

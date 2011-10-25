@@ -1,7 +1,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Void 
-        (Void, pvoid)
+        (Void, pvoid, pvoids)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.Types
@@ -14,9 +14,14 @@ import Data.Array.Parallel.PArray.PRepr.Base
 --   only care about the tag of the data constructor and not its argumnent.
 --
 data instance PData Void
+data instance PDatas Void
 
 pvoid :: PData Void
 pvoid   = error "Data.Array.Parallel.PData.Void"
+
+pvoids :: PDatas Void
+pvoids   = error "Data.Array.Parallel.PData.Voids"
+
 
 
 -- PR --------------------------------------------------------------------------

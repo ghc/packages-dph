@@ -3,11 +3,22 @@
 
 -- | Functions that work directly on PArrays.
 
---   * The functions in this module are used by the D.A.P.Lifted.Closure module to
+--   * The functions in this module are used by the D.A.P.Lifted.Combinator module to
 --     define the closures that the vectoriser uses.
 --
 --   * The functions in this module may also be used directly by user programs.
 --
+--   * In general, these functions are all unsafe and don't do bounds checks.
+--     The lifted versions also don't check that each of the argument arrays
+--     have the same length.
+--
+--     TODO:
+--      Export unsafe versions from Data.Array.Parallel.PArray.Unsafe,
+--      and make this module export safe wrappers.
+--      We want to use the unsafe versions in D.A.P.Lifted.Combinators
+--      for performance reasons, but the user facing PArray functions 
+--      should all be safe.
+-- 
 module Data.Array.Parallel.PArray 
         ( PArray(..)
         , valid
@@ -31,6 +42,7 @@ module Data.Array.Parallel.PArray
         , unsafeTakeSegd
 
         -- * Pack and Combine
+        , pack,         packl
         , packByTag
         , combine2
 
@@ -125,7 +137,7 @@ replicatel (PArray n# (PInt lens)) (PArray _ pdata)
                 lens
                 (U.indicesSegd segd)
                 (U.replicate c 0)
-                (V.singleton pdata)
+                (error "PArray: replcatel fixme") -- (singletondPR pdata)
 {-# INLINE_PA replicatel #-}
 
 
@@ -155,8 +167,8 @@ appendl (PArray n# pdata1) (PArray _ pdata2)
 -- | Concatenate a nested array.
 concat :: PA a => PArray (PArray a) -> PArray a
 concat (PArray _ darr)
- = let  darr'   = concatPA darr
-        I# n#   = lengthPA darr'
+ = let  darr'    = concatPA darr
+        !(I# n#) = lengthPA darr'
    in   PArray  n# darr'
 {-# INLINE_PA concat #-}
 
@@ -169,21 +181,21 @@ concatl (PArray n# pdata1)
 
 
 -- | Impose a nesting structure on a flat array
-unconcat :: PA a => PArray (PArray a) -> PArray b -> PArray (PArray b)
+unconcat :: (PA a, PA b) => PArray (PArray a) -> PArray b -> PArray (PArray b)
 unconcat (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# $ unconcatPD pdata1 pdata2
+        = PArray n# $ unconcatPA pdata1 pdata2
 {-# INLINE_PA unconcat #-}
 
 
 -- | Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-nestUSegd :: U.Segd -> PArray a -> PArray (PArray a)
+nestUSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
 nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
-	$ PNested (U.promoteSegdToVSegd segd) (V.singleton pdata)	
+	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata)	
 
         | otherwise
         = error $ unlines
@@ -211,7 +223,7 @@ index (PArray _ arr) ix
 -- | O(len indices). Lookup a several elements from several source arrays
 indexl    :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 indexl (PArray n# darr) (PArray _ ixs)
-        = PArray n# (indexlPA (I# n#) darr ixs)
+        = PArray n# (indexlPA darr ixs)
 {-# INLINE_PA indexl #-}
 
 
@@ -224,11 +236,13 @@ extract (PArray _ arr) start len@(I# len#)
 
 -- | Segmented extract.
 extracts :: PA a => Vector (PArray a) -> U.SSegd -> PArray a
-extracts arrs ssegd
+extracts 
+        = error "PArray extracts fixme"
+{- arrs ssegd
  = let  vecs            = V.map (\(PArray _ vec) -> vec) arrs
         !(I# n#)        = (U.sum $ U.lengthsSSegd ssegd)
    in  PArray   n#
-                (extractsPA vecs ssegd)
+                (extractsPA vecs ssegd) -}
 {-# INLINE_PA extracts #-}
 
 
@@ -258,6 +272,51 @@ unsafeTakeSegd (PArray _ pdata)
 
 
 -- Pack and Combine -----------------------------------------------------------
+-- | Select the elements of an array that have their tag set to True.
+pack :: PA a => PArray a -> PArray Bool -> PArray a
+pack (PArray _ xs) (PArray _ (PBool sel2))
+ = let  darr'           = packByTagPA xs (U.tagsSel2 sel2) 1
+
+        -- The selector knows how many elements are set to '1',
+        -- so we can use this for the length of the resulting array.
+        !(I# m#)        = U.elementsSel2_1 sel2
+
+    in  PArray m# darr'
+
+
+-- | Lifted pack.
+--   Both data and tag arrays must have the same segmentation structure, 
+--   but this is not checked.
+packl :: forall a. PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
+packl xss bss
+ | PArray n# (PNested vsegd xdatas)     <- xss
+ , PArray _  (PNested _     bdatas)     <- bss
+ = let  
+        -- Split up the vsegd into its parts.
+        vsegids         = U.takeVSegidsOfVSegd  vsegd
+        ssegd           = U.takeSSegdOfVSegd    vsegd
+
+        -- Gather the scattered data together into contiguous arrays, 
+        -- which is the form packByTag needs.
+        xdata_contig            = extractsPA xdatas ssegd
+        bdata'@(PBool sel2)     = extractsPA bdatas ssegd
+        tags                    = U.tagsSel2 sel2
+         
+        -- Pack all the psegs.
+        xdata'          = packByTagPA xdata_contig tags 1
+
+        -- Rebuild the segd to account for the possibly smaller segments.
+        segd            = U.lengthsToSegd $ U.lengthsSSegd ssegd
+        segd'           = U.lengthsToSegd $ U.count_s segd tags 1
+
+        -- Reattach the vsegids, because the top level sharing structure
+        -- of the array is unchanged under pack.
+        vsegd'          = U.mkVSegd vsegids (U.promoteSegdToSSegd segd')
+
+   in   PArray n# (PNested vsegd' (singletondPA xdata'))
+      
+
+
 -- | Filter an array based on some tags.
 packByTag :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
 packByTag (PArray _ darr) tags tag

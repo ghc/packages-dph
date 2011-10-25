@@ -14,20 +14,11 @@ import Text.PrettyPrint
 data instance PData ()
         = PUnit Int
 
+data instance PDatas ()
+        = PUnits (V.Vector (PData ()))
+
 punit :: PData ()
 punit =  PUnit 0
-
-
--- Show -----------------------------------------------------------------------
-deriving instance Show (PData ())
-
-instance PprPhysical (PData ()) where
-  pprp uu
-   = text $ show uu
-
-instance PprVirtual (PData ()) where
-  pprv (PUnit n)
-   = text $ "[ () x " ++ show n ++ " ]"
 
 
 -- PR -------------------------------------------------------------------------
@@ -61,8 +52,8 @@ instance PR () where
         = ()
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR c _ _
-        = PUnit c
+  indexlPR _ (PInt uarr)
+        = PUnit $ U.length uarr
 
   {-# INLINE_PDATA extractPR #-}
   extractPR _ _ len
@@ -96,4 +87,26 @@ instance PR () where
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PUnit len)
         = V.replicate len ()
+
+  -----------------------------------------------
+  {-# INLINE_PDATA lengthdPR #-}
+  lengthdPR (PUnits pdatas)
+        = V.length pdatas
+        
+  {-# INLINE_PDATA indexdPR #-}
+  indexdPR (PUnits pdatas) ix
+        = pdatas `V.unsafeIndex` ix
+        
+
+
+-- Show -----------------------------------------------------------------------
+deriving instance Show (PData ())
+
+instance PprPhysical (PData ()) where
+  pprp uu
+   = text $ show uu
+
+instance PprVirtual (PData ()) where
+  pprv (PUnit n)
+   = text $ "[ () x " ++ show n ++ " ]"
 

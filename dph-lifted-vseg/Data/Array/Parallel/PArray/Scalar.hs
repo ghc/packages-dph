@@ -43,8 +43,11 @@ import Prelude hiding
 -- | Class of Scalar data that can be converted to and from single unboxed
 --   vectors.
 class (PA a, U.Elt a) => Scalar a where
-  fromScalarPData :: PData a -> U.Array a
-  toScalarPData   :: U.Array a -> PData a
+  fromScalarPData  :: PData  a             -> U.Array a
+  fromScalarPDatas :: PDatas a             -> V.Vector (U.Array a)
+  
+  toScalarPData    :: U.Array a            -> PData a
+  toScalarPDatas   :: V.Vector (U.Array a) -> PDatas a
 
 
 -- Shorthands for the above methods used in this module only.
@@ -64,13 +67,17 @@ instance Scalar Bool where
 
 
 instance Scalar Int where
-  fromScalarPData (PInt xs)     = xs
-  toScalarPData                 = PInt
+  fromScalarPData  (PInt  xs)     = xs
+  fromScalarPDatas (PInts xss)    = xss
+  toScalarPData                   = PInt
+  toScalarPDatas                  = PInts
 
 
 instance Scalar Double where
-  fromScalarPData (PDouble xs)  = xs
-  toScalarPData                 = PDouble
+  fromScalarPData  (PDouble xs)   = xs
+  fromScalarPDatas (PDoubles xss) = xss
+  toScalarPData                   = PDouble
+  toScalarPDatas                  = PDoubles
 
 
 -- Conversions ----------------------------------------------------------------
@@ -155,8 +162,8 @@ folds   :: Scalar a
 
 folds f z (PArray _ (PNested vsegd pdatas))
  = let  -- Grab all the flat physical arrays.
-        uarrs           = V.map fromScalarPData pdatas
- 
+        uarrs           = fromScalarPDatas pdatas 
+        
         -- Sum up each physical segment individually.
         psegResults     = U.fold_ss f z (U.takeSSegdOfVSegd vsegd) uarrs
         
@@ -175,7 +182,7 @@ fold1s  :: Scalar a
 
 fold1s f (PArray _ (PNested vsegd pdatas))
  = let  -- Grab all the flat physical arrays.
-        uarrs           = V.map fromScalarPData pdatas
+        uarrs           = fromScalarPDatas pdatas 
  
         -- Sum up each physical segment individually.
         psegResults     = U.fold1_ss f (U.takeSSegdOfVSegd vsegd) uarrs
@@ -199,6 +206,8 @@ fold1Index f
 
 -- | Segmented fold over an array, also passing the index of each 
 --   element to the parameter function.
+--   TODO: fold the psegs then replicate, like in the other folds.
+--         this currently has the wrong complexity.
 fold1sIndex
         :: Scalar a
         => ((Int, a) -> (Int, a) -> (Int, a))
@@ -229,8 +238,8 @@ enumFromTol :: PArray Int -> PArray Int -> PArray (PArray Int)
 enumFromTol (PArray m# ms) (PArray _ ns)
   = PArray m#
   $ PNested (U.promoteSegdToVSegd segd)
+  $ toScalarPDatas
   $ V.singleton
-  $ toScalarPData
   $ U.enumFromStepLenEach 
         (U.elementsSegd segd)
         (fromScalarPData ms)

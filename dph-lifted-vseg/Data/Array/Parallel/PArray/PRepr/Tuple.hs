@@ -11,10 +11,12 @@ import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PData.Nested
 
 
--- Tuple2 ---------------------------------------------------------------------
+-------------------------------------------------------------------------------
 type instance PRepr (a,b)
         = (Wrap a, Wrap b)
 
+
+-- PA -------------------------------------------------------------------------
 instance (PA a, PA b) => PA (a,b) where
   {-# INLINE_PA toPRepr #-}
   toPRepr (a, b)
@@ -25,15 +27,22 @@ instance (PA a, PA b) => PA (a,b) where
         = (a, b)
 
   {-# INLINE_PA toArrPRepr #-}
-  toArrPRepr   (PTuple2 as bs)
+  toArrPRepr (PTuple2 as bs)
         = PTuple2 (PWrap as) (PWrap bs)
 
   {-# INLINE_PA fromArrPRepr #-}
   fromArrPRepr (PTuple2 (PWrap as) (PWrap bs))
         = PTuple2 as bs
 
-  -- PROBLEM: What to do here?
+  {-# INLINE_PA toArrPReprs #-}
+  toArrPReprs (PTuple2s as bs)
+        = PTuple2s (PWraps as) (PWraps bs)
+
+  {-# INLINE_PA fromArrPReprs #-}
+  fromArrPReprs (PTuple2s (PWraps as) (PWraps bs))
+        = PTuple2s as bs
+
   {-# INLINE_PA toNestedArrPRepr #-}
-  toNestedArrPRepr (PNested _vsegd _pdatas)
-        = error "Data.Array.Parallel.PArray.PRepr.Tuple: doh, what do do?"
+  toNestedArrPRepr (PNested vsegd (PTuple2s as bs))
+        = PNested vsegd (PTuple2s (PWraps as) (PWraps bs))
         

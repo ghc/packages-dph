@@ -1,7 +1,7 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PData.Tuple 
-        ( PData(..)
+        ( PData(..),    PDatas(..)
         , zip,          zipPD
         , zipl,         ziplPD
         , unzip,        unzipPD
@@ -18,27 +18,10 @@ import qualified Prelude                        as P
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
-        = PTuple2 (PData a) (PData b)
+        = PTuple2  (PData a) (PData b)
 
-
--- Show -----------------------------------------------------------------------
-deriving instance (Show (PData a), Show (PData b)) 
-        => Show (PData (a, b))
-
-
-instance (PprPhysical (PData a), PprPhysical (PData b))
-        => PprPhysical (PData (a, b)) where
- pprp   (PTuple2 xs ys)
-        = text "PTuple2 " <> vcat [pprp xs, pprp ys]
-
-
-instance ( PR a, PR b, Show a, Show b
-         , PprVirtual (PData a), PprVirtual (PData b))
-        => PprVirtual (PData (a, b)) where
- pprv   (PTuple2 xs ys)
-        = text $ show 
-        $ P.zip (V.toList $ toVectorPR xs) 
-                (V.toList $ toVectorPR ys)
+data instance PDatas (a, b)
+        = PTuple2s (PDatas a) (PDatas b)
 
 
 -- PR -------------------------------------------------------------------------
@@ -76,11 +59,10 @@ instance (PR a, PR b) => PR (a, b) where
         = (indexPR arr1 ix, indexPR arr2 ix)
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR c (PNested uvsegd psegdata) ixs
-   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs' ys') -> (xs', ys')) psegdata 
-         xsArr          = PNested uvsegd xs
-         ysArr          = PNested uvsegd ys
-     in  PTuple2  (indexlPR c xsArr ixs) (indexlPR c ysArr ixs)
+  indexlPR (PNested uvsegd (PTuple2s xs ys)) ixs
+   = let xsArr  = PNested uvsegd xs
+         ysArr  = PNested uvsegd ys
+     in  PTuple2  (indexlPR xsArr ixs) (indexlPR ysArr ixs)
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len
@@ -88,9 +70,8 @@ instance (PR a, PR b) => PR (a, b) where
                   (extractPR arr2 start len)
 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR arrs ussegd
-   = let (xs, ys)       = V.unzip $ V.map (\(PTuple2 xs' ys') -> (xs', ys')) arrs
-     in  PTuple2 (extractsPR xs ussegd)
+  extractsPR (PTuple2s xs ys) ussegd
+   =    PTuple2  (extractsPR xs ussegd)
                  (extractsPR ys ussegd)
 
   {-# INLINE_PDATA appendPR #-}
@@ -124,6 +105,71 @@ instance (PR a, PR b) => PR (a, b) where
         = V.zip  (toVectorPR xs)
                  (toVectorPR ys)
 
+  -- PRR ----------------------------------------
+  {-# INLINE_PDATA emptydPR #-}
+  emptydPR      
+        = PTuple2s emptydPR emptydPR
+  
+  {-# INLINE_PDATA singletondPR #-}
+  singletondPR (PTuple2 x y)
+        = PTuple2s (singletondPR x) (singletondPR y)
+
+  {-# INLINE_PDATA lengthdPR #-}
+  lengthdPR (PTuple2s xs ys)
+        = lengthdPR xs
+   
+  {-# INLINE_PDATA indexdPR #-}
+  indexdPR (PTuple2s xs ys) i
+        = PTuple2 (indexdPR xs i) (indexdPR ys i)
+   
+  {-# INLINE_PDATA appenddPR #-}
+  appenddPR (PTuple2s xs1 ys1) (PTuple2s xs2 ys2)
+        = PTuple2s (appenddPR xs1 xs2) (appenddPR ys1 ys2)
+  
+  {-# INLINE_PDATA concatdPR #-}
+  concatdPR vecs
+        = PTuple2s
+                (concatdPR $ V.map (\(PTuple2s xs ys) -> xs) vecs)
+                (concatdPR $ V.map (\(PTuple2s xs ys) -> ys) vecs)
+
+  {-# INLINE_PDATA fromVectordPR #-}
+  fromVectordPR vec
+        = error "fromVectordPR[Tuple2]: not implemented"
+
+  {-# INLINE_PDATA toVectordPR #-}
+  toVectordPR arr
+        = error "toVectordPR[Tuple2]: not implemented"
+
+
+-- PD Functions ---------------------------------------------------------------
+-- These work on PData arrays of tuples, but don't need a PA or PR dictionary
+
+-- | O(1). Zip a pair of arrays into an array of pairs.
+zipPD   :: PData a -> PData b -> PData (a, b)
+zipPD   = PTuple2
+{-# INLINE_PA zipPD #-}
+
+
+-- | Lifted zip.
+ziplPD   :: PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
+ziplPD (PNested vsegd pdatas1) (PNested _ pdatas2)
+        = PNested vsegd (PTuple2s pdatas1 pdatas2)
+{-# INLINE_PA ziplPD #-}
+
+
+-- | O(1). Unzip an array of pairs into a pair of arrays.
+unzipPD :: PData (a, b) -> (PData a, PData b)
+unzipPD (PTuple2 xs ys) = (xs, ys)
+{-# INLINE_PA unzipPD #-}
+
+
+-- | Lifted unzip.
+unziplPD  :: PData (PArray (a, b)) -> PData (PArray a, PArray b)
+unziplPD (PNested uvsegd (PTuple2s xsdata ysdata))
+ =      PTuple2 (PNested uvsegd xsdata)
+                (PNested uvsegd ysdata)
+{-# INLINE_PA unziplPD #-}
+
 
 -- PArray functions -----------------------------------------------------------
 -- These work on PArrays of tuples, but don't need a PA or PR dictionary.
@@ -155,37 +201,22 @@ unzipl (PArray n# pdata)
         = PArray n# $ unziplPD pdata
 
 
--- PD Functions ---------------------------------------------------------------
--- These work on PData arrays of tuples, but don't need a PA or PR dictionary
-
--- | O(1). Zip a pair of arrays into an array of pairs.
-zipPD   :: PData a -> PData b -> PData (a, b)
-zipPD   = PTuple2
-{-# INLINE_PA zipPD #-}
+-- Show -----------------------------------------------------------------------
+deriving instance (Show (PData a), Show (PData b)) 
+        => Show (PData (a, b))
 
 
--- | Lifted zip.
---   PROBLEM: This probably isn't O(1), though it could be dep on Vector represtation.
-ziplPD   :: PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
-ziplPD (PNested vsegd pdatas1) (PNested _ pdatas2)
-        = PNested vsegd $ V.zipWith PTuple2 pdatas1 pdatas2
-{-# INLINE_PA ziplPD #-}
+instance (PprPhysical (PData a), PprPhysical (PData b))
+        => PprPhysical (PData (a, b)) where
+ pprp   (PTuple2 xs ys)
+        = text "PTuple2 " <> vcat [pprp xs, pprp ys]
 
 
--- | O(1). Unzip an array of pairs into a pair of arrays.
-unzipPD :: PData (a, b) -> (PData a, PData b)
-unzipPD (PTuple2 xs ys) = (xs, ys)
-{-# INLINE_PA unzipPD #-}
-
-
--- | Lifted unzip.
---   PROBLEM: this isn't O(1), need adaptive PDatas representation.
-{-# INLINE_PA unziplPD #-}
-unziplPD  :: PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unziplPD (PNested uvsegd psegdata)
- = let  (xsdata, ysdata)        
-         = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) psegdata
-   in   PTuple2 (PNested uvsegd xsdata)
-                (PNested uvsegd ysdata)
-
+instance ( PR a, PR b, Show a, Show b
+         , PprVirtual (PData a), PprVirtual (PData b))
+        => PprVirtual (PData (a, b)) where
+ pprv   (PTuple2 xs ys)
+        = text $ show 
+        $ P.zip (V.toList $ toVectorPR xs) 
+                (V.toList $ toVectorPR ys)
 

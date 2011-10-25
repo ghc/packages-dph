@@ -16,20 +16,25 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , emptyPA
         , nfPA
         , lengthPA
-        , replicatePA,    replicatesPA
-        , indexPA,        indexlPA
-        , extractPA,      extractsPA
-        , appendPA,       appendsPA
+        , replicatePA,  replicatesPA
+        , indexPA,      indexlPA
+        , extractPA,    extractsPA
+        , appendPA,     appendsPA
         , packByTagPA
         , combine2PA
-        , fromVectorPA,   toVectorPA)
+        , fromVectorPA, toVectorPA
+        , emptydPA
+        , singletondPA
+        , lengthdPA
+        , indexdPA
+        , appenddPA
+        , concatdPA)
 where
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
+import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-
 
 -- | Representable types.
 --
@@ -48,27 +53,16 @@ type family PRepr a
 --   representable type to and from its generic representation.
 --   The conversion methods should all be O(1).
 class PR (PRepr a) => PA a where
-  toPRepr               :: a                        -> PRepr a
-  fromPRepr             :: PRepr a                  -> a
+  toPRepr               :: a                    -> PRepr a
+  fromPRepr             :: PRepr a              -> a
 
-  toArrPRepr            :: PData a                  -> PData (PRepr a)
-  fromArrPRepr          :: PData (PRepr a)          -> PData a
+  toArrPRepr            :: PData a              -> PData (PRepr a)
+  fromArrPRepr          :: PData (PRepr a)      -> PData a
 
+  toArrPReprs           :: PDatas a             -> PDatas (PRepr a)
+  fromArrPReprs         :: PDatas (PRepr a)     -> PDatas a
 
-  -- PROBLEM: 
-  --  The new library needs these conversion functions, but the default
-  --  conversion isn't O(1). Perhaps we should be using an (Int -> PData a)
-  --  function instead of a vector, then conversion would just be 
-  --  function composition.
-  toArrPReprs           :: Vector (PData a)         -> Vector (PData (PRepr a))
-  toArrPReprs arrs
-        = V.map toArrPRepr arrs
-
-  fromArrPReprs         :: Vector (PData (PRepr a)) -> Vector (PData a)
-  fromArrPReprs pdatas
-        = V.map fromArrPRepr pdatas
-
-  toNestedArrPRepr      :: PData (PArray a)         -> PData (PArray (PRepr a))
+  toNestedArrPRepr      :: PData (PArray a)     -> PData (PArray (PRepr a))
 
 
 -- PD Wrappers ----------------------------------------------------------------
@@ -133,10 +127,10 @@ indexPA xs i
 
 
 {-# INLINE_PA indexlPA #-}
-indexlPA        :: PA a => Int -> PData (PArray a) -> PData Int -> PData a
-indexlPA n xss ixs
+indexlPA        :: PA a => PData (PArray a) -> PData Int -> PData a
+indexlPA xss ixs
  = fromArrPRepr
- $ indexlPR n (toNestedArrPRepr xss) ixs
+ $ indexlPR (toNestedArrPRepr xss) ixs
 
 
 {-# INLINE_PA extractPA #-}
@@ -147,7 +141,7 @@ extractPA xs start len
 
 
 {-# INLINE_PA extractsPA #-}
-extractsPA      :: PA a => Vector (PData a) -> U.SSegd -> PData a
+extractsPA      :: PA a => PDatas a -> U.SSegd -> PData a
 extractsPA xss segd
  = fromArrPRepr
  $ extractsPR (toArrPReprs xss) segd
@@ -193,5 +187,45 @@ toVectorPA      :: PA a => PData a -> Vector a
 toVectorPA pdata
  = V.map fromPRepr
  $ toVectorPR (toArrPRepr pdata)
+ 
 
+{-# INLINE_PA emptydPA #-}
+emptydPA        :: PA a => PDatas a
+emptydPA 
+ = fromArrPReprs
+ $ emptydPR
+
+ 
+{-# INLINE_PA singletondPA #-}
+singletondPA    :: PA a => PData a -> PDatas a
+singletondPA pdata
+ = fromArrPReprs
+ $ singletondPR (toArrPRepr pdata)
+
+
+{-# INLINE_PA lengthdPA #-}
+lengthdPA       :: PA a => PDatas a -> Int
+lengthdPA pdatas
+ = lengthdPR (toArrPReprs pdatas)
+
+
+{-# INLINE_PA indexdPA #-}
+indexdPA        :: PA a => PDatas a -> Int -> PData a
+indexdPA pdatas ix
+ = fromArrPRepr
+ $ indexdPR (toArrPReprs pdatas) ix
+ 
+ 
+{-# INLINE_PA appenddPA #-}
+appenddPA       :: PA a => PDatas a -> PDatas a -> PDatas a
+appenddPA xs ys
+ = fromArrPReprs
+ $ appenddPR (toArrPReprs xs) (toArrPReprs ys)
+
+
+{-# INLINE_PA concatdPA #-}
+concatdPA       :: PA a => V.Vector (PDatas a) -> PDatas a
+concatdPA vec
+ = fromArrPReprs
+ $ concatdPR (V.map toArrPReprs vec)
  

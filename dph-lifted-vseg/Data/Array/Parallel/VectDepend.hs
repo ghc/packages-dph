@@ -19,8 +19,9 @@ module Data.Array.Parallel.VectDepend () where
 
 import Data.Array.Parallel.Lifted.Closure               ()
 import Data.Array.Parallel.Lifted.Combinators           ()
-import Data.Array.Parallel.Lifted                        ()
+import Data.Array.Parallel.Lifted                       ()
 import Data.Array.Parallel.PArray.PData.Base            ()
+import Data.Array.Parallel.PArray.PData.Bool            ()
 import Data.Array.Parallel.PArray.PData.Double          ()
 import Data.Array.Parallel.PArray.PData.Int             ()
 import Data.Array.Parallel.PArray.PData.Nested          ()

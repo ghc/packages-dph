@@ -1,5 +1,5 @@
 #include "fusion-phases.h"
-
+{-# LANGUAGE UndecidableInstances #-}
 -- | Instances for the PRRepr/PA family and class.
 --
 --   This module is kept separate from PRepr.Base to break an import cycle
@@ -17,7 +17,10 @@ import Data.Array.Parallel.PArray.PData.Sum2
 import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PData.Int
 import Data.Array.Parallel.PArray.PData.Double
+import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import Text.PrettyPrint
 
 -- Void -----------------------------------------------------------------------
 type instance PRepr Void = Void
@@ -28,6 +31,7 @@ instance PA Void where
   toArrPRepr            = id
   fromArrPRepr          = id
   toArrPReprs           = id
+  fromArrPReprs         = id
   toNestedArrPRepr      = id
 
 
@@ -40,6 +44,7 @@ instance PA () where
   toArrPRepr            = id
   fromArrPRepr          = id
   toArrPReprs           = id
+  fromArrPReprs         = id
   toNestedArrPRepr      = id
 
 
@@ -52,6 +57,7 @@ instance PA Int where
   toArrPRepr            = id
   fromArrPRepr          = id
   toArrPReprs           = id
+  fromArrPReprs         = id
   toNestedArrPRepr      = id
 
 
@@ -64,19 +70,25 @@ instance PA Double where
   toArrPRepr            = id
   fromArrPRepr          = id
   toArrPReprs           = id
+  fromArrPReprs         = id
   toNestedArrPRepr      = id
   
   
 -- Bool -----------------------------------------------------------------------
--- | Bools are represented generically by just using the tag part of an
---   altenative.
-data instance PData Bool
-  = PBool U.Sel2
-
 -- | We use the `Void` type for both sides because we only care about the tag.
 --   The `Void` fields don't use any space at runtime.
 type instance PRepr Bool
   = Sum2 Void Void
+
+data instance PData Bool
+  = PBool U.Sel2
+
+data instance PDatas Bool
+  = PBools (V.Vector U.Sel2) (PDatas Tag)
+
+
+instance PprPhysical (PData Bool) where
+ pprp (PBool sel2) = pprp sel2
 
 instance PA Bool where
   {-# INLINE toPRepr #-}
@@ -88,10 +100,50 @@ instance PA Bool where
   fromPRepr (Alt2_2 _)   = True
 
   {-# INLINE toArrPRepr #-}
-  toArrPRepr (PBool sel) = PSum2 sel pvoid pvoid
+  toArrPRepr (PBool sel) 
+        = PSum2 sel pvoid pvoid
 
   {-# INLINE fromArrPRepr #-}
   fromArrPRepr (PSum2 sel _ _)
-   = PBool sel
+        = PBool sel
 
-  
+  {-# INLINE toArrPReprs #-}
+  toArrPReprs (PBools sels tagss)
+        = PSum2s sels tagss pvoids pvoids
+
+  {-# INLINE fromArrPReprs #-}
+  fromArrPReprs (PSum2s sels tagss _ _)
+        = PBools sels tagss
+
+
+-- Either ---------------------------------------------------------------------
+type instance PRepr (Either a b)
+ = Sum2 a b
+ 
+data instance PData (Either a b)
+ = PEither U.Sel2 (PData a) (PData b)
+
+instance (PR a, PR b) => PA (Either a b) where
+  {-# INLINE toPRepr #-}
+  toPRepr xx
+   = case xx of
+        Left x    -> Alt2_1 x
+        Right y   -> Alt2_2 y
+
+  {-# INLINE toArrPRepr #-}
+  toArrPRepr (PEither sel pdatas1 pdatas2)
+        = PSum2 sel pdatas1 pdatas2
+        
+  {-# INLINE fromArrPRepr #-}
+  fromArrPRepr (PSum2 sel pdatas1 pdatas2)
+        = PEither sel pdatas1 pdatas2
+        
+ 
+instance (PprPhysical (PData a), PprPhysical (PData b), PR a, PR b)
+        => PprPhysical (PData (Either a b)) where
+ pprp xs = pprp $ toArrPRepr xs
+
+ 
+ 
+ 
+ 

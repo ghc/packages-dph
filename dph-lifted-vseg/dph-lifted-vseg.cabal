@@ -22,6 +22,7 @@ Library
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.PArray.PData.Base
+        Data.Array.Parallel.PArray.PData.Bool
         Data.Array.Parallel.PArray.PData.Double
         Data.Array.Parallel.PArray.PData.Int
         Data.Array.Parallel.PArray.PData.Nested
@@ -65,6 +66,7 @@ Library
         StandaloneDeriving,
         ExplicitForAll,
         ParallelListComp,
+        PatternGuards,
         ExistentialQuantification,
         ScopedTypeVariables
         

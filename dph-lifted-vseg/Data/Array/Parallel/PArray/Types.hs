@@ -17,13 +17,16 @@ module Data.Array.Parallel.PArray.Types (
   fromVoid,     
 
   -- * Generic sums
-  Sum2(..),
-  Sum3(..),
+  Sum2(..), tagOfSum2,
+  Sum3(..), tagOfSum3,
 
   -- * The Wrap type
   Wrap (..)
 )
 where
+import Data.Array.Parallel.Base (Tag)
+import Data.Array.Parallel.Pretty
+
 
 -- Void -----------------------------------------------------------------------
 -- | The `Void` type is used when representing enumerations. 
@@ -49,10 +52,39 @@ fromVoid = error $unlines
          , "  should never be forced. Something has gone badly wrong." ]
 
 
--- Sums -----------------------------------------------------------------------
+-- Sum2 -----------------------------------------------------------------------
 -- | Sum types used for the generic representation of algebraic data.
-data Sum2 a b   = Alt2_1 a | Alt2_2 b
-data Sum3 a b c = Alt3_1 a | Alt3_2 b | Alt3_3 c
+data Sum2 a b
+        = Alt2_1 a | Alt2_2 b
+
+tagOfSum2 :: Sum2 a b -> Tag
+tagOfSum2 ss
+ = case ss of
+        Alt2_1 _        -> 0
+        Alt2_2 _        -> 1
+{-# INLINE tagOfSum2 #-}
+
+
+instance (PprPhysical a, PprPhysical b)
+        => PprPhysical (Sum2 a b) where
+ pprp ss
+  = case ss of
+        Alt2_1 x        -> text "Alt2_1" <+> pprp x
+        Alt2_2 y        -> text "Alt2_2" <+> pprp y
+
+
+
+-- Sum3 -----------------------------------------------------------------------
+data Sum3 a b c
+        = Alt3_1 a | Alt3_2 b | Alt3_3 c
+
+tagOfSum3 :: Sum3 a b c -> Tag
+tagOfSum3 ss
+ = case ss of
+        Alt3_1 _        -> 0
+        Alt3_2 _        -> 1
+        Alt3_3 _        -> 2
+{-# INLINE tagOfSum3 #-}
 
 
 -- Wrap -----------------------------------------------------------------------

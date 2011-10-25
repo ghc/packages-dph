@@ -8,19 +8,19 @@ module Data.Array.Parallel.PArray.PData.Base
           PArray(..)
         , length, unpack
         , PprPhysical (..), PprVirtual (..)
-        , PData
-        , PR(..)
-        
+
+        , PR (..)
+        , PData(..), PDatas(..)
         , uextracts)
 where
-import qualified Data.Array.Parallel.Unlifted   as U
-import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
-import Data.Vector                              (Vector)
-import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
 import GHC.Exts
 import SpecConstr
+import Data.Vector                              (Vector)
+import Data.Array.Parallel.Base                 (Tag)
+import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
 import Prelude hiding (length)
 
 -- PArray ---------------------------------------------------------------------
@@ -39,19 +39,6 @@ import Prelude hiding (length)
 data PArray a
         = PArray Int# (PData  a)
 
-deriving instance (Show (PData a), Show a)
-        => Show (PArray a)
-
-instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
- pprp (PArray n# dat)
-  =   (text "PArray " <+> int (I# n#))
-  $+$ (nest 4 
-      $ pprp dat)
-
-instance PprVirtual (PData a) => PprVirtual (PArray a) where
- pprv (PArray _ dat)
-  =   pprv dat
-
 
 -- | Take the length of an array
 {-# INLINE_PA length #-}
@@ -65,13 +52,25 @@ unpack :: PArray a -> PData a
 unpack (PArray _ d)   = d
 
 
--- PData ----------------------------------------------------------------------
--- | Parallel array data.
+-- Parallel array data --------------------------------------------------------
+{-# ANN type PData NoSpecConstr #-}
 data family PData a
 
+{-# ANN type PDatas NoSpecConstr #-}
+data family PDatas a
 
--- PR Dictionary (Representation) ---------------------------------------------
+
+-- Put these here to break an import loop.
+data instance PData Int
+        = PInt  (U.Array Int)
+
+data instance PDatas Int
+        = PInts (V.Vector (U.Array Int))
+
+
+-- PR -------------------------------------------------------------------------
 class PR a where
+
   -- | Check that an array has a well formed representation.
   --   This should only return False where there is a bug in the library.
   validPR       :: PData a -> Bool
@@ -107,23 +106,22 @@ class PR a where
                 -> PData a              -- ^ data elements to replicate
                 -> PData a
 
-  -- | Lookup a single element from the source array.
-  --   O(1). 
+  -- | O(1). Lookup a single element from the source array.
   indexPR       :: PData a    -> Int -> a
 
   -- | Lookup several elements from several source arrays
-  indexlPR      :: Int -> PData (PArray a) -> PData Int -> PData a
+  indexlPR      :: PData (PArray a)
+                -> PData Int
+                -> PData a
 
-  -- | Extract a range of elements from an array.
-  --   O(n). 
+  -- | O(n). Extract a range of elements from an array.
   extractPR     :: PData a 
                 -> Int                  -- ^ starting index
                 -> Int                  -- ^ length of slice
                 -> PData a
 
-  -- | Segmented extract.
-  --   O(sum seglens).  
-  extractsPR    :: Vector (PData a)
+  -- | O(sum seglens). Segmented extract.
+  extractsPR    :: PDatas a
                 -> U.SSegd              -- ^ segment descriptor describing scattering of data.
                 -> PData a
 
@@ -154,6 +152,46 @@ class PR a where
 
   -- | Convert an array to a boxed vector.
   toVectorPR    :: PData a -> Vector a
+
+  -- PDatas --------------------------
+  -- | O(1). Yield an empty collection of PData.
+  emptydPR      :: PDatas a
+
+  -- | O(1). Yield a singleton collection of PData.
+  singletondPR  :: PData a  -> PDatas a
+
+  -- | O(1). Yield how many PData are in the collection.
+  lengthdPR     :: PDatas a -> Int
+
+  -- | O(1). Lookup a PData from a collection.
+  indexdPR      :: PDatas a -> Int -> PData a
+
+  -- | O(n). Append two collections of PData.
+  appenddPR     :: PDatas a -> PDatas a -> PDatas a
+
+  -- | O(n). Combine several collections of PData into a single one.
+  concatdPR     :: V.Vector (PDatas a) -> PDatas a
+
+  -- | O(n). Convert a vector of PData to a PDatas collection.
+  fromVectordPR :: V.Vector (PData a) -> PDatas a
+
+  -- | O(n). Convert a PDatas collection to a vector of PData.
+  toVectordPR   :: PDatas a           -> V.Vector (PData a)
+
+
+-- Show -----------------------------------------------------------------------
+deriving instance (Show (PData a), Show a)
+        => Show (PArray a)
+
+instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
+ pprp (PArray n# dat)
+  =   (text "PArray " <+> int (I# n#))
+  $+$ (nest 4 
+      $ pprp dat)
+
+instance PprVirtual (PData a) => PprVirtual (PArray a) where
+ pprv (PArray _ dat)
+  =   pprv dat
 
 
 -------------------------------------------------------------------------------
@@ -204,3 +242,4 @@ uextracts arrs srcids ixBase lens
                         (U.zip baseixs srcids')
 
    in result
+

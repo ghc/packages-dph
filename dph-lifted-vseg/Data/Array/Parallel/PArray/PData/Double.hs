@@ -11,18 +11,9 @@ import Text.PrettyPrint
 data instance PData Double
         = PDouble !(U.Array Double)
 
-deriving instance Show (PData Double)
+data instance PDatas Double
+        = PDoubles !(V.Vector (U.Array Double))
 
-
-instance PprPhysical (PData Double) where
-  pprp (PDouble vec)
-   =   text "PDouble"
-   <+> text (show $ U.toList vec)
-
-
-instance PprVirtual (PData Double) where
-  pprv (PDouble vec)
-   = text (show $ U.toList vec)
 
 
 instance PR Double where
@@ -55,7 +46,7 @@ instance PR Double where
         = arr `VU.unsafeIndex` ix
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR _ arr@(PNested vsegd psegdatas) (PInt ixs)
+  indexlPR arr@(PNested vsegd (PDoubles vecpdatas)) (PInt ixs)
    = PDouble $ U.zipWith get vsegids ixs
    where
          -- Unbox these vectors outside the get loop.
@@ -63,15 +54,14 @@ instance PR Double where
          !ssegd         = U.takeSSegdRedundantOfVSegd vsegd
          !psegsrcids    = U.sourcesSSegd ssegd
          !psegstarts    = U.startsSSegd  ssegd
-         !psegvecs      = V.map (\(PDouble vec) -> vec) psegdatas
 
          -- Lookup a single element from a virtual segment.
          get !vsegid !ix
           = let !psegsrcid       = psegsrcids `VU.unsafeIndex` vsegid
-                !psegvec         = psegvecs   `V.unsafeIndex`  psegsrcid
+                !psegvec         = vecpdatas  `V.unsafeIndex` psegsrcid
                 !psegstart       = psegstarts `VU.unsafeIndex` vsegid
                 !elemIx          = psegstart + ix
-                !elemVal         = psegvec `VU.unsafeIndex` elemIx
+                !elemVal         = psegvec    `VU.unsafeIndex` elemIx
             in  elemVal
 
   {-# INLINE_PDATA extractPR #-}
@@ -79,12 +69,11 @@ instance PR Double where
         = PDouble (U.extract arr start len)
 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR arrs ussegd
+  extractsPR (PDoubles vecpdatas) ussegd
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
-     in  PDouble (uextracts (V.map (\(PDouble arr) -> arr) arrs)
-                        segsrcs segstarts seglens)
+     in  PDouble (uextracts vecpdatas segsrcs segstarts seglens)
                 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PDouble arr1) (PDouble arr2)
@@ -111,3 +100,51 @@ instance PR Double where
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PDouble arr)
         = V.fromList $ U.toList arr
+
+  -- PDatas -------------------------------------
+  {-# INLINE_PDATA emptydPR #-}
+  emptydPR 
+        = PDoubles $ V.empty
+        
+  {-# INLINE_PDATA singletondPR #-}
+  singletondPR (PDouble pdata)
+        = PDoubles $ V.singleton pdata
+        
+  {-# INLINE_PDATA lengthdPR #-}
+  lengthdPR (PDoubles vec)
+        = V.length vec
+        
+  {-# INLINE_PDATA indexdPR #-}
+  indexdPR (PDoubles vec) ix
+        = PDouble $ V.unsafeIndex vec ix
+
+  {-# INLINE_PDATA appenddPR #-}
+  appenddPR (PDoubles xs) (PDoubles ys)
+        = PDoubles $ xs V.++ ys
+        
+  {-# INLINE_PDATA concatdPR #-}
+  concatdPR vecs
+        = PDoubles
+                $ V.concat $ V.toList
+                $ V.map (\(PDoubles xs) -> xs) vecs
+                
+  {-# INLINE_PDATA fromVectordPR #-}
+  fromVectordPR vec
+        = PDoubles $ V.map (\(PDouble xs) -> xs) vec
+        
+  {-# INLINE_PDATA toVectordPR #-}
+  toVectordPR (PDoubles vec)
+        = V.map PDouble vec
+
+
+-- Show -----------------------------------------------------------------------
+deriving instance Show (PData Double)
+
+instance PprPhysical (PData Double) where
+  pprp (PDouble vec)
+   =   text "PDouble"
+   <+> text (show $ U.toList vec)
+
+instance PprVirtual (PData Double) where
+  pprv (PDouble vec)
+   = text (show $ U.toList vec)
