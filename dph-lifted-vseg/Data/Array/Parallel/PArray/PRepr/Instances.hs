@@ -139,9 +139,11 @@ instance (PR a, PR b) => PA (Either a b) where
         = PEither sel pdatas1 pdatas2
         
  
-instance (PprPhysical (PData a), PprPhysical (PData b), PR a, PR b)
+instance ( PprPhysical (PData a), PR a
+         , PprPhysical (PData b), PR b)
         => PprPhysical (PData (Either a b)) where
  pprp xs = pprp $ toArrPRepr xs
+
 
  
  

@@ -137,7 +137,7 @@ replicatel (PArray n# (PInt lens)) (PArray _ pdata)
                 lens
                 (U.indicesSegd segd)
                 (U.replicate c 0)
-                (error "PArray: replcatel fixme") -- (singletondPR pdata)
+                (singletondPA pdata)
 {-# INLINE_PA replicatel #-}
 
 

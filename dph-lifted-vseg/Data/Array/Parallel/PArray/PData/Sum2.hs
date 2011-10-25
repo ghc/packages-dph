@@ -11,6 +11,7 @@ import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import Prelude                                  as P
+import Debug.Trace
 
 -------------------------------------------------------------------------------
 data instance PData (Sum2 a b)
@@ -86,9 +87,60 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         = nope "extract"
   
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR 
-        = nope "extracts"
-        
+  extractsPR (PSum2s sels (PInts tagss) pdatas0 pdatas1) ssegd
+   = let                
+         tags'     = uextracts tagss 
+                        (U.sourcesSSegd ssegd)
+                        (U.startsSSegd  ssegd)
+                        (U.lengthsSSegd ssegd)
+
+         sel'      = U.tagsToSel2 tags'
+
+         selIndices'    = uextracts (V.map U.indicesSel2 sels)
+                                (U.sourcesSSegd ssegd)
+                                (U.startsSSegd  ssegd)
+                                (U.lengthsSSegd ssegd)
+
+
+         sources        = U.sourcesSSegd ssegd
+   
+         -- number of L elements for each segment
+         lens0          = U.count_ss ssegd tagss 0
+         selStarts0     = U.scan (+) 0 lens0
+         sel0           = U.packByTag selIndices' tags' 0
+         sel0_len       = U.length sel0
+         starts0        = U.map (\i -> if i >= sel0_len then 0 else sel0 U.!: i) selStarts0
+         segd0          = U.lengthsToSegd lens0
+         ssegd0         = U.mkSSegd starts0 sources segd0
+                 
+         -- TODO: argh, complicated.
+         lens1          = U.count_ss ssegd tagss 1
+         selStarts1     = U.scan (+) 0 lens1
+         sel1           = U.packByTag selIndices' tags' 1
+         sel1_len       = U.length sel1
+         starts1        = U.map (\i -> if i >= sel1_len then 0 else sel1 U.!: i) selStarts1
+         segd1          = U.lengthsToSegd lens1
+         ssegd1         = U.mkSSegd starts1 sources segd1
+
+         pdata0         = extractsPR pdatas0 ssegd0
+         pdata1         = extractsPR pdatas1 ssegd1
+     in {- trace (render $ vcat 
+                        [ text "tags'       = " <> pprp tags'
+                        , text ""
+                        , text "lens0       = " <> pprp lens0
+                        , text "selStarts0  = " <> pprp selStarts0
+                        , text "sel0        = " <> pprp sel0
+                        , text "starts0     = " <> pprp starts0
+                        , text ""
+                        , text "lens1       = " <> pprp lens1
+                        , text "selStarts1  = " <> pprp selStarts1
+                        , text "sel1        = " <> pprp sel1
+                        , text ""
+                        , text "sources     = " <> pprp sources
+                        , text "selindices' = " <> pprp selIndices'
+                        , text ""]) $ -}
+           PSum2 sel' pdata0 pdata1
+
   {-# INLINE_PDATA appendPR #-}
   appendPR (PSum2 sel1 as1 bs1)
            (PSum2 sel2 as2 bs2)
@@ -197,8 +249,8 @@ instance ( PprPhysical (PData a)
         , text "ALTS1: " <+> pprp pdatas2])
 
 
-instance ( PprPhysical (PDatas a), PR a
-         , PprPhysical (PDatas b), PR b)
+instance ( PprPhysical (PDatas a)
+         , PprPhysical (PDatas b))
         => PprPhysical (PDatas (Sum2 a b)) where
 
  pprp (PSum2s sels tagss pdatas1 pdatas2)

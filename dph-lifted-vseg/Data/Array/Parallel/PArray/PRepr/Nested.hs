@@ -37,6 +37,15 @@ instance PA a => PA (PArray a) where
   fromArrPRepr (PNested segd xs)
         = PNested segd $ fromArrPReprs xs
 
+  {-# INLINE_PA toArrPReprs #-}
+  toArrPReprs (PNesteds vec)
+        = PNesteds $ V.map toArrPRepr vec
+
+  {-# INLINE_PA fromArrPReprs #-}
+  fromArrPReprs (PNesteds vec)
+        = PNesteds $ V.map fromArrPRepr vec
+
+
   {-# INLINE_PA toNestedArrPRepr #-}
   toNestedArrPRepr (PNested segd pdatas)
         = PNested segd $ toArrPReprs pdatas
