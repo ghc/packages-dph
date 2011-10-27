@@ -51,6 +51,7 @@ jobCompile (JobCompile
 		        ++ " -XMagicHash"
 		        ++ " -XUnboxedTuples"
 		        ++ " -XTemplateHaskell"
+		        ++ " -XStandaloneDeriving"
 		        ++ " -Idph-prim-interface/interface"
 		        ++ " -Idph-base/include"
 		        ++ " -idph-test/war"
@@ -59,9 +60,10 @@ jobCompile (JobCompile
 		        ++ " -idph-prim-par"
 		        ++ " -idph-prim-seq"
 		        ++ " -idph-lifted-vseg"
-		        ++ " -Odph -fno-liberate-case"
+		        ++ " -package ghc"
+		        ++ " -Odph -fno-liberate-case -fdph-par"
 		        ++ " -outputdir " ++ buildDir 
-		        ++ " -c "     ++ srcCopyHS
+		        ++ " --make "     ++ srcCopyHS
 		        ++ " -o "         ++ mainBin)
 		""
 
