@@ -134,7 +134,8 @@ instance (PR a, PR b) => PR (a, b) where
 
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
-        = error "fromVectordPR[Tuple2]: not implemented"
+   = let (xss, yss) = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) vec
+     in  PTuple2s (fromVectordPR xss) (fromVectordPR yss)
 
   {-# INLINE_PDATA toVectordPR #-}
   toVectordPR arr

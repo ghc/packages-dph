@@ -34,6 +34,11 @@ import Prelude (Int)
         
 {-# VECTORISE SCALAR type Int #-}
 
+infixl 7 *
+infixl 6 +, -
+infix  4 ==, /=, <, <=, >, >=
+-- infixl 7 `div`, `mod`
+
 -- Ord ------------------------------------------------------------------------
 (==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
 

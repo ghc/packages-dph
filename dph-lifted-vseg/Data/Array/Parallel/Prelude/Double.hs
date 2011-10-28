@@ -42,6 +42,10 @@ import Prelude (Double)
         
 {-# VECTORISE SCALAR type Double #-}
 
+infixl 7 *
+infixl 6 +, -
+infix  4 ==, /=, <, <=, >, >=
+
 -- Ord ------------------------------------------------------------------------
 (==), (/=), (<), (<=), (>), (>=) :: Double -> Double -> Bool
 

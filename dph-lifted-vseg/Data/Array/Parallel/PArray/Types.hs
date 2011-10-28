@@ -46,7 +46,7 @@ void     = error $ unlines
 -- | Coerce a `Void` to a different type. Used as a placeholder like `undefined`.
 --   Forcing the result yields `error`.
 fromVoid :: a
-fromVoid = error $unlines
+fromVoid = error $ unlines
          [ "Data.Array.Parallel.PArray.Types.fromVoid"
          , "  With the DPH generic array representation, values of type void"
          , "  should never be forced. Something has gone badly wrong." ]

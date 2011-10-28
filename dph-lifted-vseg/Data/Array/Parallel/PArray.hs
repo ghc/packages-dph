@@ -20,7 +20,7 @@
 --      should all be safe.
 -- 
 module Data.Array.Parallel.PArray 
-        ( PArray(..)
+        ( PArray(..), PA
         , valid
         , nf
 
