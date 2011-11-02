@@ -2,7 +2,6 @@ module Testsuite.Testcase (
   Test(..), mkTest, runTests
 ) where
 import Test.QuickCheck
-import Text.Regex
 import System.Environment (getArgs)
 import Data.Maybe (isJust)
 import System.IO
@@ -22,7 +21,7 @@ mkTest name = Test name . property
 runTests :: [Test] -> IO ()
 runTests tests 
  = do   args <- getArgs
-        mapM_ chk $ pick args tests
+        mapM_ chk tests
 
 
 chk (Test { testName = name, testProperty = prop }) 
@@ -59,11 +58,4 @@ chk (Test { testName = name, testProperty = prop })
        indent = unlines . map (spaces 4 ++) . lines 
 
 die = exitWith (ExitFailure 1)
-
-pick :: [String] -> [Test] -> [Test]
-pick [] = id
-pick ss = filter (match (map mkRegex ss))
-  where
-    match :: [Regex] -> Test -> Bool
-    match rs tst = any (\r -> isJust . matchRegex r $ testName tst) rs
 
