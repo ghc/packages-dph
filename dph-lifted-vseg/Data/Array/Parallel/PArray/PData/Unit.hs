@@ -100,7 +100,8 @@ instance PR () where
 
 
 -- Show -----------------------------------------------------------------------
-deriving instance Show (PData ())
+deriving instance Show (PData  ())
+deriving instance Show (PDatas ())
 
 instance PprPhysical (PData ()) where
   pprp uu

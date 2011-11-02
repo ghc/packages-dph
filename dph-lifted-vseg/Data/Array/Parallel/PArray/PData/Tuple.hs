@@ -203,8 +203,8 @@ unzipl (PArray n# pdata)
 
 
 -- Show -----------------------------------------------------------------------
-deriving instance (Show (PData a), Show (PData b)) 
-        => Show (PData (a, b))
+deriving instance (Show (PData  a), Show (PData  b)) => Show (PData  (a, b))
+deriving instance (Show (PDatas a), Show (PDatas b)) => Show (PDatas (a, b))
 
 
 instance (PprPhysical (PData a), PprPhysical (PData b))

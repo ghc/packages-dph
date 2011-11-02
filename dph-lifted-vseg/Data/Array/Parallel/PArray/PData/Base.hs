@@ -1,4 +1,4 @@
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances, ParallelListComp #-}
 -- Undeciable instances only need for derived Show instance
 
 #include "fusion-phases.h"
@@ -180,10 +180,20 @@ class PR a where
 
 
 -- Show -----------------------------------------------------------------------
-deriving instance (Show (PData a), Show a)
+deriving instance 
+        (Show a, Show (PData a), Show (PDatas a))
         => Show (PArray a)
 
-instance (PprPhysical (PData a)) => PprPhysical (PArray a) where
+
+instance (PR a, PprPhysical (PData a)) => PprPhysical (PDatas a) where
+ pprp pdatas
+  = vcat
+  $ [ int n <> colon <> text " " <> pprp pd
+        | n  <- [0..]
+        | pd <- V.toList $ toVectordPR pdatas]
+
+
+instance PprPhysical (PData a) => PprPhysical (PArray a) where
  pprp (PArray n# dat)
   =   (text "PArray " <+> int (I# n#))
   $+$ (nest 4 

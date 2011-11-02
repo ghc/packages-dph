@@ -131,7 +131,8 @@ instance PR Int where
 
 
 -- Show -----------------------------------------------------------------------
-deriving instance Show (PData Int)
+deriving instance Show (PData  Int)
+deriving instance Show (PDatas Int)
 
 instance PprPhysical (U.Array Int) where
   pprp uarr 

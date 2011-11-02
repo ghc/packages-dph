@@ -138,7 +138,8 @@ instance PR Double where
 
 
 -- Show -----------------------------------------------------------------------
-deriving instance Show (PData Double)
+deriving instance Show (PData  Double)
+deriving instance Show (PDatas Double)
 
 instance PprPhysical (PData Double) where
   pprp (PDouble vec)

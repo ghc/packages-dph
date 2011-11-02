@@ -1,4 +1,4 @@
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableInstances, ParallelListComp #-}
 
 {-# OPTIONS -fno-spec-constr #-}
 
@@ -666,26 +666,20 @@ validBool str b
         = if b  then True 
                 else error $ "validBool check failed -- " ++ str
 
-{-
+deriving instance Show (PDatas a) => Show (PDatas (PArray a))
+deriving instance Show (PDatas a) => Show (PData  (PArray a))
+
 -- | Pretty print the physical representation of a nested array
-instance PprPhysical (PData a) => PprPhysical (PData (PArray a)) where
- pprp (PNested uvsegd pdata)
+instance (PR a, PprPhysical (PData a)) => PprPhysical (PData (PArray a)) where
+ pprp (PNested uvsegd pdatas)
   =   text "PNested"
-  $+$ (nest 4 $ vcat 
-        $ pprp uvsegd 
-        : [ int n <> colon <> text " " <> pprp pd
-                | n  <- [0..]
-                | pd <- V.toList pdata])
+  $+$ (nest 4 $ pprp uvsegd $$ pprp pdatas)
 
 
 instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
  pprv arr
   =   lbrack <> hcat (punctuate comma (map pprv $ V.toList $ toVectorPR arr)) <> rbrack
-
      
-deriving instance Show (PData a) 
-        => Show (PData (PArray a))
--}
 
 
 
