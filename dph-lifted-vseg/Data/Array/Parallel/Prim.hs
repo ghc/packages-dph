@@ -1,56 +1,99 @@
+#include "fusion-phases.h"
 
 -- | This is the API used by the vectoriser.
 --   The vectoriser wants a slightly different interface to the one used 
 --   natively by the library. This module performs the impedance matching.
 module Data.Array.Parallel.Prim 
-        ( emptyPD#
-        , replicatePD#
-        , packByTagPD#
-        , combine2PD#
+        -- Core types
+        ( PArray(..), PData, PRepr, PA(..), PR(..)
 
-        -- * Closures
-        , closure,              ($:)
-        , liftedClosure,        liftedApply
-        , closure1
-        , closure2
-        , closure3
-        
-        -- * Selectors
-        , Sel2
-        , replicateSel2#
-        , pickSel2#
-        , tagsSel2
-        , elementsSel2_0#
-        , elementsSel2_1#
-        
-        -- * Scalar functions
+        -- Array Functions
+        , emptyPD
+        , replicatePD
+        , packByTagPD
+        , combine2PD
+
+        -- Scalar primitives
+        , Scalar(..)
         , scalar_map
         , scalar_zipWith
-        , scalar_zipWith3)
+        , scalar_zipWith3
+
+        -- Types used in the generic representation
+        , Void, void, fromVoid, pvoid
+        , punit
+        , Wrap(..)
+        , Sum2(..), Sum3(..)
+        
+        -- Closures, and closure functions
+        , (:->)(..)
+        , closure,              ($:)
+        , liftedClosure,        liftedApply
+        , closure1, closure2, closure3
+        
+        -- Selectors
+        , Sel2
+        , tagsSel2
+        , replicateSel2#
+        , elementsSel2_0#
+        , elementsSel2_1#
+
+        -- Scalar constructors
+        , PArray_Int#,          PArray_Double#
+        , emptyPA_Int#,         emptyPA_Double#
+        , replicatePA_Int#,     replicatePA_Double#
+        , packByTagPA_Int#,     packByTagPA_Double#
+        , combine2PA_Int#,      combine2PA_Double#
+
+        -- Tuple functions
+        , tup2, tup3)
 where
-import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PRepr.Base
-import GHC.Exts
-import Data.Array.Parallel.Base
-import Data.Array.Parallel.PArray.Scalar                (Scalar(..))
-import qualified Data.Array.Parallel.PArray.Scalar      as Scalar
+import Data.Array.Parallel.PArray.PData.Base   (PArray(..), PData, PR(..))
+import Data.Array.Parallel.PArray.PData
+        ( pvoid, punit)
+
+import Data.Array.Parallel.PArray.PRepr 
+        ( PRepr, PA(..)
+        , emptyPA, replicatePA, packByTagPA, combine2PA)
+        
+import Data.Array.Parallel.PArray.Scalar
+        ( Scalar(..))
+
+import Data.Array.Parallel.PArray.Types
+        ( Void, void, fromVoid
+        , Wrap(..)
+        , Sum2(..), Sum3(..))
+        
+import Data.Array.Parallel.Lifted.Closure
+        ( (:->)(..))
+
+import Data.Array.Parallel.Prelude.Tuple
+        ( tup2, tup3)
+
+import Data.Array.Parallel.Base                         (Tag, intToTag)
 import qualified Data.Array.Parallel.Unlifted           as U
-
+import qualified Data.Array.Parallel.PArray.Scalar      as Scalar
 import qualified Data.Array.Parallel.Lifted.Closure     as C
-import Data.Array.Parallel.Lifted.Closure     ((:->)(..))
+import GHC.Exts
+
+-- Array functions ------------------------------------------------------------
+emptyPD :: PA a => PData a
+emptyPD = emptyPA
 
 
--- Constructors ---------------------------------------------------------------
--- The vectoriser wants versions of these functions that take unboxed integers
--- for some of the arguments.
-{-# INLINE emptyPD# #-}
-emptyPD# :: PA a => PData a
-emptyPD# = emptyPA
+replicatePD :: PA a => Int# -> a -> PData a
+replicatePD i# x 
+        = replicatePA (I# i#) x
+        
 
-{-# INLINE replicatePD# #-}
-replicatePD# :: PA a => Int# -> a -> PData a
-replicatePD# r x 
-        = replicatePA (I# r) x
+packByTagPD :: PA a => PData a -> Int# -> U.Array Tag -> Int# -> PData a
+packByTagPD xs _ tags tag#
+        = packByTagPA xs tags (I# tag#)
+
+
+combine2PD :: PA a => Int# -> U.Sel2 -> PData a -> PData a -> PData a
+combine2PD len# sel xs ys
+        = combine2PA sel xs ys
 
 
 -- Closures -------------------------------------------------------------------
@@ -141,22 +184,6 @@ closure3 fv fl
    in   C.closure3 fv fl'
 
 
-
--- Packing and Combining ------------------------------------------------------
--- The vectoriser wants versions of these that take unboxed integers
--- for some arguments.
-{-# INLINE packByTagPD# #-}
-packByTagPD# :: PA a => PData a -> Int# -> U.Array Tag -> Int# -> PData a
-packByTagPD# arr _ tags t
-        = packByTagPA arr tags (I# t)
-
-
-{-# INLINE combine2PD# #-}
-combine2PD# :: PA a => Int# -> U.Sel2 -> PData a -> PData a -> PData a
-combine2PD# _ sel pdata1 pdata2
-        = combine2PA sel pdata1 pdata2
-
-
 -- Selector functions ---------------------------------------------------------
 -- The vectoriser wants versions of these that take unboxed integers
 -- for some arguments.
@@ -201,7 +228,6 @@ elementsSel2_1# sel
 
 
 -- Scalar functions -----------------------------------------------------------
-
 {-# INLINE scalar_map #-}
 scalar_map 
         :: (Scalar a, Scalar b) 
@@ -224,3 +250,76 @@ scalar_zipWith3
         => (a -> b -> c -> d) -> PArray a -> PArray b -> PArray c -> PArray d
 
 scalar_zipWith3 = Scalar.zipWith3
+
+
+-- Int functions --------------------------------------------------------------
+type PArray_Int# = U.Array Int
+
+
+replicatePA_Int# :: Int# -> Int# -> PArray_Int#
+replicatePA_Int# n# i# = U.replicate (I# n#) (I# i#)
+{-# INLINE_PA replicatePA_Int# #-}
+
+
+emptyPA_Int# :: PArray_Int#
+emptyPA_Int# = U.empty
+{-# INLINE_PA emptyPA_Int# #-}
+
+
+{-# RULES
+
+"replicatePA_Int#" forall n# i#.
+  replicatePA_Int# n# i# = U.replicate (I# n#) (I# i#)
+
+ #-}
+
+
+packByTagPA_Int# :: a
+packByTagPA_Int#    = error "Data.Array.Parallel.Prim: 'packByTagPA_Int#' not implemented"
+
+
+combine2'PA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
+combine2'PA_Int# sel xs ys = U.combine (U.map (== 0) sel) xs ys
+{-# INLINE_PA combine2'PA_Int# #-}
+
+
+combine2PA_Int#
+        :: Int#
+        -> PArray_Int# -> PArray_Int#
+        -> PArray_Int# -> PArray_Int# -> PArray_Int#
+combine2PA_Int# _ sel _ xs ys = combine2'PA_Int# sel xs ys
+{-# INLINE_PA combine2PA_Int# #-}
+
+
+-- Double functions -----------------------------------------------------------
+type PArray_Double# = U.Array Double
+
+
+replicatePA_Double# :: Int# -> Double# -> PArray_Double#
+replicatePA_Double# n# d# = U.replicate (I# n#) (D# d#)
+{-# INLINE_PA replicatePA_Double# #-}
+
+
+emptyPA_Double# :: PArray_Double#
+emptyPA_Double# = U.empty
+{-# INLINE_PA emptyPA_Double# #-}
+
+
+packByTagPA_Double# :: a
+packByTagPA_Double# = error "Data.Array.Parallel.Prim: 'packByTagPA_Double#' not implemented"
+
+
+combine2'PA_Double#
+        :: PArray_Int#
+        -> PArray_Double# -> PArray_Double# -> PArray_Double#
+combine2'PA_Double# sel xs ys = U.combine (U.map (== 0) sel) xs ys
+{-# INLINE_PA combine2'PA_Double# #-}
+
+
+combine2PA_Double#
+        :: Int#
+        -> PArray_Int# -> PArray_Int#
+        -> PArray_Double# -> PArray_Double# -> PArray_Double#
+combine2PA_Double# _ sel _ xs ys = combine2'PA_Double# sel xs ys
+{-# INLINE_PA combine2PA_Double# #-}
+

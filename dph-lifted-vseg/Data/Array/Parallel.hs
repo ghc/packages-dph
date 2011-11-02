@@ -58,8 +58,8 @@ module Data.Array.Parallel
         , zipP
         , unzipP)
 where
-import Data.Array.Parallel.VectDepend
--- IMPORTANT: see Note [Vectoriser dependencies] in the same module
+-- Primitives needed by the vectoriser.
+import Data.Array.Parallel.Prim                 ()      
 
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted

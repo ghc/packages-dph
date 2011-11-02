@@ -24,9 +24,9 @@ class PprVirtual a where
  pprv :: a -> Doc
 
 instance PprVirtual Int where
- pprp = text . show 
+ pprv = text . show 
  
 instance PprVirtual Double where
- pprp = text . show 
+ pprv = text . show 
 
  

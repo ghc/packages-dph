@@ -20,8 +20,8 @@ module Data.Array.Parallel.Prelude.Int
         -- * Enum
         , enumFromToP)
 where
-import Data.Array.Parallel.VectDepend
--- IMPORTANT: see Note [Vectoriser dependencies] in the same module
+-- Primitives needed by the vectoriser.
+import Data.Array.Parallel.Prim                 ()      
 
 import Data.Array.Parallel.Prelude.Bool
 import Data.Array.Parallel.PArr

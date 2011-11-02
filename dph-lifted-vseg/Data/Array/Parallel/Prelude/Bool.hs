@@ -7,10 +7,8 @@ module Data.Array.Parallel.Prelude.Bool (
         otherwise
 )
 where
-import Data.Array.Parallel.VectDepend
--- IMPORTANT: see Note [Vectoriser dependencies] in the same module
-
-import Data.Array.Parallel.Lifted
+-- Primitives needed by the vectoriser.
+import Data.Array.Parallel.Prim
         
 {-# VECTORISE type Bool = Bool #-}
 
