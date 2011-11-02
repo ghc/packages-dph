@@ -1,5 +1,4 @@
-import Data.Array.Parallel.Base                 (Tag)
-import Data.Array.Parallel.PArray.PData.Base
+{-# LANGUAGE UndecidableInstances #-}
 
 import Testsuite
 import DPH.Arbitrary.Selector
@@ -7,6 +6,15 @@ import DPH.Arbitrary.SliceSpec
 import DPH.Arbitrary.Perm
 import DPH.Arbitrary.Int
 import qualified DPH.Operators.List             as L
+import GHC.Exts
+
+import Data.Array.Parallel.Base                 (Tag)
+import Data.Array.Parallel.Pretty
+import Data.Array.Parallel.PArray               (PA)
+import Data.Array.Parallel.PArray.PData         (PArray(..), PData, PR(..))
+import Data.Array.Parallel.PArray.PData.Base    ()
+import Data.Array.Parallel.PArray.PData.Nested  (concatPR)
+
 
 import Text.PrettyPrint
 import Debug.Trace
@@ -17,32 +25,36 @@ import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Array.Parallel.PArray     as PA
 
-
+{-
 $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray Int)
                                 ,  (),         PArray ()
                                 ,  (Int, Int), PArray (Int, Int), PArray (PArray Int, PArray Int)) |]
 
             , "b"       <@ [t|  ( Int,         PArray Int ) |]
             ]
+-}
+$(testcases [ ""        <@ [t|  PArray (PArray Int) |]
+            , "b"       <@ [t|  PArray (PArray Int) |]
+            ]
+
   [d|
   -- Converting arrays to and from lists.
   --  Note that converting a nested array to and from a list is fairly involved, 
   --  as we need to construct the segment descriptors.
   prop_toFromVector :: (PR a, Eq a) => Vector a -> Bool
   prop_toFromVector vec
-   =  let arr    = PA.fromVector vec
-      in  PA.valid arr 
-       && vec == PA.toVector arr
-
+   =  let arr    = fromVectorPR vec
+      in  validPR arr 
+       && vec == toVectorPR arr
 
   -- | Define an array that maps all indices to the same element.
   --   The array size must be > 0.
   prop_replicate :: (PR a, Eq a) => a -> Property
   prop_replicate x
    =  forAll (choose (1, 100)) $ \n
-   -> let arr = PA.replicate n x
-      in  PA.valid arr 
-       && V.replicate n x ==  PA.toVector arr
+   -> let arr = replicatePR n x
+      in  validPR arr 
+       && V.replicate n x ==  toVectorPR arr
 
 
   -- | Segmented replicate.
@@ -53,18 +65,18 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
                 $ V.zipWith V.replicate repCounts vec
                 
           segd  = U.lengthsToSegd $ U.fromList $ V.toList repCounts
-          arr'  = PA.replicates segd (PA.fromVector vec)
-      in  PA.valid arr'
-       && vec' == PA.toVector arr'
+          arr'  = replicatesPR segd (fromVectorPR vec)
+      in  validPR arr'
+       && vec' == toVectorPR arr'
 
 
   -- | Take a single element from an array.
-  prop_index :: (PR a, Eq a) => PArray a -> Property
-  prop_index arr
-    =   PA.length arr > 0
-    ==> forAll (choose (0, PA.length arr - 1)) $ \ix 
-    ->  (PA.toVector arr) V.! ix
-     == PA.index arr ix
+  prop_index :: (PR a, Eq a) => PData a -> Property
+  prop_index pdata
+    =   lengthPR pdata > 0
+    ==> forAll (choose (0, lengthPR pdata - 1)) $ \ix 
+    ->  toVectorPR pdata V.! ix
+     == indexPR pdata ix
 
 
   -- | Extract a single slice from a single array.
@@ -72,56 +84,56 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
   prop_extract vec
     =  forAll (arbitrarySliceSpec (V.length vec)) $ \(SliceSpec ixStart lenSlice)  
     -> let vec'  = V.slice ixStart lenSlice vec
-           arr'  = PA.extract (PA.fromVector vec) ixStart lenSlice
+           arr'  = extractPR (fromVectorPR vec) ixStart lenSlice
 
-       in  PA.valid arr'
-        && vec' == PA.toVector arr'
+       in  validPR arr'
+        && vec' == toVectorPR arr'
 
-  prop_extract' :: (PR a, Eq a) => PArray a -> Property
-  prop_extract' arr
-    =  forAll (arbitrarySliceSpec (PA.length arr)) $ \(SliceSpec ixStart lenSlice)  
-    -> let vec'  = V.slice ixStart lenSlice (PA.toVector arr)
-           arr'  = PA.extract arr ixStart lenSlice
+  prop_extract' :: (PR a, Eq a) => PData a -> Property
+  prop_extract' pdata
+    =  forAll (arbitrarySliceSpec (lengthPR pdata)) $ \(SliceSpec ixStart lenSlice)  
+    -> let vec'    = V.slice ixStart lenSlice (toVectorPR pdata)
+           pdata'  = extractPR pdata ixStart lenSlice
 
-       in  PA.valid arr'
-        && vec' == PA.toVector arr'
+       in  validPR pdata'
+        && vec' == toVectorPR pdata'
 
 
   -- | Extract many slices from a single array.
-  prop_extracts1 :: (PR a, Eq a) => PArray a -> Property
-  prop_extracts1 arr
-   =    PA.length arr > 0 
+  prop_extracts1 :: (PR a, Eq a) => PData a -> Property
+  prop_extracts1 pdata
+   =    lengthPR pdata > 0 
     ==> forAll (choose (1, 10)) $ \sliceCount
-     -> forAll (replicateM sliceCount (arbitrarySliceSpec1 (PA.length arr))) $ \sliceSpecs'
+     -> forAll (replicateM sliceCount (arbitrarySliceSpec1 (lengthPR pdata))) $ \sliceSpecs'
      -> let sliceSpecs  = V.fromList sliceSpecs'
             lens        = V.map sliceSpecLen    sliceSpecs
             starts      = V.map sliceSpecStart  sliceSpecs
             sources     = V.replicate (V.length sliceSpecs) 0
 
-            vec         = PA.toVector arr
+            vec         = toVectorPR pdata
             vec'        = V.concat $ V.toList
                         $ V.zipWith (\len start -> V.slice start len vec)
                                 lens
                                 starts
 
             segd        = U.lengthsToSegd $ V.convert lens
-            ssegd       = U.mkSSegd (V.convert starts) (V.convert sources) segd
-            arr'        = PA.extracts   (V.singleton arr) ssegd
+            ssegd       = U.mkSSegd  (V.convert starts) (V.convert sources) segd
+            pdata'      = extractsPR (singletondPR pdata) ssegd
 
-        in  PA.valid arr' 
-         && vec' == PA.toVector arr'
+        in  validPR pdata' 
+         && vec' == toVectorPR pdata'
 
 
   -- | Append two arrays.  
   prop_append :: (PR a, Eq a) => Vector a -> Vector a -> Bool
   prop_append xs ys
-    = let vec'  = xs V.++ ys
-          arr'  = PA.fromVector xs `PA.append` PA.fromVector ys
+    = let vec'   = xs V.++ ys
+          pdata' = fromVectorPR xs `appendPR` fromVectorPR ys
 
-      in  PA.valid arr'
-       && vec' == PA.toVector arr'              
+      in  validPR pdata'
+       && vec' == toVectorPR pdata'
 
-  
+
   -- | Filter an array based on some tags.
   prop_packByTag
     :: (PR a, Eq a, Arbitrary a, Show a)
@@ -134,14 +146,14 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
                    $ L.packByTag  (V.toList $ vec1 `asTypeOf` zz)
                                   (V.toList $ (tags :: Vector Tag))
                                   tag
-                                       
-           arr'    = PA.packByTag  (PA.fromVector vec1)
+
+           pdata'  = packByTagPR  (fromVectorPR vec1)
                                   (U.fromList $ V.toList tags)
                                   tag
-       in  PA.valid arr'
-        && vec' == PA.toVector arr'
+       in  validPR pdata'
+        && vec' == toVectorPR pdata'
 
-       
+
   -- | Combine two arrays based on a selector.
   prop_combine2 
      :: (PR a, Eq a, Arbitrary a, Show a) 
@@ -157,10 +169,10 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
                                      (V.toList $ vec2 `asTypeOf` zz)
 
             sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
-            arr'        = PA.combine2  sel2 (PA.fromVector vec1) (PA.fromVector vec2)
+            pdata'      = combine2PR  sel2 (fromVectorPR vec1) (fromVectorPR vec2)
 
-        in  PA.valid arr'
-         && vec' == PA.toVector arr'
+        in  validPR pdata'
+         && vec' == toVectorPR pdata'
 
 
   -- | Concatenate arrays that have been produced via combine.
@@ -168,7 +180,7 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
   --   multiple flat data arrays in its psegdata field. By concatenating it we test
   --   that extractsPR handles this representation.
   prop_combine2_concat
-     :: (PR b, Eq b, Arbitrary b, Show b) 
+     :: (PR b, PA b, Eq b, Arbitrary b, Show b) 
      => Selector -> Vector (Vector b) -> Property
   prop_combine2_concat (Selector vecTags) zz
    =    V.length vecTags >= 2
@@ -182,13 +194,13 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
             vec''       = V.concat (V.toList vec')
 
             sel2        = U.tagsToSel2 (U.fromList $ V.toList vecTags)
-            arr'        = PA.combine2 sel2 
-                                (PA.fromVector $ V.map PA.fromVector vec1) 
-                                (PA.fromVector $ V.map PA.fromVector vec2)
-            arr''       = PA.concat arr'
+            pdata'      = combine2PR sel2 
+                                (fromVectorPR $ V.map PA.fromVector vec1) 
+                                (fromVectorPR $ V.map PA.fromVector vec2)
+            pdata''     = concatPR pdata'
 
-        in  PA.valid arr''
-         && vec'' == PA.toVector arr''
+        in  validPR pdata''
+         && vec'' == toVectorPR pdata''
 
 
   -- | Packing an array then immediately combining it should yield the original array.
@@ -203,28 +215,28 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
             uarrTags    = U.fromList $ V.toList vecTags
             sel2        = U.tagsToSel2 uarrTags
 
-            arr         = PA.fromVector (vec `asTypeOf` zz)
-            arr'        = PA.combine2 sel2
-                                (PA.packByTag arr uarrTags 0)
-                                (PA.packByTag arr uarrTags 1)
+            pdata         = fromVectorPR (vec `asTypeOf` zz)
+            pdata'        = combine2PR sel2
+                                (packByTagPR pdata uarrTags 0)
+                                (packByTagPR pdata uarrTags 1)
 
-        in  PA.valid arr'
-         && PA.toVector arr == PA.toVector arr'
+        in  validPR pdata'
+         && toVectorPR pdata == toVectorPR pdata'
 
-  -- TODO: Move the compound PA funs into their own module.
+
   -- | Concatenate arrays
-  prop_concat :: (PR b, Eq b) => Vector (Vector b) -> Bool
+  prop_concat :: (PR b, PA b, Eq b) => Vector (Vector b) -> Bool
   prop_concat vec
-   = let  vec'  = V.concat (V.toList vec)
+   = let  vec'   = V.concat (V.toList vec)
 
-          arr   = PA.fromVector (V.map PA.fromVector vec)
-          arr'  = PA.concat arr
+          pdata  = fromVectorPR (V.map PA.fromVector vec)
+          pdata' = concatPR pdata
           
-     in   PA.valid arr'
-      &&  vec' == PA.toVector arr'
+     in   validPR pdata'
+      &&  vec' == toVectorPR pdata'
+
   
   |])
-
 
 
 instance (Arbitrary a) => Arbitrary (V.Vector a) where
@@ -240,8 +252,9 @@ instance (PprPhysical (PArray a), Arbitrary a, PR a)
   -> do xs      <- resize (truncate $ (\x -> sqrt x * 2) $ fromIntegral size) 
                 $ arbitrary 
 
---        trace   (render $ pprp $ fromListPA xs) $
-        return  $ fromListPA xs
+        let pdata    = fromVectorPR xs
+        let !(I# i#) = lengthPR pdata
+        return  $ PArray i# pdata
 
 
 instance (PprPhysical (PData a), Arbitrary a, PR a) 
@@ -251,5 +264,4 @@ instance (PprPhysical (PData a), Arbitrary a, PR a)
   -> do xs      <- resize (truncate $ (\x -> sqrt x * 2 ) $ fromIntegral size) 
                 $ arbitrary 
 
---       trace   (render $ pprp $ fromListPR xs) $
         return  $ fromVectorPR xs
