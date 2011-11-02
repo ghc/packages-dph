@@ -1,12 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
-import Testsuite
-import DPH.Arbitrary.Selector
-import DPH.Arbitrary.SliceSpec
-import DPH.Arbitrary.Perm
-import DPH.Arbitrary.Int
-import qualified DPH.Operators.List             as L
-import GHC.Exts
+import DPH.Arbitrary
+import DPH.Testsuite
 
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
@@ -15,15 +10,15 @@ import Data.Array.Parallel.PArray.PData         (PArray(..), PData, PR(..))
 import Data.Array.Parallel.PArray.PData.Base    ()
 import Data.Array.Parallel.PArray.PData.Nested  (concatPR)
 
-
 import Text.PrettyPrint
-import Debug.Trace
+import GHC.Exts
 import Control.Monad
 import Data.Vector                              (Vector)
 import Prelude                                  as P
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Array.Parallel.PArray     as PA
+import qualified DPH.Operators.List             as L
 
 {-
 $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray Int)
@@ -33,8 +28,8 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
             , "b"       <@ [t|  ( Int,         PArray Int ) |]
             ]
 -}
-$(testcases [ ""        <@ [t|  PArray (PArray Int) |]
-            , "b"       <@ [t|  PArray (PArray Int) |]
+$(testcases [ ""        <@ [t|  PArray Int |]
+            , "b"       <@ [t|  PArray Int |]
             ]
 
   [d|
@@ -46,6 +41,7 @@ $(testcases [ ""        <@ [t|  PArray (PArray Int) |]
    =  let arr    = fromVectorPR vec
       in  validPR arr 
        && vec == toVectorPR arr
+
 
   -- | Define an array that maps all indices to the same element.
   --   The array size must be > 0.

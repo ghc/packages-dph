@@ -1,4 +1,4 @@
-module Testsuite.Testcase (
+module DPH.Testsuite.Testcase (
   Test(..), mkTest, runTests
 ) where
 import Test.QuickCheck

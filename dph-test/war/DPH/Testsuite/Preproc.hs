@@ -1,4 +1,4 @@
-module Testsuite.Preproc ( testcases, (<@) )
+module DPH.Testsuite.Preproc ( testcases, (<@) )
 where
 
 import Language.Haskell.TH

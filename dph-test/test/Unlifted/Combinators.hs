@@ -1,5 +1,4 @@
-import Testsuite
-
+import DPH.Testsuite
 import Data.Array.Parallel.Unlifted as U
 import Prelude as P
 

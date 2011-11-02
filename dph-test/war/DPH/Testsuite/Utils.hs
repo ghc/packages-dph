@@ -2,7 +2,7 @@
         TypeSynonymInstances, 
         GeneralizedNewtypeDeriving #-}
 
-module Testsuite.Utils (
+module DPH.Testsuite.Utils (
   Proxy(..), asProxyTypeOf,
       
   limitRange, update, nest

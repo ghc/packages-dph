@@ -1,5 +1,5 @@
-import Testsuite
-import Testsuite.Utils as TU ( limitRange, update )
+import DPH.Testsuite
+import DPH.Testsuite.Utils as TU ( limitRange, update )
 import DPH.Arbitrary.Int
 import DPH.Arbitrary.Perm
 import Data.Array.Parallel.Unlifted as U
