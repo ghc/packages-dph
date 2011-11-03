@@ -6,7 +6,7 @@ import DPH.Testsuite
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray               (PA)
-import Data.Array.Parallel.PArray.PData         (PArray(..), PData, PR(..))
+import Data.Array.Parallel.PArray.PData         (PArray(..), PData, PDatas, PR(..))
 import Data.Array.Parallel.PArray.PData.Base    ()
 import Data.Array.Parallel.PArray.PData.Nested  (concatPR)
 
@@ -33,14 +33,29 @@ $(testcases [ ""        <@ [t|  PArray Int |]
             ]
 
   [d|
+  -- PR Dictionary functions --------------------------------------------------
+  -- All the functions defined in the PR dictionary should be tested in this
+  -- section. The functions appear in the same order as in the class
+
+
   -- Converting arrays to and from lists.
-  --  Note that converting a nested array to and from a list is fairly involved, 
-  --  as we need to construct the segment descriptors.
+  --  * If this doesn't work then we'll be generating invalid arbitrary arrays
+  --    for subsequent tests.
+  --  * Note that converting a nested array to and from a list is more involved
+  --    than converting a flat array, as we need to construct segment descriptors.
   prop_toFromVector :: (PR a, Eq a) => Vector a -> Bool
   prop_toFromVector vec
    =  let arr    = fromVectorPR vec
       in  validPR arr 
        && vec == toVectorPR arr
+
+
+  -- | Check that the arbitrary arrays we're getting are valid.
+  ---  * The arbitrary instance constructs arrays by using other array operators
+  --     so if they're broken the all the subseqent tests will fail as well.
+  prop_valid    :: PR a => PData a -> Bool
+  prop_valid pdata      
+        = validPR pdata
 
 
   -- | Define an array that maps all indices to the same element.
@@ -73,6 +88,11 @@ $(testcases [ ""        <@ [t|  PArray Int |]
     ==> forAll (choose (0, lengthPR pdata - 1)) $ \ix 
     ->  toVectorPR pdata V.! ix
      == indexPR pdata ix
+
+
+  ---------------------------------------------------------
+  -- TODO: indexl
+  ---------------------------------------------------------
 
 
   -- | Extract a single slice from a single array.
@@ -120,6 +140,11 @@ $(testcases [ ""        <@ [t|  PArray Int |]
          && vec' == toVectorPR pdata'
 
 
+  ---------------------------------------------------------
+  -- TODO: extracts_n, extract from multiple vectors
+  ---------------------------------------------------------
+
+
   -- | Append two arrays.  
   prop_append :: (PR a, Eq a) => Vector a -> Vector a -> Bool
   prop_append xs ys
@@ -128,6 +153,11 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
       in  validPR pdata'
        && vec' == toVectorPR pdata'
+
+
+  ---------------------------------------------------------
+  -- TODO: appends, segmented append
+  ---------------------------------------------------------
 
 
   -- | Filter an array based on some tags.
@@ -220,6 +250,10 @@ $(testcases [ ""        <@ [t|  PArray Int |]
          && toVectorPR pdata == toVectorPR pdata'
 
 
+  -- Derived Functions --------------------------------------------------------
+  -- These are PR functions that are not in the PR dictionary.
+  --
+  
   -- | Concatenate arrays
   prop_concat :: (PR b, PA b, Eq b) => Vector (Vector b) -> Bool
   prop_concat vec
@@ -231,33 +265,126 @@ $(testcases [ ""        <@ [t|  PArray Int |]
      in   validPR pdata'
       &&  vec' == toVectorPR pdata'
 
+  ---------------------------------------------------------
+  -- TODO: concatl, lifted concat
+  ---------------------------------------------------------
+
+  ---------------------------------------------------------
+  -- TODO: concat . unconcat
+  ---------------------------------------------------------
+
+  ---------------------------------------------------------
+  -- TODO: appendl
+  ---------------------------------------------------------
+
+  ---------------------------------------------------------
+  -- TODO: slicelPD
+  ---------------------------------------------------------
+
   
   |])
 
-
-instance (Arbitrary a) => Arbitrary (V.Vector a) where
- arbitrary
-  = do  xs      <- arbitrary
-        return  $ V.fromList xs
-
-
+-- Arbitrary PArrays ----------------------------------------------------------
 instance (PprPhysical (PArray a), Arbitrary a, PR a) 
        => Arbitrary (PArray a) where
  arbitrary 
-  = sized $ \size 
-  -> do xs      <- resize (truncate $ (\x -> sqrt x * 2) $ fromIntegral size) 
-                $ arbitrary 
-
-        let pdata    = fromVectorPR xs
-        let !(I# i#) = lengthPR pdata
-        return  $ PArray i# pdata
+  = do  plan    <- arbitrary
+        pdata   <- arbitraryPDataFromExp plan
+        return  $ wrapPDataAsPArray pdata
 
 
+-- Arbitrary PData ------------------------------------------------------------
 instance (PprPhysical (PData a), Arbitrary a, PR a) 
        => Arbitrary (PData a) where
  arbitrary 
-  = sized $ \size 
-  -> do xs      <- resize (truncate $ (\x -> sqrt x * 2 ) $ fromIntegral size) 
+  = do  plan    <- arbitrary
+        arbitraryPDataFromExp plan
+        
+
+-- Exp ------------------------------------------------------------------------
+-- | Generate a plan for building an arbitrary array.
+--    If we create an array directly from a list, then the internal structure 
+--    is simpler than if it had been constructed by appending or concatenating
+--    several other arrays. In our tests, we want to use arrays with complicated
+--    internal structure, as these have more change of showing up bugs.
+--
+--   We split the plan generation from the actual array, so we can check
+--   that the plan is covering the cases we want. We want arrays to be build
+--   from a good mixture of different operators.
+--   
+data Exp a
+        -- Generate a flat array of the given size.
+        = XArbitrary Int
+
+        -- Append two arbitrary arrays.
+        | XAppend    (Exp a) (Exp a)
+
+        -- Concatenate a list of arbitrary arrays.
+        | XConcat    [Exp a]
+
+deriving instance 
+        (Show a, Show (PData a), Show (PDatas a)) 
+        => Show (Exp a)
+
+instance Arbitrary (Exp a) where
+ arbitrary
+  = sized $ \s -> 
+    let aFlat   
+         = do   n       <- choose (0, s)
+                return (XArbitrary n)
+
+        aAppend
+         = do   liftM2 XAppend 
+                         (resize (s `div` 2) arbitrary)
+                         (resize (s `div` 2) arbitrary)
+
+        aConcat
+         = do   n       <- choose (1, min 5 s)
+                liftM XConcat
+                        (vectorOf n $ resize (s `div` n) arbitrary)
+                        
+   in   -- If the size is small then just use a flat arary without invoking a
+        -- more complex operator. This allows our properties to test those 
+        -- operators in isolation, before the array structure gets too
+        -- complicated.
+        if s <= 10
+           then aFlat
+           else oneof [aFlat, aAppend, aConcat]
+  
+
+-- | Generate some PData by using the operators described by the given plan.
+arbitraryPDataFromExp :: (Arbitrary a, PR a) => Exp a -> Gen (PData a)
+arbitraryPDataFromExp xx
+ = sized $ \s -> 
+   case xx of
+        XArbitrary n
+         ->     arbitraryFlatPData 
+
+        XAppend exp1 exp2
+         -> do  pdata1  <- arbitraryPDataFromExp exp1
+                pdata2  <- arbitraryPDataFromExp exp2
+                return  $ appendPR pdata1 pdata2
+
+        XConcat exps
+         -> do  pdatas  <- mapM arbitraryPDataFromExp exps
+
+                return  $ concatPR 
+                        $ fromVectorPR $ V.fromList
+                        $ map wrapPDataAsPArray pdatas
+
+
+-- | Generate an arbitrary PData just by converting a list.
+--   The internal representation will only contain a single physical vector.
+arbitraryFlatPData :: (Arbitrary a, PR a) => Gen (PData a)
+arbitraryFlatPData
+  =  sized $ \s
+  -> do xs      <- resize (truncate $ (\x -> sqrt x * 2 ) $ fromIntegral s) 
                 $ arbitrary 
 
         return  $ fromVectorPR xs
+
+
+wrapPDataAsPArray :: PR a => PData a -> PArray a
+wrapPDataAsPArray pdata
+ = let  !(I# n#)        = lengthPR pdata
+   in   PArray n# pdata

@@ -29,12 +29,12 @@ instance Arbitrary Segd where
       indicesToLengths ids n = P.zipWith (-) (tail $ ids ++ [n]) ids
 
 
--- Generate segment descriptor fitting the given array
+-- | Generate a segment descriptor fitting the given array
 segdForArray :: (Elt a) => Array a -> Gen Segd
 segdForArray arr = resize (U.length arr) arbitrary
 
 
--- Consistency check for a segment descriptor against a provided list of lengths
+-- | Consistency check for a segment descriptor against a provided list of lengths
 checkSegd :: Segd -> Array Int -> Bool
 checkSegd segd lens =
      (lengthsSegd  segd == lens)
