@@ -8,7 +8,11 @@ import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray               (PA)
 import Data.Array.Parallel.PArray.PData         (PArray(..), PData, PDatas, PR(..))
 import Data.Array.Parallel.PArray.PData.Base    ()
-import Data.Array.Parallel.PArray.PData.Nested  (concatPR)
+
+import Data.Array.Parallel.PArray.PData.Nested
+        ( concatPR,  concatlPR
+        , unconcatPR
+        , appendlPR)
 
 import Text.PrettyPrint
 import GHC.Exts
@@ -20,6 +24,11 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Array.Parallel.PArray     as PA
 import qualified DPH.Operators.List             as L
 
+-- NOTE:
+-- The 'b' element type contains one less level of nesting compared with the
+-- 'a' type. We use 'b' when we're checking properties of functions that
+--  already require nested arrays, such as "concat".
+
 {-
 $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray Int)
                                 ,  (),         PArray ()
@@ -28,8 +37,11 @@ $(testcases [ ""        <@ [t|  (  Int,        PArray Int,        PArray (PArray
             , "b"       <@ [t|  ( Int,         PArray Int ) |]
             ]
 -}
+
+
 $(testcases [ ""        <@ [t|  PArray Int |]
             , "b"       <@ [t|  PArray Int |]
+            , "c"       <@ [t|  Int |]
             ]
 
   [d|
@@ -57,7 +69,7 @@ $(testcases [ ""        <@ [t|  PArray Int |]
   prop_valid pdata      
         = validPR pdata
 
-
+{-
   -- | Define an array that maps all indices to the same element.
   --   The array size must be > 0.
   prop_replicate :: (PR a, Eq a) => a -> Property
@@ -253,10 +265,12 @@ $(testcases [ ""        <@ [t|  PArray Int |]
   -- Derived Functions --------------------------------------------------------
   -- These are PR functions that are not in the PR dictionary.
   --
-  
+-}  
   -- | Concatenate arrays
-  prop_concat :: (PR b, PA b, Eq b) => Vector (Vector b) -> Bool
-  prop_concat vec
+  prop_concat
+        :: (PR b, PA b, Eq b)
+        => VVector b -> Bool
+  prop_concat (VVector vec)
    = let  vec'   = V.concat (V.toList vec)
 
           pdata  = fromVectorPR (V.map PA.fromVector vec)
@@ -265,17 +279,55 @@ $(testcases [ ""        <@ [t|  PArray Int |]
      in   validPR pdata'
       &&  vec' == toVectorPR pdata'
 
-  ---------------------------------------------------------
-  -- TODO: concatl, lifted concat
-  ---------------------------------------------------------
 
-  ---------------------------------------------------------
-  -- TODO: concat . unconcat
-  ---------------------------------------------------------
+  -- | Lifted concat
+  prop_concatl
+        :: (PR c, PA c, Eq c)
+        => VVVector c  -> Property
+  prop_concatl (VVVector vec)
+   =  V.length vec >= 1
+    ==> let vec'   = V.map join vec
+         
+            pdata   = fromVectorPR 
+                    $ V.map PA.fromVector
+                    $ V.map (V.map PA.fromVector) vec
 
-  ---------------------------------------------------------
-  -- TODO: appendl
-  ---------------------------------------------------------
+            pdata' = concatlPR pdata
+         
+        in  validPR pdata'
+         && (V.map PA.fromVector vec') == toVectorPR pdata'
+
+
+  -- | Concat then unconcat
+  prop_concat_unconcat 
+        :: (PR b, PA b, Eq b)
+        => VVector b -> Bool
+  prop_concat_unconcat (VVector vec)
+   = let  pdata   = fromVectorPR $ V.map PA.fromVector vec
+          pdata'  = concatPR pdata
+          
+          pdata'' = unconcatPR pdata pdata'
+     in   validPR pdata''
+      &&  toVectorPR pdata == toVectorPR pdata''
+
+
+  -- | Lifted append
+  prop_appendl
+        :: (PR b, PA b, Eq b)
+        => VVector b -> VVector b -> Bool
+  prop_appendl (VVector vec1) (VVector vec2)
+   = let  len   = min (V.length vec1) (V.length vec2)
+          vec1' = V.take len vec1
+          vec2' = V.take len vec2
+          
+          vec'   = V.map PA.fromVector $ V.zipWith (V.++) vec1' vec2'
+          pdata1 = fromVectorPR (V.map PA.fromVector vec1')
+          pdata2 = fromVectorPR (V.map PA.fromVector vec2')
+          pdata' = appendlPR pdata1 pdata2
+          
+     in  validPR pdata'
+      && vec' == toVectorPR pdata'
+
 
   ---------------------------------------------------------
   -- TODO: slicelPD
