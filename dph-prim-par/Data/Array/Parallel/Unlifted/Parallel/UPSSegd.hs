@@ -68,6 +68,7 @@ data UPSSegd
         }
         deriving Show
 
+
 instance PprPhysical UPSSegd where
  pprp (UPSSegd ussegd dssegd)
   =  text "UPSSegd"

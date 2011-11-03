@@ -12,9 +12,10 @@ import Data.Array.Parallel.PArray.PData.Base    ()
 import Data.Array.Parallel.PArray.PData.Nested
         ( concatPR,  concatlPR
         , unconcatPR
-        , appendlPR)
+        , appendlPR
+        , unsafeFlattenPR)
 
-import Text.PrettyPrint
+import Text.PrettyPrint                         as T
 import GHC.Exts
 import Control.Monad
 import Data.Vector                              (Vector)
@@ -316,11 +317,16 @@ $(testcases [ ""        <@ [t|  PArray Int |]
         :: (PR b, PA b, Eq b)
         => VVector b -> VVector b -> Bool
   prop_appendl (VVector vec1) (VVector vec2)
-   = let  len   = min (V.length vec1) (V.length vec2)
+   = let  -- Ensure both input vectors have the same length, 
+          --   which will be the lifting context.
+          len   = min (V.length vec1) (V.length vec2)
           vec1' = V.take len vec1
           vec2' = V.take len vec2
           
+          -- Lifted append directly on the vectors.
           vec'   = V.map PA.fromVector $ V.zipWith (V.++) vec1' vec2'
+
+          -- Lifted append via a nested array.
           pdata1 = fromVectorPR (V.map PA.fromVector vec1')
           pdata2 = fromVectorPR (V.map PA.fromVector vec2')
           pdata' = appendlPR pdata1 pdata2
@@ -335,6 +341,16 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
   
   |])
+
+
+-- TODO: shift this to D.A.P.BasePretty
+instance (PprPhysical a, PprPhysical b)
+        => PprPhysical (a, b) where
+ pprp (x, y)
+  = vcat
+        [ text "Tuple2"
+        , T.nest 4 $ pprp x
+        , T.nest 4 $ pprp y]
 
 -- Arbitrary PArrays ----------------------------------------------------------
 instance (PprPhysical (PArray a), Arbitrary a, PR a) 

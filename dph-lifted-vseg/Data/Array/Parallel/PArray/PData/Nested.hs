@@ -543,14 +543,43 @@ concatPR' (PNested vsegd pdatas)
 
 
 -- | Lifted concat.
---   Both arrays must contain the same number of elements.
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
 concatlPR arr
  = let  (segd1, darr1)  = unsafeFlattenPR arr
         (segd2, darr2)  = unsafeFlattenPR darr1
+
+
+        -- Generate indices for the result array
+        --  There is a tedious edge case when the last segment in the nested
+        --  array has length 0. For example:
+        --
+        --    concatl [ [[1, 2, 3] [4, 5, 6]] [] ]
+        --  
+        --  After the calls to unsafeFlattenPR we get:
+        --   segd1: lengths1 = [ 2 0 ]
+        --          indices1 = [ 0 2 ]
         
+        --   segd2: lengths2 = [ 3 3 ]
+        --          indices2 = [ 0 3 ]
+        -- 
+        --  The problem is that the last element of 'indices1' points off the end
+        --  of 'indices2' so we can't use use 'backpermute' as we'd like to:
+        --    ixs' = (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))        
+        --  Instead, we have to explicitly check for the out-of-bounds condition.
+        --  TODO: We want a faster way of doing this, that doesn't require the 
+        --        test for every element.
+        -- 
+        ixs1            = U.indicesSegd segd1
+        ixs2            = U.indicesSegd segd2
+        len2            = U.length ixs2
+
+        ixs'            = U.map (\ix -> if ix >= len2
+                                                then 0
+                                                else ixs2 U.!: ix)
+                        $ ixs1
+
         segd'           = U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
-                                   (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))
+                                   ixs'
                                    (U.elementsSegd segd2)
 
    in   PNested (U.promoteSegdToVSegd segd') 

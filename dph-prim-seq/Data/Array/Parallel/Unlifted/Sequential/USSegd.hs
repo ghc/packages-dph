@@ -87,12 +87,12 @@ data USSegd
 
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical USSegd where
- pprp (USSegd _ starts srcids ssegd)
+ pprp (USSegd _ starts sources ssegd)
   = vcat
   [ text "USSegd" 
         $$ (nest 7 $ vcat
                 [ text "starts:  " <+> (text $ show $ U.toList starts)
-                , text "srcids:  " <+> (text $ show $ U.toList srcids) ])
+                , text "sources: " <+> (text $ show $ U.toList sources) ])
   , pprp ssegd ]
 
 

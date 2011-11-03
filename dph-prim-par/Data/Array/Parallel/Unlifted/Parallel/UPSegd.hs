@@ -37,15 +37,16 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
 
 import Control.Monad.ST
 import Prelude  hiding (length)
 
 
--- | A parallel segment descriptor holds a global (undistributed) segment desciptor, 
---   as well as a distributed version. The distributed version describes how to split
---   work on the segmented array over the gang. 
+-- | A parallel segment descriptor holds a global (undistributed) segment
+--   desciptor, as well as a distributed version. The distributed version
+--   describes how to split work on the segmented array over the gang. 
 data UPSegd 
         = UPSegd 
         { upsegd_usegd :: !USegd
@@ -57,6 +58,15 @@ data UPSegd
           --   and the offset of that slice in its segment.
           --   See docs of `splitSegdOfElemsD` for an example.
         }
+
+
+-- Pretty ---------------------------------------------------------------------
+instance PprPhysical UPSegd where
+ pprp (UPSegd usegd dsegd)
+  =  text "UPSegd"
+  $$ (nest 7 $ vcat
+        [ text "usegd:  "  <+> pprp usegd
+        , text "dsegd:  "  <+> pprp dsegd])
 
 
 -- Valid ----------------------------------------------------------------------
