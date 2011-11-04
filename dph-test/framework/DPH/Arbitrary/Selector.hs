@@ -1,5 +1,5 @@
 
--- | Generation arbitrary selector for the combine opeartors.
+-- | Generation of arbitrary selectors for the combine opeartor.
 module DPH.Arbitrary.Selector
         (Selector (..))
 where

@@ -46,6 +46,7 @@ jobCompile (JobCompile
                         ++ " -XExistentialQuantification"
 		        ++ " -XRankNTypes"
 		        ++ " -XTypeFamilies"
+                        ++ " -XMultiParamTypeClasses"
 		        ++ " -XFlexibleInstances"
 		        ++ " -XFlexibleContexts"
 		        ++ " -XMagicHash"

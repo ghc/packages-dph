@@ -1,5 +1,5 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+-- | Generation of arbitrary permutations.
 module DPH.Arbitrary.Perm
         (Perm (..))
 where
@@ -8,8 +8,9 @@ import qualified Data.Vector    as V
 import Data.Vector              (Vector)
 import Data.List
 
+
 -- | Permutation of [0..n-1] with all values appearing exactly once.
-newtype Perm 
+data Perm 
         = Perm (Vector Int)
         deriving (Eq, Show)
 

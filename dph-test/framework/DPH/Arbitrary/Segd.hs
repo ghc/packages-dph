@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeSynonymInstances #-}
 
 -- | Generation of arbitrary segment descriptors.
 module DPH.Arbitrary.Segd
