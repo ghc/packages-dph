@@ -37,7 +37,7 @@ instance  (PprPhysical (PData (PRepr a)), PA a)
 instance  (PprVirtual a, PA a)
         => PprVirtual (PArray a) where
  pprv (PArray _ pdata)
-  =  brackets $ hcat $ map pprv $ V.toList $ toVectorPA pdata
+  =  brackets $ hcat $ punctuate comma $ map pprv $ V.toList $ toVectorPA pdata
 
 
 -- | Pretty print the physical representation of a nested array

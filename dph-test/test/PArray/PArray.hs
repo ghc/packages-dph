@@ -220,7 +220,11 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
 
   |])
-  
+
+-- TODO: shift this to dph-base
+instance PprVirtual Bool where
+ pprv = text . show
+ 
   
 
 -- Array class ----------------------------------------------------------------
@@ -240,5 +244,9 @@ instance (PprPhysical (PArray a), Arbitrary a, PA a)
         arbitraryArrayFromExp plan
         
 instance ArbitraryLen (PArray a) => Arbitrary (PArray a) where
- arbitrary = sized arbitraryLen
+ arbitrary 
+  = sized $ \s ->
+  do    s'      <- choose (0, s)
+        arbitraryLen s'
+
 

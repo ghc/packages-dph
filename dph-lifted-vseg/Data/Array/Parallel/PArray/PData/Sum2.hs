@@ -28,7 +28,7 @@ data instance PDatas (Sum2 a b)
 
 -- PR -------------------------------------------------------------------------
 -- This stuff isn't implemented yet.
-nope str   = error $ "Data.Array.Parallel.PData.Void: no PR method for Sum2 " ++ str
+nope str   = error $ "Data.Array.Parallel.PData.Sum2: no PR method for Sum2 " ++ str
 
 
 instance (PR a, PR b) => PR (Sum2 a b)  where
@@ -160,21 +160,25 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   {-# INLINE_PDATA combine2PR #-}
   combine2PR 
         = nope "combine2"
-        
+    
+  -- TODO: fix rubbish via-lists filtering.   
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
    = let tags   = V.convert $ V.map tagOfSum2 vec
          sel2   = U.tagsToSel2 tags
-         
-         -- TODO: Fix rubbish via-lists filtering.
          xs'    = fromVectorPR $ V.fromList $ [x | Alt2_1 x <- V.toList vec]
          ys'    = fromVectorPR $ V.fromList $ [x | Alt2_2 x <- V.toList vec]
          
      in  PSum2 sel2 xs' ys'
         
+
   {-# INLINE_PDATA toVectorPR #-}
-  toVectorPR
-        = nope "toVector"
+  toVectorPR pdata
+   | lengthPR pdata == 0        = V.empty
+   | otherwise  
+   = V.map (indexPR pdata) 
+        $ V.enumFromTo 0 (lengthPR pdata - 1)
+
 
   -- PRR ----------------------------------------
   {-# INLINE_PDATA emptydPR #-}
@@ -213,18 +217,21 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   -- TODO: fix rubbish via-lists conversion.
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
-        = let   (sels, pdatas1, pdatas2) 
-                        = P.unzip3 
-                        $ [ (sel, pdata1, pdata2) 
+   = let   (sels, pdatas1, pdatas2) 
+                   = P.unzip3 
+                   $ [ (sel, pdata1, pdata2) 
                                     | PSum2 sel pdata1 pdata2 <- V.toList vec]
-          in    PSum2s  (V.fromList sels)
-                        (PInts $ V.map U.tagsSel2 $ V.fromList sels)
-                        (fromVectordPR $ V.fromList pdatas1)
-                        (fromVectordPR $ V.fromList pdatas2)
+     in    PSum2s  (V.fromList sels)
+                   (PInts $ V.map U.tagsSel2 $ V.fromList sels)
+                   (fromVectordPR $ V.fromList pdatas1)
+                   (fromVectordPR $ V.fromList pdatas2)
                 
   {-# INLINE_PDATA toVectordPR #-}
-  toVectordPR 
-        = nope "toVectordPR"
+  toVectordPR (PSum2s sels _ pdatas1 pdatas2)
+   = let  vecs1 = toVectordPR pdatas1
+          vecs2 = toVectordPR pdatas2
+          
+     in   V.zipWith3 PSum2 sels vecs1 vecs2
 
 
 -- Pretty ---------------------------------------------------------------------
