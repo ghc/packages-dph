@@ -130,6 +130,10 @@ instance (PR a, PR b) => PA (Either a b) where
         Left x    -> Alt2_1 x
         Right y   -> Alt2_2 y
 
+  {-# INLINE fromPRepr #-}
+  fromPRepr (Alt2_1 x)   = Left x
+  fromPRepr (Alt2_2 x)   = Right x
+
   {-# INLINE toArrPRepr #-}
   toArrPRepr (PEither sel pdatas1 pdatas2)
         = PSum2 sel pdatas1 pdatas2

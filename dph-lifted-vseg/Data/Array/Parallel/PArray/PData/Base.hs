@@ -179,19 +179,12 @@ class PR a where
   toVectordPR   :: PDatas a           -> V.Vector (PData a)
 
 
--- Show -----------------------------------------------------------------------
-deriving instance 
-        (Show a, Show (PData a), Show (PDatas a))
-        => Show (PArray a)
-
-
 instance (PR a, PprPhysical (PData a)) => PprPhysical (PDatas a) where
  pprp pdatas
   = vcat
   $ [ int n <> colon <> text " " <> pprp pd
         | n  <- [0..]
         | pd <- V.toList $ toVectordPR pdatas]
-
 
 -------------------------------------------------------------------------------
 -- extra unlifted primitives should be moved into unlifted library ------------

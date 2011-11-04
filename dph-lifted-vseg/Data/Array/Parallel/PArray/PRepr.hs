@@ -23,6 +23,27 @@ import GHC.Exts
 
 -- Pretty -------------------------------------------------------------------
 
+-- | Show a virtual array.
+instance (Show a, PA a)
+        => Show (PArray a) where
+ show (PArray _ pdata)
+  =  render 
+        $ brackets 
+        $ text "|"
+                <> (hcat $ punctuate comma $ map (text . show) $ V.toList $ toVectorPA pdata)
+                <> text "|"
+
+
+-- | Pretty print a virtual array.
+instance  (PprVirtual a, PA a)
+        => PprVirtual (PArray a) where
+ pprv (PArray _ pdata)
+  =     brackets 
+        $ text "|"
+                <> (hcat $ punctuate comma $ map pprv $ V.toList $ toVectorPA pdata)
+                <> text "|"
+
+
 -- | To pretty print a physical PArray we need to print the elements in their
 --   generic representations.
 instance  (PprPhysical (PData (PRepr a)), PA a)
@@ -31,13 +52,6 @@ instance  (PprPhysical (PData (PRepr a)), PA a)
   =   (text "PArray " <+> int (I# n#))
   $+$ ( nest 4 
       $ pprp $ toArrPRepr dat)
-
-
--- | Pretty print a virtual array.
-instance  (PprVirtual a, PA a)
-        => PprVirtual (PArray a) where
- pprv (PArray _ pdata)
-  =  brackets $ hcat $ punctuate comma $ map pprv $ V.toList $ toVectorPA pdata
 
 
 -- | Pretty print the physical representation of a nested array

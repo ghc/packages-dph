@@ -8,6 +8,8 @@ module Data.Array.Parallel.PArray.PData
         , module Data.Array.Parallel.PArray.PData.Unit
         , module Data.Array.Parallel.PArray.PData.Tuple
         , module Data.Array.Parallel.PArray.PData.Void
+        , fromListPR
+        , toListPR
         , mapdPR
         , zipWithdPR)
 where
@@ -25,6 +27,15 @@ import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 
+
+-- | Convert a list to a PData.
+fromListPR :: PR a => [a] -> PData a
+fromListPR      = fromVectorPR . V.fromList 
+
+
+-- | Convert a PData to a list.
+toListPR :: PR a => PData a -> [a]
+toListPR        = V.toList . toVectorPR
 
 
 -- | Apply a worked function to all PData in a collection.
