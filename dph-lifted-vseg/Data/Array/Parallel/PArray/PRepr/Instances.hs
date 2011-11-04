@@ -109,7 +109,7 @@ instance PA Bool where
 
   {-# INLINE toArrPReprs #-}
   toArrPReprs (PBools sels tagss)
-        = PSum2s sels tagss pvoids pvoids
+        = PSum2s sels tagss (pvoids (V.length sels)) (pvoids (V.length sels))
 
   {-# INLINE fromArrPReprs #-}
   fromArrPReprs (PSum2s sels tagss _ _)
