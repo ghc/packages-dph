@@ -2,6 +2,7 @@
 
 -- | Generation of nested arrays with identical structure.
 module DPH.Arbitrary.Joint where
+import Data.Array.Parallel.Pretty
 import Test.QuickCheck                  hiding (NonEmpty)
 import Util.Array
 import qualified Util.Array             as A
@@ -28,6 +29,12 @@ instance ( Array c1 a, Arbitrary a
         return  $ Joint21 (fromList xs) (fromList ys)
 
 
+instance (PprPhysical a, PprPhysical b)
+        => PprPhysical (Joint21 a b) where
+ pprp (Joint21 x y)
+        = vcat [text "Joint21", nest 4 $ pprp x, nest 4 $ pprp y]
+
+
 -- Joint2 ---------------------------------------------------------------------
 -- | Generate two nested arrays with the same lengths at the two outermost
 --   levels. Also adjust the length of the inner elements, so the the total
@@ -52,3 +59,10 @@ instance ( Array c11 (c12 a), Array c12 a, Arbitrary a
         return  $ Joint22 xs ys
 
 
+instance (PprPhysical a, PprPhysical b) => PprPhysical (Joint22 a b) where
+ pprp (Joint22 x y)
+        = vcat [text "Joint22", nest 4 $ pprp x, nest 4 $ pprp y]
+
+instance (PprVirtual a,  PprVirtual b)  => PprVirtual  (Joint22 a b) where
+ pprv (Joint22 x y)
+        = text "Joint22" <+> parens (pprv x) <+> parens (pprv y)
