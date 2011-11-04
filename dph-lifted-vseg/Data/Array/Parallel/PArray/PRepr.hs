@@ -1,3 +1,4 @@
+{-# LANGUAGE UndecidableInstances #-}
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.PArray.PRepr
@@ -14,10 +15,51 @@ import Data.Array.Parallel.PArray.PRepr.Instances
 import Data.Array.Parallel.PArray.PRepr.Nested
 import Data.Array.Parallel.PArray.PRepr.Tuple
 import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import GHC.Exts
+
+-- Pretty -------------------------------------------------------------------
+
+-- | To pretty print a physical PArray we need to print the elements in their
+--   generic representations.
+instance  (PprPhysical (PData (PRepr a)), PA a)
+        => PprPhysical (PArray a) where
+ pprp (PArray n# dat)
+  =   (text "PArray " <+> int (I# n#))
+  $+$ ( nest 4 
+      $ pprp $ toArrPRepr dat)
 
 
+-- | Pretty print a virtual array.
+instance  (PprVirtual a, PA a)
+        => PprVirtual (PArray a) where
+ pprv (PArray _ pdata)
+  =  brackets $ hcat $ map pprv $ V.toList $ toVectorPA pdata
+
+
+-- | Pretty print the physical representation of a nested array
+instance (PprPhysical (PData a), PR a) 
+       => PprPhysical (PData (PArray a)) where
+ pprp (PNested uvsegd pdatas)
+  =   text "PNested"
+  $+$ (nest 4 $ pprp uvsegd $$ (pprp $ pdatas))
+
+{-
+-- | Pretty print a virtual nested array.
+instance ( PprVirtual (PData a), PR a) 
+        => PprVirtual (PData (PArray a)) where
+ pprv arr
+  =   lbrack 
+        <> hcat (punctuate comma 
+                        $ map pprv 
+                        $ V.toList $ toVectorPR arr)
+   <> rbrack
+-}
+
+--------------------------------------------------------------------------------
 -- | Filter some scattered segments according to some tag arrays.
 --   The `SSegd` describes the layout of the source data as well as the tags,
 --   which must be the same.

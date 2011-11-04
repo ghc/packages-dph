@@ -193,17 +193,6 @@ instance (PR a, PprPhysical (PData a)) => PprPhysical (PDatas a) where
         | pd <- V.toList $ toVectordPR pdatas]
 
 
-instance PprPhysical (PData a) => PprPhysical (PArray a) where
- pprp (PArray n# dat)
-  =   (text "PArray " <+> int (I# n#))
-  $+$ (nest 4 
-      $ pprp dat)
-
-instance PprVirtual (PData a) => PprVirtual (PArray a) where
- pprv (PArray _ dat)
-  =   pprv dat
-
-
 -------------------------------------------------------------------------------
 -- extra unlifted primitives should be moved into unlifted library ------------
 -------------------------------------------------------------------------------

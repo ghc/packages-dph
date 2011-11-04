@@ -698,16 +698,6 @@ validBool str b
 deriving instance Show (PDatas a) => Show (PDatas (PArray a))
 deriving instance Show (PDatas a) => Show (PData  (PArray a))
 
--- | Pretty print the physical representation of a nested array
-instance (PR a, PprPhysical (PData a)) => PprPhysical (PData (PArray a)) where
- pprp (PNested uvsegd pdatas)
-  =   text "PNested"
-  $+$ (nest 4 $ pprp uvsegd $$ pprp pdatas)
-
-
-instance (PR a, PprVirtual (PData a)) => PprVirtual (PData (PArray a)) where
- pprv arr
-  =   lbrack <> hcat (punctuate comma (map pprv $ V.toList $ toVectorPR arr)) <> rbrack
      
 
 
