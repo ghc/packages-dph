@@ -9,30 +9,22 @@
 import DPH.Arbitrary
 import DPH.Testsuite
 import Util.Array
-import Util.Nesting
-
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray               (PA)
-import Data.Array.Parallel.PArray.PData         (PArray(..), PData, PDatas, PR(..))
 import Data.Array.Parallel.PArray.PData.Base    ()
-
+import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PData.Nested
-        ( concatPR,  concatlPR
-        , unconcatPR
-        , appendlPR
-        , unsafeFlattenPR)
-
-import Text.PrettyPrint                         as T
 import GHC.Exts
 import Control.Monad
 import Data.Vector                              (Vector)
+import Text.PrettyPrint                         as T
 import Prelude                                  as P
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Array.Parallel.PArray     as PA
 import qualified DPH.Operators.List             as L
-import Debug.Trace
+
 
 -- NOTE:
 -- The 'b' element type contains one less level of nesting compared with the
@@ -257,7 +249,7 @@ $(testcases [ ""        <@ [t|  PArray Int |]
                                 (packByTagPR pdata uarrTags 0)
                                 (packByTagPR pdata uarrTags 1)
 
-        in  validPR pdata' && pdata == pdata'
+        in  validPR pdata' && toVector pdata == toVector pdata'
 
 
   -- Derived Functions --------------------------------------------------------
@@ -293,7 +285,7 @@ $(testcases [ ""        <@ [t|  PArray Int |]
    = let  pdata'  = concatPR   pdata  
           pdata'' = unconcatPR pdata pdata'
 
-     in   validPR pdata'' && pdata == pdata''
+     in   validPR pdata'' && toVectors2 pdata == toVectors2 pdata''
 
 
   -- TODO: Joint22 requires second level lengths to be the same, but this isn't nessesary.
@@ -313,20 +305,6 @@ $(testcases [ ""        <@ [t|  PArray Int |]
   -- TODO: slicelPD
   ---------------------------------------------------------
   |])
-
-
--- TODO: shift this to D.A.P.BasePretty
-instance (PprPhysical a, PprPhysical b)
-        => PprPhysical (a, b) where
- pprp (x, y)
-  = vcat
-        [ text "Tuple2"
-        , T.nest 4 $ pprp x
-        , T.nest 4 $ pprp y]
-
-instance (PR a, Eq a) => Eq (PData a) where
- xs == ys
-        = toVectorPR xs == toVectorPR ys
 
 
 -- Nesting --------------------------------------------------------------------

@@ -1,5 +1,7 @@
 
+-- | Generic array class, used for testing only.
 module Util.Array where
+import Control.Monad
 import Data.Vector              (Vector)
 import qualified Data.Vector    as V
 import qualified Prelude        as P
@@ -30,9 +32,12 @@ instance Array Vector e where
  fromVector     = id
 
 
+-- | Convert a list to an array.
 fromList :: Array a e => [e] -> a e
 fromList = fromVector . V.fromList
 
+
+-- | Convert an array to a list.
 toList   :: Array a e => a e -> [e]
 toList   = V.toList . toVector
 
