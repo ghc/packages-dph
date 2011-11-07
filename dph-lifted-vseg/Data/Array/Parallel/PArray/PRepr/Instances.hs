@@ -123,6 +123,9 @@ type instance PRepr (Either a b)
 data instance PData (Either a b)
  = PEither U.Sel2 (PData a) (PData b)
 
+data instance PDatas (Either a b)
+ = PEithers (V.Vector U.Sel2) (PDatas Tag) (PDatas a) (PDatas b)
+
 instance (PR a, PR b) => PA (Either a b) where
   {-# INLINE toPRepr #-}
   toPRepr xx
@@ -135,14 +138,22 @@ instance (PR a, PR b) => PA (Either a b) where
   fromPRepr (Alt2_2 x)   = Right x
 
   {-# INLINE toArrPRepr #-}
-  toArrPRepr (PEither sel pdatas1 pdatas2)
-        = PSum2 sel pdatas1 pdatas2
+  toArrPRepr (PEither sel pdata1 pdata2)
+        = PSum2 sel pdata1 pdata2
         
   {-# INLINE fromArrPRepr #-}
-  fromArrPRepr (PSum2 sel pdatas1 pdatas2)
-        = PEither sel pdatas1 pdatas2
-        
- 
+  fromArrPRepr (PSum2 sel pdata1 pdata2)
+        = PEither sel pdata1 pdata2
+
+  {-# INLINE toArrPReprs #-}
+  toArrPReprs (PEithers sels tags pdatas1 pdatas2)
+        = PSum2s sels tags pdatas1 pdatas2
+
+  {-# INLINE fromArrPReprs #-}
+  fromArrPReprs (PSum2s sels tags pdatas1 pdatas2)
+        = PEithers sels tags pdatas1 pdatas2
+
+
 instance ( PprPhysical (PData a), PR a
          , PprPhysical (PData b), PR b)
         => PprPhysical (PData (Either a b)) where

@@ -15,6 +15,8 @@ import Data.Array.Parallel.PArray               (PA)
 import Data.Array.Parallel.PArray.PData.Base    ()
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PData.Nested
+import Data.Array.Parallel.PArray.Types
+import Data.Array.Parallel.PArray.PRepr
 import GHC.Exts
 import Control.Monad
 import Data.Vector                              (Vector)

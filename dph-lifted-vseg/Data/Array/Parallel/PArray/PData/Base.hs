@@ -6,7 +6,7 @@
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
-        , length, unpack
+        , length, takeData
         , PprPhysical (..), PprVirtual (..)
 
         , PR (..)
@@ -47,9 +47,9 @@ length (PArray n# _)   = (I# n#)
 
 
 -- | Take the data from an array.
-{-# INLINE_PA unpack #-}
-unpack :: PArray a -> PData a
-unpack (PArray _ d)   = d
+{-# INLINE_PA takeData #-}
+takeData :: PArray a -> PData a
+takeData (PArray _ d)   = d
 
 
 -- Parallel array data --------------------------------------------------------
@@ -132,6 +132,11 @@ class PR a where
   appendsPR     :: U.Segd               -- ^ segd of result
                 -> U.Segd -> PData a    -- ^ segd/data of first  arrays
                 -> U.Segd -> PData a    -- ^ segd/data of second arrays
+                -> PData a
+
+  -- | Backwards permutation
+  bpermutePR    :: PData a              -- ^ source array
+                -> U.Array Int          -- ^ source indices
                 -> PData a
 
   -- | Filter an array based on some tags.

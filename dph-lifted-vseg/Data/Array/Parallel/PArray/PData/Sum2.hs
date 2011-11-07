@@ -83,8 +83,20 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         = nope "indexl"
   
   {-# INLINE_PDATA extractPR #-}
-  extractPR  
-        = nope "extract"
+  extractPR  (PSum2 sel as bs) start len
+   = let tags'     = U.extract (U.tagsSel2 sel) start len
+         sel'      = U.tagsToSel2 tags'
+         
+         tags_ex    = U.extract (U.tagsSel2 sel)    start len 
+         indices_ex = U.extract (U.indicesSel2 sel) start len
+                  
+         indices0   = U.packByTag indices_ex tags_ex 0
+         indices1   = U.packByTag indices_ex tags_ex 1
+         
+         as'        = bpermutePR as indices0
+         bs'        = bpermutePR bs indices1
+
+     in  PSum2 sel' as' bs'
   
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PSum2s sels (PInts tagss) pdatas0 pdatas1) ssegd

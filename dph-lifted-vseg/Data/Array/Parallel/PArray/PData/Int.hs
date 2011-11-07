@@ -67,29 +67,33 @@ instance PR Int where
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
-     in  PInt (uextracts vecpdatas segsrcs segstarts seglens)
+     in  PInt $ uextracts vecpdatas segsrcs segstarts seglens
                 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PInt arr1) (PInt arr2)
-        = PInt (arr1 U.+:+ arr2)
+        = PInt $ arr1 U.+:+ arr2
 
   {-# INLINE_PDATA appendsPR #-}
   appendsPR segdResult segd1 (PInt arr1) segd2 (PInt arr2)
         = PInt $ U.append_s segdResult segd1 arr1 segd2 arr2
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (PInt arr) indices
+        = PInt $ U.bpermute arr indices
+
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PInt arr1) arrTags tag
-        = PInt (U.packByTag arr1 arrTags tag)
+        = PInt $ U.packByTag arr1 arrTags tag
 
   {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PInt arr1) (PInt arr2)
-        = PInt (U.combine2 (U.tagsSel2 sel)
+        = PInt $ U.combine2 (U.tagsSel2 sel)
                            (U.repSel2  sel)
-                           arr1 arr2)
+                           arr1 arr2
 
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
-        = PInt (U.fromList $ V.toList xx)
+        = PInt $U.fromList $ V.toList xx
 
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PInt arr)

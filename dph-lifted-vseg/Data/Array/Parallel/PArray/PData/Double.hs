@@ -85,7 +85,7 @@ instance PR Double where
 
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PDouble arr1) arrTags tag
-        = PDouble (U.packByTag arr1 arrTags tag)
+        = PDouble $ U.packByTag arr1 arrTags tag
 
   {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PDouble arr1) (PDouble arr2)

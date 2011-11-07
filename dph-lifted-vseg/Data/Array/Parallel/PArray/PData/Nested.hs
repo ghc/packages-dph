@@ -439,7 +439,7 @@ instance PR a => PR (PArray a) where
                 (U.lengthsSegd segd)
                 (U.indicesSegd segd)
                 (U.replicate (V.length xx) 0)
-                (singletondPR (V.foldl1 appendPR $ V.map PA.unpack xx))
+                (singletondPR (V.foldl1 appendPR $ V.map takeData xx))
 
 
   {-# INLINE_PDATA toVectorPR #-}

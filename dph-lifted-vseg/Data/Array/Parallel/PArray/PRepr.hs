@@ -6,6 +6,7 @@ module Data.Array.Parallel.PArray.PRepr
         , module Data.Array.Parallel.PArray.PRepr.Instances
         , module Data.Array.Parallel.PArray.PRepr.Nested
         , module Data.Array.Parallel.PArray.PRepr.Tuple
+        , unpackPA
         , packByTagsPA
         , mapdPA
         , zipWithdPA)
@@ -22,7 +23,6 @@ import qualified Data.Vector                    as V
 import GHC.Exts
 
 -- Pretty -------------------------------------------------------------------
-
 -- | Show a virtual array.
 instance (Show a, PA a)
         => Show (PArray a) where
@@ -73,6 +73,12 @@ instance ( PprVirtual (PData a), PR a)
    <> rbrack
 -}
 
+-- Unpack ----------------------------------------------------------------------
+-- | Unpack an array to reveal its representation.
+unpackPA :: PA a => PArray a -> PData (PRepr a)
+unpackPA (PArray _ pdata)
+        = toArrPRepr pdata
+                
 --------------------------------------------------------------------------------
 -- | Filter some scattered segments according to some tag arrays.
 --   The `SSegd` describes the layout of the source data as well as the tags,

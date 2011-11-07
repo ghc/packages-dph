@@ -225,6 +225,9 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 instance PprVirtual Bool where
  pprv = text . show
  
+instance (PprVirtual a, PprVirtual b) => PprVirtual (Either a b) where
+ pprv (Left  x) = text "Left"  <+> pprv x
+ pprv (Right y) = text "Right" <+> pprv y
   
 
 -- Array class ----------------------------------------------------------------
