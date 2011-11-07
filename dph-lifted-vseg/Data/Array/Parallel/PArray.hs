@@ -36,9 +36,8 @@ module Data.Array.Parallel.PArray
         -- * Projections
         , length,       lengthl          -- length from D.A.P.PArray.PData.Base
         , index,        indexl
-        , extract,      extracts
+        , extract,      extracts, extracts'
         , slice,        slicel
-        , unpack
         , unsafeTakeSegd
 
         -- * Pack and Combine
@@ -236,15 +235,33 @@ extract (PArray _ arr) start len@(I# len#)
 
 -- | Segmented extract.
 extracts :: PA a => Vector (PArray a) -> U.SSegd -> PArray a
-extracts 
-        = error "PArray extracts fixme"
-{- arrs ssegd
- = let  vecs            = V.map (\(PArray _ vec) -> vec) arrs
+extracts arrs ssegd
+ = let  pdatas          = fromVectordPA $ V.map (\(PArray _ vec) -> vec) arrs
         !(I# n#)        = (U.sum $ U.lengthsSSegd ssegd)
-   in  PArray   n#
-                (extractsPA vecs ssegd) -}
+   in   PArray   n#
+                (extractsPA pdatas ssegd)
 {-# INLINE_PA extracts #-}
 
+
+-- | Wrapper for `extracts` that takes arrays of sources, starts and lengths of
+--   the segments, and uses these to build the `U.SSegd`.
+--   TODO: The lengths of the sources, starts and lengths arrays must be the same, 
+--         but this is not checked.
+--         All sourceids must point to valid data arrays.
+--         Segments must be within their corresponding source array.
+extracts' 
+        :: PA a 
+        => Vector (PArray a) 
+        -> PArray Int           -- ^ id of source array for each segment.
+        -> PArray Int           -- ^ starting index of each segment in its source array.
+        -> PArray Int           -- ^ length of each segment.
+        -> PArray a
+extracts' arrs (PArray _ (PInt sources)) (PArray _ (PInt starts)) (PArray _ (PInt lengths))
+ = let  segd    = U.lengthsToSegd lengths
+        ssegd   = U.mkSSegd starts sources segd
+   in   extracts arrs ssegd
+{-# INLINE_PA extracts' #-}
+        
 
 -- | Extract a range of elements from an arrary.
 --   Like `extract` but with the parameters in a different order.
@@ -268,7 +285,7 @@ slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
 unsafeTakeSegd :: PArray (PArray a) -> U.Segd
 unsafeTakeSegd (PArray _ pdata)
         = unsafeTakeSegdPD pdata
-{-# INLINE unsafeTakeSegd #-}
+{-# INLINE_PA unsafeTakeSegd #-}
 
 
 -- Pack and Combine -----------------------------------------------------------
@@ -282,11 +299,13 @@ pack (PArray _ xs) (PArray _ (PBool sel2))
         !(I# m#)        = U.elementsSel2_1 sel2
 
     in  PArray m# darr'
+{-# INLINE_PA pack #-}
 
 
 -- | Lifted pack.
 --   Both data and tag arrays must have the same segmentation structure, 
 --   but this is not checked.
+--   BROKEN: this will be wrong because we're ignoring the second vsegd
 packl :: forall a. PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 packl xss bss
  | PArray n# (PNested vsegd xdatas)     <- xss

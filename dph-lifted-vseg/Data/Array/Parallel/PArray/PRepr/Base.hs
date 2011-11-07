@@ -2,9 +2,6 @@
 
 -- | Definition of the PRepr/PA family and class.
 --
---   This module is kept separate from PRepr.Base to break an import cycle
---   between PRepr.Base PRepr.Instances and PArray.PData.Wrap
---
 module Data.Array.Parallel.PArray.PRepr.Base 
         ( PRepr
         , PA (..)
@@ -28,7 +25,8 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , lengthdPA
         , indexdPA
         , appenddPA
-        , concatdPA)
+        , concatdPA
+        , fromVectordPA, toVectordPA)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base                 (Tag)
@@ -67,9 +65,9 @@ class PR (PRepr a) => PA a where
 
 -- PD Wrappers ----------------------------------------------------------------
 --  These wrappers work on (PData a) arrays when we know the element type 'a'
---  is representable. We implement them by converting the PData to the 
---  underlying representation type, and use the corresponding method from
---  the PR dictionary.
+--  is representable. We implement them by converting the PData to the
+--  underlying generic representation type, and use the corresponding method
+--  from the PR dictionary.
 --
 --  The wrappers are used in situations when we only have PA dictionary, 
 --  instead of a PR dictionary. This happens in the PR (a :-> b) instance, 
@@ -228,4 +226,18 @@ concatdPA       :: PA a => V.Vector (PDatas a) -> PDatas a
 concatdPA vec
  = fromArrPReprs
  $ concatdPR (V.map toArrPReprs vec)
- 
+
+
+{-# INLINE_PA fromVectordPA #-}
+fromVectordPA   :: PA a => V.Vector (PData a) -> PDatas a
+fromVectordPA vec
+ = fromArrPReprs
+ $ fromVectordPR (V.map toArrPRepr vec)
+
+
+{-# INLINE_PA toVectordPA #-}
+toVectordPA     :: PA a => PDatas a -> V.Vector (PData a)
+toVectordPA pdatas
+ = V.map fromArrPRepr 
+ $ toVectordPR (toArrPReprs pdatas)
+

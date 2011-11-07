@@ -158,8 +158,33 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
        in  PA.valid arr' && vec' == toVector arr'
 
+
+  -- | Extract many slices from a single array.
+  prop_extracts1 :: (PA a, Eq a) => PArray a -> Property
+  prop_extracts1 arr
+   =    PA.length arr > 0 
+    ==> forAll (choose (1, 10)) $ \sliceCount
+     -> forAll (replicateM sliceCount (arbitrarySliceSpec1 (PA.length arr))) $ \sliceSpecs'
+     -> let sliceSpecs  = V.fromList sliceSpecs'
+            lens        = V.map sliceSpecLen    sliceSpecs
+            starts      = V.map sliceSpecStart  sliceSpecs
+            sources     = V.replicate (V.length sliceSpecs) 0
+
+            vec         = PA.toVector arr
+            vec'        = V.concat $ V.toList
+                        $ V.zipWith (\len start -> V.slice start len vec)
+                                lens
+                                starts
+
+            segd        = U.lengthsToSegd $ V.convert lens
+            ssegd       = U.mkSSegd  (V.convert starts) (V.convert sources) segd
+            arr'        = PA.extracts (V.singleton arr) ssegd
+
+        in  PA.valid arr' && vec' == toVector arr'
+
+
   ---------------------------------------------------------
-  -- TODO: extracts
+  -- TODO: extracts_n, extract from multiple vectors
   ---------------------------------------------------------
 
   ---------------------------------------------------------

@@ -22,6 +22,7 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
+
 -- Void -----------------------------------------------------------------------
 type instance PRepr Void = Void
 
@@ -160,7 +161,3 @@ instance ( PprPhysical (PData a), PR a
  pprp xs = pprp $ toArrPRepr xs
 
 
- 
- 
- 
- 
