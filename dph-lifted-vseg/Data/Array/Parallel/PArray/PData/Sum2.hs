@@ -89,7 +89,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
 
   -- extract / extracts -------------------------------------------------------
-  -- Extract a range of elements from an array of Sums.
+  -- Extract a range of elements from an array of Sum2s.
   -- Example:
   --  arr:         [L 20, R 30, L 40, R 50, R 60, R 70, L 80, R 90, L 100]
   --                            -----------------------------
@@ -111,15 +111,15 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   extractPR  (PSum2 sel as bs) start len
    = let 
          -- Extract the tags of the result elements,
-         --  and rebuild the final selector indices based on these tags.
+         --  and rebuild the result selector indices based on these tags.
          -- This is the selelector for the result array.
-         --  TAGS      [0     1     1     1     0]
-         --  INDICES:  [0     0     1     2     1]
+         --  TAGS:    [0     1     1     1     0]
+         --  INDICES: [0     0     1     2     1]
          tags'      = U.extract (U.tagsSel2 sel) start len
          sel'       = U.tagsToSel2 tags'
          
          -- Extract the indices of the data elements that we want.
-         -- These are the indices of the elements in the source arrays.
+         -- These are the indices of the elements in their source arrays.
          --  INDICES:  [1     1     2     3     2]
          indices'   = U.extract (U.indicesSel2 sel) start len
 
@@ -138,44 +138,134 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
      in  PSum2 sel' as' bs'
   
   
+  -- Extract several ranges of elements form some arrays of Sum2s.
+  -- Example:
+  --  arrs:    0: [L 20, R 30, L 40]
+  --               ----------1 ----3
+  --           1: [R 50, R 60, R 70, L 80, R 90, L 100]
+  --               ----4 ----------------0 -----------2
+  -- 
+  --  Sel2
+  --   0 TAGS:    [0     1     0]
+  --     INDICES: [0     0     1]
+  --               -------1 ----3
+  --     ALTS0:   [20 40]
+  --     ALTS1:   [30]
+  --
+  --   1 TAGS:    [1     1      1     0     1     0]
+  --     INDICES: [0     1      2     0     3     1]
+  --               ----4 --------------0   --------2
+  --     ALTS0    [80 100]
+  --     ALTS1    [50 60 70 90]
+  --
+  --  Goal: extract arrs ssegd
+  --           => [R 60, R 70, L 80, L 20, R 30, R 90, L 100, L 40, R 50]
+  --               ----------------0 ----------1 -----------2 ----3 ----4
+  --
+  --  Sel2:
+  --     TAGS:    [1     1     0     0     1     1     0      0     1]
+  --     INDICES: [0     1     0     1     2     3     2      3     4]   
+  --     ALTS0:   [80 20 100 40]
+  --     ALTS1:   [60 70 30  90 50]
+  --
+  --  ssegd:
+  --   SRCIDS:  [1 0 1 0 1]
+  --   STARTS:  [1 0 4 2 0]
+  --  LENGTHS:  [3 2 2 1 1]
+  -- 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PSum2s sels (PInts tagss) pdatas0 pdatas1) ssegd
    = let                
-         tags'     = uextracts tagss 
-                        (U.sourcesSSegd ssegd)
-                        (U.startsSSegd  ssegd)
-                        (U.lengthsSSegd ssegd)
-
-         sel'      = U.tagsToSel2 tags'
-
-         selIndices'    = uextracts (V.map U.indicesSel2 sels)
-                                (U.sourcesSSegd ssegd)
-                                (U.startsSSegd  ssegd)
-                                (U.lengthsSSegd ssegd)
-
-
          sources        = U.sourcesSSegd ssegd
-   
-         -- number of L elements for each segment
-         lens0          = U.count_ss ssegd tagss 0
-         selStarts0     = U.scan (+) 0 lens0
-         sel0           = U.packByTag selIndices' tags' 0
-         sel0_len       = U.length sel0
-         starts0        = U.map (\i -> if i >= sel0_len then 0 else sel0 U.!: i) selStarts0
-         segd0          = U.lengthsToSegd lens0
-         ssegd0         = U.mkSSegd starts0 sources segd0
-                 
-         -- TODO: argh, complicated.
-         lens1          = U.count_ss ssegd tagss 1
-         selStarts1     = U.scan (+) 0 lens1
-         sel1           = U.packByTag selIndices' tags' 1
-         sel1_len       = U.length sel1
-         starts1        = U.map (\i -> if i >= sel1_len then 0 else sel1 U.!: i) selStarts1
-         segd1          = U.lengthsToSegd lens1
-         ssegd1         = U.mkSSegd starts1 sources segd1
+         starts         = U.startsSSegd  ssegd
+         lengths        = U.lengthsSSegd  ssegd
 
-         pdata0         = extractsPR pdatas0 ssegd0
-         pdata1         = extractsPR pdatas1 ssegd1
+         -- Extract the tags of the result elements,
+         --  and rebuild the result selector indices based on these tags.
+         -- tags'       = [1     1     0     0     1     1     0      0     1]
+         -- sel'        = [0     1     0     1     2     3     2      3     4]   
+         tags'          = uextracts tagss sources starts lengths
+         sel'           = U.tagsToSel2 tags'
+
+         -- Extract the indices of the data elements we want.
+         -- These are the indices of the elements in their source arrays.
+         -- (result)      [R 60, R 70, L 80, L 20, R 30, R 90, L 100, L 40, R 50]
+         --                ----------------0 ----------1 -----------2 ----3 ----4
+         -- indices'    = [  1     2     0     0     0     3     1      1     0 ]
+         indices'       = uextracts (V.map U.indicesSel2 sels) sources starts lengths
+
+         -- Count the number of L and R elements for each segment,
+         --  then scan them to produce the starting index of each segment in the
+         --  result alt data.
+
+         --  ALTS0:       [80  20  100  40    ]     (result)
+         --                --0 --1 --2  --3 .4      (segs)
+         --  lens0      = [1   1   1    1   0 ]
+         --  indices0   = [0   1   2    3   4 ]
+         
+         --  ALTS1:       [60  70   30  90     50]  (result)
+         --                ------0  --1 --2 .3 --4  (segs)
+         --  lens1      = [2        1   1   0  1 ]
+         --  indices1   = [0        2   3   3  4 ]
+         
+         lens0          = U.count_ss ssegd tagss 0
+         indices0       = U.scan (+) 0 lens0
+
+         lens1          = U.count_ss ssegd tagss 1
+         indices1       = U.scan (+) 0 lens1
+
+         -- For each segment in the result alt data, get its starting index in
+         -- the original alt array.
+         -- 
+         -- TODO: We're doing this by getting the index of EVERY element in the
+         --       original array, then just selecting the indices corresponding
+         --       to the start of each segment. If the last segment has length 0,
+         --       then we get an index overflow problem because the last element
+         --       in the indices array doesn't point to real data. There might be
+         --       a better way to do this that doesn't require copying all indices,
+         --       and doesn't need a bounds check.
+         -- 
+         -- indices0    = [ 0 1 2 3 4 ] (from above)
+         -- sel0        = [ 0 0 1 1 ]       -- here, we've only got starting indices
+         -- sel0_len    = 4                 --  for 4 segs, but there are 5 segs in total.
+         -- starts0     = [ 0 0 1 1 0 ]
+         sel0           = U.packByTag indices' tags' 0
+         sel0_len       = U.length sel0
+         starts0        = U.map (\i -> if i >= sel0_len then 0 else sel0 U.!: i) indices0
+
+         -- indices1    = [ 0 2 3 3 4 ] (from above)
+         -- sel1        = [ 1 2 0 3 0 ]
+         -- sel1_len    = 5
+         -- starts1     = [ 1 0 3 3 0 ]
+         sel1           = U.packByTag indices' tags' 1
+         sel1_len       = U.length sel1
+         starts1        = U.map (\i -> if i >= sel1_len then 0 else sel1 U.!: i) indices1
+
+         -- Extract the final alts data:
+         -- sources     = [ 1 0 1 0 1 ] (from above)
+         -- starts0     = [ 0 0 1 1 0 ] (from above)
+         -- starts1     = [ 1 0 3 3 0 ] (from above)
+         -- lens0       = [ 1 1 1 1 0 ] (from above)
+         -- lens1       = [ 2 1 1 0 1 ] (from above)
+
+         -- (source data)
+         --  0: ALTS0:   [20  40]
+         --               --1 --3
+         --     ALTS1:   [30]
+         --               --1 .3             (no alt1 data for seg 3)
+         -- 
+         --  1: ALTS0:   [80  100]
+         --               --0 ---2 .4        (no alt0 data for seg 4)
+         --     ALTS1:   [50  60  70  90]
+         --               --4 -----0  --2
+
+         -- (result data)
+         --  ALTS0:      [80  20  100  40 ]
+         --  ALTS1:      [60  70   30  90 50]
+
+         pdata0         = extractsPR pdatas0 $ U.mkSSegd starts0 sources (U.lengthsToSegd lens0)
+         pdata1         = extractsPR pdatas1 $ U.mkSSegd starts1 sources (U.lengthsToSegd lens1)
+
      in {- trace (render $ vcat 
                         [ text "tags'       = " <> pprp tags'
                         , text ""
