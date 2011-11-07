@@ -129,14 +129,16 @@ replicatel :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 replicatel (PArray 0# _) _       = empty
 replicatel (PArray n# (PInt lens)) (PArray _ pdata)
  = let  segd    = U.lengthsToSegd lens
+        pdata'  = replicatesPA segd pdata
         c       = I# n#
+        
    in   PArray n# 
          $ mkPNested
-                (U.replicate_s segd (U.enumFromTo 0 (c - 1)))
+                (U.enumFromTo 0 (c - 1))
                 lens
                 (U.indicesSegd segd)
                 (U.replicate c 0)
-                (singletondPA pdata)
+                (singletondPA pdata')
 {-# INLINE_PA replicatel #-}
 
 

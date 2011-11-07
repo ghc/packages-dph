@@ -69,6 +69,18 @@ $(testcases [ ""        <@ [t|  PArray Int |]
       in  PA.valid arr' && vec' == toVectors1 arr'
 
 
+  -- | Lifted replicate.
+  prop_replicatel
+        :: (PA a, Eq a)
+        => PArray a -> Int -> Property
+  prop_replicatel arr i
+   =  forAll (vectorOf (PA.length arr) (choose (0, 10 `asTypeOf` i))) $ \reps
+   -> let vec'    = V.zipWith V.replicate (toVector reps) (toVectors1 arr)
+          arr'    = PA.replicatel (PA.fromList reps) arr
+
+      in  PA.valid arr' && vec' == toVectors2 arr'
+        
+
   -- | Append two arrays.  
   prop_append 
         :: (PA a, Eq a)
