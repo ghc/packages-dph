@@ -13,6 +13,7 @@ import Text.PrettyPrint
 import Prelude                                  as P
 import Debug.Trace
 
+
 -------------------------------------------------------------------------------
 data instance PData (Sum2 a b)
         = PSum2  U.Sel2
@@ -48,6 +49,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   lengthPR (PSum2 sel xs ys)
         = U.length (U.tagsSel2 sel)
 
+
+  -- replicate / replicates ---------------------------------------------------
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n aa
    = case aa of
@@ -70,7 +73,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR
         = nope "replicates"
-                      
+
+
+  -- index / indexl -----------------------------------------------------------                      
   {-# INLINE_PDATA indexPR #-}
   indexPR (PSum2 sel as bs) i
    = let !k = U.indicesSel2 sel U.!: i
@@ -81,22 +86,57 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   {-# INLINE_PDATA indexlPR #-}
   indexlPR 
         = nope "indexl"
-  
+
+
+  -- extract / extracts -------------------------------------------------------
+  -- Extract a range of elements from an array of Sums.
+  -- Example:
+  --  arr:         [L 20, R 30, L 40, R 50, R 60, R 70, L 80, R 90, L 100]
+  --                            -----------------------------
+  --  Sel2:
+  --   TAGS:       [0     1     0     1     1     1     0     1     0]
+  --   INDICES:    [0     0     1     1     2     3     2     4     3]
+  --   ALTS0: PInt [20 40 80 100]
+  --   ALTS1: PInt [30 50 60 70 90]
+  --
+  -- Goal: extract arr 2 5
+  --            =  [L 40, R 50, R 60, R 70, L 80]
+  --  Sel2: 
+  --   TAGS:       [0     1     1     1     0]
+  --   INDICES:    [0     0     1     2     1]
+  --   ALTS0: PInt [40 80]
+  --   ALTS1: PInt [50 60 70]
+  --  
   {-# INLINE_PDATA extractPR #-}
   extractPR  (PSum2 sel as bs) start len
-   = let tags'     = U.extract (U.tagsSel2 sel) start len
-         sel'      = U.tagsToSel2 tags'
+   = let 
+         -- Extract the tags of the result elements,
+         --  and rebuild the final selector indices based on these tags.
+         -- This is the selelector for the result array.
+         --  TAGS      [0     1     1     1     0]
+         --  INDICES:  [0     0     1     2     1]
+         tags'      = U.extract (U.tagsSel2 sel) start len
+         sel'       = U.tagsToSel2 tags'
          
-         tags_ex    = U.extract (U.tagsSel2 sel)    start len 
-         indices_ex = U.extract (U.indicesSel2 sel) start len
-                  
-         indices0   = U.packByTag indices_ex tags_ex 0
-         indices1   = U.packByTag indices_ex tags_ex 1
+         -- Extract the indices of the data elements that we want.
+         -- These are the indices of the elements in the source arrays.
+         --  INDICES:  [1     1     2     3     2]
+         indices'   = U.extract (U.indicesSel2 sel) start len
+
+         -- Build maps of which source index to get the data for each ALT array.
+         --  indices0: [1 2]
+         --  indices1: [1 2 3]
+         indices0   = U.packByTag indices' tags' 0
+         indices1   = U.packByTag indices' tags' 1
          
+         -- Copy source data into new ALT arrays.
+         --  as:       [40 80]
+         --  bs:       [50 60 70]
          as'        = bpermutePR as indices0
          bs'        = bpermutePR bs indices1
 
      in  PSum2 sel' as' bs'
+  
   
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PSum2s sels (PInts tagss) pdatas0 pdatas1) ssegd
@@ -153,6 +193,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                         , text ""]) $ -}
            PSum2 sel' pdata0 pdata1
 
+
+  -- append / appends ---------------------------------------------------------
   {-# INLINE_PDATA appendPR #-}
   appendPR (PSum2 sel1 as1 bs1)
            (PSum2 sel2 as2 bs2)
@@ -165,6 +207,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   appendsPR
         = nope "appends"
         
+
+  -- pack / combine -----------------------------------------------------------
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR
         = nope "packByTag"
@@ -172,7 +216,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   {-# INLINE_PDATA combine2PR #-}
   combine2PR 
         = nope "combine2"
-    
+
+
+  -- fromVector / toVector ----------------------------------------------------
   -- TODO: fix rubbish via-lists filtering.   
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
@@ -192,7 +238,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         $ V.enumFromTo 0 (lengthPR pdata - 1)
 
 
-  -- PRR ----------------------------------------
+  -- PDatas -------------------------------------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
         = PSum2s V.empty emptydPR emptydPR emptydPR
@@ -247,7 +293,6 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
 
 -- Pretty ---------------------------------------------------------------------
-
 instance PprPhysical U.Sel2 where
  pprp sel2
   =   text "Sel2"
