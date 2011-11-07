@@ -12,6 +12,9 @@ import Text.PrettyPrint
 class PprPhysical a where
  pprp :: a -> Doc
 
+instance PprPhysical Bool where
+ pprp = text . show
+
 instance PprPhysical Int where
  pprp = text . show 
  
@@ -23,10 +26,22 @@ instance PprPhysical Double where
 class PprVirtual a where
  pprv :: a -> Doc
 
+instance PprVirtual Bool where
+ pprv = text . show
+
 instance PprVirtual Int where
  pprv = text . show 
  
 instance PprVirtual Double where
  pprv = text . show 
 
- 
+
+-- Instances ------------------------------------------------------------------ 
+instance (PprPhysical a, PprPhysical b)
+        => PprPhysical (a, b) where
+ pprp (x, y)
+  = vcat
+        [ text "Tuple2"
+        , nest 4 $ pprp x
+        , nest 4 $ pprp y]
+

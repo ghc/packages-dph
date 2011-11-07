@@ -1,6 +1,5 @@
-
--- | Generic array class, used for testing only.
-module Util.Array where
+-- | Generic array class, used as a compatability layer during testing.
+module Data.Array.Parallel.Array where
 import Control.Monad
 import Data.Vector              (Vector)
 import qualified Data.Vector    as V

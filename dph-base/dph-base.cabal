@@ -20,6 +20,7 @@ Library
         Data.Array.Parallel.Base
         Data.Array.Parallel.Stream
         Data.Array.Parallel.Pretty
+        Data.Array.Parallel.Array
         Data.Array.Parallel.Base.DTrace
         Data.Array.Parallel.Base.TracePrim
 
@@ -39,7 +40,8 @@ Library
 
   Extensions: 
          TypeFamilies, GADTs, RankNTypes,
-         BangPatterns, MagicHash, UnboxedTuples, TypeOperators, CPP
+         BangPatterns, MagicHash, UnboxedTuples, TypeOperators, CPP,
+         MultiParamTypeClasses, FlexibleInstances
 
   GHC-Options: -Odph -funbox-strict-fields -fcpr-off 
 
