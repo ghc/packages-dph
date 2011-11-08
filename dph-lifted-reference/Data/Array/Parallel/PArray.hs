@@ -41,6 +41,9 @@ data PArray a
 
 -- Array Instances ------------------------------------------------------------
 instance A.Array PArray a where
+ valid     = const True
+ singleton = A.singleton
+
  length  (PArray _ vec)
         = V.length vec
 
@@ -225,7 +228,7 @@ packByTag (PArray n1# xs) tags tag
 
 -- | Combine two arrays based on a selector.
 combine2 :: U.Sel2 -> PArray a -> PArray a -> PArray a
-combine2 tags (PArray n1# vec1) (PArray n2# vec2)
+combine2 tags (PArray _ vec1) (PArray _ vec2)
  = let  
         go [] [] [] = []
         go (0 : bs) (x : xs) ys       = x : go bs xs ys

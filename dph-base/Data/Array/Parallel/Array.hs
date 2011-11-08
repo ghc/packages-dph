@@ -1,4 +1,6 @@
--- | Generic array class, used as a compatability layer during testing.
+
+-- | Generic array class.
+--   This is used as a compatability layer during testing and debugging.
 module Data.Array.Parallel.Array 
         ( Array(..)
         , fromList, toList
@@ -13,14 +15,18 @@ import Prelude                  hiding (length)
 
 
 class Array a e where
+ valid      :: a e -> Bool
+ singleton  :: e   -> a e
+ append     :: a e -> a e -> a e
  length     :: a e -> Int
  index      :: a e -> Int -> e
- append     :: a e -> a e -> a e
  toVector   :: a e -> Vector e
  fromVector :: Vector e -> a e
  
 
 instance Array [] e where
+ valid          = const True
+ singleton x    = [x]
  length         = P.length
  index          = (P.!!)
  append         = (P.++)
@@ -29,6 +35,8 @@ instance Array [] e where
  
 
 instance Array Vector e where
+ valid          = const True
+ singleton      = V.singleton
  length         = V.length
  index          = (V.!)
  append         = (V.++)

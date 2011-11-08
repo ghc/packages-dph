@@ -62,14 +62,16 @@ import qualified Data.Array.Parallel.Pretty     as T
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
+import Data.Array.Parallel.PArray.Reference
 import GHC.Exts
 import Data.Maybe
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
-import qualified "dph-lifted-reference" Data.Array.Parallel.PArray as R
 import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified "dph-lifted-reference" 
+                 Data.Array.Parallel.PArray     as R
 import qualified Prelude                        as P
 import Prelude hiding 
         ( length, replicate, concat
@@ -78,15 +80,25 @@ import Prelude hiding
         
 import Debug.Trace
 
--- Config ---------------------------------------------------------------------
-debugLiftedTrace        = False
-debugLiftedCompare      = False
 
+-- Pretty ---------------------------------------------------------------------
+instance PA a => PprPhysical (PArray a) where
+ pprp (PArray n# pdata)
+        =     ( T.text "PArray " T.<+> T.int (I# n#))
+        T.$+$ ( T.nest 4 
+              $ pprpDataPA pdata)
 
--- Tracing --------------------------------------------------------------------
--- TODO: we could use this to trace the lengths of the vectors being used, 
---       as well as the types that each opeartor is being called at.
-
+-- Array -----------------------------------------------------------------------
+-- | Generic interface to PArrays.
+--
+-- NOTE: 
+--  The toVector conversion is defined by looking up every index instead of
+--  using the bulk fromVectorPA function.
+--  We need to do this to convert arrays of type (PArray Void) properly, as 
+--  although a (PArray Void) has an intrinsic length, a (PData Void) does not.
+--  Arrays of type PArray Void aren't visible in the user API, but during
+--  debugging we need to be able to print them out with the correct length.
+--
 instance PA e => A.Array PArray e where
  length arr     = length arr
 
@@ -94,110 +106,8 @@ instance PA e => A.Array PArray e where
         = indexPA pdata ix
 
  append         = append
-
- -- The toVector conversion used for testing is built by looking up every index
- --  instead of using the bulk fromVectorPA function.
- --  We need to do this to convert arrays of type (PArray Void) properly, as 
- --  although a (PArray Void) has an intrinsic length, a (PData Void) does not.
- --  Arrays of type PArray Void aren't visible in the user API, but during debugging
- --  we need to be able to print them out with the correct length.
- toVector arr
-        = V.map (A.index arr) $ V.enumFromTo 0 (A.length arr - 1)
-
- fromVector
-        = fromVector
-
-instance PA a => PprPhysical (PArray a) where
- pprp (PArray n# pdata)
-        =     ( T.text "PArray " T.<+> T.int (I# n#))
-        T.$+$ ( T.nest 4 
-              $ pprpDataPA pdata)
-
-instance PA a => PprPhysical (Vector a) where
- pprp vec
-        = T.brackets 
-        $ T.hcat
-        $ T.punctuate (T.text ", ") 
-        $ V.toList $ V.map pprpPA vec
-
--- TODO: shift this stuff to the reference implementation module.
---       make the PArray constructor polymorphic
--- | Compare a flat array against a reference
-withRef1 :: PA a 
-         => String
-         -> R.PArray a
-         -> PArray a
-         -> PArray a
-
-withRef1 name arrRef arrImpl
- = let  trace'
-         = if debugLiftedTrace  
-            then trace (T.render $ T.text " " 
-                        T.$$ T.text name 
-                        T.$$ (T.nest 8 $ pprpPA arrImpl))
-            else id    
-
-        resultOk
-         = valid arrImpl
-             && A.length arrRef == A.length arrImpl
-             && (V.and $ V.zipWith
-                  similarPA
-                  (A.toVectors1 arrRef) (A.toVectors1 arrImpl))
-              
-        resultFail
-         = error $ T.render $ T.vcat
-                [ T.text "withRef1: failure " T.<> T.text name
-                , T.nest 4 $ pprp  $ A.toVectors1 arrRef
-                , T.nest 4 $ pprpPA arrImpl ]
-
-   in   trace' (if debugLiftedCompare
-                 then (if resultOk then arrImpl else resultFail)
-                 else arrImpl)
-{-# INLINE withRef1 #-}
-
-
-withRef2 :: PA a 
-         => String 
-         -> R.PArray (R.PArray a)
-         -> PArray (PArray a)
-         -> PArray (PArray a)
-
-withRef2 name arrRef arrImpl
- = let  trace'
-         = if debugLiftedTrace  
-            then trace (T.render $ T.text " " 
-                        T.$$ T.text name 
-                        T.$$ (T.nest 8 $ pprpPA arrImpl))
-            else id
-
-        resultOK
-         = valid arrImpl
-           && A.length arrRef == A.length arrImpl
-           && (V.and $ V.zipWith 
-                (\xs ys -> V.and $ V.zipWith similarPA xs ys)
-                (A.toVectors2 arrRef) (A.toVectors2 arrImpl))
-        
-        resultFail
-         = error $ T.render $ T.vcat
-                [ T.text "withRef2: failure " T.<> T.text name
-                , T.nest 4 $ pprpPA arrImpl ]
-
-   in   trace' (if debugLiftedCompare
-                 then (if resultOK then arrImpl else resultFail)
-                 else arrImpl)
-{-# INLINE withRef2 #-}
-
-
--- TODO: shift this stuff to the reference implementation module.
---       make the parray constructor polymorphic.
-toRef1 :: PA a => PArray a -> R.PArray a
-toRef1  = A.fromVectors1 . A.toVectors1
-
-toRef2 :: PA a => PArray (PArray a) -> R.PArray (R.PArray a)
-toRef2  = A.fromVectors2 . A.toVectors2
-
-toRef3 :: PA a => PArray (PArray (PArray a)) -> R.PArray (R.PArray (R.PArray a))
-toRef3  = A.fromVectors3 . A.toVectors3
+ toVector arr   = V.map (A.index arr) $ V.enumFromTo 0 (A.length arr - 1)
+ fromVector     = fromVector
 
 
 -- Basics ---------------------------------------------------------------------

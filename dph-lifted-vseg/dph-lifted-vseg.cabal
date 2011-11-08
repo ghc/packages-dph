@@ -22,12 +22,13 @@ Library
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.PArray.PData.Base
-        Data.Array.Parallel.PArray.PData.Bool
         Data.Array.Parallel.PArray.PData.Double
         Data.Array.Parallel.PArray.PData.Int
         Data.Array.Parallel.PArray.PData.Nested
+        Data.Array.Parallel.PArray.PData.Sum2
         Data.Array.Parallel.PArray.PData.Tuple
         Data.Array.Parallel.PArray.PData.Unit
+        Data.Array.Parallel.PArray.PData.Void
         Data.Array.Parallel.PArray.PData.Wrap
         Data.Array.Parallel.PArray.PData
         Data.Array.Parallel.PArray.PRepr.Base
@@ -37,11 +38,16 @@ Library
         Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.Scalar
         Data.Array.Parallel.PArray.Types
+        Data.Array.Parallel.PArray.Reference
         Data.Array.Parallel.PArray
+        Data.Array.Parallel.Prelude.Bool
         Data.Array.Parallel.Prelude.Double
         Data.Array.Parallel.Prelude.Int
+        Data.Array.Parallel.Prelude.Tuple
+        Data.Array.Parallel.Prelude
         Data.Array.Parallel
         Data.Array.Parallel.Prim
+        Data.Array.Parallel.PArr
 
   Include-Dirs:
         include
