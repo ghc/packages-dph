@@ -29,7 +29,6 @@ module Data.Array.Parallel.PArray.PData.Nested
         , unsafeTakeSegdPD
         , slicelPD)
 where
-import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.Base
 
 import Data.Array.Parallel.PArray.PData.Base    as PA

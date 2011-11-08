@@ -45,10 +45,6 @@ instance (PA a, PA b) => PA (a,b) where
   fromArrPReprs (PTuple2s (PWraps as) (PWraps bs))
         = PTuple2s as bs
 
-  {-# INLINE_PA toNestedArrPRepr #-}
-  toNestedArrPRepr (PNested vsegd (PTuple2s as bs))
-        = PNested vsegd (PTuple2s (PWraps as) (PWraps bs))
-
 
 -- | Lifted zip.
 zipl    :: (PA a, PA b)

@@ -8,6 +8,7 @@
 module Data.Array.Parallel.PArray.PRepr.Base 
         ( PRepr
         , PA (..)
+        , toNestedArrPRepr
 
         -- * House Keeping
         , validPA
@@ -45,6 +46,7 @@ module Data.Array.Parallel.PArray.PRepr.Base
 where
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
@@ -67,17 +69,24 @@ type family PRepr a
 --   representable type to and from its generic representation.
 --   The conversion methods should all be O(1).
 class PR (PRepr a) => PA a where
-  toPRepr               :: a                    -> PRepr a
-  fromPRepr             :: PRepr a              -> a
+  toPRepr       :: a                -> PRepr a
+  fromPRepr     :: PRepr a          -> a
 
-  toArrPRepr            :: PData a              -> PData (PRepr a)
-  fromArrPRepr          :: PData (PRepr a)      -> PData a
+  toArrPRepr    :: PData a          -> PData (PRepr a)
+  fromArrPRepr  :: PData (PRepr a)  -> PData a
 
-  toArrPReprs           :: PDatas a             -> PDatas (PRepr a)
-  fromArrPReprs         :: PDatas (PRepr a)     -> PDatas a
+  toArrPReprs   :: PDatas a         -> PDatas (PRepr a)
+  fromArrPReprs :: PDatas (PRepr a) -> PDatas a
 
-  toNestedArrPRepr      :: PData (PArray a)         -> PData (PArray (PRepr a))
-  fromNestedArrPRepr    :: PData (PArray (PRepr a)) -> PData (PArray a)
+
+toNestedArrPRepr
+        :: PA a 
+        => PData (PArray a)
+        -> PData (PArray (PRepr a))
+
+toNestedArrPRepr (PNested vsegd pdatas)
+        = PNested vsegd (toArrPReprs pdatas)
+
 
 -- PD Wrappers ----------------------------------------------------------------
 --  These wrappers work on (PData a) arrays when we know the element type 'a'
@@ -181,9 +190,9 @@ indexPA xs i
 
 {-# INLINE_PA indexlPA #-}
 indexlPA        :: PA a => PData (PArray a) -> PData Int -> PData a
-indexlPA xss ixs
+indexlPA (PNested vsegd pdatas) ixs
  = fromArrPRepr
- $ indexlPR (toNestedArrPRepr xss) ixs
+ $ indexlPR (PNested vsegd (toArrPReprs pdatas)) ixs
 
 
 {-# INLINE_PA extractPA #-}

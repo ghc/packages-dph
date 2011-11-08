@@ -46,11 +46,6 @@ instance PA a => PA (PArray a) where
         = PNesteds $ V.map fromArrPRepr vec
 
 
-  {-# INLINE_PA toNestedArrPRepr #-}
-  toNestedArrPRepr (PNested segd pdatas)
-        = PNested segd $ toArrPReprs pdatas
-
-
 -- PA Wrappers ----------------------------------------------------------------
 -- These wrappers have the same types in the ones in D.A.P.PArray.PData.Nested,
 -- except that they take a PA dictionary instead of a PR dictionary.

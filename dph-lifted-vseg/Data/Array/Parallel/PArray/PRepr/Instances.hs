@@ -33,7 +33,7 @@ instance PA Void where
   fromArrPRepr          = id
   toArrPReprs           = id
   fromArrPReprs         = id
-  toNestedArrPRepr      = id
+
 
 -- Unit -----------------------------------------------------------------------
 type instance PRepr () = ()
@@ -45,7 +45,6 @@ instance PA () where
   fromArrPRepr          = id
   toArrPReprs           = id
   fromArrPReprs         = id
-  toNestedArrPRepr      = id
 
 
 -- Int ------------------------------------------------------------------------
@@ -58,7 +57,6 @@ instance PA Int where
   fromArrPRepr          = id
   toArrPReprs           = id
   fromArrPReprs         = id
-  toNestedArrPRepr      = id
 
 
 -- Double ---------------------------------------------------------------------
@@ -71,8 +69,7 @@ instance PA Double where
   fromArrPRepr          = id
   toArrPReprs           = id
   fromArrPReprs         = id
-  toNestedArrPRepr      = id
-  
+ 
   
 -- Bool -----------------------------------------------------------------------
 -- | We use the `Void` type for both sides because we only care about the tag.
@@ -151,10 +148,3 @@ instance (PR a, PR b) => PA (Either a b) where
   fromArrPReprs (PSum2s sels tags pdatas1 pdatas2)
         = PEithers sels tags pdatas1 pdatas2
 
-{-
-instance ( PprPhysical (PData a), PR a, Eq a
-         , PprPhysical (PData b), PR b, Eq b)
-        => PprPhysical (PData (Either a b)) where
- pprp xs = pprp $ toArrPRepr xs
-
--}
