@@ -25,7 +25,6 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSe
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 
 import Prelude (($!))
 
