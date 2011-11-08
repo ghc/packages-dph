@@ -27,16 +27,16 @@ module Data.Array.Parallel.PArray
         -- * Constructors
         , empty
         , singleton,    singletonl
-        , replicate,    replicatel,     replicates
+        , replicate,    replicatel,     replicates,     replicates'
         , append,       appendl
         , concat,       concatl
         , unconcat
         , nestUSegd
 
         -- * Projections
-        , length,       lengthl          -- length from D.A.P.PArray.PData.Base
+        , length,       lengthl         -- length from D.A.P.PArray.PData.Base
         , index,        indexl
-        , extract,      extracts, extracts'
+        , extract,      extracts,       extracts'
         , slice,        slicel
         , unsafeTakeSegd
 
@@ -58,12 +58,15 @@ module Data.Array.Parallel.PArray
         , fromUArray,   toUArray        -- from D.A.P.PArray.Scalar
 	, fromUArray2)                  -- from D.A.P.PArray.Scalar
 where
+import qualified Data.Array.Parallel.Pretty     as T
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
 import GHC.Exts
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
+import qualified "dph-lifted-reference" Data.Array.Parallel.PArray as R
+import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
@@ -71,19 +74,69 @@ import Prelude hiding
         ( length, replicate, concat
         , enumFromTo
         , zip, unzip)
+import Debug.Trace
+
+-- Tracing --------------------------------------------------------------------
+-- TODO: we could use this to trace the lengths of the vectors being used, 
+--       as well as the types that each opeartor is being called at.
+
+instance PA e => A.Array PArray e where
+ length arr     = length arr
+ index          = index
+ append         = append
+ toVector       = toVector
+ fromVector     = fromVector
+
+-- TODO: shift this stuff to the reference implementation module.
+--       make the PArray constructor polymorphic
+-- | Compare a flat array against a reference
+withRef1 :: PA a => String -> R.PArray a -> PArray a -> PArray a
+withRef1 name arrRef arrImpl
+ = trace (T.render $ T.text name T.$$ T.pprp arrImpl)
+ $ if (  valid arrImpl
+      && A.length arrRef == A.length arrImpl
+      && (V.and $ V.zipWith
+                similarPA
+                (A.toVectors1 arrRef) (A.toVectors1 arrImpl)))
+    then arrImpl
+    else error $ "withRef: failure " ++ name
 
 
+withRef2 :: PA a => String -> R.PArray (R.PArray a) -> PArray (PArray a) -> PArray (PArray a)
+withRef2 name arrRef arrImpl
+ = trace (T.render $ T.text name T.$$ T.pprp arrImpl)
+ $ if (  valid arrImpl
+      && A.length arrRef == A.length arrImpl
+      && (V.and $ V.zipWith 
+                (\xs ys -> V.and $ V.zipWith similarPA xs ys)
+                (A.toVectors2 arrRef) (A.toVectors2 arrImpl)))
+    then arrImpl
+    else error $ "withRef: failure " ++ name
+
+
+-- TODO: shift this stuff to the reference implementation module.
+--       make the parray constructor polymorphic.
+toRef1 :: PA a => PArray a -> R.PArray a
+toRef1  = A.fromVectors1 . A.toVectors1
+
+toRef2 :: PA a => PArray (PArray a) -> R.PArray (R.PArray a)
+toRef2  = A.fromVectors2 . A.toVectors2
+
+toRef3 :: PA a => PArray (PArray (PArray a)) -> R.PArray (R.PArray (R.PArray a))
+toRef3  = A.fromVectors3 . A.toVectors3
+
+
+-- Basics ---------------------------------------------------------------------
 instance (Eq a, PA a)  => Eq (PArray a) where
  (==) (PArray _ xs) (PArray _ ys) = toVectorPA xs == toVectorPA ys
  (/=) (PArray _ xs) (PArray _ ys) = toVectorPA xs /= toVectorPA ys
 
 
--- Basics ---------------------------------------------------------------------
 -- | Check that an array has a valid internal representation.
 valid :: PA a => PArray a -> Bool
 valid (PArray n# darr1)
-        =  validPA darr1
-        && validBool "parray length" (I# n# == lengthPA darr1)
+        =  validPA  darr1
+        && coversPA True darr1 (I# n#)
 {-# INLINE_PA valid #-}
 
 
@@ -97,21 +150,26 @@ nf (PArray n# d)
 -- Constructors ----------------------------------------------------------------
 -- | O(1). An empty array.
 empty :: PA a => PArray a
-empty   = PArray 0# emptyPA
+empty
+ = withRef1 "empty" R.empty
+ $ PArray 0# emptyPA
+
 {-# INLINE_PA empty #-}
 
 
 -- | O(1). Produce an array containing a single element.
 singleton :: PA a => a -> PArray a
 singleton x
-        = PArray 1# (replicatePA 1 x)
+ = withRef1 "singleton" (R.singleton x)
+ $ PArray 1# (replicatePA 1 x)
 {-# INLINE_PA singleton #-}
 
 
 -- | O(n). Produce an array of singleton arrays.
 singletonl :: PA a => PArray a -> PArray (PArray a)
 singletonl arr
-        = replicatel (replicate (length arr) 1) arr
+ = withRef2 "singletonl" (R.singletonl (toRef1 arr))
+ $ replicatel (replicate (length arr) 1) arr
 {-# INLINE_PA singletonl #-}
 
 
@@ -119,65 +177,81 @@ singletonl arr
 --   We require the replication count to be > 0 so that it's easier to maintain
 --   the validPR invariants for nested arrays.
 replicate :: PA a => Int -> a -> PArray a
-replicate (I# n#) x
-        = PArray n# (replicatePA (I# n#) x)
+replicate n@(I# n#) x
+ = withRef1 "replicate" (R.replicate n x)
+ $ PArray n# (replicatePA (I# n#) x)
 {-# INLINE_PA replicate #-}
 
 
 -- | O(sum lengths). Lifted replicate.
 replicatel :: PA a => PArray Int -> PArray a -> PArray (PArray a)
-replicatel (PArray 0# _) _       = empty
-replicatel (PArray n# (PInt lens)) (PArray _ pdata)
- = let  segd    = U.lengthsToSegd lens
+replicatel reps@(PArray n# (PInt lens)) arr@(PArray _ pdata)
+ = withRef2 "replicatel" (R.replicatel (toRef1 reps) (toRef1 arr))
+ $ if n# ==# 0# then empty else 
+    let segd    = U.lengthsToSegd lens
         pdata'  = replicatesPA segd pdata
         c       = I# n#
         
-   in   PArray n# 
+     in PArray n# 
          $ mkPNested
                 (U.enumFromTo 0 (c - 1))
                 lens
                 (U.indicesSegd segd)
                 (U.replicate c 0)
                 (singletondPA pdata')
+
 {-# INLINE_PA replicatel #-}
 
 
 -- | O(sum lengths). Segmented replicate.
 replicates :: PA a => U.Segd -> PArray a -> PArray a
-replicates segd (PArray _ pdata)
- = let  !(I# n#) = U.elementsSegd segd
+replicates segd arr@(PArray _ pdata)
+ = withRef1 "replicates" (R.replicates segd (toRef1 arr))
+ $ let  !(I# n#) = U.elementsSegd segd
    in   PArray n# $ replicatesPA segd pdata
 {-# INLINE_PA replicates #-}
 
 
+-- | O(sum lengths). Wrapper for segmented replicate that takes replication counts
+--  and uses them to build the `U.Segd`.
+replicates' :: PA a => PArray Int -> PArray a -> PArray a
+replicates' (PArray _ (PInt reps)) arr
+ = replicates (U.lengthsToSegd reps) arr
+{-# INLINE_PA replicates' #-}
+ 
+ 
 -- | Append two arrays.
 append :: PA a => PArray a -> PArray a -> PArray a
-append (PArray n1# darr1) (PArray n2# darr2)
-        = PArray (n1# +# n2#) (appendPA darr1 darr2)
+append arr1@(PArray n1# darr1) arr2@(PArray n2# darr2)
+ = withRef1 "append" (R.append (toRef1 arr1) (toRef1 arr2))
+ $ PArray (n1# +# n2#) (appendPA darr1 darr2)
 {-# INLINE_PA append #-}
 
 
 -- | Lifted append.
 --   Both arrays must have the same length
 appendl :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
-appendl (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# $ appendlPA pdata1 pdata2
+appendl arr1@(PArray n# pdata1) arr2@(PArray _ pdata2)
+ = withRef2 "appendl" (R.appendl (toRef2 arr1) (toRef2 arr2))
+ $ PArray n# $ appendlPA pdata1 pdata2
 {-# INLINE_PA appendl #-}
 
 
 -- | Concatenate a nested array.
 concat :: PA a => PArray (PArray a) -> PArray a
-concat (PArray _ darr)
- = let  darr'    = concatPA darr
-        !(I# n#) = lengthPA darr'
+concat arr@(PArray _ darr)
+ = withRef1 "concat" (R.concat (toRef2 arr))
+ $ let  darr'    = concatPA darr
+        !(I# n#)        = lengthPA darr'
    in   PArray  n# darr'
 {-# INLINE_PA concat #-}
 
 
 -- | Lifted concat.
 concatl :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
-concatl (PArray n# pdata1)
-        = PArray n# $ concatlPA pdata1
+concatl arr@(PArray n# pdata1)
+ = withRef2 "concatl" (R.concatl (toRef3 arr))
+ $ PArray n# $ concatlPA pdata1
 {-# INLINE_PA concatl #-}
 
 
@@ -305,37 +379,33 @@ pack (PArray _ xs) (PArray _ (PBool sel2))
 
 
 -- | Lifted pack.
---   Both data and tag arrays must have the same segmentation structure, 
+--   Both data and tag arrays must have the same virtual segmentation structure, 
 --   but this is not checked.
---   BROKEN: this will be wrong because we're ignoring the second vsegd
-packl :: forall a. PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
-packl xss bss
- | PArray n# (PNested vsegd xdatas)     <- xss
- , PArray _  (PNested _     bdatas)     <- bss
+packl :: PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
+packl xss fss
+ | PArray n# xdata@(PNested vsegd _)    <- xss
+ , PArray _  fdata                      <- fss
  = let  
-        -- Split up the vsegd into its parts.
-        vsegids         = U.takeVSegidsOfVSegd  vsegd
-        ssegd           = U.takeSSegdOfVSegd    vsegd
-
-        -- Gather the scattered data together into contiguous arrays, 
-        -- which is the form packByTag needs.
-        xdata_contig            = extractsPA xdatas ssegd
-        bdata'@(PBool sel2)     = extractsPA bdatas ssegd
-        tags                    = U.tagsSel2 sel2
-         
-        -- Pack all the psegs.
-        xdata'          = packByTagPA xdata_contig tags 1
-
-        -- Rebuild the segd to account for the possibly smaller segments.
-        segd            = U.lengthsToSegd $ U.lengthsSSegd ssegd
+        -- Demote the vsegd to get the virtual segmentation of the two arrays.
+        -- The virtual segmentation of both must be the same, but this is not checked.
+        segd            = U.demoteToSegdOfVSegd vsegd
+        
+        -- Concatenate both arrays to get the flat data.
+        --   Although the virtual segmentation should be the same,
+        --   the physical segmentation of both arrays may be different.
+        xdata_flat              = concatPA xdata
+        fdata_flat@(PBool sel)  = concatPA fdata
+        tags                    = U.tagsSel2 sel
+        
+        -- Count how many elements go into each segment.        
         segd'           = U.lengthsToSegd $ U.count_s segd tags 1
 
-        -- Reattach the vsegids, because the top level sharing structure
-        -- of the array is unchanged under pack.
-        vsegd'          = U.mkVSegd vsegids (U.promoteSegdToSSegd segd')
-
-   in   PArray n# (PNested vsegd' (singletondPA xdata'))
-      
+        -- Build the result array
+        vsegd'          = U.promoteSegdToVSegd segd'
+        xdata'          = packByTagPA xdata_flat tags 1
+        
+   in   PArray n# (PNested vsegd' $ singletondPA xdata')
+{-# INLINE_PA packl #-}
 
 
 -- | Filter an array based on some tags.
@@ -343,7 +413,8 @@ packByTag :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
 packByTag (PArray _ darr) tags tag
  = let  darr'           = packByTagPA darr tags tag
         !(I# n#)        = lengthPA darr'
-   in   PArray n# darr'
+   in   PArray  n# darr'
+
 {-# INLINE_PA packByTag #-}
 
 
@@ -352,7 +423,7 @@ combine2  :: PA a => U.Sel2 -> PArray a -> PArray a -> PArray a
 combine2 sel (PArray _ darr1) (PArray _ darr2)
  = let  darr'           = combine2PA sel darr1 darr2
         !(I# n#)        = lengthPA darr'
-   in   PArray n# darr'
+   in   PArray  n# darr'
 {-# INLINE_PA combine2 #-}
 
 

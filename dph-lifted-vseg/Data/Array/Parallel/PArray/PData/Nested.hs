@@ -83,7 +83,6 @@ instance U.Elt (Int, Int, Int)
 
 -- PR Instances ---------------------------------------------------------------
 instance PR a => PR (PArray a) where
-
   -- TODO: make this check all sub arrays as well
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
   -- TODO: shift segd checks into associated modules.
@@ -137,10 +136,9 @@ instance PR a => PR (PArray a) where
                 $ U.and 
                 $ U.zipWith3 
                         (\len start srcid
-                           -> let srclen = lengthPR (psegdata `indexdPR` srcid)
-                              in  and [    (len == 0 && start <= srclen)
-                                        || validIx  "nested array psegstart " srclen start
-                                      ,    validLen "nested array pseglen   " srclen (start + len)])
+                           -> let pdata = psegdata `indexdPR` srcid
+                              in  and [ coversPR (len == 0) pdata start
+                                      , coversPR True       pdata (start + len) ])
                         pseglens psegstarts psegsrcs
 
          -- Every pseg must be referenced by some vseg.
@@ -158,17 +156,33 @@ instance PR a => PR (PArray a) where
              , psegsReffedOK ]
 
 
-  {-# INLINE_PDATA emptyPR #-}
-  emptyPR = PNested U.emptyVSegd emptydPR
-
-
   {-# INLINE_PDATA nfPR #-}
   nfPR    = error "nfPR[PArray]: not defined yet"
 
 
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PNested uvsegd _)
-          = U.lengthOfVSegd uvsegd
+  {-# INLINE_PDATA similarPR #-}
+  similarPR (PArray _ pdata1) (PArray _ pdata2)
+        = V.and $ V.zipWith similarPR 
+                        (toVectorPR pdata1)
+                        (toVectorPR pdata2)
+
+
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (PNested vsegd _ ) ix
+   | weak       = ix <= (U.length $ U.takeVSegidsOfVSegd vsegd)
+   | otherwise  = ix <  (U.length $ U.takeVSegidsOfVSegd vsegd)
+
+
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR (PNested vsegd pdatas)
+        =   text "PNested"
+        $+$ ( nest 4
+            $ pprp vsegd $$ pprp pdatas)
+
+
+  -- Constructors -------------------------------
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR = PNested U.emptyVSegd emptydPR
 
 
   -- When replicating an array we use the source as the single physical

@@ -22,19 +22,29 @@ instance PA a => PR (Wrap a) where
   {-# INLINE_PDATA validPR #-}
   validPR (PWrap pdata)  
         = validPA pdata
- 
+
+  {-# INLINE_PDATA nfPR #-}
+  nfPR (PWrap pdata)      
+        = nfPA pdata
+
+  {-# INLINE_PDATA similarPR #-}
+  similarPR (Wrap x) (Wrap y)
+        = similarPA x y
+
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (PWrap pdata) ix
+        = coversPA weak pdata ix
+
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR (PWrap pdata)
+        = pprpDataPA pdata
+
+
+  -- Constructors -------------------------------
   {-# INLINE_PDATA emptyPR #-}
   emptyPR               
         = PWrap emptyPA
   
-  {-# INLINE_PDATA nfPR #-}
-  nfPR (PWrap pdata)      
-        = nfPA pdata
-        
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PWrap pdata)
-        = lengthPA pdata
-        
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n (Wrap x)
         = PWrap $ replicatePA n x
@@ -43,6 +53,20 @@ instance PA a => PR (Wrap a) where
   replicatesPR segd (PWrap xs)
         = PWrap $ replicatesPA segd xs
 
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PWrap xs) (PWrap ys)
+        = PWrap $ appendPA xs ys
+        
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult segd1 (PWrap xs) segd2 (PWrap ys)
+        = PWrap $ appendsPA segdResult segd1 xs segd2 ys
+        
+
+  -- Projections --------------------------------
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PWrap xs)
+        = lengthPA xs
+  
   {-# INLINE_PDATA indexPR #-}
   indexPR (PWrap xs) ix
         = Wrap  $ indexPA xs ix
@@ -59,14 +83,8 @@ instance PA a => PR (Wrap a) where
   extractsPR (PWraps pdatas) ssegd
         = PWrap $ extractsPA pdatas ssegd
 
-  {-# INLINE_PDATA appendPR #-}
-  appendPR (PWrap xs) (PWrap ys)
-        = PWrap $ appendPA xs ys
-        
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PWrap xs) segd2 (PWrap ys)
-        = PWrap $ appendsPA segdResult segd1 xs segd2 ys
-        
+
+  -- Pack and Combine ---------------------------
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PWrap xs) tags tag
         = PWrap $ packByTagPA xs tags tag
@@ -75,6 +93,8 @@ instance PA a => PR (Wrap a) where
   combine2PR sel (PWrap xs) (PWrap ys)
         = PWrap $ combine2PA sel xs ys
 
+
+  -- Conversions --------------------------------
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec 
         = PWrap $ fromVectorPA $ V.map unWrap vec
@@ -82,6 +102,7 @@ instance PA a => PR (Wrap a) where
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PWrap pdata)
         = V.map Wrap $ toVectorPA pdata
+
 
   -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
@@ -103,35 +124,8 @@ instance PA a => PR (Wrap a) where
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PWraps xs) (PWraps ys)
         = PWraps $ appenddPA xs ys
-        
-{-
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR vecs
-        = PWraps
-                $ V.concat $ V.toList
-                $ V.map (\(PWraps xs) -> toVectordPA xs) vecs
--}
-{-                
-  {-# INLINE_PDATA mapdPR #-}
-  mapdPR f (PDoubles uarrs)
-        = PDoubles 
-                $ V.map (\xs -> case f (PDouble xs) of 
-                                        PDouble zs' -> zs')
-                $ uarrs
 
-  {-# INLINE_PDATA zipWithdPR #-}
-  zipWithdPR f (PDoubles uarrs1) (PDoubles uarrs2)
-        = PDoubles
-                $ V.zipWith 
-                        (\xs ys -> case f (PDouble xs) (PDouble ys) of
-                                        PDouble zs' -> zs')
-                        uarrs1 uarrs2
-                                
-  {-# INLINE_PDATA fromVectordPR #-}
-  fromVectordPR vec
-        = PDoubles $ V.map (\(PDouble xs) -> xs) vec
-        
   {-# INLINE_PDATA toVectordPR #-}
-  toVectordPR (PDoubles vec)
-        = V.map PDouble vec
--}
+  toVectordPR (PWraps pdatas)
+        = V.map PWrap $ toVectordPA pdatas
+        

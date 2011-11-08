@@ -9,9 +9,9 @@ module Data.Array.Parallel.PArray.PRepr.Instances where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Void
 import Data.Array.Parallel.PArray.PData.Wrap
 import Data.Array.Parallel.PArray.PData.Unit
+import Data.Array.Parallel.PArray.PData.Void
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.PData.Sum2
 import Data.Array.Parallel.PArray.PData.Tuple
@@ -34,7 +34,6 @@ instance PA Void where
   toArrPReprs           = id
   fromArrPReprs         = id
   toNestedArrPRepr      = id
-
 
 -- Unit -----------------------------------------------------------------------
 type instance PRepr () = ()
@@ -87,10 +86,6 @@ data instance PData Bool
 data instance PDatas Bool
   = PBools (V.Vector U.Sel2) (PDatas Tag)
 
-
-instance PprPhysical (PData Bool) where
- pprp (PBool sel2) = pprp sel2
-
 instance PA Bool where
   {-# INLINE toPRepr #-}
   toPRepr False          = Alt2_1 void
@@ -110,7 +105,9 @@ instance PA Bool where
 
   {-# INLINE toArrPReprs #-}
   toArrPReprs (PBools sels tagss)
-        = PSum2s sels tagss (pvoids (V.length sels)) (pvoids (V.length sels))
+        = PSum2s sels tagss 
+                (pvoids $ V.length sels)
+                (pvoids $ V.length sels)
 
   {-# INLINE fromArrPReprs #-}
   fromArrPReprs (PSum2s sels tagss _ _)
@@ -154,10 +151,10 @@ instance (PR a, PR b) => PA (Either a b) where
   fromArrPReprs (PSum2s sels tags pdatas1 pdatas2)
         = PEithers sels tags pdatas1 pdatas2
 
-
-instance ( PprPhysical (PData a), PR a
-         , PprPhysical (PData b), PR b)
+{-
+instance ( PprPhysical (PData a), PR a, Eq a
+         , PprPhysical (PData b), PR b, Eq b)
         => PprPhysical (PData (Either a b)) where
  pprp xs = pprp $ toArrPRepr xs
 
-
+-}

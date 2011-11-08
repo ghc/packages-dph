@@ -1,4 +1,4 @@
-Name:           dph-lifted-vseg-DPHWAY
+Name:           dph-lifted-reference
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -6,7 +6,7 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Data structures for the Data Parallel Haskell vectoriser
+Synopsis:       Sequential reference implementation of lifted DPH array primitives.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple
@@ -15,33 +15,10 @@ Library
   -- This Cabal file is CPPed,
   --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
   -- We therefore need to point back at the original location for where to find the sources
-  HS-Source-Dirs: ../dph-lifted-vseg
+  HS-Source-Dirs: ../dph-lifted-reference
 
   Exposed-Modules:
-        Data.Array.Parallel.Lifted.Closure
-        Data.Array.Parallel.Lifted.Combinators
-        Data.Array.Parallel.Lifted
-        Data.Array.Parallel.PArray.PData.Base
-        Data.Array.Parallel.PArray.PData.Bool
-        Data.Array.Parallel.PArray.PData.Double
-        Data.Array.Parallel.PArray.PData.Int
-        Data.Array.Parallel.PArray.PData.Nested
-        Data.Array.Parallel.PArray.PData.Tuple
-        Data.Array.Parallel.PArray.PData.Unit
-        Data.Array.Parallel.PArray.PData.Wrap
-        Data.Array.Parallel.PArray.PData
-        Data.Array.Parallel.PArray.PRepr.Base
-        Data.Array.Parallel.PArray.PRepr.Instances
-        Data.Array.Parallel.PArray.PRepr.Nested
-        Data.Array.Parallel.PArray.PRepr.Tuple
-        Data.Array.Parallel.PArray.PRepr
-        Data.Array.Parallel.PArray.Scalar
-        Data.Array.Parallel.PArray.Types
         Data.Array.Parallel.PArray
-        Data.Array.Parallel.Prelude.Double
-        Data.Array.Parallel.Prelude.Int
-        Data.Array.Parallel
-        Data.Array.Parallel.Prim
 
   Include-Dirs:
         include
@@ -68,8 +45,7 @@ Library
         ParallelListComp,
         PatternGuards,
         ExistentialQuantification,
-        ScopedTypeVariables,
-        PackageImports
+        ScopedTypeVariables
         
 
   GHC-Options: 
@@ -77,21 +53,14 @@ Library
         -Odph 
         -funbox-strict-fields
         -fcpr-off
-        -fno-warn-missing-instances
   
   Build-Depends:  
         base             == 4.4.*,
         ghc              == 7.*,
         array            == 0.3.*,
-        random           == 1.0.*,
-        template-haskell == 2.6.*,
         pretty           == 1.1.*,
         vector           == 0.9.*,
         containers       == 0.4.*,
         dph-base         == 0.5.*,
-        dph-prim-DPHWAY  == 0.5.*
-
-  GHC-Options: -fdph-this
-
-  GHC-Options: -package-name dph-lifted-vseg-DPHWAY
+        dph-prim-par     == 0.5.*
 

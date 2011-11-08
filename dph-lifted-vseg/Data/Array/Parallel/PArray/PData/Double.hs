@@ -8,6 +8,7 @@ import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 
+
 data instance PData Double
         = PDouble !(U.Array Double)
 
@@ -15,23 +16,35 @@ data instance PDatas Double
         = PDoubles !(V.Vector (U.Array Double))
 
 
-
+-- PR -------------------------------------------------------------------------
 instance PR Double where
+
   {-# INLINE_PDATA validPR #-}
   validPR _
         = True
-
-  {-# INLINE_PDATA emptyPR #-}
-  emptyPR
-        = PDouble U.empty
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (PDouble xx)
         = xx `seq` ()
 
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PDouble xx)
-        = U.length xx
+  {-# INLINE_PDATA similarPR #-}
+  similarPR  = (==)
+
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (PDouble uarr) ix
+   | weak       = ix <= U.length uarr
+   | otherwise  = ix <  U.length uarr
+
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR (PDouble vec)
+   =   text "PDouble"
+   <+> text (show $ U.toList vec)
+
+
+  -- Constructors -------------------------------
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
+        = PDouble U.empty
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len x
@@ -40,7 +53,21 @@ instance PR Double where
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR segd (PDouble arr)
         = PDouble (U.replicate_s segd arr)
-                
+
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PDouble arr1) (PDouble arr2)
+        = PDouble (arr1 U.+:+ arr2)
+
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult segd1 (PDouble arr1) segd2 (PDouble arr2)
+        = PDouble $ U.append_s segdResult segd1 arr1 segd2 arr2
+
+
+  -- Projections --------------------------------                
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PDouble uarr)
+        = U.length uarr
+
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix
         = arr `VU.unsafeIndex` ix
@@ -75,14 +102,8 @@ instance PR Double where
          seglens        = U.lengthsSSegd ussegd
      in  PDouble (uextracts vecpdatas segsrcs segstarts seglens)
                 
-  {-# INLINE_PDATA appendPR #-}
-  appendPR (PDouble arr1) (PDouble arr2)
-        = PDouble (arr1 U.+:+ arr2)
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PDouble arr1) segd2 (PDouble arr2)
-        = PDouble $ U.append_s segdResult segd1 arr1 segd2 arr2
-
+  -- Pack and Combine ---------------------------
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PDouble arr1) arrTags tag
         = PDouble $ U.packByTag arr1 arrTags tag
@@ -93,6 +114,8 @@ instance PR Double where
                            (U.repSel2  sel)
                            arr1 arr2)
 
+
+  -- Conversions --------------------------------
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
         = PDouble (U.fromList $ V.toList xx)
@@ -100,6 +123,7 @@ instance PR Double where
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PDouble arr)
         = V.fromList $ U.toList arr
+
 
   -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
@@ -141,11 +165,7 @@ instance PR Double where
 deriving instance Show (PData  Double)
 deriving instance Show (PDatas Double)
 
-instance PprPhysical (PData Double) where
-  pprp (PDouble vec)
-   =   text "PDouble"
-   <+> text (show $ U.toList vec)
-
 instance PprVirtual (PData Double) where
   pprv (PDouble vec)
    = text (show $ U.toList vec)
+

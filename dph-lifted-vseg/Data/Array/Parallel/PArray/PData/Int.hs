@@ -9,23 +9,35 @@ import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
 
+
 -- PR -------------------------------------------------------------------------
 instance PR Int where
+
   {-# INLINE_PDATA validPR #-}
   validPR _
         = True
-
-  {-# INLINE_PDATA emptyPR #-}
-  emptyPR
-        = PInt U.empty
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (PInt xx)
         = xx `seq` ()
 
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PInt xx)
-        = U.length xx
+  {-# INLINE_PDATA similarPR #-}
+  similarPR  = (==)
+
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (PInt uarr) ix
+   | weak       = ix <= U.length uarr
+   | otherwise  = ix <  U.length uarr
+
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR (PInt uarr)
+   =    text "PInt" <+> pprp uarr
+
+
+  -- Constructors -------------------------------
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
+        = PInt U.empty
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len x
@@ -35,9 +47,23 @@ instance PR Int where
   replicatesPR segd (PInt arr)
         = PInt (U.replicate_s segd arr)
                 
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PInt arr1) (PInt arr2)
+        = PInt $ arr1 U.+:+ arr2
+
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult segd1 (PInt arr1) segd2 (PInt arr2)
+        = PInt $ U.append_s segdResult segd1 arr1 segd2 arr2
+
+
+  -- Projections --------------------------------                
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PInt uarr) 
+        = U.length uarr
+
   {-# INLINE_PDATA indexPR #-}
-  indexPR (PInt arr) ix
-        = arr U.!: ix
+  indexPR (PInt uarr) ix
+        = uarr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR arr@(PNested vsegd (PInts vecpdatas)) (PInt ixs)
@@ -68,19 +94,13 @@ instance PR Int where
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
      in  PInt $ uextracts vecpdatas segsrcs segstarts seglens
-                
-  {-# INLINE_PDATA appendPR #-}
-  appendPR (PInt arr1) (PInt arr2)
-        = PInt $ arr1 U.+:+ arr2
-
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PInt arr1) segd2 (PInt arr2)
-        = PInt $ U.append_s segdResult segd1 arr1 segd2 arr2
 
   {-# INLINE_PDATA bpermutePR #-}
   bpermutePR (PInt arr) indices
         = PInt $ U.bpermute arr indices
 
+
+  -- Pack and Combine ---------------------------
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PInt arr1) arrTags tag
         = PInt $ U.packByTag arr1 arrTags tag
@@ -91,6 +111,8 @@ instance PR Int where
                            (U.repSel2  sel)
                            arr1 arr2
 
+
+  -- Conversions --------------------------------
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR xx
         = PInt $U.fromList $ V.toList xx
@@ -99,7 +121,8 @@ instance PR Int where
   toVectorPR (PInt arr)
         = V.fromList $ U.toList arr
 
-  -- PRR ----------------------------------------
+
+  -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
         = PInts $ V.empty
@@ -141,15 +164,6 @@ deriving instance Show (PDatas Int)
 instance PprPhysical (U.Array Int) where
   pprp uarr 
    =    text (show $ U.toList uarr)
-
-instance PprPhysical (PData Int) where
-  pprp (PInt uarr)
-   =    text "PInt" <+> pprp uarr
-
-instance PprPhysical (PDatas Int) where
-  pprp (PInts vecs)
-   =    text "PInts" $+$ (nest 4 $ vcat $ P.map pprp $ V.toList vecs)
-
 
 instance PprVirtual (PData Int) where
   pprv (PInt vec)

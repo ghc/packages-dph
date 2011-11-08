@@ -48,9 +48,14 @@ module Data.Array.Parallel.Prim
         -- Tuple functions
         , tup2, tup3)
 where
-import Data.Array.Parallel.PArray.PData.Base   (PArray(..), PData, PR(..))
-import Data.Array.Parallel.PArray.PData
-        ( pvoid, punit)
+import Data.Array.Parallel.PArray.PData.Base   
+        (PArray(..), PData, PR(..))
+
+import Data.Array.Parallel.PArray.PData.Void
+        ( Void, void, pvoid, fromVoid )
+
+import Data.Array.Parallel.PArray.PData.Unit
+        ( punit )
 
 import Data.Array.Parallel.PArray.PRepr 
         ( PRepr, PA(..)
@@ -60,8 +65,7 @@ import Data.Array.Parallel.PArray.Scalar
         ( Scalar(..))
 
 import Data.Array.Parallel.PArray.Types
-        ( Void, void, fromVoid
-        , Wrap(..)
+        ( Wrap(..)
         , Sum2(..), Sum3(..))
         
 import Data.Array.Parallel.Lifted.Closure

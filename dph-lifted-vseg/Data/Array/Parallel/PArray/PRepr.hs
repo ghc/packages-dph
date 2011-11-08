@@ -53,14 +53,14 @@ instance  (PprPhysical (PData (PRepr a)), PA a)
   $+$ ( nest 4 
       $ pprp $ toArrPRepr dat)
 
-
+{-
 -- | Pretty print the physical representation of a nested array
 instance (PprPhysical (PData a), PR a) 
        => PprPhysical (PData (PArray a)) where
  pprp (PNested uvsegd pdatas)
   =   text "PNested"
   $+$ (nest 4 $ pprp uvsegd $$ (pprp $ pdatas))
-
+-}
 {-
 -- | Pretty print a virtual nested array.
 instance ( PprVirtual (PData a), PR a) 

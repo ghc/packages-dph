@@ -7,7 +7,6 @@ module Data.Array.Parallel.PArray.PData
         , module Data.Array.Parallel.PArray.PData.Nested
         , module Data.Array.Parallel.PArray.PData.Unit
         , module Data.Array.Parallel.PArray.PData.Tuple
-        , module Data.Array.Parallel.PArray.PData.Void
         , fromListPR
         , toListPR
         , mapdPR
@@ -20,8 +19,8 @@ import Data.Array.Parallel.PArray.PData.Double
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.PData.Sum2
 import Data.Array.Parallel.PArray.PData.Unit
-import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PData.Void
+import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PRepr.Instances
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U

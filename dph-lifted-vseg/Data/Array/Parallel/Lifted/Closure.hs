@@ -13,10 +13,12 @@ module Data.Array.Parallel.Lifted.Closure (
   closure1,  closure2,  closure3,
   closure1', closure2', closure3'  
 ) where
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Unit
 import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PRepr
+import qualified Data.Vector            as V
 import GHC.Exts
 
 
@@ -205,23 +207,39 @@ closure3' fv fl
 -- to break an import loop.
 --
 instance PR (a :-> b) where
+
   {-# INLINE_PDATA validPR #-}
   validPR (AClo _ _ env)
         = validPA env
-
-  {-# INLINE_PDATA emptyPR #-}
-  emptyPR
-        = AClo  (\_ _ -> error "empty array closure")
-                (\_ _ -> error "empty array closure")
-                (emptyPA :: PData ())
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (AClo fv fl envs)
         = fv `seq` fl `seq` nfPA envs `seq` ()
 
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (AClo _ _ envs)
-        = lengthPA envs
+  -- We can't test functions for equality.
+  -- We can't test the environments either, because they're existentially quantified.
+  -- Let's just call them equal... similarPA is just for testing anyway.
+  {-# INLINE_PDATA similarPR #-}
+  similarPR _ _
+        = True
+
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (AClo _ _ envs) ix
+        = coversPA weak envs ix
+
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR (AClo _ _ env)
+        = vcat
+        [ text "AClo"
+        , pprpDataPA env ]
+
+
+  -- Constructors -------------------------------
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
+        = AClo  (\_ _ -> error "empty array closure")
+                (\_ _ -> error "empty array closure")
+                (emptyPA :: PData ())
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n (Clo fv fl envs)
@@ -231,10 +249,18 @@ instance PR (a :-> b) where
   replicatesPR lens (AClo fv fl envs)
         = AClo fv fl (replicatesPA lens envs)
 
+
+  -- Projections --------------------------------
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (AClo _ _ envs)
+        = lengthPA envs
+
   {-# INLINE_PDATA indexPR #-}
   indexPR (AClo fv fl envs) ix
         = Clo fv fl (indexPA envs ix)
 
+
+  -- Pack and Combine ---------------------------
   {-# INLINE_PDATA extractPR #-}
   extractPR (AClo fv fl envs) start len
         = AClo fv fl (extractPA envs start len)
@@ -243,6 +269,11 @@ instance PR (a :-> b) where
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (AClo fv fl envs) tags tag
         = AClo fv fl (packByTagPA envs tags tag)
+
+
+  -- Conversions --------------------------------
+  toVectorPR (AClo fv fl envs)
+   = V.map (Clo fv fl) $ toVectorPA envs
 
 
   -- TODO: not sure about these.
@@ -255,7 +286,7 @@ instance PR (a :-> b) where
   appendsPR     = error     "appendPR[:->]: not defined"
   combine2PR    = error    "combinePR[:->]: not defined"
   fromVectorPR  = error "fromVectorPR[:->]: not defined"
-  toVectorPR    = error   "toVectorPR[:->]: not defined"
+
 
 
 -- PRepr Instance -------------------------------------------------------------

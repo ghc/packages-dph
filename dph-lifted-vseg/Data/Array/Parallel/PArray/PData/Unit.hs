@@ -15,29 +15,40 @@ data instance PData ()
         = PUnit Int
 
 data instance PDatas ()
-        = PUnits (V.Vector (PData ()))
+        = PUnits (U.Array Int)
 
-punit :: PData ()
-punit =  PUnit 0
-
+punit   :: Int -> PData ()
+punit   = PUnit
 
 -- PR -------------------------------------------------------------------------
 instance PR () where
+
   {-# INLINE_PDATA validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA emptyPR #-}
-  emptyPR
-        = PUnit 0
-
   {-# INLINE_PDATA nfPR #-}
   nfPR xx
         = xx `seq` ()
+  
+  {-# INLINE_PDATA similarPR #-}
+  similarPR _ _
+        = True
 
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PUnit n)
-        = n
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (PUnit n) i
+   | weak       = i <= n
+   | otherwise  = i <  n
+
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR uu
+        = text $ show uu
+
+
+  -- Constructors -------------------------------
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
+        = PUnit 0
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n _
@@ -46,7 +57,21 @@ instance PR () where
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR segd _
         = PUnit (U.elementsSegd segd)
-        
+                
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PUnit len1) (PUnit len2)
+        = PUnit (len1 + len2)
+
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR segdResult _ _ _ _
+        = PUnit (U.lengthSegd segdResult)
+
+
+  -- Projections -------------------------------        
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PUnit n)
+        = n
+
   {-# INLINE_PDATA indexPR #-}
   indexPR _ _
         = ()
@@ -62,15 +87,9 @@ instance PR () where
   {-# INLINE_PDATA extractsPR #-}
   extractsPR _ ussegd
         = PUnit (U.sum $ U.lengthsSSegd ussegd)
-                
-  {-# INLINE_PDATA appendPR #-}
-  appendPR (PUnit len1) (PUnit len2)
-        = PUnit (len1 + len2)
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult _ _ _ _
-        = PUnit (U.lengthSegd segdResult)
-        
+
+  -- Pack and Combine ---------------------------        
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR _ tags tag
         = PUnit (U.length $ U.filter (== tag) tags)
@@ -80,6 +99,8 @@ instance PR () where
         = PUnit ( U.elementsSel2_0 sel2
                 + U.elementsSel2_1 sel2)
 
+
+  -- Conversions --------------------------------
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
         = PUnit (V.length vec)
@@ -88,24 +109,20 @@ instance PR () where
   toVectorPR (PUnit len)
         = V.replicate len ()
 
-  -----------------------------------------------
+  -- PDatas -------------------------------------
   {-# INLINE_PDATA lengthdPR #-}
   lengthdPR (PUnits pdatas)
-        = V.length pdatas
+        = U.length pdatas
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PUnits pdatas) ix
-        = pdatas `V.unsafeIndex` ix
+        = PUnit $ pdatas U.!: ix
         
 
 
 -- Show -----------------------------------------------------------------------
 deriving instance Show (PData  ())
 deriving instance Show (PDatas ())
-
-instance PprPhysical (PData ()) where
-  pprp uu
-   = text $ show uu
 
 instance PprVirtual (PData ()) where
   pprv (PUnit n)

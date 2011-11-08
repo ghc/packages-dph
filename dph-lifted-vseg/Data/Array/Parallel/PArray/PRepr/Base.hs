@@ -1,25 +1,39 @@
 #include "fusion-phases.h"
 
 -- | Definition of the PRepr/PA family and class.
+--   PA functions are the same as the methods of the PR class, 
+--   except that they take a PA dictinoary instead of a PR 
+-- d  ictionary.
 --
 module Data.Array.Parallel.PArray.PRepr.Base 
         ( PRepr
         , PA (..)
 
-        -- PA functions are the same as the methods of the PR class, 
-        -- except that they take a PA dictinoary instead of a PR 
-        -- dictionary.
+        -- * House Keeping
         , validPA
-        , emptyPA
         , nfPA
-        , lengthPA
+        , similarPA
+        , coversPA
+        , pprpDataPA
+
+        -- * Constructors
+        , emptyPA
         , replicatePA,  replicatesPA
+        , appendPA,     appendsPA
+
+        -- * Projections
+        , lengthPA
         , indexPA,      indexlPA
         , extractPA,    extractsPA
-        , appendPA,     appendsPA
+
+        -- * Pack and Combine
         , packByTagPA
         , combine2PA
+
+        -- * Conversions 
         , fromVectorPA, toVectorPA
+
+        -- * PDatas
         , emptydPA
         , singletondPA
         , lengthdPA
@@ -28,6 +42,7 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , concatdPA
         , fromVectordPA, toVectordPA)
 where
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Vector                              (Vector)
@@ -83,12 +98,6 @@ validPA arr
  = validPR (toArrPRepr arr)
 
 
-{-# INLINE_PA emptyPA #-}
-emptyPA         :: PA a => PData a
-emptyPA 
-  = fromArrPRepr emptyPR
-
-
 {-# INLINE_PA nfPA #-}
 nfPA            :: PA a => PData a -> ()
 nfPA arr
@@ -96,12 +105,30 @@ nfPA arr
  $ toArrPRepr arr
 
 
-{-# INLINE_PA lengthPA #-}
-lengthPA        :: PA a => PData a -> Int
-lengthPA arr
- = lengthPR 
- $ toArrPRepr arr
- 
+{-# INLINE_PA similarPA #-}
+similarPA       :: PA a => a -> a -> Bool
+similarPA x y
+ = similarPR (toPRepr x) (toPRepr y)
+
+
+{-# INLINE_PA coversPA #-}
+coversPA        :: PA a => Bool -> PData a -> Int -> Bool
+coversPA weak pdata ix
+ = coversPR weak (toArrPRepr pdata) ix
+
+
+{-# INLINE_PA pprpDataPA #-}
+pprpDataPA          :: PA a => PData a -> Doc
+pprpDataPA x
+ = pprpDataPR (toArrPRepr x)
+
+
+-- Constructors ---------------------------------
+{-# INLINE_PA emptyPA #-}
+emptyPA         :: PA a => PData a
+emptyPA 
+  = fromArrPRepr emptyPR
+
 
 {-# INLINE_PA replicatePA #-}
 replicatePA     :: PA a => Int -> a -> PData a
@@ -115,6 +142,27 @@ replicatesPA    :: PA a => U.Segd -> PData a -> PData a
 replicatesPA segd xs
  = fromArrPRepr
  $ replicatesPR segd (toArrPRepr xs)
+
+
+{-# INLINE_PA appendPA #-}
+appendPA        :: PA a => PData a -> PData a -> PData a
+appendPA xs ys
+ = fromArrPRepr
+ $ appendPR (toArrPRepr xs) (toArrPRepr ys)
+
+
+{-# INLINE_PA appendsPA #-}
+appendsPA       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd -> PData a -> PData a
+appendsPA segdResult segd1 xs segd2 ys
+ = fromArrPRepr
+ $ appendsPR segdResult segd1 (toArrPRepr xs) segd2 (toArrPRepr ys)
+
+
+-- Projections ----------------------------------
+{-# INLINE_PA lengthPA #-}
+lengthPA        :: PA a => PData a -> Int
+lengthPA xs
+ = lengthPR (toArrPRepr xs)
 
 
 {-# INLINE_PA indexPA #-}
@@ -145,20 +193,7 @@ extractsPA xss segd
  $ extractsPR (toArrPReprs xss) segd
 
 
-{-# INLINE_PA appendPA #-}
-appendPA        :: PA a => PData a -> PData a -> PData a
-appendPA xs ys
- = fromArrPRepr
- $ appendPR (toArrPRepr xs) (toArrPRepr ys)
-
-
-{-# INLINE_PA appendsPA #-}
-appendsPA       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd -> PData a -> PData a
-appendsPA segdResult segd1 xs segd2 ys
- = fromArrPRepr
- $ appendsPR segdResult segd1 (toArrPRepr xs) segd2 (toArrPRepr ys)
-
-
+-- Pack and Combine -----------------------------
 {-# INLINE_PA packByTagPA #-}
 packByTagPA     :: PA a => PData a -> U.Array Tag -> Tag -> PData a
 packByTagPA xs tags tag
@@ -173,6 +208,7 @@ combine2PA sel xs ys
  $ combine2PR sel (toArrPRepr xs) (toArrPRepr ys)
  
  
+-- Conversions ----------------------------------
 {-# INLINE_PA fromVectorPA #-}
 fromVectorPA    :: PA a => Vector a -> PData a
 fromVectorPA vec

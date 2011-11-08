@@ -39,7 +39,6 @@ import Prelude hiding (length)
 data PArray a
         = PArray Int# (PData  a)
 
-
 -- | Take the length of an array
 {-# INLINE_PA length #-}
 length :: PArray a -> Int
@@ -71,24 +70,37 @@ data instance PDatas Int
 -- PR -------------------------------------------------------------------------
 class PR a where
 
+  -- House Keeping ------------------------------
+  --  These methods are helpful for debugging, but we don't want their
+  --  associated type classes as superclasses of PR.
+
   -- | Check that an array has a well formed representation.
   --   This should only return False where there is a bug in the library.
   validPR       :: PData a -> Bool
 
-  -- | Produce an empty array with size zero.
-  emptyPR       :: PData a
-
   -- | Ensure there are no thunks in the representation of a manifest array.
   nfPR          :: PData a -> ()
 
-  -- | Get the number of elements in an array.
-  --   For nested arrays this is just the length of the top level of nesting,
-  --   not the total number of elements in the array.
+  -- | Weak equality of contained elements.
+  --   Returns True for functions of the same type.  
+  --   In the case of nested arrays, this ignores the physical representation,
+  --   that is, it doesn't care about the exact form of segment descriptors.
+  similarPR     :: a -> a -> Bool
 
-  --   TODO: We want a length function so we can use it in validPR,
-  --         but it should return  Nothing when the array is 'defined everywhere', 
-  --         like with arrays of ().
-  lengthPR      :: PData a -> Int
+  -- | Check that an index is within this array.
+  --   The (PData Void) arrays don't have a real length, but we still want to
+  --   to check that indices are in-range during testing.
+  --   If the array has a hard length, and the flag is True, then we allow
+  --   the index to be equal to this length.
+  coversPR      :: Bool -> PData a -> Int   -> Bool
+
+  -- | Pretty print the physical representation of this array.
+  pprpDataPR    :: PData a -> Doc
+
+
+  -- Constructors -------------------------------
+  -- | Produce an empty array with size zero.
+  emptyPR       :: PData a
 
   -- | Define an array of the given size, that maps all elements to the same value.
   --   We require the replication count to be > 0 so that it's easier to maintain
@@ -99,15 +111,30 @@ class PR a where
                 -> PData a
 
   -- | O(sum lengths). Segmented replicate.
-  --   NOTE: This takes a whole Segd instead of just the lengths, because we can
-  --   do it more efficiently if we know there are no zero lengths.
-  --   TODO: the Segd should actually keep track of whether there are zero lengths.
+  --   TODO: This takes a whole Segd instead of just the lengths, because we could
+  --         do it more efficiently if we knew there were no zero lengths.
   replicatesPR  :: U.Segd               -- ^ segment descriptor defining the lengths of the segments.
                 -> PData a              -- ^ data elements to replicate
                 -> PData a
 
+  -- | Append two sized arrays.
+  appendPR      :: PData a -> PData a -> PData a
+
+  -- | Segmented append
+  appendsPR     :: U.Segd               -- ^ segd of result
+                -> U.Segd -> PData a    -- ^ segd/data of first  arrays
+                -> U.Segd -> PData a    -- ^ segd/data of second arrays
+                -> PData a
+
+
+  -- Projections --------------------------------
+  -- | O(1). Get the length of an array, if it has one.
+  --   A (PData Void) array has no length, so this returns `error` in that case.
+  --   To check array bounds, use coversPR instead, as that's a total function.
+  lengthPR      :: PData a -> Int
+  
   -- | O(1). Lookup a single element from the source array.
-  indexPR       :: PData a    -> Int -> a
+  indexPR       :: PData a -> Int -> a
 
   -- | Lookup several elements from several source arrays
   indexlPR      :: PData (PArray a)
@@ -125,20 +152,13 @@ class PR a where
                 -> U.SSegd              -- ^ segment descriptor describing scattering of data.
                 -> PData a
 
-  -- | Append two sized arrays.
-  appendPR      :: PData a -> PData a -> PData a
-
-  -- | Segmented append
-  appendsPR     :: U.Segd               -- ^ segd of result
-                -> U.Segd -> PData a    -- ^ segd/data of first  arrays
-                -> U.Segd -> PData a    -- ^ segd/data of second arrays
-                -> PData a
-
   -- | Backwards permutation
   bpermutePR    :: PData a              -- ^ source array
                 -> U.Array Int          -- ^ source indices
                 -> PData a
 
+
+  -- Pack and Combine ---------------------------
   -- | Filter an array based on some tags.
   packByTagPR   :: PData a              -- ^ source array
                 -> U.Array Tag          -- ^ array of tags
@@ -151,14 +171,16 @@ class PR a where
                 -> PData a              -- ^ second source array
                 -> PData a
 
-  -- Conversions ---------------------
+
+  -- Conversions --------------------------------
   -- | Convert a boxed vector to an array.
   fromVectorPR  :: Vector a -> PData a
 
   -- | Convert an array to a boxed vector.
   toVectorPR    :: PData a -> Vector a
 
-  -- PDatas --------------------------
+
+  -- PDatas -------------------------------------
   -- | O(1). Yield an empty collection of PData.
   emptydPR      :: PDatas a
 
@@ -184,12 +206,16 @@ class PR a where
   toVectordPR   :: PDatas a           -> V.Vector (PData a)
 
 
-instance (PR a, PprPhysical (PData a)) => PprPhysical (PDatas a) where
+instance PR a  => PprPhysical (PData a) where
+ pprp = pprpDataPR
+
+instance PR a  => PprPhysical (PDatas a) where
  pprp pdatas
   = vcat
   $ [ int n <> colon <> text " " <> pprp pd
         | n  <- [0..]
         | pd <- V.toList $ toVectordPR pdatas]
+
 
 -------------------------------------------------------------------------------
 -- extra unlifted primitives should be moved into unlifted library ------------

@@ -33,24 +33,37 @@ nope str   = error $ "Data.Array.Parallel.PData.Sum2: no PR method for Sum2 " ++
 
 
 instance (PR a, PR b) => PR (Sum2 a b)  where
+
   {-# INLINE_PDATA validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA emptyPR #-}
-  emptyPR
-        = PSum2 (U.mkSel2 U.empty U.empty 0 0 (U.mkSelRep2 U.empty)) emptyPR emptyPR
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (PSum2 sel xs ys)
         = sel `seq` nfPR xs `seq` nfPR ys `seq` ()
 
-  {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PSum2 sel xs ys)
-        = U.length (U.tagsSel2 sel)
+  {-# INLINE_PDATA coversPR #-}
+  coversPR weak (PSum2 sel _ _) ix
+   | weak       = ix <= U.length (U.tagsSel2 sel)
+   | otherwise  = ix <  U.length (U.tagsSel2 sel)
 
 
-  -- replicate / replicates ---------------------------------------------------
+  {-# NOINLINE pprpDataPR #-}
+  pprpDataPR (PSum2 sel pdatas1 pdatas2)
+   =   text "PSum2"
+   $+$ (nest 4 $ vcat
+        [ pprp sel
+        , text "ALTS0: " <+> pprp pdatas1
+        , text "ALTS1: " <+> pprp pdatas2])
+
+
+  -- Constructors -------------------------------
+  {-# INLINE_PDATA emptyPR #-}
+  emptyPR
+        = PSum2 (U.mkSel2 U.empty U.empty 0 0 (U.mkSelRep2 U.empty)) emptyPR emptyPR
+
+
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n aa
    = case aa of
@@ -69,13 +82,33 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                           (U.mkSelRep2 (U.replicate n 1)))
                 emptyPR
                 (replicatePR n x)    
+
                 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR
         = nope "replicates"
 
 
-  -- index / indexl -----------------------------------------------------------                      
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PSum2 sel1 as1 bs1)
+           (PSum2 sel2 as2 bs2)
+    = let !sel  = U.tagsToSel2
+                $ U.tagsSel2 sel1 U.+:+ U.tagsSel2 sel2
+      in  PSum2 sel (appendPR as1 as2)
+                    (appendPR bs1 bs2)
+        
+        
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR
+        = nope "appends"
+
+
+  -- Projections --------------------------------
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PSum2 sel _ _)
+        = U.length $ tagsSel2 sel
+  
+  
   {-# INLINE_PDATA indexPR #-}
   indexPR (PSum2 sel as bs) i
    = let !k = U.indicesSel2 sel U.!: i
@@ -88,7 +121,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         = nope "indexl"
 
 
-  -- extract / extracts -------------------------------------------------------
+  -- extract / extracts 
   -- Extract a range of elements from an array of Sum2s.
   -- Example:
   --  arr:         [L 20, R 30, L 40, R 50, R 60, R 70, L 80, R 90, L 100]
@@ -284,21 +317,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
            PSum2 sel' pdata0 pdata1
 
 
-  -- append / appends ---------------------------------------------------------
-  {-# INLINE_PDATA appendPR #-}
-  appendPR (PSum2 sel1 as1 bs1)
-           (PSum2 sel2 as2 bs2)
-    = let !sel  = U.tagsToSel2
-                $ U.tagsSel2 sel1 U.+:+ U.tagsSel2 sel2
-      in  PSum2 sel (appendPR as1 as2)
-                    (appendPR bs1 bs2)
-        
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR
-        = nope "appends"
-        
-
-  -- pack / combine -----------------------------------------------------------
+  -- Pack and Combine ---------------------------
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR
         = nope "packByTag"
@@ -308,7 +327,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         = nope "combine2"
 
 
-  -- fromVector / toVector ----------------------------------------------------
+  -- Conversions --------------------------------
   -- TODO: fix rubbish via-lists filtering.   
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
@@ -321,17 +340,19 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         
 
   {-# INLINE_PDATA toVectorPR #-}
-  toVectorPR pdata
-   | lengthPR pdata == 0        = V.empty
-   | otherwise  
-   = V.map (indexPR pdata) 
-        $ V.enumFromTo 0 (lengthPR pdata - 1)
+  toVectorPR pdata@(PSum2 sel _ _)
+   = let len = U.length $ U.tagsSel2 sel
+     in  if len == 0
+          then V.empty
+          else V.map (indexPR pdata) 
+                $ V.enumFromTo 0 (len - 1)
 
 
-  -- PDatas -------------------------------------------------------------------
+  -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
         = PSum2s V.empty emptydPR emptydPR emptydPR
+
 
   {-# INLINE_PDATA singletondPR #-}
   singletondPR (PSum2 sel2 xs ys)
@@ -340,15 +361,18 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                  (singletondPR xs)
                  (singletondPR ys)
 
+
   {-# INLINE_PDATA lengthdPR #-}
   lengthdPR (PSum2s sel2s _ _ _)
         = V.length sel2s
 
+
   {-# INLINE_PDATA indexdPR #-}
   indexdPR  (PSum2s sel2s _ xss yss) ix
-        = PSum2 (V.unsafeIndex sel2s ix)
-                (indexdPR      xss   ix)
-                (indexdPR      yss   ix)
+        = PSum2  (V.unsafeIndex sel2s ix)
+                 (indexdPR      xss   ix)
+                 (indexdPR      yss   ix)
+
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PSum2s sels1 tagss1 xss1 yss1)
@@ -358,10 +382,12 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
             (xss1   `appenddPR` xss2)
             (yss1   `appenddPR` yss2)
 
+
   {-# INLINE_PDATA concatdPR #-}
   concatdPR
         = nope "concatdPR"
                 
+
   -- TODO: fix rubbish via-lists conversion.
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
@@ -374,6 +400,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                    (fromVectordPR $ V.fromList pdatas1)
                    (fromVectordPR $ V.fromList pdatas2)
                 
+
   {-# INLINE_PDATA toVectordPR #-}
   toVectordPR (PSum2s sels _ pdatas1 pdatas2)
    = let  vecs1 = toVectordPR pdatas1
@@ -389,29 +416,5 @@ instance PprPhysical U.Sel2 where
   $+$ (nest 4 $ vcat
        [ text "TAGS:   " <+> text (show $ U.toList $ U.tagsSel2 sel2)
        , text "INDICES:" <+> text (show $ U.toList $ U.indicesSel2 sel2)])
-
-
-instance ( PprPhysical (PData a)
-         , PprPhysical (PData b))
-        => PprPhysical (PData (Sum2 a b)) where
-
- pprp (PSum2 sel pdatas1 pdatas2)
-  =   text "PSum2"
-  $+$ (nest 4 $ vcat
-        [ pprp sel
-        , text "ALTS0: " <+> pprp pdatas1
-        , text "ALTS1: " <+> pprp pdatas2])
-
-
-instance ( PprPhysical (PDatas a)
-         , PprPhysical (PDatas b))
-        => PprPhysical (PDatas (Sum2 a b)) where
-
- pprp (PSum2s sels tagss pdatas1 pdatas2)
-  =   text "PSum2s"
-  $+$ (nest 4 $ vcat
-        [ text "SELS:"          $+$ (nest 4 $ vcat $ P.map pprp $ V.toList sels)
-        , text "PDATAS1:"       $$ (nest 4 $ pprp pdatas1)
-        , text "PDATAS2:"       $$ (nest 4 $ pprp pdatas2)])
 
 

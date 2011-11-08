@@ -258,10 +258,6 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
   |])
 
--- TODO: shift this to dph-base
-instance PprVirtual Bool where
- pprv = text . show
- 
 instance (PprVirtual a, PprVirtual b) => PprVirtual (Either a b) where
  pprv (Left  x) = text "Left"  <+> pprv x
  pprv (Right y) = text "Right" <+> pprv y
