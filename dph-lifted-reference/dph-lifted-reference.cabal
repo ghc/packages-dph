@@ -54,6 +54,9 @@ Library
         -funbox-strict-fields
         -fcpr-off
   
+  Exposed:
+        False
+
   Build-Depends:  
         base             == 4.4.*,
         ghc              == 7.*,

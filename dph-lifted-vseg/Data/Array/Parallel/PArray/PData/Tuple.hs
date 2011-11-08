@@ -3,7 +3,7 @@
 module Data.Array.Parallel.PArray.PData.Tuple 
         ( PData(..),    PDatas(..)
         , zip,          zipPD
-        , zipl,         ziplPD
+        ,               ziplPR
         , unzip,        unzipPD
         , unzipl,       unziplPD)
 where
@@ -15,6 +15,9 @@ import GHC.Exts
 import Prelude hiding (zip, unzip)
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
+import Debug.Trace
+import qualified Data.Array.Parallel.Pretty     as T
+import qualified Data.Array.Parallel.Unlifted   as U
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
@@ -199,10 +202,14 @@ zipPD   = PTuple2
 
 
 -- | Lifted zip.
-ziplPD   :: PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
-ziplPD (PNested vsegd pdatas1) (PNested _ pdatas2)
-        = PNested vsegd (PTuple2s pdatas1 pdatas2)
-{-# INLINE_PA ziplPD #-}
+ziplPR   :: (PR a, PR b) => PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
+ziplPR arr1@(PNested vsegd1 pdatas1) arr2@(PNested vsegd2 pdatas2)
+ = let  (segd1, pdata1) = unsafeFlattenPR arr1
+        (_,     pdata2) = unsafeFlattenPR arr2
+   in   PNested (U.promoteSegdToVSegd segd1)
+                (PTuple2s (singletondPR pdata1) (singletondPR pdata2))
+
+{-# INLINE_PA ziplPR #-}
 
 
 -- | O(1). Unzip an array of pairs into a pair of arrays.
@@ -228,12 +235,6 @@ zip :: PArray a -> PArray b -> PArray (a, b)
 zip (PArray n# pdata1) (PArray _ pdata2)
         = PArray n# $ zipPD pdata1 pdata2
 {-# INLINE_PA zip #-}
-
-
--- | Lifted zip.
-zipl :: PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
-zipl (PArray n# xs) (PArray _ ys)
-        = PArray n# $ ziplPD xs ys
 
 
 -- | O(1). Unzip an array of pairs into a pair of arrays.

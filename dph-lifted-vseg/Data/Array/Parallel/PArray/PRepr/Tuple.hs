@@ -2,7 +2,10 @@
 
 -- | PRepr instance for tuples
 --   and PD wrappers for other functions defined in D.A.P.PArray.PData.Tuple.
-module Data.Array.Parallel.PArray.PRepr.Tuple where
+module Data.Array.Parallel.PArray.PRepr.Tuple
+        ( PRepr(..)
+        , zipl)
+where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
@@ -45,4 +48,24 @@ instance (PA a, PA b) => PA (a,b) where
   {-# INLINE_PA toNestedArrPRepr #-}
   toNestedArrPRepr (PNested vsegd (PTuple2s as bs))
         = PNested vsegd (PTuple2s (PWraps as) (PWraps bs))
-        
+
+
+-- | Lifted zip.
+zipl    :: (PA a, PA b)
+        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
+zipl (PArray n# xs) (PArray _ ys)
+        = PArray n# $ ziplPA xs ys
+
+
+ziplPA  :: (PA a, PA b) 
+        => PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
+ziplPA xs ys
+ = let  PNested vsegd (PTuple2s xs' ys')
+         = ziplPR (toNestedArrPRepr xs)
+                  (toNestedArrPRepr ys)
+
+   in   PNested vsegd (PTuple2s   
+                        (fromArrPReprs xs')
+                        (fromArrPReprs ys'))
+
+

@@ -76,8 +76,8 @@ class PR (PRepr a) => PA a where
   toArrPReprs           :: PDatas a             -> PDatas (PRepr a)
   fromArrPReprs         :: PDatas (PRepr a)     -> PDatas a
 
-  toNestedArrPRepr      :: PData (PArray a)     -> PData (PArray (PRepr a))
-
+  toNestedArrPRepr      :: PData (PArray a)         -> PData (PArray (PRepr a))
+  fromNestedArrPRepr    :: PData (PArray (PRepr a)) -> PData (PArray a)
 
 -- PD Wrappers ----------------------------------------------------------------
 --  These wrappers work on (PData a) arrays when we know the element type 'a'
