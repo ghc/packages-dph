@@ -128,10 +128,10 @@ productP a = a `indexPArr` 0
 
 sumP_v, productP_v:: PArray Int :-> Int
 {-# INLINE sumP_v #-}
-sumP_v     = closure1 (scalar_fold (+) 0) (scalar_folds (+) 0)
+sumP_v     = closure1 (scalar_fold (P.+) 0) (scalar_folds (P.+) 0)
 {-# NOVECTORISE sumP_v #-}
 {-# INLINE productP_v #-}
-productP_v = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
+productP_v = closure1 (scalar_fold (P.*) 1) (scalar_folds (P.*) 1)
 {-# NOVECTORISE productP_v #-}
 
 div, mod :: Int -> Int -> Int
@@ -146,5 +146,5 @@ sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 
 enumFromToP :: Int -> Int ->  [:Int:]
 {-# NOINLINE enumFromToP #-}
-enumFromToP x y = singletonPArr (x + y)
+enumFromToP x y = singletonPArr (x P.+ y)
 {-# VECTORISE enumFromToP = enumFromToPA_Int #-}
