@@ -48,6 +48,13 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
    | weak       = ix <= U.length (U.tagsSel2 sel)
    | otherwise  = ix <  U.length (U.tagsSel2 sel)
 
+  
+  {-# NOINLINE pprpPR #-}
+  pprpPR xx
+   = case xx of
+        Alt2_1 x -> text "Alt2_1" <+> parens (pprpPR x)
+        Alt2_2 y -> text "Alt2_2" <+> parens (pprpPR y)
+
 
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PSum2 sel pdatas1 pdatas2)

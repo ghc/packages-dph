@@ -35,6 +35,10 @@ instance PA a => PR (Wrap a) where
   coversPR weak (PWrap pdata) ix
         = coversPA weak pdata ix
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR (Wrap x)
+        = pprpPA x
+
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PWrap pdata)
         = pprpDataPA pdata

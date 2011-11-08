@@ -48,6 +48,10 @@ instance (PR a, PR b) => PR (a, b) where
         =  coversPR weak arr1 ix
         && coversPR weak arr2 ix
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR (x, y)
+        = text "Tuple2 " <> vcat [pprpPR x, pprpPR y]
+        
 
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PTuple2 xs ys)

@@ -40,6 +40,10 @@ instance PR () where
    | weak       = i <= n
    | otherwise  = i <  n
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR _
+        = text "()"
+
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR uu
         = text $ show uu

@@ -29,6 +29,10 @@ instance PR Int where
    | weak       = ix <= U.length uarr
    | otherwise  = ix <  U.length uarr
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR i
+   =    int i
+
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PInt uarr)
    =    text "PInt" <+> pprp uarr

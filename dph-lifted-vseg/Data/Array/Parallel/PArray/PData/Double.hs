@@ -35,6 +35,10 @@ instance PR Double where
    | weak       = ix <= U.length uarr
    | otherwise  = ix <  U.length uarr
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR d
+   =    double d
+
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PDouble vec)
    =   text "PDouble"

@@ -63,6 +63,7 @@ import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
 import GHC.Exts
+import Data.Maybe
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified "dph-lifted-reference" Data.Array.Parallel.PArray as R
@@ -74,6 +75,7 @@ import Prelude hiding
         ( length, replicate, concat
         , enumFromTo
         , zip, unzip)
+        
 import Debug.Trace
 
 -- Tracing --------------------------------------------------------------------
@@ -84,34 +86,62 @@ instance PA e => A.Array PArray e where
  length arr     = length arr
  index          = index
  append         = append
- toVector       = toVector
- fromVector     = fromVector
+
+ -- The toVector conversion used for testing is built by looking up every index
+ --  instead of using the bulk fromVectorPA function.
+ --  We need to do this to convert arrays of type (PArray Void) properly, as 
+ --  although a (PArray Void) has an intrinsic length, a (PData Void) does not.
+ --  Arrays of type PArray Void aren't visible in the user API, but during debugging
+ --  we need to be able to print them out with the correct length.
+ toVector arr
+        = V.map (A.index arr) $ V.enumFromTo 0 (A.length arr - 1)
+
+ fromVector
+        = fromVector
+
+instance PA a => PprPhysical (PArray a) where
+ pprp (PArray n# pdata)
+        =     ( T.text "PArray " T.<+> T.int (I# n#))
+        T.$+$ ( T.nest 4 
+              $ pprpDataPA pdata)
+
+instance PA a => PprPhysical (Vector a) where
+ pprp vec
+        = T.brackets 
+        $ T.hcat
+        $ T.punctuate (T.text ", ") 
+        $ V.toList $ V.map pprpPA vec
 
 -- TODO: shift this stuff to the reference implementation module.
 --       make the PArray constructor polymorphic
 -- | Compare a flat array against a reference
-withRef1 :: PA a => String -> R.PArray a -> PArray a -> PArray a
+withRef1 :: forall a. PA a => String -> R.PArray a -> PArray a -> PArray a
 withRef1 name arrRef arrImpl
- = trace (T.render $ T.text name T.$$ T.pprp arrImpl)
+ = trace (T.render $ T.text name T.$$ pprpPA arrImpl)
  $ if (  valid arrImpl
       && A.length arrRef == A.length arrImpl
       && (V.and $ V.zipWith
                 similarPA
                 (A.toVectors1 arrRef) (A.toVectors1 arrImpl)))
     then arrImpl
-    else error $ "withRef: failure " ++ name
+    else error $ T.render $ T.vcat
+          [ T.text "withRef1: failure " T.<> T.text name
+          , T.nest 4 $ pprp  $ A.toVectors1 arrRef
+          , T.nest 4 $ pprpPA arrImpl ]
 
 
-withRef2 :: PA a => String -> R.PArray (R.PArray a) -> PArray (PArray a) -> PArray (PArray a)
+withRef2 :: forall a. PA a => String -> R.PArray (R.PArray a) -> PArray (PArray a) -> PArray (PArray a)
 withRef2 name arrRef arrImpl
- = trace (T.render $ T.text name T.$$ T.pprp arrImpl)
+ = trace (T.render $ T.text name T.$$ pprpPA arrImpl)
  $ if (  valid arrImpl
       && A.length arrRef == A.length arrImpl
       && (V.and $ V.zipWith 
                 (\xs ys -> V.and $ V.zipWith similarPA xs ys)
                 (A.toVectors2 arrRef) (A.toVectors2 arrImpl)))
     then arrImpl
-    else error $ "withRef: failure " ++ name
+    else error $ T.render $ T.vcat
+          [ T.text "withRef2: failure " T.<> T.text name
+          , T.nest 4 $ pprpPA arrImpl ]
 
 
 -- TODO: shift this stuff to the reference implementation module.
@@ -206,7 +236,8 @@ replicatel reps@(PArray n# (PInt lens)) arr@(PArray _ pdata)
 -- | O(sum lengths). Segmented replicate.
 replicates :: PA a => U.Segd -> PArray a -> PArray a
 replicates segd arr@(PArray _ pdata)
- = withRef1 "replicates" (R.replicates segd (toRef1 arr))
+ = trace (T.render $ (T.text "FUCK" T.$$ (T.pprp segd) T.$$ (T.pprp arr)))
+ $ withRef1 "replicates" (R.replicates segd (toRef1 arr))
  $ let  !(I# n#) = U.elementsSegd segd
    in   PArray n# $ replicatesPA segd pdata
 {-# INLINE_PA replicates #-}
@@ -441,7 +472,6 @@ toVector   :: PA a => PArray a -> Vector a
 toVector (PArray _ arr)
         = toVectorPA arr
 {-# INLINE_PA toVector #-}
-
 
 -- | Convert a list to a `PArray`.
 fromList :: PA a => [a] -> PArray a

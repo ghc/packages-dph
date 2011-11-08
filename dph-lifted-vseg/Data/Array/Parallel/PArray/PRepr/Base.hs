@@ -14,6 +14,7 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , nfPA
         , similarPA
         , coversPA
+        , pprpPA
         , pprpDataPA
 
         -- * Constructors
@@ -115,6 +116,12 @@ similarPA x y
 coversPA        :: PA a => Bool -> PData a -> Int -> Bool
 coversPA weak pdata ix
  = coversPR weak (toArrPRepr pdata) ix
+
+
+{-# INLINE_PA pprpPA #-}
+pprpPA          :: PA a => a -> Doc
+pprpPA x
+ = pprpPR (toPRepr x)
 
 
 {-# INLINE_PA pprpDataPA #-}

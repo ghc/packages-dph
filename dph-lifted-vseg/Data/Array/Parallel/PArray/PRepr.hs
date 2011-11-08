@@ -46,13 +46,13 @@ instance  (PprVirtual a, PA a)
 
 -- | To pretty print a physical PArray we need to print the elements in their
 --   generic representations.
-instance  (PprPhysical (PData (PRepr a)), PA a)
+{-instance  (PprPhysical (PData (PRepr a)), PA a)
         => PprPhysical (PArray a) where
  pprp (PArray n# dat)
   =   (text "PArray " <+> int (I# n#))
   $+$ ( nest 4 
       $ pprp $ toArrPRepr dat)
-
+-}
 {-
 -- | Pretty print the physical representation of a nested array
 instance (PprPhysical (PData a), PR a) 

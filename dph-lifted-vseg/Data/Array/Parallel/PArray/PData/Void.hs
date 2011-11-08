@@ -24,6 +24,7 @@ import qualified Data.Vector            as V
 --   was well as a partial lengthPR function.
 --
 data instance PData Void
+        = PVoid
 
 -- | PVoids instance counts how many "vectors" of void we have
 data instance PDatas Void
@@ -53,7 +54,10 @@ instance PR Void where
   {-# INLINE_PDATA coversPR #-}
   coversPR _ _ _  = True
   
-  {-# INLINE_PDATA pprpDataPR #-}
+  {-# NOINLINE pprpPR #-}
+  pprpPR _        = text "void"
+  
+  {-# NOINLINE pprpDataPR #-}
   pprpDataPR _    = text "pvoid"
 
 
@@ -78,8 +82,11 @@ instance PR Void where
   {-# INLINE_PDATA lengthPR #-}
   lengthPR _    = nope "length"
 
+  -- We return the black hole here so that we can construct vectors of type
+  -- Vector Void during debugging.
+  -- See the (A.Array PArray e) instance in D.A.P.PArray for details.
   {-# INLINE_PDATA indexPR #-}
-  indexPR       = nope "index"
+  indexPR _ _   = void
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR      = nope "indexl"
@@ -103,11 +110,8 @@ instance PR Void where
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR  = nope "fromVector"
 
-  -- This conversion is dodgy because it implies the array has length zero,
-  -- where really should have "no length". This is ok if we're just using
-  -- it for debugging.
   {-# INLINE_PDATA toVectorPR #-}
-  toVectorPR _  = V.empty
+  toVectorPR _  = nope "toVector"
 
 
   -- PDatas -------------------------------------  

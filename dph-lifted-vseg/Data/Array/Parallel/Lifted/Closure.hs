@@ -227,11 +227,17 @@ instance PR (a :-> b) where
   coversPR weak (AClo _ _ envs) ix
         = coversPA weak envs ix
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR (Clo _ _ env)
+        = vcat
+        [ text "Clo"
+        , pprpPA env ]
+
   {-# NOINLINE pprpDataPR #-}
-  pprpDataPR (AClo _ _ env)
+  pprpDataPR (AClo _ _ envs)
         = vcat
         [ text "AClo"
-        , pprpDataPA env ]
+        , pprpDataPA envs ]
 
 
   -- Constructors -------------------------------

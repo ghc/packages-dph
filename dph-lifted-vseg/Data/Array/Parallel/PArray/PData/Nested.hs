@@ -172,6 +172,11 @@ instance PR a => PR (PArray a) where
    | weak       = ix <= (U.length $ U.takeVSegidsOfVSegd vsegd)
    | otherwise  = ix <  (U.length $ U.takeVSegidsOfVSegd vsegd)
 
+  {-# NOINLINE pprpPR #-}
+  pprpPR (PArray n# pdata)
+        =   (text "PArray " <+> int (I# n#))
+        $+$ ( nest 4 
+            $ pprpDataPR pdata)
 
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PNested vsegd pdatas)

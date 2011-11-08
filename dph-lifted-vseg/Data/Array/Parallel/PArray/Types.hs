@@ -12,7 +12,7 @@
 -- 
 module Data.Array.Parallel.PArray.Types (
   -- * The Void type
-  Void,
+  Void(..),
   void,
   fromVoid,     
 
@@ -30,8 +30,10 @@ import Data.Array.Parallel.Pretty
 
 -- Void -----------------------------------------------------------------------
 -- | The `Void` type is used when representing enumerations. 
+-- 
 --   A type like Bool is represented as @Sum2 Void Void@, meaning that we only
 --   only care about the tag of the data constructor and not its argumnent.
+-- 
 data Void
 
 -- | A 'value' with the void type. Used as a placholder like `undefined`.

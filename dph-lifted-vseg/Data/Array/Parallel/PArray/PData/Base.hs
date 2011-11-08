@@ -94,6 +94,9 @@ class PR a where
   --   the index to be equal to this length.
   coversPR      :: Bool -> PData a -> Int   -> Bool
 
+  -- | Pretty print the physical representation of an element.
+  pprpPR        :: a       -> Doc
+
   -- | Pretty print the physical representation of this array.
   pprpDataPR    :: PData a -> Doc
 
@@ -212,7 +215,7 @@ instance PR a  => PprPhysical (PData a) where
 instance PR a  => PprPhysical (PDatas a) where
  pprp pdatas
   = vcat
-  $ [ int n <> colon <> text " " <> pprp pd
+  $ [ int n <> colon <> text " " <> pprpDataPR pd
         | n  <- [0..]
         | pd <- V.toList $ toVectordPR pdatas]
 
