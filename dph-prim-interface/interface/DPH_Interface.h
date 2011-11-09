@@ -323,58 +323,6 @@ zipWith4 f as bs cs ds
   bpermute (generate_cheap n f) xs
     = map f xs
  #-}
-              
- 
--- The following rules fuse arithmetic operations that shouldnt have been
---  vectorised in the first place. For example, with  z = x * y + a, the vectoriser
---  will lift * and + to vector operations. The result of the  the multiply will be
---  written to a vector, and then read back to do the addition.
---
---  Adding the zipWith rules ensures that the multiply and addition are performed
---  in one go. On the other hand, they can break fusion in the backend library.
---
--- NOTE: These rules are only temporary, they should go away when we have 
---       vectorisation avoidance for scalar operations.
-
-{- RULES  **************** DISABLED
-
-"zipWith/zipWith/zipWith" forall f g h as bs cs ds.
-  zipWith f (zipWith g as bs) (zipWith h cs ds)
-   = zipWith4 (\a b c d -> f (g a b) (h c d)) as bs cs ds
-
-"zipWith/zipWith_left"  forall f g as bs cs.
-  zipWith f (zipWith g as bs) cs
-   = zipWith3 (\a b c ->   f (g a b) c) as bs cs
-
-"zipWith/zipWith_right" forall f g as bs cs.
-  zipWith f as (zipWith g bs cs)
-   = zipWith3 (\a b c ->   f a (g b c)) as bs cs
-
-  -}
-
-
--- More rules to recover from the lack of vectorisation avoidance.
--- The regular form of the rules shows why we really dont want to do it this way.
-
-{- RULES  ****************** DISABLED
-
-"map/zipWith" forall f g xs ys.
-  map f (zipWith g xs ys)
-   = zipWith (\x y -> f (g x y)) xs ys
-
-"zipWith3/map_1" forall f g xs ys zs.
-  zipWith3 f (map g xs) ys zs
-   = zipWith3 (\x y z -> f (g x) y z) xs ys zs
-
-"zipWith3/map_2" forall f g xs ys zs.
-  zipWith3 f xs (map g ys) zs
-   = zipWith3 (\x y z -> f x (g y) z) xs ys zs
-
-"zipWith3/map_3" forall f g xs ys zs.
-  zipWith3 f xs ys (map g zs)
-   = zipWith3 (\x y z -> f x y (g z)) xs ys zs
-
-  -}
 
 
 -- Folds ----------------------------------------------------------------------
@@ -771,27 +719,7 @@ dph_plus x y = x Prelude.+ y
 
   #-}
 
-{- not used 
-dph_mult :: Int -> Int -> Int
-{-# INLINE_BACKEND dph_mult #-}
-dph_mult x y = x Prelude.* y
--}
-
 tagZeroes :: Array Int -> Array Tag
 {-# INLINE CONLIKE PHASE_BACKEND tagZeroes #-}
 tagZeroes xs = map (\x -> fromBool (x==0)) xs
 
-
--------------------------------------------------------------------------------
--- Currently disabled rules
--------------------------------------------------------------------------------
-
-{- RULES
-
-"packByTag/combine2ByTag" forall tags1 xs ys tags2 n.
-  packByTag (combine2ByTag tags1 xs ys) tags2 n
-    = combine2ByTag (packByTag tags1 tags2 n)
-                    (packByTag xs (packByTag tags2 tags1 0) n)
-                    (packByTag ys (packByTag tags2 tags1 1) n)
-
-  -}
