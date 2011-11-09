@@ -1,5 +1,5 @@
 Name:           dph-DPHWAY
-Version:        0.5.1.1
+Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
@@ -21,6 +21,7 @@ Library
         Data.Array.Parallel
         Data.Array.Parallel.Lifted
         Data.Array.Parallel.Prelude
+        Data.Array.Parallel.Prelude.Bool
         Data.Array.Parallel.Prelude.Int
         Data.Array.Parallel.Prelude.Word8
         Data.Array.Parallel.Prelude.Float
@@ -45,7 +46,6 @@ Library
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Prelude.Tuple
-        Data.Array.Parallel.Prelude.Bool
 
   Exposed: False
 
