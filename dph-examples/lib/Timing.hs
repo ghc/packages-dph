@@ -1,10 +1,9 @@
 module Timing
 	(time, showTime, prettyTime)
 where
-import GHC.Exts	(traceEvent)
 import System.CPUTime
 import System.Time
-
+import Debug.Trace
 
 -- Time -----------------------------------------------------------------------
 data Time 
@@ -63,8 +62,8 @@ time :: IO a -> IO (a, Time)
 {-# NOINLINE time #-}
 time p = do
            start <- getTime
-           traceEvent "dph-examples: start timing"
+           traceEventIO "dph-examples: start timing"
            x     <- p
-           traceEvent "dph-examples: finished timing"
+           traceEventIO "dph-examples: finished timing"
            end   <- getTime
            return (x, end `minus` start)
