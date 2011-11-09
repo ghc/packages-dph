@@ -9,15 +9,13 @@ module Data.Array.Parallel.PArray.PData.Tuple
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
-import Data.Array.Parallel.Base
 import Text.PrettyPrint
 import GHC.Exts
 import Prelude hiding (zip, unzip)
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
-import Debug.Trace
-import qualified Data.Array.Parallel.Pretty     as T
 import qualified Data.Array.Parallel.Unlifted   as U
+
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
@@ -158,9 +156,9 @@ instance (PR a, PR b) => PR (a, b) where
 
 
   {-# INLINE_PDATA lengthdPR #-}
-  lengthdPR (PTuple2s xs ys)
+  lengthdPR (PTuple2s xs _)
         = lengthdPR xs
-
+   
    
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PTuple2s xs ys) i
@@ -175,8 +173,8 @@ instance (PR a, PR b) => PR (a, b) where
   {-# INLINE_PDATA concatdPR #-}
   concatdPR vecs
         = PTuple2s
-                (concatdPR $ V.map (\(PTuple2s xs ys) -> xs) vecs)
-                (concatdPR $ V.map (\(PTuple2s xs ys) -> ys) vecs)
+                (concatdPR $ V.map (\(PTuple2s xs _) -> xs) vecs)
+                (concatdPR $ V.map (\(PTuple2s _ ys) -> ys) vecs)
 
 
   {-# INLINE_PDATA fromVectordPR #-}
@@ -203,7 +201,7 @@ zipPD   = PTuple2
 
 -- | Lifted zip.
 ziplPR   :: (PR a, PR b) => PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
-ziplPR arr1@(PNested vsegd1 pdatas1) arr2@(PNested vsegd2 pdatas2)
+ziplPR arr1 arr2
  = let  (segd1, pdata1) = unsafeFlattenPR arr1
         (_,     pdata2) = unsafeFlattenPR arr2
    in   PNested (U.promoteSegdToVSegd segd1)

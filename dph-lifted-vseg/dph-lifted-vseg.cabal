@@ -82,9 +82,11 @@ Library
         PackageImports
 
   GHC-Options:
-        -Odph -fno-liberate-case -fcpr-off
+        -Odph 
+        -fcpr-off -fno-liberate-case -fno-spec-constr
+        -Wall
         -fno-warn-missing-methods
-        -fno-spec-constr
+        -fno-warn-orphans
 
   Build-Depends:  
         base             == 4.4.*,

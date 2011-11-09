@@ -110,6 +110,7 @@ minIndexPP      = L.closure1' (SC.fold1Index min') (SC.fold1sIndex min')
 {-# INLINE      minIndexPP #-}
 {-# NOVECTORISE minIndexPP #-}
 
+min' :: P.Ord b => (a, b) -> (a, b) -> (a, b)
 min' (i,x) (j,y) | x P.<= y    = (i,x)
                  | P.otherwise = (j,y)
 {-# NOVECTORISE min' #-}
@@ -125,6 +126,7 @@ maxIndexPP      = L.closure1' (SC.fold1Index max') (SC.fold1sIndex max')
 {-# INLINE      maxIndexPP #-}
 {-# NOVECTORISE maxIndexPP #-}
 
+max' :: P.Ord b => (a, b) -> (a, b) -> (a, b)
 max' (i,x) (j,y) | x P.>= y    = (i,x)
                  | P.otherwise = (j,y)
 {-# NOVECTORISE max' #-}

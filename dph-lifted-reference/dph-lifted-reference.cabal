@@ -46,7 +46,6 @@ Library
         PatternGuards,
         ExistentialQuantification,
         ScopedTypeVariables
-        
 
   GHC-Options: 
         -Wall -fno-warn-orphans -fno-warn-missing-signatures

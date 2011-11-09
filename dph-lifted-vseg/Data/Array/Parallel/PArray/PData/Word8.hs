@@ -77,7 +77,7 @@ instance PR Word8 where
         = uarr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR arr@(PNested vsegd (PWord8s vecpdatas)) (PInt ixs)
+  indexlPR (PNested vsegd (PWord8s vecpdatas)) (PInt ixs)
    = PWord8 $ U.zipWith get vsegids ixs
    where
          -- Unbox these vectors outside the get loop.

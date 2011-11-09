@@ -3,7 +3,6 @@ module Data.Array.Parallel.Prelude.Tuple (
 ) where
   
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PRepr
 import qualified Data.Array.Parallel.PArray     as PA
 

@@ -34,6 +34,7 @@ module Data.Array.Parallel.Prim
         -- Selectors
         , Sel2
         , tagsSel2
+        , pickSel2#
         , replicateSel2#
         , elementsSel2_0#
         , elementsSel2_1#
@@ -96,7 +97,7 @@ packByTagPD xs _ tags tag#
 
 
 combine2PD :: PA a => Int# -> U.Sel2 -> PData a -> PData a -> PData a
-combine2PD len# sel xs ys
+combine2PD _ sel xs ys
         = combine2PA sel xs ys
 
 
@@ -121,6 +122,7 @@ closure fv fl e
 
 -- | Apply a closure.
 {-# INLINE ($:) #-}
+($:) :: forall a b. (a :-> b) -> a -> b
 ($:)    = (C.$:)
 
 

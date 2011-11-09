@@ -70,7 +70,7 @@ instance PR Int where
         = uarr U.!: ix
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR arr@(PNested vsegd (PInts vecpdatas)) (PInt ixs)
+  indexlPR (PNested vsegd (PInts vecpdatas)) (PInt ixs)
    = PInt $ U.zipWith get vsegids ixs
    where
          -- Unbox these vectors outside the get loop.

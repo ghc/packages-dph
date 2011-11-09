@@ -3,15 +3,14 @@
 -- | PRepr instance for tuples
 --   and PD wrappers for other functions defined in D.A.P.PArray.PData.Tuple.
 module Data.Array.Parallel.PArray.PRepr.Tuple
-        ( PRepr(..)
+        ( PRepr
         , zipl)
 where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Wrap
 import Data.Array.Parallel.PArray.PData.Tuple
-import Data.Array.Parallel.PArray.PData.Nested
+import Data.Array.Parallel.PArray.PData.Wrap
 
 
 -------------------------------------------------------------------------------

@@ -4,10 +4,10 @@ module Data.Array.Parallel.PArray.PData.Void
         (Void, void, pvoid, fromVoid, pvoids)
 where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PRepr.Base    ()
 import Data.Array.Parallel.PArray.Types
-import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.Pretty
-import qualified Data.Vector            as V
+import qualified Data.Vector                    as V
 
 -------------------------------------------------------------------------------
 -- | The Void type is used as a place holder in situations where we don't 
@@ -24,7 +24,6 @@ import qualified Data.Vector            as V
 --   was well as a partial lengthPR function.
 --
 data instance PData Void
-        = PVoid
 
 -- | PVoids instance counts how many "vectors" of void we have
 data instance PDatas Void
@@ -38,6 +37,7 @@ pvoids   = PVoids
 
 
 -- PR --------------------------------------------------------------------------
+nope :: String -> a
 nope str    = error $ "Data.Array.Parallel.PData.Void: no PR method for " ++ str
 
 instance PR Void where

@@ -11,9 +11,7 @@ where
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
-import qualified Data.Array.Parallel.Unlifted           as U
 import qualified Data.Vector                            as V
-import Data.Vector                                      (Vector)
 
 
 -- PArray ---------------------------------------------------------------------

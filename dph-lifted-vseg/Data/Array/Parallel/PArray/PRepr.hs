@@ -7,7 +7,6 @@ module Data.Array.Parallel.PArray.PRepr
         , module Data.Array.Parallel.PArray.PRepr.Nested
         , module Data.Array.Parallel.PArray.PRepr.Tuple
         , unpackPA
-        , packByTagsPA
         , mapdPA
         , zipWithdPA)
 where
@@ -18,10 +17,8 @@ import Data.Array.Parallel.PArray.PRepr.Tuple
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.Pretty
 import Data.Vector                              (Vector)
-import Data.Array.Parallel.Base                 (Tag)
-import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import GHC.Exts
+
 
 -- Pretty -------------------------------------------------------------------
 -- | Show a virtual array.
@@ -58,33 +55,6 @@ instance PA a => PprPhysical (Vector a) where
 unpackPA :: PA a => PArray a -> PData (PRepr a)
 unpackPA (PArray _ pdata)
         = toArrPRepr pdata
-                
---------------------------------------------------------------------------------
--- | Filter some scattered segments according to some tag arrays.
---   The `SSegd` describes the layout of the source data as well as the tags,
---   which must be the same.
-packByTagsPA
-        :: PA a
-        => U.SSegd
-        -> PDatas a             -- ^ Source array
-        -> PDatas Tag           -- ^ Tag arrays
-        -> Tag                  -- ^ Tag of elements to select.
-        -> (U.Segd, PData a)
-
-packByTagsPA ssegd xdatas bdatas tag
- = let
-        -- Gather the scattered data together into contiguous arrays, 
-        -- which is the form packByTag needs.
-        xdata_contig            = extractsPA xdatas ssegd
-        bdata'@(PInt tags)      = extractsPA bdatas ssegd
-         
-        -- Pack all the psegs.
-        xdata'          = packByTagPA xdata_contig tags 1
-
-        -- Rebuild the segd to account for the possibly smaller segments.
-        segd            = U.lengthsToSegd $ U.lengthsSSegd ssegd
-  in    (segd, xdata')
-{-# INLINE_PA packByTagsPA #-}
 
 
 mapdPA  :: (PA a, PA b)

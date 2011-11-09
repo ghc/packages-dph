@@ -77,7 +77,7 @@ instance PR Double where
         = arr `VU.unsafeIndex` ix
 
   {-# INLINE_PDATA indexlPR #-}
-  indexlPR arr@(PNested vsegd (PDoubles vecpdatas)) (PInt ixs)
+  indexlPR (PNested vsegd (PDoubles vecpdatas)) (PInt ixs)
    = PDouble $ U.zipWith get vsegids ixs
    where
          -- Unbox these vectors outside the get loop.

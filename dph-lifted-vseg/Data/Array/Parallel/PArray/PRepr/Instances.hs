@@ -9,19 +9,19 @@ module Data.Array.Parallel.PArray.PRepr.Instances where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Wrap
-import Data.Array.Parallel.PArray.PData.Unit
+
 import Data.Array.Parallel.PArray.PData.Void
-import Data.Array.Parallel.PArray.PData.Nested
-import Data.Array.Parallel.PArray.PData.Sum2
-import Data.Array.Parallel.PArray.PData.Tuple
-import Data.Array.Parallel.PArray.PData.Int
-import Data.Array.Parallel.PArray.PData.Word8
-import Data.Array.Parallel.PArray.PData.Double
+import Data.Array.Parallel.PArray.PData.Sum2    
+import Data.Array.Parallel.PArray.PData.Wrap    ()
+import Data.Array.Parallel.PArray.PData.Unit    ()
+import Data.Array.Parallel.PArray.PData.Nested  ()
+import Data.Array.Parallel.PArray.PData.Tuple   ()
+import Data.Array.Parallel.PArray.PData.Int     ()
+import Data.Array.Parallel.PArray.PData.Word8   ()
+import Data.Array.Parallel.PArray.PData.Double  ()
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import Text.PrettyPrint
 import Data.Word
 
 

@@ -5,7 +5,6 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
-import Data.Vector.Unboxed                      (Vector)
 import qualified Data.Vector                    as V
 
 -------------------------------------------------------------------------------

@@ -12,7 +12,7 @@
 -- 
 module Data.Array.Parallel.PArray.Types (
   -- * The Void type
-  Void(..),
+  Void,
   void,
   fromVoid,     
 

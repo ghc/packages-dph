@@ -45,9 +45,6 @@ import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PData         as PA
 import Data.Array.Parallel.PArray.PRepr         as PA
 import Data.Array.Parallel.PArray               as PA
-import qualified Data.Array.Parallel.Unlifted   as U
-import qualified Data.Vector                    as V
-import GHC.Exts
 
 
 -- Conversions ================================================================

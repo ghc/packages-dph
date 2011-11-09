@@ -15,12 +15,11 @@ module Data.Array.Parallel.PArray.PData.Base
 where
 import Data.Array.Parallel.Pretty
 import GHC.Exts
-import SpecConstr
+import SpecConstr                               ()
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
 import Prelude hiding (length)
 
 -- PArray ---------------------------------------------------------------------

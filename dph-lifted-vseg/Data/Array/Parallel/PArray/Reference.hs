@@ -23,7 +23,10 @@ import qualified "dph-lifted-reference"
 import Prelude hiding (length)
 
 -- Config ---------------------------------------------------------------------
+debugLiftedTrace        :: Bool
 debugLiftedTrace        = False
+
+debugLiftedCompare      :: Bool
 debugLiftedCompare      = False
 
 

@@ -64,11 +64,24 @@ data instance PDatas (PData a)
 
 
 -- TODO: we shouldn't be using these directly.
-pnested_vsegids    = U.takeVSegidsOfVSegd . pnested_uvsegd
-pnested_pseglens   = U.lengthsSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
-pnested_psegstarts = U.startsSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
-pnested_psegsrcids = U.sourcesSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+pnested_vsegids    :: PData (PArray a) -> U.Array Int
+pnested_vsegids    =  U.takeVSegidsOfVSegd . pnested_uvsegd
 
+pnested_pseglens   :: PData (PArray a) -> U.Array Int
+pnested_pseglens   =  U.lengthsSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+
+pnested_psegstarts :: PData (PArray a) -> U.Array Int
+pnested_psegstarts  = U.startsSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
+
+pnested_psegsrcids :: PData (PArray a) -> U.Array Int
+pnested_psegsrcids  = U.sourcesSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+
+mkPNested :: U.Array Int
+          -> U.Array Int
+          -> U.Array Int
+          -> U.Array Int
+          -> PDatas a
+          -> PData (PArray a)
 mkPNested vsegids pseglens psegstarts psegsrcids psegdata
         = PNested
                 (U.mkVSegd vsegids 
@@ -536,8 +549,7 @@ unsafeFlattenPR arr@(PNested uvsegd _)
 --   of the total number of elements within it.
 --
 concatPR :: PR a => PData (PArray a) -> PData a
-concatPR arr = {-# SCC "concatPR" #-} concatPR' arr
-concatPR' (PNested vsegd pdatas)
+concatPR (PNested vsegd pdatas)
         -- If we know that the segments are in a single contiguous array, 
         -- and there is no sharing between them, then we can just return
         -- that array directly.
@@ -615,7 +627,7 @@ concatlPR arr
 --   segmentation of the template array.
 --
 unconcatPR :: PR b => PData (PArray a) -> PData b -> PData (PArray b)
-unconcatPR (PNested vsegd pdatas) pdata
+unconcatPR (PNested vsegd _) pdata
  = {-# SCC "unconcatPD" #-}
    let  
         -- Demote the vsegd to a manifest vsegd so it contains all the segment

@@ -1,17 +1,14 @@
 #include "fusion-phases.h"
 module Data.Array.Parallel.PArray.PData.Sum2 where
 
+import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Nested
-import Data.Array.Parallel.PArray.PData.Int
 import Data.Array.Parallel.PArray.Types
-import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import Prelude                                  as P
-import Debug.Trace
 
 
 -------------------------------------------------------------------------------
@@ -29,6 +26,7 @@ data instance PDatas (Sum2 a b)
 
 -- PR -------------------------------------------------------------------------
 -- This stuff isn't implemented yet.
+nope :: String -> a
 nope str   = error $ "Data.Array.Parallel.PData.Sum2: no PR method for Sum2 " ++ str
 
 

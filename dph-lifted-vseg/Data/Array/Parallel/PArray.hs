@@ -64,7 +64,6 @@ import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
 import Data.Array.Parallel.PArray.Reference
 import GHC.Exts
-import Data.Maybe
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Array      as A
@@ -77,8 +76,6 @@ import Prelude hiding
         ( length, replicate, concat
         , enumFromTo
         , zip, unzip)
-        
-import Debug.Trace
 
 
 -- Pretty ---------------------------------------------------------------------
@@ -126,7 +123,7 @@ valid (PArray n# darr1)
 
 -- | Force an array to normal form.
 nf :: PA a => PArray a -> ()
-nf (PArray n# d)
+nf (PArray _ d)
         = nfPA d
 {-# INLINE_PA nf #-}
 
@@ -377,9 +374,9 @@ packl xss@(PArray n# xdata@(PNested vsegd _))
         -- Concatenate both arrays to get the flat data.
         --   Although the virtual segmentation should be the same,
         --   the physical segmentation of both arrays may be different.
-        xdata_flat              = concatPA xdata
-        fdata_flat@(PBool sel)  = concatPA fdata
-        tags                    = U.tagsSel2 sel
+        xdata_flat      = concatPA xdata
+        PBool sel       = concatPA fdata
+        tags            = U.tagsSel2 sel
         
         -- Count how many elements go into each segment.        
         segd'           = U.lengthsToSegd $ U.count_s segd tags 1

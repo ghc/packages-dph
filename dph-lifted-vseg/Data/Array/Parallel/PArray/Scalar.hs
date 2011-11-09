@@ -31,6 +31,7 @@ module Data.Array.Parallel.PArray.Scalar
         , enumFromTo, enumFromTol)
 where
 import Data.Array.Parallel.PArray.PData.Word8
+import Data.Array.Parallel.PArray.PData.Double
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.Base
@@ -53,7 +54,10 @@ class (PA a, U.Elt a) => Scalar a where
 
 
 -- Shorthands for the above methods used in this module only.
+from    :: Scalar a => PData a -> U.Array a
 from    = fromScalarPData
+
+to      :: Scalar a => U.Array a -> PData a
 to      = toScalarPData
 
 
@@ -99,7 +103,7 @@ fromUArray uarr
  
 {-# INLINE_PA toUArray #-}
 toUArray    :: Scalar a => PArray a -> U.Array a
-toUArray (PArray n# pdata)
+toUArray (PArray _ pdata)
         = fromScalarPData pdata
  
 
