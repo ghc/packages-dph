@@ -29,7 +29,7 @@
 --
 module Data.Array.Parallel 
         ( module Data.Array.Parallel.Prelude
-        
+
         -- * Conversions
         , fromPArrayP
         , toPArrayP
@@ -62,13 +62,11 @@ where
 import Data.Array.Parallel.Prim                 ()      
 
 import Data.Array.Parallel.PArr
-import Data.Array.Parallel.Lifted
-import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Prelude
-import Data.Array.Parallel.Prelude.Bool         (Bool)
-import Data.Array.Parallel.Prelude.Int          (Int)
-import Data.Array.Parallel.Prelude.Double       (Double)
-import qualified Prelude        as P
+import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Lifted
+import Data.Array.Parallel.PArray               (PArray(..))
+import Prelude hiding (Int)
 
 
 -------------------------------------------------------------------------------
@@ -100,7 +98,7 @@ fromPArrayP !_  = emptyP
 
 
 toPArrayP :: [:a:] -> PArray a
-toPArrayP !_    = PArray 0# (P.error "toPArrayP: unvectorised")
+toPArrayP !_    = PArray 0# (error "toPArrayP: unvectorised")
 {-# NOINLINE  toPArrayP #-}
 {-# VECTORISE toPArrayP = toPArrayPP #-}
 

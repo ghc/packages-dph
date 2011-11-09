@@ -1,7 +1,13 @@
 
--- TODO: we could use this to trace the lengths of the vectors being used, 
---       as well as the types that each opeartor is being called at.
-
+-- | During testing, we compare the output of each invocation of the lifted
+--   combinators in D.A.P.PArray with the reference implementations. 
+--
+--   This module helps convert the to and from the array representation
+--   used by the reference implementation.
+--
+--   TODO: we could use this to trace the lengths of the vectors being used, 
+--         as well as the types that each opeartor is being called at.
+--
 module Data.Array.Parallel.PArray.Reference
         ( withRef1, withRef2
         , toRef1,   toRef2,   toRef3)

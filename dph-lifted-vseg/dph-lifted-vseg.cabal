@@ -1,4 +1,4 @@
-Name:           dph-lifted-vseg-DPHWAY
+Name:           dph-DPHWAY
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -16,6 +16,9 @@ Library
   --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
   -- We therefore need to point back at the original location for where to find the sources
   HS-Source-Dirs: ../dph-lifted-vseg
+
+  Include-Dirs:
+        include
 
   Exposed-Modules:
         Data.Array.Parallel.Lifted.Closure
@@ -48,9 +51,9 @@ Library
         Data.Array.Parallel
         Data.Array.Parallel.Prim
         Data.Array.Parallel.PArr
-
-  Include-Dirs:
-        include
+        
+  Exposed:
+        False
 
   Extensions:
         CPP,
@@ -72,32 +75,30 @@ Library
         StandaloneDeriving,
         ExplicitForAll,
         ParallelListComp,
-        PatternGuards,
         ExistentialQuantification,
         ScopedTypeVariables,
+        PatternGuards,
         PackageImports
-        
 
-  GHC-Options: 
-        -Wall -fno-warn-orphans -fno-warn-missing-signatures
-        -Odph 
-        -funbox-strict-fields
-        -fcpr-off
-        -fno-warn-missing-instances
-  
+  GHC-Options:
+        -Odph -fno-liberate-case -fcpr-off
+        -fno-warn-missing-methods
+        -fno-spec-constr
+
   Build-Depends:  
         base             == 4.4.*,
         ghc              == 7.*,
         array            == 0.3.*,
         random           == 1.0.*,
         template-haskell == 2.6.*,
-        pretty           == 1.1.*,
-        vector           == 0.9.*,
-        containers       == 0.4.*,
         dph-base         == 0.5.*,
-        dph-prim-DPHWAY  == 0.5.*
+        dph-prim-DPHWAY  == 0.5.*,
+        dph-lifted-reference == 0.5.*,
+        vector           == 0.9.*,
+        pretty           == 1.1.*,
+        containers       == 0.4.*
 
   GHC-Options: -fdph-this
 
-  GHC-Options: -package-name dph-lifted-vseg-DPHWAY
+  GHC-Options: -package-name dph-DPHWAY
 
