@@ -30,12 +30,14 @@ module Data.Array.Parallel.PArray.Scalar
         -- * Enumerations
         , enumFromTo, enumFromTol)
 where
+import Data.Array.Parallel.PArray.PData.Word8
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.Base
+import Data.Word
+import GHC.Exts
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import GHC.Exts
 import Prelude hiding 
         ( map, zipWith, zipWith3
         , enumFromTo)
@@ -71,6 +73,13 @@ instance Scalar Int where
   fromScalarPDatas (PInts xss)    = xss
   toScalarPData                   = PInt
   toScalarPDatas                  = PInts
+
+
+instance Scalar Word8 where
+  fromScalarPData  (PWord8  xs)   = xs
+  fromScalarPDatas (PWord8s xss)  = xss
+  toScalarPData                   = PWord8
+  toScalarPDatas                  = PWord8s
 
 
 instance Scalar Double where

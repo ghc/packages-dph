@@ -16,11 +16,13 @@ import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.PData.Sum2
 import Data.Array.Parallel.PArray.PData.Tuple
 import Data.Array.Parallel.PArray.PData.Int
+import Data.Array.Parallel.PArray.PData.Word8
 import Data.Array.Parallel.PArray.PData.Double
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
+import Data.Word
 
 
 -- Void -----------------------------------------------------------------------
@@ -51,6 +53,18 @@ instance PA () where
 type instance PRepr Int = Int
 
 instance PA Int where
+  toPRepr               = id
+  fromPRepr             = id
+  toArrPRepr            = id
+  fromArrPRepr          = id
+  toArrPReprs           = id
+  fromArrPReprs         = id
+
+
+-- Int ------------------------------------------------------------------------
+type instance PRepr Word8 = Word8
+
+instance PA Word8 where
   toPRepr               = id
   fromPRepr             = id
   toArrPRepr            = id

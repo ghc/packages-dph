@@ -1,8 +1,8 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
-module Data.Array.Parallel.Prelude.Int 
-        ( Int
+module Data.Array.Parallel.Prelude.Word8
+        ( Word8
           
         -- * Ord
         , (==), (/=), (<), (<=), (>), (>=), min, max
@@ -17,12 +17,12 @@ module Data.Array.Parallel.Prelude.Int
         -- * Integral
         , div, mod, sqrt
         
-        -- * Enum
-        , enumFromToP)
+        -- * Conversion
+        , fromInt
+        , toInt)
 where
--- Primitives needed by the vectoriser.
-import Data.Array.Parallel.Prim                 ()      
-
+import Data.Array.Parallel.Prim                         ()      
+import Data.Array.Parallel.Prelude.Int                  (Int)
 import Data.Array.Parallel.Prelude.Bool
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
@@ -30,9 +30,9 @@ import Data.Array.Parallel.Lifted                       ((:->)(..))
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
-import Prelude (Int)
+import Data.Word (Word8)
         
-{-# VECTORISE SCALAR type Int #-}
+{-# VECTORISE SCALAR type Word8 #-}
 
 infixl 7 *
 infixl 6 +, -
@@ -40,7 +40,7 @@ infix  4 ==, /=, <, <=, >, >=
 infixl 7 `div`, `mod`
 
 -- Ord ------------------------------------------------------------------------
-(==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
+(==), (/=), (<), (<=), (>), (>=) :: Word8 -> Word8 -> Bool
 
 (==) = (P.==)
 {-# VECTORISE SCALAR (==) #-}
@@ -62,7 +62,7 @@ infixl 7 `div`, `mod`
 
 
 -- min/max ----------------------------
-min, max :: Int -> Int -> Int
+min, max :: Word8 -> Word8 -> Word8
 
 min = P.min
 {-# VECTORISE SCALAR min #-}
@@ -72,7 +72,7 @@ max = P.max
 
 
 -- minimum/maximum --------------------
-minimumP, maximumP :: [:Int:] -> Int
+minimumP, maximumP :: [:Word8:] -> Word8
 
 minimumP arr    = headPArr arr
 {-# NOINLINE  minimumP #-}
@@ -82,7 +82,7 @@ maximumP arr    = headPArr arr
 {-# NOINLINE  maximumP #-}
 {-# VECTORISE maximumP = maximumPP #-}
 
-minimumPP, maximumPP :: PArray Int :-> Int
+minimumPP, maximumPP :: PArray Word8 :-> Word8
 minimumPP      = L.closure1' (SC.fold1 P.min) (SC.fold1s P.min)
 {-# INLINE      minimumPP #-}
 {-# NOVECTORISE minimumPP #-}
@@ -93,12 +93,12 @@ maximumPP      = L.closure1' (SC.fold1 P.max) (SC.fold1s P.max)
 
 
 -- minIndex/maxIndex ------------------
-minIndexP :: [:Int:] -> Int
+minIndexP :: [:Word8:] -> Int
 minIndexP !_    = 0 
 {-# NOINLINE  minIndexP #-}
 {-# VECTORISE minIndexP = minIndexPP #-}
 
-minIndexPP :: PArray Int :-> Int
+minIndexPP :: PArray Word8 :-> Int
 minIndexPP      = L.closure1' (SC.fold1Index min') (SC.fold1sIndex min')
 {-# INLINE      minIndexPP #-}
 {-# NOVECTORISE minIndexPP #-}
@@ -108,12 +108,12 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
 {-# NOVECTORISE min' #-}
 
 
-maxIndexP :: [:Int:] -> Int
+maxIndexP :: [:Word8:] -> Int
 maxIndexP _     = 0
 {-# NOINLINE  maxIndexP #-}
 {-# VECTORISE maxIndexP = maxIndexPP #-}
 
-maxIndexPP :: PArray Int :-> Int
+maxIndexPP :: PArray Word8 :-> Int
 maxIndexPP      = L.closure1' (SC.fold1Index max') (SC.fold1sIndex max')
 {-# INLINE      maxIndexPP #-}
 {-# NOVECTORISE maxIndexPP #-}
@@ -124,7 +124,7 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 
 -- Num ------------------------------------------------------------------------
-(+), (-), (*) :: Int -> Int -> Int
+(+), (-), (*) :: Word8 -> Word8 -> Word8
 
 (+) = (P.+)
 {-# VECTORISE SCALAR (+) #-}
@@ -137,7 +137,7 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 
 -- negate/abs -------------------------
-negate, abs :: Int -> Int
+negate, abs :: Word8 -> Word8
 
 negate  = P.negate
 {-# VECTORISE SCALAR negate #-}
@@ -147,7 +147,7 @@ abs     = P.abs
 
 
 -- sum/product ------------------------
-sumP, productP :: [:Int:] -> Int
+sumP, productP :: [:Word8:] -> Word8
 
 sumP arr        = headPArr arr
 {-# NOINLINE  sumP #-}
@@ -157,7 +157,7 @@ productP arr    = headPArr arr
 {-# NOINLINE  productP #-}
 {-# VECTORISE productP  = productPP #-}
 
-sumPP, productPP :: PArray Int :-> Int
+sumPP, productPP :: PArray Word8 :-> Word8
 sumPP          = L.closure1' (SC.fold (+) 0) (SC.folds (+) 0)
 {-# INLINE      sumPP #-}
 {-# NOVECTORISE sumPP #-}
@@ -168,7 +168,7 @@ productPP      = L.closure1' (SC.fold (*) 1) (SC.folds (*) 1)
 
 
 -- Integral -------------------------------------------------------------------
-div, mod :: Int -> Int -> Int
+div, mod :: Word8 -> Word8 -> Word8
 
 div = P.div
 {-# VECTORISE SCALAR div #-}
@@ -177,18 +177,16 @@ mod = P.mod
 {-# VECTORISE SCALAR mod #-}
 
 
-sqrt :: Int -> Int 
+sqrt :: Word8 -> Word8 
 sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 {-# VECTORISE SCALAR sqrt #-}
 
 
--- Enum -----------------------------------------------------------------------
-enumFromToP :: Int -> Int -> [:Int:]
-enumFromToP !_ !_       = emptyPArr
-{-# NOINLINE  enumFromToP #-}
-{-# VECTORISE enumFromToP = enumFromToPP #-}
+-- Conversion -----------------------------------------------------------------
+toInt :: Word8 -> Int
+toInt = P.fromIntegral
+{-# VECTORISE SCALAR toInt #-}
 
-enumFromToPP :: Int :-> Int :-> PArray Int
-enumFromToPP    = L.closure2' SC.enumFromTo SC.enumFromTol
-{-# INLINE      enumFromToPP #-}
-{-# NOVECTORISE enumFromToPP #-}
+fromInt :: Int -> Word8
+fromInt = P.fromIntegral
+{-# VECTORISE SCALAR fromInt #-}
