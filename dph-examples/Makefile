@@ -3,7 +3,7 @@
 # Package dependencies for DPH examples.
 DPH_DEPENDS_PAR = \
         base         == 4.4.*, \
-        vector       == 0.7.*, \
+        vector       == 0.9.*, \
         dph-base     == 0.5.*, \
         dph-prim-par == 0.5.*, \
         dph-par      == 0.5.*, \
@@ -12,7 +12,7 @@ DPH_DEPENDS_PAR = \
 
 DPH_DEPENDS_SEQ = \
         base         == 4.4.*, \
-        vector       == 0.7.*, \
+        vector       == 0.9.*, \
         dph-base     == 0.5.*, \
         dph-prim-seq == 0.5.*, \
         dph-seq      == 0.5.*, \
@@ -21,8 +21,8 @@ DPH_DEPENDS_SEQ = \
 
 
 # Options for compiling DPH examples.
-# 	For the SEQ versions we still compile with -threaded so that we can 
-# 	use the parallel garbage collector.
+#   For the SEQ versions we still compile with -threaded so that we can 
+#   use the parallel garbage collector.
 #
 DPH_OPTIONS_PAR = \
         -rtsopts \
@@ -31,8 +31,8 @@ DPH_OPTIONS_PAR = \
         -Odph \
         -fdph-par \
         -fcpr-off \
-        -fsimplifier-phases=4 \
-        -fstrictness-before=3 \
+	-fno-liberate-case \
+	-fno-spec-constr \
         -fsimpl-tick-factor=1000 
 
 DPH_OPTIONS_SEQ = \
@@ -42,8 +42,8 @@ DPH_OPTIONS_SEQ = \
         -Odph \
         -fdph-seq \
         -fcpr-off \
-        -fsimplifier-phases=4 \
-        -fstrictness-before=3 \
+	-fno-liberate-case \
+	-fno-spec-constr \
         -fsimpl-tick-factor=1000 
 
 .PHONY : all
