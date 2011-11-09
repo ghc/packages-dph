@@ -257,14 +257,15 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          -- For each segment in the result alt data, get its starting index in
          -- the original alt array.
          -- 
-         -- TODO: We're doing this by getting the index of EVERY element in the
-         --       original array, then just selecting the indices corresponding
-         --       to the start of each segment. If the last segment has length 0,
-         --       then we get an index overflow problem because the last element
-         --       in the indices array doesn't point to real data. There might be
-         --       a better way to do this that doesn't require copying all indices,
-         --       and doesn't need a bounds check.
+         -- TODO: We're doing this by getting the index of EVERY result eleement
+         --       as it is in the original array original array, then just selecting
+         --       the indices corresponding to the start of each segment. If the last
+         --       segment has length 0, then we get an index overflow problem because
+         --       the last element in the indices array doesn't point to real data.
+         --       There might be a better way to do this that doesn't require copying
+         --       all indices, and doesn't need a bounds check.
          -- 
+         
          -- indices0    = [ 0 1 2 3 4 ] (from above)
          -- sel0        = [ 0 0 1 1 ]       -- here, we've only got starting indices
          -- sel0_len    = 4                 --  for 4 segs, but there are 5 segs in total.
@@ -363,22 +364,22 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
   {-# INLINE_PDATA singletondPR #-}
   singletondPR (PSum2 sel2 xs ys)
-        = PSum2s (V.singleton sel2)
-                 (singletondPR (PInt (U.tagsSel2 sel2)))
-                 (singletondPR xs)
-                 (singletondPR ys)
+   = PSum2s (V.singleton sel2)
+            (singletondPR (PInt (U.tagsSel2 sel2)))
+            (singletondPR xs)
+            (singletondPR ys)
 
 
   {-# INLINE_PDATA lengthdPR #-}
   lengthdPR (PSum2s sel2s _ _ _)
-        = V.length sel2s
+    = V.length sel2s
 
 
   {-# INLINE_PDATA indexdPR #-}
   indexdPR  (PSum2s sel2s _ xss yss) ix
-        = PSum2  (V.unsafeIndex sel2s ix)
-                 (indexdPR      xss   ix)
-                 (indexdPR      yss   ix)
+   = PSum2  (V.unsafeIndex sel2s ix)
+            (indexdPR      xss   ix)
+            (indexdPR      yss   ix)
 
 
   {-# INLINE_PDATA appenddPR #-}
