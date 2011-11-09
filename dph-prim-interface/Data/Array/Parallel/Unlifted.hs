@@ -137,6 +137,8 @@ replicate_rs n xs
 indices_s segd
         = P.concat [[0 .. n-1] | n <- segd_lengths segd] 
 
+extract_ss 
+        = notImplemented "extract_ss"
 
 -- Segmented Folds ------------------------------------------------------------
 fold_s  f z segd xs
