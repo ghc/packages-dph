@@ -52,15 +52,14 @@ zipl (PArray n# xs) (PArray _ ys)
         = PArray n# $ ziplPA xs ys
 
 
+-- | Lifted zip on PData arrays.
 ziplPA  :: (PA a, PA b) 
         => PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
 ziplPA xs ys
  = let  PNested vsegd (PTuple2s xs' ys')
-         = ziplPR (toNestedArrPRepr xs)
-                  (toNestedArrPRepr ys)
+         = ziplPR (toNestedArrPRepr xs) (toNestedArrPRepr ys)
 
    in   PNested vsegd (PTuple2s   
-                        (fromArrPReprs xs')
-                        (fromArrPReprs ys'))
+                  (fromArrPReprs xs') (fromArrPReprs ys'))
 
 

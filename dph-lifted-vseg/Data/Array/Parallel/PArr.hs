@@ -3,9 +3,9 @@
 {-# OPTIONS_HADDOCK hide #-}
 
 -- #hide
--- | Unvectorised functions that work directly on parallel arrays of the [::]
---   type. These are used internally in the DPH library, but the user never
---   sees them. Only vectorised functions are visible in the DPH client programs.
+-- | Unvectorised functions that work directly on parallel arrays of [::] type.
+--   These are used internally in the DPH library, but the user never sees them.
+--   Only vectorised functions are visible in the DPH client programs.
 --
 module Data.Array.Parallel.PArr 
         ( emptyPArr

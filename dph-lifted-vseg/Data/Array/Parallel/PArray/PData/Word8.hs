@@ -1,5 +1,6 @@
 #include "fusion-phases.h"
 
+-- | PR instance for Word8.
 module Data.Array.Parallel.PArray.PData.Word8 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
@@ -16,6 +17,7 @@ data instance PData Word8
 
 data instance PDatas Word8
         = PWord8s !(V.Vector (U.Array Word8))
+
 
 -- PR -------------------------------------------------------------------------
 instance PR Word8 where
@@ -104,7 +106,7 @@ instance PR Word8 where
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
-     in  PWord8 $ uextracts vecpdatas segsrcs segstarts seglens
+     in  PWord8 $ U.extract_ss vecpdatas segsrcs segstarts seglens
 
   {-# INLINE_PDATA bpermutePR #-}
   bpermutePR (PWord8 arr) indices

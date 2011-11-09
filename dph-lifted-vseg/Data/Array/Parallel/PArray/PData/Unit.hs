@@ -1,16 +1,17 @@
 #include "fusion-phases.h"
 
+-- | PR instance for unit.
 module Data.Array.Parallel.PArray.PData.Unit where
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 
-
 -------------------------------------------------------------------------------
--- | NOTE: We're only maintaining the length temporarilly. 
---         This is done so that the validPA checks work, but in future we'll 
---         fix validPA so it handles 'defined everywhere' arrays.
+-- | TODO: For arrays of units, we're currently maintaining their length so
+--   that validPR works properly. In future we should ditch the length field
+--   and rely on coversPR to check that indices are in bounds, like we do
+--   with arrays of type PData Void.
 data instance PData ()
         = PUnit Int
 
@@ -19,6 +20,7 @@ data instance PDatas ()
 
 punit   :: Int -> PData ()
 punit   = PUnit
+
 
 -- PR -------------------------------------------------------------------------
 instance PR () where

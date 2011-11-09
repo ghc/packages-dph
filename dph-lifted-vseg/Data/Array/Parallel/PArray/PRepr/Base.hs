@@ -1,9 +1,8 @@
 #include "fusion-phases.h"
 
 -- | Definition of the PRepr/PA family and class.
---   PA functions are the same as the methods of the PR class, 
---   except that they take a PA dictinoary instead of a PR 
--- d  ictionary.
+--   This module manages the conversion between the user level view of the element
+--   data, and our internal generic view.
 --
 module Data.Array.Parallel.PArray.PRepr.Base 
         ( PRepr
@@ -52,6 +51,7 @@ import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 
+-- PRepr / PA -----------------------------------------------------------------
 -- | Representable types.
 --
 --   The family of types that we know how to represent generically.
@@ -67,7 +67,7 @@ type family PRepr a
 
 -- | A PA dictionary contains the functions that we use to convert a
 --   representable type to and from its generic representation.
---   The conversion methods should all be O(1).
+--   The conversions methods should all be O(1). 
 class PR (PRepr a) => PA a where
   toPRepr       :: a                -> PRepr a
   fromPRepr     :: PRepr a          -> a
@@ -88,11 +88,11 @@ toNestedArrPRepr (PNested vsegd pdatas)
         = PNested vsegd (toArrPReprs pdatas)
 
 
--- PD Wrappers ----------------------------------------------------------------
+-- PA Wrappers ----------------------------------------------------------------
 --  These wrappers work on (PData a) arrays when we know the element type 'a'
---  is representable. We implement them by converting the PData to the
---  underlying generic representation type, and use the corresponding method
---  from the PR dictionary.
+--  is generically representable. We implement the array operators by converting
+--  the PData to our generic representation type, and use the corresponding
+--  method from the PR dictionary.
 --
 --  The wrappers are used in situations when we only have PA dictionary, 
 --  instead of a PR dictionary. This happens in the PR (a :-> b) instance, 
@@ -101,6 +101,7 @@ toNestedArrPRepr (PNested vsegd pdatas)
 --  defined by D.A.P.PArray.
 --
 --  See the D.A.P.PArray.PData.Base for docs on what these functions do.
+--  Each of the following functions has a corresponding method in the PR class.
 --
 {-# INLINE_PA validPA #-}
 validPA         :: PA a => PData a -> Bool

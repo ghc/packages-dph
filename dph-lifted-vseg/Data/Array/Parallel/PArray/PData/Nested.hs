@@ -1,9 +1,8 @@
 {-# LANGUAGE UndecidableInstances, ParallelListComp #-}
-
 {-# OPTIONS -fno-spec-constr #-}
-
 #include "fusion-phases.h"
 
+-- | PR instance for nested arrays.
 module Data.Array.Parallel.PArray.PData.Nested 
         ( PData(..)
         , PDatas(..)
@@ -359,7 +358,8 @@ instance PR a => PR (PArray a) where
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
 
-         vsegids_src    = uextracts (V.map pnested_vsegids  arrs) segsrcs segstarts seglens
+         vsegids_src    = U.extract_ss (V.map pnested_vsegids  arrs)
+                                        segsrcs segstarts seglens
 
          srcids'        = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
@@ -479,7 +479,7 @@ instance PR a => PR (PArray a) where
    $ indexPR arr
 
 
-  -- PRR ----------------------------------------
+  -- PData --------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
         = PNesteds $ V.empty

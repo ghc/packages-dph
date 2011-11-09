@@ -1,5 +1,6 @@
 #include "fusion-phases.h"
 
+-- | PR instance for the void type.
 module Data.Array.Parallel.PArray.PData.Void 
         (Void, void, pvoid, fromVoid, pvoids)
 where

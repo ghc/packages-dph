@@ -1,7 +1,7 @@
 #include "fusion-phases.h"
 
--- | PRepr instance for nested arrays, 
---   and PD wrappers for other functions defined in D.A.P.PArray.PData.Nested.
+-- | PRepr/PA instance for nested arrays, 
+--   and PA wrappers for other functions defined in D.A.P.PArray.PData.Nested.
 module Data.Array.Parallel.PArray.PRepr.Nested
         ( concatPA
         , unconcatPA

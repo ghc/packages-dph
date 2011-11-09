@@ -1,23 +1,24 @@
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
--- | Functions that work directly on PArrays.
+-- | Operators that work directly on PArrays.
 
---   * The functions in this module are used by the D.A.P.Lifted.Combinator module to
+--   * These operators are used by the D.A.P.Lifted.Combinator module to
 --     define the closures that the vectoriser uses.
 --
---   * The functions in this module may also be used directly by user programs.
+--   * They also may also be used directly by user programs.
 --
---   * In general, these functions are all unsafe and don't do bounds checks.
+--   * In general, the operators are all unsafe and don't do bounds checks.
 --     The lifted versions also don't check that each of the argument arrays
 --     have the same length.
 --
---     TODO:
---      Export unsafe versions from Data.Array.Parallel.PArray.Unsafe,
---      and make this module export safe wrappers.
---      We want to use the unsafe versions in D.A.P.Lifted.Combinators
---      for performance reasons, but the user facing PArray functions 
---      should all be safe.
+--   TODO:
+--   Export unsafe versions from Data.Array.Parallel.PArray.Unsafe, and ensure
+--   this module exports safe wrappers. We want to use the unsafe versions in
+--   D.A.P.Lifted.Combinators for performance reasons, but the user facing PArray
+--   functions should all be safe. In particular, the vectoriser guarantees
+--   that all arrays passed to lifted functions will have the same length, but
+--   the user may not obey this restriction.
 -- 
 module Data.Array.Parallel.PArray 
         ( PArray(..), PA
@@ -85,16 +86,18 @@ instance PA a => PprPhysical (PArray a) where
         T.$+$ ( T.nest 4 
               $ pprpDataPA pdata)
 
+
 -- Array -----------------------------------------------------------------------
 -- | Generic interface to PArrays.
 --
--- NOTE: 
+--  NOTE: 
 --  The toVector conversion is defined by looking up every index instead of
 --  using the bulk fromVectorPA function.
---  We need to do this to convert arrays of type (PArray Void) properly, as 
---  although a (PArray Void) has an intrinsic length, a (PData Void) does not.
+--  We do this to convert arrays of type (PArray Void) properly, as although a
+--  (PArray Void) has an intrinsic length, a (PData Void) does not. If we try
+--  to se the fromVectorPA function at this type we'll just get an `error`.
 --  Arrays of type PArray Void aren't visible in the user API, but during
---  debugging we need to be able to print them out with the correct length.
+--  debugging we need to be able to print them out with the implied length.
 --
 instance PA e => A.Array PArray e where
  length arr     = length arr
@@ -106,7 +109,12 @@ instance PA e => A.Array PArray e where
  toVector arr   = V.map (A.index arr) $ V.enumFromTo 0 (A.length arr - 1)
  fromVector     = fromVector
 
+-- Operators ==================================================================
+-- Each of these operators is wrapped in withRef functions so that we can 
+-- compare their outputs to the reference implementation. 
+-- See D.A.P.Reference for details.
 
+        
 -- Basics ---------------------------------------------------------------------
 instance (Eq a, PA a)  => Eq (PArray a) where
  (==) (PArray _ xs) (PArray _ ys) = toVectorPA xs == toVectorPA ys
@@ -268,6 +276,7 @@ lengthl :: PA a => PArray (PArray a) -> PArray Int
 lengthl arr@(PArray n# (PNested vsegd _))
  = withRef1 "lengthl" (R.lengthl (toRef2 arr))
  $ PArray n# $ PInt $ U.takeLengthsOfVSegd vsegd
+{-# INLINE_PA lengthl #-}
 
 
 -- | O(1). Lookup a single element from the source array.

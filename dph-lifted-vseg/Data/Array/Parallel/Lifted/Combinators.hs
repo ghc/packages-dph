@@ -1,14 +1,12 @@
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
--- | Polymorphic closures that take PA dictionaries.
---
---   The vectoriser produces code that uses some of these combinators directly,
---   and the rest are called from D.A.P.Parallel.
---
---   All of the combinators defined here are polymorphic, and take PA dictionaries.
---   Combinators that are specific to a certain element type, like Int, are defined
---   directly in the corresponding prelude module, eg D.A.P.Prelude.Int.
+-- | Closure converted lifted array combinators.
+--   The vectoriser produces code that uses these combinators directly.
+-- 
+--   All of the combinators in this module are polymorphic, work on PArrays, and
+--   take PA dictionaries. Combinators that are specific to a certain element type,
+--   like Int, are defined in the corresponding prelude module, eg D.A.P.Prelude.Int.
 --
 module Data.Array.Parallel.Lifted.Combinators 
         ( -- * Conversions
@@ -54,30 +52,30 @@ import Data.Array.Parallel.PArray               as PA
 
 -- | Identity function, used as the vectorised version of fromPArrayP.
 fromPArrayPP :: PA a => PArray a :-> PArray a
-fromPArrayPP            = closure1 (\x -> x) (\_ xs -> xs)
+fromPArrayPP         = closure1 (\x -> x) (\_ xs -> xs)
 {-# INLINE fromPArrayPP #-}
 
 
 -- | Identity function, used as the vectorised version of toPArrayP.
 toPArrayPP :: PA a => PArray a :-> PArray a
-toPArrayPP              = closure1 (\x -> x) (\_ xs -> xs)
+toPArrayPP         = closure1 (\x -> x) (\_ xs -> xs)
 {-# INLINE toPArrayPP #-}
 
 
--- | Identity function, used as the vectorised version of fromNesterPArrayP
+-- | Identity function, used as the vectorised version of fromNestedPArrayP
 fromNestedPArrayPP :: PA a => (PArray (PArray a) :-> PArray (PArray a))
-fromNestedPArrayPP      = closure1 (\xs -> xs) (\_ xss -> xss)
+fromNestedPArrayPP = closure1 (\xs -> xs) (\_ xss -> xss)
 {-# INLINE fromNestedPArrayPP #-}
 
 
--- Operators ==================================================================
+-- Combinators ================================================================
 --   For each combinator:
---    The *PA_v version is the "vectorised" version that has had its parameters
---    closure converted. For first-order functions, the *PA_v version is
+--    The *PP_v version is the "vectorised" version that has had its parameters
+--    closure converted. For first-order functions, the *PP_v version is
 --    identical to the standard *PA version from D.A.P.PArray, so we can 
 --    just use that directly.
 --
---    The *PA_l version is the "lifted" version that works on arrays of arrays.
+--    The *PP_l version is the "lifted" version that works on arrays of arrays.
 --    Each of these functions also takes an integer as its first argument. 
 --    This is the "lifting context" that says now many element to expect in 
 --    each of the argument arrays. 
@@ -200,6 +198,7 @@ filterPP = closure2' filterPP_v filterPP_l
 zipPP :: (PA a, PA b) => PArray a :-> PArray b :-> PArray (a, b)
 zipPP           = closure2' PA.zip PA.zipl
 {-# INLINE_PA zipPP #-}
+
 
 -- | Unzip an array of pairs into a pair of arrays.
 unzipPP :: (PA a, PA b) => PArray (a, b) :-> (PArray a, PArray b)

@@ -1,6 +1,7 @@
 #include "fusion-phases.h"
-module Data.Array.Parallel.PArray.PData.Sum2 where
 
+-- | PR instance for Sum2.
+module Data.Array.Parallel.PArray.PData.Sum2 where
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.Types
@@ -28,7 +29,6 @@ data instance PDatas (Sum2 a b)
 -- This stuff isn't implemented yet.
 nope :: String -> a
 nope str   = error $ "Data.Array.Parallel.PData.Sum2: no PR method for Sum2 " ++ str
-
 
 instance (PR a, PR b) => PR (Sum2 a b)  where
 
@@ -222,7 +222,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          --  and rebuild the result selector indices based on these tags.
          -- tags'       = [1     1     0     0     1     1     0      0     1]
          -- sel'        = [0     1     0     1     2     3     2      3     4]   
-         tags'          = uextracts tagss sources starts lengths
+         tags'          = U.extract_ss tagss sources starts lengths
          sel'           = U.tagsToSel2 tags'
 
          -- Extract the indices of the data elements we want.
@@ -230,7 +230,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          -- (result)      [R 60, R 70, L 80, L 20, R 30, R 90, L 100, L 40, R 50]
          --                ----------------0 ----------1 -----------2 ----3 ----4
          -- indices'    = [  1     2     0     0     0     3     1      1     0 ]
-         indices'       = uextracts (V.map U.indicesSel2 sels) sources starts lengths
+         indices'       = U.extract_ss (V.map U.indicesSel2 sels) sources starts lengths
 
          -- Count the number of L and R elements for each segment,
          --  then scan them to produce the starting index of each segment in the

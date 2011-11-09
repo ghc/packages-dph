@@ -1,7 +1,7 @@
 #include "fusion-phases.h"
 {-# LANGUAGE UndecidableInstances #-}
--- | Instances for the PRRepr/PA family and class.
---
+
+-- | Simple instances for the PRRepr/PA family and class.
 --   This module is kept separate from PRepr.Base to break an import cycle
 --   between PRepr.Base PRepr.Instances and PArray.PData.Wrap
 --

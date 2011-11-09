@@ -1,5 +1,6 @@
 #include "fusion-phases.h"
 
+-- | PR instance for the Wrap type.
 module Data.Array.Parallel.PArray.PData.Wrap where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested

@@ -1,5 +1,6 @@
 #include "fusion-phases.h"
 
+-- | PR instance for Ints
 module Data.Array.Parallel.PArray.PData.Int where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
@@ -8,7 +9,6 @@ import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
-
 
 -- PR -------------------------------------------------------------------------
 instance PR Int where
@@ -97,7 +97,7 @@ instance PR Int where
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
-     in  PInt $ uextracts vecpdatas segsrcs segstarts seglens
+     in  PInt $ U.extract_ss vecpdatas segsrcs segstarts seglens
 
   {-# INLINE_PDATA bpermutePR #-}
   bpermutePR (PInt arr) indices

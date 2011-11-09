@@ -1,18 +1,20 @@
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Lifted.Closure (
-  -- * Closures.
-  (:->)(..),
-  ($:),
+-- | Closures
+---  Used when closure converting the source program during vectorisation.
+module Data.Array.Parallel.Lifted.Closure 
+        ( -- * Closures.
+          (:->)(..)
+        , ($:)
 
-  -- * Array Closures.
-  PData(..),
-  ($:^), liftedApply,
+        -- * Array Closures.
+        , PData(..)
+        , ($:^), liftedApply
 
-  -- * Closure Construction.
-  closure1,  closure2,  closure3,
-  closure1', closure2', closure3'  
-) where
+        -- * Closure Construction.
+        , closure1,  closure2,  closure3
+        , closure1', closure2', closure3')
+where
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Unit
@@ -36,7 +38,7 @@ infixl 1 $:, $:^
 --    3) the environment of the closure.
 -- 
 --   The vectoriser closure-converts the source program so that all functions
---   types are expressed in this form.
+--   are expressed in this form.
 data (a :-> b)
         = forall env. PA env
         => Clo  (env -> a -> b)
@@ -46,8 +48,8 @@ data (a :-> b)
 
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b
-{-# INLINE_CLOSURE ($:) #-}
 ($:) (Clo fv _fl env) x  = fv env x
+{-# INLINE_CLOSURE ($:) #-}
 
 
 -- Array Closures -------------------------------------------------------------
@@ -58,12 +60,12 @@ data (a :-> b)
 --     @mapP (+) xs   ::  [: Int -> Int :]@
 --
 --   Representing this an array of thunks doesn't work because we can't evaluate
---   in a data parallel manner. Instead, we want *one* function applied to many
+--   it in a data parallel manner. Instead, we want *one* function applied to many
 --   array elements.
 -- 
---   Instead, such an array of closures is represented as the vectorised 
---   and lifted versions of (+), along with an environment array xs that
---   contains the partially applied arguments.
+--   Instead, such an array of closures is represented as the vectorised  and
+--   lifted versions of (+), along with an environment array xs that contains the
+--   partially applied arguments.
 --
 --     @mapP (+) xs  ==>  AClo plus_v plus_l xs@
 --
@@ -75,41 +77,39 @@ data instance PData (a :-> b)
 
 
 -- | Lifted closure application.
-($:^) :: forall a b. PArray (a :-> b) -> PArray a -> PArray b
+($:^) :: PArray (a :-> b) -> PArray a -> PArray b
 PArray n# (AClo _ f es) $:^ PArray _ as 
         = PArray n# (f (I# n#) es as)
 {-# INLINE ($:^) #-}
 
 
--- | Lifted closure application.
-liftedApply 
-        :: Int -> PData (a :-> b) -> PData a -> PData b
-
-{-# INLINE_CLOSURE liftedApply #-}
+-- | Lifted closure application, taking an explicit lifting context.
+liftedApply :: Int -> PData (a :-> b) -> PData a -> PData b
 liftedApply n (AClo _ fl envs) as
         = fl n envs as
+{-# INLINE_CLOSURE liftedApply #-}
 
 
 -- Closure Construction -------------------------------------------------------
 -- These functions are used for building closure representations of primitive
--- functions. Their used in D.A.P.Lifted.Combinators where we define the 
--- array combinators that vectorised code uses.
+-- functions. They're used in D.A.P.Lifted.Combinators where we define the 
+-- closure converted lifted array combinators that vectorised code uses.
 
--- | Construct an arity-1 closure.
+-- | Construct an arity-1 closure,
 --   from unlifted and lifted versions of a primitive function.
 closure1 
         :: (a -> b)
         -> (Int -> PData a -> PData b)
         -> (a :-> b)
 
-{-# INLINE_CLOSURE closure1 #-}
 closure1 fv fl  
         = Clo   (\_env -> fv)
                 (\n _env -> fl n)
                 ()
+{-# INLINE_CLOSURE closure1 #-}
 
 
--- | Construct an arity-2 closure
+-- | Construct an arity-2 closure,
 --   from lifted and unlifted versions of a primitive function.
 closure2 
         :: forall a b c. PA a
@@ -117,12 +117,12 @@ closure2
         -> (Int -> PData a -> PData b -> PData c)
         -> (a :-> b :-> c)
 
-{-# INLINE_CLOSURE closure2 #-}
 closure2 fv fl
  = let  fv_1 _ xa   = Clo fv fl xa
         fl_1 _ _ xs = AClo fv fl xs
         
    in   Clo fv_1 fl_1 ()
+{-# INLINE_CLOSURE closure2 #-}
 
 
 -- | Construct an arity-3 closure
@@ -133,7 +133,6 @@ closure3
         -> (Int -> PData a -> PData b -> PData c -> PData d)
         -> (a :-> b :-> c :-> d)
         
-{-# INLINE_CLOSURE closure3 #-}
 closure3 fv fl
  = let  fv_1   _ xa = Clo   fv_2 fl_2 xa
         fl_1 _ _ xs = AClo  fv_2 fl_2 xs
@@ -147,12 +146,13 @@ closure3 fv fl
         fl_3 n (PTuple2 xs ys) zs  = fl n xs ys zs
 
    in   Clo fv_1 fl_1 ()
+{-# INLINE_CLOSURE closure3 #-}
 
 
 -- Closure constructors that take PArrays -------------------------------------
 -- These versions are useful when defining prelude functions such as in 
--- D.A.P.Prelude.Int, when we want to promote functions that work on PArrays 
--- directly to closures. 
+-- D.A.P.Prelude.Int. They let us promote functions that work on PArrays 
+-- to closures, while inferring the lifting context from the first argument.
 
 -- | Construct an arity-1 closure.
 closure1'
@@ -161,13 +161,13 @@ closure1'
         -> (PArray a -> PArray b)
         -> (a :-> b)
 
-{-# INLINE_CLOSURE closure1' #-}
 closure1' fv fl 
  = let  {-# INLINE fl' #-}
         fl' (I# n#) pdata
          = case fl (PArray n# pdata) of
                  PArray _ pdata' -> pdata'
    in   closure1 fv fl'
+{-# INLINE_CLOSURE closure1' #-}
 
 
 -- | Construct an arity-2 closure.
@@ -177,13 +177,13 @@ closure2'
         -> (PArray a -> PArray b -> PArray c)
         -> (a :-> b :-> c)
 
-{-# INLINE_CLOSURE closure2' #-}
 closure2' fv fl 
  = let  {-# INLINE fl' #-}
         fl' (I# n#) pdata1 pdata2
          = case fl (PArray n# pdata1) (PArray n# pdata2) of
                  PArray _ pdata' -> pdata'
    in   closure2 fv fl'
+{-# INLINE_CLOSURE closure2' #-}
 
 
 -- | Construct an arity-3 closure.
@@ -193,16 +193,16 @@ closure3'
         -> (PArray a -> PArray b -> PArray c -> PArray d)
         -> (a :-> b :-> c :-> d) 
 
-{-# INLINE_CLOSURE closure3' #-}
 closure3' fv fl 
  = let  {-# INLINE fl' #-}
         fl' (I# n#) pdata1 pdata2 pdata3
          = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) of
                  PArray _ pdata' -> pdata'
    in   closure3 fv fl'
+{-# INLINE_CLOSURE closure3' #-}
 
 
--- PData Instance -------------------------------------------------------------
+-- PData instance for closures ------------------------------------------------
 -- This needs to be here instead of in a module D.A.P.PArray.PData.Closure
 -- to break an import loop.
 --
@@ -218,7 +218,7 @@ instance PR (a :-> b) where
 
   -- We can't test functions for equality.
   -- We can't test the environments either, because they're existentially quantified.
-  -- Let's just call them equal... similarPA is just for testing anyway.
+  -- Provided the closures have the same type, we just call them similar.
   {-# INLINE_PDATA similarPR #-}
   similarPR _ _
         = True

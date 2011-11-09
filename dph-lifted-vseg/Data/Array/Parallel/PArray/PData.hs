@@ -1,5 +1,5 @@
 
--- | Parallel array types and primitive operators.
+-- | Parallel array types and operators that work on them.
 module Data.Array.Parallel.PArray.PData 
         ( module Data.Array.Parallel.PArray.PData.Base
         , module Data.Array.Parallel.PArray.PData.Wrap

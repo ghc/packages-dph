@@ -1,5 +1,6 @@
 #include "fusion-phases.h"
 
+-- | PR instance for Doubles.
 module Data.Array.Parallel.PArray.PData.Double where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
@@ -8,7 +9,7 @@ import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 
-
+-------------------------------------------------------------------------------
 data instance PData Double
         = PDouble !(U.Array Double)
 
@@ -104,7 +105,7 @@ instance PR Double where
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
-     in  PDouble (uextracts vecpdatas segsrcs segstarts seglens)
+     in  PDouble (U.extract_ss vecpdatas segsrcs segstarts seglens)
                 
 
   -- Pack and Combine ---------------------------

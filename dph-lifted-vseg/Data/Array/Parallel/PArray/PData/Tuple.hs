@@ -1,5 +1,6 @@
 #include "fusion-phases.h"
 
+-- | PR instance for tuples.
 module Data.Array.Parallel.PArray.PData.Tuple 
         ( PData(..),    PDatas(..)
         , zip,          zipPD
@@ -15,7 +16,6 @@ import Prelude hiding (zip, unzip)
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
 import qualified Data.Array.Parallel.Unlifted   as U
-
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
@@ -202,8 +202,13 @@ zipPD   = PTuple2
 -- | Lifted zip.
 ziplPR   :: (PR a, PR b) => PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
 ziplPR arr1 arr2
- = let  (segd1, pdata1) = unsafeFlattenPR arr1
+ = let  -- We need to flatten the data here because we can't guarantee
+        -- that the vsegds of both arrays have the same form.
+        -- One of the arrays may have been created with replicate, and 
+        -- thus has internal sharing, while the other does not.
+        (segd1, pdata1) = unsafeFlattenPR arr1
         (_,     pdata2) = unsafeFlattenPR arr2
+
    in   PNested (U.promoteSegdToVSegd segd1)
                 (PTuple2s (singletondPR pdata1) (singletondPR pdata2))
 

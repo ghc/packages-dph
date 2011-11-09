@@ -6,7 +6,7 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Data structures for the Data Parallel Haskell vectoriser
+Synopsis:       Data structures for the Data Parallel Haskell vectoriser.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple

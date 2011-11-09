@@ -6,9 +6,7 @@ module Data.Array.Parallel.PArray.PRepr
         , module Data.Array.Parallel.PArray.PRepr.Instances
         , module Data.Array.Parallel.PArray.PRepr.Nested
         , module Data.Array.Parallel.PArray.PRepr.Tuple
-        , unpackPA
-        , mapdPA
-        , zipWithdPA)
+        , unpackPA)
 where
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PRepr.Instances
@@ -56,7 +54,7 @@ unpackPA :: PA a => PArray a -> PData (PRepr a)
 unpackPA (PArray _ pdata)
         = toArrPRepr pdata
 
-
+{-
 mapdPA  :: (PA a, PA b)
         => (PData  a -> PData  b) 
         ->  PDatas a -> PDatas b
@@ -79,4 +77,4 @@ zipWithdPA f xs ys
         (\x y -> toArrPRepr $ f (fromArrPRepr x) (fromArrPRepr y))
         (toArrPReprs xs) (toArrPReprs ys)
 {-# INLINE_PA zipWithdPA #-}
-
+-}
