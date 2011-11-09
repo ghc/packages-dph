@@ -30,8 +30,8 @@ run alg len
 	putStr	$ (take 12 $ show result) ++ "\n"
 
 runAlg "vectorised" vec1 vec2 
- = do	let arr1 = fromUArrPA' vec1
-	let arr2 = fromUArrPA' vec2
+ = do	let arr1 = P.fromUArray vec1
+	let arr2 = P.fromUArray vec2
 	arr1 `seq` arr2 `seq` return ()
 
 	time	$ let result	= Z.dotPA arr1 arr2

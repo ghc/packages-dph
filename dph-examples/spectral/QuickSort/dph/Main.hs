@@ -27,7 +27,7 @@ usage	= unlines
 run :: Int -> IO ()
 run len
  = do	-- Create the input vector
-	let vInts 	= fromUArrPA'
+	let vInts 	= fromUArray
 			$ randomishDoubles len 0 1 1234
 
 	vInts `seq` return ()
@@ -42,7 +42,7 @@ run len
 	putStr $ prettyTime tElapsed
 	
 	-- Check they're really sorted.
-	print	$ isSorted $ P.toUArrPA vSorted
+	print	$ isSorted $ P.toUArray vSorted
 	
 
 -- | Check if a vector is sorted (monotonically increasing)

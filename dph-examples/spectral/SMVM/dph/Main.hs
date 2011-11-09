@@ -31,18 +31,18 @@ run fileName
 	-- Multiply sparse matrix by the dense vector.
 	(vResult, tElapsed)
 	 <- time $ let result	= smvmPA matrix vector
-		   in  P.nfPA result `seq` return result
+		   in  P.nf result `seq` return result
 					
 	-- Print how long it took.
 	putStr $ prettyTime tElapsed
 
 	-- Print some info about the test setup.
-	putStrLn $ "vector length   = " ++ show (U.length (toUArrayPA vector))
+	putStrLn $ "vector length   = " ++ show (U.length (P.toUArray vector))
 --	putStrLn $ "matrix height   = " ++ show (U.length (toUArrPA matrix))
 	
 	
 	-- Print checksum of resulting vector.
-	putStrLn $ "result sum      = " ++ show (U.sum (toUArrayPA vResult))
+	putStrLn $ "result sum      = " ++ show (U.sum (P.toUArray vResult))
 
 
 
@@ -54,8 +54,8 @@ loadPA 	:: String 				-- ^ filename.
 loadPA fileName
  = do 	(segd, arrMatrixElems, arrVector) <- loadUArr fileName
 
-    	let paMatrix	= nestUSegdPA segd (fromUArrayPA_2 arrMatrixElems)
-	let paVector	= fromUArrayPA arrVector
+    	let paMatrix	= P.nestUSegd segd (P.fromUArray2 arrMatrixElems)
+	let paVector	= P.fromUArray arrVector
 	return (paMatrix, paVector)
 
 

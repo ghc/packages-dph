@@ -4,7 +4,7 @@ import Randomish
 import System.Environment
 import Control.Exception
 import qualified RankVectorised                 as RD
-import qualified Data.Array.Parallel.PArray     as P
+import qualified Data.Array.Parallel.PArray     as PA
 import qualified Data.Vector.Unboxed            as V
 
 
@@ -17,15 +17,15 @@ main
 
 
 run "vectorised" count
- = do   let arr = P.fromList [0 .. count - 1]
+ = do   let arr = PA.fromList [0 .. count - 1]
         arr `seq` return ()     
                 
         (arrRanks, tElapsed)
          <- time
          $  let  arr'    = RD.ranksPA arr
-            in   P.nf arr' `seq` return arr'
+            in   PA.nf arr' `seq` return arr'
 
-        print   $ P.length arrRanks
+        print   $ PA.length arrRanks
         putStr  $ prettyTime tElapsed
 
 run _ _

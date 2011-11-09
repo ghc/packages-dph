@@ -45,28 +45,42 @@
 module Data.Array.Parallel.PArray (
   PArray, PA, Random(..),
 
-  -- * Array operators.
-  length,
-  empty,
-  replicate,
-  singleton,
-  (!:),
-  zip, unzip,
-  pack,
-  concat, (+:+),
-  indexed,
-  slice,
-  update,
-  bpermute,
-  enumFromTo,
-  
-  -- * Conversion
-  fromList, 
-  toList,
-  fromUArrPA',
-  
   -- * Evaluation
-  nf
+  nf,
+
+  -- * Constructors
+  empty,
+  singleton,
+  replicate,
+  (+:+),
+  concat,
+  nestUSegd,
+  
+  -- * Projections
+  length,
+  (!:),
+  slice,
+
+  -- * Update
+  update,
+  
+  -- * Pack and Combine
+  pack,
+  bpermute,
+  
+  -- * Enumerations
+  enumFromTo,
+  indexed,
+  
+  -- * Tuples
+  zip,
+  unzip,
+  
+  -- * Conversions
+  fromList,     toList,
+  fromUArray,   toUArray,
+  fromUArray2,
+  fromUArray3
 ) 
 where
 import Data.Array.Parallel.Lifted.PArray
@@ -230,10 +244,10 @@ class Random a where
   randomRs :: R.RandomGen g => Int -> (a, a) -> g -> PArray a
 
 prim_randoms :: (Scalar a, R.Random a, R.RandomGen g) => Int -> g -> PArray a
-prim_randoms n = fromUArrPA' . U.randoms n
+prim_randoms n = fromUArray . U.randoms n
 
 prim_randomRs :: (Scalar a, R.Random a, R.RandomGen g) => Int -> (a, a) -> g -> PArray a
-prim_randomRs n r = fromUArrPA' . U.randomRs n r
+prim_randomRs n r = fromUArray . U.randomRs n r
 
 instance Random Int where
   randoms = prim_randoms

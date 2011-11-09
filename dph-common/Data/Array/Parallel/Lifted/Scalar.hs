@@ -35,92 +35,63 @@ prim_lengthPA xs = I# (lengthPA# xs)
 --
 --   TODO: ditch this version, just use fromUArrPA'
 --
-fromUArrPA :: Scalar a => Int -> U.Array a -> PArray a
-{-# INLINE fromUArrPA #-}
-fromUArrPA (I# n#) xs = PArray n# (toScalarPData xs)
+fromUArray :: Scalar a => U.Array a -> PArray a
+{-# INLINE fromUArray #-}
+fromUArray xs
+ = let  !(I# n#) = U.length xs
+   in   PArray n# (toScalarPData xs)
 
-
--- | Create a PArray out of a scalar U.Array,
---   reading the length directly from the U.Array.
-fromUArrPA' :: Scalar a => U.Array a -> PArray a
-{-# INLINE fromUArrPA' #-}
-fromUArrPA' xs = fromUArrPA (U.length xs) xs
+-- TODO: Why do we want this version that takes the length explicitly?
+--       Is there some fusion issue that requires this?
+fromUArray' :: Scalar a => Int -> U.Array a -> PArray a
+{-# INLINE fromUArray' #-}
+fromUArray' (I# n#) xs
+        = PArray n# (toScalarPData xs)
 
 
 -- | Convert a PArray back to a plain U.Array.
-toUArrPA :: Scalar a => PArray a -> U.Array a
-{-# INLINE toUArrPA #-}
-toUArrPA (PArray _ xs) = fromScalarPData xs
+toUArray :: Scalar a => PArray a -> U.Array a
+{-# INLINE toUArray #-}
+toUArray (PArray _ xs) = fromScalarPData xs
 
 
 -- Tuple Conversions ----------------------------------------------------------
 -- | Convert an U.Array of pairs to a PArray.
-fromUArrPA_2
+fromUArray2
         :: (Scalar a, Scalar b)
-        => Int -> U.Array (a,b) -> PArray (a,b)
-{-# INLINE fromUArrPA_2 #-}
-fromUArrPA_2 (I# n#) ps
-  = PArray n# (P_2 (toScalarPData xs) (toScalarPData  ys))
-  where
-    (xs,ys) = U.unzip ps
-
-
--- | Convert a U.Array of pairs to a PArray,
---   reading the length directly from the U.Array.
-fromUArrPA_2'
-        :: (Scalar a, Scalar b)
-        => U.Array (a,b) -> PArray (a, b)
-{-# INLINE fromUArrPA_2' #-}
-fromUArrPA_2' ps 
-        = fromUArrPA_2 (U.length ps) ps
+        => U.Array (a,b) -> PArray (a,b)
+{-# INLINE fromUArray2 #-}
+fromUArray2 ps
+ = let  !(I# n#) = U.length ps
+        (xs, ys) = U.unzip ps
+   in   PArray n# (P_2 (toScalarPData xs) (toScalarPData  ys))
 
 
 -- | Convert a U.Array of triples to a PArray.
-fromUArrPA_3
+fromUArray3
         :: (Scalar a, Scalar b, Scalar c)
-        => Int -> U.Array ((a,b),c) -> PArray (a,b,c)
-{-# INLINE fromUArrPA_3 #-}
-fromUArrPA_3 (I# n#) ps
-  = PArray n# (P_3 (toScalarPData xs)
-                   (toScalarPData ys)
-                   (toScalarPData zs))
-  where
-    (qs,zs) = U.unzip ps
-    (xs,ys) = U.unzip qs
-
-
--- | Convert a U.Array of triples to a PArray,
---   reading the length directly from the U.Array.
-fromUArrPA_3' 
-        :: (Scalar a, Scalar b, Scalar c)
-        => U.Array ((a,b),c) -> PArray (a, b, c)
-{-# INLINE fromUArrPA_3' #-}
-fromUArrPA_3' ps = fromUArrPA_3 (U.length ps) ps
+        => U.Array ((a,b),c) -> PArray (a,b,c)
+{-# INLINE fromUArray3 #-}
+fromUArray3 ps
+ = let  !(I# n#) = U.length ps
+        (qs,zs) = U.unzip ps
+        (xs,ys) = U.unzip qs
+   in   PArray n# (P_3  (toScalarPData xs)
+                        (toScalarPData ys)
+                        (toScalarPData zs))
 
 
 -- Nesting arrays -------------------------------------------------------------
 -- | O(1). Create a nested array.
-nestUSegdPA
-        :: Int                  -- ^ total number of elements in the nested array
-        -> U.Segd               -- ^ segment descriptor
+nestUSegd
+        :: U.Segd               -- ^ segment descriptor
         -> PArray a             -- ^ array of data elements.
         -> PArray (PArray a)
 
-{-# INLINE nestUSegdPA #-}
-nestUSegdPA (I# n#) segd (PArray _ xs)
-        = PArray n# (PNested segd xs)
-
-
--- | O(1). Create a nested array,
---         using the same length as the source array.
-nestUSegdPA'
-        :: U.Segd               -- ^ segment descriptor
-        -> PArray a             -- ^ array of data elements
-        -> PArray (PArray a)
-
-{-# INLINE nestUSegdPA' #-}
-nestUSegdPA' segd xs 
-        = nestUSegdPA (U.lengthSegd segd) segd xs
+{-# INLINE nestUSegd #-}
+nestUSegd segd (PArray _ xs)
+ = let  !(I# n#) = U.lengthSegd segd 
+   in   PArray n# (PNested segd xs)
 
 
 -- Scalar Operators -----------------------------------------------------------
@@ -134,9 +105,9 @@ scalar_map
 
 {-# INLINE_PA scalar_map #-}
 scalar_map f xs 
-        = fromUArrPA (prim_lengthPA xs)
+        = fromUArray' (prim_lengthPA xs)
         . U.map f
-        $ toUArrPA xs
+        $ toUArray xs
 
 
 -- | Zip two arrays, yielding a new array.
@@ -146,8 +117,8 @@ scalar_zipWith
 
 {-# INLINE_PA scalar_zipWith #-}
 scalar_zipWith f xs ys
-        = fromUArrPA (prim_lengthPA xs)
-        $ U.zipWith f (toUArrPA xs) (toUArrPA ys)
+        = fromUArray' (prim_lengthPA xs)
+        $ U.zipWith f (toUArray xs) (toUArray ys)
 
 
 -- | Zip three arrays, yielding a new array.
@@ -157,8 +128,8 @@ scalar_zipWith3
 
 {-# INLINE_PA scalar_zipWith3 #-}
 scalar_zipWith3 f xs ys zs
-        = fromUArrPA (prim_lengthPA xs)
-        $ U.zipWith3 f (toUArrPA xs) (toUArrPA ys) (toUArrPA zs)
+        = fromUArray' (prim_lengthPA xs)
+        $ U.zipWith3 f (toUArray xs) (toUArray ys) (toUArray zs)
 
 
 -- | Left fold over an array.
@@ -168,7 +139,7 @@ scalar_fold
 
 {-# INLINE_PA scalar_fold #-}
 scalar_fold f z
-        = U.fold f z . toUArrPA
+        = U.fold f z . toUArray
 
 
 -- | Left fold over an array, using the first element to initialise the state.
@@ -178,7 +149,7 @@ scalar_fold1
 
 {-# INLINE_PA scalar_fold1 #-}
 scalar_fold1 f
-        = U.fold1 f . toUArrPA
+        = U.fold1 f . toUArray
 
 
 -- | Segmented fold of an array of arrays.
@@ -189,9 +160,9 @@ scalar_folds
 
 {-# INLINE_PA scalar_folds #-}
 scalar_folds f z xss
-        = fromUArrPA (prim_lengthPA (concatPA# xss))
+        = fromUArray' (prim_lengthPA (concatPA# xss))
         . U.fold_s f z (segdPA# xss)
-        . toUArrPA
+        . toUArray
         $ concatPA# xss
 
 
@@ -204,9 +175,9 @@ scalar_fold1s
 
 {-# INLINE_PA scalar_fold1s #-}
 scalar_fold1s f xss
-        = fromUArrPA (prim_lengthPA (concatPA# xss))
+        = fromUArray' (prim_lengthPA (concatPA# xss))
         . U.fold1_s f (segdPA# xss)
-        . toUArrPA
+        . toUArray
          $ concatPA# xss
 
 
@@ -218,7 +189,7 @@ scalar_fold1Index
 
 {-# INLINE_PA scalar_fold1Index #-}
 scalar_fold1Index f
-        = fst . U.fold1 f . U.indexed . toUArrPA
+        = fst . U.fold1 f . U.indexed . toUArray
 
 
 -- | Segmented fold over an array, also passing the index of each 

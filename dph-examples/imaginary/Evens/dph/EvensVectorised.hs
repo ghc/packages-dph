@@ -4,6 +4,7 @@
 module EvensVectorised (evensPA) where
 import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Bool
 import qualified Prelude as P
 
 -- | DPH filter opereations are reasonably involved because they use packByTag.

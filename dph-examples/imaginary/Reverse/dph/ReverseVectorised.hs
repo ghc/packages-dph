@@ -5,6 +5,7 @@ module ReverseVectorised
 where
 import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Bool
 import qualified Prelude as P
 
 

@@ -91,8 +91,8 @@ pointsPArrayOfUArray
 pointsPArrayOfUArray ps
   = do
       let pts = makePointsPA 
-			(P.fromUArrPA' (U.fsts ps))
- 			(P.fromUArrPA' (U.snds ps))
+			(P.fromUArray (U.fsts ps))
+ 			(P.fromUArray (U.snds ps))
       evaluate $ P.nf pts
       return pts
 

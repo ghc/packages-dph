@@ -58,7 +58,7 @@ lengthPA_v xs = I# (lengthPA# xs)
 
 lengthPA_l :: PA a => PArray (PArray a) -> PArray Int
 {-# INLINE_PA lengthPA_l #-}
-lengthPA_l xss = fromUArrPA (U.elementsSegd segd) (U.lengthsSegd segd)
+lengthPA_l xss = fromUArray' (U.elementsSegd segd) (U.lengthsSegd segd)
   where
     segd = segdPA# xss
 
@@ -314,7 +314,7 @@ combine2PA_v:: PA a => PArray a -> PArray a -> PArray Tag -> PArray a
 {-# INLINE_PA combine2PA_v #-}
 combine2PA_v xs ys bs
   = combine2PA# (lengthPA# xs +# lengthPA# ys)
-                (U.tagsToSel2 (toUArrPA bs))
+                (U.tagsToSel2 (toUArray bs))
                 xs ys
 
 combine2PA_l
@@ -412,7 +412,7 @@ enumFromToPA_Int = closure2 enumFromToPA_v enumFromToPA_l
 
 enumFromToPA_v :: Int -> Int -> PArray Int
 {-# INLINE_PA enumFromToPA_v #-}
-enumFromToPA_v m n = fromUArrPA (distance m n) (U.enumFromTo m n)
+enumFromToPA_v m n = fromUArray' (distance m n) (U.enumFromTo m n)
 
 distance :: Int -> Int -> Int
 {-# INLINE_STREAM distance #-}

@@ -11,13 +11,8 @@
 module Data.Array.Parallel.Prelude (
   module Data.Array.Parallel.Prelude.Bool,
   module Data.Array.Parallel.Prelude.Tuple,
-
   PArray, Scalar(..), 
-  toUArrPA, 
-  fromUArrPA', fromUArrPA_2', fromUArrPA_3, fromUArrPA_3',
-  nestUSegdPA'
 ) where
-
 import Data.Array.Parallel.Prelude.Bool
 import Data.Array.Parallel.Prelude.Tuple
 import Data.Array.Parallel.Lifted.PArray

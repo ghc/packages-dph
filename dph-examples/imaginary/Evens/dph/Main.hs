@@ -23,7 +23,7 @@ run alg len
 	runAlg alg vec
 	
 runAlg "vectorised" vec
- = do	let arr	= P.fromUArrPA' vec
+ = do	let arr	= P.fromUArray vec
 	arr `seq` return ()
 
 	(arr', tElapsed)
