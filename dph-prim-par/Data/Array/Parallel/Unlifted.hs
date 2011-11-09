@@ -205,6 +205,7 @@ indices_s segd
  = let  arr     = UPSegd.indicesP segd
    in   tracePrim (TraceIndices_s (Seq.length arr)) arr
 
+extract_ss      = extractsUP
 
 -- Segmented Folds ------------------------------------------------------------
 fold_s f x segd arr

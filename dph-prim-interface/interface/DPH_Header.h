@@ -54,6 +54,7 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Segmented Projections
   indices_s,
+  extract_ss,
     
   -- * Segment Descriptors
   Segd,

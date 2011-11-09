@@ -18,6 +18,7 @@ import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
+import Data.Array.Parallel.Unlifted.Sequential
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
@@ -100,7 +101,7 @@ replicate_rs            = replicateRSU
 
 -- Segmented Projections -----------------------------------------------------
 indices_s               = indicesSU
-
+extract_ss              = extractsSU
 
 -- Segmented Folds -----------------------------------------------------------
 fold_s                  = foldSU

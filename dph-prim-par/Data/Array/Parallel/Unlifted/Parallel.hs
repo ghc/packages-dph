@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+#include "fusion-phases.h"
 
 -- | Parallel operations on unlifted arrays
 --
@@ -24,6 +26,7 @@ module Data.Array.Parallel.Unlifted.Parallel (
   foldUP,     fold1UP,
   foldlUP,    foldl1UP,
   scanUP,
+  extractsUP,
   
   -- * Enum
   enumFromToUP,
@@ -60,3 +63,55 @@ import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 import Data.Array.Parallel.Unlifted.Parallel.Sums
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import qualified Data.Vector                                    as V
+import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
+
+
+-- TODO: zip srcids ixBase and startsix before calling replicate_s
+--       don't want to replicate_s multiple times on same segd.
+--
+-- TODO: pass in a projection function to get the correct array from the vector, 
+--       to avoid unpackig all the arrays from PDatas with a big map traversal.
+--
+-- TODO: make this take the SSegd directly, instead of unzipped fields.
+--
+{-# INLINE_UP extractsUP #-}
+extractsUP
+        :: Unbox a 
+        => V.Vector (Vector a) 
+        -> Vector Int  -- source ids
+        -> Vector Int  -- base indices
+        -> Vector Int  -- segment lengths
+        -> Vector a
+
+extractsUP arrs srcids ixBase lens 
+ = let -- total length of the result
+        dstLen    = sumUP lens
+        segd      = UPSegd.fromLengths lens
+    
+        -- source array ids to load from
+        srcids'   = UPSegd.replicateWithP segd srcids
+
+        -- base indices in the source array to load from
+        baseixs   = UPSegd.replicateWithP segd ixBase
+        
+        -- starting indices for each of the segments
+        startixs  = scanUP (+) 0 lens
+          
+        -- starting indices for each of the segments in the result
+        startixs' = UPSegd.replicateWithP segd startixs
+
+        {-# INLINE get #-}
+        get (ixDst, ixSegDst) (ixSegSrcBase, srcid)
+         = let  !arr    = arrs V.! srcid                        -- TODO: use unsafeIndex
+                !ix     = ixDst - ixSegDst + ixSegSrcBase
+           in   arr Seq.! ix                                    -- TODO unsafe unsafeIndex
+         
+        result    = zipWithUP get
+                        (Seq.zip (enumFromToUP 0 (dstLen - 1))
+                                 startixs')
+                        (Seq.zip baseixs
+                                 srcids')
+
+   in result

@@ -3,6 +3,8 @@
 
 #include "fusion-phases.h"
 
+-- | Parallel array types and the PR class that works on the generic
+--   representation of array data.
 module Data.Array.Parallel.PArray.PData.Base 
         ( -- * Parallel Array types.
           PArray(..)
@@ -10,8 +12,7 @@ module Data.Array.Parallel.PArray.PData.Base
         , PprPhysical (..), PprVirtual (..)
 
         , PR (..)
-        , PData(..), PDatas(..)
-        , uextracts)
+        , PData(..), PDatas(..))
 where
 import Data.Array.Parallel.Pretty
 import GHC.Exts
@@ -24,13 +25,17 @@ import Prelude hiding (length)
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array. 
---   PArrays always contain a finite (sized) number of elements, which means
---   they have a length.
+--   A PArray has a finite length. In contrast, an array of type PData Void
+--   is "defined everywhere" and has no notion of length.
+--
+--   A PArray is the 'user view' of the data, where the elements have the same
+--   type as in the source program. In contrast, a PData array is the 'library'
+--   view, where the element have been converted to our generic representation.
 --
 --   IMPORTANT: 
---    The vectoriser requires the data constructor to have this specific form,
---    because it builds them explicitly.
---    In particular, the array length must be unboxed.
+--   The vectoriser requires the PArray data constructor to have this specific
+--   form, because it builds them explicitly. Specifically, the array length
+--   must be unboxed.
 --
 --   TODO: Why do we need the NoSpecConstr annotation?
 -- 
@@ -67,6 +72,8 @@ data instance PDatas Int
 
 
 -- PR -------------------------------------------------------------------------
+-- | The PR class holds primitive array operators that work on our generic
+--   representation of data.
 class PR a where
 
   -- House Keeping ------------------------------
@@ -208,6 +215,7 @@ class PR a where
   toVectordPR   :: PDatas a           -> V.Vector (PData a)
 
 
+-- Pretty ---------------------------------------------------------------------
 instance PR a  => PprPhysical (PData a) where
  pprp = pprpDataPR
 
@@ -217,54 +225,4 @@ instance PR a  => PprPhysical (PDatas a) where
   $ [ int n <> colon <> text " " <> pprpDataPR pd
         | n  <- [0..]
         | pd <- V.toList $ toVectordPR pdatas]
-
-
--------------------------------------------------------------------------------
--- extra unlifted primitives should be moved into unlifted library ------------
--------------------------------------------------------------------------------
-
--- TODO: zip srcids ixBase and startsix before calling replicate_s
---       don't want to replicate_s multiple times on same segd.
---
--- TODO: pass in a projection function to get the correct array from the vector, 
---       to avoid unpackig all the arrays from PDatas with a big map traversal.
-
-{-# NOINLINE uextracts #-}
-uextracts 
-        :: U.Elt a 
-        => V.Vector (U.Array a) 
-        -> U.Array Int  -- source ids
-        -> U.Array Int  -- base indices
-        -> U.Array Int  -- segment lengths
-        -> U.Array a
-
-uextracts arrs srcids ixBase lens 
- = let -- total length of the result
-        dstLen    = U.sum lens
-        segd      = U.lengthsToSegd lens
-    
-        -- source array ids to load from
-        srcids'   = U.replicate_s segd srcids
-
-        -- base indices in the source array to load from
-        baseixs   = U.replicate_s segd ixBase
-        
-        -- starting indices for each of the segments
-        startixs  = U.scan (+) 0 lens
-          
-        -- starting indices for each of the segments in the result
-        startixs' = U.replicate_s segd startixs
-
-        {-# INLINE get #-}
-        get ixDst ixSegDst (ixSegSrcBase, srcid)
-         = let  !arr    = arrs V.! srcid                         -- TODO: use unsafeIndex
-                !ix     = ixDst - ixSegDst + ixSegSrcBase
-           in   arr U.!: ix                         -- TODO unsafe unsafeIndex
-         
-        result    = U.zipWith3 get
-                        (U.enumFromTo 0 (dstLen - 1))
-                        startixs'
-                        (U.zip baseixs srcids')
-
-   in result
 

@@ -21,6 +21,7 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.USSegd
         Data.Array.Parallel.Unlifted.Sequential.UVSegd
         Data.Array.Parallel.Unlifted.Sequential.Vector
+        Data.Array.Parallel.Unlifted.Sequential
         Data.Array.Parallel.Unlifted
 
   Exposed: False
