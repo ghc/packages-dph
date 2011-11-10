@@ -193,8 +193,7 @@ class PR a where
   --  The Scattered Segment Descriptor (`SSegd`) describes where to get each 
   --  slice, and all slices are concatenated together into the result.
   extractsPR    :: PDatas a -> U.SSegd -> PData a
-
-
+  
   -- Pack and Combine ---------------------------
   -- | Select elements of an array that have their corresponding tag set to
   --   the given value. 
