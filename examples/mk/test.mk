@@ -28,7 +28,7 @@ ifeq ($(WAY),other)
 flags = $(BINARY)_FLAGS
 else
 flags = $(BINARY)_$(WAY)_FLAGS
-$(flags) += -fdph-$(WAY)
+$(flags) += -package dph-$(WAY)
 endif
 
 $(flags) += -odir $(WAY) -hidir $(WAY)

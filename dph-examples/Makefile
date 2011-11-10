@@ -29,7 +29,7 @@ DPH_OPTIONS_PAR = \
         -threaded \
 	-fllvm \
         -Odph \
-        -fdph-par \
+        -package dph-par \
         -fcpr-off \
 	-fno-liberate-case \
 	-fno-spec-constr \
@@ -40,7 +40,7 @@ DPH_OPTIONS_SEQ = \
 	-threaded \
 	-fllvm \
         -Odph \
-        -fdph-seq \
+        -package dph-seq \
         -fcpr-off \
 	-fno-liberate-case \
 	-fno-spec-constr \

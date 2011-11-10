@@ -7,8 +7,8 @@
 --   that is provides a partial reference implementation using lists to
 --   represent arrays, but this code isn't acually used at runtime.
 --
---   The actual code used by compiled programs depends on whether @-fdph-par@ or
---   @-fdph-seq@ is passed  when compiling it. Depending on the flag, the
+--   The actual code used by compiled programs depends on whether @-package dph-par@ or
+--   @-package dph-seq@ is passed  when compiling it. Depending on the flag, the
 --   implementation in either the @dph-prim-par@ or @dph-prim-seq packages@ is
 --   swapped in. These packages export the same API, but use a more efficient, 
 --   and perhaps parallel implementation.

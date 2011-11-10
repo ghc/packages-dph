@@ -4,8 +4,8 @@
 --   Some of them don't actually have parallel implementations, so we bail out
 --   to the regular sequential ones.
 --
---   This set of combinators is used when the program is comiled with @-fdph-par@.
---   When compiling with @-fdph-seq@, the ones in the @dph-prim-seq@ package are used
+--   This set of combinators is used when the program is comiled with @-package dph-par@.
+--   When compiling with @-package dph-seq@, the ones in the @dph-prim-seq@ package are used
 --   instead. The @dph-prim-seq package@ exports the same names, but all combinators
 --   are implemented sequentially.
 --

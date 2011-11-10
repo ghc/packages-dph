@@ -3,8 +3,8 @@
 
 -- | Primitive sequential combinators that work on flat, unlifted arrays.
 --
---   This set of combinators is used when the program is compiled with @-fdph-seq@.
---   When compiling with @-fdph-par@, the ones in the @dph-prim-par package@ are used
+--   This set of combinators is used when the program is compiled with @-package dph-seq@.
+--   When compiling with @-package dph-par@, the ones in the @dph-prim-par package@ are used
 --   instead. The @dph-prim-par package@ exports the same names, but all combinators
 --   are implemented sequentially.
 --

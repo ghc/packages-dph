@@ -63,7 +63,4 @@ Library
         dph-base         == 0.5.*,
         dph-prim-DPHWAY  == 0.5.*
 
-  GHC-Options: -fdph-this
-
   GHC-Options: -package-name dph-DPHWAY
-

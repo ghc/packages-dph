@@ -13,7 +13,7 @@ quickhullSVG_DPH = quickhullSVG
 quickhullSVG_SOURCES = vectSVG.hs QuickhullVect.hs Types.hs SVG.hs TestData.hs
 
 gen_SOURCES = gen.hs TestData.hs
-gen_FLAGS = -fdph-seq
+gen_FLAGS = -package dph-seq
 
 
 include $(TOPDIR)/mk/test.mk

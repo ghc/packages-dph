@@ -101,7 +101,5 @@ Library
         pretty           == 1.1.*,
         containers       == 0.4.*
 
-  GHC-Options: -fdph-this
-
   GHC-Options: -package-name dph-DPHWAY
 
