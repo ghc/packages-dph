@@ -340,17 +340,41 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
 
   -- Pack and Combine ---------------------------
+  -- Select the elements of an array that match the given tag.
+  -- Example:
+  --  arr     = [L 20, R 30, L 40, L 50, R 60, L 70, R 80, L 90]
+  --  flags   = [0     1     0     0     1     0     1     0]
+  --  indices = [0     0     1     2     1     3     2     4]
+  --  as      = [20 40 50 70 90]
+  --  bs      = [30 60 80]
+  --
+  --  tags    = [1     1     0     1     0     0     1     0]
+  --  result  = [L 20, R 30, L 50, R 80]
+  --  flags'  = [0     1     0     1]
+  --  as'     = [20 50]
+  --  as'     = [30 80]
+  --
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PSum2 sel as bs) tags tag
-   = let my_tags  = U.tagsSel2 sel
-         my_tags' = U.packByTag my_tags tags (intToTag tag)
-         sel'     = U.tagsToSel2 my_tags'
+   = let flags     = U.tagsSel2 sel
 
-         atags    = U.packByTag tags my_tags 0
-         btags    = U.packByTag tags my_tags 1
+         -- Make the flags of the result
+         -- flags' = [0 1 0 1]
+         flags'    = U.packByTag flags tags (intToTag tag)
+         sel'      = U.tagsToSel2 flags'
 
-         as'      = packByTagPR as atags tag
-         bs'      = packByTagPR bs btags tag
+         -- Map the tags array onto the data for each alternative.
+         -- This tells us what of the alt data we want to keep.
+         -- atags  = [ 1 0 1 0 0 ]
+         -- btags  = [ 1 0 1 ]
+         atags     = U.packByTag tags flags 0
+         btags     = U.packByTag tags flags 1
+
+         -- Now pack the alt data using the above tag arrays
+         -- as'    = [ 20 50 ]
+         -- bs'    = [ 30 80 ]
+         as'       = packByTagPR as atags tag
+         bs'       = packByTagPR bs btags tag
      in  PSum2 sel' as' bs'
   
   
