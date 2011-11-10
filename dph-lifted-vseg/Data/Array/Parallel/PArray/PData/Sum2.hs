@@ -9,7 +9,7 @@ where
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.Types
-import Data.Array.Parallel.Base                 (Tag)
+import Data.Array.Parallel.Base                 (Tag, intToTag)
 import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
@@ -30,16 +30,18 @@ data instance PDatas (Sum2 a b)
 
 
 -- PR -------------------------------------------------------------------------
--- This stuff isn't implemented yet.
-nope :: String -> a
-nope str   = error $ "Data.Array.Parallel.PData.Sum2: no PR method for Sum2 " ++ str
-
 instance (PR a, PR b) => PR (Sum2 a b)  where
 
   {-# INLINE_PDATA validPR #-}
   validPR _
         = True
 
+  {-# INLINE_PDATA similarPR #-}
+  similarPR x y
+   = case (x, y) of
+        (Alt2_1 x', Alt2_1 y')  -> similarPR x' y'
+        (Alt2_2 x', Alt2_2 y')  -> similarPR x' y'
+        _                       -> False
 
   {-# INLINE_PDATA nfPR #-}
   nfPR (PSum2 sel xs ys)
@@ -94,22 +96,32 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
                 
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR
-        = nope "replicates"
+  replicatesPR segd (PSum2 sel as bs)
+   = let tags      = U.tagsSel2 sel
+         tags'     = U.replicate_s segd tags
+         sel'      = U.tagsToSel2 tags'
 
+         lens      = U.lengthsSegd segd
+         asegd     = U.lengthsToSegd (U.packByTag lens tags 0)
+         bsegd     = U.lengthsToSegd (U.packByTag lens tags 1)
+
+         as'       = replicatesPR asegd as
+         bs'       = replicatesPR bsegd bs
+     in PSum2 sel' as' bs'
+     
 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PSum2 sel1 as1 bs1)
            (PSum2 sel2 as2 bs2)
-    = let !sel  = U.tagsToSel2
-                $ U.tagsSel2 sel1 U.+:+ U.tagsSel2 sel2
-      in  PSum2 sel (appendPR as1 as2)
-                    (appendPR bs1 bs2)
+    = let !sel  = U.tagsToSel2 $ U.tagsSel2 sel1 U.+:+ U.tagsSel2 sel2
+          as    = appendPR as1 as2
+          bs    = appendPR bs1 bs2
+      in  PSum2 sel as bs
         
         
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR
-        = nope "appends"
+  -- {-# INLINE_PDATA appendsPR #-}
+  -- appendsPR
+  --       = nope "appends"
 
 
   -- Projections --------------------------------
@@ -125,9 +137,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
              0 -> Alt2_1 (indexPR as k)
              _ -> Alt2_2 (indexPR bs k)
            
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR 
-        = nope "indexl"
+  -- {-# INLINE_PDATA indexlPR #-}
+  -- indexlPR 
+  --       = nope "indexl"
 
 
   -- extract / extracts 
@@ -329,12 +341,32 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
   -- Pack and Combine ---------------------------
   {-# INLINE_PDATA packByTagPR #-}
-  packByTagPR
-        = nope "packByTag"
+  packByTagPR (PSum2 sel as bs) tags tag
+   = let my_tags  = U.tagsSel2 sel
+         my_tags' = U.packByTag my_tags tags (intToTag tag)
+         sel'     = U.tagsToSel2 my_tags'
+
+         atags    = U.packByTag tags my_tags 0
+         btags    = U.packByTag tags my_tags 1
+
+         as'      = packByTagPR as atags tag
+         bs'      = packByTagPR bs btags tag
+     in  PSum2 sel' as' bs'
+  
   
   {-# INLINE_PDATA combine2PR #-}
-  combine2PR 
-        = nope "combine2"
+  combine2PR sel (PSum2 sel1 as1 bs1) (PSum2 sel2 as2 bs2)
+   = let tags     = U.tagsSel2 sel
+         tags'    = U.combine2 (U.tagsSel2 sel)  (U.repSel2 sel)
+                               (U.tagsSel2 sel1) (U.tagsSel2 sel2)
+         sel'     = U.tagsToSel2 tags'
+
+         asel     = U.tagsToSel2 (U.packByTag tags tags' 0)
+         bsel     = U.tagsToSel2 (U.packByTag tags tags' 1)
+
+         as       = combine2PR asel as1 as2
+         bs       = combine2PR bsel bs1 bs2
+    in   PSum2 sel' as bs
 
 
   -- Conversions --------------------------------
@@ -343,10 +375,10 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   fromVectorPR vec
    = let tags   = V.convert $ V.map tagOfSum2 vec
          sel2   = U.tagsToSel2 tags
-         xs'    = fromVectorPR $ V.fromList $ [x | Alt2_1 x <- V.toList vec]
-         ys'    = fromVectorPR $ V.fromList $ [x | Alt2_2 x <- V.toList vec]
+         as'    = fromVectorPR $ V.fromList $ [x | Alt2_1 x <- V.toList vec]
+         bs'    = fromVectorPR $ V.fromList $ [x | Alt2_2 x <- V.toList vec]
          
-     in  PSum2 sel2 xs' ys'
+     in  PSum2 sel2 as' bs'
         
 
   {-# INLINE_PDATA toVectorPR #-}
