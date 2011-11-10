@@ -3,11 +3,10 @@
 -- | Generation of nested arrays with identical structure.
 module DPH.Arbitrary.Joint where
 import Data.Array.Parallel.Pretty
-import Test.QuickCheck                  hiding (NonEmpty)
-import Util.Array
-import qualified Util.Array             as A
-import qualified Data.Vector.Unboxed    as U
-import qualified Data.Vector            as V
+import Test.QuickCheck                          hiding (NonEmpty)
+import Data.Array.Parallel.Array      as A
+import qualified Data.Vector.Unboxed            as U
+import qualified Data.Vector                    as V
 import Control.Monad
 
 

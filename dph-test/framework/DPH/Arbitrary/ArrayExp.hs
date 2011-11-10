@@ -6,8 +6,8 @@ module DPH.Arbitrary.ArrayExp
 where
 import Test.QuickCheck        
 import Control.Monad
-import Util.Array               (Array)
-import qualified Util.Array     as A
+import Data.Array.Parallel.Array                (Array)
+import qualified Data.Array.Parallel.Array      as A
 
 -- ArbitraryLen -------------------------------------------------------------------
 -- | Generate an arbitrary thing of a specific size.

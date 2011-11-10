@@ -6,7 +6,7 @@
 --
 import DPH.Arbitrary
 import DPH.Testsuite
-import Util.Array
+import Data.Array.Parallel.Array
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray               (PA, PArray)
@@ -262,15 +262,6 @@ instance (PprVirtual a, PprVirtual b) => PprVirtual (Either a b) where
  pprv (Left  x) = text "Left"  <+> pprv x
  pprv (Right y) = text "Right" <+> pprv y
   
-
--- Array class ----------------------------------------------------------------
-instance PA a => Array PArray a where
- length       = PA.length
- index        = PA.index
- append       = PA.append
- toVector     = PA.toVector
- fromVector   = PA.fromVector
-
 
 -- Arbitrary PArrays ----------------------------------------------------------
 instance (PprPhysical (PArray a), Arbitrary a, PA a) 

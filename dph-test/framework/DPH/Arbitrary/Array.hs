@@ -8,8 +8,8 @@ where
 import Test.QuickCheck        
 import Control.Monad
 import DPH.Arbitrary.ArrayExp
-import Util.Array               (Array)
-import qualified Util.Array     as A
+import Data.Array.Parallel.Array                (Array)
+import qualified Data.Array.Parallel.Array      as A
 
 
 -------------------------------------------------------------------------------
