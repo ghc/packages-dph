@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE UndecidableInstances, ParallelListComp #-}
 -- Undeciable instances only need for derived Show instance
 
@@ -9,7 +10,6 @@ module Data.Array.Parallel.PArray.PData.Base
         ( -- * Parallel Array types.
           PArray(..)
         , length, takeData
-        , PprPhysical (..), PprVirtual (..)
 
         , PR (..)
         , PData(..), PDatas(..))
@@ -24,14 +24,8 @@ import qualified Data.Vector                    as V
 import Prelude hiding (length)
 
 -- PArray ---------------------------------------------------------------------
--- | A parallel array. 
---   A PArray has a finite length. In contrast, an array of type PData Void
---   is "defined everywhere" and has no notion of length.
---
---   A PArray is the 'user view' of the data, where the elements have the same
---   type as in the source program. In contrast, a PData array is the 'library'
---   view, where the element have been converted to our generic representation.
---
+-- | A parallel array consisting of a length field and some array data.
+
 --   IMPORTANT: 
 --   The vectoriser requires the PArray data constructor to have this specific
 --   form, because it builds them explicitly. Specifically, the array length
@@ -43,22 +37,37 @@ import Prelude hiding (length)
 data PArray a
         = PArray Int# (PData  a)
 
--- | Take the length of an array
+-- | Take the length field of a `PArray`.
 {-# INLINE_PA length #-}
 length :: PArray a -> Int
 length (PArray n# _)   = (I# n#)
 
 
--- | Take the data from an array.
+-- | Take the `PData` of a `PArray`.
 {-# INLINE_PA takeData #-}
 takeData :: PArray a -> PData a
 takeData (PArray _ d)   = d
 
 
 -- Parallel array data --------------------------------------------------------
-{-# ANN type PData NoSpecConstr #-}
-data family PData a
+-- | A chunk of parallel array data with a linear index space.
+-- 
+--   In contrast to a `PArray`, a `PData` may not have a fixed length, and its
+--   elements may have been converted to a generic representation. Whereas a
+--   `PArray` is the \"user view\" of an array, a `PData` is a type only
+--   used internally to the library.
 
+--   An example of an array with no length is PData Void. We can index this
+--   at an arbitrary position, and always get a 'void' element back.
+--
+data family PData a
+{-# ANN type PData NoSpecConstr #-}
+
+-- | Several chunks of parallel array data.
+--
+--   Although a `PArray` of atomic type such as `Int` only contains a
+--   single `PData` chunk, nested arrays may contain several, which we 
+--   wrap up into a `PDatas`.
 {-# ANN type PDatas NoSpecConstr #-}
 data family PDatas a
 
@@ -72,38 +81,45 @@ data instance PDatas Int
 
 
 -- PR -------------------------------------------------------------------------
--- | The PR class holds primitive array operators that work on our generic
---   representation of data.
+-- | The PR (Parallel Representation) class holds primitive array operators that
+--   work on our generic representation of data.
+--
+--   There are instances for all atomic types such  as `Int` and `Double`, tuples,
+--   nested arrays `PData (PArray a)` and for the  generic types we used to represent
+--   user level algebraic data, `Sum2` and `Wrap` and `Void`. All array data 
+--   is converted to this fixed set of types.
 class PR a where
 
   -- House Keeping ------------------------------
   --  These methods are helpful for debugging, but we don't want their
   --  associated type classes as superclasses of PR.
 
-  -- | Check that an array has a well formed representation.
-  --   This should only return False where there is a bug in the library.
+  -- | (debugging) Check that an array has a well formed representation.
+  --   This should only return `False` where there is a bug in the library.
   validPR       :: PData a -> Bool
 
-  -- | Ensure there are no thunks in the representation of a manifest array.
+  -- | (debugging) Ensure an array is fully evaluted.
   nfPR          :: PData a -> ()
 
-  -- | Weak equality of contained elements.
-  --   Returns True for functions of the same type.  
-  --   In the case of nested arrays, this ignores the physical representation,
-  --   that is, it doesn't care about the exact form of segment descriptors.
+  -- | (debugging) Weak equality of contained elements.
+  --
+  --   Returns `True` for functions of the same type. In the case of nested arrays,
+  --   returns `True` if the array defines the same set of elements, but does not
+  --   care about the exact form of the segement descriptors.
   similarPR     :: a -> a -> Bool
 
-  -- | Check that an index is within this array.
-  --   The (PData Void) arrays don't have a real length, but we still want to
-  --   to check that indices are in-range during testing.
-  --   If the array has a hard length, and the flag is True, then we allow
-  --   the index to be equal to this length.
+  -- | (debugging) Check that an index is within an array.
+  -- 
+  --   Arrays containing `Void` elements don't have a fixed length, and return 
+  --   `Void` for all indices. If the array does have a fixed length, and the 
+  --   flag is true, then we allow the index to be equal to this length, as
+  --   well as less than it.
   coversPR      :: Bool -> PData a -> Int   -> Bool
 
-  -- | Pretty print the physical representation of an element.
+  -- | (debugging) Pretty print the physical representation of an element.
   pprpPR        :: a       -> Doc
 
-  -- | Pretty print the physical representation of this array.
+  -- | (debugging) Pretty print the physical representation of some array data.
   pprpDataPR    :: PData a -> Doc
 
 
@@ -111,74 +127,85 @@ class PR a where
   -- | Produce an empty array with size zero.
   emptyPR       :: PData a
 
-  -- | Define an array of the given size, that maps all elements to the same value.
-  --   We require the replication count to be > 0 so that it's easier to maintain
-  --   the validPR invariants for nested arrays.
-  --   O(n). 
-  replicatePR   :: Int          -- ^ length of result array. Must be > 0.
-                -> a            -- ^ element to replicate.
-                -> PData a
+  -- | O(n). Define an array of the given size, that maps all elements to the
+  --  same value.
+  -- 
+  --   We require the replication count to be > 0 so that it's easier to
+  --   maintain the `validPR` invariants for nested arrays.
+  replicatePR   :: Int -> a -> PData a
 
   -- | O(sum lengths). Segmented replicate.
-  --   TODO: This takes a whole Segd instead of just the lengths, because we could
-  --         do it more efficiently if we knew there were no zero lengths.
-  replicatesPR  :: U.Segd               -- ^ segment descriptor defining the lengths of the segments.
-                -> PData a              -- ^ data elements to replicate
-                -> PData a
+  --   
+  --   Given a Segment Descriptor (Segd), replicate each each element in the
+  --   array according to the length of the corrsponding segment.
+  --   The array data must define at least as many elements as there are segments
+  --   in the descriptor.
 
-  -- | Append two sized arrays.
+  --   TODO: This takes a whole Segd instead of just the lengths. If the Segd knew
+  --         that there were no zero length segments then we could implement this
+  --         more efficiently in the nested case case. If there are no zeros, then
+  --         all psegs in the result are reachable from the vsegs, and we wouldn't
+  --         need to pack them after the replicate.
+  --         
+  replicatesPR  :: U.Segd -> PData a -> PData a
+
+  -- | Append two arrays.
   appendPR      :: PData a -> PData a -> PData a
 
-  -- | Segmented append
-  appendsPR     :: U.Segd               -- ^ segd of result
-                -> U.Segd -> PData a    -- ^ segd/data of first  arrays
-                -> U.Segd -> PData a    -- ^ segd/data of second arrays
+  -- | Segmented append.
+  --
+  --   The first descriptor defines the segmentation of the result, 
+  --   and the others define the segmentation of each source array.
+  appendsPR     :: U.Segd
+                -> U.Segd -> PData a
+                -> U.Segd -> PData a
                 -> PData a
 
 
   -- Projections --------------------------------
   -- | O(1). Get the length of an array, if it has one.
-  --   A (PData Void) array has no length, so this returns `error` in that case.
-  --   To check array bounds, use coversPR instead, as that's a total function.
+  --  
+  --   Applying this function to an array of `Void` will yield `error`, as
+  --   these arrays have no fixed length. To check array bounds, use the
+  --   `coversPR` method instead, as that is a total function.
   lengthPR      :: PData a -> Int
   
-  -- | O(1). Lookup a single element from the source array.
+  -- | O(1). Retrieve a single element from a single array.
   indexPR       :: PData a -> Int -> a
 
-  -- | Lookup several elements from several source arrays
-  indexlPR      :: PData (PArray a)
-                -> PData Int
-                -> PData a
+  -- | O(1). Lifted indexing. 
+  --  Retrieve a single element from each of several ararys.
+  indexlPR      :: PData (PArray a) -> PData Int -> PData a
 
-  -- | O(n). Extract a range of elements from an array.
-  extractPR     :: PData a 
-                -> Int                  -- ^ starting index
-                -> Int                  -- ^ length of slice
-                -> PData a
+  -- | O(len indices) Backwards permutation.
+  --   Retrieve several elements from a single array.
+  bpermutePR    :: PData a -> U.Array Int -> PData a
 
-  -- | O(sum seglens). Segmented extract.
-  extractsPR    :: PDatas a
-                -> U.SSegd              -- ^ segment descriptor describing scattering of data.
-                -> PData a
+  -- | O(slice len). Extract a slice of elements from an array, given the starting
+  --  index and length of the slice.
+  extractPR     :: PData a -> Int -> Int -> PData a
 
-  -- | Backwards permutation
-  bpermutePR    :: PData a              -- ^ source array
-                -> U.Array Int          -- ^ source indices
-                -> PData a
-
+  -- | O(sum seglens). Segmented extract. Extract several slices from several
+  --  source arrays.
+  --  
+  --  The Scattered Segment Descriptor (`SSegd`) describes where to get each 
+  --  slice, and all slices are concatenated together into the result.
+  extractsPR    :: PDatas a -> U.SSegd -> PData a
+  
 
   -- Pack and Combine ---------------------------
-  -- | Filter an array based on some tags.
-  packByTagPR   :: PData a              -- ^ source array
-                -> U.Array Tag          -- ^ array of tags
-                -> Tag                  -- ^ tag of elements to select
-                -> PData a
+  -- | Select elements of an array that have their corresponding tag set to
+  --   the given value. 
+  --
+  --   The data array must define at least as many elements as the length
+  --   of the tags array. 
+  packByTagPR   :: PData a -> U.Array Tag -> Tag -> PData a
 
   -- | Combine two arrays based on a selector.
-  combine2PR    :: U.Sel2               -- ^ selector
-                -> PData a              -- ^ first source array
-                -> PData a              -- ^ second source array
-                -> PData a
+  -- 
+  --   See the documentation for selectors in the dph-prim-seq library
+  --   for how this works.
+  combine2PR    :: U.Sel2 -> PData a -> PData a -> PData a
 
 
   -- Conversions --------------------------------
@@ -190,28 +217,28 @@ class PR a where
 
 
   -- PDatas -------------------------------------
-  -- | O(1). Yield an empty collection of PData.
+  -- | O(1). Yield an empty collection of `PData`.
   emptydPR      :: PDatas a
 
-  -- | O(1). Yield a singleton collection of PData.
+  -- | O(1). Yield a singleton collection of `PData`.
   singletondPR  :: PData a  -> PDatas a
 
-  -- | O(1). Yield how many PData are in the collection.
+  -- | O(1). Yield how many `PData` are in the collection.
   lengthdPR     :: PDatas a -> Int
 
-  -- | O(1). Lookup a PData from a collection.
+  -- | O(1). Lookup a `PData` from a collection.
   indexdPR      :: PDatas a -> Int -> PData a
 
-  -- | O(n). Append two collections of PData.
+  -- | O(n). Append two collections of `PData`.
   appenddPR     :: PDatas a -> PDatas a -> PDatas a
 
-  -- | O(n). Combine several collections of PData into a single one.
+  -- | O(n). Combine several collections of `PData` into a single one.
   concatdPR     :: V.Vector (PDatas a) -> PDatas a
 
-  -- | O(n). Convert a vector of PData to a PDatas collection.
+  -- | O(n). Convert a vector of `PData` to a `PDatas`.
   fromVectordPR :: V.Vector (PData a) -> PDatas a
 
-  -- | O(n). Convert a PDatas collection to a vector of PData.
+  -- | O(n). Convert a `PDatas` to a vector of `PData`.
   toVectordPR   :: PDatas a           -> V.Vector (PData a)
 
 

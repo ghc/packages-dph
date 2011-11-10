@@ -1,7 +1,8 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PR instance for Ints
-module Data.Array.Parallel.PArray.PData.Int where
+module Data.Array.Parallel.PArray.PData.Int () where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
@@ -9,6 +10,7 @@ import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
+import Data.Array.Parallel.Pretty
 
 -- PR -------------------------------------------------------------------------
 instance PR Int where

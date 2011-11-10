@@ -1,13 +1,17 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PR instance for Doubles.
-module Data.Array.Parallel.PArray.PData.Double where
+module Data.Array.Parallel.PArray.PData.Double 
+        ( PData (..)
+        , PDatas(..))
+where
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
-import Text.PrettyPrint
 
 -------------------------------------------------------------------------------
 data instance PData Double

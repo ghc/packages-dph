@@ -1,14 +1,26 @@
 
--- | Parallel array types and operators that work on them.
+-- | Parallel array data.
+--
+--   This is an interface onto the internal array types and operators defined
+--   by the library, and should not normally be used by client programs.
 module Data.Array.Parallel.PArray.PData 
-        ( module Data.Array.Parallel.PArray.PData.Base
-        , module Data.Array.Parallel.PArray.PData.Wrap
-        , module Data.Array.Parallel.PArray.PData.Nested
-        , module Data.Array.Parallel.PArray.PData.Tuple
+        (
+        -- * Parallel array types
+          PArray (..), PData(..), PDatas(..)
+        , length, takeData
+        
+        -- * PR (Parallel Representation)
+        , PR (..)        
+
+        -- * Extra conversions
         , fromListPR
         , toListPR
-        , mapdPR
-        , zipWithdPR)
+
+        -- * Nested arrays
+        , module Data.Array.Parallel.PArray.PData.Nested
+
+        -- * Tuple arrays
+        , module Data.Array.Parallel.PArray.PData.Tuple)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Wrap
@@ -22,6 +34,7 @@ import Data.Array.Parallel.PArray.PData.Double          ()
 import Data.Array.Parallel.PArray.PData.Sum2            ()
 import Data.Array.Parallel.PArray.PRepr.Instances       ()
 import qualified Data.Vector                            as V
+import Prelude hiding (length)
 
 
 -- | Convert a list to a PData.
@@ -32,23 +45,4 @@ fromListPR      = fromVectorPR . V.fromList
 -- | Convert a PData to a list.
 toListPR :: PR a => PData a -> [a]
 toListPR        = V.toList . toVectorPR
-
-
--- | Apply a worked function to all PData in a collection.
-mapdPR  :: (PR a, PR b)
-        => (PData a -> PData b)
-        -> PDatas a -> PDatas b
-mapdPR f pdatas
-        = fromVectordPR $ V.map f (toVectordPR pdatas)
-
-
--- | Combine all PData in a collection with an operator.
-zipWithdPR
-        :: (PR a, PR b, PR c)
-        => (PData a -> PData b  -> PData c)
-        -> PDatas a -> PDatas b -> PDatas c
-zipWithdPR f pdatas1 pdatas2
-        = fromVectordPR $ V.zipWith f 
-                (toVectordPR pdatas1)
-                (toVectordPR pdatas2)
 

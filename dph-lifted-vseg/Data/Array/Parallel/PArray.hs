@@ -1,17 +1,18 @@
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
--- | Operators that work directly on PArrays.
-
---   * These operators are used by the D.A.P.Lifted.Combinator module to
---     define the closures that the vectoriser uses.
+-- | Unvectorised parallel arrays.
 --
---   * They also may also be used directly by user programs.
+--   * These operators may be used directly by unvectorised client programs.
 --
---   * In general, the operators are all unsafe and don't do bounds checks.
+--   * They are also used by the "Data.Array.Parallel.Lifted.Combinators"
+--     module to define the closure converted versions that vectorised code
+--     uses.
+--
+--   * In general, the operators here are all unsafe and don't do bounds checks.
 --     The lifted versions also don't check that each of the argument arrays
 --     have the same length.
---
+
 --   TODO:
 --   Export unsafe versions from Data.Array.Parallel.PArray.Unsafe, and ensure
 --   this module exports safe wrappers. We want to use the unsafe versions in
@@ -21,7 +22,7 @@
 --   the user may not obey this restriction.
 -- 
 module Data.Array.Parallel.PArray 
-        ( PArray(..), PA
+        ( PArray, PA
         , valid
         , nf
 
@@ -50,8 +51,8 @@ module Data.Array.Parallel.PArray
         , enumFromTo,   enumFromTol     -- from D.A.P.PArray.Scalar
 
         -- * Tuples
-        , zip,          zipl            -- from D.A.P.PArray.Tuple
-        , unzip,        unzipl          -- from D.A.P.PArray.Tuple
+        , zip,          zipl
+        , unzip,        unzipl
 
         -- * Conversions
         , fromVector,   toVector
@@ -80,7 +81,7 @@ import Prelude hiding
 
 
 -- Pretty ---------------------------------------------------------------------
-instance PA a => PprPhysical (PArray a) where
+instance PA a => T.PprPhysical (PArray a) where
  pprp (PArray n# pdata)
         =     ( T.text "PArray " T.<+> T.int (I# n#))
         T.$+$ ( T.nest 4 
@@ -88,7 +89,7 @@ instance PA a => PprPhysical (PArray a) where
 
 
 -- Array -----------------------------------------------------------------------
--- | Generic interface to PArrays.
+--  Generic interface to PArrays.
 --
 --  NOTE: 
 --  The toVector conversion is defined by looking up every index instead of
@@ -351,7 +352,7 @@ slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
 --   plain Segd. This is unsafe because it can cause index space overflow.
 unsafeTakeSegd :: PArray (PArray a) -> U.Segd
 unsafeTakeSegd (PArray _ pdata)
-        = unsafeTakeSegdPD pdata
+        = takeSegdPD pdata
 {-# INLINE_PA unsafeTakeSegd #-}
 
 
@@ -417,6 +418,38 @@ combine2 sel arr1@(PArray _ darr1) arr2@(PArray _ darr2)
         !(I# n#)        = lengthPA darr'
    in   PArray  n# darr'
 {-# INLINE_PA combine2 #-}
+
+
+-- Tuples ---------------------------------------------------------------------
+
+-- | O(1). Zip a pair of arrays into an array of pairs.
+--   The two arrays must have the same length, else `error`. 
+zip :: PArray a -> PArray b -> PArray (a, b)
+zip (PArray n# pdata1) (PArray _ pdata2)
+        = PArray n# $ zipPD pdata1 pdata2
+{-# INLINE_PA zip #-}
+
+
+-- | Lifted zip.
+zipl    :: (PA a, PA b)
+        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
+zipl (PArray n# xs) (PArray _ ys)
+        = PArray n# $ ziplPA xs ys
+
+
+-- | O(1). Unzip an array of pairs into a pair of arrays.
+unzip :: PArray (a, b) -> (PArray a, PArray b)
+unzip (PArray n# (PTuple2 xs ys))
+        = (PArray n# xs, PArray n# ys)
+{-# INLINE_PA unzip #-}
+
+
+-- | Lifted unzip
+unzipl :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
+unzipl (PArray n# pdata)
+        = PArray n# $ unziplPD pdata
+
+
 
 
 -- Conversions ----------------------------------------------------------------

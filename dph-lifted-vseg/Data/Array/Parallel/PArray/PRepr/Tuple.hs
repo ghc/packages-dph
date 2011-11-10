@@ -1,10 +1,11 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PRepr instance for tuples
 --   and PD wrappers for other functions defined in D.A.P.PArray.PData.Tuple.
 module Data.Array.Parallel.PArray.PRepr.Tuple
         ( PRepr
-        , zipl)
+        , ziplPA)
 where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
@@ -43,13 +44,6 @@ instance (PA a, PA b) => PA (a,b) where
   {-# INLINE_PA fromArrPReprs #-}
   fromArrPReprs (PTuple2s (PWraps as) (PWraps bs))
         = PTuple2s as bs
-
-
--- | Lifted zip.
-zipl    :: (PA a, PA b)
-        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
-zipl (PArray n# xs) (PArray _ ys)
-        = PArray n# $ ziplPA xs ys
 
 
 -- | Lifted zip on PData arrays.

@@ -4,9 +4,10 @@
 -- | Closure converted lifted array combinators.
 --   The vectoriser produces code that uses these combinators directly.
 -- 
---   All of the combinators in this module are polymorphic, work on PArrays, and
---   take PA dictionaries. Combinators that are specific to a certain element type,
---   like Int, are defined in the corresponding prelude module, eg D.A.P.Prelude.Int.
+--   All of the combinators in this module are polymorphic, work on `PArray`, and
+--   take `PA` dictionaries. Combinators that are specific to a certain element type,
+--   like `Int`, are defined in the corresponding prelude module, 
+--   eg "Data.Array.Parallel.Prelude.Int".
 --
 module Data.Array.Parallel.Lifted.Combinators 
         ( -- * Conversions
@@ -86,19 +87,19 @@ fromNestedPArrayPP = closure1 (\xs -> xs) (\_ xss -> xss)
 
 
 -- Constructors ---------------------------------------------------------------
--- | O(1). An empty array.
+-- | O(1). Construct an empty array.
 emptyPP :: PA a => PArray a
 emptyPP         = PA.empty
 {-# INLINE_PA emptyPP #-}
 
 
--- | O(1). Produce an array containing a single element.
+-- | O(1). Construct an array containing a single element.
 singletonPP :: PA a => a :-> PArray a
 singletonPP     = closure1' PA.singleton PA.singletonl
 {-# INLINE_PA singletonPP #-}
 
 
--- | O(n). Define an array of the given size, that maps all elements to the same value.
+-- | O(n). Construct an array of the given size, that maps all elements to the same value.
 replicatePP     :: PA a => Int :-> a :-> PArray a
 replicatePP     = closure2' PA.replicate PA.replicatel
 {-# INLINE_PA replicatePP #-}
@@ -110,7 +111,7 @@ appendPP        = closure2' PA.append PA.appendl
 {-# INLINE_PA appendPP #-}
 
 
--- | O(len result). Concatenate some arrays.
+-- | O(len result). Concatenate a nested array.
 concatPP :: PA a => PArray (PArray a) :-> PArray a
 concatPP        = closure1' PA.concat PA.concatl
 {-# INLINE_PA concatPP #-}

@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PR instance for Word8.
@@ -10,6 +11,7 @@ import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Word
+import Data.Array.Parallel.Pretty
 
 -------------------------------------------------------------------------------
 data instance PData Word8

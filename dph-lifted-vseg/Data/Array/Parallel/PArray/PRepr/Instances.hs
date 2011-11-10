@@ -1,5 +1,6 @@
-#include "fusion-phases.h"
+{-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE UndecidableInstances #-}
+#include "fusion-phases.h"
 
 -- | Simple instances for the PRRepr/PA family and class.
 --   This module is kept separate from PRepr.Base to break an import cycle

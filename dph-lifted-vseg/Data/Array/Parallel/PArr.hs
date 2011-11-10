@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 {-# OPTIONS_HADDOCK hide #-}
 
--- #hide
 -- | Unvectorised functions that work directly on parallel arrays of [::] type.
 --   These are used internally in the DPH library, but the user never sees them.
 --   Only vectorised functions are visible in the DPH client programs.

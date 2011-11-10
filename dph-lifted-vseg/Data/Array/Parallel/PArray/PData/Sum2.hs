@@ -1,7 +1,11 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PR instance for Sum2.
-module Data.Array.Parallel.PArray.PData.Sum2 where
+module Data.Array.Parallel.PArray.PData.Sum2 
+        ( PData(..)
+        , PDatas(..))
+where
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.Types
@@ -10,7 +14,7 @@ import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import Prelude                                  as P
-
+import Data.Array.Parallel.Pretty
 
 -------------------------------------------------------------------------------
 data instance PData (Sum2 a b)

@@ -1,11 +1,11 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PRepr/PA instance for nested arrays, 
 --   and PA wrappers for other functions defined in D.A.P.PArray.PData.Nested.
 module Data.Array.Parallel.PArray.PRepr.Nested
-        ( concatPA
+        ( concatPA,  concatlPA
         , unconcatPA
-        , concatlPA
         , appendlPA)
 where
 import Data.Array.Parallel.PArray.PRepr.Base

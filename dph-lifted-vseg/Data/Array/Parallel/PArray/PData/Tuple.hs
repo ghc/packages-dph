@@ -1,16 +1,17 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PR instance for tuples.
 module Data.Array.Parallel.PArray.PData.Tuple 
         ( PData(..),    PDatas(..)
-        , zip,          zipPD
-        ,               ziplPR
-        , unzip,        unzipPD
-        , unzipl,       unziplPD)
+        , zipPD
+        , ziplPR
+        , unzipPD
+        , unziplPD)
 where
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
-import Text.PrettyPrint
 import GHC.Exts
 import Prelude hiding (zip, unzip)
 import qualified Data.Vector                    as V
@@ -206,8 +207,8 @@ ziplPR arr1 arr2
         -- that the vsegds of both arrays have the same form.
         -- One of the arrays may have been created with replicate, and 
         -- thus has internal sharing, while the other does not.
-        (segd1, pdata1) = unsafeFlattenPR arr1
-        (_,     pdata2) = unsafeFlattenPR arr2
+        (segd1, pdata1) = flattenPR arr1
+        (_,     pdata2) = flattenPR arr2
 
    in   PNested (U.promoteSegdToVSegd segd1)
                 (PTuple2s (singletondPR pdata1) (singletondPR pdata2))
@@ -227,30 +228,6 @@ unziplPD (PNested uvsegd (PTuple2s xsdata ysdata))
  =      PTuple2 (PNested uvsegd xsdata)
                 (PNested uvsegd ysdata)
 {-# INLINE_PA unziplPD #-}
-
-
--- PArray functions -----------------------------------------------------------
--- These work on PArrays of tuples, but don't need a PA or PR dictionary.
-
--- | O(1). Zip a pair of arrays into an array of pairs.
---   The two arrays must have the same length, else `error`. 
-zip :: PArray a -> PArray b -> PArray (a, b)
-zip (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# $ zipPD pdata1 pdata2
-{-# INLINE_PA zip #-}
-
-
--- | O(1). Unzip an array of pairs into a pair of arrays.
-unzip :: PArray (a, b) -> (PArray a, PArray b)
-unzip (PArray n# (PTuple2 xs ys))
-        = (PArray n# xs, PArray n# ys)
-{-# INLINE_PA unzip #-}
-
-
--- | Lifted unzip
-unzipl :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
-unzipl (PArray n# pdata)
-        = PArray n# $ unziplPD pdata
 
 
 -- Show -----------------------------------------------------------------------

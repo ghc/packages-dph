@@ -1,11 +1,12 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | PR instance for unit.
 module Data.Array.Parallel.PArray.PData.Unit where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.Pretty
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import Text.PrettyPrint
 
 -------------------------------------------------------------------------------
 -- | TODO: For arrays of units, we're currently maintaining their length so

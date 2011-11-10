@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE UndecidableInstances, ParallelListComp #-}
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
@@ -7,35 +8,19 @@ module Data.Array.Parallel.PArray.PData.Nested
         ( PData(..)
         , PDatas(..)
         , mkPNested
-        , pnested_vsegids
-        , pnested_pseglens
-        , pnested_psegstarts
-        , pnested_psegsrcids
-
-        -- * Testing functions. TODO: move these somewhere else
-        , validIx
-        , validLen
-        , validBool
-                
-        -- * Functions derived from PR primops
         , concatPR,     concatlPR
+        , flattenPR,    takeSegdPD
         , unconcatPR
         , appendlPR
-        , unsafeFlattenPR
-
-        -- * Functions that work on nested PData arrays but don't care
-        --   about the element type, and need no dictionary.
-        , unsafeTakeSegdPD
         , slicelPD)
 where
 import Data.Array.Parallel.Base
-
+import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base    as PA
 import qualified Data.IntSet                    as IS
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
-import Text.PrettyPrint
 import GHC.Exts
 
 -- TODO: Using plain V.Vector for the psegdata field means that operations on
@@ -53,7 +38,9 @@ data instance PData (PArray a)
           -- ^ Virtual segmentation descriptor. 
           --   Defines a virtual nested array based on physical data.
 
-        , pnested_psegdata     :: !(PDatas a) }
+        , pnested_psegdata     :: !(PDatas a) 
+          -- ^ Chunks of array data, where each chunk has a linear index space. 
+        }
 
 data instance PDatas (PArray a)
         = PNesteds (V.Vector (PData (PArray a)))
@@ -62,7 +49,23 @@ data instance PDatas (PData a)
         = PPDatas (V.Vector (PData a))
 
 
--- TODO: we shouldn't be using these directly.
+-- | Conatruct a nested array.
+mkPNested :: U.Array Int        -- ^ Virtual segment ids.
+          -> U.Array Int        -- ^ Lengths of physical segments.
+          -> U.Array Int        -- ^ Starting indices of physical segments.
+          -> U.Array Int        -- ^ Source id (what chunk to get each segment from).
+          -> PDatas a           -- ^ Chunks of array data.
+          -> PData (PArray a)
+mkPNested vsegids pseglens psegstarts psegsrcids psegdata
+        = PNested
+                (U.mkVSegd vsegids 
+                        $ U.mkSSegd psegstarts psegsrcids
+                        $ U.lengthsToSegd pseglens)
+                psegdata
+
+
+-- Old projection functions. 
+-- TODO: refactor to eliminate the need for these.
 pnested_vsegids    :: PData (PArray a) -> U.Array Int
 pnested_vsegids    =  U.takeVSegidsOfVSegd . pnested_uvsegd
 
@@ -75,24 +78,11 @@ pnested_psegstarts  = U.startsSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
 pnested_psegsrcids :: PData (PArray a) -> U.Array Int
 pnested_psegsrcids  = U.sourcesSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
 
-mkPNested :: U.Array Int
-          -> U.Array Int
-          -> U.Array Int
-          -> U.Array Int
-          -> PDatas a
-          -> PData (PArray a)
-mkPNested vsegids pseglens psegstarts psegsrcids psegdata
-        = PNested
-                (U.mkVSegd vsegids 
-                        $ U.mkSSegd psegstarts psegsrcids
-                        $ U.lengthsToSegd pseglens)
-                psegdata
-
-
-instance U.Elt (Int, Int, Int)
 
 
 -- PR Instances ---------------------------------------------------------------
+instance U.Elt (Int, Int, Int)
+
 instance PR a => PR (PArray a) where
   -- TODO: make this check all sub arrays as well
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
@@ -418,8 +408,8 @@ instance PR a => PR (PArray a) where
   --
   {-# INLINE_PDATA appendsPR #-}
   appendsPR rsegd segd1 xarr segd2 yarr
-   = let (xsegd, xs)    = unsafeFlattenPR xarr
-         (ysegd, ys)    = unsafeFlattenPR yarr
+   = let (xsegd, xs)    = flattenPR xarr
+         (ysegd, ys)    = flattenPR yarr
    
          xsegd' = U.lengthsToSegd 
                 $ U.sum_s segd1 (U.lengthsSegd xsegd)
@@ -516,31 +506,32 @@ instance PR a => PR (PArray a) where
 
 
 -------------------------------------------------------------------------------
--- | Flatten a nested array into its segment descriptor and data.
---
---   WARNING: Doing this to replicated arrays can cause index overflow.
---            See the warning in `unsafeMaterializeUVSegd`.
---
-unsafeFlattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-{-# INLINE unsafeFlattenPR #-}
-unsafeFlattenPR arr@(PNested uvsegd _)
- =      ( U.demoteToSegdOfVSegd uvsegd
-        , concatPR arr)
-
-
--------------------------------------------------------------------------------
 -- | O(len result). Concatenate a nested array.
 --
---   This physically performs a 'gather' operation, whereby array data is copied
---   through the index-space transformation defined by the segment descriptor.
---   We need to do this because discarding the segment descriptor means that we
---   can no-longer represent the data layout of the logical array other than by
---   physically creating it.
+--   This physically performs a gather operation, whereby array data is copied
+--   through the index-space transformation defined by the segment descriptor
+--   in the nested array. We must perform this copy because reducing the level
+--   of nesting corresponds to discarding the segment descriptor, which means we
+--   can no longer represent the layout of the array other than by physically
+--   creating it.
 --
---   The segment descriptor keeps track of the layout of the data, and if it 
---   knows that the segments are already in a single, contiguous array with
---   no sharing then we can just return that array directly in O(1) time.
---
+--   As an optimisation, if the segment descriptor knows that the segments are
+--   already in a single contiguous `PData` no sharing, then concat can just
+--   return the underlying array directly, in constant time.
+-- 
+--   WARNING: 
+--   Concatenating a replicated array can cause index overflow, because the 
+--   source array can define more elements than we can count with a single
+--   machine word.
+--   For example, if we replicate an array with 1Meg elements 1Meg times then
+--   the result defines a total of 1Meg*1Meg = 1Tera elements. This in itself
+--   is fine, because the nested array is defined by an index space transform
+--   that maps all the inner arrays back to the original data. However, if we 
+--   then concatenate the replicated array then we must physically copy the 
+--   data as we loose the segment descriptor that defines the mapping. Sad 
+--   things will happen when the library tries to construct an physical array
+--   1Tera elements long, especially on 32 bit machines.
+
 --   IMPORTANT:
 --   In the case where there is sharing between segments, or they are scattered
 --   through multiple arrays, only outer-most two levels of nesting are physically
@@ -572,12 +563,14 @@ concatPR (PNested vsegd pdatas)
 {-# INLINE_PDATA concatPR  #-}
 
 
--- | Lifted concat.
+-- | Lifted concatenation.
+-- 
+--   Concatenate all the arrays in a triply nested array.
+--
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
 concatlPR arr
- = let  (segd1, darr1)  = unsafeFlattenPR arr
-        (segd2, darr2)  = unsafeFlattenPR darr1
-
+ = let  (segd1, darr1)  = flattenPR arr
+        (segd2, darr2)  = flattenPR darr1
 
         -- Generate indices for the result array
         --  There is a tedious edge case when the last segment in the nested
@@ -620,7 +613,7 @@ concatlPR arr
 
 -- | Build a nested array given a single flat data vector, 
 --   and a template nested array that defines the segmentation.
--- 
+
 --   Although the template nested array may be using vsegids to describe
 --   internal sharing, the provided data array has manifest elements
 --   for every segment. Because of this we need flatten out the virtual
@@ -647,13 +640,26 @@ unconcatPR (PNested vsegd _) pdata
 --  need to inline it to specialise it for the element type.
 
 
+-- | Flatten a nested array, yielding a plain segment descriptor and 
+--   concatenated data.
+--
+--   WARNING:
+--   This can cause index space overflow, see the note in `concatPR`.
+--
+flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
+{-# INLINE flattenPR #-}
+flattenPR arr@(PNested uvsegd _)
+ =      ( U.demoteToSegdOfVSegd uvsegd
+        , concatPR arr)
+
+
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
 {-# INLINE_PDATA appendlPR #-}
 appendlPR  arr1 arr2
- = let  (segd1, darr1)  = unsafeFlattenPR arr1
-        (segd2, darr2)  = unsafeFlattenPR arr2
+ = let  (segd1, darr1)  = flattenPR arr1
+        (segd2, darr2)  = flattenPR arr2
         segd'           = U.plusSegd segd1 segd2
    in   PNested (U.promoteSegdToVSegd segd' )
                 (singletondPR
@@ -668,23 +674,27 @@ appendlPR  arr1 arr2
 --
 
 -- | Take the segment descriptor from a nested array and demote it to a
---   plain Segd. This is unsafe because it can cause index space overflow.
-unsafeTakeSegdPD :: PData (PArray a) -> U.Segd
-unsafeTakeSegdPD (PNested vsegd _) 
+--   plain Segd.
+-- 
+--   WARNING:
+--   This can cause index space overflow, see the note in `concatPR`.
+--
+takeSegdPD :: PData (PArray a) -> U.Segd
+takeSegdPD (PNested vsegd _) 
         = U.demoteToSegdOfVSegd vsegd
-{-# INLINE_PDATA unsafeTakeSegdPD #-}
-
-
+{-# INLINE_PDATA takeSegdPD #-}
 
 
 -- | Extract some slices from some arrays.
---   The arrays of starting indices and lengths must themselves
---   have the same length.
+--
+--   All three parameters must have the same length, and we take
+--   one slice from each of the source arrays. 
+
 --   TODO: cleanup pnested projections
 slicelPD
-        :: PData Int            -- ^ starting indices of slices
-        -> PData Int            -- ^ lengths of slices
-        -> PData (PArray a)     -- ^ arrays to slice
+        :: PData Int            -- ^ Starting indices of slices.
+        -> PData Int            -- ^ Lengths of slices.
+        -> PData (PArray a)     -- ^ Arrays to slice.
         -> PData (PArray a)
 
 slicelPD (PInt sliceStarts) (PInt sliceLens) arr
@@ -708,23 +718,15 @@ slicelPD (PInt sliceStarts) (PInt sliceLens) arr
 --  need to inline it to specialise it for the element type.
 
 
-
 -- Testing --------------------------------------------------------------------
--- TODO: shift this stuff into dph-base
-validIx  :: String -> Int -> Int -> Bool
-validIx str len ix 
-        = check str len ix (ix >= 0 && ix < len)
-
-validLen :: String -> Int -> Int -> Bool
-validLen str len ix 
-        = checkLen str len ix (ix >= 0 && ix <= len)
-
 -- TODO: slurp debug flag from base 
 validBool :: String -> Bool -> Bool
 validBool str b
         = if b  then True 
                 else error $ "validBool check failed -- " ++ str
 
+
+-- Pretty ---------------------------------------------------------------------
 deriving instance Show (PDatas a) => Show (PDatas (PArray a))
 deriving instance Show (PDatas a) => Show (PData  (PArray a))
 

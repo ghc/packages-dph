@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 #include "fusion-phases.h"
 
 -- | Definition of the PRepr/PA family and class.
@@ -52,13 +53,11 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 
 -- PRepr / PA -----------------------------------------------------------------
--- | Representable types.
+-- | Family of Representable types. These are the types that we know how to
+--   represent generically. `PRepr` takes an arbitrary type and produces the
+--   generic type we use to  represent it.
 --
---   The family of types that we know how to represent generically.
---   PRepr takes an arbitrary type and produces the generic type we use to 
---   represent it.
---
---   Instances for simple types are defined in D.A.P.PArray.PRepr.Instances.
+--   Instances for simple types are defined by the library. 
 --   For algebraic types, it's up to the vectoriser/client module to create
 --   a suitable instance.
 --
@@ -67,6 +66,7 @@ type family PRepr a
 
 -- | A PA dictionary contains the functions that we use to convert a
 --   representable type to and from its generic representation.
+--
 --   The conversions methods should all be O(1). 
 class PR (PRepr a) => PA a where
   toPRepr       :: a                -> PRepr a
@@ -79,6 +79,7 @@ class PR (PRepr a) => PA a where
   fromArrPReprs :: PDatas (PRepr a) -> PDatas a
 
 
+-- | Convert a nested array to its generic representation.
 toNestedArrPRepr
         :: PA a 
         => PData (PArray a)

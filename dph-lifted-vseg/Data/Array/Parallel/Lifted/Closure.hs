@@ -1,7 +1,7 @@
 #include "fusion-phases.h"
 
--- | Closures
----  Used when closure converting the source program during vectorisation.
+-- | Closures.
+--   Used when closure converting the source program during vectorisation.
 module Data.Array.Parallel.Lifted.Closure 
         ( -- * Closures.
           (:->)(..)

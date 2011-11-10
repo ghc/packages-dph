@@ -228,7 +228,7 @@ fold1sIndex
 
 {-# INLINE_PA fold1sIndex #-}
 fold1sIndex f (PArray n# pdata)
- = let  segd    = unsafeTakeSegdPD pdata
+ = let  segd    = takeSegdPD pdata
         xs      = concatPA pdata
    in   PArray n#
          $ toScalarPData

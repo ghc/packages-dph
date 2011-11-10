@@ -1,13 +1,19 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
--- | User level interface of parallel arrays.
+-- | User level interface to vectorised parallel arrays.
+--
+--  /WARNING:/ In the current implementation, the functionality provided in
+--  this module is tied to the vectoriser pass of GHC, invoked by `-fvectorise`.
+--  These functions will not work at all in unvectorised code. To operate on
+--  parallel arrays in unvectorised code, use the functions in
+--  "Data.Array.Parallel.PArray" and convert between array representations by
+--  using `fromPArrayP` and `toPArrayP` from /vectorised/ code.
 --
 --  The semantic difference between standard Haskell arrays (aka "lazy
 --  arrays") and parallel arrays (aka "strict arrays") is that the evaluation
 --  of two different elements of a lazy array is independent, whereas in a
 --  strict array either non or all elements are evaluated.
--- 
 --  In other words, when a parallel array is evaluated to WHNF, all its elements
 --  will be evaluated to WHNF. The name parallel array indicates that all array
 --  elements may, in general, be evaluated to WHNF in parallel without any
@@ -21,11 +27,6 @@
 --  permutations) that are not provided for lists.  The following list of
 --  operations are not supported on parallel arrays, as they would require the
 --  infinite parallel arrays: `iterate', `repeat', and `cycle'.
--- 
---  /WARNING:/ In the current implementation, the functionality provided in
---  this module is tied to the vectoriser pass of GHC invoked by passing the
---  `-fvectorise` option.  Without vectorisation these functions will not work
---  at all!
 --
 --  UGLY HACK ALERT: Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
 --                   using the type synonym 'PArr' instead of '[::]', but that would lead to
@@ -69,7 +70,7 @@ import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Prelude
 import Data.Array.Parallel.Prelude.Int
 import Data.Array.Parallel.Lifted
-import Data.Array.Parallel.PArray               (PArray(..))
+import Data.Array.Parallel.PArray.PData.Base    (PArray(..))
 import Prelude hiding (Int)
 
 
@@ -95,18 +96,21 @@ import Prelude hiding (Int)
 --
 
 -- Conversions ----------------------------------------------------------------
+-- | O(1). Convert between `PArray` and [::] array representations.
 fromPArrayP :: PArray a -> [:a:]
 fromPArrayP !_  = emptyP
 {-# NOINLINE  fromPArrayP #-}
 {-# VECTORISE fromPArrayP = fromPArrayPP #-}
 
 
+-- | O(1). Convert between `PArray` and [::] array representations.
 toPArrayP :: [:a:] -> PArray a
 toPArrayP !_    = PArray 0# (error "toPArrayP: unvectorised")
 {-# NOINLINE  toPArrayP #-}
 {-# VECTORISE toPArrayP = toPArrayPP #-}
 
 
+-- | O(1). Convert between `PArray` and [::] array representations.
 fromNestedPArrayP :: PArray (PArray a) -> [:[:a:]:]
 fromNestedPArrayP !_ = emptyP
 {-# NOINLINE  fromNestedPArrayP #-}
@@ -193,6 +197,7 @@ zipWithP !_ !_ !_       = emptyP
 
 
 -- Filtering -----------------------------------------------------------------
+-- | Filter an array, keeping only those elements that match the given predicate.
 filterP :: (a -> Bool) -> [:a:] -> [:a:]
 filterP !_ !_   = emptyP
 {-# NOINLINE  filterP #-}
