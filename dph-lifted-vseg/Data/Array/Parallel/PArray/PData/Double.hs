@@ -81,28 +81,11 @@ instance PR Double where
   indexPR (PDouble arr) ix
         = arr `VU.unsafeIndex` ix
 
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR (PNested vsegd (PDoubles vecpdatas)) (PInt ixs)
-   = PDouble $ U.zipWith get vsegids ixs
-   where
-         -- Unbox these vectors outside the get loop.
-         !vsegids       = U.takeVSegidsRedundantOfVSegd vsegd
-         !ssegd         = U.takeSSegdRedundantOfVSegd vsegd
-         !psegsrcids    = U.sourcesSSegd ssegd
-         !psegstarts    = U.startsSSegd  ssegd
-
-         -- Lookup a single element from a virtual segment.
-         get !vsegid !ix
-          = let !psegsrcid       = psegsrcids `VU.unsafeIndex` vsegid
-                !psegvec         = vecpdatas  `V.unsafeIndex` psegsrcid
-                !psegstart       = psegstarts `VU.unsafeIndex` vsegid
-                !elemIx          = psegstart + ix
-                !elemVal         = psegvec    `VU.unsafeIndex` elemIx
-            in  elemVal
-
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (PDouble arr) indices
-        = PDouble $ U.bpermute arr indices
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR (PDoubles pvecs) (PInt srcs) (PInt ixs)
+   = PDouble $ U.zipWith get srcs ixs
+   where get !src !ix
+                = (pvecs `V.unsafeIndex` src) `VU.unsafeIndex` ix
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 

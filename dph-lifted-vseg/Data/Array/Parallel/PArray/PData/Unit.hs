@@ -83,12 +83,8 @@ instance PR () where
   indexPR _ _
         = ()
 
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR _ (PInt uarr)
-        = PUnit $ U.length uarr
-
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR _ ixs
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR _ _ (PInt ixs)
         = PUnit $ U.length ixs
 
   {-# INLINE_PDATA extractPR #-}

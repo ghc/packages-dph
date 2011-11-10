@@ -6,7 +6,8 @@
 module Data.Array.Parallel.PArray.PRepr.Nested
         ( concatPA,  concatlPA
         , unconcatPA
-        , appendlPA)
+        , appendlPA
+        , indexlPA)
 where
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
@@ -73,3 +74,10 @@ concatlPA arr
 appendlPA       :: PA a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
 appendlPA arr1 arr2
  = fromArrPRepr $ appendlPR (toArrPRepr arr1) (toArrPRepr arr2)
+
+
+{-# INLINE_PA indexlPA #-}
+indexlPA        :: PA a => PData (PArray a) -> PData Int -> PData a
+indexlPA arr ixs
+ = fromArrPRepr $ indexlPR (toArrPRepr arr) ixs
+

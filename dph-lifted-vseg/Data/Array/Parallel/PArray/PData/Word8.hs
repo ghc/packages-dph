@@ -4,7 +4,6 @@
 -- | PR instance for Word8.
 module Data.Array.Parallel.PArray.PData.Word8 where
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
@@ -80,24 +79,11 @@ instance PR Word8 where
   indexPR (PWord8 uarr) ix
         = uarr U.!: ix
 
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR (PNested vsegd (PWord8s vecpdatas)) (PInt ixs)
-   = PWord8 $ U.zipWith get vsegids ixs
-   where
-         -- Unbox these vectors outside the get loop.
-         !vsegids       = U.takeVSegidsRedundantOfVSegd vsegd
-         !ssegd         = U.takeSSegdRedundantOfVSegd vsegd
-         !psegsrcids    = U.sourcesSSegd ssegd
-         !psegstarts    = U.startsSSegd  ssegd
-
-         -- Lookup a single element from a virtual segment.
-         get !vsegid !ix
-          = let !psegsrcid       = psegsrcids `VU.unsafeIndex` vsegid
-                !psegvec         = vecpdatas  `V.unsafeIndex` psegsrcid
-                !psegstart       = psegstarts `VU.unsafeIndex` vsegid
-                !elemIx          = psegstart + ix
-                !elemVal         = psegvec    `VU.unsafeIndex` elemIx
-            in  elemVal
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR (PWord8s pvecs) (PInt srcs) (PInt ixs)
+   = PWord8 $ U.zipWith get srcs ixs
+   where get !src !ix
+                = (pvecs `V.unsafeIndex` src) `VU.unsafeIndex` ix
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWord8 arr) start len 
@@ -109,10 +95,6 @@ instance PR Word8 where
          segstarts      = U.startsSSegd  ussegd
          seglens        = U.lengthsSSegd ussegd
      in  PWord8 $ U.extract_ss vecpdatas segsrcs segstarts seglens
-
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (PWord8 arr) indices
-        = PWord8 $ U.bpermute arr indices
 
 
   -- Pack and Combine ---------------------------

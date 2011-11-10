@@ -12,7 +12,8 @@ module Data.Array.Parallel.PArray.PData.Base
         , length, takeData
 
         , PR (..)
-        , PData(..), PDatas(..))
+        , PData(..), PDatas(..)
+        , bpermutePR)
 where
 import Data.Array.Parallel.Pretty
 import GHC.Exts
@@ -88,6 +89,10 @@ data instance PDatas Int
 --   nested arrays `PData (PArray a)` and for the  generic types we used to represent
 --   user level algebraic data, `Sum2` and `Wrap` and `Void`. All array data 
 --   is converted to this fixed set of types.
+--
+--   TODO: refactor to change PData Int to U.Array Int, 
+--         there's not need to wrap an extra PData constructor around these arrays,
+--         and the type of bpermute is different than the others.
 class PR a where
 
   -- House Keeping ------------------------------
@@ -173,25 +178,22 @@ class PR a where
   -- | O(1). Retrieve a single element from a single array.
   indexPR       :: PData a -> Int -> a
 
-  -- | O(1). Lifted indexing. 
-  --  Retrieve a single element from each of several ararys.
-  indexlPR      :: PData (PArray a) -> PData Int -> PData a
+  -- | O(1). Shared indexing.
+  --   Retrieve several elements from several chunks of array data, 
+  --   given the chunkid and index in that chunk for each element.
+  indexsPR      :: PDatas a -> PData Int -> PData Int -> PData a
 
-  -- | O(len indices) Backwards permutation.
-  --   Retrieve several elements from a single array.
-  bpermutePR    :: PData a -> U.Array Int -> PData a
-
-  -- | O(slice len). Extract a slice of elements from an array, given the starting
-  --  index and length of the slice.
+  -- | O(slice len). Extract a slice of elements from an array,
+  --  given the starting index and length of the slice.
   extractPR     :: PData a -> Int -> Int -> PData a
 
-  -- | O(sum seglens). Segmented extract. Extract several slices from several
-  --  source arrays.
+  -- | O(sum seglens). Shared extract.
+  --  Extract several slices from several source arrays.
   --  
   --  The Scattered Segment Descriptor (`SSegd`) describes where to get each 
   --  slice, and all slices are concatenated together into the result.
   extractsPR    :: PDatas a -> U.SSegd -> PData a
-  
+
 
   -- Pack and Combine ---------------------------
   -- | Select elements of an array that have their corresponding tag set to
@@ -237,6 +239,16 @@ class PR a where
 
   -- | O(n). Convert a `PDatas` to a vector of `PData`.
   toVectordPR   :: PDatas a           -> V.Vector (PData a)
+
+
+
+-- | O(len indices) Backwards permutation.
+--   Retrieve several elements from a single array.
+bpermutePR :: PR a => PData a -> U.Array Int -> PData a
+bpermutePR pdata ixs
+ = indexsPR     (singletondPR pdata) 
+                (PInt $ U.replicate (U.length ixs) 0)
+                (PInt $ ixs)
 
 
 -- Pretty ---------------------------------------------------------------------

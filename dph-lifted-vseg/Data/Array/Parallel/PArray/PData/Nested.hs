@@ -12,6 +12,7 @@ module Data.Array.Parallel.PArray.PData.Nested
         , flattenPR,    takeSegdPD
         , unconcatPR
         , appendlPR
+        , indexlPR
         , slicelPD)
 where
 import Data.Array.Parallel.Base
@@ -279,43 +280,9 @@ instance PR a => PR (PArray a) where
      in  PArray pseglen# pdata'
 
 
-  -- Lifted indexing
-  --
-  -- source
-  --   VIRT [ [[0],[1,2,3]], [[0],[1,2,3]]
-  --        , [[5,6,7,8,9]], [[5,6,7,8,9]], [[5,6,7,8,9]]
-  --        , [[7,8,9,10,11,12,13],[0],[1,2,3],[0],[5,6,7,8,9],[0],[1,2,3]] ]
-  --
-  --   PHYS PNested
-  --          UVSegd vsegids: [0,0,1,1,1,2]
-  --          USSegd lengths: [2,1,7]
-  --                 indices: [0,2,3]
-  --                 srcids:  [0,0,0]
-  --          0: PNested
-  --                 UVSegd vsegids: [0,1,2,3,4,5,6,7,8,9]
-  --                 USSegd lengths: [1,3,5,7,1,3,1,5,1,3]
-  --                        indices: [0,1,0,0,7,8,11,12,17,18]
-  --                        srcids:  [0,0,1,2,2,2,2,2,2,2]
-  --                 0: PInt [0,1,2,3]
-  --                 1: PInt [5,6,7,8,9]
-  --                 2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
-  --
-  -- indexl with [1, 0, 0, 0, 0, 4]
-  --   VIRT  [[1,2,3],[0],[5,6,7,8,9],[5,6,7,8,9],[5,6,7,8,9],[1,2,3]]
-  --   PHYS  PNested
-  --           UVSegd vsegids: [0,1,2,3,4,5]
-  --           USSegd lengths: [3,1,5,5,5,3]
-  --                  indices: [1,0,0,0,0,8]
-  --                  srcids:  [0,0,1,1,1,2]
-  --           0: PInt [0,1,2,3]
-  --           1: PInt [5,6,7,8,9]
-  --           2: PInt [7,8,9,10,11,12,13,0,1,2,3,0,5,6,7,8,9,0,1,2,3]
-  --
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR (PNested uvsegd pdatas@(PNesteds arrs)) (PInt ixs)
-   = let        
-         c      = U.length ixs
-   
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR pdatas@(PNesteds arrs) (PInt srcids) (PInt ixs)
+   = let 
          -- See Note: psrcoffset
          psrcoffset     = V.prescanl (+) 0
                         $ V.map (lengthdPR . pnested_psegdata) arrs
@@ -324,29 +291,27 @@ instance PR a => PR (PArray a) where
          --   Note that we need to offset the srcid 
          seginfo :: U.Array (Int, Int, Int)
          seginfo 
-          = U.zipWith (\segid ix -> 
-                        let (_,       segstart,  segsrcid)   = U.getSegOfVSegd uvsegd segid
-                            (PNested uvsegd2 _)              = pdatas `indexdPR` segsrcid
-                            (len, start, srcid)              = U.getSegOfVSegd uvsegd2 (segstart + ix)
-                        in  (len, start, srcid + (psrcoffset V.! segsrcid)))
-                (U.enumFromTo 0 (c - 1))
+          = U.zipWith (\srcid ix -> 
+                        let (PNested vsegd _)   = pdatas `indexdPR` srcid
+                            (len, start, srcid') = U.getSegOfVSegd vsegd ix
+                        in  (len, start, srcid' + (psrcoffset V.! srcid)))
+                srcids
                 ixs
 
          (pseglens', psegstarts', psegsrcs')    
                         = U.unzip3 seginfo
                 
          -- TODO: check that doing lengthsToSegd won't cause overflow
-         uvsegd'        = U.promoteSSegdToVSegd
-                        $ U.mkSSegd psegstarts' psegsrcs'
-                        $ U.lengthsToSegd pseglens'
+         vsegd'  = U.promoteSSegdToVSegd
+                 $ U.mkSSegd psegstarts' psegsrcs'
+                 $ U.lengthsToSegd pseglens'
                                  
           -- All flat data arrays in the sources go into the result.
-         psegdatas'     = fromVectordPR
-                        $ V.concat $ V.toList 
-                        $ V.map (toVectordPR . pnested_psegdata) arrs
-                        
-    in  PNested uvsegd' psegdatas'
-
+         pdatas' = fromVectordPR
+                 $ V.concat $ V.toList 
+                 $ V.map (toVectordPR . pnested_psegdata) arrs
+   
+     in  PNested vsegd' pdatas'
 
   -- To extract a range of elements from a nested array, perform the extract
   -- on the vsegids field. The `updateVSegsOfUVSegd` function will then filter
@@ -355,12 +320,6 @@ instance PR a => PR (PArray a) where
   extractPR (PNested uvsegd pdata) start len
    = {-# SCC "extractPR" #-}
      PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
-             pdata
-
-
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (PNested uvsegd pdata) ixs
-   = PNested (U.updateVSegsOfVSegd (\vsegids -> U.bpermute vsegids ixs) uvsegd)
              pdata
 
 
@@ -510,6 +469,29 @@ instance PR a => PR (PArray a) where
   {-# INLINE_PDATA toVectordPR #-}
   toVectordPR (PNesteds vec)
         = vec
+
+------------------------------------------------------------------------------
+-- | O(len result). Lifted indexing
+
+-- TODO: if we unfolded the definition of indexsPR into this function and
+-- manually fused the two loops we wouldn't need the second traversal 
+-- though ixs array.
+--
+indexlPR :: PR a => PData (PArray a) -> PData Int -> PData a
+indexlPR (PNested vsegd pdatas) (PInt ixs)
+ = let 
+        {-# INLINE get #-}
+        get ix1 ix2
+         = let  !(_len, segstart, segsrc) = U.getSegOfVSegd vsegd ix1
+           in   (segsrc, segstart + ix2)
+
+        (srcids', ixs')
+                = U.unzip
+                $ U.zipWith get 
+                        (U.enumFromTo 0 (U.length ixs - 1))
+                        ixs
+                        
+   in   indexsPR pdatas (PInt srcids') (PInt ixs')
 
 
 -------------------------------------------------------------------------------

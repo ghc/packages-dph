@@ -4,7 +4,6 @@
 -- | PR instance for the Wrap type.
 module Data.Array.Parallel.PArray.PData.Wrap where
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import qualified Data.Vector                    as V
@@ -76,13 +75,9 @@ instance PA a => PR (Wrap a) where
   indexPR (PWrap xs) ix
         = Wrap  $ indexPA xs ix
 
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR (PNested vsegd (PWraps pdatas)) ixs
-        = PWrap $ indexlPA (PNested vsegd pdatas) ixs
-
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (PWrap xs) ixs
-        = PWrap $ bpermutePA xs ixs
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR (PWraps pdatas) srcs ixs
+        = PWrap $ indexsPA pdatas srcs ixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWrap xs) ix n

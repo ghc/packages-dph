@@ -8,10 +8,12 @@ module Data.Array.Parallel.PArray.PData.Sum2
 where
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.Base                 (Tag, intToTag)
 import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
+import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
@@ -136,10 +138,27 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
      in  case U.tagsSel2 sel U.!: i of
              0 -> Alt2_1 (indexPR as k)
              _ -> Alt2_2 (indexPR bs k)
-           
-  -- {-# INLINE_PDATA indexlPR #-}
-  -- indexlPR 
-  --       = nope "indexl"
+
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR (PSum2s sels _ ass bss) psrcs@(PInt srcs) (PInt ixs)
+   = let 
+         getFlagIndex !src !ix
+          = let !sel        = sels                `V.unsafeIndex`  src
+                !elemFlag   = (U.tagsSel2    sel) `VU.unsafeIndex` ix
+                !elemIndex  = (U.indicesSel2 sel) `VU.unsafeIndex` ix
+            in  (elemFlag, elemIndex)
+            
+         (flags', indices')
+                = U.unzip $ U.zipWith getFlagIndex srcs ixs 
+
+         sel'           = U.tagsToSel2 flags'    
+         asIndices      = U.packByTag indices' flags' 0
+         bsIndices      = U.packByTag indices' flags' 1
+         
+         as'            = indexsPR ass psrcs (PInt asIndices)
+         bs'            = indexsPR bss psrcs (PInt bsIndices)
+
+    in   PSum2 sel' as' bs'
 
 
   -- extract / extracts 
@@ -190,7 +209,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          bs'        = bpermutePR bs indices1
 
      in  PSum2 sel' as' bs'
-  
+
   
   -- Extract several ranges of elements form some arrays of Sum2s.
   -- Example:
@@ -340,6 +359,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
 
   -- Pack and Combine ---------------------------
+
   -- Select the elements of an array that match the given tag.
   -- Example:
   --  arr     = [L 20, R 30, L 40, L 50, R 60, L 70, R 80, L 90]

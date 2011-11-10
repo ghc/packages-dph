@@ -269,9 +269,9 @@ instance PR (a :-> b) where
   indexPR (AClo fv fl envs) ix
         = Clo fv fl  $ indexPA envs ix
 
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (AClo fv fl envs) ixs
-        = AClo fv fl $ bpermutePA envs ixs
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR (AClos fv fl envs) srcs ixs
+        = AClo fv fl $ indexsPA envs srcs ixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (AClo fv fl envs) start len
@@ -315,12 +315,12 @@ instance PR (a :-> b) where
   -- Unsupported --------------------------------
   -- To support these operators we'd need to manage closure arrays containing
   -- multiple hetrogenous functions. But this is more work than we care for
-  -- right now.
+  -- right now. Note that the problematic functions are all constructors, and
+  -- we can't know that all the parameters contain the same function.
   appendPR      = dieHetroFunctions "appendPR"
   appendsPR     = dieHetroFunctions "appendsPR"
   combine2PR    = dieHetroFunctions "combine2PR"
   fromVectorPR  = dieHetroFunctions "fromVectorPR"
-  indexlPR      = dieHetroFunctions "indexlPR"
   appenddPR     = dieHetroFunctions "appenddPR"
   fromVectordPR = dieHetroFunctions "fromVectordPR"
 

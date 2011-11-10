@@ -25,7 +25,7 @@ module Data.Array.Parallel.PArray.PRepr.Base
 
         -- * Projections
         , lengthPA
-        , indexPA,      indexlPA
+        , indexPA,      indexsPA
         , bpermutePA
         , extractPA,    extractsPA
 
@@ -190,11 +190,11 @@ indexPA xs i
  $ indexPR (toArrPRepr xs) i
 
 
-{-# INLINE_PA indexlPA #-}
-indexlPA        :: PA a => PData (PArray a) -> PData Int -> PData a
-indexlPA (PNested vsegd pdatas) ixs
+{-# INLINE_PA indexsPA #-}
+indexsPA        :: PA a => PDatas a -> PData Int -> PData Int -> PData a
+indexsPA pdatas srcs ixs
  = fromArrPRepr
- $ indexlPR (PNested vsegd (toArrPReprs pdatas)) ixs
+ $ indexsPR (toArrPReprs pdatas) srcs ixs
 
 
 {-# INLINE_PDATA bpermutePA #-}

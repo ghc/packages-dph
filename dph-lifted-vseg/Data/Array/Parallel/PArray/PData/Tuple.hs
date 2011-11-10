@@ -98,17 +98,10 @@ instance (PR a, PR b) => PR (a, b) where
   indexPR (PTuple2 arr1 arr2) ix
         = (indexPR arr1 ix, indexPR arr2 ix)
 
-  {-# INLINE_PDATA indexlPR #-}
-  indexlPR (PNested uvsegd (PTuple2s xs ys)) ixs
-   = let xsArr  = PNested uvsegd xs
-         ysArr  = PNested uvsegd ys
-     in  PTuple2  (indexlPR xsArr ixs)
-                  (indexlPR ysArr ixs)
-
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (PTuple2 arr1 arr2) ixs
-        = PTuple2 (bpermutePR arr1 ixs)
-                  (bpermutePR arr2 ixs)
+  {-# INLINE_PDATA indexsPR #-}
+  indexsPR (PTuple2s xs ys) srcs ixs
+        = PTuple2 (indexsPR xs srcs ixs)
+                  (indexsPR ys srcs ixs)
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len
