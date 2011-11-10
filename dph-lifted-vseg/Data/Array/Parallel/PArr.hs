@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 {-# OPTIONS_HADDOCK hide #-}
 
@@ -8,7 +7,8 @@
 --   Only vectorised functions are visible in the DPH client programs.
 --
 module Data.Array.Parallel.PArr 
-        ( emptyPArr
+        ( PArr
+        , emptyPArr
         , replicatePArr
         , singletonPArr
         , indexPArr
@@ -20,19 +20,19 @@ import GHC.Base
 import GHC.PArr
 
 -- | Construct an empty array, with no elements.
-emptyPArr :: [:a:]
+emptyPArr :: PArr a
 {-# NOINLINE emptyPArr #-}
 emptyPArr = replicatePArr 0 undefined
 
 
 -- | Construct an array with a single element.
-singletonPArr :: a -> [:a:]
+singletonPArr :: a -> PArr a
 {-# NOINLINE singletonPArr #-}
 singletonPArr e = replicatePArr 1 e
 
 
 -- | Construct an array by replicating the given element some number of times.
-replicatePArr :: Int -> a -> [:a:]
+replicatePArr :: Int -> a -> PArr a
 {-# NOINLINE replicatePArr #-}
 replicatePArr n e  
  = runST (do
@@ -41,13 +41,13 @@ replicatePArr n e
 
 
 -- | Take the length of an array.
-lengthPArr :: [:a:] -> Int
+lengthPArr :: PArr a -> Int
 {-# NOINLINE lengthPArr #-}
 lengthPArr (PArr n _) = n
 
 
 -- | Lookup a single element from the source array.
-indexPArr :: [:e:] -> Int -> e
+indexPArr :: PArr e -> Int -> e
 {-# NOINLINE indexPArr #-}
 indexPArr (PArr n arr#) i@(I# i#)
   | i >= 0 && i < n 
@@ -60,7 +60,7 @@ indexPArr (PArr n arr#) i@(I# i#)
 
 -- | Take the first element of the source array, 
 --   or `error` if there isn't one.
-headPArr :: [:a:] -> a
+headPArr :: PArr a -> a
 headPArr arr = indexPArr arr 0
 
 
@@ -78,7 +78,7 @@ newArray n@(I# n#) e  = ST $ \s1# ->
 
 
 -- | Convert a mutable array into the external parallel array representation
-mkPArr :: Int -> MPArr s e -> ST s [:e:]
+mkPArr :: Int -> MPArr s e -> ST s PArr e
 {-# INLINE mkPArr #-}
 mkPArr n (MPArr _ marr#)  = ST $ \s1# ->
   case unsafeFreezeArray# marr# s1#   of { (# s2#, arr# #) ->

@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
   -- NB: Cannot use any parallel array syntax except the type constructor
 
@@ -59,7 +58,7 @@ min = P.min
 max = P.max
 {-# VECTORISE SCALAR max #-}
 
-minimumP, maximumP :: [:Word8:] -> Word8
+minimumP, maximumP :: PArr Word8 -> Word8
 {-# NOINLINE minimumP #-}
 minimumP a = a `indexPArr` 0
 {-# VECTORISE minimumP = minimumP_v #-}
@@ -75,7 +74,7 @@ minimumP_v = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
 maximumP_v = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 {-# NOVECTORISE maximumP_v #-}
 
-minIndexP :: [:Word8:] -> Int
+minIndexP :: PArr Word8 -> Int
 {-# NOINLINE minIndexP #-}
 minIndexP _ = 0   -- FIXME: add proper implementation
 {-# VECTORISE minIndexP = minIndexPA #-}
@@ -89,7 +88,7 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
                  | P.otherwise = (j,y)
 {-# NOVECTORISE min' #-}
 
-maxIndexP :: [:Word8:] -> Int
+maxIndexP :: PArr Word8 -> Int
 {-# NOINLINE maxIndexP #-}
 maxIndexP _ = 0   -- FIXME: add proper implementation
 {-# VECTORISE maxIndexP = maxIndexPA #-}
@@ -117,7 +116,7 @@ negate = P.negate
 abs = P.abs
 {-# VECTORISE SCALAR abs #-}
 
-sumP, productP :: [:Word8:] -> Word8
+sumP, productP :: PArr Word8 -> Word8
 {-# NOINLINE sumP #-}
 sumP a = a `indexPArr` 0
 {-# VECTORISE sumP = sumP_v #-}

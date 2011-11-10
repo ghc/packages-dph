@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
   -- NB: Cannot use any parallel array syntax except the type constructor
 
@@ -60,7 +59,7 @@ min = P.min
 max = P.max
 {-# VECTORISE SCALAR max #-}
 
-minimumP, maximumP :: [:Int:] -> Int
+minimumP, maximumP :: PArr Int -> Int
 {-# NOINLINE minimumP #-}
 minimumP a = a `indexPArr` 0
 {-# VECTORISE minimumP = minimumP_v #-}
@@ -76,7 +75,7 @@ minimumP_v = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
 maximumP_v = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 {-# NOVECTORISE maximumP_v #-}
 
-minIndexP :: [:Int:] -> Int
+minIndexP :: PArr Int -> Int
 {-# NOINLINE minIndexP #-}
 minIndexP _ = 0   -- FIXME: add proper implementation
 {-# VECTORISE minIndexP = minIndexPA #-}
@@ -90,7 +89,7 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
                  | P.otherwise = (j,y)
 {-# NOVECTORISE min' #-}
 
-maxIndexP :: [:Int:] -> Int
+maxIndexP :: PArr Int -> Int
 {-# NOINLINE maxIndexP #-}
 maxIndexP _ = 0   -- FIXME: add proper implementation
 {-# VECTORISE maxIndexP = maxIndexPA #-}
@@ -118,7 +117,7 @@ negate = P.negate
 abs = P.abs
 {-# VECTORISE SCALAR abs #-}
 
-sumP, productP :: [:Int:] -> Int
+sumP, productP :: PArr Int -> Int
 {-# NOINLINE sumP #-}
 sumP a = a `indexPArr` 0
 {-# VECTORISE sumP = sumP_v #-}
@@ -144,7 +143,7 @@ sqrt ::  Int -> Int
 sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 {-# VECTORISE SCALAR sqrt #-}
 
-enumFromToP :: Int -> Int ->  [:Int:]
+enumFromToP :: Int -> Int ->  PArr Int
 {-# NOINLINE enumFromToP #-}
 enumFromToP x y = singletonPArr (x P.+ y)
 {-# VECTORISE enumFromToP = enumFromToPA_Int #-}

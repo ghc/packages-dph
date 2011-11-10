@@ -1,32 +1,32 @@
-{-# LANGUAGE ParallelArrays, UnboxedTuples, MagicHash #-}
+{-# LANGUAGE UnboxedTuples, MagicHash #-}
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 {-# OPTIONS_HADDOCK hide #-}
 
 -- #hide
 module Data.Array.Parallel.PArr (
-  emptyPArr, replicatePArr, singletonPArr, indexPArr, lengthPArr
+  PArr, emptyPArr, replicatePArr, singletonPArr, indexPArr, lengthPArr
 ) where
 
 import GHC.ST   ( ST(..), runST )
 import GHC.Base ( Int (I#), MutableArray#, newArray#,
                   unsafeFreezeArray#, indexArray#, {- writeArray# -} )
-import GHC.PArr -- provides the definition of '[::]'
+import GHC.PArr -- provides the definition of '[::]' and 'PArr'
 
-emptyPArr :: [:a:]
+emptyPArr :: PArr a
 {-# NOINLINE emptyPArr #-}
 emptyPArr = replicatePArr 0 undefined
 
-replicatePArr :: Int -> a -> [:a:]
+replicatePArr :: Int -> a -> PArr a
 {-# NOINLINE replicatePArr #-}
 replicatePArr n e  = runST (do
   marr# <- newArray n e
   mkPArr n marr#)
 
-singletonPArr :: a -> [:a:]
+singletonPArr :: a -> PArr a
 {-# NOINLINE singletonPArr #-}
 singletonPArr e = replicatePArr 1 e
 
-indexPArr :: [:e:] -> Int -> e
+indexPArr :: PArr e -> Int -> e
 {-# NOINLINE indexPArr #-}
 indexPArr (PArr n arr#) i@(I# i#)
   | i >= 0 && i < n =
@@ -35,7 +35,7 @@ indexPArr (PArr n arr#) i@(I# i#)
                         "idx = " ++ show i ++ ", arr len = "
                         ++ show n
 
-lengthPArr :: [:a:] -> Int
+lengthPArr :: PArr a -> Int
 {-# NOINLINE lengthPArr #-}
 lengthPArr (PArr n _) = n
 
@@ -56,7 +56,7 @@ newArray n@(I# n#) e  = ST $ \s1# ->
 
 -- convert a mutable array into the external parallel array representation
 --
-mkPArr :: Int -> MPArr s e -> ST s [:e:]
+mkPArr :: Int -> MPArr s e -> ST s (PArr e)
 {-# INLINE mkPArr #-}
 mkPArr n (MPArr _ marr#)  = ST $ \s1# ->
   case unsafeFreezeArray# marr# s1#   of { (# s2#, arr# #) ->

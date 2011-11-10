@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
   -- NB: Cannot use any parallel array syntax except the type constructor
 
@@ -14,7 +13,7 @@ module Data.Array.Parallel.Prelude.Bool (
 
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
-import Data.Array.Parallel.PArr ()
+import Data.Array.Parallel.PArr                     (PArr)
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
@@ -71,7 +70,7 @@ not_l (PArray n# bs)
       PBool $ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
 {-# NOVECTORISE not_l #-}
 
-andP:: [:Bool:] -> Bool
+andP:: PArr Bool -> Bool
 {-# NOINLINE andP #-}
 andP _ = True
 {-# VECTORISE andP = andP_v #-}
@@ -80,7 +79,7 @@ andP_v :: PArray Bool :-> Bool
 andP_v = closure1 (scalar_fold (&&) True) (scalar_folds (&&) True)
 {-# NOVECTORISE andP_v #-}
 
-orP:: [:Bool:] -> Bool
+orP:: PArr Bool -> Bool
 {-# NOINLINE orP #-}
 orP _ = True
 {-# VECTORISE orP = orP_v #-}

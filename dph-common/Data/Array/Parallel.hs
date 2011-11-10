@@ -25,6 +25,10 @@
 -- this module is tied to the vectoriser pass of GHC invoked by passing the
 -- `-fvectorise` option.  Without vectorisation these functions will not work
 -- at all!
+--
+-- UGLY HACK ALERT: Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
+--                  using the type synonym 'PArr' instead of '[::]', but that would lead to
+--                  significantly worse error message for end users.
 
 module Data.Array.Parallel (
   module Data.Array.Parallel.Prelude,
@@ -100,12 +104,12 @@ lengthP = lengthPArr
 
 concatP :: [:[:a:]:] -> [:a:]
 {-# NOINLINE concatP #-}
-concatP xss = xss !: 0
+concatP xss = indexPArr xss 0
 {-# VECTORISE concatP = concatPA #-}
 
 mapP :: (a -> b) -> [:a:] -> [:b:]
 {-# NOINLINE mapP #-}
-mapP !_ !_ = [::]
+mapP !_ !_ = emptyP
 {-# VECTORISE mapP = mapPA #-}
 
 filterP :: (a -> Bool) -> [:a:] -> [:a:]
@@ -132,32 +136,32 @@ filterP !_ xs = xs
 
 zipP :: [:a:] -> [:b:] -> [:(a, b):]
 {-# NOINLINE zipP #-}
-zipP !_ !_ = [::]
+zipP !_ !_ = emptyP
 {-# VECTORISE zipP = zipPA #-}
 
 zip3P :: [:a:] -> [:b:] -> [:c:] -> [:(a, b, c):]
 {-# NOINLINE zip3P #-}
-zip3P !_ !_ !_ = [::]
+zip3P !_ !_ !_ = emptyP
 {-# VECTORISE zip3P = zip3PA #-}
 
 unzipP :: [:(a, b):] -> ([:a:], [:b:])
 {-# NOINLINE unzipP #-}
-unzipP !_ = ([::], [::])
+unzipP !_ = (emptyP, emptyP)
 {-# VECTORISE unzipP = unzipPA #-}
 
 unzip3P :: [:(a, b, c):] -> ([:a:], [:b:], [:c:])
 {-# NOINLINE unzip3P #-}
-unzip3P !_ = ([::], [::], [::])
+unzip3P !_ = (emptyP, emptyP, emptyP)
 {-# VECTORISE unzip3P = unzip3PA #-}
 
 zipWithP :: (a -> b -> c) -> [:a:] -> [:b:] -> [:c:]
 {-# NOINLINE zipWithP #-}
-zipWithP !_ !_ !_ = [::]
+zipWithP !_ !_ !_ = emptyP
 {-# VECTORISE zipWithP = zipWithPA #-}
 
 zipWith3P :: (a -> b -> c -> d) -> [:a:] -> [:b:] -> [:c:] -> [:d:]
 {-# NOINLINE zipWith3P #-}
-zipWith3P !_ !_ !_ !_ = [::]
+zipWith3P !_ !_ !_ !_ = emptyP
 {-# VECTORISE zipWith3P = zipWith3PA #-}
 
 -- enumFromToP :: Enum a => a -> a -> [:a:]
@@ -185,7 +189,7 @@ bpermuteP xs !_ = xs
 
 indexedP :: [:a:] -> [:(Int, a):]
 {-# NOINLINE indexedP #-}
-indexedP !_ = [::]
+indexedP !_ = emptyP
 {-# VECTORISE indexedP = indexedPA #-}
 
 sliceP :: Int -> Int -> [:e:] -> [:e:]
@@ -195,7 +199,7 @@ sliceP !_ !_ xs = xs
 
 crossMapP :: [:a:] -> (a -> [:b:]) -> [:(a, b):]
 {-# NOINLINE crossMapP #-}
-crossMapP !_ !_ = [::]
+crossMapP !_ !_ = emptyP
 {-# VECTORISE crossMapP = crossMapPA #-}
 
 fromPArrayP :: PArray a -> [:a:]

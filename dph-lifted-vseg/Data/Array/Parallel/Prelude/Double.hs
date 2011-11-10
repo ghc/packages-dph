@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Double 
@@ -79,7 +78,7 @@ max = P.max
 
 
 -- minimum/maximum --------------------
-minimumP, maximumP :: [:Double:] -> Double
+minimumP, maximumP :: PArr Double -> Double
 
 minimumP arr    = headPArr arr
 {-# NOINLINE  minimumP #-}
@@ -100,7 +99,7 @@ maximumPP      = L.closure1' (SC.fold1 P.max) (SC.fold1s P.max)
 
 
 -- minIndex/maxIndex ------------------
-minIndexP :: [:Double:] -> Int
+minIndexP :: PArr Double -> Int
 minIndexP !_    = 0 
 {-# NOINLINE  minIndexP #-}
 {-# VECTORISE minIndexP = minIndexPP #-}
@@ -116,7 +115,7 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
 {-# NOVECTORISE min' #-}
 
 
-maxIndexP :: [:Double:] -> Int
+maxIndexP :: PArr Double -> Int
 maxIndexP _     = 0
 {-# NOINLINE  maxIndexP #-}
 {-# VECTORISE maxIndexP = maxIndexPP #-}
@@ -156,7 +155,7 @@ abs     = P.abs
 
 
 -- sum/product ------------------------
-sumP, productP :: [:Double:] -> Double
+sumP, productP :: PArr Double -> Double
 
 sumP arr        = headPArr arr
 {-# NOINLINE  sumP #-}

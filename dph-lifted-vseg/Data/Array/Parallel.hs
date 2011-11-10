@@ -27,6 +27,10 @@
 --  `-fvectorise` option.  Without vectorisation these functions will not work
 --  at all!
 --
+--  UGLY HACK ALERT: Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
+--                   using the type synonym 'PArr' instead of '[::]', but that would lead to
+--                   significantly worse error message for end users.
+--
 module Data.Array.Parallel 
         ( module Data.Array.Parallel.Prelude
 
@@ -133,18 +137,18 @@ replicateP      = replicatePArr
 
 -- | Append two arrays.
 appendP, (+:+) :: [:a:] -> [:a:] -> [:a:]
-(+:+) !_ !_     = [::]
+(+:+) !_ !_     = emptyP
 {-# NOINLINE  (+:+) #-}
 {-# VECTORISE (+:+)     = appendPP #-}
 
-appendP !_ !_   = [::]
+appendP !_ !_   = emptyP
 {-# NOINLINE  appendP #-}
 {-# VECTORISE appendP   = appendPP #-}
 
 
 -- | Concatenate an array of arrays.
 concatP :: [:[:a:]:] -> [:a:]
-concatP !_      = [::]
+concatP !_      = emptyP
 {-# NOINLINE  concatP #-}
 {-# VECTORISE concatP = concatPP #-}
 
@@ -169,7 +173,7 @@ indexP            = indexPArr
 
 -- | Extract a slice from an array.
 sliceP :: Int -> Int -> [:a:] -> [:a:]
-sliceP !_ !_ !_ = [::]
+sliceP !_ !_ !_ = emptyP
 {-# NOINLINE sliceP #-}
 {-# VECTORISE sliceP    = slicePP #-}
 
@@ -177,20 +181,20 @@ sliceP !_ !_ !_ = [::]
 -- Traversals -----------------------------------------------------------------
 -- | Apply a worker function to every element of an array.
 mapP :: (a -> b) -> [:a:] -> [:b:]
-mapP !_ !_              = [::]
+mapP !_ !_              = emptyP
 {-# NOINLINE  mapP #-}
 {-# VECTORISE mapP      = mapPP #-}
 
 -- | Apply a worker function to every pair of two arrays.
 zipWithP :: (a -> b -> c) -> [:a:] -> [:b:] -> [:c:]
-zipWithP !_ !_ !_       = [::]
+zipWithP !_ !_ !_       = emptyP
 {-# NOINLINE  zipWithP #-}
 {-# VECTORISE zipWithP  = zipWithPP #-}
 
 
 -- Filtering -----------------------------------------------------------------
 filterP :: (a -> Bool) -> [:a:] -> [:a:]
-filterP !_ !_   = [::]
+filterP !_ !_   = emptyP
 {-# NOINLINE  filterP #-}
 {-# VECTORISE filterP = filterPP #-}
 
@@ -198,13 +202,13 @@ filterP !_ !_   = [::]
 -- Zipping and Unzipping ------------------------------------------------------
 -- | Zip a pair of arrays into an array of pairs.
 zipP :: [:a:] -> [:b:] -> [:(a, b):]
-zipP !_ !_      = [::]
+zipP !_ !_      = emptyP
 {-# NOINLINE  zipP #-}
 {-# VECTORISE zipP      = zipPP #-}
 
 
 -- | Unzip an array of pairs into a pair of arrays.
 unzipP :: [:(a, b):] -> ([:a:], [:b:])
-unzipP !_       = ([::], [::])
+unzipP !_       = (PArr, PArr)
 {-# NOINLINE  unzipP #-}
 {-# VECTORISE unzipP    = unzipPP #-}

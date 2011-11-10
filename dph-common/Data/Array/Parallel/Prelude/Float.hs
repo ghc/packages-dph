@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
   -- NB: Cannot use any parallel array syntax except the type constructor
 
@@ -67,7 +66,7 @@ min = P.min
 max = P.max
 {-# VECTORISE SCALAR max #-}
 
-minimumP, maximumP :: [:Float:] -> Float
+minimumP, maximumP :: PArr Float -> Float
 {-# NOINLINE minimumP #-}
 minimumP a = a `indexPArr` 0
 {-# VECTORISE minimumP = minimumP_v #-}
@@ -83,7 +82,7 @@ minimumP_v = closure1 (scalar_fold1 P.min) (scalar_fold1s P.min)
 maximumP_v = closure1 (scalar_fold1 P.max) (scalar_fold1s P.max)
 {-# NOVECTORISE maximumP_v #-}
 
-minIndexP :: [:Float:] -> Int
+minIndexP :: PArr Float -> Int
 {-# NOINLINE minIndexP #-}
 minIndexP _ = 0   -- FIXME: add proper implementation
 {-# VECTORISE minIndexP = minIndexPA #-}
@@ -97,7 +96,7 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
                  | P.otherwise = (j,y)
 {-# NOVECTORISE min' #-}
 
-maxIndexP :: [:Float:] -> Int
+maxIndexP :: PArr Float -> Int
 {-# NOINLINE maxIndexP #-}
 maxIndexP _ = 0   -- FIXME: add proper implementation
 {-# VECTORISE maxIndexP = maxIndexPA #-}
@@ -125,7 +124,7 @@ negate = P.negate
 abs = P.abs
 {-# VECTORISE SCALAR abs #-}
 
-sumP, productP :: [:Float:] -> Float
+sumP, productP :: PArr Float -> Float
 {-# NOINLINE sumP #-}
 sumP a = a `indexPArr` 0
 {-# VECTORISE sumP = sumP_v #-}

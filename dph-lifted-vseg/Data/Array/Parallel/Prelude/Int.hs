@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Int 
@@ -72,7 +71,7 @@ max = P.max
 
 
 -- minimum/maximum --------------------
-minimumP, maximumP :: [:Int:] -> Int
+minimumP, maximumP :: PArr Int -> Int
 
 minimumP arr    = headPArr arr
 {-# NOINLINE  minimumP #-}
@@ -93,7 +92,7 @@ maximumPP      = L.closure1' (SC.fold1 P.max) (SC.fold1s P.max)
 
 
 -- minIndex/maxIndex ------------------
-minIndexP :: [:Int:] -> Int
+minIndexP :: PArr Int -> Int
 minIndexP !_    = 0 
 {-# NOINLINE  minIndexP #-}
 {-# VECTORISE minIndexP = minIndexPP #-}
@@ -109,7 +108,7 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
 {-# NOVECTORISE min' #-}
 
 
-maxIndexP :: [:Int:] -> Int
+maxIndexP :: PArr Int -> Int
 maxIndexP _     = 0
 {-# NOINLINE  maxIndexP #-}
 {-# VECTORISE maxIndexP = maxIndexPP #-}
@@ -149,7 +148,7 @@ abs     = P.abs
 
 
 -- sum/product ------------------------
-sumP, productP :: [:Int:] -> Int
+sumP, productP :: PArr Int -> Int
 
 sumP arr        = headPArr arr
 {-# NOINLINE  sumP #-}
@@ -185,7 +184,7 @@ sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
 
 
 -- Enum -----------------------------------------------------------------------
-enumFromToP :: Int -> Int -> [:Int:]
+enumFromToP :: Int -> Int -> PArr Int
 enumFromToP !_ !_       = emptyPArr
 {-# NOINLINE  enumFromToP #-}
 {-# VECTORISE enumFromToP = enumFromToPP #-}
