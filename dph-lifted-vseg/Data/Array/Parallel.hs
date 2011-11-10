@@ -209,6 +209,6 @@ zipP !_ !_      = emptyP
 
 -- | Unzip an array of pairs into a pair of arrays.
 unzipP :: [:(a, b):] -> ([:a:], [:b:])
-unzipP !_       = (PArr, PArr)
+unzipP !_       = (emptyP, emptyP)
 {-# NOINLINE  unzipP #-}
 {-# VECTORISE unzipP    = unzipPP #-}

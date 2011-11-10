@@ -78,7 +78,7 @@ newArray n@(I# n#) e  = ST $ \s1# ->
 
 
 -- | Convert a mutable array into the external parallel array representation
-mkPArr :: Int -> MPArr s e -> ST s PArr e
+mkPArr :: Int -> MPArr s e -> ST s (PArr e)
 {-# INLINE mkPArr #-}
 mkPArr n (MPArr _ marr#)  = ST $ \s1# ->
   case unsafeFreezeArray# marr# s1#   of { (# s2#, arr# #) ->

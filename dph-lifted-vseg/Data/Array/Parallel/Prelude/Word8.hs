@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 
 module Data.Array.Parallel.Prelude.Word8
@@ -72,7 +71,7 @@ max = P.max
 
 
 -- minimum/maximum --------------------
-minimumP, maximumP :: [:Word8:] -> Word8
+minimumP, maximumP :: PArr Word8 -> Word8
 
 minimumP arr    = headPArr arr
 {-# NOINLINE  minimumP #-}
@@ -93,7 +92,7 @@ maximumPP      = L.closure1' (SC.fold1 P.max) (SC.fold1s P.max)
 
 
 -- minIndex/maxIndex ------------------
-minIndexP :: [:Word8:] -> Int
+minIndexP :: PArr Word8 -> Int
 minIndexP !_    = 0 
 {-# NOINLINE  minIndexP #-}
 {-# VECTORISE minIndexP = minIndexPP #-}
@@ -109,7 +108,7 @@ min' (i,x) (j,y) | x P.<= y    = (i,x)
 {-# NOVECTORISE min' #-}
 
 
-maxIndexP :: [:Word8:] -> Int
+maxIndexP :: PArr Word8 -> Int
 maxIndexP _     = 0
 {-# NOINLINE  maxIndexP #-}
 {-# VECTORISE maxIndexP = maxIndexPP #-}
@@ -149,7 +148,7 @@ abs     = P.abs
 
 
 -- sum/product ------------------------
-sumP, productP :: [:Word8:] -> Word8
+sumP, productP :: PArr Word8 -> Word8
 
 sumP arr        = headPArr arr
 {-# NOINLINE  sumP #-}

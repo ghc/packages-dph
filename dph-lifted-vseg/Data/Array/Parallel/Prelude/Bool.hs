@@ -1,4 +1,3 @@
-{-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS_GHC -fvectorise #-}
 -- NB: Cannot use any parallel array syntax except the type constructor
 
@@ -10,6 +9,7 @@ where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim
 
+import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray.PRepr
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.Unlifted           as U
@@ -72,7 +72,7 @@ notPP_l (PArray n# bs)
 
 
 -- andP -----------------------------------------------------------------------
-andP :: [:Bool:] -> Bool
+andP :: PArr Bool -> Bool
 andP _ = True
 {-# NOINLINE  andP #-}
 {-# VECTORISE andP = andPP #-}
@@ -84,7 +84,7 @@ andPP  = L.closure1' (SC.fold (&&) True) (SC.folds (&&) True)
 
 
 -- orP ------------------------------------------------------------------------
-orP :: [:Bool:] -> Bool
+orP :: PArr Bool -> Bool
 orP _ = True
 {-# NOINLINE  orP #-}
 {-# VECTORISE orP = orPP #-}
