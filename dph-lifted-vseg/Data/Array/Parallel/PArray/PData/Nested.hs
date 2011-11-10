@@ -358,6 +358,12 @@ instance PR a => PR (PArray a) where
              pdata
 
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (PNested uvsegd pdata) ixs
+   = PNested (U.updateVSegsOfVSegd (\vsegids -> U.bpermute vsegids ixs) uvsegd)
+             pdata
+
+
   --   TODO: cleanup pnested projections
   --         use getSegOfUVSegd like in indexlPR
 
