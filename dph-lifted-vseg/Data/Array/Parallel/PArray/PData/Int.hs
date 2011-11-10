@@ -90,6 +90,10 @@ instance PR Int where
                 !elemVal         = psegvec    `VU.unsafeIndex` elemIx
             in  elemVal
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (PInt arr) indices
+        = PInt $ U.bpermute arr indices
+
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
         = PInt (U.extract arr start len)
@@ -101,9 +105,6 @@ instance PR Int where
          seglens        = U.lengthsSSegd ussegd
      in  PInt $ U.extract_ss vecpdatas segsrcs segstarts seglens
 
-  {-# INLINE_PDATA bpermutePR #-}
-  bpermutePR (PInt arr) indices
-        = PInt $ U.bpermute arr indices
 
 
   -- Pack and Combine ---------------------------

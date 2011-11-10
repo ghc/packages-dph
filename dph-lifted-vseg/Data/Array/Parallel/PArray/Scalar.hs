@@ -47,9 +47,9 @@ import Prelude hiding
 --   vectors.
 class (PA a, U.Elt a) => Scalar a where
   fromScalarPData  :: PData  a             -> U.Array a
-  fromScalarPDatas :: PDatas a             -> V.Vector (U.Array a)
-  
   toScalarPData    :: U.Array a            -> PData a
+  
+  fromScalarPDatas :: PDatas a             -> V.Vector (U.Array a)
   toScalarPDatas   :: V.Vector (U.Array a) -> PDatas a
 
 
@@ -70,6 +70,16 @@ instance Scalar Bool where
   {-# INLINE fromScalarPData #-}
   fromScalarPData (PBool sel)
     = U.map toBool (U.tagsSel2 sel)
+
+  {-# INLINE fromScalarPDatas #-}
+  fromScalarPDatas (PBools sels _)
+    = V.map (U.map toBool . U.tagsSel2) sels
+
+  {-# INLINE toScalarPDatas #-}
+  toScalarPDatas bss
+    = let tagss = V.map (U.map fromBool) bss
+          sels  = V.map U.tagsToSel2 tagss
+      in  PBools sels (toScalarPDatas tagss)
 
 
 instance Scalar Int where

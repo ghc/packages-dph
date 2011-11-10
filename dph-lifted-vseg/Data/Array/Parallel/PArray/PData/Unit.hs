@@ -140,7 +140,14 @@ instance PR () where
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PUnits lens1) (PUnits lens2)
         = PUnits $ lens1 U.+:+ lens2
-                 
+
+  {-# INLINE_PDATA fromVectordPR #-}
+  fromVectordPR vec
+        = PUnits $ V.convert $ V.map lengthPR vec
+        
+  {-# INLINE_PDATA toVectordPR #-}
+  toVectordPR (PUnits uvecs)
+        = V.map PUnit $ V.convert uvecs
 
 -- Show -----------------------------------------------------------------------
 deriving instance Show (PData  ())

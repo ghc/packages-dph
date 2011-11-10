@@ -100,6 +100,10 @@ instance PR Double where
                 !elemVal         = psegvec    `VU.unsafeIndex` elemIx
             in  elemVal
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (PDouble arr) indices
+        = PDouble $ U.bpermute arr indices
+
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
         = PDouble (U.extract arr start len)

@@ -186,7 +186,7 @@ instance PR a => PR (PArray a) where
             $ pprp vsegd $$ pprp pdatas)
 
 
-  -- Constructors -------------------------------
+  -- Constructors -----------------------------------------
   {-# INLINE_PDATA emptyPR #-}
   emptyPR = PNested U.emptyVSegd emptydPR
 
@@ -222,6 +222,52 @@ instance PR a => PR (PArray a) where
                 (\vsegids -> U.replicate_s segd vsegids) uvsegd)
              pdata  
 
+
+  -- Append nested arrays by appending the segment descriptors,
+  -- and putting all physical arrays in the result.
+  {-# INLINE_PDATA appendPR #-}
+  appendPR (PNested uvsegd1 pdatas1) (PNested uvsegd2 pdatas2)
+   = PNested    (U.appendVSegd
+                        uvsegd1 (lengthdPR pdatas1) 
+                        uvsegd2 (lengthdPR pdatas2))
+                (pdatas1 `appenddPR` pdatas2)
+
+
+  -- Performing segmented append requires segments from the physical arrays to
+  -- be interspersed, so we need to copy data from the second level of nesting.  
+  --
+  -- In the implementation we can safely flatten out replication in the vsegs
+  -- because the source program result would have this same physical size
+  -- anyway. Once this is done we use copying segmented append on the flat 
+  -- arrays, and then reconstruct the segment descriptor.
+  --
+  {-# INLINE_PDATA appendsPR #-}
+  appendsPR rsegd segd1 xarr segd2 yarr
+   = let (xsegd, xs)    = flattenPR xarr
+         (ysegd, ys)    = flattenPR yarr
+   
+         xsegd' = U.lengthsToSegd 
+                $ U.sum_s segd1 (U.lengthsSegd xsegd)
+                
+         ysegd' = U.lengthsToSegd
+                $ U.sum_s segd2 (U.lengthsSegd ysegd)
+                
+         segd'  = U.lengthsToSegd
+                $ U.append_s rsegd segd1 (U.lengthsSegd xsegd)
+                                   segd2 (U.lengthsSegd ysegd)
+
+     in  PNested (U.promoteSegdToVSegd segd')
+                 (singletondPR 
+                  $ appendsPR (U.plusSegd xsegd' ysegd')
+                            xsegd' xs
+                            ysegd' ys)
+
+
+  -- Projections ------------------------------------------
+  {-# INLINE_PDATA lengthPR #-}
+  lengthPR (PNested vsegd _)
+        = U.lengthOfVSegd vsegd
+        
 
   -- To index into a nested array, first determine what segment the index
   -- corresponds to, and extract that as a slice from that physical array.
@@ -387,47 +433,8 @@ instance PR a => PR (PArray a) where
    
      in  PNested vsegd' psegdatas'
 
-
-  -- Append nested arrays by appending the segment descriptors,
-  -- and putting all physical arrays in the result.
-  {-# INLINE_PDATA appendPR #-}
-  appendPR (PNested uvsegd1 pdatas1) (PNested uvsegd2 pdatas2)
-   = PNested    (U.appendVSegd
-                        uvsegd1 (lengthdPR pdatas1) 
-                        uvsegd2 (lengthdPR pdatas2))
-                (pdatas1 `appenddPR` pdatas2)
-
-
-  -- Performing segmented append requires segments from the physical arrays to
-  -- be interspersed, so we need to copy data from the second level of nesting.  
-  --
-  -- In the implementation we can safely flatten out replication in the vsegs
-  -- because the source program result would have this same physical size
-  -- anyway. Once this is done we use copying segmented append on the flat 
-  -- arrays, and then reconstruct the segment descriptor.
-  --
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR rsegd segd1 xarr segd2 yarr
-   = let (xsegd, xs)    = flattenPR xarr
-         (ysegd, ys)    = flattenPR yarr
-   
-         xsegd' = U.lengthsToSegd 
-                $ U.sum_s segd1 (U.lengthsSegd xsegd)
                 
-         ysegd' = U.lengthsToSegd
-                $ U.sum_s segd2 (U.lengthsSegd ysegd)
-                
-         segd'  = U.lengthsToSegd
-                $ U.append_s rsegd segd1 (U.lengthsSegd xsegd)
-                                   segd2 (U.lengthsSegd ysegd)
-
-     in  PNested (U.promoteSegdToVSegd segd')
-                 (singletondPR 
-                  $ appendsPR (U.plusSegd xsegd' ysegd')
-                            xsegd' xs
-                            ysegd' ys)
-                
-
+  -- Pack and Combine -------------------------------------
   -- Pack the vsegids to determine which of the vsegs are present in the result.
   --  eg  tags:           [0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1]   tag = 1
   --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]

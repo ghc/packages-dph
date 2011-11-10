@@ -26,6 +26,7 @@ module Data.Array.Parallel.PArray.PRepr.Base
         -- * Projections
         , lengthPA
         , indexPA,      indexlPA
+        , bpermutePA
         , extractPA,    extractsPA
 
         -- * Pack and Combine
@@ -194,6 +195,13 @@ indexlPA        :: PA a => PData (PArray a) -> PData Int -> PData a
 indexlPA (PNested vsegd pdatas) ixs
  = fromArrPRepr
  $ indexlPR (PNested vsegd (toArrPReprs pdatas)) ixs
+
+
+{-# INLINE_PDATA bpermutePA #-}
+bpermutePA      :: PA a => PData a -> U.Array Int -> PData a
+bpermutePA xs ixs
+ = fromArrPRepr
+ $ bpermutePR (toArrPRepr xs) ixs
 
 
 {-# INLINE_PA extractPA #-}

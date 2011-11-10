@@ -98,24 +98,27 @@ instance (PR a, PR b) => PR (a, b) where
   indexPR (PTuple2 arr1 arr2) ix
         = (indexPR arr1 ix, indexPR arr2 ix)
 
-
   {-# INLINE_PDATA indexlPR #-}
   indexlPR (PNested uvsegd (PTuple2s xs ys)) ixs
    = let xsArr  = PNested uvsegd xs
          ysArr  = PNested uvsegd ys
-     in  PTuple2  (indexlPR xsArr ixs) (indexlPR ysArr ixs)
+     in  PTuple2  (indexlPR xsArr ixs)
+                  (indexlPR ysArr ixs)
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (PTuple2 arr1 arr2) ixs
+        = PTuple2 (bpermutePR arr1 ixs)
+                  (bpermutePR arr2 ixs)
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len
         = PTuple2 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
 
-
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PTuple2s xs ys) ussegd
-   =    PTuple2  (extractsPR xs ussegd)
-                 (extractsPR ys ussegd)
+        = PTuple2 (extractsPR xs ussegd)
+                  (extractsPR ys ussegd)
 
 
   -- Pack and Combine ---------------------------
@@ -123,7 +126,6 @@ instance (PR a, PR b) => PR (a, b) where
   packByTagPR (PTuple2 arr1 arr2) tags tag
         = PTuple2 (packByTagPR arr1 tags tag)
                   (packByTagPR arr2 tags tag)
-
 
   {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PTuple2 xs1 ys1) (PTuple2 xs2 ys2)
@@ -137,7 +139,6 @@ instance (PR a, PR b) => PR (a, b) where
    = let (xs, ys)       = V.unzip vec
      in  PTuple2 (fromVectorPR xs)
                  (fromVectorPR ys)
-
 
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PTuple2 xs ys)

@@ -93,6 +93,9 @@ instance PR Void where
   {-# INLINE_PDATA indexlPR #-}
   indexlPR      = nope "indexl"
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR    = nope "bpermute"
+
   {-# INLINE_PDATA extractPR #-}
   extractPR     = nope "extractl"
 

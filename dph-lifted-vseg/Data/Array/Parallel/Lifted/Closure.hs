@@ -45,7 +45,6 @@ data (a :-> b)
                 (Int -> PData env -> PData a -> PData b)
                 env
 
-
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b
 ($:) (Clo fv _fl env) x  = fv env x
@@ -70,10 +69,16 @@ data (a :-> b)
 --     @mapP (+) xs  ==>  AClo plus_v plus_l xs@
 --
 data instance PData (a :-> b)
-        = forall env. PA env
-        => AClo (env -> a -> b)
-                (Int -> PData env -> PData a -> PData b)
-                (PData env)
+        =  forall env. PA env
+        => AClo  (env -> a -> b)
+                 (Int -> PData env -> PData a -> PData b)
+                 (PData env)
+
+data instance PDatas (a :-> b)
+        =  forall env. PA env
+        => AClos (env -> a -> b)
+                 (Int -> PData env -> PData a -> PData b)
+                 (PDatas env)
 
 
 -- | Lifted closure application.
@@ -243,9 +248,8 @@ instance PR (a :-> b) where
   -- Constructors -------------------------------
   {-# INLINE_PDATA emptyPR #-}
   emptyPR
-        = AClo  (\_ _ -> error "empty array closure")
-                (\_ _ -> error "empty array closure")
-                (emptyPA :: PData ())
+   = let  die    = error "emptydPR[:->]: no function in empty closure array"
+      in  AClo die die (emptyPA :: PData ())
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR n (Clo fv fl envs)
@@ -263,36 +267,77 @@ instance PR (a :-> b) where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (AClo fv fl envs) ix
-        = Clo fv fl (indexPA envs ix)
+        = Clo fv fl  $ indexPA envs ix
+
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (AClo fv fl envs) ixs
+        = AClo fv fl $ bpermutePA envs ixs
+
+  {-# INLINE_PDATA extractPR #-}
+  extractPR (AClo fv fl envs) start len
+        = AClo fv fl $ extractPA envs start len
+
+  {-# INLINE_PDATA extractsPR #-}
+  extractsPR (AClos fv fl envs) ssegd
+        = AClo fv fl $ extractsPA envs ssegd
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA extractPR #-}
-  extractPR (AClo fv fl envs) start len
-        = AClo fv fl (extractPA envs start len)
-        
-
   {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (AClo fv fl envs) tags tag
-        = AClo fv fl (packByTagPA envs tags tag)
+        = AClo fv fl $ packByTagPA envs tags tag
 
 
   -- Conversions --------------------------------
   toVectorPR (AClo fv fl envs)
-   = V.map (Clo fv fl) $ toVectorPA envs
+        = V.map (Clo fv fl) $ toVectorPA envs
 
 
-  -- TODO: not sure about these.
-  --       we can't just extract the env because the vector may
-  --       contain closures with multiple functions.
-  {-# INLINE_PDATA extractsPR #-}
-  indexlPR      = error     "indexlPR[:->]: not defined"
-  extractsPR    = error    "extractPR[:->]: not defined"
-  appendPR      = error     "appendPR[:->]: not defined"
-  appendsPR     = error     "appendPR[:->]: not defined"
-  combine2PR    = error    "combinePR[:->]: not defined"
-  fromVectorPR  = error "fromVectorPR[:->]: not defined"
+  -- PDatas -------------------------------------
+  -- When constructing an empty array of closures, we don't know what 
+  emptydPR 
+   = let die    = error "emptydPR[:->]: no function in empty closure array"
+     in  AClos  die die (emptydPA :: PDatas ())
 
+  singletondPR (AClo fv fl env)
+        = AClos fv fl $ singletondPA env
+        
+  lengthdPR (AClos _ _ env)
+        = lengthdPA env
+        
+  indexdPR (AClos fv fl envs) ix
+        = AClo fv fl $ indexdPA envs ix
+
+  toVectordPR (AClos fv fl envs)
+        = V.map (AClo fv fl) $ toVectordPA envs
+
+
+  -- Unsupported --------------------------------
+  -- To support these operators we'd need to manage closure arrays containing
+  -- multiple hetrogenous functions. But this is more work than we care for
+  -- right now.
+  appendPR      = dieHetroFunctions "appendPR"
+  appendsPR     = dieHetroFunctions "appendsPR"
+  combine2PR    = dieHetroFunctions "combine2PR"
+  fromVectorPR  = dieHetroFunctions "fromVectorPR"
+  indexlPR      = dieHetroFunctions "indexlPR"
+  appenddPR     = dieHetroFunctions "appenddPR"
+  fromVectordPR = dieHetroFunctions "fromVectordPR"
+
+
+dieHetroFunctions :: String -> a
+dieHetroFunctions name
+ = error $ unlines
+   [ "Data.Array.Parallel.Lifted.Closure." ++ name
+   , "  Unsupported Array Operation"
+   , "  It looks like you're trying to define an array containing multiple"
+   , "  hetrogenous functions, or trying to select between multiple arrays"
+   , "  of functions in vectorised code. Although we could support this by"
+   , "  constructing a new function that selects between them depending on"
+   , "  what the array index is, to make that anywhere near efficient is"
+   , "  more work than we care to do right now, and we expect this use case"
+   , "  to be uncommon. If you want this to work then contact the DPH team"
+   , "  and ask what you can do to help." ]
 
 
 -- PRepr Instance -------------------------------------------------------------
@@ -303,7 +348,9 @@ type instance PRepr (a :-> b)
         = a :-> b
 
 instance (PA a, PA b) => PA (a :-> b) where
-  toPRepr      = id
-  fromPRepr    = id
-  toArrPRepr   = id
-  fromArrPRepr = id
+  toPRepr       = id
+  fromPRepr     = id
+  toArrPRepr    = id
+  fromArrPRepr  = id
+  toArrPReprs   = id
+  fromArrPReprs = id

@@ -78,7 +78,11 @@ instance PA a => PR (Wrap a) where
 
   {-# INLINE_PDATA indexlPR #-}
   indexlPR (PNested vsegd (PWraps pdatas)) ixs
-        = PWrap (indexlPA (PNested vsegd pdatas) ixs)
+        = PWrap $ indexlPA (PNested vsegd pdatas) ixs
+
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR (PWrap xs) ixs
+        = PWrap $ bpermutePA xs ixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWrap xs) ix n
@@ -130,7 +134,13 @@ instance PA a => PR (Wrap a) where
   appenddPR (PWraps xs) (PWraps ys)
         = PWraps $ appenddPA xs ys
 
+  {-# INLINE_PDATA fromVectordPR #-}
+  fromVectordPR vec
+        = PWraps $ fromVectordPA $ V.map (\(PWrap x) -> x) vec
+
   {-# INLINE_PDATA toVectordPR #-}
   toVectordPR (PWraps pdatas)
         = V.map PWrap $ toVectordPA pdatas
         
+
+

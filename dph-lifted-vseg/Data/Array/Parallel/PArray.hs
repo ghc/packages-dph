@@ -101,12 +101,14 @@ instance PA a => T.PprPhysical (PArray a) where
 --  debugging we need to be able to print them out with the implied length.
 --
 instance PA e => A.Array PArray e where
- length arr     = length arr
+ valid          = valid
+ singleton      = singleton
+ append         = append
 
+ length         = length
  index (PArray _ pdata) ix
         = indexPA pdata ix
 
- append         = append
  toVector arr   = V.map (A.index arr) $ V.enumFromTo 0 (A.length arr - 1)
  fromVector     = fromVector
 
