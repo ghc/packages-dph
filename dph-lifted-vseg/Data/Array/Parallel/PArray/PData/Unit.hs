@@ -87,6 +87,10 @@ instance PR () where
   indexlPR _ (PInt uarr)
         = PUnit $ U.length uarr
 
+  {-# INLINE_PDATA bpermutePR #-}
+  bpermutePR _ ixs
+        = PUnit $ U.length ixs
+
   {-# INLINE_PDATA extractPR #-}
   extractPR _ _ len
         = PUnit len
@@ -117,6 +121,14 @@ instance PR () where
         = V.replicate len ()
 
   -- PDatas -------------------------------------
+  {-# INLINE_PDATA emptydPR #-}
+  emptydPR
+        = PUnits $ U.empty
+
+  {-# INLINE_PDATA singletondPR #-}
+  singletondPR (PUnit n)
+        = PUnits $ U.replicate 1 n
+
   {-# INLINE_PDATA lengthdPR #-}
   lengthdPR (PUnits pdatas)
         = U.length pdatas
@@ -125,7 +137,10 @@ instance PR () where
   indexdPR (PUnits pdatas) ix
         = PUnit $ pdatas U.!: ix
         
-
+  {-# INLINE_PDATA appenddPR #-}
+  appenddPR (PUnits lens1) (PUnits lens2)
+        = PUnits $ lens1 U.+:+ lens2
+                 
 
 -- Show -----------------------------------------------------------------------
 deriving instance Show (PData  ())

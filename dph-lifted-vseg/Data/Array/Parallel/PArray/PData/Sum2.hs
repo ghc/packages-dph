@@ -393,11 +393,6 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
             (yss1   `appenddPR` yss2)
 
 
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR
-        = nope "concatdPR"
-                
-
   -- TODO: fix rubbish via-lists conversion.
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec

@@ -157,11 +157,6 @@ instance PR Word8 where
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PWord8s xs) (PWord8s ys)
         = PWord8s $ xs V.++ ys
-        
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR vecs
-        = PWord8s $ V.concat $ V.toList
-                $ V.map (\(PWord8s xs) -> xs) vecs
                                 
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec

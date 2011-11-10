@@ -232,9 +232,6 @@ class PR a where
   -- | O(n). Append two collections of `PData`.
   appenddPR     :: PDatas a -> PDatas a -> PDatas a
 
-  -- | O(n). Combine several collections of `PData` into a single one.
-  concatdPR     :: V.Vector (PDatas a) -> PDatas a
-
   -- | O(n). Convert a vector of `PData` to a `PDatas`.
   fromVectordPR :: V.Vector (PData a) -> PDatas a
 

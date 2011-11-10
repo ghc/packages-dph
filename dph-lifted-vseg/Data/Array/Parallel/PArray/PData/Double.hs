@@ -155,12 +155,6 @@ instance PR Double where
   appenddPR (PDoubles xs) (PDoubles ys)
         = PDoubles $ xs V.++ ys
         
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR vecs
-        = PDoubles
-                $ V.concat $ V.toList
-                $ V.map (\(PDoubles xs) -> xs) vecs
-                
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
         = PDoubles $ V.map (\(PDouble xs) -> xs) vec

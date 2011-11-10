@@ -136,10 +136,6 @@ instance PR Void where
   appenddPR (PVoids n1) (PVoids n2)
         = PVoids (n1 + n2)
 
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR ps
-        = PVoids $ sum [n | PVoids n <- V.toList ps]
-
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
         = PVoids $ V.length vec

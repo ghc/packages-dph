@@ -171,13 +171,6 @@ instance (PR a, PR b) => PR (a, b) where
         = PTuple2s (appenddPR xs1 xs2) (appenddPR ys1 ys2)
   
 
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR vecs
-        = PTuple2s
-                (concatdPR $ V.map (\(PTuple2s xs _) -> xs) vecs)
-                (concatdPR $ V.map (\(PTuple2s _ ys) -> ys) vecs)
-
-
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
    = let (xss, yss) = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) vec

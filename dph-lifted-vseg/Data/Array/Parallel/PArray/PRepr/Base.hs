@@ -41,7 +41,6 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , lengthdPA
         , indexdPA
         , appenddPA
-        , concatdPA
         , fromVectordPA, toVectordPA)
 where
 import Data.Array.Parallel.Pretty
@@ -273,13 +272,6 @@ appenddPA       :: PA a => PDatas a -> PDatas a -> PDatas a
 appenddPA xs ys
  = fromArrPReprs
  $ appenddPR (toArrPReprs xs) (toArrPReprs ys)
-
-
-{-# INLINE_PA concatdPA #-}
-concatdPA       :: PA a => V.Vector (PDatas a) -> PDatas a
-concatdPA vec
- = fromArrPReprs
- $ concatdPR (V.map toArrPReprs vec)
 
 
 {-# INLINE_PA fromVectordPA #-}

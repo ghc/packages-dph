@@ -149,11 +149,6 @@ instance PR Int where
   appenddPR (PInts xs) (PInts ys)
         = PInts $ xs V.++ ys
         
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR vecs
-        = PInts $ V.concat $ V.toList
-                $ V.map (\(PInts xs) -> xs) vecs
-                                
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
         = PInts $ V.map (\(PInt xs) -> xs) vec

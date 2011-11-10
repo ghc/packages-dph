@@ -490,12 +490,6 @@ instance PR a => PR (PArray a) where
   appenddPR (PNesteds xs) (PNesteds ys)
         = PNesteds $ xs V.++ ys
 
-  {-# INLINE_PDATA concatdPR #-}
-  concatdPR vecs
-        = PNesteds
-                $ V.concat $ V.toList
-                $ V.map (\(PNesteds xs) -> xs) vecs
-                                
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
         = PNesteds vec
