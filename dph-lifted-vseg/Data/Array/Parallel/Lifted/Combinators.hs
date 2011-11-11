@@ -157,7 +157,7 @@ mapPP_l :: (PA a, PA b)
         => (PArray (a :-> b)) -> PArray (PArray a) -> PArray (PArray b)
 mapPP_l fs ass
         =   PA.unconcat ass 
-        $   PA.replicates (PA.takeSegd ass) fs
+        $   PA.replicates (PA.takeUSegd ass) fs
         $:^ PA.concat ass
 {-# INLINE mapPP_l #-}
 
@@ -176,7 +176,7 @@ zipWithPP = closure3' zipWithPP_v zipWithPP_l
         {-# INLINE zipWithPP_l #-}
         zipWithPP_l fs ass bss
                 =   PA.unconcat ass
-                $   PA.replicates (PA.takeSegd ass) fs
+                $   PA.replicates (PA.takeUSegd ass) fs
                 $:^ PA.concat ass
                 $:^ PA.concat bss
 {-# INLINE_PA zipWithPP #-}

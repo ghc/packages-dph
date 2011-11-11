@@ -25,14 +25,14 @@ module Data.Array.Parallel.PArray
         , append,       appendl
         , concat,       concatl
         , unconcat
-        , nestSegd
+        , nestUSegd
         
         -- * Projections
         , length,       lengthl
         , index,        indexl
         , extract,      extracts,       extracts'
         , slice,        slicel
-        , takeSegd
+        , takeUSegd
         
         -- * Pack and Combine
         , pack,         packl
@@ -210,14 +210,14 @@ concatl = lift1 concat
 -- | Impose a nesting structure on a flat array
 unconcat ::  PArray (PArray a) -> PArray b -> PArray (PArray b)
 unconcat arr1 arr2
-        = nestSegd (takeSegd arr1) arr2
+        = nestUSegd (takeUSegd arr1) arr2
 
 
 -- | Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-nestSegd :: U.Segd -> PArray a -> PArray (PArray a)
-nestSegd segd (PArray n# vec)
+nestUSegd :: U.Segd -> PArray a -> PArray (PArray a)
+nestUSegd segd (PArray n# vec)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
@@ -232,7 +232,7 @@ nestSegd segd (PArray n# vec)
                         ++ "segment descriptor and data array do not match"
                 , " length of segment desciptor = " ++ show (U.elementsSegd segd)
                 , " length of data array        = " ++ show (I# n#) ]
-{-# NOINLINE nestSegd #-}
+{-# NOINLINE nestUSegd #-}
 
 
 -- Projections ----------------------------------------------------------------
@@ -309,8 +309,8 @@ slicel  = lift3 slice
 -- | Take the segment descriptor from a nested array. This can cause index space
 --   overflow if the number of elements in the result does not can not be
 --   represented by a single machine word.
-takeSegd :: (PArray (PArray a)) -> U.Segd
-takeSegd (PArray _ vec)
+takeUSegd :: (PArray (PArray a)) -> U.Segd
+takeUSegd (PArray _ vec)
         = U.lengthsToSegd 
         $ V.convert
         $ V.map length vec
