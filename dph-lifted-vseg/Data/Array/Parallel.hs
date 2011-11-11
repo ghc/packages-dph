@@ -55,6 +55,7 @@ module Data.Array.Parallel
         -- * Traversals
         , mapP
         , zipWithP
+        , crossMapP
 
         -- * Filtering
         , filterP
@@ -194,6 +195,12 @@ zipWithP :: (a -> b -> c) -> [:a:] -> [:b:] -> [:c:]
 zipWithP !_ !_ !_       = emptyP
 {-# NOINLINE  zipWithP #-}
 {-# VECTORISE zipWithP  = zipWithPP #-}
+
+
+crossMapP :: [:a:] -> (a -> [:b:]) -> [:(a, b):]
+{-# NOINLINE crossMapP #-}
+crossMapP !_ !_ = emptyP
+{-# VECTORISE crossMapP = crossMapPP #-}
 
 
 -- Filtering -----------------------------------------------------------------

@@ -29,6 +29,7 @@ module Data.Array.Parallel.Lifted.Combinators
         -- * Traversals
         , mapPP
         , zipWithPP
+        , crossMapPP
 
         -- * Filtering
         , filterPP
@@ -156,7 +157,7 @@ mapPP_l :: (PA a, PA b)
         => (PArray (a :-> b)) -> PArray (PArray a) -> PArray (PArray b)
 mapPP_l fs ass
         =   PA.unconcat ass 
-        $   PA.replicates (PA.unsafeTakeSegd ass) fs
+        $   PA.replicates (PA.takeSegd ass) fs
         $:^ PA.concat ass
 {-# INLINE mapPP_l #-}
 
@@ -166,7 +167,6 @@ zipWithPP
         :: (PA a, PA b, PA c)
         => (a :-> b :-> c) :-> PArray a :-> PArray b :-> PArray c
 
-{-# INLINE_PA zipWithPP #-}
 zipWithPP = closure3' zipWithPP_v zipWithPP_l
  where
         {-# INLINE zipWithPP_v #-}
@@ -176,10 +176,28 @@ zipWithPP = closure3' zipWithPP_v zipWithPP_l
         {-# INLINE zipWithPP_l #-}
         zipWithPP_l fs ass bss
                 =   PA.unconcat ass
-                $   PA.replicates (PA.unsafeTakeSegd ass) fs
+                $   PA.replicates (PA.takeSegd ass) fs
                 $:^ PA.concat ass
                 $:^ PA.concat bss
+{-# INLINE_PA zipWithPP #-}
 
+
+-- | 
+crossMapPP
+        :: (PA a, PA b)
+        => PArray a :-> (a :-> PArray b) :-> PArray (a, b)
+
+crossMapPP = closure2' crossMapPP_v crossMapPP_l
+ where
+        {-# INLINE crossMapPP_v #-}
+        crossMapPP_v _ _
+                = error "crossMapP: not implemented"
+
+        {-# INLINE crossMapPP_l #-}
+        crossMapPP_l _ _
+                = error "crossMapP: not implemented"
+
+{-# INLINE_PA crossMapPP #-}
 
 -- Filtering ------------------------------------------------------------------
 -- | Extract the elements from an array that match the given predicate.
