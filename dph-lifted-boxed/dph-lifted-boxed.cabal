@@ -12,11 +12,6 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
-  -- This Cabal file is CPPed,
-  --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
-  -- We therefore need to point back at the original location for where to find the sources
-  HS-Source-Dirs: ../dph-lifted-boxed
-
   Exposed-Modules:
         Data.Array.Parallel.PArray
 

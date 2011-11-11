@@ -23,181 +23,104 @@ Synopsis:            Examples using Data Parallel Haskell
 
 -- Sum of Squares -------------------------------------------------------------
 Executable dph-sumsq
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  SumSquaresVector
                   SumSquaresVectorised
                   Timing Randomish
   hs-source-dirs: lib imaginary/SumSquares/dph
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-sumsq-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  SumSquaresVector
---                   SumSquaresVectorised
---                   Timing Randomish
---   hs-source-dirs: lib imaginary/SumSquares/dph
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- Dot Product ----------------------------------------------------------------
 Executable dph-dotp
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  DotProductVector
                   DotProductVectorised
                   Timing Randomish
   hs-source-dirs: lib imaginary/DotProduct/dph
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-dotp-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  DotProductVector
---                   DotProductVectorised
---                   Timing Randomish
---   hs-source-dirs: lib imaginary/DotProduct/dph
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- Evens ----------------------------------------------------------------------
 Executable dph-evens
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  EvensVector
                   EvensVectorised
                   Timing Randomish
   hs-source-dirs: imaginary/Evens/dph lib
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-evens-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  EvensVector
---                   EvensVectorised
---                   Timing Randomish
---   hs-source-dirs: imaginary/Evens/dph lib
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- Primes ---------------------------------------------------------------------
 -- Primes dies with a bounds check error
 Executable dph-primes
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Primes lib
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-primes-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   hs-source-dirs: imaginary/Primes lib
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- Reverse --------------------------------------------------------------------
 Executable dph-reverse
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  ReverseVector
                   ReverseVectorised
                   Util Timing Randomish
   hs-source-dirs: imaginary/Reverse/dph lib
-  ghc-options:    DPH_OPTIONS_PAR
-
-
--- Executable dph-reverse-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  ReverseVector
---                   ReverseVectorised
---                   Util Timing Randomish
---   hs-source-dirs: imaginary/Reverse/dph lib
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- Words ---------------------------------------------------------------------
 Executable dph-words
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Words lib
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-words-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   hs-source-dirs: imaginary/Words lib
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- SMVM ---------------------------------------------------------------------
 Executable dph-smvm
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  SMVMVectorised
                   Timing
   hs-source-dirs: spectral/SMVM/dph lib
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-smvm-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  SMVMVectorised
---                   Timing
---   hs-source-dirs: spectral/SMVM/dph lib
---   ghc-options:    DPH_OPTIONS_SEQ
-
+  ghc-options:    DPH_OPTIONS
 
 
 -- QuickHull ------------------------------------------------------------------
 Executable dph-quickhull
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  QuickHullVect
                   Timing Points2D.Types SVG
   hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
-  ghc-options:    DPH_OPTIONS_PAR
+  ghc-options:    DPH_OPTIONS
 
--- Executable dph-quickhull-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  QuickHullVect
---                   Timing Points2D.Types SVG
---   hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
---   ghc-options:    DPH_OPTIONS_SEQ
 
 Executable dph-quickhull-vector
-  Build-depends: 
-        base          == 4.*,
-        vector        == 0.9.*,    
-        old-time      == 1.0.*,
-        random        == 1.0.*
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  QuickHullIO
                   QuickHullSplit
                   QuickHullVector
                   Timing Points2D.Types SVG
   hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
-  ghc-options:    DPH_OPTIONS_PAR
+  ghc-options:    DPH_OPTIONS
 
 
 -- QuickSort ------------------------------------------------------------------
 Executable dph-quicksort
-  Build-depends:  DPH_DEPENDS_PAR
+  Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  QuickSortVect
                   Timing
   hs-source-dirs: lib spectral/QuickSort/dph
-  ghc-options:    DPH_OPTIONS_PAR
-
--- Executable dph-quicksort-seq
---   Build-depends:  DPH_DEPENDS_SEQ
---   Main-is:        Main.hs
---   other-modules:  QuickSortVect
---                   Timing
---   hs-source-dirs: lib spectral/QuickSort/dph
---   ghc-options:    DPH_OPTIONS_SEQ
+  ghc-options:    DPH_OPTIONS
 
 
 -- NBody ----------------------------------------------------------------------
@@ -210,9 +133,9 @@ Executable dph-quicksort
 --                            Solver.VectorNaive.Solver
 --                     Timing Points2D.Types Points2D.Generate
 --                     Gloss.MainArgs Gloss.Draw Gloss.Config
---     Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*, gloss == 1.3.*
+--     Build-depends:  DPH_DEPENDS, parseargs == 0.1.*, gloss == 1.3.*
 --     hs-source-dirs: lib real/NBody real/NBody/Gloss
---     ghc-options:    DPH_OPTIONS_PAR -fno-liberate-case
+--     ghc-options:    DPH_OPTIONS -fno-liberate-case
 
 
 Executable dph-nbody-batch
@@ -224,18 +147,7 @@ Executable dph-nbody-batch
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Batch.MainArgs Batch.Config
-    Build-depends:  DPH_DEPENDS_PAR, parseargs == 0.1.*
+    Build-depends:  DPH_DEPENDS, parseargs == 0.1.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    DPH_OPTIONS_PAR -fno-liberate-case
+    ghc-options:    DPH_OPTIONS -fno-liberate-case
 
--- Executable dph-nbody-seq
---  Main-is:        Main.hs
---  if flag(gloss)
---    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*, gloss == 1.3.*
---    hs-source-dirs: lib real/NBody real/NBody/Gloss
---    ghc-options:    DPH_OPTIONS_SEQ
---  else
---    Build-depends:  DPH_DEPENDS_SEQ, parseargs == 0.1.*
---    hs-source-dirs: lib real/NBody real/NBody/Batch
---    ghc-options:    DPH_OPTIONS_SEQ
---  endif

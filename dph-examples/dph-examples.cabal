@@ -25,181 +25,104 @@ Synopsis:            Examples using Data Parallel Haskell
 
 -- Sum of Squares -------------------------------------------------------------
 Executable dph-sumsq
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  SumSquaresVector
                   SumSquaresVectorised
                   Timing Randomish
   hs-source-dirs: lib imaginary/SumSquares/dph
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-sumsq-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  SumSquaresVector
---                   SumSquaresVectorised
---                   Timing Randomish
---   hs-source-dirs: lib imaginary/SumSquares/dph
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- Dot Product ----------------------------------------------------------------
 Executable dph-dotp
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  DotProductVector
                   DotProductVectorised
                   Timing Randomish
   hs-source-dirs: lib imaginary/DotProduct/dph
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-dotp-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  DotProductVector
---                   DotProductVectorised
---                   Timing Randomish
---   hs-source-dirs: lib imaginary/DotProduct/dph
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- Evens ----------------------------------------------------------------------
 Executable dph-evens
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  EvensVector
                   EvensVectorised
                   Timing Randomish
   hs-source-dirs: imaginary/Evens/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-evens-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  EvensVector
---                   EvensVectorised
---                   Timing Randomish
---   hs-source-dirs: imaginary/Evens/dph lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- Primes ---------------------------------------------------------------------
 -- Primes dies with a bounds check error
 Executable dph-primes
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Primes lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-primes-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   hs-source-dirs: imaginary/Primes lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- Reverse --------------------------------------------------------------------
 Executable dph-reverse
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  ReverseVector
                   ReverseVectorised
                   Util Timing Randomish
   hs-source-dirs: imaginary/Reverse/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
-
--- Executable dph-reverse-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  ReverseVector
---                   ReverseVectorised
---                   Util Timing Randomish
---   hs-source-dirs: imaginary/Reverse/dph lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- Words ---------------------------------------------------------------------
 Executable dph-words
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   hs-source-dirs: imaginary/Words lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-words-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   hs-source-dirs: imaginary/Words lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- SMVM ---------------------------------------------------------------------
 Executable dph-smvm
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  SMVMVectorised
                   Timing
   hs-source-dirs: spectral/SMVM/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-smvm-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  SMVMVectorised
---                   Timing
---   hs-source-dirs: spectral/SMVM/dph lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- QuickHull ------------------------------------------------------------------
 Executable dph-quickhull
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  QuickHullVect
                   Timing Points2D.Types SVG
   hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
--- Executable dph-quickhull-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  QuickHullVect
---                   Timing Points2D.Types SVG
---   hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 Executable dph-quickhull-vector
-  Build-depends: 
-        base          == 4.*,
-        vector        == 0.9.*,    
-        old-time      == 1.0.*,
-        random        == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  QuickHullIO
                   QuickHullSplit
                   QuickHullVector
                   Timing Points2D.Types SVG
   hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- QuickSort ------------------------------------------------------------------
 Executable dph-quicksort
-  Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*
+  Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
   Main-is:        Main.hs
   other-modules:  QuickSortVect
                   Timing
   hs-source-dirs: lib spectral/QuickSort/dph
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
-
--- Executable dph-quicksort-seq
---   Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*
---   Main-is:        Main.hs
---   other-modules:  QuickSortVect
---                   Timing
---   hs-source-dirs: lib spectral/QuickSort/dph
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
+  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
 
 
 -- NBody ----------------------------------------------------------------------
@@ -212,9 +135,9 @@ Executable dph-quicksort
 --                            Solver.VectorNaive.Solver
 --                     Timing Points2D.Types Points2D.Generate
 --                     Gloss.MainArgs Gloss.Draw Gloss.Config
---     Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
+--     Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*, parseargs == 0.1.*, gloss == 1.3.*
 --     hs-source-dirs: lib real/NBody real/NBody/Gloss
---     ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000 -fno-liberate-case
+--     ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000 -fno-liberate-case
 
 
 Executable dph-nbody-batch
@@ -226,18 +149,7 @@ Executable dph-nbody-batch
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Batch.MainArgs Batch.Config
-    Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-par == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
+    Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*, parseargs == 0.1.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-par -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000 -fno-liberate-case
+    ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000 -fno-liberate-case
 
--- Executable dph-nbody-seq
---  Main-is:        Main.hs
---  if flag(gloss)
---    Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*, gloss == 1.3.*
---    hs-source-dirs: lib real/NBody real/NBody/Gloss
---    ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
---  else
---    Build-depends:  base == 4.4.*, vector == 0.9.*, dph-base == 0.5.*, dph-prim-seq == 0.5.*, dph-seq == 0.5.*, random == 1.0.*, old-time == 1.0.*, parseargs == 0.1.*
---    hs-source-dirs: lib real/NBody real/NBody/Batch
---    ghc-options:    -rtsopts -threaded -fllvm -Odph -fdph-seq -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000
---  endif

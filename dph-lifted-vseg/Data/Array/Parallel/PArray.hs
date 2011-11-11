@@ -33,7 +33,7 @@ module Data.Array.Parallel.PArray
         , append,       appendl
         , concat,       concatl
         , unconcat
-        , nestUSegd
+        , nestSegd
 
         -- * Projections
         , length,       lengthl         -- length from D.A.P.PArray.PData.Base

@@ -1,4 +1,4 @@
-Name:           dph-DPHWAY
+Name:           dph-lifted-vseg
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -12,14 +12,6 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
-  -- This Cabal file is CPPed,
-  --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
-  -- We therefore need to point back at the original location for where to find the sources
-  HS-Source-Dirs: ../dph-lifted-vseg
-
-  Include-Dirs:
-        include
-
   Exposed-Modules:
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
@@ -89,17 +81,14 @@ Library
         -fno-warn-orphans
 
   Build-Depends:  
-        base             == 4.4.*,
-        ghc              == 7.*,
-        array            == 0.3.*,
-        random           == 1.0.*,
-        template-haskell == 2.6.*,
-        dph-base         == 0.5.*,
-        dph-prim-DPHWAY  == 0.5.*,
-        dph-lifted-reference == 0.5.*,
-        vector           == 0.9.*,
-        pretty           == 1.1.*,
-        containers       == 0.4.*
-
-  GHC-Options: -package-name dph-DPHWAY
-
+        base                    == 4.4.*,
+        ghc                     == 7.*,
+        array                   == 0.3.*,
+        random                  == 1.0.*,
+        template-haskell        == 2.6.*,
+        dph-base                == 0.5.*,
+        dph-prim-par            == 0.5.*,
+        dph-lifted-boxed        == 0.5.*,
+        vector                  == 0.9.*,
+        pretty                  == 1.1.*,
+        containers              == 0.4.*

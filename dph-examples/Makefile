@@ -1,30 +1,18 @@
 # Makes the dph-examples.cabal file from its template.
 
 # Package dependencies for DPH examples.
-DPH_DEPENDS_PAR = \
-        base         == 4.4.*, \
-        vector       == 0.9.*, \
-        dph-base     == 0.5.*, \
-        dph-prim-par == 0.5.*, \
-        dph-par      == 0.5.*, \
-        random       == 1.0.*, \
-        old-time     == 1.0.*
-
-DPH_DEPENDS_SEQ = \
-        base         == 4.4.*, \
-        vector       == 0.9.*, \
-        dph-base     == 0.5.*, \
-        dph-prim-seq == 0.5.*, \
-        dph-seq      == 0.5.*, \
-        random       == 1.0.*, \
-        old-time     == 1.0.*
+DPH_DEPENDS = \
+        base         	== 4.4.*, \
+        vector       	== 0.9.*, \
+        random       	== 1.0.*, \
+        old-time     	== 1.0.*, \
+        dph-base     	== 0.5.*, \
+        dph-prim-par	== 0.5.*, \
+        dph-lifted-vseg	== 0.5.*
 
 
 # Options for compiling DPH examples.
-#   For the SEQ versions we still compile with -threaded so that we can 
-#   use the parallel garbage collector.
-#
-DPH_OPTIONS_PAR = \
+DPH_OPTIONS= \
         -rtsopts \
         -threaded \
 	-fllvm \
@@ -35,29 +23,18 @@ DPH_OPTIONS_PAR = \
 	-fno-spec-constr \
         -fsimpl-tick-factor=1000 
 
-DPH_OPTIONS_SEQ = \
-        -rtsopts \
-	-threaded \
-	-fllvm \
-        -Odph \
-        -package dph-seq \
-        -fcpr-off \
-	-fno-liberate-case \
-	-fno-spec-constr \
-        -fsimpl-tick-factor=1000 
 
 .PHONY : all
 all : dph-examples.cabal
 	cabal configure --user
 	cabal build
 
+
 # Make the cabal file from the tempalate by substituting in the above config.
 dph-examples.cabal : dph-examples.template Makefile
 	@echo "* Making dph-examples.cabal"
 	@cpp 	-P -undef \
-		-DDPH_DEPENDS_PAR="$(DPH_DEPENDS_PAR)" \
-		-DDPH_DEPENDS_SEQ="$(DPH_DEPENDS_SEQ)" \
-		-DDPH_OPTIONS_PAR="$(DPH_OPTIONS_PAR)" \
-		-DDPH_OPTIONS_SEQ="$(DPH_OPTIONS_SEQ)" \
+		-DDPH_DEPENDS="$(DPH_DEPENDS)" \
+		-DDPH_OPTIONS="$(DPH_OPTIONS)" \
 		dph-examples.template dph-examples.cabal 
 	
