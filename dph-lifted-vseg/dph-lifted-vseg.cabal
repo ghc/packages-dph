@@ -33,8 +33,6 @@ Library
         Data.Array.Parallel.PArray.PRepr.Tuple
         Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.Scalar
-        Data.Array.Parallel.PArray.Types
-        Data.Array.Parallel.PArray.Reference
         Data.Array.Parallel.PArray
         Data.Array.Parallel.Prelude.Bool
         Data.Array.Parallel.Prelude.Double
@@ -44,7 +42,6 @@ Library
         Data.Array.Parallel.Prelude
         Data.Array.Parallel
         Data.Array.Parallel.Prim
-        Data.Array.Parallel.PArr
         
   Exposed:
         False
@@ -89,7 +86,7 @@ Library
         template-haskell        == 2.6.*,
         dph-base                == 0.5.*,
         dph-prim-par            == 0.5.*,
-        dph-lifted-boxed        == 0.5.*,
+        dph-lifted-base         == 0.5.*,
         vector                  == 0.9.*,
         pretty                  == 1.1.*,
         containers              == 0.4.*

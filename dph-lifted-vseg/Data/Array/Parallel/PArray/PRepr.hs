@@ -23,7 +23,6 @@ import Data.Array.Parallel.PArray.PRepr.Nested
 import Data.Array.Parallel.PArray.PRepr.Tuple
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.Pretty
-import Data.Vector                              (Vector)
 import qualified Data.Vector                    as V
 
 
@@ -45,14 +44,6 @@ instance  (PprVirtual a, PA a)
         $ text "|"
                 <> (hcat $ punctuate comma $ map pprv $ V.toList $ toVectorPA pdata)
                 <> text "|"
-
-
-instance PA a => PprPhysical (Vector a) where
- pprp vec
-        = brackets 
-        $ hcat
-        $ punctuate (text ", ") 
-        $ V.toList $ V.map pprpPA vec
 
 
 -- Unpack ----------------------------------------------------------------------

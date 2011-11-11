@@ -6,6 +6,8 @@ module Data.Array.Parallel.Pretty
         , PprVirtual (..))
 where
 import Text.PrettyPrint
+import qualified Data.Vector            as V
+import Data.Vector                      (Vector)
 
 
 -- | Pretty print physical structure of data.
@@ -44,4 +46,12 @@ instance (PprPhysical a, PprPhysical b)
         [ text "Tuple2"
         , nest 4 $ pprp x
         , nest 4 $ pprp y]
+
+instance PprPhysical a
+        => PprPhysical (Vector a) where
+ pprp vec
+        = brackets 
+        $ hcat
+        $ punctuate (text ", ") 
+        $ V.toList $ V.map pprp vec
 

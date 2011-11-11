@@ -1,4 +1,4 @@
-Name:           dph-lifted-boxed
+Name:           dph-lifted-base
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -6,19 +6,20 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Sequential reference implementation of lifted DPH array primitives.
+Synopsis:       Data structures for the Data Parallel Haskell vectoriser.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
   Exposed-Modules:
-        Data.Array.Parallel.PArray
         Data.Array.Parallel.PArray.Types
-        Data.Array.Parallel.PArray.PData
-        Data.Array.Parallel.PArray.PRepr
-        Data.Array.Parallel.Lifted.Closure
-        Data.Array.Parallel.Lifted.Combinators
+        Data.Array.Parallel.PArray.Reference
+        Data.Array.Parallel.PArray
+        Data.Array.Parallel.PArr
+        
+  Exposed:
+        False
 
   Extensions:
         CPP,
@@ -40,26 +41,26 @@ Library
         StandaloneDeriving,
         ExplicitForAll,
         ParallelListComp,
-        PatternGuards,
         ExistentialQuantification,
-        ScopedTypeVariables
+        ScopedTypeVariables,
+        PatternGuards,
+        PackageImports
 
-  GHC-Options: 
-        -Wall -fno-warn-orphans -fno-warn-missing-signatures
+  GHC-Options:
         -Odph 
-        -funbox-strict-fields
-        -fcpr-off
-  
-  Exposed:
-        False
+        -fcpr-off -fno-liberate-case -fno-spec-constr
+        -Wall
+        -fno-warn-missing-methods
+        -fno-warn-orphans
 
   Build-Depends:  
-        base             == 4.4.*,
-        ghc              == 7.*,
-        array            == 0.3.*,
-        pretty           == 1.1.*,
-        vector           == 0.9.*,
-        containers       == 0.4.*,
-        dph-base         == 0.5.*,
-        dph-prim-par     == 0.5.*
-
+        base                    == 4.4.*,
+        ghc                     == 7.*,
+        array                   == 0.3.*,
+        random                  == 1.0.*,
+        template-haskell        == 2.6.*,
+        dph-base                == 0.5.*,
+        dph-prim-par            == 0.5.*,
+        vector                  == 0.9.*,
+        pretty                  == 1.1.*,
+        containers              == 0.4.*

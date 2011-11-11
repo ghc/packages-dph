@@ -1,10 +1,6 @@
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
---   NOTE NOTE NOTE
---   This file is IDENTICAL to the one in dph-lifted-boxed.
---   If you update one then update the other as well.
-
 -- | Closure converted lifted array combinators.
 --   The vectoriser produces code that uses these combinators directly.
 -- 

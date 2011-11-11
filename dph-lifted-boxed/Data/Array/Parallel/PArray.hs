@@ -14,7 +14,7 @@
 --   TODO: check lengths properly in functions like zip, extracts
 --
 module Data.Array.Parallel.PArray
-        ( PArray(..)
+        ( PArray(..), PA
         , valid
         , nf
         
@@ -52,6 +52,8 @@ module Data.Array.Parallel.PArray
         , fromUArray,   toUArray
         , fromUArray2)
 where
+import Data.Array.Parallel.PArray.PData
+import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
@@ -67,59 +69,69 @@ import Prelude hiding
 
 die fn str = error $ "Data.Array.Parallel.PArray: " ++ fn ++ " " ++ str
 
--- | Parallel Ararys.
-data PArray a
-        = PArray Int# (Vector a)
-        deriving (Eq, Show)
-
 
 -- Array Instances ------------------------------------------------------------
-instance A.Array PArray a where
+instance PA a => A.Array PArray a where
  valid     = const True
  singleton = A.singleton
 
  length  (PArray _ vec)
-        = V.length vec
+        = V.length $ toVectorPA vec
 
  index (PArray _ vec) ix
-        = vec V.! ix
+        = (toVectorPA vec) V.! ix
 
  append (PArray n1# xs) (PArray n2# ys)
-        = PArray (n1# +# n2#) (xs V.++ ys)
+        = PArray (n1# +# n2#) 
+        $ fromVectorPA (toVectorPA xs V.++ toVectorPA ys)
 
  toVector (PArray _ vec)
-        = vec
+        = toVectorPA vec
 
  fromVector vec
   = case V.length vec of
-        I# n# -> PArray n# vec
+        I# n# -> PArray n# (fromVectorPA vec)
 
 
 -- | Lift a unary array operator.
-lift1 :: (a -> b) -> PArray a -> PArray b
+lift1   :: (PA a, PA b)
+        => (a -> b) -> PArray a -> PArray b
 lift1 f (PArray n# vec)
-        = PArray n# $ V.map f vec
+        = PArray n# 
+        $ fromVectorPA
+        $ V.map f (toVectorPA vec)
 
 
 -- | Lift a binary array operator.
-lift2 :: (a -> b -> c) -> PArray a -> PArray b -> PArray c
+lift2   :: (PA a, PA b, PA c) 
+        => (a -> b -> c) -> PArray a -> PArray b -> PArray c
 lift2 f (PArray n1# vec1) (PArray n2# vec2)
- | I# n1# /= I# n2# 
- = die "lift2" "length mismatch"
+        | I# n1# /= I# n2# 
+        = die "lift2" "length mismatch"
  
- | otherwise
- = PArray n1# $ V.zipWith f vec1 vec2
+        | otherwise
+        = PArray n1# 
+        $ fromVectorPA 
+        $ V.zipWith f 
+                (toVectorPA vec1)
+                (toVectorPA vec2)
 
 
 -- | Lift a trinary array operator
-lift3 :: (a -> b -> c -> d) -> PArray a -> PArray b -> PArray c -> PArray d
+lift3   :: (PA a, PA b, PA c, PA d)
+        => (a -> b -> c -> d) -> PArray a -> PArray b -> PArray c -> PArray d
 lift3 f (PArray n1# vec1) (PArray n2# vec2) (PArray n3# vec3)
- |   I# n1# /= I# n2# 
-  || I# n1# /= I# n3#
- = die "lift3" "length mismatch"
+        |   I# n1# /= I# n2# 
+         || I# n1# /= I# n3#
+        = die "lift3" "length mismatch"
  
- | otherwise
- = PArray n1# $ V.zipWith3 f vec1 vec2 vec3
+        | otherwise
+        = PArray n1# 
+        $ fromVectorPA
+        $ V.zipWith3 f 
+                (toVectorPA vec1)
+                (toVectorPA vec2)
+                (toVectorPA vec3)
 
 
 -- Basics ---------------------------------------------------------------------
@@ -134,34 +146,34 @@ nf _    = ()
 
 -- Constructors ----------------------------------------------------------------
 -- | O(1). An empty array.
-empty :: PArray a
-empty           = PArray 0# V.empty
+empty :: PA a => PArray a
+empty           = PArray 0# $ fromVectorPA V.empty
 
 
 -- | O(1). Produce an array containing a single element.
-singleton :: a -> PArray a
-singleton x     = PArray 1# (V.singleton x)
+singleton :: PA a => a -> PArray a
+singleton x     = PArray 1# $ fromVectorPA $ V.singleton x
 
 
 -- | O(n). Produce an array of singleton arrays.
-singletonl :: PArray a -> PArray (PArray a)
+singletonl :: PA a => PArray a -> PArray (PArray a)
 singletonl = lift1 singleton
 
 
 -- | O(n). Define an array of the given size, that maps all elements to the same value.
-replicate :: Int -> a -> PArray a
+replicate :: PA a => Int -> a -> PArray a
 replicate n@(I# n#) x
-        = PArray n# (V.replicate n x)
+        = PArray n# $ fromVectorPA $ V.replicate n x
 
 
 -- | O(sum lengths). Lifted replicate.
-replicatel :: PArray Int -> PArray a -> PArray (PArray a)
+replicatel :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 replicatel = lift2 replicate
 
 
 -- | O(sum lengths). Segmented replicate.
-replicates :: U.Segd -> PArray a -> PArray a
-replicates segd (PArray n# vec)
+replicates :: PA a => U.Segd -> PArray a -> PArray a
+replicates segd (PArray n# pdata)
  | I# n# /= U.lengthSegd segd
  = die "replicates" $ unlines
         [ "segd length mismatch"
@@ -171,44 +183,46 @@ replicates segd (PArray n# vec)
  | otherwise
  = let  !(I# n2#) = U.elementsSegd segd
    in   PArray n2# 
+         $ fromVectorPA
          $ join $ V.zipWith V.replicate
                         (V.convert $ U.lengthsSegd segd)
-                        vec
+                        (toVectorPA pdata)
 
 
 -- | O(sum lengths). Wrapper for segmented replicate that takes replication counts
 --  and uses them to build the `U.Segd`.
-replicates' :: PArray Int -> PArray a -> PArray a
+replicates' :: PA a => PArray Int -> PArray a -> PArray a
 replicates' (PArray _ reps) arr
- = replicates (U.lengthsToSegd $ V.convert reps) arr
+ = replicates (U.lengthsToSegd $ V.convert $ toVectorPA reps) arr
 
 
 -- | Append two arrays.
-append :: PArray a -> PArray a -> PArray a
+append :: PA a => PArray a -> PArray a -> PArray a
 append (PArray n1# xs) (PArray n2# ys)
-        = PArray (n1# +# n2#) (xs V.++ ys)
+        = PArray (n1# +# n2#) 
+        $ fromVectorPA (toVectorPA xs V.++ toVectorPA ys)
 
 
 -- | Lifted append.
-appendl :: PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
+appendl :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 appendl = lift2 append
 
 
 -- | Concatenation
-concat :: PArray (PArray a) -> PArray a
+concat :: PA a => PArray (PArray a) -> PArray a
 concat (PArray _ xss)
- = let  xs       = join $ V.map A.toVector xss
+ = let  xs       = join $ V.map A.toVector $ toVectorPA xss
         !(I# n') = V.length xs
-   in   PArray n' xs
+   in   PArray n' $ fromVectorPA xs
 
 
 -- | Lifted concatenation
-concatl :: PArray (PArray (PArray a)) -> PArray (PArray a)
+concatl :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
 concatl = lift1 concat
 
 
 -- | Impose a nesting structure on a flat array
-unconcat ::  PArray (PArray a) -> PArray b -> PArray (PArray b)
+unconcat :: (PA a, PA b) => PArray (PArray a) -> PArray b -> PArray (PArray b)
 unconcat arr1 arr2
         = nestUSegd (takeUSegd arr1) arr2
 
@@ -216,13 +230,14 @@ unconcat arr1 arr2
 -- | Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-nestUSegd :: U.Segd -> PArray a -> PArray (PArray a)
-nestUSegd segd (PArray n# vec)
+nestUSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
+nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
+        $ fromVectorPA 
         $ V.zipWith
-                (\start len@(I# len#) -> PArray len# $ V.slice start len vec)
+                (\start len@(I# len#) -> PArray len# $ fromVectorPA $ V.slice start len (toVectorPA pdata))
                 (V.convert $ U.indicesSegd segd)
                 (V.convert $ U.lengthsSegd segd)
 
@@ -237,34 +252,36 @@ nestUSegd segd (PArray n# vec)
 
 -- Projections ----------------------------------------------------------------
 -- | Take the length of an array
-length :: PArray a -> Int
+length :: PA a => PArray a -> Int
 length (PArray n# _)    = I# n#
 
 
 -- | Take the length of some arrays.
-lengthl :: PArray (PArray a) -> PArray Int
+lengthl :: PA a => PArray (PArray a) -> PArray Int
 lengthl = lift1 length
 
 
 -- | Lookup a single element from the source array.
-index :: PArray a -> Int -> a
+index :: PA a => PArray a -> Int -> a
 index (PArray _ arr) ix
-        = arr V.! ix
+        = (toVectorPA arr) V.! ix
 
 
 -- | Lookup a several elements from several source arrays.
-indexl :: PArray (PArray a) -> PArray Int -> PArray a
+indexl :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 indexl  = lift2 index
 
 
 -- | Extract a range of elements from an array.
-extract :: PArray a -> Int -> Int -> PArray a
+extract :: PA a => PArray a -> Int -> Int -> PArray a
 extract (PArray _ vec) start len@(I# len#)
-        = PArray len# $ V.slice start len vec
+        = PArray len# 
+        $ fromVectorPA
+        $ V.slice start len (toVectorPA vec)
 
 
 -- | Segmented extract.
-extracts :: Vector (PArray a) -> U.SSegd -> PArray a
+extracts :: PA a => Vector (PArray a) -> U.SSegd -> PArray a
 extracts arrs ssegd
         = concat
         $ fromVector
@@ -278,23 +295,23 @@ extracts arrs ssegd
 -- | Wrapper for `extracts` that takes arrays of sources, starts and lengths of
 --   the segments, and uses these to build the `U.SSegd`.
 extracts' 
-        :: Vector (PArray a) 
+        :: PA a => Vector (PArray a) 
         -> PArray Int           -- ^ id of source array for each segment.
         -> PArray Int           -- ^ starting index of each segment in its source array.
         -> PArray Int           -- ^ length of each segment.
         -> PArray a
 extracts' arrs (PArray _ sources) (PArray _ starts) (PArray _ lengths)
- = let  segd    = U.lengthsToSegd $ V.convert lengths
+ = let  segd    = U.lengthsToSegd $ V.convert $ toVectorPA lengths
         ssegd   = U.mkSSegd 
-                        (V.convert starts)
-                        (V.convert sources)
+                        (V.convert $ toVectorPA starts)
+                        (V.convert $ toVectorPA sources)
                         segd
    in   extracts arrs ssegd
 
 
 -- | Extract a range of elements from an arrary.
 --   Like `extract` but with the parameters in a different order.
-slice :: Int -> Int -> PArray a -> PArray a
+slice :: PA a => Int -> Int -> PArray a -> PArray a
 slice start len arr
  = extract arr start len
 
@@ -302,23 +319,24 @@ slice start len arr
 -- | Extract some slices from some arrays.
 --   The arrays of starting indices and lengths must themselves
 --   have the same length.
-slicel :: PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
+slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
 slicel  = lift3 slice
 
 
 -- | Take the segment descriptor from a nested array. This can cause index space
 --   overflow if the number of elements in the result does not can not be
 --   represented by a single machine word.
-takeUSegd :: (PArray (PArray a)) -> U.Segd
-takeUSegd (PArray _ vec)
+takeUSegd :: PA a => (PArray (PArray a)) -> U.Segd
+takeUSegd (PArray _ pdata)
         = U.lengthsToSegd 
         $ V.convert
-        $ V.map length vec
+        $ V.map length 
+        $ toVectorPA pdata
         
 
 -- Pack and Combine -----------------------------------------------------------
 -- | Select the elements of an array that have their tag set to True.
-pack    :: PArray a -> PArray Bool -> PArray a
+pack    :: PA a => PArray a -> PArray Bool -> PArray a
 pack (PArray n1# xs) (PArray n2# bs)
  | I# n1# /= I# n2#
  = die "pack" $ unlines
@@ -327,17 +345,17 @@ pack (PArray n1# xs) (PArray n2# bs)
         , "  flags length = " ++ show (I# n2#) ]
 
  | otherwise
- = let  xs'      = V.ifilter (\i _ -> bs V.! i) xs
+ = let  xs'      = V.ifilter (\i _ -> (toVectorPA bs) V.! i) $ toVectorPA xs
         !(I# n') = V.length xs'
-   in   PArray n' xs'
+   in   PArray n' $ fromVectorPA xs'
 
 -- | Lifted pack.
-packl :: PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
+packl :: PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 packl   = lift2 pack
 
 
 -- | Filter an array based on some tags.
-packByTag :: PArray a -> U.Array Tag -> Tag -> PArray a
+packByTag :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
 packByTag (PArray n1# xs) tags tag
  | I# n1# /= U.length tags
  = die "packByTag" $ unlines
@@ -346,14 +364,14 @@ packByTag (PArray n1# xs) tags tag
         , "  flags length = " ++ (show $ U.length tags) ]
 
  | otherwise
- = let  xs'      = V.ifilter (\i _ -> tags U.!: i == tag) xs
+ = let  xs'      = V.ifilter (\i _ -> tags U.!: i == tag) $ toVectorPA xs
         !(I# n') = V.length xs'
-   in   PArray n' xs'
+   in   PArray n' $ fromVectorPA xs'
 
 
 -- | Combine two arrays based on a selector.
-combine2 :: U.Sel2 -> PArray a -> PArray a -> PArray a
-combine2 tags (PArray _ vec1) (PArray _ vec2)
+combine2 :: PA a => U.Sel2 -> PArray a -> PArray a -> PArray a
+combine2 tags (PArray _ pdata1) (PArray _ pdata2)
  = let  
         go [] [] []                     = []
         go (0 : bs) (x : xs) ys         = x : go bs xs ys
@@ -362,11 +380,11 @@ combine2 tags (PArray _ vec1) (PArray _ vec2)
  
         vec3    = V.fromList
                 $ go    (V.toList $ V.convert $ U.tagsSel2 tags)
-                        (V.toList vec1)
-                        (V.toList vec2)
+                        (V.toList $ toVectorPA pdata1)
+                        (V.toList $ toVectorPA pdata2)
         !(I# n') = V.length vec3
    
-    in  PArray n' vec3
+    in  PArray n' $ fromVectorPA vec3
 
 
 -- Enumerations ---------------------------------------------------------------
@@ -383,73 +401,76 @@ enumFromTol = lift2 enumFromTo
 
 -- Tuples ---------------------------------------------------------------------
 -- | O(n). Zip a pair of arrays into an array of pairs.
-zip :: PArray a -> PArray b -> PArray (a, b)
-zip (PArray n1# vec1) (PArray _ vec2)
-        = PArray n1# (V.zip vec1 vec2)
+zip     :: (PA a, PA b) => PArray a -> PArray b -> PArray (a, b)
+zip (PArray n1# pdata1) (PArray _ pdata2)
+        = PArray n1# 
+        $ fromVectorPA
+        $ V.zip (toVectorPA pdata1) (toVectorPA pdata2)
 
 
 -- | Lifted zip
-zipl    :: PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
+zipl    :: (PA a, PA b) => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
 zipl    = lift2 zip
 
 
 -- | O(n). Unzip an array of pairs into a pair of arrays.
-unzip   :: PArray (a, b) -> (PArray a, PArray b)
-unzip (PArray n# vec)
- = let  (xs, ys)        = V.unzip vec
-   in   (PArray n# xs, PArray n# ys)
+unzip   :: (PA a, PA b) => PArray (a, b) -> (PArray a, PArray b)
+unzip (PArray n# pdata)
+ = let  (xs, ys)        = V.unzip $ toVectorPA pdata
+   in   ( PArray n# $ fromVectorPA xs
+        , PArray n# $ fromVectorPA ys)
 
 
 -- | Lifted unzip
-unzipl  :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
+unzipl  :: (PA a, PA b) => PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 unzipl  = lift1 unzip
 
 
 -- Conversions ----------------------------------------------------------------
 -- | Convert a `Vector` to a `PArray`
-fromVector :: Vector a -> PArray a
+fromVector :: PA a => Vector a -> PArray a
 fromVector vec
  = let  !(I# n#) = V.length vec
-   in   PArray n# vec
+   in   PArray n# $ fromVectorPA vec
 
 
 -- | Convert a `PArray` to a `Vector`        
-toVector   :: PArray a -> Vector a
+toVector   :: PA a => PArray a -> Vector a
 toVector (PArray _ vec)
-        = vec
+        = toVectorPA vec
 
 
 -- | Convert a list to a `PArray`.
-fromList :: [a] -> PArray a
+fromList :: PA a => [a] -> PArray a
 fromList xx
  = let  !(I# n#) = P.length xx
-   in   PArray n# (V.fromList xx)
+   in   PArray n# (fromVectorPA $ V.fromList xx)
 
 
 -- | Convert a `PArray` to a list.
-toList     :: PArray a -> [a]
+toList     :: PA a => PArray a -> [a]
 toList (PArray _ vec)
-        = V.toList vec
+        = V.toList $ toVectorPA vec
 
 
 -- | Convert a `U.Array` to a `PArray`
-fromUArray :: U.Elt a => U.Array a -> PArray a
+fromUArray :: (PA a, U.Elt a) => U.Array a -> PArray a
 fromUArray uarr
  = let  !(I# n#) = U.length uarr
-   in   PArray n# (V.convert uarr)
+   in   PArray n# (fromVectorPA $ V.convert uarr)
 
 
 -- | Convert a `PArray` to a `U.Array`
-toUArray :: U.Elt a => PArray a -> U.Array a
+toUArray :: (PA a, U.Elt a) => PArray a -> U.Array a
 toUArray (PArray _ vec)
-        = V.convert vec
+        = V.convert $ toVectorPA vec
 
 
 -- | Convert a `U.Array` of tuples to a `PArray`
 fromUArray2
-        :: (U.Elt a, U.Elt b)
+        :: (PA a, U.Elt a, PA b, U.Elt b)
         => U.Array (a, b) -> PArray (a, b)
         
 fromUArray2 uarr
  = let  !(I# n#) = U.length uarr
-   in   PArray n# $ V.convert uarr
+   in   PArray n# $ fromVectorPA $ V.convert uarr
