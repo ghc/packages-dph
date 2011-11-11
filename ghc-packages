@@ -2,5 +2,8 @@ dph-base
 dph-prim-interface
 dph-prim-seq
 dph-prim-par
-dph-common
+dph-lifted-boxed
+dph-lifted-copy
+dph-lifted-vseg
+
 

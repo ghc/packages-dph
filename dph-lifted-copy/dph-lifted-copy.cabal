@@ -1,4 +1,4 @@
-Name:           dph-DPHWAY
+Name:           dph-lifted-copy
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -12,11 +12,6 @@ Cabal-Version:  >= 1.6
 Build-Type:     Simple
 
 Library
-  -- This Cabal file is CPPed,
-  --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
-  -- We therefore need to point back at the original location for where to find the sources
-  HS-Source-Dirs: ../dph-common
-
   Exposed-Modules:
         Data.Array.Parallel
         Data.Array.Parallel.Lifted
@@ -61,6 +56,4 @@ Library
         random           == 1.0.*,
         template-haskell == 2.6.*,
         dph-base         == 0.5.*,
-        dph-prim-DPHWAY  == 0.5.*
-
-  GHC-Options: -package-name dph-DPHWAY
+        dph-prim-par     == 0.5.*
