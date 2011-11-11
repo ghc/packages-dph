@@ -1,4 +1,4 @@
-Name:           dph-lifted-reference
+Name:           dph-lifted-boxed
 Version:        0.5.2.0
 License:        BSD3
 License-File:   LICENSE
@@ -15,7 +15,7 @@ Library
   -- This Cabal file is CPPed,
   --   then put in ../build/dph-lifted-copy-par and ../build/dph-lifted-copy-seq
   -- We therefore need to point back at the original location for where to find the sources
-  HS-Source-Dirs: ../dph-lifted-reference
+  HS-Source-Dirs: ../dph-lifted-boxed
 
   Exposed-Modules:
         Data.Array.Parallel.PArray

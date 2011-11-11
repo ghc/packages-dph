@@ -17,7 +17,7 @@ import Debug.Trace
 import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Array.Parallel.Pretty     as T
 import qualified Data.Vector                    as V
-import qualified "dph-lifted-reference" 
+import qualified "dph-lifted-boxed" 
                  Data.Array.Parallel.PArray     as R
 import Prelude hiding (length)
 

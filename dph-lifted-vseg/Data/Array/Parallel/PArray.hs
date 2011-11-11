@@ -40,7 +40,7 @@ module Data.Array.Parallel.PArray
         , index,        indexl
         , extract,      extracts,       extracts'
         , slice,        slicel
-        , unsafeTakeSegd
+        , takeSegd
 
         -- * Pack and Combine
         , pack,         packl
@@ -71,7 +71,7 @@ import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import qualified "dph-lifted-reference" 
+import qualified "dph-lifted-boxed" 
                  Data.Array.Parallel.PArray     as R
 import qualified Prelude                        as P
 import Prelude hiding 
@@ -257,8 +257,8 @@ unconcat (PArray n# pdata1) (PArray _ pdata2)
 -- | Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-nestUSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
-nestUSegd segd (PArray n# pdata)
+nestSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
+nestSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
@@ -266,11 +266,11 @@ nestUSegd segd (PArray n# pdata)
 
         | otherwise
         = error $ unlines
-                [ "Data.Array.Parallel.PArray.nestUSegdPA: number of elements defined by "
+                [ "Data.Array.Parallel.PArray.nestUSegd: number of elements defined by "
                         ++ "segment descriptor and data array do not match"
                 , " length of segment desciptor = " ++ show (U.elementsSegd segd)
                 , " length of data array        = " ++ show (I# n#) ]
-{-# NOINLINE nestUSegd #-}
+{-# NOINLINE nestSegd #-}
 
 
 -- Projections  ---------------------------------------------------------------
@@ -352,10 +352,10 @@ slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
 
 -- | Take the segment descriptor from a nested array and demote it to a
 --   plain Segd. This is unsafe because it can cause index space overflow.
-unsafeTakeSegd :: PArray (PArray a) -> U.Segd
-unsafeTakeSegd (PArray _ pdata)
+takeSegd :: PArray (PArray a) -> U.Segd
+takeSegd (PArray _ pdata)
         = takeSegdPD pdata
-{-# INLINE_PA unsafeTakeSegd #-}
+{-# INLINE_PA takeSegd #-}
 
 
 -- Pack and Combine -----------------------------------------------------------
@@ -423,7 +423,6 @@ combine2 sel arr1@(PArray _ darr1) arr2@(PArray _ darr2)
 
 
 -- Tuples ---------------------------------------------------------------------
-
 -- | O(1). Zip a pair of arrays into an array of pairs.
 --   The two arrays must have the same length, else `error`. 
 zip :: PArray a -> PArray b -> PArray (a, b)
@@ -450,7 +449,6 @@ unzip (PArray n# (PTuple2 xs ys))
 unzipl :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 unzipl (PArray n# pdata)
         = PArray n# $ unziplPD pdata
-
 
 
 
