@@ -74,7 +74,7 @@ instance PR Int where
   indexsPR (PInts pvecs) (PInt srcs) (PInt ixs)
    = PInt $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs `V.unsafeIndex` src) `VU.unsafeIndex` ix
+                = (pvecs V.! src) VU.! ix
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
@@ -126,7 +126,7 @@ instance PR Int where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PInts vec) ix
-        = PInt $ V.unsafeIndex vec ix
+        = PInt $ vec V.! ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PInts xs) (PInts ys)

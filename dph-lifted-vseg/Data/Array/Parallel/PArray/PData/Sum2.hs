@@ -143,9 +143,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   indexsPR (PSum2s sels _ ass bss) psrcs@(PInt srcs) (PInt ixs)
    = let 
          getFlagIndex !src !ix
-          = let !sel        = sels                `V.unsafeIndex`  src
-                !elemFlag   = (U.tagsSel2    sel) `VU.unsafeIndex` ix
-                !elemIndex  = (U.indicesSel2 sel) `VU.unsafeIndex` ix
+          = let !sel        = sels                V.!  src
+                !elemFlag   = (U.tagsSel2    sel) VU.! ix
+                !elemIndex  = (U.indicesSel2 sel) VU.! ix
             in  (elemFlag, elemIndex)
             
          (flags', indices')
@@ -455,7 +455,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
   {-# INLINE_PDATA indexdPR #-}
   indexdPR  (PSum2s sel2s _ xss yss) ix
-   = PSum2  (V.unsafeIndex sel2s ix)
+   = PSum2  (sel2s V.! ix)
             (indexdPR      xss   ix)
             (indexdPR      yss   ix)
 

@@ -33,14 +33,14 @@ module Data.Array.Parallel.PArray
         , append,       appendl
         , concat,       concatl
         , unconcat
-        , nestSegd
+        , nestUSegd
 
         -- * Projections
         , length,       lengthl         -- length from D.A.P.PArray.PData.Base
         , index,        indexl
         , extract,      extracts,       extracts'
         , slice,        slicel
-        , takeSegd
+        , takeUSegd
 
         -- * Pack and Combine
         , pack,         packl
@@ -257,8 +257,8 @@ unconcat (PArray n# pdata1) (PArray _ pdata2)
 -- | Create a nested array from a segment descriptor and some flat data.
 --   The segment descriptor must represent as many elements as present
 --   in the flat data array, else `error`
-nestSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
-nestSegd segd (PArray n# pdata)
+nestUSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
+nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
@@ -270,7 +270,7 @@ nestSegd segd (PArray n# pdata)
                         ++ "segment descriptor and data array do not match"
                 , " length of segment desciptor = " ++ show (U.elementsSegd segd)
                 , " length of data array        = " ++ show (I# n#) ]
-{-# NOINLINE nestSegd #-}
+{-# NOINLINE nestUSegd #-}
 
 
 -- Projections  ---------------------------------------------------------------
@@ -352,10 +352,10 @@ slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
 
 -- | Take the segment descriptor from a nested array and demote it to a
 --   plain Segd. This is unsafe because it can cause index space overflow.
-takeSegd :: PArray (PArray a) -> U.Segd
-takeSegd (PArray _ pdata)
+takeUSegd :: PArray (PArray a) -> U.Segd
+takeUSegd (PArray _ pdata)
         = takeSegdPD pdata
-{-# INLINE_PA takeSegd #-}
+{-# INLINE_PA takeUSegd #-}
 
 
 -- Pack and Combine -----------------------------------------------------------

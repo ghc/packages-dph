@@ -377,10 +377,10 @@ instance PR a => PR (PArray a) where
          -- Function to get one element of the result.
          {-# INLINE get #-}
          get srcid vsegid
-          = let !pseglen        = (arrs_pseglens   `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid
-                !psegstart      = (arrs_psegstarts `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid
-                !psegsrcid      = (arrs_psegsrcids `V.unsafeIndex` srcid) `VU.unsafeIndex` vsegid  
-                                + psrcoffset `V.unsafeIndex` srcid
+          = let !pseglen        = (arrs_pseglens   V.! srcid) VU.! vsegid
+                !psegstart      = (arrs_psegstarts V.! srcid) VU.! vsegid
+                !psegsrcid      = (arrs_psegsrcids V.! srcid) VU.! vsegid  
+                                + psrcoffset V.! srcid
             in  (pseglen, psegstart, psegsrcid)
             
          (pseglens', psegstarts', psegsrcs')
@@ -456,7 +456,7 @@ instance PR a => PR (PArray a) where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PNesteds vec) ix
-        = V.unsafeIndex vec ix
+        = vec V.! ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PNesteds xs) (PNesteds ys)
@@ -567,7 +567,7 @@ concatlPR arr
         --
         --    concatl [ [[1, 2, 3] [4, 5, 6]] [] ]
         --  
-        --  After the calls to unsafeFlattenPR we get:
+        --  After the calls to flattenPR we get:
         --   segd1: lengths1 = [ 2 0 ]
         --          indices1 = [ 0 2 ]
         

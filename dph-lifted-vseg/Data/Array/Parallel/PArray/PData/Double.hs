@@ -79,13 +79,13 @@ instance PR Double where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix
-        = arr `VU.unsafeIndex` ix
+        = arr VU.! ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PDoubles pvecs) (PInt srcs) (PInt ixs)
    = PDouble $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs `V.unsafeIndex` src) `VU.unsafeIndex` ix
+                = (pvecs V.! src) VU.! ix
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
@@ -136,7 +136,7 @@ instance PR Double where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PDoubles vec) ix
-        = PDouble $ V.unsafeIndex vec ix
+        = PDouble $ vec V.! ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PDoubles xs) (PDoubles ys)

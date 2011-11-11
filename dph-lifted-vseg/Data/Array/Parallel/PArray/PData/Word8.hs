@@ -83,7 +83,7 @@ instance PR Word8 where
   indexsPR (PWord8s pvecs) (PInt srcs) (PInt ixs)
    = PWord8 $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs `V.unsafeIndex` src) `VU.unsafeIndex` ix
+                = (pvecs V.! src) VU.! ix
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWord8 arr) start len 
@@ -134,7 +134,7 @@ instance PR Word8 where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PWord8s vec) ix
-        = PWord8 $ V.unsafeIndex vec ix
+        = PWord8 $ vec V.! ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PWord8s xs) (PWord8s ys)
