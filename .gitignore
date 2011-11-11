@@ -26,3 +26,13 @@ war-std-std
 /dph-lifted-copy-par/
 /dph-lifted-vseg-par/
 /dph-lifted-vseg-seq/
+dph-lifted-vseg/GNUmakefile
+dph-lifted-vseg/ghc.mk
+dph-lifted-copy/GNUmakefile
+dph-lifted-copy/ghc.mk
+dph-lifted-boxed/GNUmakefile
+dph-lifted-boxed/ghc.mk
+dph-lifted-boxed/dist-install/
+dph-lifted-copy/dist-install/
+dph-lifted-vseg/dist-install/
+dph-examples/dist/
