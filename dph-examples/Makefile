@@ -17,7 +17,7 @@ DPH_OPTIONS= \
         -threaded \
 	-fllvm \
         -Odph \
-        -package dph-par \
+        -package dph-lifted-vseg \
         -fcpr-off \
 	-fno-liberate-case \
 	-fno-spec-constr \
