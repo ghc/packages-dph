@@ -36,3 +36,6 @@ dph-lifted-boxed/dist-install/
 dph-lifted-copy/dist-install/
 dph-lifted-vseg/dist-install/
 dph-examples/dist/
+dph-lifted-base/dist-install/
+dph-lifted-base/ghc.mk
+dph-lifted-base/GNUmakefile
