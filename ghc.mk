@@ -13,6 +13,7 @@ DPH_PACKAGES = \
 	dph-prim-interface \
 	dph-prim-seq \
 	dph-prim-par \
+	dph-lifted-base \
 	dph-lifted-boxed \
 	dph-lifted-copy \
 	dph-lifted-vseg 
@@ -108,7 +109,8 @@ libraries/dph/dph-lifted-vseg/dist-install/build/Data/Array/Parallel/PArray/PDat
 	$$(libraries/dph/dph-base_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-par_dist-install_GHCI_LIB) \
 	$$(libraries/dph/dph-prim-seq_dist-install_GHCI_LIB) \
-	$$(libraries/dph/dph-prim-interface_dist-install_GHCI_LIB)
+	$$(libraries/dph/dph-prim-interface_dist-install_GHCI_LIB) \
+	$$(libraries/dph/dph-lifted-base_dist-install_GHCI_LIB)
 
 ifeq "$$(libraries/dph/dph-base_dist-install_GHCI_LIB)" ""
 $$(error dph_th_deps($1): libraries/dph/dph-base_dist-install_GHCI_LIB not defined!)
