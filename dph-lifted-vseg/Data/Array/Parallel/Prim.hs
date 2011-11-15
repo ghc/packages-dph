@@ -5,7 +5,7 @@
 --   natively by the library. This module performs the impedance matching.
 module Data.Array.Parallel.Prim 
         -- Core types
-        ( PArray(..), PData, PRepr, PA(..), PR(..)
+        ( PArray(..), PData, PDatas, PRepr, PA(..), PR(..)
 
         -- Array Functions
         , emptyPD
@@ -20,7 +20,7 @@ module Data.Array.Parallel.Prim
         , scalar_zipWith3
 
         -- Types used in the generic representation
-        , Void, void, fromVoid, pvoid
+        , Void, void, fromVoid, pvoid, pvoids
         , punit
         , Wrap(..)
         , Sum2(..), Sum3(..)
@@ -50,10 +50,10 @@ module Data.Array.Parallel.Prim
         , tup2, tup3)
 where
 import Data.Array.Parallel.PArray.PData.Base   
-        (PArray(..), PData, PR(..))
+        (PArray(..), PData, PDatas, PR(..))
 
 import Data.Array.Parallel.PArray.PData.Void
-        ( Void, void, pvoid, fromVoid )
+        ( Void, void, pvoid, pvoids, fromVoid )
 
 import Data.Array.Parallel.PArray.PData.Unit
         ( punit )

@@ -9,7 +9,7 @@ module Data.Array.Parallel.Prelude.Double
         , maxIndexP, minIndexP
 
         -- * Num
-        , (+), (-), (*)
+        , (+), (-), (*), (/)
         , negate, abs
         , sumP, productP
         
@@ -41,7 +41,7 @@ import Prelude (Double)
         
 {-# VECTORISE SCALAR type Double #-}
 
-infixl 7 *
+infixl 7 *, /
 infixl 6 +, -
 infix  4 ==, /=, <, <=, >, >=
 
@@ -132,7 +132,7 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 
 -- Num ---------------------------------------------------------------------
-(+), (-), (*) :: Double -> Double -> Double
+(+), (-), (*), (/) :: Double -> Double -> Double
 
 (+) = (P.+)
 {-# VECTORISE SCALAR (+) #-}
@@ -143,6 +143,8 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 (*) = (P.*)
 {-# VECTORISE SCALAR (*) #-}
 
+(/) = (P./)
+{-# VECTORISE SCALAR (/) #-}
 
 -- negate/abs -------------------------
 negate, abs :: Double -> Double
