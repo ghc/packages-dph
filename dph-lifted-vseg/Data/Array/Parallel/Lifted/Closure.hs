@@ -18,7 +18,7 @@ where
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Unit
-import Data.Array.Parallel.PArray.PData.Tuple
+import Data.Array.Parallel.PArray.PData.Tuple2
 import Data.Array.Parallel.PArray.PRepr
 import qualified Data.Vector            as V
 import GHC.Exts

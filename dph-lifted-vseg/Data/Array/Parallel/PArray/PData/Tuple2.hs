@@ -2,7 +2,7 @@
 #include "fusion-phases.h"
 
 -- | PR instance for tuples.
-module Data.Array.Parallel.PArray.PData.Tuple 
+module Data.Array.Parallel.PArray.PData.Tuple2
         ( PData(..),    PDatas(..)
         , zipPD
         , ziplPR

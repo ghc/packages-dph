@@ -16,7 +16,7 @@ import Data.Array.Parallel.PArray.PData.Sum2
 import Data.Array.Parallel.PArray.PData.Wrap    ()
 import Data.Array.Parallel.PArray.PData.Unit    ()
 import Data.Array.Parallel.PArray.PData.Nested  ()
-import Data.Array.Parallel.PArray.PData.Tuple   ()
+import Data.Array.Parallel.PArray.PData.Tuple2  ()
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Word8   ()
 import Data.Array.Parallel.PArray.PData.Double  ()

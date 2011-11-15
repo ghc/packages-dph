@@ -10,7 +10,7 @@ where
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.PArray.PRepr.Base
 import Data.Array.Parallel.PArray.PData.Base
-import Data.Array.Parallel.PArray.PData.Tuple
+import Data.Array.Parallel.PArray.PData.Tuple2
 import Data.Array.Parallel.PArray.PData.Wrap
 
 
