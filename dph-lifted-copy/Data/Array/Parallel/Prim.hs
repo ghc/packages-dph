@@ -19,7 +19,7 @@ module Data.Array.Parallel.Prim (
   Scalar(..),
   scalar_map, scalar_zipWith, scalar_zipWith3,
   Void, Sum2(..), Sum3(..), Wrap(..),
-  void, fromVoid, pvoid, punit,
+  void, fromVoid, pvoid, pvoids, punit,
   (:->)(..), 
   closure, liftedClosure, ($:), liftedApply, closure1, closure2, closure3,
   Sel2,
@@ -30,7 +30,7 @@ module Data.Array.Parallel.Prim (
   packByTagPA_Int#, packByTagPA_Double#,
   combine2PA_Int#, combine2PA_Double#,
 
-  tup2, tup3
+  tup2, tup3, tup4, tup5
 ) where
 
 -- We use explicit import lists here to make the vectoriser interface explicit and keep it under
@@ -56,10 +56,37 @@ import Data.Array.Parallel.Lifted.Unboxed         (Sel2, replicateSel2#, tagsSel
                                                    {- packByTagPA_Int#, packByTagPA_Double# -}
                                                    combine2PA_Int#, combine2PA_Double#)
 import Data.Array.Parallel.Lifted.Scalar          (scalar_map, scalar_zipWith, scalar_zipWith3)
-import Data.Array.Parallel.Prelude.Tuple          (tup2, tup3)
+import Data.Array.Parallel.Prelude.Tuple          (tup2, tup3, tup4)
 
 
 packByTagPA_Int#, packByTagPA_Double# :: a
 packByTagPA_Int#    = error "Data.Array.Parallel.Prim: 'packByTagPA_Int#' not implemented"
 packByTagPA_Double# = error "Data.Array.Parallel.Prim: 'packByTagPA_Double#' not implemented"
+
+
+
+-- Fake definitions involving PDatas.
+-- The dph-lifted-copy backend doesn't used PDatas, but we need to define
+-- this stuff as the vectoriser expects it to be here.
+-- The vectoriser will generate instances of the PA dictionary involving
+-- PDatas, but this backend will never call those methods.
+pvoids  :: Int -> PDatas Void
+pvoids  = error "Data.Array.Parallel.Prim.voids: not used in this backend"
+
+tup5    :: (PA a, PA b, PA c, PA d)
+        =>  a :-> b :-> c :-> d :-> e :-> (a, b, c, d, e)
+tup5    = error "Data.Array.Paralle.Prim.tup5: not used in this backend"
+
+
+data instance PDatas (a, b, c)
+        = PTuple3s (PDatas a) (PDatas b) (PDatas c)
+        
+data instance PDatas (a, b, c, d)
+        = PTuple4s (PDatas a) (PDatas b) (PDatas c) (PDatas d)
+        
+data instance PDatas (a, b, c, d, e)
+        = PTuple5s (PDatas a) (PDatas b) (PDatas c) (PDatas d) (PDatas e)
+
+newtype instance PDatas (Wrap a)
+        = PWraps (PDatas a)
 

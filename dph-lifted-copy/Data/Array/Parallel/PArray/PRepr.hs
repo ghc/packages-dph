@@ -51,10 +51,16 @@ type family PRepr a
 --   The conversion methods should all be O(1).
 --
 class PR (PRepr a) => PA a where
-  toPRepr      :: a -> PRepr a
-  fromPRepr    :: PRepr a -> a
-  toArrPRepr   :: PData a -> PData (PRepr a)
-  fromArrPRepr :: PData (PRepr a) -> PData a
+  toPRepr       :: a -> PRepr a
+  fromPRepr     :: PRepr a -> a
+  toArrPRepr    :: PData a -> PData (PRepr a)
+  fromArrPRepr  :: PData (PRepr a) -> PData a
+  
+  -- These methods aren't used in this backend, but the vecoriser expects
+  -- them to be part of the PA class. It will generate instances for them, 
+  -- but they will never be called at runtime.
+  toArrPReprs   :: PDatas a -> PDatas (PRepr a)
+  fromArrPReprs :: PDatas (PRepr a) -> PDatas a
 
 
 -- PD Wrappers ----------------------------------------------------------------
