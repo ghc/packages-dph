@@ -130,24 +130,26 @@ instance (PR a, PR b) => PR (a, b) where
   {-# INLINE_PDATA fromVectorPR #-}
   fromVectorPR vec
    = let (xs, ys)       = V.unzip vec
-     in  PTuple2 (fromVectorPR xs)
-                 (fromVectorPR ys)
+     in  PTuple2  (fromVectorPR xs)
+                  (fromVectorPR ys)
 
   {-# INLINE_PDATA toVectorPR #-}
   toVectorPR (PTuple2 xs ys)
-        = V.zip  (toVectorPR xs)
-                 (toVectorPR ys)
+        = V.zip   (toVectorPR xs)
+                  (toVectorPR ys)
 
 
   -- PData --------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR      
-        = PTuple2s emptydPR emptydPR
+        = PTuple2s emptydPR
+                   emptydPR
 
   
   {-# INLINE_PDATA singletondPR #-}
   singletondPR (PTuple2 x y)
-        = PTuple2s (singletondPR x) (singletondPR y)
+        = PTuple2s (singletondPR x)
+                   (singletondPR y)
 
 
   {-# INLINE_PDATA lengthdPR #-}
@@ -157,18 +159,21 @@ instance (PR a, PR b) => PR (a, b) where
    
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PTuple2s xs ys) i
-        = PTuple2 (indexdPR xs i) (indexdPR ys i)
+        = PTuple2  (indexdPR xs i)
+                   (indexdPR ys i)
 
    
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PTuple2s xs1 ys1) (PTuple2s xs2 ys2)
-        = PTuple2s (appenddPR xs1 xs2) (appenddPR ys1 ys2)
+        = PTuple2s (appenddPR xs1 xs2)
+                   (appenddPR ys1 ys2)
   
 
   {-# INLINE_PDATA fromVectordPR #-}
   fromVectordPR vec
    = let (xss, yss) = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) vec
-     in  PTuple2s (fromVectordPR xss) (fromVectordPR yss)
+     in  PTuple2s  (fromVectordPR xss)
+                   (fromVectordPR yss)
 
 
   {-# INLINE_PDATA toVectordPR #-}
