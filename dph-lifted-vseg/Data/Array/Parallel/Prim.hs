@@ -46,8 +46,8 @@ module Data.Array.Parallel.Prim
         , packByTagPA_Int#,     packByTagPA_Double#
         , combine2PA_Int#,      combine2PA_Double#
 
-        -- Tuple functions
-        , tup2, tup3)
+        -- Tuple constructors
+        , tup2, tup3, tup4, tup5)
 where
 import Data.Array.Parallel.PArray.PData.Base   
         (PArray(..), PData, PDatas, PR(..))
@@ -73,7 +73,7 @@ import Data.Array.Parallel.Lifted.Closure
         ( (:->)(..))
 
 import Data.Array.Parallel.Prelude.Tuple
-        ( tup2, tup3)
+        ( tup2, tup3, tup4, tup5)
 
 import Data.Array.Parallel.Base                         (Tag, intToTag)
 import qualified Data.Array.Parallel.Unlifted           as U
