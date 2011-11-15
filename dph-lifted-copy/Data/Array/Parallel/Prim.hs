@@ -14,7 +14,7 @@
 
 -- #hide
 module Data.Array.Parallel.Prim (
-  PArray(..), PData, PRepr, PA(..), PR(..),
+  PArray(..), PData, PDatas, PRepr, PA(..), PR(..),
   replicatePD, emptyPD, packByTagPD, combine2PD,
   Scalar(..),
   scalar_map, scalar_zipWith, scalar_zipWith3,
@@ -44,7 +44,7 @@ import Data.Array.Parallel.PArray.PRepr           (PRepr, PA(..), replicatePD, e
 import Data.Array.Parallel.PArray.Types           (Void, Sum2(..), Sum3(..), Wrap(..), void,
                                                    fromVoid)
 import Data.Array.Parallel.PArray.PReprInstances  ( {-we required instances-} )
-import Data.Array.Parallel.PArray.PData           (PData, PR(..))
+import Data.Array.Parallel.PArray.PData           (PData, PDatas, PR(..))
 import Data.Array.Parallel.PArray.PDataInstances  (pvoid, punit)
 import Data.Array.Parallel.Lifted.Closure         ((:->)(..), closure, liftedClosure, ($:),
                                                    liftedApply, closure1, closure2, closure3)
@@ -62,3 +62,4 @@ import Data.Array.Parallel.Prelude.Tuple          (tup2, tup3)
 packByTagPA_Int#, packByTagPA_Double# :: a
 packByTagPA_Int#    = error "Data.Array.Parallel.Prim: 'packByTagPA_Int#' not implemented"
 packByTagPA_Double# = error "Data.Array.Parallel.Prim: 'packByTagPA_Double#' not implemented"
+
