@@ -16,6 +16,7 @@ dumpWorld world filePath
 	mapM_ (hWriteBody h)
 		$ V.toList 
 		$ worldBodies world
+	hClose h
 
 -- | Write a single body to a file.
 hWriteBody :: Handle -> Body -> IO ()
