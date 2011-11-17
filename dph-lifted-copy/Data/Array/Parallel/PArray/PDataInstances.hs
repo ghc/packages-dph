@@ -28,7 +28,6 @@ import Data.Array.Parallel.Base                 (intToTag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import Data.List                                (unzip4, unzip5, unzip6, unzip7)
 import GHC.Exts                                 (Int(..), Int#)
-import qualified Data.Vector                    as V
 
 -- Extra unzips ------------
 
