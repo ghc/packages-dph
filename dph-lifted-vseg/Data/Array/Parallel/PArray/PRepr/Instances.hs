@@ -20,7 +20,6 @@ import Data.Array.Parallel.PArray.PData.Tuple2  ()
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Word8   ()
 import Data.Array.Parallel.PArray.PData.Double  ()
-import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Data.Word

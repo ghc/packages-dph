@@ -22,7 +22,7 @@ module Data.Array.Parallel.Prim (
   void, fromVoid, pvoid, pvoids, punit,
   (:->)(..), 
   closure, liftedClosure, ($:), liftedApply, closure1, closure2, closure3,
-  Sel2,
+  Sel2, Sels2,
   replicateSel2#, tagsSel2, elementsSel2_0#, elementsSel2_1#,
   PArray_Int#, PArray_Double#,
   replicatePA_Int#, replicatePA_Double#,
@@ -45,7 +45,7 @@ import Data.Array.Parallel.PArray.Types           (Void, Sum2(..), Sum3(..), Wra
                                                    fromVoid)
 import Data.Array.Parallel.PArray.PReprInstances  ( {-we required instances-} )
 import Data.Array.Parallel.PArray.PData           (PData, PDatas, PR(..))
-import Data.Array.Parallel.PArray.PDataInstances  (pvoid, punit)
+import Data.Array.Parallel.PArray.PDataInstances  (pvoid, punit, Sels2)
 import Data.Array.Parallel.Lifted.Closure         ((:->)(..), closure, liftedClosure, ($:),
                                                    liftedApply, closure1, closure2, closure3)
 import Data.Array.Parallel.Lifted.Unboxed         (Sel2, replicateSel2#, tagsSel2, elementsSel2_0#,
@@ -90,3 +90,4 @@ data instance PDatas (a, b, c, d, e)
 newtype instance PDatas (Wrap a)
         = PWraps (PDatas a)
 
+        
