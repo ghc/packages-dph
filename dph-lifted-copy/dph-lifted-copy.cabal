@@ -59,4 +59,5 @@ Library
         random           == 1.0.*,
         template-haskell == 2.6.*,
         dph-base         == 0.5.*,
-        dph-prim-par     == 0.5.*
+        dph-prim-par     == 0.5.*,
+        vector           == 0.9.*

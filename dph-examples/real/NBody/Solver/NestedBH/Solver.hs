@@ -30,6 +30,7 @@ data BHTree
 		Double		-- centroid mass
 		[:BHTree:]	-- children
 
+
 calcAccelsWithBoxPA
 	:: Double
 	-> Double -> Double -> Double -> Double
@@ -40,7 +41,7 @@ calcAccelsWithBoxPA epsilon llx lly rux ruy mpts
  = let	mpts'	= [: MP x y m | (x, y, m) <- fromPArrayP mpts :]
 	accs'	= calcAccelsWithBox epsilon llx lly rux ruy mpts'
    in	toPArrayP accs'
-	
+{-# NOINLINE calcAccelsWithBoxPA #-}	
 
 -- | Given the extend of a bounding box containing all the points,
 --   calculate the accelerations on all of them.
@@ -132,7 +133,7 @@ accel 	:: Double 	-- ^ If the distance between the points is smaller than this
 
 accel epsilon (MP x1 y1 _) (MP x2 y2 m)  
  = (aabs * dx / r , aabs * dy / r)  
- where	rsqr = (dx * dx) + (dy * dy) + epsilon
+ where	rsqr = (dx * dx) + (dy * dy) + epsilon * epsilon
 	r    = sqrt rsqr 
 	dx   = x1 - x2 
 	dy   = y1 - y2 

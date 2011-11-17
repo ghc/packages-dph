@@ -12,6 +12,7 @@ module Data.Array.Parallel.PArray.PDataInstances(
 
   -- * Operators on arrays of tuples
   zipPA#,  unzipPA#, zip3PA#, unzip3PA#,
+  zip4PA#, zip5PA#, 
   
   -- * Operators on nested arrays
   segdPA#, concatPA#, segmentPA#, copySegdPA#
@@ -28,7 +29,7 @@ import Data.Array.Parallel.Base                 (intToTag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import Data.List                                (unzip4, unzip5, unzip6, unzip7)
 import GHC.Exts                                 (Int(..), Int#)
-
+import qualified Data.Vector                    as V
 
 -- Extra unzips ------------
 
@@ -249,6 +250,8 @@ instance (PR a, PR b) => PR (a,b) where
     nfPR (P_2 as bs) = nfPR as `seq` nfPR bs
 -}
 
+data instance PDatas (a, b)
+        = Ps_2 (PDatas a) (PDatas b)
 
 -- Operators on arrays of tuples.
 --   These are here instead of in "Data.Array.Parallel.PArray.Base" because
@@ -275,10 +278,23 @@ unzip3PA# (PArray n# (P_3 xs ys zs))
   = (PArray n# xs, PArray n# ys, PArray n# zs)
 
 
+zip4PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray (a, b, c, d)
+{-# INLINE_PA zip4PA# #-}
+zip4PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as)
+  = PArray n# (P_4 xs ys zs as)
+
+zip5PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray (a, b, c, d, e)
+{-# INLINE_PA zip5PA# #-}
+zip5PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as) (PArray _ bs)
+  = PArray n# (P_5 xs ys zs as bs)
+
+
 -- Sums -----------------------------------------------------------------------
 data instance PData (Sum2 a b)
         = PSum2 U.Sel2 (PData a) (PData b)
 
+data instance PDatas (Sum2 a b)
+        = PSums2 (V.Vector U.Sel2) (PDatas a) (PDatas b)
 
 instance (PR a, PR b) => PR (Sum2 a b) where 
   {-# INLINE emptyPR #-}

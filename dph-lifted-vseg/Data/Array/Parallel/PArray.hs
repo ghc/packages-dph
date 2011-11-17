@@ -53,6 +53,9 @@ module Data.Array.Parallel.PArray
 
         -- * Tuples
         , zip,          zipl
+        , zip3
+        , zip4
+        , zip5
         , unzip,        unzipl
 
         -- * Conversions
@@ -79,7 +82,7 @@ import qualified Prelude                        as P
 import Prelude hiding 
         ( length, replicate, concat
         , enumFromTo
-        , zip, unzip)
+        , zip, zip3, unzip)
 
 
 -- Pretty ---------------------------------------------------------------------
@@ -444,6 +447,31 @@ zipl    :: (PA a, PA b)
         => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
 zipl (PArray n# xs) (PArray _ ys)
         = PArray n# $ ziplPA xs ys
+{-# INLINE_PA zipl #-}
+
+
+-- | O(1). Zip three arrays.
+--   All arrays must have the same length, else `error`. 
+zip3 :: PArray a -> PArray b -> PArray c -> PArray (a, b, c)
+zip3 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3)
+        = PArray n# $ zip3PD pdata1 pdata2 pdata3
+{-# INLINE_PA zip3 #-}
+
+
+-- | O(1). Zip four arrays.
+--   All arrays must have the same length, else `error`. 
+zip4 :: PArray a -> PArray b -> PArray c -> PArray d -> PArray (a, b, c, d)
+zip4 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4)
+        = PArray n# $ zip4PD pdata1 pdata2 pdata3 pdata4
+{-# INLINE_PA zip4 #-}
+
+
+-- | O(1). Zip five arrays.
+--   All arrays must have the same length, else `error`. 
+zip5 :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray (a, b, c, d, e)
+zip5 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4) (PArray _ pdata5)
+        = PArray n# $ zip5PD pdata1 pdata2 pdata3 pdata4 pdata5
+{-# INLINE_PA zip5 #-}
 
 
 -- | O(1). Unzip an array of pairs into a pair of arrays.
@@ -457,7 +485,7 @@ unzip (PArray n# (PTuple2 xs ys))
 unzipl :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 unzipl (PArray n# pdata)
         = PArray n# $ unziplPD pdata
-
+{-# INLINE_PA unzipl #-}
 
 
 -- Conversions ----------------------------------------------------------------

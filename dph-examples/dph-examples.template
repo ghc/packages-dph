@@ -138,6 +138,7 @@ Executable dph-quicksort
 --     ghc-options:    DPH_OPTIONS -fno-liberate-case
 
 
+<<<<<<< HEAD
 -- Executable dph-nbody-batch
 --    Main-is:        MainBatch.hs
 --    other-modules:  Common.Dump Common.World Common.Body Common.Util 
@@ -150,4 +151,18 @@ Executable dph-quicksort
 --    Build-depends:  DPH_DEPENDS, parseargs == 0.1.*
 --    hs-source-dirs: lib real/NBody real/NBody/Batch
 --    ghc-options:    DPH_OPTIONS -fno-liberate-case
+=======
+Executable dph-nbody-batch
+    Main-is:        MainBatch.hs
+    other-modules:  Common.Dump Common.World Common.Body Common.Util 
+                    Solver Solver.ListBH.Solver
+                           Solver.NestedBH.Solver
+                           Solver.VectorBH.Solver
+                           Solver.VectorNaive.Solver
+                    Timing Points2D.Types Points2D.Generate
+                    Batch.MainArgs Batch.Config
+    Build-depends:  DPH_DEPENDS
+    hs-source-dirs: lib real/NBody real/NBody/Batch
+    ghc-options:    DPH_OPTIONS -fno-liberate-case
+>>>>>>> 525b667acf4ce91932cc32ef51c6c0458f7b3dd7
 

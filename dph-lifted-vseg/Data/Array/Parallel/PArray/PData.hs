@@ -20,12 +20,18 @@ module Data.Array.Parallel.PArray.PData
         , module Data.Array.Parallel.PArray.PData.Nested
 
         -- * Tuple arrays
-        , module Data.Array.Parallel.PArray.PData.Tuple)
+        , module Data.Array.Parallel.PArray.PData.Tuple2
+        , module Data.Array.Parallel.PArray.PData.Tuple3
+        , module Data.Array.Parallel.PArray.PData.Tuple4
+        , module Data.Array.Parallel.PArray.PData.Tuple5)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Wrap
 import Data.Array.Parallel.PArray.PData.Nested
-import Data.Array.Parallel.PArray.PData.Tuple
+import Data.Array.Parallel.PArray.PData.Tuple2
+import Data.Array.Parallel.PArray.PData.Tuple3
+import Data.Array.Parallel.PArray.PData.Tuple4
+import Data.Array.Parallel.PArray.PData.Tuple5
 import Data.Array.Parallel.PArray.PData.Void            ()
 import Data.Array.Parallel.PArray.PData.Unit            ()
 import Data.Array.Parallel.PArray.PData.Int             ()

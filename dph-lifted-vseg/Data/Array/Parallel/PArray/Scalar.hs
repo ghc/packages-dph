@@ -72,14 +72,14 @@ instance Scalar Bool where
     = U.map toBool (U.tagsSel2 sel)
 
   {-# INLINE fromScalarPDatas #-}
-  fromScalarPDatas (PBools sels _)
+  fromScalarPDatas (PBools sels)
     = V.map (U.map toBool . U.tagsSel2) sels
 
   {-# INLINE toScalarPDatas #-}
   toScalarPDatas bss
     = let tagss = V.map (U.map fromBool) bss
           sels  = V.map U.tagsToSel2 tagss
-      in  PBools sels (toScalarPDatas tagss)
+      in  PBools sels
 
 
 instance Scalar Int where

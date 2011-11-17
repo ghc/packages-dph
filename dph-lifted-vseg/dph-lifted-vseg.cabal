@@ -22,7 +22,10 @@ Library
         Data.Array.Parallel.PArray.PData.Word8
         Data.Array.Parallel.PArray.PData.Nested
         Data.Array.Parallel.PArray.PData.Sum2
-        Data.Array.Parallel.PArray.PData.Tuple
+        Data.Array.Parallel.PArray.PData.Tuple2
+        Data.Array.Parallel.PArray.PData.Tuple3
+        Data.Array.Parallel.PArray.PData.Tuple4
+        Data.Array.Parallel.PArray.PData.Tuple5
         Data.Array.Parallel.PArray.PData.Unit
         Data.Array.Parallel.PArray.PData.Void
         Data.Array.Parallel.PArray.PData.Wrap

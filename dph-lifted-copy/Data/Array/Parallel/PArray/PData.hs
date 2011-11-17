@@ -2,7 +2,7 @@
 --   and the operators we can apply to it.
 --
 module Data.Array.Parallel.PArray.PData (
-  PData,
+  PData, PDatas,
   PR(..),
 
   -- These types have corresponding members in the PR class.
@@ -49,6 +49,10 @@ import SpecConstr
 {-# ANN type PData NoSpecConstr #-}
 data family PData a
 
+-- | Fake type family to satisfy the vectoriser interface.
+--   We don't define any PR functions for this family, but we need it to satisfy
+--   the vectoriser API.
+data family PDatas a
 
 -- | A PR dictionary contains the primitive functions that operate directly
 --   on parallel array data.
