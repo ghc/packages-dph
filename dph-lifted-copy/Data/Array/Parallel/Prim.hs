@@ -14,7 +14,7 @@
 
 -- #hide
 module Data.Array.Parallel.Prim (
-  PArray(..), PData, PDatas, PRepr, PA(..), PR(..),
+  PArray(..), PData, PDatas(..), PRepr, PA(..), PR(..),
   replicatePD, emptyPD, packByTagPD, combine2PD,
   Scalar(..),
   scalar_map, scalar_zipWith, scalar_zipWith3,

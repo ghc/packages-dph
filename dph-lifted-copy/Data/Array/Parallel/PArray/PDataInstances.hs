@@ -5,7 +5,7 @@
 
 -- | Instances for the PData class
 module Data.Array.Parallel.PArray.PDataInstances(
-  PData(..),
+  PData(..), PDatas(..),
 
   pvoid,
   punit,
