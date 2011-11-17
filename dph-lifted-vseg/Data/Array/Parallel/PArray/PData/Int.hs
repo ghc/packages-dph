@@ -14,18 +14,18 @@ import Data.Array.Parallel.Pretty
 -- PR -------------------------------------------------------------------------
 instance PR Int where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PInt xx)
         = xx `seq` ()
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR  = (==)
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PInt uarr) ix
    | weak       = ix <= U.length uarr
    | otherwise  = ix <  U.length uarr
@@ -76,11 +76,11 @@ instance PR Int where
    where get !src !ix
                 = (pvecs V.! src) VU.! ix
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PInt arr) start len 
         = PInt (U.extract arr start len)
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PInts vecpdatas) ussegd
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
@@ -90,11 +90,11 @@ instance PR Int where
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PInt arr1) arrTags tag
         = PInt $ U.packByTag arr1 arrTags tag
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PInt arr1) (PInt arr2)
         = PInt $ U.combine2 (U.tagsSel2 sel)
                            (U.repSel2  sel)
@@ -102,11 +102,11 @@ instance PR Int where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR xx
         = PInt $U.fromList $ V.toList xx
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PInt arr)
         = V.fromList $ U.toList arr
 
@@ -132,11 +132,11 @@ instance PR Int where
   appenddPR (PInts xs) (PInts ys)
         = PInts $ xs V.++ ys
         
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
         = PInts $ V.map (\(PInt xs) -> xs) vec
         
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PInts vec)
         = V.map PInt vec
 

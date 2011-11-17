@@ -36,22 +36,22 @@ type Sels2
 -- PR -------------------------------------------------------------------------
 instance (PR a, PR b) => PR (Sum2 a b)  where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR x y
    = case (x, y) of
         (Alt2_1 x', Alt2_1 y')  -> similarPR x' y'
         (Alt2_2 x', Alt2_2 y')  -> similarPR x' y'
         _                       -> False
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PSum2 sel xs ys)
         = sel `seq` nfPR xs `seq` nfPR ys `seq` ()
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PSum2 sel _ _) ix
    | weak       = ix <= U.length (U.tagsSel2 sel)
    | otherwise  = ix <  U.length (U.tagsSel2 sel)
@@ -182,7 +182,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   --   ALTS0: PInt [40 80]
   --   ALTS1: PInt [50 60 70]
   --  
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR  (PSum2 sel as bs) start len
    = let 
          -- Extract the tags of the result elements,
@@ -248,7 +248,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   --   STARTS:  [1 0 4 2 0]
   --  LENGTHS:  [3 2 2 1 1]
   -- 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PSum2s sels pdatas0 pdatas1) ssegd
    = let                
          tagss          = V.map U.tagsSel2 sels
@@ -377,7 +377,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   --  as'     = [20 50]
   --  as'     = [30 80]
   --
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PSum2 sel as bs) tags tag
    = let flags     = U.tagsSel2 sel
 
@@ -401,7 +401,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
      in  PSum2 sel' as' bs'
   
   
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PSum2 sel1 as1 bs1) (PSum2 sel2 as2 bs2)
    = let tags     = U.tagsSel2 sel
          tags'    = U.combine2 (U.tagsSel2 sel)  (U.repSel2 sel)
@@ -418,7 +418,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
   -- Conversions --------------------------------
   -- TODO: fix rubbish via-lists filtering.   
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR vec
    = let tags   = V.convert $ V.map tagOfSum2 vec
          sel2   = U.tagsToSel2 tags
@@ -428,7 +428,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
      in  PSum2 sel2 as' bs'
         
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR pdata@(PSum2 sel _ _)
    = let len = U.length $ U.tagsSel2 sel
      in  if len == 0
@@ -471,7 +471,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
 
   -- TODO: fix rubbish via-lists conversion.
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
    = let   (sels, pdatas1, pdatas2) 
                    = P.unzip3 
@@ -482,7 +482,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                    (fromVectordPR $ V.fromList pdatas2)
                 
 
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PSum2s sels pdatas1 pdatas2)
    = let  vecs1 = toVectordPR pdatas1
           vecs2 = toVectordPR pdatas2

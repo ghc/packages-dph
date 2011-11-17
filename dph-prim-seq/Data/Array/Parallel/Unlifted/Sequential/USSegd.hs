@@ -220,8 +220,8 @@ append (USSegd _ starts1 srcs1 usegd1) pdatas1
                  (starts1  U.++  starts2)
                  (srcs1    U.++  U.map (+ pdatas1) srcs2)
                  (USegd.append usegd1 usegd2)
-
-{-# INLINE_U append #-}
+{-# NOINLINE append #-}
+--  NOINLINE because we're worried about code explosion. Might be useful though.
 
 
 -- | Cull the segments in a SSegd down to only those reachable from an array

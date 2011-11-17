@@ -23,18 +23,18 @@ data instance PDatas Word8
 -- PR -------------------------------------------------------------------------
 instance PR Word8 where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PWord8 xx)
         = xx `seq` ()
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR  = (==)
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PWord8 uarr) ix
    | weak       = ix <= U.length uarr
    | otherwise  = ix <  U.length uarr
@@ -85,11 +85,11 @@ instance PR Word8 where
    where get !src !ix
                 = (pvecs V.! src) VU.! ix
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PWord8 arr) start len 
         = PWord8 (U.extract arr start len)
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PWord8s vecpdatas) ussegd
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
@@ -98,11 +98,11 @@ instance PR Word8 where
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PWord8 arr1) arrTags tag
         = PWord8 $ U.packByTag arr1 arrTags tag
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PWord8 arr1) (PWord8 arr2)
         = PWord8 $ U.combine2 (U.tagsSel2 sel)
                            (U.repSel2  sel)
@@ -110,11 +110,11 @@ instance PR Word8 where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR xx
         = PWord8 $U.fromList $ V.toList xx
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PWord8 arr)
         = V.fromList $ U.toList arr
 
@@ -140,11 +140,11 @@ instance PR Word8 where
   appenddPR (PWord8s xs) (PWord8s ys)
         = PWord8s $ xs V.++ ys
                                 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
         = PWord8s $ V.map (\(PWord8 xs) -> xs) vec
         
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PWord8s vec)
         = V.map PWord8 vec
 

@@ -25,24 +25,24 @@ data instance PDatas (a, b, c)
 -- PR -------------------------------------------------------------------------
 instance (PR a, PR b, PR c) => PR (a, b, c) where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR (PTuple3 xs ys zs)
         = validPR xs && validPR ys && validPR zs
 
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PTuple3 arr1 arr2 arr3)
         = nfPR arr1 `seq` nfPR arr2 `seq` nfPR arr3 `seq` ()
 
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR (x1, y1, z1) (x2, y2, z2)
         =  similarPR x1 x2
         && similarPR y1 y2
         && similarPR z1 z2
 
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PTuple3 arr1 arr2 arr3) ix
         =  coversPR weak arr1 ix
         && coversPR weak arr2 ix
@@ -113,13 +113,13 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
                   (indexsPR ys srcs ixs)
                   (indexsPR zs srcs ixs)
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PTuple3 arr1 arr2 arr3) start len
         = PTuple3 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
                   (extractPR arr3 start len)
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PTuple3s xs ys zs) ussegd
         = PTuple3 (extractsPR xs ussegd)
                   (extractsPR ys ussegd)
@@ -127,13 +127,13 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PTuple3 arr1 arr2 arr3) tags tag
         = PTuple3 (packByTagPR arr1 tags tag)
                   (packByTagPR arr2 tags tag)
                   (packByTagPR arr3 tags tag)
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PTuple3 xs1 ys1 zs1) (PTuple3 xs2 ys2 zs2)
         = PTuple3 (combine2PR sel xs1 xs2)
                   (combine2PR sel ys1 ys2)
@@ -141,14 +141,14 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR vec
    = let (xs, ys, zs)       = V.unzip3 vec
      in  PTuple3  (fromVectorPR xs)
                   (fromVectorPR ys)
                   (fromVectorPR zs)
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PTuple3 xs ys zs)
         = V.zip3  (toVectorPR xs)
                   (toVectorPR ys)
@@ -189,7 +189,7 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
                    (appenddPR zs1 zs2)
   
 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
    = let (xss, yss, zss) = V.unzip3 $ V.map (\(PTuple3 xs ys zs) -> (xs, ys, zs)) vec
      in  PTuple3s  (fromVectordPR xss)
@@ -197,7 +197,7 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
                    (fromVectordPR zss)
 
 
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PTuple3s pdatas1 pdatas2 pdatas3)
         = V.zipWith3 PTuple3
                    (toVectordPR pdatas1)

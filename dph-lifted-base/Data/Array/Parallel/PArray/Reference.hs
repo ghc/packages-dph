@@ -1,4 +1,5 @@
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS -fno-warn-missing-signatures #-}
 -- | During testing, we compare the output of each invocation of the lifted
 --   combinators in "Data.Array.Parallel.PArray" with the reference implementations. 
 --
@@ -51,7 +52,17 @@ withRef1 :: ( A.Array r a
          -> c a                 -- result using vseg implementation
          -> c a
 
+--  Careful: We don't want to inline the whole body of this function into
+--  every use site, or we'll get code explosion. When debugging is off we
+--  want this wrapper to be inlined and eliminated as cheaply as possible.
+{-# INLINE withRef1 #-}
 withRef1 name arrRef arrImpl
+ = if debugLiftedCompare || debugLiftedTrace
+        then withRef1' name arrRef arrImpl
+        else arrImpl
+        
+{-# NOINLINE withRef1' #-}
+withRef1' name arrRef arrImpl
  = let  trace'
          = if debugLiftedTrace  
             then trace (render $ text " " 
@@ -77,7 +88,6 @@ withRef1 name arrRef arrImpl
    in   trace' (if debugLiftedCompare
                  then (if resultOk then arrImpl else resultFail)
                  else arrImpl)
-{-# INLINE withRef1 #-}
 
 
 -- | Compare the nested result of some array operator against a reference.
@@ -91,7 +101,14 @@ withRef2 :: ( A.Array r (r a)
          -> c (c a)     -- result using vseg implementation.
          -> c (c a)
 
+{-# INLINE withRef2 #-}
 withRef2 name arrRef arrImpl
+ = if debugLiftedCompare || debugLiftedTrace
+         then withRef2' name arrRef arrImpl
+         else arrImpl
+
+{-# NOINLINE withRef2' #-}
+withRef2' name arrRef arrImpl
  = let  trace'
          = if debugLiftedTrace  
             then trace (render $ text " " 
@@ -114,7 +131,6 @@ withRef2 name arrRef arrImpl
    in   trace' (if debugLiftedCompare
                  then (if resultOK then arrImpl else resultFail)
                  else arrImpl)
-{-# INLINE withRef2 #-}
 
 
 -- toRef ----------------------------------------------------------------------
@@ -124,6 +140,8 @@ toRef1  :: ( A.Array c a
         => c a -> r a
 
 toRef1  = A.fromVectors1 . A.toVectors1
+{-# NOINLINE toRef1 #-}
+--  NOINLINE because it's only for debugging.
 
 
 -- | Convert a nested array to the reference version.
@@ -135,6 +153,8 @@ toRef2 :: ( A.Array c (c a)
        -> r (r a)
 
 toRef2  = A.fromVectors2 . A.toVectors2
+{-# NOINLINE toRef2 #-}
+--  NOINLINE because it's only for debugging.
 
 
 -- | Convert a doubly nested array to the reference version.
@@ -148,4 +168,5 @@ toRef3 :: ( A.Array c (c (c a))
        -> r (r (r a))
 
 toRef3  = A.fromVectors3 . A.toVectors3
-
+{-# NOINLINE toRef3 #-}
+--  NOINLINE because it's only for debugging.

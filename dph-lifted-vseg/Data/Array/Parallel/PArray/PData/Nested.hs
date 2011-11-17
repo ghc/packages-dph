@@ -88,7 +88,7 @@ instance PR a => PR (PArray a) where
   -- TODO: make this check all sub arrays as well
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
   -- TODO: shift segd checks into associated modules.
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR arr
    = let 
          vsegids        = pnested_vsegids     arr
@@ -158,18 +158,18 @@ instance PR a => PR (PArray a) where
              , psegsReffedOK ]
 
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR    = error "nfPR[PArray]: not defined yet"
 
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR (PArray _ pdata1) (PArray _ pdata2)
         = V.and $ V.zipWith similarPR 
                         (toVectorPR pdata1)
                         (toVectorPR pdata2)
 
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PNested vsegd _ ) ix
    | weak       = ix <= (U.length $ U.takeVSegidsOfVSegd vsegd)
    | otherwise  = ix <  (U.length $ U.takeVSegidsOfVSegd vsegd)
@@ -217,7 +217,7 @@ instance PR a => PR (PArray a) where
   -- TODO: If we know the lens does not contain zeros, then we don't need
   --       to cull down the psegs.
   --
-  {-# INLINE_PDATA replicatesPR #-}
+  {-# NOINLINE replicatesPR #-}
   replicatesPR segd (PNested uvsegd pdata)
    = PNested (U.updateVSegsOfVSegd
                 (\vsegids -> U.replicate_s segd vsegids) uvsegd)
@@ -226,7 +226,7 @@ instance PR a => PR (PArray a) where
 
   -- Append nested arrays by appending the segment descriptors,
   -- and putting all physical arrays in the result.
-  {-# INLINE_PDATA appendPR #-}
+  {-# NOINLINE appendPR #-}
   appendPR (PNested uvsegd1 pdatas1) (PNested uvsegd2 pdatas2)
    = PNested    (U.appendVSegd
                         uvsegd1 (lengthdPR pdatas1) 
@@ -242,7 +242,7 @@ instance PR a => PR (PArray a) where
   -- anyway. Once this is done we use copying segmented append on the flat 
   -- arrays, and then reconstruct the segment descriptor.
   --
-  {-# INLINE_PDATA appendsPR #-}
+  {-# NOINLINE appendsPR #-}
   appendsPR rsegd segd1 xarr segd2 yarr
    = let (xsegd, xs)    = flattenPR xarr
          (ysegd, ys)    = flattenPR yarr
@@ -268,7 +268,7 @@ instance PR a => PR (PArray a) where
   {-# INLINE_PDATA lengthPR #-}
   lengthPR (PNested vsegd _)
         = U.lengthOfVSegd vsegd
-        
+
 
   -- To index into a nested array, first determine what segment the index
   -- corresponds to, and extract that as a slice from that physical array.
@@ -316,7 +316,7 @@ instance PR a => PR (PArray a) where
   -- To extract a range of elements from a nested array, perform the extract
   -- on the vsegids field. The `updateVSegsOfUVSegd` function will then filter
   -- out all of the psegs that are no longer reachable from the new vsegids.
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PNested uvsegd pdata) start len
    = {-# SCC "extractPR" #-}
      PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
@@ -352,7 +352,7 @@ instance PR a => PR (PArray a) where
   --  We encode these offsets in the psrcoffset vector:
   --       psrcoffset :  [0, 2]
   --
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PNesteds arrs) ussegd
    = {-# SCC "extractsPR" #-}
      let segsrcs        = U.sourcesSSegd ussegd
@@ -405,7 +405,7 @@ instance PR a => PR (PArray a) where
   --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]
   --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
   --       
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PNested uvsegd pdata) tags tag
    = PNested (U.updateVSegsOfVSegd (\vsegids -> U.packByTag vsegids tags tag) uvsegd)
              pdata
@@ -413,7 +413,7 @@ instance PR a => PR (PArray a) where
 
   -- Combine nested arrays by combining the segment descriptors, 
   -- and putting all physical arrays in the result.
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel2 (PNested uvsegd1 pdatas1) (PNested uvsegd2 pdatas2)
    = PNested    (U.combine2VSegd sel2 
                         uvsegd1 (lengthdPR pdatas1)
@@ -422,7 +422,7 @@ instance PR a => PR (PArray a) where
 
 
   -- Conversions ----------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR xx
    | V.length xx == 0 = emptyPR
    | otherwise
@@ -435,7 +435,7 @@ instance PR a => PR (PArray a) where
                 (singletondPR (V.foldl1 appendPR $ V.map takeData xx))
 
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR arr
    = V.generate (U.length (pnested_vsegids arr))
    $ indexPR arr
@@ -492,7 +492,7 @@ indexlPR (PNested vsegd pdatas) (PInt ixs)
                         ixs
                         
    in   indexsPR pdatas (PInt srcids') (PInt ixs')
-
+{-# INLINE_PDATA indexlPR #-}
 
 -------------------------------------------------------------------------------
 -- | O(len result). Concatenate a nested array.
@@ -671,7 +671,7 @@ appendlPR  arr1 arr2
 takeSegdPD :: PData (PArray a) -> U.Segd
 takeSegdPD (PNested vsegd _) 
         = U.demoteToSegdOfVSegd vsegd
-{-# INLINE_PDATA takeSegdPD #-}
+{-# NOINLINE takeSegdPD #-}
 
 
 -- | Extract some slices from some arrays.

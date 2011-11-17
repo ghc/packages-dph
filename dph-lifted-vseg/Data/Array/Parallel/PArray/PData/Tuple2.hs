@@ -29,23 +29,23 @@ data instance PDatas (a, b)
 -- PR -------------------------------------------------------------------------
 instance (PR a, PR b) => PR (a, b) where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR (PTuple2 xs ys)
         = validPR xs && validPR ys
 
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PTuple2 arr1 arr2)
         = nfPR arr1 `seq` nfPR arr2 `seq` ()
 
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR (x1, y1) (x2, y2)
         =  similarPR x1 x2
         && similarPR y1 y2
 
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PTuple2 arr1 arr2) ix
         =  coversPR weak arr1 ix
         && coversPR weak arr2 ix
@@ -103,37 +103,37 @@ instance (PR a, PR b) => PR (a, b) where
         = PTuple2 (indexsPR xs srcs ixs)
                   (indexsPR ys srcs ixs)
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len
         = PTuple2 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PTuple2s xs ys) ussegd
         = PTuple2 (extractsPR xs ussegd)
                   (extractsPR ys ussegd)
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PTuple2 arr1 arr2) tags tag
         = PTuple2 (packByTagPR arr1 tags tag)
                   (packByTagPR arr2 tags tag)
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PTuple2 xs1 ys1) (PTuple2 xs2 ys2)
         = PTuple2 (combine2PR sel xs1 xs2)
                   (combine2PR sel ys1 ys2)
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR vec
    = let (xs, ys)       = V.unzip vec
      in  PTuple2  (fromVectorPR xs)
                   (fromVectorPR ys)
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PTuple2 xs ys)
         = V.zip   (toVectorPR xs)
                   (toVectorPR ys)
@@ -169,14 +169,14 @@ instance (PR a, PR b) => PR (a, b) where
                    (appenddPR ys1 ys2)
   
 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
    = let (xss, yss) = V.unzip $ V.map (\(PTuple2 xs ys) -> (xs, ys)) vec
      in  PTuple2s  (fromVectordPR xss)
                    (fromVectordPR yss)
 
 
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PTuple2s pdatas1 pdatas2)
         = V.zipWith PTuple2
                 (toVectordPR pdatas1)

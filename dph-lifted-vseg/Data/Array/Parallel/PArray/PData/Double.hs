@@ -24,18 +24,18 @@ data instance PDatas Double
 -- PR -------------------------------------------------------------------------
 instance PR Double where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PDouble xx)
         = xx `seq` ()
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR  = (==)
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PDouble uarr) ix
    | weak       = ix <= U.length uarr
    | otherwise  = ix <  U.length uarr
@@ -87,11 +87,11 @@ instance PR Double where
    where get !src !ix
                 = (pvecs V.! src) VU.! ix
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PDouble arr) start len 
         = PDouble (U.extract arr start len)
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PDoubles vecpdatas) ussegd
    = let segsrcs        = U.sourcesSSegd ussegd
          segstarts      = U.startsSSegd  ussegd
@@ -100,11 +100,11 @@ instance PR Double where
                 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PDouble arr1) arrTags tag
         = PDouble $ U.packByTag arr1 arrTags tag
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PDouble arr1) (PDouble arr2)
         = PDouble (U.combine2 (U.tagsSel2 sel)
                            (U.repSel2  sel)
@@ -112,11 +112,11 @@ instance PR Double where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR xx
         = PDouble (U.fromList $ V.toList xx)
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PDouble arr)
         = V.fromList $ U.toList arr
 
@@ -142,11 +142,11 @@ instance PR Double where
   appenddPR (PDoubles xs) (PDoubles ys)
         = PDoubles $ xs V.++ ys
         
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
         = PDoubles $ V.map (\(PDouble xs) -> xs) vec
         
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PDoubles vec)
         = V.map PDouble vec
 

@@ -26,19 +26,19 @@ punit   = PUnit
 -- PR -------------------------------------------------------------------------
 instance PR () where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR _
         = True
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR xx
         = xx `seq` ()
   
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR _ _
         = True
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PUnit n) i
    | weak       = i <= n
    | otherwise  = i <  n
@@ -108,11 +108,11 @@ instance PR () where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR vec
         = PUnit (V.length vec)
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PUnit len)
         = V.replicate len ()
 
@@ -137,11 +137,11 @@ instance PR () where
   appenddPR (PUnits lens1) (PUnits lens2)
         = PUnits $ lens1 U.+:+ lens2
 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
         = PUnits $ V.convert $ V.map lengthPR vec
         
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PUnits uvecs)
         = V.map PUnit $ V.convert uvecs
 

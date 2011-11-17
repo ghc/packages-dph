@@ -44,16 +44,16 @@ nope str    = error $ "Data.Array.Parallel.PData.Void: no PR method for " ++ str
 
 instance PR Void where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR _       = True
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR _          = ()
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR _ _   = True
   
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR _ _ _  = True
   
   {-# NOINLINE pprpPR #-}
@@ -109,10 +109,10 @@ instance PR Void where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR  = nope "fromVector"
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR _  = nope "toVector"
 
 
@@ -136,11 +136,11 @@ instance PR Void where
   appenddPR (PVoids n1) (PVoids n2)
         = PVoids (n1 + n2)
 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
         = PVoids $ V.length vec
 
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PVoids n)
         = V.replicate n pvoid
 

@@ -19,19 +19,19 @@ newtype instance PDatas (Wrap a)
 -- PR -------------------------------------------------------------------------
 instance PA a => PR (Wrap a) where       
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR (PWrap pdata)  
         = validPA pdata
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PWrap pdata)      
         = nfPA pdata
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR (Wrap x) (Wrap y)
         = similarPA x y
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PWrap pdata) ix
         = coversPA weak pdata ix
 
@@ -79,31 +79,31 @@ instance PA a => PR (Wrap a) where
   indexsPR (PWraps pdatas) srcs ixs
         = PWrap $ indexsPA pdatas srcs ixs
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PWrap xs) ix n
         = PWrap $ extractPA xs ix n
         
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PWraps pdatas) ssegd
         = PWrap $ extractsPA pdatas ssegd
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PWrap xs) tags tag
         = PWrap $ packByTagPA xs tags tag
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PWrap xs) (PWrap ys)
         = PWrap $ combine2PA sel xs ys
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR vec 
         = PWrap $ fromVectorPA $ V.map unWrap vec
         
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PWrap pdata)
         = V.map Wrap $ toVectorPA pdata
 
@@ -129,11 +129,11 @@ instance PA a => PR (Wrap a) where
   appenddPR (PWraps xs) (PWraps ys)
         = PWraps $ appenddPA xs ys
 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
         = PWraps $ fromVectordPA $ V.map (\(PWrap x) -> x) vec
 
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PWraps pdatas)
         = V.map PWrap $ toVectordPA pdatas
         

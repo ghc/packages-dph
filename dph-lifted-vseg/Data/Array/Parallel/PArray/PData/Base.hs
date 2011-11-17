@@ -61,8 +61,8 @@ takeData (PArray _ d)   = d
 --   An example of an array with no length is PData Void. We can index this
 --   at an arbitrary position, and always get a 'void' element back.
 --
-data family PData a
 {-# ANN type PData NoSpecConstr #-}
+data family PData a
 
 -- | Several chunks of parallel array data.
 --

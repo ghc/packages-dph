@@ -26,17 +26,17 @@ data instance PDatas (a, b, c, d, e)
 -- PR -------------------------------------------------------------------------
 instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR (PTuple5 xs ys zs ds es)
         = validPR xs && validPR ys && validPR zs && validPR ds && validPR es
 
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (PTuple5 arr1 arr2 arr3 arr4 arr5)
         = nfPR arr1 `seq` nfPR arr2 `seq` nfPR arr3 `seq` nfPR arr4 `seq` nfPR arr5 `seq` ()
 
 
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR (x1, y1, z1, d1, e1) (x2, y2, z2, d2, e2)
         =  similarPR x1 x2
         && similarPR y1 y2
@@ -45,7 +45,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
         && similarPR e1 e2
 
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (PTuple5 arr1 arr2 arr3 arr4 arr5) ix
         =  coversPR weak arr1 ix
         && coversPR weak arr2 ix
@@ -140,7 +140,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
                   (indexsPR ds srcs ixs)
                   (indexsPR es srcs ixs)
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# NOINLINE extractPR #-}
   extractPR (PTuple5 arr1 arr2 arr3 arr4 arr5) start len
         = PTuple5 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
@@ -148,7 +148,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
                   (extractPR arr4 start len)
                   (extractPR arr5 start len)
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# NOINLINE extractsPR #-}
   extractsPR (PTuple5s xs ys zs ds es) ussegd
         = PTuple5 (extractsPR xs ussegd)
                   (extractsPR ys ussegd)
@@ -158,7 +158,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# NOINLINE packByTagPR #-}
   packByTagPR (PTuple5 arr1 arr2 arr3 arr4 arr5) tags tag
         = PTuple5 (packByTagPR arr1 tags tag)
                   (packByTagPR arr2 tags tag)
@@ -167,7 +167,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
                   (packByTagPR arr5 tags tag)
 
 
-  {-# INLINE_PDATA combine2PR #-}
+  {-# NOINLINE combine2PR #-}
   combine2PR sel (PTuple5 xs1 ys1 zs1 ds1 es1) (PTuple5 xs2 ys2 zs2 ds2 es2)
         = PTuple5 (combine2PR sel xs1 xs2)
                   (combine2PR sel ys1 ys2)
@@ -177,7 +177,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
 
 
   -- Conversions --------------------------------
-  {-# INLINE_PDATA fromVectorPR #-}
+  {-# NOINLINE fromVectorPR #-}
   fromVectorPR vec
    = let (xs, ys, zs, ds, es)       = V.unzip5 vec
      in  PTuple5  (fromVectorPR xs)
@@ -186,7 +186,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
                   (fromVectorPR ds)
                   (fromVectorPR es)
 
-  {-# INLINE_PDATA toVectorPR #-}
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (PTuple5 xs ys zs ds es)
         = V.zip5  (toVectorPR xs)
                   (toVectorPR ys)
@@ -237,7 +237,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
                    (appenddPR es1 es2)
   
 
-  {-# INLINE_PDATA fromVectordPR #-}
+  {-# NOINLINE fromVectordPR #-}
   fromVectordPR vec
    = let (xss, yss, zss, dss, ess) = V.unzip5 $ V.map (\(PTuple5 xs ys zs ds es) -> (xs, ys, zs, ds, es)) vec
      in  PTuple5s  (fromVectordPR xss)
@@ -247,7 +247,7 @@ instance (PR a, PR b, PR c, PR d, PR e) => PR (a, b, c, d, e) where
                    (fromVectordPR ess)
 
 
-  {-# INLINE_PDATA toVectordPR #-}
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (PTuple5s pdatas1 pdatas2 pdatas3 pdatas4 pdatas5)
         = V.zipWith5 PTuple5
                    (toVectordPR pdatas1)

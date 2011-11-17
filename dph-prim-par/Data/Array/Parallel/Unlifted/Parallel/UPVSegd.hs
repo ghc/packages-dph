@@ -350,8 +350,8 @@ updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _)
    in   UPVSegd False
                 vsegids_redundant vsegids_culled
                 upssegd           upssegd_culled
-{-# INLINE_UP updateVSegs #-}
---  INLINE_UP because we want to inline the parameter function fUpdate.
+{-# NOINLINE updateVSegs #-}
+--  NOINLINE because we want to see this happening in core.
 
 
 -- | Update the virtual segment ids of `UPVSegd`, where the result covers
@@ -370,8 +370,8 @@ updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
 updateVSegsReachable fUpdate (UPVSegd _ _ vsegids _ upssegd)
  = let  vsegids' = fUpdate vsegids
    in   UPVSegd False vsegids' vsegids' upssegd upssegd
-{-# INLINE_UP updateVSegsReachable #-}
---  INLINE_UP because we want to inline the parameter function fUpdate.
+{-# NOINLINE updateVSegsReachable #-}
+--  NOINLINE because we want to see this happening in core.
 
 
 -- Append ---------------------------------------------------------------------
@@ -405,6 +405,8 @@ appendWith
                                  
    in   UPVSegd False vsegids' vsegids' upssegd' upssegd'
 {-# NOINLINE appendWith #-}
+--  NOINLINE because it doesn't need to be specialised
+--           and we're worried about code explosion.
 
 
 -- Combine --------------------------------------------------------------------
@@ -441,4 +443,5 @@ combine2
                                   
    in   UPVSegd False vsegids' vsegids' upssegd' upssegd'
 {-# NOINLINE combine2 #-}
-
+--  NOINLINE because it doesn't need to be specialised
+--           and we're worried about code explosion.
