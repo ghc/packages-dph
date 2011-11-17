@@ -149,7 +149,7 @@ Executable dph-nbody-batch
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Batch.MainArgs Batch.Config
-    Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*, parseargs == 0.1.*
+    Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*
     hs-source-dirs: lib real/NBody real/NBody/Batch
     ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fno-spec-constr -fsimpl-tick-factor=1000 -fno-liberate-case
 

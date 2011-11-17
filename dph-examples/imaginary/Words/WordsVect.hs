@@ -94,6 +94,7 @@ flattenState ss
 -- Interface ------------------------------------------------------------------
 
 -- | Break up an array of chars into words then flatten it back.
+{-# NOINLINE wordsOfPArray #-}
 wordsOfPArray :: PArray Word8 -> PArray Word8
 wordsOfPArray arr
  = let	str	= fromPArrayP arr
@@ -103,6 +104,7 @@ wordsOfPArray arr
 
 
 -- | Count the number of words in an array
+{-# NOINLINE wordCountOfPArray #-}
 wordCountOfPArray :: PArray Word8 -> Int
 wordCountOfPArray arr
  = let	str	= fromPArrayP arr

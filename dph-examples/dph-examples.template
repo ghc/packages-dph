@@ -147,7 +147,7 @@ Executable dph-nbody-batch
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Batch.MainArgs Batch.Config
-    Build-depends:  DPH_DEPENDS, parseargs == 0.1.*
+    Build-depends:  DPH_DEPENDS
     hs-source-dirs: lib real/NBody real/NBody/Batch
     ghc-options:    DPH_OPTIONS -fno-liberate-case
 
