@@ -5,8 +5,7 @@
 
 -- | Instances for the PData class
 module Data.Array.Parallel.PArray.PDataInstances(
-  PData(..), PDatas(..),
-
+  PData(..), PDatas(..), Sels2,
   pvoid,
   punit,
 
@@ -294,7 +293,9 @@ data instance PData (Sum2 a b)
         = PSum2 U.Sel2 (PData a) (PData b)
 
 data instance PDatas (Sum2 a b)
-        = PSums2 (V.Vector U.Sel2) (PDatas a) (PDatas b)
+        = PSums2 Sels2 (PDatas a) (PDatas b)
+
+type Sels2 = ()
 
 instance (PR a, PR b) => PR (Sum2 a b) where 
   {-# INLINE emptyPR #-}

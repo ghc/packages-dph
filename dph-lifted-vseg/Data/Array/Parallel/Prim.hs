@@ -24,6 +24,7 @@ module Data.Array.Parallel.Prim
         , punit
         , Wrap(..)
         , Sum2(..), Sum3(..)
+        , Sels2
         
         -- Closures, and closure functions
         , (:->)(..)
@@ -57,6 +58,9 @@ import Data.Array.Parallel.PArray.PData.Void
 
 import Data.Array.Parallel.PArray.PData.Unit
         ( punit )
+
+import Data.Array.Parallel.PArray.PData.Sum2
+        ( Sels2 )
 
 import Data.Array.Parallel.PArray.PRepr 
         ( PRepr, PA(..)
