@@ -93,10 +93,10 @@ type instance PRepr Bool
   = Sum2 Void Void
 
 data instance PData Bool
-  = PBool U.Sel2
+  = PBool   U.Sel2
 
 data instance PDatas Bool
-  = PBools (V.Vector U.Sel2) (PDatas Tag)
+  = PBools (V.Vector U.Sel2)
 
 instance PA Bool where
   {-# INLINE toPRepr #-}
@@ -116,14 +116,14 @@ instance PA Bool where
         = PBool sel
 
   {-# INLINE toArrPReprs #-}
-  toArrPReprs (PBools sels tagss)
-        = PSum2s sels tagss 
+  toArrPReprs (PBools sels)
+        = PSum2s sels
                 (pvoids $ V.length sels)
                 (pvoids $ V.length sels)
 
   {-# INLINE fromArrPReprs #-}
-  fromArrPReprs (PSum2s sels tagss _ _)
-        = PBools sels tagss
+  fromArrPReprs (PSum2s sels _ _)
+        = PBools sels
 
 
 -- Either ---------------------------------------------------------------------
@@ -134,7 +134,7 @@ data instance PData (Either a b)
  = PEither U.Sel2 (PData a) (PData b)
 
 data instance PDatas (Either a b)
- = PEithers (V.Vector U.Sel2) (PDatas Tag) (PDatas a) (PDatas b)
+ = PEithers (V.Vector U.Sel2) (PDatas a) (PDatas b)
 
 instance (PR a, PR b) => PA (Either a b) where
   {-# INLINE toPRepr #-}
@@ -156,10 +156,10 @@ instance (PR a, PR b) => PA (Either a b) where
         = PEither sel pdata1 pdata2
 
   {-# INLINE toArrPReprs #-}
-  toArrPReprs (PEithers sels tags pdatas1 pdatas2)
-        = PSum2s sels tags pdatas1 pdatas2
+  toArrPReprs (PEithers sels pdatas1 pdatas2)
+        = PSum2s sels pdatas1 pdatas2
 
   {-# INLINE fromArrPReprs #-}
-  fromArrPReprs (PSum2s sels tags pdatas1 pdatas2)
-        = PEithers sels tags pdatas1 pdatas2
+  fromArrPReprs (PSum2s sels pdatas1 pdatas2)
+        = PEithers sels pdatas1 pdatas2
 

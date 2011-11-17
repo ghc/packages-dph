@@ -10,7 +10,7 @@ import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.Types
-import Data.Array.Parallel.Base                 (Tag, intToTag)
+import Data.Array.Parallel.Base                 (intToTag)
 import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
 import qualified Data.Vector.Unboxed            as VU
@@ -26,7 +26,6 @@ data instance PData (Sum2 a b)
 
 data instance PDatas (Sum2 a b)
         = PSum2s (V.Vector U.Sel2)
-                 (PDatas Tag)
                  (PDatas a)
                  (PDatas b)
 
@@ -140,7 +139,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
              _ -> Alt2_2 (indexPR bs k)
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PSum2s sels _ ass bss) psrcs@(PInt srcs) (PInt ixs)
+  indexsPR (PSum2s sels ass bss) psrcs@(PInt srcs) (PInt ixs)
    = let 
          getFlagIndex !src !ix
           = let !sel        = sels                V.!  src
@@ -247,8 +246,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   --  LENGTHS:  [3 2 2 1 1]
   -- 
   {-# INLINE_PDATA extractsPR #-}
-  extractsPR (PSum2s sels (PInts tagss) pdatas0 pdatas1) ssegd
+  extractsPR (PSum2s sels pdatas0 pdatas1) ssegd
    = let                
+         tagss          = V.map U.tagsSel2 sels
          sources        = U.sourcesSSegd ssegd
          starts         = U.startsSSegd  ssegd
          lengths        = U.lengthsSSegd  ssegd
@@ -437,34 +437,32 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
-        = PSum2s V.empty emptydPR emptydPR emptydPR
+        = PSum2s V.empty emptydPR emptydPR
 
 
   {-# INLINE_PDATA singletondPR #-}
   singletondPR (PSum2 sel2 xs ys)
    = PSum2s (V.singleton sel2)
-            (singletondPR (PInt (U.tagsSel2 sel2)))
             (singletondPR xs)
             (singletondPR ys)
 
 
   {-# INLINE_PDATA lengthdPR #-}
-  lengthdPR (PSum2s sel2s _ _ _)
+  lengthdPR (PSum2s sel2s _ _)
     = V.length sel2s
 
 
   {-# INLINE_PDATA indexdPR #-}
-  indexdPR  (PSum2s sel2s _ xss yss) ix
+  indexdPR  (PSum2s sel2s xss yss) ix
    = PSum2  (sel2s V.! ix)
             (indexdPR      xss   ix)
             (indexdPR      yss   ix)
 
 
   {-# INLINE_PDATA appenddPR #-}
-  appenddPR (PSum2s sels1 tagss1 xss1 yss1)
-            (PSum2s sels2 tagss2 xss2 yss2)
+  appenddPR (PSum2s sels1 xss1 yss1)
+            (PSum2s sels2 xss2 yss2)
    = PSum2s (sels1  V.++        sels2)
-            (tagss1 `appenddPR` tagss2)
             (xss1   `appenddPR` xss2)
             (yss1   `appenddPR` yss2)
 
@@ -477,13 +475,12 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                    $ [ (sel, pdata1, pdata2) 
                                     | PSum2 sel pdata1 pdata2 <- V.toList vec]
      in    PSum2s  (V.fromList sels)
-                   (PInts $ V.map U.tagsSel2 $ V.fromList sels)
                    (fromVectordPR $ V.fromList pdatas1)
                    (fromVectordPR $ V.fromList pdatas2)
                 
 
   {-# INLINE_PDATA toVectordPR #-}
-  toVectordPR (PSum2s sels _ pdatas1 pdatas2)
+  toVectordPR (PSum2s sels pdatas1 pdatas2)
    = let  vecs1 = toVectordPR pdatas1
           vecs2 = toVectordPR pdatas2
           
