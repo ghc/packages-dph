@@ -48,6 +48,7 @@ instance  (PprVirtual a, PA a)
 
 -- Unpack ----------------------------------------------------------------------
 -- | Unpack an array to reveal its representation.
+{-# INLINE_PA unpackPA #-}
 unpackPA :: PA a => PArray a -> PData (PRepr a)
 unpackPA (PArray _ pdata)
         = toArrPRepr pdata

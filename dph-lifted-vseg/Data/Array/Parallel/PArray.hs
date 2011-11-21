@@ -318,7 +318,7 @@ extract (PArray _ arr) start len@(I# len#)
 extracts :: PA a => Vector (PArray a) -> U.SSegd -> PArray a
 extracts arrs ssegd
  = let  pdatas          = fromVectordPA $ V.map (\(PArray _ vec) -> vec) arrs
-        !(I# n#)        = (U.sum $ U.lengthsSSegd ssegd)
+        !(I# n#)        = (U.sum $ U.lengthsOfSSegd ssegd)
    in   PArray   n#
                 (extractsPA pdatas ssegd)
 {-# INLINE_PA extracts #-}
@@ -390,9 +390,8 @@ packl xss@(PArray n# xdata@(PNested vsegd _))
       fss@(PArray _  fdata)
  = withRef2 "packl" (R.packl (toRef2 xss) (toRef2 fss))
  $ let  
-        -- Demote the vsegd to get the virtual segmentation of the two arrays.
-        -- The virtual segmentation of both must be the same, but this is not checked.
-        segd            = U.demoteToSegdOfVSegd vsegd
+        -- Demote the vsegd to eliminate the virtual segmentation in the two arrays.
+        segd            = U.unsafeDemoteToSegdOfVSegd vsegd
         
         -- Concatenate both arrays to get the flat data.
         --   Although the virtual segmentation should be the same,

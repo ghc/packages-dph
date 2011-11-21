@@ -244,8 +244,9 @@ appendWith
 appendWith upssegd1 pdatas1
            upssegd2 pdatas2
  = fromUSSegd 
- $ USSegd.append (upssegd_ussegd upssegd1) pdatas1
-                 (upssegd_ussegd upssegd2) pdatas2
+ $ USSegd.appendWith
+        (upssegd_ussegd upssegd1) pdatas1
+        (upssegd_ussegd upssegd2) pdatas2
 {-# NOINLINE appendWith #-}
 --  NOINLINE because we're not using it yet.
 

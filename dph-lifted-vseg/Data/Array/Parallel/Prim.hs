@@ -86,20 +86,21 @@ import qualified Data.Array.Parallel.Lifted.Closure     as C
 import GHC.Exts
 
 -- Array functions ------------------------------------------------------------
+{-# INLINE_PA emptyPD #-}
 emptyPD :: PA a => PData a
 emptyPD = emptyPA
 
-
+{-# INLINE_PA replicatePD #-}
 replicatePD :: PA a => Int# -> a -> PData a
 replicatePD i# x 
         = replicatePA (I# i#) x
         
-
+{-# INLINE_PA packByTagPD #-}
 packByTagPD :: PA a => PData a -> Int# -> U.Array Tag -> Int# -> PData a
 packByTagPD xs _ tags tag#
         = packByTagPA xs tags (I# tag#)
 
-
+{-# INLINE_PA combine2PD #-}
 combine2PD :: PA a => Int# -> U.Sel2 -> PData a -> PData a -> PData a
 combine2PD _ sel xs ys
         = combine2PA sel xs ys
@@ -110,7 +111,7 @@ combine2PD _ sel xs ys
 -- integers for the first argument of the lifted function.
 
 -- | Construct a closure.
-{-# INLINE closure #-}
+{-# INLINE_CLOSURE closure #-}
 closure :: forall a b e
         .  PA e
         => (e -> a -> b)
@@ -125,13 +126,13 @@ closure fv fl e
 
 
 -- | Apply a closure.
-{-# INLINE ($:) #-}
+{-# INLINE_CLOSURE ($:) #-}
 ($:) :: forall a b. (a :-> b) -> a -> b
 ($:)    = (C.$:)
 
 
 -- | Construct a lifted closure.
-{-# INLINE liftedClosure #-}
+{-# INLINE_CLOSURE liftedClosure #-}
 liftedClosure
         :: forall a b e
         .  PA e
@@ -145,14 +146,15 @@ liftedClosure fv fl es
         (\(I# c) v x -> fl c v x)
         es
         
+
 -- | Apply a lifted closure.
-{-# INLINE liftedApply #-}
+{-# INLINE_CLOSURE liftedApply #-}
 liftedApply :: Int# -> PData (a :-> b) -> PData a -> PData b
 liftedApply n# arr xs
         = C.liftedApply (I# n#) arr xs
 
 
-{-# INLINE closure1 #-}
+{-# INLINE_CLOSURE closure1 #-}
 closure1 :: forall a b
          .  (a -> b)
          -> (PArray a -> PArray b)
@@ -166,7 +168,7 @@ closure1 fv fl
    in   C.closure1 fv fl'
 
 
-{-# INLINE closure2 #-}
+{-# INLINE_CLOSURE closure2 #-}
 closure2 :: forall a b c. PA a
          => (a -> b -> c)
          -> (PArray a -> PArray b -> PArray c)
@@ -180,7 +182,7 @@ closure2 fv fl
    in   C.closure2 fv fl'
 
 
-{-# INLINE closure3 #-}
+{-# INLINE_CLOSURE closure3 #-}
 closure3 :: forall a b c d.  (PA a, PA b)
          => (a -> b -> c -> d)
          -> (PArray a -> PArray b -> PArray c -> PArray d)
@@ -200,7 +202,7 @@ closure3 fv fl
 type Sel2       = U.Sel2
 
 
-{-# INLINE replicateSel2# #-}
+{-# INLINE_PA replicateSel2# #-}
 replicateSel2# :: Int# -> Int# -> Sel2
 replicateSel2# n# tag#
   = U.mkSel2
@@ -214,24 +216,24 @@ replicateSel2# n# tag#
     tag = I# tag#
 
 
-{-# INLINE pickSel2# #-}
+{-# INLINE_PA pickSel2# #-}
 pickSel2# :: Sel2 -> Int# -> U.Array Bool
 pickSel2# sel tag#
         = U.pick (U.tagsSel2 sel) (intToTag (I# tag#))
 
 
-{-# INLINE tagsSel2 #-}
+{-# INLINE_PA tagsSel2 #-}
 tagsSel2 :: Sel2 -> U.Array Tag
 tagsSel2 = U.tagsSel2
 
 
-{-# INLINE elementsSel2_0# #-}
+{-# INLINE_PA elementsSel2_0# #-}
 elementsSel2_0# :: Sel2 -> Int#
 elementsSel2_0# sel
         = case U.elementsSel2_0 sel of { I# n# -> n# }
 
 
-{-# INLINE elementsSel2_1# #-}
+{-# INLINE_PA elementsSel2_1# #-}
 elementsSel2_1# :: Sel2 -> Int#
 elementsSel2_1# sel
         = case U.elementsSel2_1 sel of { I# n# -> n# }
@@ -266,14 +268,14 @@ scalar_zipWith3 = Scalar.zipWith3
 type PArray_Int# = U.Array Int
 
 
+{-# INLINE_PA replicatePA_Int# #-}
 replicatePA_Int# :: Int# -> Int# -> PArray_Int#
 replicatePA_Int# n# i# = U.replicate (I# n#) (I# i#)
-{-# INLINE_PA replicatePA_Int# #-}
 
 
+{-# INLINE_PA emptyPA_Int# #-}
 emptyPA_Int# :: PArray_Int#
 emptyPA_Int# = U.empty
-{-# INLINE_PA emptyPA_Int# #-}
 
 
 {-# RULES
@@ -284,52 +286,52 @@ emptyPA_Int# = U.empty
  #-}
 
 
+{-# NOINLINE packByTagPA_Int# #-}
 packByTagPA_Int# :: a
 packByTagPA_Int#    = error "Data.Array.Parallel.Prim: 'packByTagPA_Int#' not implemented"
 
 
+{-# INLINE_PA combine2'PA_Int# #-}
 combine2'PA_Int# :: PArray_Int# -> PArray_Int# -> PArray_Int# -> PArray_Int#
 combine2'PA_Int# sel xs ys = U.combine (U.map (== 0) sel) xs ys
-{-# INLINE_PA combine2'PA_Int# #-}
 
 
+{-# INLINE_PA combine2PA_Int# #-}
 combine2PA_Int#
         :: Int#
         -> PArray_Int# -> PArray_Int#
         -> PArray_Int# -> PArray_Int# -> PArray_Int#
 combine2PA_Int# _ sel _ xs ys = combine2'PA_Int# sel xs ys
-{-# INLINE_PA combine2PA_Int# #-}
 
 
 -- Double functions -----------------------------------------------------------
 type PArray_Double# = U.Array Double
 
 
+{-# INLINE_PA replicatePA_Double# #-}
 replicatePA_Double# :: Int# -> Double# -> PArray_Double#
 replicatePA_Double# n# d# = U.replicate (I# n#) (D# d#)
-{-# INLINE_PA replicatePA_Double# #-}
 
 
+{-# INLINE_PA emptyPA_Double# #-}
 emptyPA_Double# :: PArray_Double#
 emptyPA_Double# = U.empty
-{-# INLINE_PA emptyPA_Double# #-}
 
-
+{-# NOINLINE packByTagPA_Double# #-}
 packByTagPA_Double# :: a
 packByTagPA_Double# = error "Data.Array.Parallel.Prim: 'packByTagPA_Double#' not implemented"
 
 
+{-# INLINE_PA combine2'PA_Double# #-}
 combine2'PA_Double#
         :: PArray_Int#
         -> PArray_Double# -> PArray_Double# -> PArray_Double#
 combine2'PA_Double# sel xs ys = U.combine (U.map (== 0) sel) xs ys
-{-# INLINE_PA combine2'PA_Double# #-}
 
 
+{-# INLINE_PA combine2PA_Double# #-}
 combine2PA_Double#
         :: Int#
         -> PArray_Int# -> PArray_Int#
         -> PArray_Double# -> PArray_Double# -> PArray_Double#
 combine2PA_Double# _ sel _ xs ys = combine2'PA_Double# sel xs ys
-{-# INLINE_PA combine2PA_Double# #-}
-

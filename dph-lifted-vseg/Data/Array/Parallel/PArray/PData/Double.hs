@@ -93,9 +93,9 @@ instance PR Double where
 
   {-# NOINLINE extractsPR #-}
   extractsPR (PDoubles vecpdatas) ussegd
-   = let segsrcs        = U.sourcesSSegd ussegd
-         segstarts      = U.startsSSegd  ussegd
-         seglens        = U.lengthsSSegd ussegd
+   = let segsrcs        = U.sourcesOfSSegd ussegd
+         segstarts      = U.startsOfSSegd  ussegd
+         seglens        = U.lengthsOfSSegd ussegd
      in  PDouble (U.extract_ss vecpdatas segsrcs segstarts seglens)
                 
 

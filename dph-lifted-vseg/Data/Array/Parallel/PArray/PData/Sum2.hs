@@ -252,9 +252,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   extractsPR (PSum2s sels pdatas0 pdatas1) ssegd
    = let                
          tagss          = V.map U.tagsSel2 sels
-         sources        = U.sourcesSSegd ssegd
-         starts         = U.startsSSegd  ssegd
-         lengths        = U.lengthsSSegd  ssegd
+         sources        = U.sourcesOfSSegd ssegd
+         starts         = U.startsOfSSegd  ssegd
+         lengths        = U.lengthsOfSSegd  ssegd
 
          -- Extract the tags of the result elements,
          --  and rebuild the result selector indices based on these tags.

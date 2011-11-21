@@ -71,13 +71,13 @@ pnested_vsegids    :: PData (PArray a) -> U.Array Int
 pnested_vsegids    =  U.takeVSegidsOfVSegd . pnested_uvsegd
 
 pnested_pseglens   :: PData (PArray a) -> U.Array Int
-pnested_pseglens   =  U.lengthsSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+pnested_pseglens   =  U.lengthsOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
 
 pnested_psegstarts :: PData (PArray a) -> U.Array Int
-pnested_psegstarts  = U.startsSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
+pnested_psegstarts  = U.startsOfSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
 
 pnested_psegsrcids :: PData (PArray a) -> U.Array Int
-pnested_psegsrcids  = U.sourcesSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+pnested_psegsrcids  = U.sourcesOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
 
 
 
@@ -355,9 +355,9 @@ instance PR a => PR (PArray a) where
   {-# NOINLINE extractsPR #-}
   extractsPR (PNesteds arrs) ussegd
    = {-# SCC "extractsPR" #-}
-     let segsrcs        = U.sourcesSSegd ussegd
-         segstarts      = U.startsSSegd  ussegd
-         seglens        = U.lengthsSSegd ussegd
+     let segsrcs        = U.sourcesOfSSegd ussegd
+         segstarts      = U.startsOfSSegd  ussegd
+         seglens        = U.lengthsOfSSegd ussegd
 
          vsegids_src    = U.extract_ss (V.map pnested_vsegids  arrs)
                                         segsrcs segstarts seglens
@@ -608,13 +608,16 @@ concatlPR arr
 --   for every segment. Because of this we need flatten out the virtual
 --   segmentation of the template array.
 --
+--   WARNING:
+--   This can cause index space overflow, see the note in `concatPR`.
+--
 unconcatPR :: PR b => PData (PArray a) -> PData b -> PData (PArray b)
 unconcatPR (PNested vsegd _) pdata
  = {-# SCC "unconcatPD" #-}
    let  
         -- Demote the vsegd to a manifest vsegd so it contains all the segment
         -- lengths individually without going through the vsegids.
-        !segd           = U.demoteToSegdOfVSegd vsegd
+        !segd           = U.unsafeDemoteToSegdOfVSegd vsegd
 
         -- Rebuild the vsegd based on the manifest vsegd. 
         -- The vsegids will be just [0..len-1], but this field is constructed
@@ -638,7 +641,7 @@ unconcatPR (PNested vsegd _) pdata
 flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
 {-# INLINE flattenPR #-}
 flattenPR arr@(PNested uvsegd _)
- =      ( U.demoteToSegdOfVSegd uvsegd
+ =      ( U.unsafeDemoteToSegdOfVSegd uvsegd
         , concatPR arr)
 
 
@@ -670,7 +673,7 @@ appendlPR  arr1 arr2
 --
 takeSegdPD :: PData (PArray a) -> U.Segd
 takeSegdPD (PNested vsegd _) 
-        = U.demoteToSegdOfVSegd vsegd
+        = U.unsafeDemoteToSegdOfVSegd vsegd
 {-# NOINLINE takeSegdPD #-}
 
 

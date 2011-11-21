@@ -82,9 +82,9 @@ instance PR Int where
 
   {-# NOINLINE extractsPR #-}
   extractsPR (PInts vecpdatas) ussegd
-   = let segsrcs        = U.sourcesSSegd ussegd
-         segstarts      = U.startsSSegd  ussegd
-         seglens        = U.lengthsSSegd ussegd
+   = let segsrcs        = U.sourcesOfSSegd ussegd
+         segstarts      = U.startsOfSSegd  ussegd
+         seglens        = U.lengthsOfSSegd ussegd
      in  PInt $ U.extract_ss vecpdatas segsrcs segstarts seglens
 
 

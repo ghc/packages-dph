@@ -93,7 +93,7 @@ instance PR () where
         
   {-# INLINE_PDATA extractsPR #-}
   extractsPR _ ussegd
-        = PUnit (U.sum $ U.lengthsSSegd ussegd)
+        = PUnit (U.sum $ U.lengthsOfSSegd ussegd)
 
 
   -- Pack and Combine ---------------------------        

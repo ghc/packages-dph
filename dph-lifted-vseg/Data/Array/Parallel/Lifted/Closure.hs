@@ -297,25 +297,28 @@ closure5' fv fl
 -- PData instance for closures ------------------------------------------------
 -- This needs to be here instead of in a module D.A.P.PArray.PData.Closure
 -- to break an import loop.
+-- We use INLINE_CLOSURE for these bindings instead of INLINE_PDATA because
+-- most of the functions return closure constructors, and we want to eliminate
+-- these early in the compilation.
 --
 instance PR (a :-> b) where
 
-  {-# INLINE_PDATA validPR #-}
+  {-# NOINLINE validPR #-}
   validPR (AClo _ _ env)
         = validPA env
 
-  {-# INLINE_PDATA nfPR #-}
+  {-# NOINLINE nfPR #-}
   nfPR (AClo fv fl envs)
         = fv `seq` fl `seq` nfPA envs `seq` ()
 
   -- We can't test functions for equality.
   -- We can't test the environments either, because they're existentially quantified.
   -- Provided the closures have the same type, we just call them similar.
-  {-# INLINE_PDATA similarPR #-}
+  {-# NOINLINE similarPR #-}
   similarPR _ _
         = True
 
-  {-# INLINE_PDATA coversPR #-}
+  {-# NOINLINE coversPR #-}
   coversPR weak (AClo _ _ envs) ix
         = coversPA weak envs ix
 
@@ -333,68 +336,74 @@ instance PR (a :-> b) where
 
 
   -- Constructors -------------------------------
-  {-# INLINE_PDATA emptyPR #-}
+  {-# INLINE_CLOSURE emptyPR #-}
   emptyPR
    = let  die    = error "emptydPR[:->]: no function in empty closure array"
       in  AClo die die (emptyPA :: PData ())
 
-  {-# INLINE_PDATA replicatePR #-}
+  {-# INLINE_CLOSURE replicatePR #-}
   replicatePR n (Clo fv fl envs)
         = AClo fv fl (replicatePA n envs)
 
-  {-# INLINE_PDATA replicatesPR #-}
+  {-# INLINE_CLOSURE replicatesPR #-}
   replicatesPR lens (AClo fv fl envs)
         = AClo fv fl (replicatesPA lens envs)
 
 
   -- Projections --------------------------------
-  {-# INLINE_PDATA lengthPR #-}
+  {-# INLINE_CLOSURE lengthPR #-}
   lengthPR (AClo _ _ envs)
         = lengthPA envs
 
-  {-# INLINE_PDATA indexPR #-}
+  {-# INLINE_CLOSURE indexPR #-}
   indexPR (AClo fv fl envs) ix
         = Clo fv fl  $ indexPA envs ix
 
-  {-# INLINE_PDATA indexsPR #-}
+  {-# INLINE_CLOSURE indexsPR #-}
   indexsPR (AClos fv fl envs) srcs ixs
         = AClo fv fl $ indexsPA envs srcs ixs
 
-  {-# INLINE_PDATA extractPR #-}
+  {-# INLINE_CLOSURE extractPR #-}
   extractPR (AClo fv fl envs) start len
         = AClo fv fl $ extractPA envs start len
 
-  {-# INLINE_PDATA extractsPR #-}
+  {-# INLINE_CLOSURE extractsPR #-}
   extractsPR (AClos fv fl envs) ssegd
         = AClo fv fl $ extractsPA envs ssegd
 
 
   -- Pack and Combine ---------------------------
-  {-# INLINE_PDATA packByTagPR #-}
+  {-# INLINE_CLOSURE packByTagPR #-}
   packByTagPR (AClo fv fl envs) tags tag
         = AClo fv fl $ packByTagPA envs tags tag
 
 
   -- Conversions --------------------------------
+  {-# NOINLINE toVectorPR #-}
   toVectorPR (AClo fv fl envs)
         = V.map (Clo fv fl) $ toVectorPA envs
 
 
   -- PDatas -------------------------------------
   -- When constructing an empty array of closures, we don't know what 
+  {-# INLINE_CLOSURE emptydPR #-}
   emptydPR 
    = let die    = error "emptydPR[:->]: no function in empty closure array"
      in  AClos  die die (emptydPA :: PDatas ())
 
+  {-# INLINE_CLOSURE singletondPR #-}
   singletondPR (AClo fv fl env)
         = AClos fv fl $ singletondPA env
         
+  {-# INLINE_CLOSURE lengthdPR #-}
   lengthdPR (AClos _ _ env)
         = lengthdPA env
         
+  {-# INLINE_CLOSURE indexdPR #-}
   indexdPR (AClos fv fl envs) ix
         = AClo fv fl $ indexdPA envs ix
 
+  {-# NOINLINE toVectordPR #-}
   toVectordPR (AClos fv fl envs)
         = V.map (AClo fv fl) $ toVectordPA envs
 
