@@ -2,15 +2,9 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Primitive sequential combinators that work on flat, unlifted arrays.
---
---   This set of combinators is used when the program is compiled with @-package dph-seq@.
---   When compiling with @-package dph-par@, the ones in the @dph-prim-par package@ are used
---   instead. The @dph-prim-par package@ exports the same names, but all combinators
---   are implemented sequentially.
---
+
 --   The API is defined in @DPH_Header.h@ and @DPH_Interface.h@ to ensure that both
 --   @dph-prim-par@ and @dph-prim-seq@ really do export the same symbols.
-
 #include "DPH_Header.h"
 
 import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox, Vector)
@@ -152,7 +146,7 @@ indicesOfSSegd          = USSegd.takeIndices
 startsOfSSegd           = USSegd.takeStarts
 sourcesOfSSegd          = USSegd.takeSources
 getSegOfSSegd           = USSegd.getSeg
-appendSSegd             = USSegd.append
+appendSSegd             = USSegd.appendWith
 
 
 -- Virtual Segment Descriptors ------------------------------------------------
@@ -172,11 +166,11 @@ takeSSegdOfVSegd                = UVSegd.takeUSSegd
 takeSSegdRedundantOfVSegd       = UVSegd.takeUSSegd
 takeLengthsOfVSegd              = UVSegd.takeLengths
 getSegOfVSegd                   = UVSegd.getSeg
-demoteToSSegdOfVSegd            = UVSegd.toUSSegd
-unsafeDemoteToSegdOfVSegd       = UVSegd.unsafeMaterialize
+demoteToSSegdOfVSegd            = UVSegd.demoteToUSSegd
+unsafeDemoteToSegdOfVSegd       = UVSegd.unsafeDemoteToUSegd
 updateVSegsOfVSegd              = UVSegd.updateVSegs
 updateVSegsReachableOfVSegd     = UVSegd.updateVSegsReachable
-appendVSegd                     = UVSegd.append
+appendVSegd                     = UVSegd.appendWith
 combine2VSegd                   = UVSegd.combine2
 
 

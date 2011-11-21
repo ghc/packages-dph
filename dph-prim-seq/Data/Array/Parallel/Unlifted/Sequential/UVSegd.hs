@@ -29,13 +29,13 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
         getSeg,
 
         -- * Operators
-        append,
+        appendWith,
         combine2,
         updateVSegs,
         updateVSegsReachable,
-        toUSSegd,
-        unsafeMaterialize
-) where
+        demoteToUSSegd,
+        unsafeDemoteToUSegd)
+where
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
@@ -53,26 +53,25 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 --   Represents an index space transformation between indices for the nested
 --   array and indices for the physical data.
 --   
---   TODO: It would probably be better to represent the vsegids as a lens (function)
---         instead of a vector of segids. Much of the time the vsegids are just [0..n] 
+--   * TODO: It would probably be better to represent the vsegids as a lens (function)
+--           instead of a vector of segids. Much of the time the vsegids are just @[0..n]@
 --
 data UVSegd 
         = UVSegd 
         { uvsegd_manifest       :: !Bool
-          -- ^ When the vsegids field holds a lazy (V.enumFromTo 0 (len - 1))
+          -- ^ When the vsegids field holds a lazy @(V.enumFromTo 0 (len - 1))@
           --   then this field is True. This lets us perform some operations like
-          --   demoteToUPSSegd without actually creating it.
+          --   `demoteToUPSSegd` without actually creating it.
           
         , uvsegd_vsegids        :: (Vector Int) 
-          -- ^ array saying which physical segment to use for each virtual segment 
+          -- ^ Array saying which physical segment to use for each virtual segment. 
 
         , uvsegd_ussegd         :: !USSegd
-          -- ^ slice segment descriptor describing physical segments.
+          -- ^ Slice segment descriptor describing physical segments.
         }
         deriving (Show)
 
 
--- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical UVSegd where
  pprp (UVSegd _ vsegids ussegd)
   = vcat
@@ -81,9 +80,9 @@ instance PprPhysical UVSegd where
 
 
 
--- | O(1).
---   Check the internal consistency of a virutal segmentation descriptor.
---   TODO: check that all vsegs point to a valid pseg
+-- | O(1). Check the internal consistency of a virutal segmentation descriptor.
+--
+--   * TODO: check that all vsegs point to a valid pseg
 valid :: UVSegd -> Bool
 valid (UVSegd _ vsegids ussegd)
         = V.length vsegids == USSegd.length ussegd
@@ -95,18 +94,18 @@ valid (UVSegd _ vsegids ussegd)
 -- | O(1). Construct a new virtual segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUVSegd
-        :: Vector Int   -- ^ array saying which physical segment to use for each
+        :: Vector Int   -- ^ Array saying which physical segment to use for each
                         --   virtual segment.
-        -> USSegd       -- ^ slice segment descriptor describing physical segments.
+        -> USSegd       -- ^ Slice segment descriptor describing physical segments.
         -> UVSegd
 
 mkUVSegd = UVSegd False
 {-# INLINE mkUVSegd #-}
 
 
--- | O(segs). Promote a plain USSegd to a UVSegd
+-- | O(segs). Promote a plain `USSegd` to a `UVSegd`
 --   The result contains one virtual segment for every physical segment
---   the provided USSegd.
+--   the provided `USSegd`.
 --
 fromUSSegd :: USSegd -> UVSegd
 fromUSSegd ussegd
@@ -116,7 +115,7 @@ fromUSSegd ussegd
 {-# INLINE_U fromUSSegd #-}
 
 
--- | O(segs). Promote a plain USegd to a UVSegd
+-- | O(segs). Promote a plain `USegd` to a `UVSegd`.
 --   All segments are assumed to come from a flat array with sourceid 0.
 --   The result contains one virtual segment for every physical segment
 --   the provided USegd.
@@ -127,13 +126,13 @@ fromUSegd
 {-# INLINE_U fromUSegd #-}
 
 
--- | O(1). Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: UVSegd
 empty   = UVSegd True V.empty USSegd.empty
 {-# INLINE_U empty #-}
 
 
--- | O(1). Yield a singleton segment descriptor.
+-- | O(1). Construct a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> UVSegd
@@ -195,7 +194,7 @@ takeLengths (UVSegd _ vsegids ussegd)
 
 
 -- | O(1). Get the length, starting index, and source id of a segment.
---
+
 --  NOTE: We don't return the segment index field from the USSegd as this refers
 --        to the flat index relative to the SSegd array, rather than 
 --        relative to the UVSegd array. If we tried to promote the USSegd index
@@ -209,7 +208,7 @@ getSeg (UVSegd _ vsegids ussegd) ix
 
    
 -- Operators ------------------------------------------------------------------
--- | Update the virtual segment ids of a `UPVSegd`, and then cull the physical
+-- | Update the vsegids of `UPVSegd`, and then cull the physical
 --   segment descriptor so that all phsyical segments are reachable from
 --   some virtual segment.
 --
@@ -225,7 +224,7 @@ updateVSegs f (UVSegd _ vsegids ussegd)
 --  INLINE_UP because we want to inline the parameter function fUpdate.
 
 
--- | Update the virtual segment ids of `UPVSegd`, where the result covers
+-- | Update the vsegids of `UPVSegd`, where the result covers
 --   all physical segments.
 --
 --   * The resulting vsegids must cover all physical segments.
@@ -252,43 +251,41 @@ updateVSegsReachable fUpdate (UVSegd _ vsegids upssegd)
 --   * This operation is used in concatPR as the first step in eliminating
 --     segmentation from a nested array.
 -- 
-toUSSegd :: UVSegd -> USSegd
-toUSSegd (UVSegd _ vsegids ussegd)
+demoteToUSSegd :: UVSegd -> USSegd
+demoteToUSSegd (UVSegd _ vsegids ussegd)
  = let  starts'         = V.bpermute (USSegd.takeStarts  ussegd)  vsegids
         sources'        = V.bpermute (USSegd.takeSources ussegd) vsegids
         lengths'        = V.bpermute (USSegd.takeLengths ussegd) vsegids
         usegd'          = USegd.fromLengths lengths'
    in   USSegd.mkUSSegd starts' sources' usegd'
-{-# NOINLINE toUSSegd #-}
+{-# NOINLINE demoteToUSSegd #-}
 --  NOINLINE because it's complicated and won't fuse with anything.
 
 
--- | O(segs). Given an virtual segment descriptor, produce a plain USegd that
---   that describes the entire array.
+-- | O(segs). Yield a `USegd` that describes each segment of a `UVSegd`
+--   individually, assuming all segments have been concatenated to 
+--   remove scattering.
 --
---   WARNING:
---   Trying to take the USegd of a nested array that has been constructed with
---   replication can cause index overflow. This is because the virtual size of
---   the corresponding flat data can be larger than physical memory.
+--   /WARNING/: Trying to take the `UPSegd` of a nested array that has been
+--   constructed with replication can cause index space overflow. This is
+--   because the virtual size of the corresponding flat data can be larger
+--   than physical memory. If this happens then indices fields and 
+--   element count in the result will be invalid.
 -- 
---   You should only apply this function to a nested array when you're about
---   about to construct something with the same size as the corresponding
---   flat array. In this case the index overflow doesn't matter too much
---   because the program would OOM anyway.
 --
-unsafeMaterialize :: UVSegd -> USegd
-unsafeMaterialize (UVSegd _ vsegids ussegd)
+unsafeDemoteToUSegd :: UVSegd -> USegd
+unsafeDemoteToUSegd (UVSegd _ vsegids ussegd)
         = USegd.fromLengths
         $ V.bpermute (USSegd.takeLengths ussegd) vsegids
-{-# NOINLINE unsafeMaterialize #-}
+{-# NOINLINE unsafeDemoteToUSegd #-}
 --  NOINLINE because it won't fuse with anything.
 
 
 -- append ---------------------------------------------------------------------
 -- | O(n)
 --   Produce a segment descriptor describing the result of appending two arrays.
+
 --   Note that the implementation of this is similar to `combine2UVSegd`
---
 -- @
 --  source1
 --    VIRT1 [[0],[4,2],[5,6,7,8,9]]
@@ -316,11 +313,15 @@ unsafeMaterialize (UVSegd _ vsegids ussegd)
 --                  PInt [1,2,3,8,6,3,9,3]     -- ...
 -- @
 -- 
-append  :: UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
-        -> UVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
+appendWith
+        :: UVSegd       -- ^ Descriptor of first array.
+        -> Int          -- ^ Number of flat physical arrays for first descriptor.
+        -> UVSegd       -- ^ Descriptor of second array.
+        -> Int          -- ^ Number of flat physical arrays for second descriptor.
         -> UVSegd
 
-append  (UVSegd _ vsegids1 ussegd1) pdatas1
+appendWith
+        (UVSegd _ vsegids1 ussegd1) pdatas1
         (UVSegd _ vsegids2 ussegd2) pdatas2
 
  = let  -- vsegids releative to appended psegs
@@ -331,18 +332,19 @@ append  (UVSegd _ vsegids1 ussegd1) pdatas1
         vsegids'  = vsegids1' V.++ vsegids2'
 
         -- All data from the source arrays goes into the result
-        ussegd'   = USSegd.append ussegd1 pdatas1
-                                  ussegd2 pdatas2
+        ussegd'   = USSegd.appendWith
+                                ussegd1 pdatas1
+                                ussegd2 pdatas2
                                  
    in   UVSegd False vsegids' ussegd'
-{-# INLINE_U append #-}
+{-# INLINE_U appendWith #-}
 
 
 -- combine --------------------------------------------------------------------
--- | O(n)
---   Combine two virtual segment descriptors.
---   Note that the implementation of this is similar to `appendUVSegd`
---
+-- | O(n). Combine two virtual segment descriptors.
+
+
+-- Note that the implementation of this is similar to `appendUVSegd`
 -- @
 -- source1
 --    VIRT1 [[0],[4,2],[5,6,7,8,9]]
@@ -371,9 +373,11 @@ append  (UVSegd _ vsegids1 ussegd1) pdatas1
 -- @  
 -- 
 combine2
-        :: USel2
-        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
-        -> UVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
+        :: USel2       -- ^ Selector for the combine operation.
+        -> UVSegd      -- ^ Descriptor of first array.
+        -> Int          -- ^ Number of flat physical arrays for first descriptor.
+        -> UVSegd      -- ^ Descriptor of second array.
+        -> Int          -- ^ Number of flat physical arrays for second descriptor.
         -> UVSegd
         
 combine2  usel2
@@ -389,8 +393,9 @@ combine2  usel2
                                     vsegids1' vsegids2'
 
          -- All data from the source arrays goes into the result
-        ussegd'   = USSegd.append ussegd1 pdatas1
-                                  ussegd2 pdatas2
+        ussegd'   = USSegd.appendWith
+                                ussegd1 pdatas1
+                                ussegd2 pdatas2
                                   
    in   UVSegd False vsegids' ussegd'
 {-# INLINE_U combine2 #-}

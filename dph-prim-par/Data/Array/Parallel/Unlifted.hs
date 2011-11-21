@@ -30,7 +30,7 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSeg
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 
 import Prelude (($!))
 

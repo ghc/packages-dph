@@ -13,9 +13,6 @@ Build-Type:     Simple
 
 Library
   Exposed-Modules:
-        Data.Array.Parallel.Unlifted.Sequential.Basics
-        Data.Array.Parallel.Unlifted.Sequential.Combinators
-        Data.Array.Parallel.Unlifted.Sequential.Sums
         Data.Array.Parallel.Unlifted.Sequential.USel
         Data.Array.Parallel.Unlifted.Sequential.USegd
         Data.Array.Parallel.Unlifted.Sequential.USSegd
@@ -23,6 +20,12 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Vector
         Data.Array.Parallel.Unlifted.Sequential
         Data.Array.Parallel.Unlifted
+        
+  Other-Modules:
+        Data.Array.Parallel.Unlifted.Sequential.Basics
+        Data.Array.Parallel.Unlifted.Sequential.Combinators
+        Data.Array.Parallel.Unlifted.Sequential.Sums
+  
 
   Exposed: False
 

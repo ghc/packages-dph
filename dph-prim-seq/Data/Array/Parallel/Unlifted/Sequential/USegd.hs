@@ -26,28 +26,35 @@ import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
 
 
--- | Segment descriptors represent an index space transform between the indicies
---   of a nested array and the indices of a flat array. It stores the lengths and
---   starting indices of each segment in the flat array.
+-- | A segment desciptor defines an irregular 2D array based on a flat, 1D array
+--   of elements.
+--  
+--   The defined array is an array of segments, where every segment covers some
+--   of the elements from the flat array.
 --
---   Example:
+--   /INVARIANT:/ The segment starting indices must be monotonically increasing,
+--   and all elements from the flat array must be covered by some segment.
+--   This is because, in parallel implementations of `lengthsToSegd`, we binary
+--   search the indices to determine which segment an element of the 
+--   flat array belongs to. It also means that the segment indices can always
+--   be reconstructed from the segment lengths by `lengthsToSegd`.
 --
 --   @
---    flat array data: [1 2 3 4 5 6 7 8]
---      (segmentation)  --- ----- - ---
---      segd  lengths: [2, 3, 1, 2]
---            indices: [0, 2, 5, 6]
---           elements: 8 
+--   flat array data: [1 2 3 4 5 6 7 8]
+--     (segmentation)  --- ----- - ---
+--     segd  lengths: [2, 3, 1, 2]
+--           indices: [0, 2, 5, 6]
+--          elements: 8 
 --   @
+--
 data USegd 
         = USegd 
-        { usegd_lengths  :: !(Vector Int)  -- ^ length of each segment
-        , usegd_indices  :: !(Vector Int)  -- ^ index of each segment in the flat array
-        , usegd_elements :: !Int           -- ^ total number of elements in the flat array
+        { usegd_lengths  :: !(Vector Int)  -- ^ Length of each segment.
+        , usegd_indices  :: !(Vector Int)  -- ^ Starting index of each segment.
+        , usegd_elements :: !Int           -- ^ Total number of elements in the flat array.
         } deriving (Show, Eq)
 
 
--- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical USegd where
  pprp (USegd lengths indices elements)
   =   text "USegd" 
@@ -60,16 +67,17 @@ instance PprPhysical USegd where
 -- Constructors ---------------------------------------------------------------
 -- | O(1). Construct a new segment descriptor.
 mkUSegd 
-        :: Vector Int   -- ^ length of each segment
-        -> Vector Int   -- ^ starting index of each segment
-        -> Int          -- ^ total number of elements in the flat array
+        :: Vector Int   -- ^ Length of each segment.
+        -> Vector Int   -- ^ Starting index of each segment.
+        -> Int          -- ^ Total number of elements in the flat array.
         -> USegd
 
 mkUSegd = USegd
 {-# INLINE_U mkUSegd #-}
 
 
--- | O(1). Check the internal consistency of a scattered segment descriptor.
+-- | O(1). Check the internal consistency of a segment descriptor.
+--
 --   As the indices and elemens field can be generated based on the segment
 --   lengths, we check the consistency by rebuilding these fields and 
 --   comparing the rebuilt ones against the originals.
@@ -80,13 +88,13 @@ valid usegd@(USegd lengths _ _)
 --  NOINLINE because it's only enabled during debugging anyway.
 
 
--- | O(1). Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: USegd
 empty   = USegd V.empty V.empty 0
 {-# INLINE_U empty #-}
 
 
--- | O(1). Yield a singleton segment descriptor.
+-- | O(1). Construct a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> USegd
 singleton n
@@ -94,11 +102,10 @@ singleton n
 {-# INLINE_U singleton #-}
 
 
--- | O(n). Convert a length array into a segment descriptor.
+-- | O(segs). Convert an array of segment lengths into a segment descriptor.
 -- 
 --   The array contains the length of each segment, and we compute the 
---   indices from that. Runtime is O(n) in the number of segments.
---
+--   indices from that.
 fromLengths :: Vector Int -> USegd
 fromLengths lens
         = USegd lens (V.scanl (+) 0 lens) (V.sum lens)
@@ -152,18 +159,18 @@ append (USegd lengths1 indices1 elems1)
 {-# INLINE_U append #-}
 
 
--- | Extract a slice of a segment descriptor, avoiding copying where possible.
+-- | O(segs) Extract a slice of a segment descriptor, avoiding copying where possible.
 --
 --   We can share the segment lengths with the original segment descriptor, 
 --   but still need to recompute the starting indices of each. Hence
---   runtime is O(n) in the number of segments sliced out.
--- 
+--   runtime is O(segs) in the number of segments sliced out.
+
 --   NOTE: In the new segment descriptor, the starting index of the first
 --         segment will be 0.
 slice
-        :: USegd        -- ^ source segment descriptor
-        -> Int          -- ^ index of first segment
-        -> Int          -- ^ number of segments to slice out
+        :: USegd        -- ^ Source segment descriptor.
+        -> Int          -- ^ Index of first segment.
+        -> Int          -- ^ Number of segments to slice out.
         -> USegd
 slice segd i n
         = fromLengths $ V.slice (takeLengths segd) i n
@@ -172,15 +179,15 @@ slice segd i n
 
 -- | Extract a slice of a segment descriptor, copying everything.
 --
---   In contrast to `sliceUSegd`, this function copies the array of 
+--   In contrast to `slice`, this function copies the array of 
 --   segment lengths as well as recomputing the starting indices of each.
---
+
 --   NOTE: In the new segment descriptor, the starting index of the first
 --         segment will be 0.
 extract
-        :: USegd        -- ^ source segment desciptor
-        -> Int          -- ^ index of the first segment
-        -> Int          -- ^ number of segments to extract out
+        :: USegd        -- ^ Source segment desciptor.
+        -> Int          -- ^ Undex of the first segment.
+        -> Int          -- ^ Number of segments to extract out.
         -> USegd
 extract segd i n 
         = fromLengths $ V.extract (takeLengths segd) i n

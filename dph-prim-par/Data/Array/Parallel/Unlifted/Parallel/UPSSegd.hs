@@ -43,7 +43,7 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSeg
 import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd        as DUSSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 
 import qualified Data.Vector                                            as V
 import Control.Monad.ST
@@ -51,13 +51,22 @@ import Prelude hiding (length)
 
 
 -- | Construct a Parallel Scattered Segment Descriptor from an array of source
---   array indices, starting indices and an existing `Segd`.
+--   array indices, starting indices and an existing `UPSegd`.
 --
 --   * A `UPSSegd` is an extension of a `UPSegd` that that allows the segments to be
 --     scattered through multiple flat arrays.
 --
 --   * Each segment is associated with a source id that indicates what 
 --     flat array it is in, along with the starting index in that flat array.
+--
+--   * The segments need not cover the entire flat array.
+--
+--   * Different segments may point to the same elements.
+--
+--   * As different segments may point to the same elements, it is possible
+--     for the total number of elements covered by the segment descriptor
+--     to overflow a machine word.
+--
 data UPSSegd 
         = UPSSegd 
         { upssegd_ussegd        :: !USSegd

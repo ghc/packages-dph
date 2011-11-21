@@ -8,18 +8,13 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented (
   foldRUP,
   sumRUP
 ) where
-
-
 import Data.Array.Parallel.Unlifted.Distributed
-
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
-
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )

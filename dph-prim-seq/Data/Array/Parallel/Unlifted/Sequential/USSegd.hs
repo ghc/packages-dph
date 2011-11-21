@@ -6,8 +6,6 @@
 module Data.Array.Parallel.Unlifted.Sequential.USSegd (
         -- * Types
         USSegd(..),
-        
-        -- * Consistency check
         valid,
 
         -- * Constructors
@@ -27,7 +25,7 @@ module Data.Array.Parallel.Unlifted.Sequential.USSegd (
         getSeg,
         
         -- * Operators
-        append,
+        appendWith,
         cullOnVSegids,
         
         -- * Streams
@@ -48,11 +46,17 @@ import qualified Data.Vector.Unboxed            as VU
 
 
 -- USSegd ---------------------------------------------------------------------
--- | Scatter segment descriptors are a generalisation of regular 
---   segment descriptors of type (Segd). 
---   
---   * SSegd segments may be drawn from multiple physical source arrays.
+-- | Construct a Scattered Segment Descriptor from an array of source
+--   array indices, starting indices and an existing `USegd`.
+--
+--   * A `USSegd` is an extension of a `USegd` that that allows the segments to be
+--     scattered through multiple flat arrays.
+--
+--   * Each segment is associated with a source id that indicates what 
+--     flat array it is in, along with the starting index in that flat array.
+--
 --   * The segments need not cover the entire flat array.
+--
 --   * Different segments may point to the same elements.
 --
 --   * As different segments may point to the same elements, it is possible
@@ -64,17 +68,20 @@ data USSegd
         { ussegd_contiguous     :: !Bool
           -- ^ True when the starts are identical to the usegd indices field
           --        and the sources are all 0's. 
+          --
           --   In this case all the data elements are in one contiguous flat
           --   array, and consumers can avoid looking at the real starts and
           --   sources fields.
 
         , ussegd_starts         :: Vector Int
-          -- ^ Starting index of each segment in its flat array
+          -- ^ Starting index of each segment in its flat array.
+          -- 
           --   IMPORTANT: this field is lazy so we can avoid creating it when
           --              the flat array is contiguous.
 
         , ussegd_sources        :: Vector Int
           -- ^ Which flat array to take each segment from.
+          -- 
           --   IMPORTANT: this field is lazy so we can avoid creating it when
           --              the flat array is contiguous.
 
@@ -100,9 +107,9 @@ instance PprPhysical USSegd where
 -- | O(1). Construct a new scattered segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUSSegd
-        :: Vector Int   -- ^ starting index of each segment in its flat array
-        -> Vector Int   -- ^ which array to take each segment from
-        -> USegd        -- ^ contiguous segment descriptor
+        :: Vector Int   -- ^ Starting index of each segment in its flat array.
+        -> Vector Int   -- ^ Which array to take each segment from.
+        -> USegd        -- ^ Contiguous segment descriptor.
         -> USSegd
 
 mkUSSegd = USSegd False
@@ -119,13 +126,13 @@ valid (USSegd _ starts srcids usegd)
 --  NOINLINE because it's only enabled during debugging anyway.
 
 
--- | O(1). Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: USSegd
 empty   = USSegd True U.empty U.empty USegd.empty
 {-# INLINE_U empty #-}
 
 
--- | O(1). Yield a singleton segment descriptor.
+-- | O(1). Construct a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> USSegd
@@ -134,7 +141,7 @@ singleton n
 {-# INLINE_U singleton #-}
 
 
--- | O(segs). Promote a plain USegd to a USSegd
+-- | O(segs). Promote a plain `USegd` to a `USSegd`.
 --   All segments are assumed to come from a flat array with sourceid 0.
 fromUSegd :: USegd -> USSegd
 fromUSegd usegd
@@ -147,6 +154,13 @@ fromUSegd usegd
 
 -- Predicates -----------------------------------------------------------------
 -- INLINE trivial projections as they'll expand to a single record selector.
+-- | O(1). True when the starts are identical to the usegd indices field and
+--   the sources are all 0's. 
+--
+--   In this case all the data elements are in one contiguous flat
+--   array, and consumers can avoid looking at the real starts and
+--   sources fields.
+--
 isContiguous :: USSegd -> Bool
 isContiguous    = ussegd_contiguous
 {-# INLINE isContiguous #-}
@@ -161,37 +175,37 @@ length          = USegd.length . ussegd_usegd
 {-# INLINE length #-}
 
 
--- | O(1). Yield the `USegd` of a `USSegd`
+-- | O(1). Yield the `USegd` of a `USSegd`.
 takeUSegd   :: USSegd -> USegd
 takeUSegd       = ussegd_usegd
 {-# INLINE takeUSegd #-}
 
 
--- | O(1). Yield the lengths of the segments of a `USSegd`
+-- | O(1). Yield the lengths of the segments of a `USSegd`.
 takeLengths :: USSegd -> Vector Int
 takeLengths     = USegd.takeLengths . ussegd_usegd
 {-# INLINE takeLengths #-}
 
 
--- | O(1). Yield the segment indices of a `USSegd`
+-- | O(1). Yield the segment indices of a `USSegd`.
 takeIndices :: USSegd -> Vector Int
 takeIndices     = USegd.takeIndices . ussegd_usegd
 {-# INLINE takeIndices #-}
 
 
--- | O(1). Yield the total number of elements covered by a `USSegd`
+-- | O(1). Yield the total number of elements covered by a `USSegd`.
 takeElements :: USSegd -> Int
 takeElements    = USegd.takeElements . ussegd_usegd
 {-# INLINE takeElements #-}
 
 
--- | O(1). Yield the starting indices of a `USSegd`
+-- | O(1). Yield the starting indices of a `USSegd`.
 takeStarts :: USSegd -> Vector Int
 takeStarts      = ussegd_starts
 {-# INLINE takeStarts #-}
 
 
--- | O(1). Yield the source ids of a `USSegd`
+-- | O(1). Yield the source ids of a `USSegd`.
 takeSources :: USSegd -> Vector Int
 takeSources     = ussegd_sources
 {-# INLINE takeSources #-}
@@ -211,24 +225,26 @@ getSeg (USSegd _ starts sources usegd) ix
 -- Operators ------------------------------------------------------------------
 -- | O(n). Produce a segment descriptor that describes the result of appending
 --   two arrays.
-append  :: USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
-        -> USSegd -> Int        -- ^ ussegd of array, and number of physical data arrays
+appendWith
+        :: USSegd               -- ^ Segment descriptor of first nested array.
+        -> Int                  -- ^ Number of flat data arrays used to represent first nested array.
+        -> USSegd               -- ^ Segment descriptor of second nested array. 
+        -> Int                  -- ^ Number of flat data arrays used to represent second nested array.
         -> USSegd
-append (USSegd _ starts1 srcs1 usegd1) pdatas1
+appendWith
+        (USSegd _ starts1 srcs1 usegd1) pdatas1
        (USSegd _ starts2 srcs2 usegd2) _
         = USSegd False
                  (starts1  U.++  starts2)
                  (srcs1    U.++  U.map (+ pdatas1) srcs2)
                  (USegd.append usegd1 usegd2)
-{-# NOINLINE append #-}
+{-# NOINLINE appendWith #-}
 --  NOINLINE because we're worried about code explosion. Might be useful though.
 
 
 -- | Cull the segments in a SSegd down to only those reachable from an array
 --   of vsegids, and also update the vsegids to point to the same segments
 --   in the result.
---
---   TODO: bpermuteDft isn't parallelised
 --
 cullOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
 cullOnVSegids vsegids (USSegd _ starts sources usegd)
@@ -296,20 +312,21 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
 
 -- Stream Functions -----------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
---   TODO: make this more efficient, and fix fusion.
---         We should be able to eliminate a lot of the indexing happening in the 
---         inner loop by being cleverer about the loop state.
+-- 
+--   * TODO: make this more efficient, and fix fusion.
+--           We should be able to eliminate a lot of the indexing happening in the 
+--           inner loop by being cleverer about the loop state.
 --
---   TODO: If this is contiguous then we can stream the lot without worrying 
---         about jumping between segments. EXCEPT that this information must be
---         statically visible else streamSegs won't fuse, so we can't have an 
---         ifThenElse checking the manifest flag.
+--   * TODO: If this is contiguous then we can stream the lot without worrying 
+--           about jumping between segments. EXCEPT that this information must be
+--           statically visible else streamSegs won't fuse, so we can't have an 
+--           ifThenElse checking the manifest flag.
 
 streamSegs
         :: Unbox a
         => USSegd               -- ^ Segment descriptor defining segments base
                                 --   on source vectors.
-        -> V.Vector (Vector a)  -- ^ Source vectors.
+        -> V.Vector (Vector a)  -- ^ Source arrays.
         -> S.Stream a
 
 {-# INLINE_STREAM streamSegs #-}

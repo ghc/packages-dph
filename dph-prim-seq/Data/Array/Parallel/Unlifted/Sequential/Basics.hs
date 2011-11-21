@@ -22,6 +22,7 @@ replicateSU segd xs
              (S.zip (stream (USegd.takeLengths segd)) (stream xs)))
 
 
+-- | Regular sgemented replicate.
 replicateRSU :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_U replicateRSU #-}
 replicateRSU n xs

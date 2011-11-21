@@ -764,10 +764,20 @@ plusSegd segd1 segd2
 -- | Construct a Scattered Segment Descriptor from an array of source array 
 --   indices, starting indices and an existing `Segd`.
 --
---   A `SSegd` is an extension of a `Segd` that that allows the segments to be
---   scattered through multiple flat arrays.
---   Each segment is associated with a source id that indicates what 
---   flat array it is in, along with the starting index in that flat array.
+--   * A `SSegd` is an extension of a `Segd` that that allows the segments to be
+--     scattered through multiple flat arrays.
+--
+--   * Each segment is associated with a source id that indicates what 
+--     flat array it is in, along with the starting index in that flat array.
+--
+--   * The segments need not cover the entire flat array.
+--
+--   * Different segments may point to the same elements.
+--
+--   * As different segments may point to the same elements, it is possible
+--     for the total number of elements covered by the segment descriptor
+--     to overflow a machine word.
+--
 mkSSegd :: Array Int -> Array Int -> Segd -> SSegd
 {-# INLINE CONLIKE PHASE_BACKEND mkSSegd #-}
 

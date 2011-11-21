@@ -1,8 +1,37 @@
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
+-- | Sequential operations on unlifted arrays.
+-- 
+--   * This is an internal API and shouldn't need to be used directly.
+--     Client programs should use "Data.Array.Parallel.Unlifted"
 module Data.Array.Parallel.Unlifted.Sequential
-        (extractsSU)
+        ( 
+        -- * Constructors
+          replicateSU
+        , replicateRSU
+        , appendSU
+        , indicesSU,    indicesSU'
+
+        -- * Folds
+        , foldSU,       foldSSU
+        , foldlSU,      foldlSSU,   foldlRU
+        , foldl1SU,     foldl1SSU
+        , fold1SU,      fold1SSU
+        
+        -- * Sums
+        , andSU
+        , orSU
+        , sumSU,         sumRU
+        , productSU
+        , maximumSU
+        , minimumSU
+
+        -- * Projections
+        , extractsSU
+        
+        -- * Pack and Combine
+        , combineSU)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
@@ -16,6 +45,9 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
 import Prelude hiding (zip)
 
+-- | O(n). Segmented extract.
+--
+--   * Currently broken, and will just `error`.
 
 -- TODO: This isn't finished because we don't have a sequential version of
 --       USegd.replicateWith / segmented replicate. There is a corresponding

@@ -33,8 +33,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import qualified Data.Array.Parallel.Unlifted.Distributed.USegd         as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Basics         as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Combinators    as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import Data.Array.Parallel.Pretty                                       hiding (empty)

@@ -1,21 +1,18 @@
 {-# LANGUAGE TypeOperators, CPP #-}
 
--- | This module provides the API for the DPH backend. 
+-- | WARNING: This is a fake module and most of the functions here will just `error` if called. 
 --
---   These are the DPH array primitives that the vectoriser introduces when
---   transforming code. The actual code in this module is fake, in the sense
---   that is provides a partial reference implementation using lists to
---   represent arrays, but this code isn't acually used at runtime.
+--   This "dph-prim-interface" module provides an API and a partial reference
+--   implentation for the unlifted array primitives used by DPH. This code is 
+--   not used during runtime.
 --
---   The actual code used by compiled programs depends on whether @-package dph-par@ or
---   @-package dph-seq@ is passed  when compiling it. Depending on the flag, the
---   implementation in either the @dph-prim-par@ or @dph-prim-seq packages@ is
---   swapped in. These packages export the same API, but use a more efficient, 
---   and perhaps parallel implementation.
+--  Client programs should use the @dph-prim-seq@ or @dph-prim-par@ packages
+--  instead, provide the same API and contain real code.
 --
---   All three packages are forced to use the same API by the 'DPH_Header.h'
---   and 'DPH_Interface.h' include files in @dph-prim-interface/interface@.
---
+
+--  NOTE: The API is enforced by the DPH_Header.h and DPH_Interface.h headers.
+--  The dph-prim-interface, dph-prim-seq, and dph-prim-par modules all import
+--  the same headers so we can be sure we're presenting the same API.
 #include "DPH_Header.h"
 
 import qualified Prelude as P

@@ -51,16 +51,16 @@ data USel2
         = USel2
         { usel2_tags      :: !(Vector Tag)
         , usel2_indices   :: !(Vector Int)
-        , usel2_elements0 :: !Int               -- ^ number of tags with value 0
-        , usel2_elements1 :: !Int               -- ^ number of tags with value 1
+        , usel2_elements0 :: !Int               -- ^ Number of tags with value 0.
+        , usel2_elements1 :: !Int               -- ^ Number of tags with value 1.
         }
 
 
 -- | O(1). Construct a selector.
-mkUSel2 :: Vector Tag           -- ^ tags array 
-        -> Vector Int           -- ^ indices array
-        -> Int                  -- ^ number of elements taken from first array
-        -> Int                  -- ^ number of elements taken from second array
+mkUSel2 :: Vector Tag           -- ^ Tags array.
+        -> Vector Int           -- ^ Indices array
+        -> Int                  -- ^ Number of elements taken from first array.
+        -> Int                  -- ^ Number of elements taken from second array.
         -> USel2
 mkUSel2 = USel2
 {-# INLINE mkUSel2 #-}
