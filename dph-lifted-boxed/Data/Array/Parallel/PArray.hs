@@ -287,9 +287,9 @@ extracts arrs ssegd
         $ fromVector
         $ V.zipWith3
                 (\src start len -> extract (arrs V.! src) start len)
-                (V.convert $ U.sourcesSSegd ssegd)
-                (V.convert $ U.startsSSegd  ssegd)
-                (V.convert $ U.lengthsSSegd ssegd)
+                (V.convert $ U.sourcesOfSSegd ssegd)
+                (V.convert $ U.startsOfSSegd  ssegd)
+                (V.convert $ U.lengthsOfSSegd ssegd)
 
 
 -- | Wrapper for `extracts` that takes arrays of sources, starts and lengths of
