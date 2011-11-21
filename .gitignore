@@ -43,3 +43,4 @@ dph-lifted-copy/dist/
 dph-lifted-vseg/dist/
 dph-prim-par/dist/
 dph-prim-seq/dist/
+dph-prim-interface/dist/
