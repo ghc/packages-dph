@@ -34,8 +34,8 @@ import qualified Data.Vector.Fusion.Stream              as S
 --   
 --   @replicateRSUP 2 [1, 2, 3, 4, 5] = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]@
 --
+
 --   TODO: make this efficient
--- 
 replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
 {-# INLINE_UP replicateRSUP #-}
 replicateRSUP n xs
@@ -46,9 +46,9 @@ replicateRSUP n xs
 -- | Segmented append.
 appendSUP
         :: Unbox a
-        => UPSegd               -- ^ segment descriptor of result array
-        -> UPSegd -> Vector a   -- ^ segd/data of first array
-        -> UPSegd -> Vector a   -- ^ segd/data of second array
+        => UPSegd
+        -> UPSegd -> Vector a
+        -> UPSegd -> Vector a
         -> Vector a
 
 {-# INLINE_UP appendSUP #-}
@@ -66,11 +66,11 @@ appendSUP segd !xd !xs !yd !ys
 -- append ---------------------------------------------------------------------
 appendSegS
         :: Unbox a      
-        => USegd        -- ^ segment descriptor of first array
-        -> Vector a     -- ^ data of first array
-        -> USegd        -- ^ segment descriptor of second array
-        -> Vector a     -- ^ data of second array
-        -> Int          -- 
+        => USegd        -- ^ Segment descriptor of first array.
+        -> Vector a     -- ^ Data of first array
+        -> USegd        -- ^ Segment descriptor of second array.
+        -> Vector a     -- ^ Data of second array.
+        -> Int
         -> Int
         -> Int
         -> S.Stream a
@@ -117,6 +117,7 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
 
 
 -- foldR ----------------------------------------------------------------------
+-- | Regular segmented fold.
 foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
 {-# INLINE_UP foldRUP #-}
 foldRUP f z !segSize xs = 
@@ -130,6 +131,7 @@ foldRUP f z !segSize xs =
 
 
 -- sumR -----------------------------------------------------------------------
+-- | Regular segmented sum.
 sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
 {-# INLINE_UP sumRUP #-}
 sumRUP = foldRUP (+) 0

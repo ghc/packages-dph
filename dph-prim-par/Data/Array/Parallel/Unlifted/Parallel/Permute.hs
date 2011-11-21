@@ -9,6 +9,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 
 
+-- | Backwards permutation.
 bpermuteUP :: Unbox a => Vector a -> Vector Int -> Vector a
 {-# INLINE_UP bpermuteUP #-}
 bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
@@ -30,6 +31,7 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
   atomic. Otherwise, we do a sequential update.
 -}
 
+-- | Update elements in an array.
 updateUP :: forall a. Unbox a => Vector a -> Vector (Int,a) -> Vector a
 {-# INLINE_UP updateUP #-}
 updateUP as us

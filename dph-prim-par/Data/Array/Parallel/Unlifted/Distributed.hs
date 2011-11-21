@@ -1,4 +1,8 @@
 -- | Distributed types and operations.
+--
+--   * This is an internal API and shouldn't need to be used directly.
+--     Client programs should use "Data.Array.Parallel.Unlifted"
+--
 module Data.Array.Parallel.Unlifted.Distributed (
   -- * Gang operations
   Gang, forkGang, gangSize,

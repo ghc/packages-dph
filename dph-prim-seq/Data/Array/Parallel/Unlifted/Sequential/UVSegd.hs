@@ -155,8 +155,8 @@ isManifest      = uvsegd_manifest
 {-# INLINE isManifest #-}
 
 
--- | O(1). True when the starts are identical to the usegd indices field and
---   the sources are all 0's. 
+-- | O(1). Checks whether the starts are identical to the usegd indices field and
+--   the sourceids are all 0's. 
 --
 --   In this case all the data elements are in one contiguous flat
 --   array, and consumers can avoid looking at the real starts and

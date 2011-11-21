@@ -2,59 +2,78 @@
 #include "fusion-phases.h"
 
 module Data.Array.Parallel.Unlifted (
-  -- * Basics
+  -- * Types
   Elt, Array,  
   
   -- * Constructors
   empty,
-  (+:+),
-  generate,
-  replicate, repeat,
+  (+:+),     append_s,
+  replicate, replicate_s, replicate_rs,
+  repeat,
   indexed,
-  enumFromTo, enumFromThenTo, enumFromStepLen, enumFromStepLenEach,
+  generate,
+  indices_s,
+  enumFromTo,
+  enumFromThenTo,
+  enumFromStepLen,
+  enumFromStepLenEach,
 
   -- * Projections
   length,
   (!:),
-  extract, drop,
-  filter,
+  extract,  extract_ss,
+  drop,
   
+  -- * Update
+  update,
+
   -- * Permutation
   permute,
   bpermute,
   mbpermute,
   bpermuteDft,
-  
-  -- * Update
-  update,
-  
-  -- * Packing and Combining
-  pack,
-  combine, combine2,
-  interleave,
+      
+  -- * Zipping and Unzipping
+  zip,   zip3,
+  unzip, unzip3,
+  fsts,  snds,
 
   -- * Map and ZipWith
   map, zipWith, zipWith3, zipWith4,
 
-  -- * Zipping and Unzipping
-  zip,  unzip, fsts, snds,
-  zip3, unzip3,
-    
-  -- * Folds
-  fold,  fold_s,  fold_ss, fold_r,
+  -- * Folds and Scans
+  fold,  fold_s,  fold_ss,  fold_r,  
   fold1, fold1_s, fold1_ss,
-  sum,   sum_s,   sum_ss,  sum_r,
+  sum,   sum_s,   sum_ss,    sum_r,  
   count, count_s, count_ss,
-  scan,
   and, 
+  scan,
 
-  -- * Segmented Constructors
-  append_s,
-  replicate_s, replicate_rs, 
+  -- * Pack and Filter
+  pack,
+  packByTag,
+  filter,
+  pick,
+  
+  -- * Combine and Interleave
+  combine, combine2,
+  interleave,
 
-  -- * Segmented Projections
-  indices_s,
-  extract_ss,
+  -- * Selectors
+  Sel2,
+  mkSel2, 
+  tagsSel2,
+  indicesSel2,
+  elementsSel2_0,
+  elementsSel2_1,
+  repSel2,
+  tagsToSel2,
+  
+  SelRep2,
+  mkSelRep2,
+  indicesSelRep2,
+  elementsSelRep2_0,
+  elementsSelRep2_1,
     
   -- * Segment Descriptors
   Segd,
@@ -75,13 +94,13 @@ module Data.Array.Parallel.Unlifted (
   validSSegd,
   emptySSegd,
   singletonSSegd,
-  isContiguousSSegd,
   promoteSegdToSSegd,
-  lengthSSegd,
-  lengthsSSegd,
-  indicesSSegd,
-  startsSSegd,
-  sourcesSSegd,
+  isContiguousSSegd,
+  lengthOfSSegd,
+  lengthsOfSSegd,
+  indicesOfSSegd,
+  startsOfSSegd,
+  sourcesOfSSegd,
   getSegOfSSegd,
   appendSSegd,
   
@@ -89,33 +108,26 @@ module Data.Array.Parallel.Unlifted (
   VSegd,
   mkVSegd,
   validVSegd,
-  promoteSegdToVSegd,
-  promoteSSegdToVSegd,
   emptyVSegd,
   singletonVSegd,
+  promoteSegdToVSegd,
+  promoteSSegdToVSegd,
   isManifestVSegd,
   isContiguousVSegd,
   lengthOfVSegd,
-  takeVSegidsOfVSegd,   takeVSegidsRedundantOfVSegd,
-  takeSSegdOfVSegd,     takeSSegdRedundantOfVSegd,
+  takeVSegidsOfVSegd,
+  takeVSegidsRedundantOfVSegd,
+  takeSSegdOfVSegd,
+  takeSSegdRedundantOfVSegd,
   takeLengthsOfVSegd,
   getSegOfVSegd,
   demoteToSSegdOfVSegd,
-  demoteToSegdOfVSegd,
-  updateVSegsOfVSegd,   updateVSegsReachableOfVSegd,
+  unsafeDemoteToSegdOfVSegd,
+  updateVSegsOfVSegd,
+  updateVSegsReachableOfVSegd,
   appendVSegd,
   combine2VSegd,
   
-  -- * Selectors
-  Sel2, mkSel2, 
-  tagsSel2, indicesSel2, elementsSel2_0, elementsSel2_1, repSel2,
-  tagsToSel2,
-  
-  -- * Selector representations
-  mkSelRep2, indicesSelRep2, elementsSelRep2_0, elementsSelRep2_1,
-  
-  -- * Packing and picking
-  packByTag, pick,
   
   -- * Random arrays
   randoms, randomRs,

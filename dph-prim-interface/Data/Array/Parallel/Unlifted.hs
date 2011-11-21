@@ -42,18 +42,40 @@ notImplemented fnName
         = P.error $ "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted." P.++ fnName
 
 
--- Basics ---------------------------------------------------------------------
+-- Types ----------------------------------------------------------------------
 class Elt a
 instance Elt a => Elt [a]
 type Array a    = [a]
 
 
 -- Constructors ---------------------------------------------------------------
-empty                   = []
-(+:+)                   = (P.++)
-replicate               = P.replicate
-repeat n _ xs           = P.concat (replicate n xs)
-indexed xs              = zip [0 .. length xs - 1] xs
+empty   = []
+
+(+:+)   = (P.++)
+
+append_s _ xd xs yd ys 
+        = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
+
+replicate
+        = P.replicate
+
+replicate_s segd xs
+        = P.concat
+        $ zipWith replicate (lengthsSegd segd) xs
+
+replicate_rs n xs
+        = P.concat
+        $ P.map (P.replicate n) xs
+
+repeat n _ xs
+        = P.concat (replicate n xs)
+
+indexed xs
+        = zip [0 .. length xs - 1] xs
+
+indices_s segd
+        = P.concat [[0 .. n-1] | n <- segd_lengths segd] 
+
 enumFromTo m n          = [m .. n]
 enumFromThenTo m n s    = [m, n..s]
 enumFromStepLen i k 0   = []
@@ -68,22 +90,75 @@ enumFromStepLenEach size starts steps lens
 -- Projections ----------------------------------------------------------------
 length          = P.length
 (!:)            = (P.!!)
+
 extract xs i n  = P.take n (P.drop i xs)
+extract_ss      = notImplemented "extract_ss"
+
 drop            = P.drop
-filter          = P.filter
-permute         = notImplemented "permute"
-bpermute xs ns  = map (xs !:) ns
-mbpermute       = notImplemented "mbpermute"
-bpermuteDft     = notImplemented "bpermuteDft"
 
 
 -- Update ---------------------------------------------------------------------
 update           = notImplemented "update"
 
 
--- Packing and Combining ------------------------------------------------------
-pack xs bs      = [x | (x,b) <- P.zip xs bs, b]
+-- Permutation ----------------------------------------------------------------
+permute         = notImplemented "permute"
+bpermute xs ns  = map (xs !:) ns
+mbpermute       = notImplemented "mbpermute"
+bpermuteDft     = notImplemented "bpermuteDft"
 
+
+-- Zipping and Unzipping ------------------------------------------------------
+zip             = P.zip
+zip3            = P.zip3
+unzip           = P.unzip
+unzip3          = P.unzip3
+fsts            = map P.fst
+snds            = map P.snd
+
+
+-- Map and zipWith ------------------------------------------------------------
+map             = P.map
+zipWith         = P.zipWith
+
+
+-- Scans and Folds -----------------------------------------------------------
+scan f z
+        = P.init . P.scanl f z
+
+fold    = P.foldr
+
+fold_s  f z segd xs
+        = P.map (P.foldr f z) (nest segd xs)
+
+fold_ss = notImplemented "fold_ss"
+
+fold_r  f z segSize xs 
+        = notImplemented "fold_r"
+
+fold1   = P.foldr1
+
+fold1_s f   segd xs
+        = P.map (P.foldr1 f)  (nest segd xs)
+
+fold1_ss = notImplemented "fold1_ss"
+
+sum     = P.sum
+
+sum_r segSize xs 
+        = notImplemented "sum_r"
+
+and     = P.and
+
+
+-- Packing and Combining ------------------------------------------------------
+pack xs bs
+        = [x | (x,b) <- P.zip xs bs, b]
+
+filter  = P.filter
+
+
+-- Combine and Interleave -----------------------------------------------------
 combine [] [] [] = []
 combine (True  : bs) (x : xs) ys       = x : combine bs xs ys
 combine (False : bs) xs       (y : ys) = y : combine bs xs ys
@@ -97,66 +172,41 @@ combine2 tags _ xs ys = go tags xs ys
 interleave xs ys = P.concat [[x,y] | (x,y) <- P.zip xs ys]
 
 
--- Map and zipWith ------------------------------------------------------------
-map             = P.map
-zipWith         = P.zipWith
+-- Selectors ------------------------------------------------------------------
+data Sel2 
+        = Sel2 
+        { sel2_tags      :: [Tag]
+        , sel2_indices   :: [Int]
+        , sel2_elements0 :: Int
+        , sel2_elements1 :: Int }
+
+mkSel2 tags idxs n0 n1 _ 
+        = Sel2 tags idxs n0 n1
+
+tagsSel2        = sel2_tags
+indicesSel2     = sel2_indices
+elementsSel2_0  = sel2_elements0
+elementsSel2_1  = sel2_elements1
+repSel2 _       = ()
 
 
--- Zipping and Unzipping ------------------------------------------------------
-zip             = P.zip
-unzip           = P.unzip
-fsts            = map P.fst
-snds            = map P.snd
+type SelRep2    = ()
+mkSelRep2 _     = ()
 
-zip3            = P.zip3
-unzip3          = P.unzip3
+indicesSelRep2 tags _ 
+  = P.zipWith pick tags
+  $ P.init
+  $ P.scanl add (0,0) tags
+  where
+    pick 0 (i,j) = i
+    pick 1 (i,j) = j
 
+    add (i,j) 0 = (i+1,j)
+    add (i,j) 1 = (i,j+1)
 
--- Folds ----------------------------------------------------------------------
-fold            = P.foldr
-fold1           = P.foldr1
-and             = P.and
-sum             = P.sum
-scan f z        = P.init . P.scanl f z
+elementsSelRep2_0 tags _ = P.length [() | 0 <- tags]
+elementsSelRep2_1 tags _ = P.length [() | 1 <- tags]
 
-
--- Segmented Constructors -----------------------------------------------------
-append_s _ xd xs yd ys 
-        = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
-
-replicate_s segd xs
-        = P.concat
-        $ zipWith replicate (lengthsSegd segd) xs
-
-replicate_rs n xs
-        = P.concat
-        $ P.map (P.replicate n) xs
-
-
--- Segmented Projections ------------------------------------------------------
-indices_s segd
-        = P.concat [[0 .. n-1] | n <- segd_lengths segd] 
-
-extract_ss 
-        = notImplemented "extract_ss"
-
--- Segmented Folds ------------------------------------------------------------
-fold_s  f z segd xs
-        = P.map (P.foldr f z) (nest segd xs)
-
-fold1_s f   segd xs
-        = P.map (P.foldr1 f)  (nest segd xs)
-
-fold_r  f z segSize xs 
-        = notImplemented "fold_r"
-        
-sum_r segSize xs 
-        = notImplemented "sum_r"
-
-
--- Scattered Segmented Folds --------------------------------------------------
-fold_ss  = notImplemented "fold_ss"
-fold1_ss = notImplemented "fold1_ss"
 
 
 -- Segment Descriptors --------------------------------------------------------
@@ -176,7 +226,7 @@ indicesSegd             = segd_indices
 elementsSegd            = segd_elements
 
 
--- Slice Segment Descriptors --------------------------------------------------
+-- Scattered Segment Descriptors ----------------------------------------------
 data SSegd
         = SSegd
         { ssegd_starts  :: [Int]
@@ -189,11 +239,11 @@ emptySSegd              = SSegd [] [] emptySegd
 singletonSSegd          = notImplemented "singletonSSegd"
 promoteSegdToSSegd      = notImplemented "promoteSegdToSSegd"
 isContiguousSSegd       = notImplemented "isContiguousSSegd"
-lengthSSegd             = lengthSegd  . ssegd_segd
-lengthsSSegd            = lengthsSegd . ssegd_segd
-indicesSSegd            = indicesSegd . ssegd_segd
-startsSSegd             = ssegd_starts
-sourcesSSegd            = ssegd_sources
+lengthOfSSegd           = lengthSegd  . ssegd_segd
+lengthsOfSSegd          = lengthsSegd . ssegd_segd
+indicesOfSSegd          = indicesSegd . ssegd_segd
+startsOfSSegd           = ssegd_starts
+sourcesOfSSegd          = ssegd_sources
 getSegOfSSegd           = notImplemented "getSegOfSSegd"
 appendSSegd             = notImplemented "appendSSegd"
 
@@ -220,48 +270,11 @@ takeSSegdRedundantOfVSegd       = vsegd_ssegd
 takeLengthsOfVSegd              = notImplemented "takeLengthsOfVSegd"
 getSegOfVSegd                   = notImplemented "getSegOfVSegd"
 demoteToSSegdOfVSegd            = notImplemented "demoteToSSegdOfVSegd"
-demoteToSegdOfVSegd             = notImplemented "demoteToSegdOfVSegd"
+unsafeDemoteToSegdOfVSegd       = notImplemented "unsafeDemoteToSegdOfVSegd"
 updateVSegsOfVSegd              = notImplemented "updateVSegsOfVSegd"
 updateVSegsReachableOfVSegd     = notImplemented "updateVSegsReachableOfVSegd"
 appendVSegd                     = notImplemented "appendVSegd"
 combine2VSegd                   = notImplemented "combine2VSegd"
-
-
--- Selectors ------------------------------------------------------------------
-data Sel2 
-        = Sel2 
-        { sel2_tags      :: [Tag]
-        , sel2_indices   :: [Int]
-        , sel2_elements0 :: Int
-        , sel2_elements1 :: Int }
-
-mkSel2 tags idxs n0 n1 _ 
-        = Sel2 tags idxs n0 n1
-
-tagsSel2        = sel2_tags
-indicesSel2     = sel2_indices
-elementsSel2_0  = sel2_elements0
-elementsSel2_1  = sel2_elements1
-repSel2 _       = ()
-
-
--- Selector Representations ---------------------------------------------------
-type SelRep2    = ()
-mkSelRep2 _     = ()
-
-indicesSelRep2 tags _ 
-  = P.zipWith pick tags
-  $ P.init
-  $ P.scanl add (0,0) tags
-  where
-    pick 0 (i,j) = i
-    pick 1 (i,j) = j
-
-    add (i,j) 0 = (i+1,j)
-    add (i,j) 1 = (i,j+1)
-
-elementsSelRep2_0 tags _ = P.length [() | 0 <- tags]
-elementsSelRep2_1 tags _ = P.length [() | 1 <- tags]
 
 
 -- Random Arrays --------------------------------------------------------------
@@ -288,3 +301,4 @@ nest (Segd ns is _) xs = go ns xs
 
 toList_s x      = x
 fromList_s x    = x
+

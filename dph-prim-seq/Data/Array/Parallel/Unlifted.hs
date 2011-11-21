@@ -39,9 +39,13 @@ type Array              = V.Vector
 -- Constructors ---------------------------------------------------------------
 empty                   = V.empty
 (+:+)                   = (V.++)
+append_s _              = appendSU
 replicate               = V.replicate
+replicate_s             = replicateSU
+replicate_rs            = replicateRSU
 repeat n _              = V.repeat n
 indexed                 = V.indexed
+indices_s               = indicesSU
 enumFromTo              = V.enumFromTo
 enumFromThenTo          = V.enumFromThenTo
 enumFromStepLen         = V.enumFromStepLen
@@ -52,23 +56,28 @@ enumFromStepLenEach     = V.enumFromStepLenEach
 length                  = V.length
 (!:)                    = (V.!)
 extract                 = V.extract
+extract_ss              = extractsSU
 drop                    = V.drop
-filter                  = V.filter
-permute                 = V.permute
-bpermute                = V.bpermute
-mbpermute               = V.mbpermute
-bpermuteDft             = V.bpermuteDft
 
 
 -- Update ---------------------------------------------------------------------
 update                  = V.update
 
 
--- Packing and Combining ------------------------------------------------------
-pack                    = V.pack
-combine                 = V.combine
-combine2 tags _         = V.combine2ByTag tags
-interleave              = V.interleave
+-- Permutation ----------------------------------------------------------------
+permute                 = V.permute
+bpermute                = V.bpermute
+mbpermute               = V.mbpermute
+bpermuteDft             = V.bpermuteDft
+
+
+-- Zipping and Unzipping ------------------------------------------------------
+zip                     = V.zip
+zip3                    = V.zip3
+unzip                   = V.unzip
+unzip3                  = V.unzip3
+fsts                    = V.fsts
+snds                    = V.snds
 
 
 -- Map and ZipWith ------------------------------------------------------------
@@ -76,43 +85,45 @@ map                     = V.map
 zipWith                 = V.zipWith
 
 
--- Zipping and Unzipping ------------------------------------------------------
-zip                     = V.zip
-unzip                   = V.unzip
-fsts                    = V.fsts
-snds                    = V.snds
-
-zip3                    = V.zip3
-unzip3                  = V.unzip3
-
-
--- Folds ----------------------------------------------------------------------
-fold                    = V.fold
-fold1                   = V.fold1
-and                     = V.and
-sum                     = V.sum
+-- Scans and Folds ------------------------------------------------------------
 scan                    = V.scan
-
--- Segmented Constructors ----------------------------------------------------
-append_s _              = appendSU
-replicate_s             = replicateSU
-replicate_rs            = replicateRSU
-
-
--- Segmented Projections -----------------------------------------------------
-indices_s               = indicesSU
-extract_ss              = extractsSU
-
--- Segmented Folds -----------------------------------------------------------
+fold                    = V.fold
 fold_s                  = foldSU
-fold1_s                 = fold1SU
-fold_r                  = foldlRU
-sum_r                   = sumRU
-
-
--- Scattered Segmented Folds --------------------------------------------------
 fold_ss                 = foldSSU
+fold_r                  = foldlRU
+fold1                   = V.fold1
+fold1_s                 = fold1SU
 fold1_ss                = fold1SSU
+sum                     = V.sum
+sum_r                   = sumRU
+and                     = V.and
+
+
+-- Packing and Filter ---------------------------------------------------------
+pack                    = V.pack
+filter                  = V.filter
+
+
+-- Combine and Interleave -----------------------------------------------------
+combine                 = V.combine
+combine2 tags _         = V.combine2ByTag tags
+interleave              = V.interleave
+
+
+-- Selectors ------------------------------------------------------------------
+type Sel2               = USel2
+mkSel2 tags idxs n0 n1 _ = mkUSel2 tags idxs n0 n1
+tagsSel2                = tagsUSel2
+indicesSel2             = indicesUSel2
+elementsSel2_0          = elementsUSel2_0
+elementsSel2_1          = elementsUSel2_1
+repSel2 _               = ()
+
+type SelRep2             = ()
+mkSelRep2 _              = ()
+indicesSelRep2 tags _    = tagsToIndices2 tags
+elementsSelRep2_0 tags _ = count tags 0
+elementsSelRep2_1 tags _ = count tags 1
 
 
 -- Segment Descriptors --------------------------------------------------------
@@ -133,13 +144,13 @@ mkSSegd                 = USSegd.mkUSSegd
 validSSegd              = USSegd.valid
 emptySSegd              = USSegd.empty
 singletonSSegd          = USSegd.singleton
-isContiguousSSegd       = USSegd.isContiguous
 promoteSegdToSSegd      = USSegd.fromUSegd
-lengthSSegd             = USSegd.length
-lengthsSSegd            = USSegd.takeLengths
-indicesSSegd            = USSegd.takeIndices
-startsSSegd             = USSegd.takeStarts
-sourcesSSegd            = USSegd.takeSources
+isContiguousSSegd       = USSegd.isContiguous
+lengthOfSSegd           = USSegd.length
+lengthsOfSSegd          = USSegd.takeLengths
+indicesOfSSegd          = USSegd.takeIndices
+startsOfSSegd           = USSegd.takeStarts
+sourcesOfSSegd          = USSegd.takeSources
 getSegOfSSegd           = USSegd.getSeg
 appendSSegd             = USSegd.append
 
@@ -148,12 +159,12 @@ appendSSegd             = USSegd.append
 type VSegd                      = UVSegd.UVSegd
 mkVSegd                         = UVSegd.mkUVSegd
 validVSegd                      = UVSegd.valid
+emptyVSegd                      = UVSegd.empty
+singletonVSegd                  = UVSegd.singleton
 promoteSegdToVSegd              = UVSegd.fromUSegd
 promoteSSegdToVSegd             = UVSegd.fromUSSegd
 isManifestVSegd                 = UVSegd.isManifest
 isContiguousVSegd               = UVSegd.isContiguous
-emptyVSegd                      = UVSegd.empty
-singletonVSegd                  = UVSegd.singleton
 lengthOfVSegd                   = UVSegd.length
 takeVSegidsOfVSegd              = UVSegd.takeVSegids
 takeVSegidsRedundantOfVSegd     = UVSegd.takeVSegids
@@ -162,29 +173,11 @@ takeSSegdRedundantOfVSegd       = UVSegd.takeUSSegd
 takeLengthsOfVSegd              = UVSegd.takeLengths
 getSegOfVSegd                   = UVSegd.getSeg
 demoteToSSegdOfVSegd            = UVSegd.toUSSegd
-demoteToSegdOfVSegd             = UVSegd.unsafeMaterialize
+unsafeDemoteToSegdOfVSegd       = UVSegd.unsafeMaterialize
 updateVSegsOfVSegd              = UVSegd.updateVSegs
 updateVSegsReachableOfVSegd     = UVSegd.updateVSegsReachable
 appendVSegd                     = UVSegd.append
 combine2VSegd                   = UVSegd.combine2
-
-
--- Selectors ------------------------------------------------------------------
-type Sel2               = USel2
-mkSel2 tags idxs n0 n1 _ = mkUSel2 tags idxs n0 n1
-tagsSel2                = tagsUSel2
-indicesSel2             = indicesUSel2
-elementsSel2_0          = elementsUSel2_0
-elementsSel2_1          = elementsUSel2_1
-repSel2 _               = ()
-
-
--- Selector Representations ---------------------------------------------------
-type SelRep2             = ()
-mkSelRep2 _              = ()
-indicesSelRep2 tags _    = tagsToIndices2 tags
-elementsSelRep2_0 tags _ = count tags 0
-elementsSelRep2_1 tags _ = count tags 1
 
 
 -- Random Arrays --------------------------------------------------------------

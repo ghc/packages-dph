@@ -50,11 +50,14 @@ import Control.Monad.ST
 import Prelude hiding (length)
 
 
--- | A parallel scattered segment descriptor is an extension of `UPSegd` 
---   that allows the segments to be scattered through multiple flat arrays.
+-- | Construct a Parallel Scattered Segment Descriptor from an array of source
+--   array indices, starting indices and an existing `Segd`.
 --
---   Each segment is associated with a source id that indicates what 
---   flat array it is in, along with the starting index in that flat array.
+--   * A `UPSSegd` is an extension of a `UPSegd` that that allows the segments to be
+--     scattered through multiple flat arrays.
+--
+--   * Each segment is associated with a source id that indicates what 
+--     flat array it is in, along with the starting index in that flat array.
 data UPSSegd 
         = UPSSegd 
         { upssegd_ussegd        :: !USSegd
@@ -215,13 +218,13 @@ getSeg upssegd ix
 -- | O(n)
 --   Produce a segment descriptor that describes the result of appending two
 --   segmented arrays.
---   
---   * TODO: This calls out to the sequential version.
 --
---   * Appending two nested arrays is an index space transformation. Because
---     a `UPSSegd` can contain segments from multiple flat data arrays, we can
---     represent the result of the append without copying elements from the
---     underlying flat data arrays.
+--   Appending two nested arrays is an index space transformation. Because
+--   a `UPSSegd` can contain segments from multiple flat data arrays, we can
+--   represent the result of the append without copying elements from the
+--   underlying flat data arrays.
+--
+--   * TODO: This calls out to the sequential version.
 --
 appendWith
         :: UPSSegd              -- ^ Segment descriptor of first nested array.

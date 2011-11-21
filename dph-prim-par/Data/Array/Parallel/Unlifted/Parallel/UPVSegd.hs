@@ -59,8 +59,8 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
 -- | A parallel virtual segment descriptor is an extension of `UPSSegd`
 --   that explicitly represents sharing of data between multiple segments.
 --   
---   TODO: It would probably be better to represent the vsegids as a lens (function)
---         instead of a vector of segids. Much of the time the vsegids are just [0..n] 
+--   * TODO: It would probably be better to represent the vsegids as a lens (function)
+--           instead of a vector of segids. Much of the time the vsegids are just [0..n] 
 --
 data UPVSegd 
         = UPVSegd 
@@ -141,7 +141,7 @@ mkUPVSegd vsegids ussegd
 --   The result contains one virtual segment for every physical segment
 --   defined by the `UPSSegd`.
 --
---   TODO: make this parallel, use parallel version of enumFromTo.
+--   * TODO: make this parallel, use parallel version of enumFromTo.
 --
 fromUPSSegd :: UPSSegd -> UPVSegd
 fromUPSSegd upssegd
@@ -160,7 +160,7 @@ fromUPSegd      = fromUPSSegd . UPSSegd.fromUPSegd
 {-# INLINE_UP fromUPSegd #-}
 
 
--- | O(1). Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: UPVSegd
 empty
  = let  vsegids = V.empty
@@ -169,7 +169,7 @@ empty
 {-# INLINE_UP empty #-}
 
 
--- | O(1). Yield a singleton segment descriptor.
+-- | O(1). Construct a singleton segment descriptor.
 --   The single segment covers the given number of elements in a flat array
 --   with sourceid 0.
 singleton :: Int -> UPVSegd
@@ -185,7 +185,7 @@ singleton n
 --   If this is the case, then the vsegids field will be [0..len-1]. 
 --
 --   Consumers can check this field, avoid demanding the vsegids field.
---   This can avoid the need for it to be generated in the first place, due to
+--   This can avoid the need for it to be constructed in the first place, due to
 --   lazy evaluation.
 --
 isManifest :: UPVSegd -> Bool
@@ -220,7 +220,17 @@ takeVSegids     = upvsegd_vsegids_culled
 {-# INLINE takeVSegids #-}
 
 
--- | O(1). Yield the redundant virtual segment ids of `UPVSegd`.
+-- | O(1). Take the vsegids of a `UPVSegd`, but don't require that every physical
+--   segment is referenced by some virtual segment.
+--
+--   If you're just performing indexing and don't need the invariant that all
+--   physical segments are reachable from some virtual segment, then use this
+--   version as it's faster. This sidesteps the code that maintains the invariant.
+--
+--   The stated O(1) complexity assumes that the array has already been fully
+--   evalauted. If this is not the case then we can avoid demanding the result
+--   of a prior computation on the vsegids, thus reducing the cost attributed
+--   to that prior computation.
 takeVSegidsRedundant :: UPVSegd -> Vector Int
 takeVSegidsRedundant = upvsegd_vsegids_redundant
 {-# INLINE takeVSegidsRedundant #-}
@@ -232,7 +242,10 @@ takeUPSSegd     = upvsegd_upssegd_culled
 {-# INLINE takeUPSSegd #-}
 
 
--- | O(1). Yield the redundant `UPSSegd` of `UPVSegd`.
+-- | O(1). Take the `UPSSegd` of a `UPVSegd`, but don't require that every physical
+--   segment is referenced by some virtual segment.
+--
+--   See the note in `takeVSegidsRedundant`.
 takeUPSSegdRedundant :: UPVSegd -> UPSSegd
 takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 {-# INLINE takeUPSSegdRedundant #-}
@@ -240,7 +253,7 @@ takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 
 -- | O(segs). Yield the lengths of the segments described by a `UPVSegd`.
 --
---   TODO: This is slow and sequential.
+--   * TODO: This is slow and sequential.
 --
 takeLengths :: UPVSegd -> Vector Int
 takeLengths (UPVSegd manifest _ vsegids _ upssegd)
@@ -253,10 +266,10 @@ takeLengths (UPVSegd manifest _ vsegids _ upssegd)
 
 -- | O(1). Get the length, starting index, and source id of a segment.
 --
---  NOTE: We don't return the segment index field from the USSegd as this refers
---        to the flat index relative to the SSegd array, rather than 
---        relative to the UVSegd array. If we tried to promote the USSegd index
---        to a UVSegd index it could overflow.
+--  NOTE: We don't return the segment index field from the `USSegd` as this refers
+--        to the flat index relative to the `SSegd` array, rather than 
+--        relative to the UVSegd array. If we tried to promote the `USSegd` index
+--        to a `UVSegd` index it could overflow.
 --
 getSeg :: UPVSegd -> Int -> (Int, Int, Int)
 getSeg upvsegd ix
@@ -272,11 +285,8 @@ getSeg upvsegd ix
 -- | O(segs). Yield a `UPSSegd` that describes each segment of a `UPVSegd`
 --   individually.
 --
---   * By doing this we lose information about virtual segments corresponding
---     to the same physical segments.
--- 
---   * This operation is used in concatPR as the first step in eliminating
---     segmentation from a nested array.
+--   By doing this we lose information about which virtual segments
+--   correspond to the same physical segments.
 -- 
 demoteToUPSSegd :: UPVSegd -> UPSSegd
 demoteToUPSSegd upvsegd
@@ -294,20 +304,17 @@ demoteToUPSSegd upvsegd
 --  In core we want to see when VSegds are being demoted.
 
 
--- | O(segs). Given an virtual segment descriptor, produce a `UPSegd` that
---   that describes the entire array.
+-- | O(segs). Yield a `UPSegd` that describes each segment of a `UPVSegd`
+--   individually, assuming all segments have been concatenated to 
+--   remove scattering.
 --
---   WARNING:
---   Trying to take the `UPSegd` of a nested array that has been constructed with
---   replication can cause index overflow. This is because the virtual size of
---   the corresponding flat data can be larger than physical memory.
+--   /WARNING/: Trying to take the `UPSegd` of a nested array that has been
+--   constructed with replication can cause index space overflow. This is
+--   because the virtual size of the corresponding flat data can be larger
+--   than physical memory. If this happens then indices fields and 
+--   element count in the result will be invalid.
 -- 
---   You should only apply this function to a nested array when you're about
---   about to construct something with the same size as the corresponding
---   flat array. In this case the index overflow doesn't matter too much
---   because the program would OOM anyway.
---
---   TODO: if the upvsegd is manifest and contiguous this can be O(1).
+--   * TODO: if the upvsegd is manifest and contiguous this can be O(1).
 --
 unsafeDemoteToUPSegd :: UPVSegd -> UPSegd
 unsafeDemoteToUPSegd (UPVSegd _ _ vsegids _ upssegd)
@@ -320,8 +327,8 @@ unsafeDemoteToUPSegd (UPVSegd _ _ vsegids _ upssegd)
 
 
 -- Operators ------------------------------------------------------------------
--- | Update the virtual segment ids of a `UPVSegd`, and then cull the physical
---   segment descriptor so that all phsyical segments are reachable from
+-- | Update the vsegids of a `UPVSegd`, and then cull the physical
+--   segment descriptor so that all physical segments are reachable from
 --   some virtual segment.
 --
 --   This function lets you perform filtering operations on the virtual segments,
@@ -354,18 +361,17 @@ updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _)
 --  NOINLINE because we want to see this happening in core.
 
 
--- | Update the virtual segment ids of `UPVSegd`, where the result covers
---   all physical segments.
+-- | Update the vsegids  of `UPVSegd`, where the result is guaranteed to
+--   cover all physical segments.
+--
+--   Using this version saves performing the 'cull' operation which 
+--   discards unreachable physical segments.
 --
 --   * The resulting vsegids must cover all physical segments.
 --     If they do not then there will be physical segments that are not 
---     reachable from some virtual segment, and performing operations like
---     segmented fold will waste work.
+--     reachable from some virtual segment, and subsequent operations
+--     like segmented fold will have the wrong work complexity.
 --
---   * Using this version saves performing the 'cull' operation which 
---     discards unreachable physical segments. This is O(result segments), 
---     but can be expensive in absolute terms.
---   
 updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
 updateVSegsReachable fUpdate (UPVSegd _ _ vsegids _ upssegd)
  = let  vsegids' = fUpdate vsegids
@@ -375,16 +381,15 @@ updateVSegsReachable fUpdate (UPVSegd _ _ vsegids _ upssegd)
 
 
 -- Append ---------------------------------------------------------------------
--- NOTE: these are NOINLINE for now just so it's easier to read the core.
---       we can INLINE them later.
-
 -- | Produce a segment descriptor that describes the result of appending two arrays.
 -- 
 --   * TODO: make this parallel.
 --
 appendWith
-        :: UPVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
-        -> UPVSegd -> Int  -- ^ uvsegd of array, and number of physical data arrays
+        :: UPVSegd      -- ^ Descriptor of first array.
+        -> Int          -- ^ Number of flat physical arrays for first descriptor.
+        -> UPVSegd      -- ^ Descriptor of second array.
+        -> Int          -- ^ Number of flat physical arrays for second descriptor.
         -> UPVSegd
 
 appendWith
@@ -410,17 +415,17 @@ appendWith
 
 
 -- Combine --------------------------------------------------------------------
--- NOTE: these are NOINLINE for now just so it's easier to read the core.
---       we can INLINE them later.
-
 -- | Combine two virtual segment descriptors.
 --
 --   * TODO: make this parallel. 
 --
+-- | Combine two virtual segment descriptors.
 combine2
-        :: UPSel2
-        -> UPVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
-        -> UPVSegd -> Int   -- ^ uvsegd of array, and number of physical data arrays
+        :: UPSel2       -- ^ Selector for the combine operation.
+        -> UPVSegd      -- ^ Descriptor of first array.
+        -> Int          -- ^ Number of flat physical arrays for first descriptor.
+        -> UPVSegd      -- ^ Descriptor of second array.
+        -> Int          -- ^ Number of flat physical arrays for second descriptor.
         -> UPVSegd
         
 combine2

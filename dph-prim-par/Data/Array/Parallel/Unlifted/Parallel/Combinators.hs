@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
--- | Parallel combinators for unlifted arrays
+-- | Parallel combinators for unlifted arrays. 
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, filterUP, packUP, combineUP, combine2UP,
   zipWithUP, foldUP, foldlUP, fold1UP, foldl1UP, scanUP
@@ -13,7 +13,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 
 
--- | Apply a worker to all elements of a vector.
+-- | Apply a worker to all elements of an array.
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
 {-# INLINE_UP mapUP #-}
 mapUP f xs 
@@ -59,8 +59,6 @@ combineUP flags xs ys
 --   * The data vectors must have enough elements to satisfy the selector,
 --     but this is not checked.
 --
---   TODO: What is the difference between the Tag and the UPSelRep2?
---
 combine2UP :: Unbox a => Vector Tag -> UPSelRep2 -> Vector a -> Vector a -> Vector a
 {-# INLINE_UP combine2UP #-}
 combine2UP tags rep !xs !ys 
@@ -73,7 +71,7 @@ combine2UP tags rep !xs !ys
                         (Seq.slice ys j n)
     
 
--- | Combine two vectors into a third.
+-- | Apply a worker function to correponding elements of two arrays.
 zipWithUP :: (Unbox a, Unbox b, Unbox c) 
           => (a -> b -> c) -> Vector a -> Vector b -> Vector c
 {-# INLINE_UP zipWithUP #-}
@@ -88,6 +86,7 @@ zipWithUP f xs ys
 --   standard fold function from the Haskell Prelude.
 --
 --   * The worker function must be associative.
+--
 --   * The provided starting element must be neutral with respect to the worker.
 --     For example 0 is neutral wrt (+) and 1 is neutral wrt (*).
 --
@@ -106,7 +105,9 @@ foldUP f !z xs
 -- | Left fold over an array. 
 --
 --   * If the vector is empty then this returns the provided neural element.
+--
 --   * The worker function must be associative.
+--
 --   * The provided starting element must be neutral with respect to the worker,
 --     see `foldUP` for discussion.
 --
@@ -127,11 +128,11 @@ fold1UP = foldl1UP
 --   neural element.
 --
 --   * If the vector contains no elements then you'll get a bounds-check error.
+--
 --   * The worker function must be associative.
+--
 --   * The provided starting element must be neutral with respect to the worker,
 --     see `foldUP` for discussion.
---
---   TODO: The two type class constraints are in a different order. Does that matter?
 --
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_UP foldl1UP #-}
@@ -151,6 +152,7 @@ foldl1UP f arr
 -- | Prefix scan. Similar to fold, but produce an array of the intermediate states.
 --
 --   * The worker function must be associative.
+-- 
 --   * The provided starting element must be neutral with respect to the worker,
 --     see `foldUP` for discussion.
 --

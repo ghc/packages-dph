@@ -4,12 +4,21 @@
 -- | Parallel selectors.
 module Data.Array.Parallel.Unlifted.Parallel.UPSel (
   -- * Types
-  UPSel2, UPSelRep2,
+  UPSel2,
+  UPSelRep2,
 
-  -- * Operations on segment descriptors
-  tagsUPSel2, indicesUPSel2, elementsUPSel2_0, elementsUPSel2_1,
-  selUPSel2, repUPSel2, mkUPSel2,
-  mkUPSelRep2, indicesUPSelRep2, elementsUPSelRep2_0, elementsUPSelRep2_1,
+  -- * Operations
+  tagsUPSel2,
+  indicesUPSel2,
+  elementsUPSel2_0,
+  elementsUPSel2_1,
+  selUPSel2,
+  repUPSel2,
+  mkUPSel2,
+  mkUPSelRep2,
+  indicesUPSelRep2,
+  elementsUPSelRep2_0,
+  elementsUPSelRep2_1,
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Sequential.USel
@@ -35,8 +44,8 @@ data UPSel2
 --   Suppose we want to perform the following combine operation:
 --
 -- @
---    combine [0,0,1,1,0,1,0,0,1] [A0,A1,A2,A3,A4] [B0,B1,B2,B3] 
---     = [A0,A1,B0,B1,A2,B2,A3,A4,B3]
+-- combine [0,0,1,1,0,1,0,0,1] [A0,A1,A2,A3,A4] [B0,B1,B2,B3] 
+--   = [A0,A1,B0,B1,A2,B2,A3,A4,B3]
 -- @
 --
 --   The first array is the tags array, that says which of the data arrays to
@@ -47,17 +56,17 @@ data UPSel2
 --   index telling us where to get each element for the result array.
 -- 
 -- @
---    [0,0,1,1,0,1,0,0,1]      -- tags    (which data vector to take the elem from)
---    [0,1,0,1,2,2,3,4,3]      -- indices (where in the vector to take the elem from)
+-- tags:    [0,0,1,1,0,1,0,0,1]
+-- indices: [0,1,0,1,2,2,3,4,3]
 -- @
 --
 --  Suppose we want to distribute the combine operation across 3 PEs. It's
 --  easy to split the selector like so:
 --
--- @       
---     PE0                PE1               PE2
---    [0,0,1]            [1,0,1]           [0,0,1]   -- tags
---    [0,1,0]            [1,2,2]           [3,4,3]   -- indices
+-- @
+--            PE0                PE1               PE2
+-- tags:    [0,0,1]            [1,0,1]           [0,0,1] 
+-- indices: [0,1,0]            [1,2,2]           [3,4,3]
 -- @
 --
 --  We now need to split the two data arrays. Each PE needs slices of the data
@@ -65,18 +74,18 @@ data UPSel2
 --  For the current example we get:
 --
 -- @
---    PE0                PE1               PE2
---    [A0,A1]            [A2]              [A3,A4]
---    [B0]               [B1,B2]           [B3]
+--            PE0                PE1               PE2
+-- tags:    [A0,A1]            [A2]              [A3,A4]
+-- indices: [B0]               [B1,B2]           [B3]
 -- @
 --
 --  The `UPSelRep2` contains the starting index and length of each of of these
 --  slices:
 --
 -- @
---         PE0                PE1               PE2
---    ((0, 0), (2, 1))   ((2, 1), (1, 2))  ((3, 3), (2, 1))
---    indices   lens      indices  lens    indices  lens
+--            PE0                PE1               PE2
+--      ((0, 0), (2, 1))   ((2, 1), (1, 2))  ((3, 3), (2, 1))
+--       indices   lens      indices  lens    indices  lens
 -- @
 --
 type UPSelRep2
@@ -97,36 +106,34 @@ indicesUPSel2   = indicesUSel2 . upsel2_usel
 {-# INLINE indicesUPSel2 #-}
 
 
--- | O(1). TODO: What is this for?
+-- | O(1). Get the number of elements that will be taken from the first array.
 elementsUPSel2_0 :: UPSel2 -> Int
 elementsUPSel2_0 = elementsUSel2_0 . upsel2_usel
 {-# INLINE elementsUPSel2_0 #-}
 
 
--- | O(1). TODO: What is this for?
+-- | O(1). Get the number of elements that will be taken from the second array.
 elementsUPSel2_1 :: UPSel2 -> Int
 elementsUPSel2_1 = elementsUSel2_1 . upsel2_usel
 {-# INLINE elementsUPSel2_1 #-}
 
 
--- | O(1). TODO: What is this for?
+-- | O(1). Take the sequential `USel2` from a `UPSel2`.
 selUPSel2 :: UPSel2 -> USel2
 selUPSel2       = upsel2_usel
 {-# INLINE selUPSel2 #-}
 
 
--- | O(1). TODO: What is this for?
+-- | O(1). Take the `UPSelRep2` from a `UPSel2`.
 repUPSel2 :: UPSel2 -> UPSelRep2
 repUPSel2       = upsel2_rep
 {-# INLINE repUPSel2 #-}
 
 
 -- Representation selectors ---------------------------------------------------
-
 -- | Computes a `UPSelRep2` from an array of tags. This is used when parallelising
 --   a `combine` operation. See the docs for `UPSelRep2` for details.
 mkUPSelRep2 :: Vector Tag -> UPSelRep2
-{-# INLINE_UP mkUPSelRep2 #-}
 mkUPSelRep2 tags = zipD idxs lens
   where
     lens = mapD   theGang count
@@ -139,10 +146,10 @@ mkUPSelRep2 tags = zipD idxs lens
                in (Seq.length bs - ones,ones)
 
     add (x1,y1) (x2,y2) = (x1+x2, y1+y2)
+{-# INLINE_UP mkUPSelRep2 #-}
 
 
 indicesUPSelRep2 :: Vector Tag -> UPSelRep2 -> Vector Int
-{-# INLINE_UP indicesUPSelRep2 #-}
 indicesUPSelRep2 tags rep 
         = joinD theGang balanced
         $ zipWithD theGang indices
@@ -152,25 +159,25 @@ indicesUPSelRep2 tags rep
     indices tags ((i,j), (m,n))
       = Seq.combine2ByTag tags (Seq.enumFromStepLen i 1 m)
                                (Seq.enumFromStepLen j 1 n)
+{-# INLINE_UP indicesUPSelRep2 #-}
 
 
--- | O(n).
+-- | O(n). Count the number of elements to take from the first array.
 elementsUPSelRep2_0 :: Vector Tag -> UPSelRep2 -> Int
-{-# INLINE_UP elementsUPSelRep2_0 #-}
 elementsUPSelRep2_0 _
         = sumD theGang . fstD . sndD
+{-# INLINE_UP elementsUPSelRep2_0 #-}
 
 
--- | O(n).
+-- | O(n). Count the number of elements to take from the second array.
 elementsUPSelRep2_1 :: Vector Tag -> UPSelRep2 -> Int
-{-# INLINE_UP elementsUPSelRep2_1 #-}
 elementsUPSelRep2_1 _
         = sumD theGang . sndD . sndD
+{-# INLINE_UP elementsUPSelRep2_1 #-}
 
 
 -- | O(1). Construct a selector. Wrapper for `UPSel2`.
 mkUPSel2 :: Vector Tag -> Vector Int -> Int -> Int -> UPSelRep2 -> UPSel2
-{-# INLINE_UP mkUPSel2 #-}
 mkUPSel2 tags is n0 n1 rep
         = UPSel2 (mkUSel2 tags is n0 n1) rep
-
+{-# INLINE_UP mkUPSel2 #-}

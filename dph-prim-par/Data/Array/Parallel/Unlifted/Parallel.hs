@@ -3,6 +3,9 @@
 
 -- | Parallel operations on unlifted arrays
 --
+--   * This is an internal API and shouldn't need to be used directly.
+--     Client programs should use "Data.Array.Parallel.Unlifted"
+
 --   NOTE: Each of the sections in the export list corresponds to one of the
 --         Parallel modules, and the names are in the same order as in those
 --         modules.
@@ -68,6 +71,8 @@ import qualified Data.Vector                                    as V
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
 
 
+-- | O(n). Segmented extract.
+
 -- TODO: zip srcids ixBase and startsix before calling replicate_s
 --       don't want to replicate_s multiple times on same segd.
 --
@@ -79,10 +84,10 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
 {-# INLINE_UP extractsUP #-}
 extractsUP
         :: Unbox a 
-        => V.Vector (Vector a) 
-        -> Vector Int  -- source ids
-        -> Vector Int  -- base indices
-        -> Vector Int  -- segment lengths
+        => V.Vector (Vector a)  -- ^ Source Vectors.
+        -> Vector Int           -- ^ Source array indices for each segment.
+        -> Vector Int           -- ^ Starting element for each segment in its source array.
+        -> Vector Int           -- ^ Length of each segment.
         -> Vector a
 
 extractsUP arrs srcids ixBase lens 

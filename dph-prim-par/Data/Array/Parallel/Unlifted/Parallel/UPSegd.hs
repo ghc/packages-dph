@@ -100,13 +100,13 @@ fromUSegd segd   = UPSegd segd (USegd.splitSegdOnElemsD theGang segd)
 {-# INLINE_UP fromUSegd #-}
 
 
--- | O(1). Yield an empty segment descriptor, with no elements or segments.
+-- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: UPSegd
 empty           = fromUSegd USegd.empty
 {-# INLINE_UP empty #-}
 
 
--- | O(1). Yield a singleton segment descriptor.
+-- | O(1). Construct a singleton segment descriptor.
 --   The single segment covers the given number of elements.
 singleton :: Int -> UPSegd
 singleton n     = fromUSegd $ USegd.singleton n
