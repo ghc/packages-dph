@@ -1,4 +1,3 @@
-
 Name:                dph-examples
 Version:             0.5.2.0
 License:             BSD3
@@ -21,110 +20,138 @@ Synopsis:            Examples using Data Parallel Haskell
 --   the plain dph-NAME versions are parallel versions built against dph-par
 --   while the dph_NAME-seq versions are sequential ones built against dph-seq
 
--- Sum of Squares -------------------------------------------------------------
-Executable dph-sumsq
+
+-- Smoke ----------------------------------------------------------------------
+-- examples/smoke/data
+Executable dph-smoke-bool
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  SumSquaresVector
-                  SumSquaresVectorised
+  other-modules:  Vectorised
+  hs-source-dirs: examples/smoke/data/Bool
+  ghc-options:    DPH_OPTIONS
+
+
+-- examples/smoke/prims
+Executable dph-smoke-concat
+  build-depends:  DPH_DEPENDS
+  main-is:        Main.hs
+  other-modules:  Vectorised
+  hs-source-dirs: examples/smoke/prims/Concat
+  ghc-options:    DPH_OPTIONS
+
+
+Executable dph-smoke-sumsq
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vector
+                  Vectorised
                   Timing Randomish
-  hs-source-dirs: lib imaginary/SumSquares/dph
+  hs-source-dirs: examples/smoke/prims/SumSquares/dph lib
   ghc-options:    DPH_OPTIONS
-
-
--- Dot Product ----------------------------------------------------------------
-Executable dph-dotp
+ 
+ 
+Executable dph-smoke-evens
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  DotProductVector
-                  DotProductVectorised
+  other-modules:  Vector
+                  Vectorised
                   Timing Randomish
-  hs-source-dirs: lib imaginary/DotProduct/dph
+  hs-source-dirs: examples/smoke/prims/Evens/dph lib
   ghc-options:    DPH_OPTIONS
 
 
--- Evens ----------------------------------------------------------------------
-Executable dph-evens
+-- examples/smoke/sharing
+Executable dph-smoke-indices
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  EvensVector
-                  EvensVectorised
+  other-modules:  Vectorised
+  hs-source-dirs: examples/smoke/sharing/Indices lib
+  ghc-options:    DPH_OPTIONS
+ 
+ 
+Executable dph-smoke-rank
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vectorised Util Timing Randomish
+  hs-source-dirs: examples/smoke/sharing/Rank lib
+  ghc-options:    DPH_OPTIONS
+
+
+Executable dph-smoke-reverse
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vectorised Randomish
+  hs-source-dirs: examples/smoke/sharing/Reverse lib
+  ghc-options:    DPH_OPTIONS
+
+
+-- Imaginary ------------------------------------------------------------------
+Executable dph-imaginary-primes
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vectorised
+  hs-source-dirs: examples/imaginary/Primes lib
+  ghc-options:    DPH_OPTIONS
+
+Executable dph-imaginary-words
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vectorised
+  hs-source-dirs: examples/imaginary/Words lib
+  ghc-options:    DPH_OPTIONS
+
+
+-- Spectral -------------------------------------------------------------------
+Executable dph-spectral-dotp
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vector
+                  Vectorised
                   Timing Randomish
-  hs-source-dirs: imaginary/Evens/dph lib
+  hs-source-dirs: examples/spectral/DotProduct/dph lib
   ghc-options:    DPH_OPTIONS
 
 
--- Primes ---------------------------------------------------------------------
--- Primes dies with a bounds check error
-Executable dph-primes
+Executable dph-spectral-smvm
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  hs-source-dirs: imaginary/Primes lib
-  ghc-options:    DPH_OPTIONS
-
-
--- Reverse --------------------------------------------------------------------
-Executable dph-reverse
-  Build-depends:  DPH_DEPENDS
-  Main-is:        Main.hs
-  other-modules:  ReverseVector
-                  ReverseVectorised
-                  Util Timing Randomish
-  hs-source-dirs: imaginary/Reverse/dph lib
-  ghc-options:    DPH_OPTIONS
-
-
--- Words ---------------------------------------------------------------------
-Executable dph-words
-  Build-depends:  DPH_DEPENDS
-  Main-is:        Main.hs
-  hs-source-dirs: imaginary/Words lib
-  ghc-options:    DPH_OPTIONS
-
-
--- SMVM ---------------------------------------------------------------------
-Executable dph-smvm
-  Build-depends:  DPH_DEPENDS
-  Main-is:        Main.hs
-  other-modules:  SMVMVectorised
+  other-modules:  Vectorised
                   Timing
-  hs-source-dirs: spectral/SMVM/dph lib
+  hs-source-dirs: examples/spectral/SMVM/dph lib
   ghc-options:    DPH_OPTIONS
 
 
--- QuickHull ------------------------------------------------------------------
-Executable dph-quickhull
+Executable dph-spectral-quickhull
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  QuickHullVect
+  other-modules:  Vectorised
                   Timing Points2D.Types SVG
-  hs-source-dirs: lib spectral/QuickHull/dph spectral/QuickHull/lib
+  hs-source-dirs: examples/spectral/QuickHull/dph examples/spectral/QuickHull/lib lib
   ghc-options:    DPH_OPTIONS
 
 
-Executable dph-quickhull-vector
+Executable dph-spectral-quickhull-vector
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  QuickHullIO
                   QuickHullSplit
                   QuickHullVector
                   Timing Points2D.Types SVG
-  hs-source-dirs: lib spectral/QuickHull/vector spectral/QuickHull/lib
+  hs-source-dirs: examples/spectral/QuickHull/vector examples/spectral/QuickHull/lib lib
   ghc-options:    DPH_OPTIONS
 
 
--- QuickSort ------------------------------------------------------------------
-Executable dph-quicksort
+Executable dph-spectral-quicksort
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  QuickSortVect
+  other-modules:  Vectorised
                   Timing
-  hs-source-dirs: lib spectral/QuickSort/dph
+  hs-source-dirs: examples/spectral/QuickSort/dph lib
   ghc-options:    DPH_OPTIONS
 
 
--- NBody ----------------------------------------------------------------------
--- Executable dph-nbody-gloss
+-- Real -----------------------------------------------------------------------
+-- Executable dph-real-nbody-gloss
 --     Main-is:        MainGloss.hs
 --     other-modules:  Common.Dump Common.World Common.Body Common.Util 
 --                     Solver Solver.ListBH.Solver
@@ -138,16 +165,24 @@ Executable dph-quicksort
 --     ghc-options:    DPH_OPTIONS -fno-liberate-case
 
 
-Executable dph-nbody-batch
-    Main-is:        MainBatch.hs
-    other-modules:  Common.Dump Common.World Common.Body Common.Util 
-                    Solver Solver.ListBH.Solver
-                           Solver.NestedBH.Solver
-                           Solver.VectorBH.Solver
-                           Solver.VectorNaive.Solver
-                    Timing Points2D.Types Points2D.Generate
-                    Batch.MainArgs Batch.Config
-    Build-depends:  DPH_DEPENDS
-    hs-source-dirs: lib real/NBody real/NBody/Batch
-    ghc-options:    DPH_OPTIONS -fno-liberate-case
+
+-- Executable dph-real-nbody
+--     Main-is:        MainBatch.hs
+--     other-modules:  Common.Dump Common.World Common.Body Common.Util 
+--                     Solver Solver.ListBH.Solver
+--                            Solver.NestedBH.Solver
+--                            Solver.VectorBH.Solver
+--                            Solver.VectorNaive.Solver
+--                     Timing Points2D.Types Points2D.Generate
+--                     Batch.MainArgs Batch.Config
+--     Build-depends:  DPH_DEPENDS
+--     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
+--     ghc-options:    DPH_OPTIONS
+
+-- dph-real-nbody is broken due to vectorisation error
+-- *** Vectorisation error ***
+--     No exact 'PData' family instance for
+--         Data.Array.Parallel.PArray.Types.Wrap
+--           (Data.Array.Parallel.PArray.PData.Base.PArray
+--              Solver.NestedBH.Solver.V:BHTree)
 
