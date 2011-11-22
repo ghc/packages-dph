@@ -19,11 +19,11 @@ module Data.Array.Parallel.Prim (
   Scalar(..),
   scalar_map, scalar_zipWith, scalar_zipWith3,
   Void, Sum2(..), Sum3(..), Wrap(..),
-  void, fromVoid, pvoid, pvoids, punit,
+  void, fromVoid, pvoid, pvoids#, punit,
   (:->)(..), 
   closure, liftedClosure, ($:), liftedApply, closure1, closure2, closure3,
-  Sel2, Sels2,
-  replicateSel2#, tagsSel2, elementsSel2_0#, elementsSel2_1#,
+  Sel2,  replicateSel2#, tagsSel2, elementsSel2_0#, elementsSel2_1#,
+  Sels2, lengthSels2#,
   PArray_Int#, PArray_Double#,
   replicatePA_Int#, replicatePA_Double#,
   emptyPA_Int#, emptyPA_Double#,
@@ -57,7 +57,7 @@ import Data.Array.Parallel.Lifted.Unboxed         (Sel2, replicateSel2#, tagsSel
                                                    combine2PA_Int#, combine2PA_Double#)
 import Data.Array.Parallel.Lifted.Scalar          (scalar_map, scalar_zipWith, scalar_zipWith3)
 import Data.Array.Parallel.Prelude.Tuple          (tup2, tup3, tup4)
-
+import GHC.Exts
 
 packByTagPA_Int#, packByTagPA_Double# :: a
 packByTagPA_Int#    = error "Data.Array.Parallel.Prim: 'packByTagPA_Int#' not implemented"
@@ -70,8 +70,12 @@ packByTagPA_Double# = error "Data.Array.Parallel.Prim: 'packByTagPA_Double#' not
 -- this stuff as the vectoriser expects it to be here.
 -- The vectoriser will generate instances of the PA dictionary involving
 -- PDatas, but this backend will never call those methods.
-pvoids  :: Int -> PDatas Void
-pvoids  = error "Data.Array.Parallel.Prim.voids: not used in this backend"
+pvoids#  :: Int# -> PDatas Void
+pvoids#  = error "Data.Array.Parallel.Prim.voids: not used in this backend"
+
+lengthSels2# :: Sels2 -> Int#
+lengthSels2# _ = 0#
+
 
 tup5    :: (PA a, PA b, PA c, PA d)
         =>  a :-> b :-> c :-> d :-> e :-> (a, b, c, d, e)
