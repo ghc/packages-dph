@@ -20,11 +20,10 @@ module Data.Array.Parallel.Prim
         , scalar_zipWith3
 
         -- Types used in the generic representation
-        , Void, void, fromVoid, pvoid, pvoids
+        , Void, void, fromVoid, pvoid, pvoids#
         , punit
         , Wrap(..)
         , Sum2(..), Sum3(..)
-        , Sels2
         
         -- Closures, and closure functions
         , (:->)(..)
@@ -39,6 +38,9 @@ module Data.Array.Parallel.Prim
         , replicateSel2#
         , elementsSel2_0#
         , elementsSel2_1#
+
+        , Sels2
+        , lengthSels2#
 
         -- Scalar constructors
         , PArray_Int#,          PArray_Double#
@@ -60,7 +62,7 @@ import Data.Array.Parallel.PArray.PData.Unit
         ( punit )
 
 import Data.Array.Parallel.PArray.PData.Sum2
-        ( Sels2 )
+        ( Sels2, lengthSels2 )
 
 import Data.Array.Parallel.PArray.PRepr 
         ( PRepr, PA(..)
@@ -105,6 +107,11 @@ combine2PD :: PA a => Int# -> U.Sel2 -> PData a -> PData a -> PData a
 combine2PD _ sel xs ys
         = combine2PA sel xs ys
 
+
+-- Generic Representation ----------------------------------------------------
+{-# INLINE_PA pvoids# #-}
+pvoids# :: Int# -> PDatas Void
+pvoids# n#       = pvoids (I# n#)
 
 -- Closures -------------------------------------------------------------------
 -- The vectoriser wants versions of these functions that take unboxed
@@ -237,6 +244,12 @@ elementsSel2_0# sel
 elementsSel2_1# :: Sel2 -> Int#
 elementsSel2_1# sel
         = case U.elementsSel2_1 sel of { I# n# -> n# }
+
+
+{-# INLINE_PA lengthSels2# #-}
+lengthSels2# :: Sels2 -> Int#
+lengthSels2# sels2
+        = case lengthSels2 sels2 of { I# n# -> n# }
 
 
 -- Scalar functions -----------------------------------------------------------

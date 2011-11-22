@@ -3,7 +3,7 @@
 
 -- | PR instance for the void type.
 module Data.Array.Parallel.PArray.PData.Void 
-        (Void, void, pvoid, fromVoid, pvoids)
+         (Void, void, pvoid, fromVoid, pvoids)
 where
 import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PRepr.Base    ()
@@ -29,13 +29,13 @@ data instance PData Void
 
 -- | PVoids instance counts how many "vectors" of void we have
 data instance PDatas Void
-        = PVoids Int
+        = PVoids #Int
 
 pvoid :: PData Void
 pvoid   = error "Data.Array.Parallel.PData.Void"
 
 pvoids :: Int -> PDatas Void
-pvoids   = PVoids
+pvoids  = PVoids 
 
 
 -- PR --------------------------------------------------------------------------

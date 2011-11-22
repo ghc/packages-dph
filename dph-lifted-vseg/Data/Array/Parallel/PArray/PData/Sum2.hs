@@ -4,7 +4,8 @@
 -- | PR instance for Sum2.
 module Data.Array.Parallel.PArray.PData.Sum2 
         ( PData(..)
-        , PDatas(..), Sels2)
+        , PDatas(..)
+        , Sels2, lengthSels2)
 where
 import Data.Array.Parallel.PArray.PData.Int     ()
 import Data.Array.Parallel.PArray.PData.Base
@@ -32,6 +33,10 @@ data instance PDatas (Sum2 a b)
 
 type Sels2
         = V.Vector U.Sel2
+
+lengthSels2 :: Sels2 -> Int
+lengthSels2 sels2
+        = V.length sels2
 
 -- PR -------------------------------------------------------------------------
 instance (PR a, PR b) => PR (Sum2 a b)  where
