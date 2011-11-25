@@ -6,7 +6,6 @@ module Data.Array.Parallel.PArray.PData.Int () where
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
@@ -74,7 +73,7 @@ instance PR Int where
   indexsPR (PInts pvecs) (PInt srcs) (PInt ixs)
    = PInt $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs V.! src) VU.! ix
+                = (pvecs V.! src) U.!: ix         -- SAFE INDEXING SIMPLIFIER BUG WORKAROUND
 
   {-# NOINLINE extractPR #-}
   extractPR (PInt arr) start len 

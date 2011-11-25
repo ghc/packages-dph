@@ -6,7 +6,6 @@ module Data.Array.Parallel.PArray.PData.Word8 where
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Word
@@ -83,7 +82,7 @@ instance PR Word8 where
   indexsPR (PWord8s pvecs) (PInt srcs) (PInt ixs)
    = PWord8 $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs V.! src) VU.! ix
+                = (pvecs V.! src) U.!: ix
 
   {-# NOINLINE extractPR #-}
   extractPR (PWord8 arr) start len 

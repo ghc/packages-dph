@@ -34,7 +34,7 @@ import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import qualified Data.Array.Parallel.Unlifted.Distributed.USegd         as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
@@ -198,7 +198,7 @@ replicateWithP segd !xs
   $ takeDistributed segd
   where
     rep ((dsegd,di),_)
-      = Seq.replicateSU dsegd (Seq.slice xs di (USegd.length dsegd))
+      = Seq.replicateSU dsegd (US.slice xs di (USegd.length dsegd))
 {-# INLINE_UP replicateWithP #-}
 
 
@@ -242,7 +242,7 @@ foldSegsWithP fElem fSeg segd xs
    runST (do
         mrs <- joinDM theGang drs
         fixupFold fElem mrs dcarry
-        Seq.unsafeFreeze mrs)
+        US.unsafeFreeze mrs)
 
  where  (dcarry,drs)
           = unzipD
@@ -256,7 +256,7 @@ foldSegsWithP fElem fSeg segd xs
                n | off == 0  = 0
                  | otherwise = 1
 
-           in  ((k, Seq.take n rs), Seq.drop n rs)
+           in  ((k, US.take n rs), US.drop n rs)
 
 
 fixupFold
@@ -271,10 +271,10 @@ fixupFold f !mrs !dcarry = go 1
     !p = gangSize theGang
 
     go i | i >= p = return ()
-         | Seq.null c = go (i+1)
+         | US.null c = go (i+1)
          | otherwise   = do
-                           x <- Seq.read mrs k
-                           Seq.write mrs k (f x (c Seq.! 0))
+                           x <- US.read mrs k
+                           US.write mrs k (f x (c US.! 0))
                            go (i + 1)
       where
         (k,c) = indexD dcarry i

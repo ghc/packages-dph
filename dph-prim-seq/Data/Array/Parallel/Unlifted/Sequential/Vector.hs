@@ -25,7 +25,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   length, null, empty, singleton, cons, units,
   replicate,
   -- replicateEachU,
-  (!), (++),
+  (!), unsafeIndex,
+  (++),
   interleave, indexed, repeat, repeatS,
 
   -- * Subarrays

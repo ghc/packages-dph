@@ -78,6 +78,7 @@ import qualified Data.Vector                    as V
 import qualified "dph-lifted-base" Data.Array.Parallel.PArray           as R
 import qualified "dph-lifted-base" Data.Array.Parallel.PArray.Reference as R
 
+
 import qualified Prelude                        as P
 import Prelude hiding 
         ( length, replicate, concat
@@ -172,7 +173,7 @@ singleton x
 singletonl :: PA a => PArray a -> PArray (PArray a)
 singletonl arr
  = withRef2 "singletonl" (R.singletonl (toRef1 arr))
- $ replicatel (replicate (length arr) 1) arr
+ $ replicatel_ (replicate_ (length arr) 1) arr
 {-# INLINE_PA singletonl #-}
 
 
@@ -180,20 +181,29 @@ singletonl arr
 --   We require the replication count to be > 0 so that it's easier to maintain
 --   the validPR invariants for nested arrays.
 replicate :: PA a => Int -> a -> PArray a
-replicate n@(I# n#) x
+replicate n x
  = withRef1 "replicate" (R.replicate n x)
- $ PArray n# (replicatePA (I# n#) x)
+ $ replicate_ n x
 {-# INLINE_PA replicate #-}
+ 
+replicate_ :: PA a => Int -> a -> PArray a
+replicate_ (I# n#) x
+ = PArray n# (replicatePA (I# n#) x)
+{-# INLINE_PA replicate_ #-}
 
 
 -- | O(sum lengths). Lifted replicate.
 replicatel :: PA a => PArray Int -> PArray a -> PArray (PArray a)
-replicatel reps@(PArray n# (PInt lens)) arr@(PArray _ pdata)
+replicatel reps arr
  = withRef2 "replicatel" (R.replicatel (toRef1 reps) (toRef1 arr))
- $ if n# ==# 0# then empty else 
-    let segd    = U.lengthsToSegd lens
-        pdata'  = replicatesPA segd pdata
-        c       = I# n#
+ $ replicatel_ reps arr
+
+replicatel_ :: PA a => PArray Int -> PArray a -> PArray (PArray a)
+replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
+ = if n# ==# 0# then empty else 
+    let !segd    = U.lengthsToSegd lens
+        !pdata'  = replicatesPA segd pdata
+        !c       = I# n#
         
      in PArray n# 
          $ mkPNested
@@ -202,8 +212,7 @@ replicatel reps@(PArray n# (PInt lens)) arr@(PArray _ pdata)
                 (U.indicesSegd segd)
                 (U.replicate c 0)
                 (singletondPA pdata')
-
-{-# INLINE_PA replicatel #-}
+{-# INLINE_PA replicatel_ #-}
 
 
 -- | O(sum lengths). Segmented replicate.
@@ -261,7 +270,7 @@ concatl arr@(PArray n# pdata1)
 -- | Impose a nesting structure on a flat array
 unconcat :: (PA a, PA b) => PArray (PArray a) -> PArray b -> PArray (PArray b)
 unconcat (PArray n# pdata1) (PArray _ pdata2)
-        = PArray n# $ unconcatPA pdata1 pdata2
+ = PArray n# $ unconcatPA pdata1 pdata2
 {-# INLINE_PA unconcat #-}
 
 
@@ -296,21 +305,21 @@ lengthl arr@(PArray n# (PNested vsegd _))
 -- | O(1). Lookup a single element from the source array.
 index    :: PA a => PArray a -> Int -> a
 index (PArray _ arr) ix
- = indexPA arr ix
+        = indexPA arr ix
 {-# INLINE_PA index #-}
 
 
 -- | O(len indices). Lookup a several elements from several source arrays
 indexl    :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 indexl (PArray n# darr) (PArray _ ixs)
- = PArray n# (indexlPA darr ixs)
+        = PArray n# (indexlPA darr ixs)
 {-# INLINE_PA indexl #-}
 
 
 -- | Extract a range of elements from an array.
 extract  :: PA a => PArray a -> Int -> Int -> PArray a
 extract (PArray _ arr) start len@(I# len#)
- = PArray len# (extractPA arr start len)
+        = PArray len# (extractPA arr start len)
 {-# INLINE_PA extract #-}
 
 
@@ -338,9 +347,9 @@ extracts'
         -> PArray Int           -- ^ length of each segment.
         -> PArray a
 extracts' arrs (PArray _ (PInt sources)) (PArray _ (PInt starts)) (PArray _ (PInt lengths))
- = let  segd    = U.lengthsToSegd lengths
-        ssegd   = U.mkSSegd starts sources segd
-   in   extracts arrs ssegd
+ = let segd    = U.lengthsToSegd lengths
+       ssegd   = U.mkSSegd starts sources segd
+   in  extracts arrs ssegd
 {-# INLINE_PA extracts' #-}
         
 
@@ -445,7 +454,7 @@ zip (PArray n# pdata1) (PArray _ pdata2)
 zipl    :: (PA a, PA b)
         => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
 zipl (PArray n# xs) (PArray _ ys)
-        = PArray n# $ ziplPA xs ys
+ = PArray n# $ ziplPA xs ys
 {-# INLINE_PA zipl #-}
 
 

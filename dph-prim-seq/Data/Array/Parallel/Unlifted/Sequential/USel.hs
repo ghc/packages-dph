@@ -39,10 +39,10 @@ module Data.Array.Parallel.Unlifted.Sequential.USel (
   tagsUSel2, indicesUSel2, elementsUSel2_0, elementsUSel2_1,
   tagsToIndices2
 ) where
-import Data.Array.Parallel.Unlifted.Sequential.Vector as V
-import qualified Data.Vector.Fusion.Stream as S
-import Data.Vector.Fusion.Stream.Monadic ( Stream(..) )
-import Data.Array.Parallel.Base (Tag)
+import Data.Array.Parallel.Unlifted.Sequential.Vector   as V
+import qualified Data.Vector.Fusion.Stream              as S
+import Data.Vector.Fusion.Stream.Monadic                ( Stream(..) )
+import Data.Array.Parallel.Base                         (Tag)
 
 
 -- | Abstract selector. 

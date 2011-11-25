@@ -48,8 +48,8 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
 
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSel    as UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
@@ -108,7 +108,7 @@ data UPVSegd
 instance PprPhysical UPVSegd where
  pprp (UPVSegd _ _ vsegids _ upssegd)
   = vcat
-  [ text "UPVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ V.toList vsegids))
+  [ text "UPVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ US.toList vsegids))
   , pprp upssegd ]
 
 
@@ -145,7 +145,7 @@ mkUPVSegd vsegids ussegd
 --
 fromUPSSegd :: UPSSegd -> UPVSegd
 fromUPSSegd upssegd
- = let  vsegids = V.enumFromTo 0 (UPSSegd.length upssegd - 1)
+ = let  vsegids = US.enumFromTo 0 (UPSSegd.length upssegd - 1)
    in   UPVSegd True vsegids vsegids upssegd upssegd
 {-# INLINE_UP fromUPSSegd #-}
 
@@ -163,7 +163,7 @@ fromUPSegd      = fromUPSSegd . UPSSegd.fromUPSegd
 -- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: UPVSegd
 empty
- = let  vsegids = V.empty
+ = let  vsegids = US.empty
         upssegd = UPSSegd.empty
    in   UPVSegd True vsegids vsegids upssegd upssegd
 {-# INLINE_UP empty #-}
@@ -174,7 +174,7 @@ empty
 --   with sourceid 0.
 singleton :: Int -> UPVSegd
 singleton n
- = let  vsegids = V.singleton 0
+ = let  vsegids = US.singleton 0
         upssegd = UPSSegd.singleton n
    in   UPVSegd True vsegids vsegids upssegd upssegd
 {-# INLINE_UP singleton #-}
@@ -210,7 +210,7 @@ isContiguous    = UPSSegd.isContiguous . upvsegd_upssegd_culled
 
 -- | O(1). Yield the overall number of segments.
 length :: UPVSegd -> Int
-length          = V.length . upvsegd_vsegids_redundant
+length          = US.length . upvsegd_vsegids_redundant
 {-# INLINE length #-}
 
 
@@ -258,7 +258,7 @@ takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 takeLengths :: UPVSegd -> Vector Int
 takeLengths (UPVSegd manifest _ vsegids _ upssegd)
  | manifest     = UPSSegd.takeLengths upssegd
- | otherwise    = V.map (UPSSegd.takeLengths upssegd V.!) vsegids
+ | otherwise    = US.map (UPSSegd.takeLengths upssegd US.!) vsegids
 {-# NOINLINE takeLengths #-}
 --  NOINLINE because we don't want a case expression due to the test on the 
 --  manifest flag to appear in the core program.
@@ -276,7 +276,7 @@ getSeg upvsegd ix
  = let  vsegids = upvsegd_vsegids_redundant upvsegd
         upssegd = upvsegd_upssegd_redundant upvsegd
         (len, _index, start, source)
-                = UPSSegd.getSeg upssegd (vsegids V.! ix)
+                = UPSSegd.getSeg upssegd (vsegids US.! ix)
    in   (len, start, source)
 {-# INLINE_UP getSeg #-}
 
@@ -398,10 +398,10 @@ appendWith
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
-        vsegids2' = V.map (+ UPSSegd.length upssegd1) vsegids2
+        vsegids2' = US.map (+ UPSSegd.length upssegd1) vsegids2
         
         -- append the vsegids
-        vsegids'  = vsegids1' V.++ vsegids2'
+        vsegids'  = vsegids1' US.++ vsegids2'
 
         -- All data from the source arrays goes into the result
         upssegd'  = UPSSegd.appendWith
@@ -435,10 +435,10 @@ combine2
 
  = let  -- vsegids relative to combined psegs
         vsegids1' = vsegids1
-        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+        vsegids2' = US.map (+ (US.length vsegids1)) vsegids2
 
         -- combine the vsegids
-        vsegids'  = V.combine2ByTag (UPSel.tagsUPSel2 upsel2)
+        vsegids'  = US.combine2ByTag (UPSel.tagsUPSel2 upsel2)
                                     vsegids1' vsegids2'
 
          -- All data from the source arrays goes into the result

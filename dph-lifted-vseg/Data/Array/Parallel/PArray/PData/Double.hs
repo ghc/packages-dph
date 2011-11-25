@@ -11,7 +11,6 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
 
 -------------------------------------------------------------------------------
 data instance PData Double
@@ -79,13 +78,13 @@ instance PR Double where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix
-        = arr VU.! ix
+        = arr U.!: ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PDoubles pvecs) (PInt srcs) (PInt ixs)
    = PDouble $ U.zipWith get srcs ixs
-   where get !src !ix
-                = (pvecs V.! src) VU.! ix
+   where get !ix !src    = (pvecs V.! src) U.!: ix     -- SAFE INDEXING SIMPLIFIER BUG WORKAROUND
+
 
   {-# NOINLINE extractPR #-}
   extractPR (PDouble arr) start len 

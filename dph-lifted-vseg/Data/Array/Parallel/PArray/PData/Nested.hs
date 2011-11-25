@@ -21,8 +21,8 @@ import Data.Array.Parallel.PArray.PData.Base    as PA
 import qualified Data.IntSet                    as IS
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
 import GHC.Exts
+import Debug.Trace
 
 -- TODO: Using plain V.Vector for the psegdata field means that operations on
 --       this field aren't parallelised. In particular, when we append two
@@ -377,9 +377,9 @@ instance PR a => PR (PArray a) where
          -- Function to get one element of the result.
          {-# INLINE get #-}
          get srcid vsegid
-          = let !pseglen        = (arrs_pseglens   V.! srcid) VU.! vsegid
-                !psegstart      = (arrs_psegstarts V.! srcid) VU.! vsegid
-                !psegsrcid      = (arrs_psegsrcids V.! srcid) VU.! vsegid  
+          = let !pseglen        = (arrs_pseglens   V.! srcid) U.!: vsegid
+                !psegstart      = (arrs_psegstarts V.! srcid) U.!: vsegid
+                !psegsrcid      = (arrs_psegsrcids V.! srcid) U.!: vsegid  
                                 + psrcoffset V.! srcid
             in  (pseglen, psegstart, psegsrcid)
             

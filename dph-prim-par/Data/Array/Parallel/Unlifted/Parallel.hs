@@ -66,9 +66,9 @@ import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Sequential.Vector           as US
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
-import qualified Data.Vector                                    as V
-import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
+import qualified Data.Vector                                    as VS
 
 
 -- | O(n). Segmented extract.
@@ -84,7 +84,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector           as Seq
 {-# INLINE_UP extractsUP #-}
 extractsUP
         :: Unbox a 
-        => V.Vector (Vector a)  -- ^ Source Vectors.
+        => VS.Vector (Vector a) -- ^ Source Vectors.
         -> Vector Int           -- ^ Source array indices for each segment.
         -> Vector Int           -- ^ Starting element for each segment in its source array.
         -> Vector Int           -- ^ Length of each segment.
@@ -109,14 +109,14 @@ extractsUP arrs srcids ixBase lens
 
         {-# INLINE get #-}
         get (ixDst, ixSegDst) (ixSegSrcBase, srcid)
-         = let  !arr    = arrs V.! srcid                        -- TODO: use unsafeIndex
+         = let  !arr    = arrs VS.! srcid                        -- TODO: use unsafeIndex
                 !ix     = ixDst - ixSegDst + ixSegSrcBase
-           in   arr Seq.! ix                                    -- TODO unsafe unsafeIndex
+           in   arr US.! ix                                    -- TODO unsafe unsafeIndex
          
         result    = zipWithUP get
-                        (Seq.zip (enumFromToUP 0 (dstLen - 1))
+                        (US.zip (enumFromToUP 0 (dstLen - 1))
                                  startixs')
-                        (Seq.zip baseixs
+                        (US.zip baseixs
                                  srcids')
 
    in result

@@ -20,7 +20,7 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Projections
   length,
-  (!:),
+  (!:),     unsafeIndex,
   extract,  extract_ss,
   drop,
   

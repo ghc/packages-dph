@@ -20,7 +20,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSel (
   elementsUPSelRep2_0,
   elementsUPSelRep2_1,
 ) where
-import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Vector   as US
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Base (Tag, tagToInt)
@@ -142,8 +142,8 @@ mkUPSelRep2 tags = zipD idxs lens
     idxs = fst
          $ scanD theGang add (0,0) lens
 
-    count bs = let ones = Seq.sum (Seq.map tagToInt bs)
-               in (Seq.length bs - ones,ones)
+    count bs = let ones = US.sum (US.map tagToInt bs)
+               in (US.length bs - ones,ones)
 
     add (x1,y1) (x2,y2) = (x1+x2, y1+y2)
 {-# INLINE_UP mkUPSelRep2 #-}
@@ -157,8 +157,8 @@ indicesUPSelRep2 tags rep
               rep
   where
     indices tags ((i,j), (m,n))
-      = Seq.combine2ByTag tags (Seq.enumFromStepLen i 1 m)
-                               (Seq.enumFromStepLen j 1 n)
+      = US.combine2ByTag tags (US.enumFromStepLen i 1 m)
+                              (US.enumFromStepLen j 1 n)
 {-# INLINE_UP indicesUPSelRep2 #-}
 
 

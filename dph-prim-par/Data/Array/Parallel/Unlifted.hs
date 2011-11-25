@@ -104,8 +104,9 @@ enumFromStepLenEach n starts steps lens
 
 
 -- Projections ----------------------------------------------------------------
-length  = Seq.length
-(!:)    = (Seq.!)
+length          = Seq.length
+(!:)            = (Seq.!)
+unsafeIndex     = Seq.unsafeIndex
 
 extract arr i n
         =  tracePrim (TraceExtract (Seq.length arr) i n)

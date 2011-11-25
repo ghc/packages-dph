@@ -87,6 +87,7 @@ enumFromStepLenEach size starts steps lens
 -- Projections ----------------------------------------------------------------
 length          = P.length
 (!:)            = (P.!!)
+unsafeIndex     = (P.!!)
 
 extract xs i n  = P.take n (P.drop i xs)
 extract_ss      = notImplemented "extract_ss"

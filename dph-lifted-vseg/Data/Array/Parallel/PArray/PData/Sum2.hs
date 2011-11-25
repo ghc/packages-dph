@@ -14,7 +14,6 @@ import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.Base                 (intToTag)
 import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
-import qualified Data.Vector.Unboxed            as VU
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
@@ -127,11 +126,6 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
           bs    = appendPR bs1 bs2
       in  PSum2 sel as bs
         
-        
-  -- {-# INLINE_PDATA appendsPR #-}
-  -- appendsPR
-  --       = nope "appends"
-
 
   -- Projections --------------------------------
   {-# INLINE_PDATA lengthPR #-}
@@ -151,8 +145,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
    = let 
          getFlagIndex !src !ix
           = let !sel        = sels                V.!  src
-                !elemFlag   = (U.tagsSel2    sel) VU.! ix
-                !elemIndex  = (U.indicesSel2 sel) VU.! ix
+                !elemFlag   = (U.tagsSel2    sel) U.!: ix
+                !elemIndex  = (U.indicesSel2 sel) U.!: ix
             in  (elemFlag, elemIndex)
             
          (flags', indices')

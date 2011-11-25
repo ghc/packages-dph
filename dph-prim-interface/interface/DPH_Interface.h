@@ -195,6 +195,11 @@ length :: Elt a => Array a -> Int
 {-# INLINE_BACKEND (!:) #-}
 
 
+-- | O(1). Retrieve a numbered element from an array, without bounds checks.
+unsafeIndex :: Elt a => Array a -> Int -> a
+{-# INLINE_BACKEND unsafeIndex #-}
+
+
 -- | O(n). Extract a subrange of elements from an array.
 --  
 --   @extract [23, 42, 93, 50, 27] 1 3  = [42, 93, 50]@

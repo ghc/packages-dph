@@ -16,7 +16,7 @@ import Data.Array.Parallel.Unlifted.Sequential
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 
 #include "DPH_Interface.h"
 
@@ -26,82 +26,83 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 
 
 -- Basics ---------------------------------------------------------------------
-class V.Unbox a => Elt a
-type Array              = V.Vector
+class U.Unbox a => Elt a
+type Array              = U.Vector
 
 
 -- Constructors ---------------------------------------------------------------
-empty                   = V.empty
-(+:+)                   = (V.++)
+empty                   = U.empty
+(+:+)                   = (U.++)
 append_s _              = appendSU
-replicate               = V.replicate
+replicate               = U.replicate
 replicate_s             = replicateSU
 replicate_rs            = replicateRSU
-repeat n _              = V.repeat n
-indexed                 = V.indexed
+repeat n _              = U.repeat n
+indexed                 = U.indexed
 indices_s               = indicesSU
-enumFromTo              = V.enumFromTo
-enumFromThenTo          = V.enumFromThenTo
-enumFromStepLen         = V.enumFromStepLen
-enumFromStepLenEach     = V.enumFromStepLenEach
+enumFromTo              = U.enumFromTo
+enumFromThenTo          = U.enumFromThenTo
+enumFromStepLen         = U.enumFromStepLen
+enumFromStepLenEach     = U.enumFromStepLenEach
 
 
 -- Projections ----------------------------------------------------------------
-length                  = V.length
-(!:)                    = (V.!)
-extract                 = V.extract
+length                  = U.length
+(!:)                    = (U.!)
+unsafeIndex             = U.unsafeIndex
+extract                 = U.extract
 extract_ss              = extractsSU
-drop                    = V.drop
+drop                    = U.drop
 
 
 -- Update ---------------------------------------------------------------------
-update                  = V.update
+update                  = U.update
 
 
 -- Permutation ----------------------------------------------------------------
-permute                 = V.permute
-bpermute                = V.bpermute
-mbpermute               = V.mbpermute
-bpermuteDft             = V.bpermuteDft
+permute                 = U.permute
+bpermute                = U.bpermute
+mbpermute               = U.mbpermute
+bpermuteDft             = U.bpermuteDft
 
 
 -- Zipping and Unzipping ------------------------------------------------------
-zip                     = V.zip
-zip3                    = V.zip3
-unzip                   = V.unzip
-unzip3                  = V.unzip3
-fsts                    = V.fsts
-snds                    = V.snds
+zip                     = U.zip
+zip3                    = U.zip3
+unzip                   = U.unzip
+unzip3                  = U.unzip3
+fsts                    = U.fsts
+snds                    = U.snds
 
 
 -- Map and ZipWith ------------------------------------------------------------
-map                     = V.map
-zipWith                 = V.zipWith
+map                     = U.map
+zipWith                 = U.zipWith
 
 
 -- Scans and Folds ------------------------------------------------------------
-scan                    = V.scan
-fold                    = V.fold
+scan                    = U.scan
+fold                    = U.fold
 fold_s                  = foldSU
 fold_ss                 = foldSSU
 fold_r                  = foldlRU
-fold1                   = V.fold1
+fold1                   = U.fold1
 fold1_s                 = fold1SU
 fold1_ss                = fold1SSU
-sum                     = V.sum
+sum                     = U.sum
 sum_r                   = sumRU
-and                     = V.and
+and                     = U.and
 
 
 -- Packing and Filter ---------------------------------------------------------
-pack                    = V.pack
-filter                  = V.filter
+pack                    = U.pack
+filter                  = U.filter
 
 
 -- Combine and Interleave -----------------------------------------------------
-combine                 = V.combine
-combine2 tags _         = V.combine2ByTag tags
-interleave              = V.interleave
+combine                 = U.combine
+combine2 tags _         = U.combine2ByTag tags
+interleave              = U.interleave
 
 
 -- Selectors ------------------------------------------------------------------
@@ -175,15 +176,15 @@ combine2VSegd                   = UVSegd.combine2
 
 
 -- Random Arrays --------------------------------------------------------------
-randoms                 = V.random
-randomRs                = V.randomR
+randoms                 = U.random
+randomRs                = U.randomR
 
 
 -- Array IO -------------------------------------------------------------------
-class V.UIO a => IOElt a
-hPut                    = V.hPut
-hGet                    = V.hGet
+class U.UIO a => IOElt a
+hPut                    = U.hPut
+hGet                    = U.hGet
 
-toList                  = V.toList
-fromList                = V.fromList
+toList                  = U.toList
+fromList                = U.fromList
 
