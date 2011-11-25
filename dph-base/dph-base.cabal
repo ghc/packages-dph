@@ -43,7 +43,10 @@ Library
          BangPatterns, MagicHash, UnboxedTuples, TypeOperators, CPP,
          MultiParamTypeClasses, FlexibleInstances
 
-  GHC-Options: -Odph -funbox-strict-fields -fcpr-off 
+  GHC-Options:
+        -dcore-lint
+        -Odph
+        -funbox-strict-fields -fcpr-off 
 
   Build-Depends:  
         base     == 4.4.*,

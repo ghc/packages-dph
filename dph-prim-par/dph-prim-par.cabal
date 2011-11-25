@@ -57,7 +57,11 @@ Library
               FlexibleInstances, FlexibleContexts
 
 
-  GHC-Options: -Odph -funbox-strict-fields -fcpr-off -Werror
+  GHC-Options:
+        -dcore-lint
+        -Odph -funbox-strict-fields
+        -fcpr-off
+        -Werror
 
   Build-Depends:  
         base               == 4.4.*,
