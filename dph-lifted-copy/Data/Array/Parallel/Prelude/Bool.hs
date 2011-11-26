@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fvectorise #-}
-  -- NB: Cannot use any parallel array syntax except the type constructor
 
 module Data.Array.Parallel.Prelude.Bool (
   Bool(..),
@@ -9,7 +8,9 @@ module Data.Array.Parallel.Prelude.Bool (
 
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
-import Data.Array.Parallel.PArr                     (PArr)
+import Data.Array.Parallel.Prelude.Base
+
+import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
@@ -17,8 +18,6 @@ import qualified Data.Array.Parallel.Unlifted as U
 
 import Data.Bits
 
-
-{-# VECTORISE type Bool = Bool #-}
 
 -- We re-export 'Prelude.otherwise' as is as it is special-cased in the Desugarer
   

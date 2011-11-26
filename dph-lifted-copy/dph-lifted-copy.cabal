@@ -40,6 +40,7 @@ Library
         Data.Array.Parallel.Lifted.TH.Repr
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
+        Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Tuple
 
   Exposed: False

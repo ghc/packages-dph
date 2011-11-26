@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fvectorise #-}
-  -- NB: Cannot use any parallel array syntax except the type constructor
 
 module Data.Array.Parallel.Prelude.Float (
   Float,
@@ -30,21 +29,20 @@ module Data.Array.Parallel.Prelude.Float (
 
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
+import Data.Array.Parallel.Prelude.Base
+
 import Data.Array.Parallel.PArr
-import Data.Array.Parallel.Prelude.Int    (Int)  -- get the vectorised version
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Prelude.Bool
 
-import Prelude (Float)
 import qualified Prelude as P
+
 
 infixr 8 **
 infixl 7 *, /
 infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
 
-{-# VECTORISE SCALAR type Float #-}
 
 (==), (/=), (<), (<=), (>), (>=) :: Float -> Float -> Bool
 (==) = (P.==)

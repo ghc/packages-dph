@@ -12,6 +12,7 @@ import GHC.Base ( Int (I#), MutableArray#, newArray#,
                   unsafeFreezeArray#, indexArray#, {- writeArray# -} )
 import GHC.PArr -- provides the definition of '[::]' and 'PArr'
 
+
 emptyPArr :: PArr a
 {-# NOINLINE emptyPArr #-}
 emptyPArr = replicatePArr 0 undefined

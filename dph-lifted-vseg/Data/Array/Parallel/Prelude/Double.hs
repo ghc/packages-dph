@@ -29,15 +29,13 @@ where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim                 ()      
 
-import Data.Array.Parallel.Prelude.Bool
-import Data.Array.Parallel.Prelude.Int                  (Int)
+import Data.Array.Parallel.Prelude.Base
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Lifted                       ((:->)(..))
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
-import Prelude (Double)
         
 {-# VECTORISE SCALAR type Double #-}
 

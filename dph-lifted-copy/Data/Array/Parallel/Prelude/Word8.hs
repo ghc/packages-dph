@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fvectorise #-}
-  -- NB: Cannot use any parallel array syntax except the type constructor
 
 module Data.Array.Parallel.Prelude.Word8 (
   Word8,
@@ -22,21 +21,20 @@ module Data.Array.Parallel.Prelude.Word8 (
 
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
+import Data.Array.Parallel.Prelude.Base
+
 import Data.Array.Parallel.PArr
-import Data.Array.Parallel.Prelude.Int    (Int)  -- get the vectorised version
 import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
-import Data.Array.Parallel.Prelude.Bool
 
-import Data.Word (Word8)
 import qualified Prelude as P
+
 
 infixl 7 *
 infixl 6 +, -
 infix 4 ==, /=, <, <=, >, >=
 infixl 7 `div`, `mod`
 
-{-# VECTORISE SCALAR type Word8 #-}
 
 (==), (/=), (<), (<=), (>), (>=) :: Word8 -> Word8 -> Bool
 (==) = (P.==)

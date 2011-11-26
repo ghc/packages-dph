@@ -46,21 +46,20 @@ module Data.Array.Parallel (
   crossMapP,
   
   -- * Conversions
-  fromPArrayP, toPArrayP, fromNestedPArrayP
+  PArray, fromPArrayP, toPArrayP, fromNestedPArrayP
 ) where
 
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Prelude
-import Data.Array.Parallel.Prelude.Int
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.Lifted.Combinators
 
-import Prelude hiding (Int)
 
 infixl 9 !:
 infixr 5 +:+
+
 
 -- Vectorise Prelude.undefined
 {-# VECTORISE undefined = undefined_v #-}

@@ -14,7 +14,7 @@
 
 -- #hide
 module Data.Array.Parallel.Prim (
-  PArray(..), PData, PDatas(..), PRepr, PA(..), PR(..),
+  PData, PDatas(..), PRepr, PA(..), PR(..),
   replicatePD, emptyPD, packByTagPD, combine2PD,
   Scalar(..),
   scalar_map, scalar_zipWith, scalar_zipWith3,
@@ -24,7 +24,6 @@ module Data.Array.Parallel.Prim (
   closure, liftedClosure, ($:), liftedApply, closure1, closure2, closure3,
   Sel2,  replicateSel2#, tagsSel2, elementsSel2_0#, elementsSel2_1#,
   Sels2, lengthSels2#,
-  PArray_Int#, PArray_Double#,
   replicatePA_Int#, replicatePA_Double#,
   emptyPA_Int#, emptyPA_Double#,
   packByTagPA_Int#, packByTagPA_Double#,
@@ -36,7 +35,6 @@ module Data.Array.Parallel.Prim (
 -- We use explicit import lists here to make the vectoriser interface explicit and keep it under
 -- tight control.
 --
-import Data.Array.Parallel.PArray.Base            (PArray(..))
 import Data.Array.Parallel.PArray.Scalar          (Scalar(..))
 import Data.Array.Parallel.PArray.ScalarInstances ( {-we require instances-} )
 import Data.Array.Parallel.PArray.PRepr           (PRepr, PA(..), replicatePD, emptyPD, packByTagPD,
@@ -50,7 +48,6 @@ import Data.Array.Parallel.Lifted.Closure         ((:->)(..), closure, liftedClo
                                                    liftedApply, closure1, closure2, closure3)
 import Data.Array.Parallel.Lifted.Unboxed         (Sel2, replicateSel2#, tagsSel2, elementsSel2_0#,
                                                    elementsSel2_1#,
-                                                   PArray_Int#, PArray_Double#, 
                                                    replicatePA_Int#, replicatePA_Double#,
                                                    emptyPA_Int#, emptyPA_Double#,
                                                    {- packByTagPA_Int#, packByTagPA_Double# -}

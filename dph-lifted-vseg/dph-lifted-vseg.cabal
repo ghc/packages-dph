@@ -37,6 +37,7 @@ Library
         Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.Scalar
         Data.Array.Parallel.PArray
+        Data.Array.Parallel.Prelude.Base
         Data.Array.Parallel.Prelude.Bool
         Data.Array.Parallel.Prelude.Double
         Data.Array.Parallel.Prelude.Int

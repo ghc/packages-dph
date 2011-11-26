@@ -36,6 +36,7 @@ module Data.Array.Parallel
         ( module Data.Array.Parallel.Prelude
 
         -- * Conversions
+        , PArray
         , fromPArrayP
         , toPArrayP
         , fromNestedPArrayP
@@ -69,10 +70,8 @@ import Data.Array.Parallel.Prim                 ()
 
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Prelude
-import Data.Array.Parallel.Prelude.Int
 import Data.Array.Parallel.Lifted
 import Data.Array.Parallel.PArray.PData.Base    (PArray(..))
-import Prelude hiding (Int)
 
 
 -------------------------------------------------------------------------------
