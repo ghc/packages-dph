@@ -10,7 +10,6 @@ import Data.Array.Parallel.Prim ()       -- dependency required by the vectorise
 
 import Data.Array.Parallel.Prelude.Base
 
-import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PReprInstances
 import Data.Array.Parallel.Lifted.Scalar
