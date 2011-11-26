@@ -37,7 +37,6 @@ import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
         
-{-# VECTORISE SCALAR type Double #-}
 
 infixl 7 *, /
 infixl 6 +, -
