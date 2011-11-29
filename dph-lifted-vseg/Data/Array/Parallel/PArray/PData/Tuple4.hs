@@ -130,14 +130,14 @@ instance (PR a, PR b, PR c, PR d) => PR (a, b, c, d) where
                   (indexsPR zs srcs ixs)
                   (indexsPR ds srcs ixs)
 
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple4 arr1 arr2 arr3 arr4) start len
         = PTuple4 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
                   (extractPR arr3 start len)
                   (extractPR arr4 start len)
 
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE_PDATA extractsPR #-}
   extractsPR (PTuple4s xs ys zs ds) ussegd
         = PTuple4 (extractsPR xs ussegd)
                   (extractsPR ys ussegd)
@@ -146,7 +146,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a, b, c, d) where
 
 
   -- Pack and Combine ---------------------------
-  {-# NOINLINE packByTagPR #-}
+  {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PTuple4 arr1 arr2 arr3 arr4) tags tag
         = PTuple4 (packByTagPR arr1 tags tag)
                   (packByTagPR arr2 tags tag)
@@ -154,7 +154,7 @@ instance (PR a, PR b, PR c, PR d) => PR (a, b, c, d) where
                   (packByTagPR arr4 tags tag)
 
 
-  {-# NOINLINE combine2PR #-}
+  {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PTuple4 xs1 ys1 zs1 ds1) (PTuple4 xs2 ys2 zs2 ds2)
         = PTuple4 (combine2PR sel xs1 xs2)
                   (combine2PR sel ys1 ys2)

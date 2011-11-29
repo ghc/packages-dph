@@ -212,13 +212,9 @@ extract :: Elt a
 
 
 -- | O(n). Segmented extract.
-
---   TODO: make this take a SSegd directly instead of unzipped fields.
 extract_ss :: Elt a
         => VV.Vector (Array a) -- ^ Source arrays.
-        -> Array Int           -- ^ Source array indices for each segment.
-        -> Array Int           -- ^ Starting element for each segment in its source array.
-        -> Array Int           -- ^ Length of each segment.
+        -> SSegd
         -> Array a
 
 

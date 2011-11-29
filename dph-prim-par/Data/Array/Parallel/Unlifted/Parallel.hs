@@ -66,10 +66,12 @@ import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 import Data.Array.Parallel.Unlifted.Parallel.Sums
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd            (UPSSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as US
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Vector                                    as VS
-
 
 -- | O(n). Segmented extract.
 
@@ -81,44 +83,38 @@ import qualified Data.Vector                                    as VS
 -- TODO: pass in a projection function to get the correct array from the vector, 
 --       to avoid unpackig all the arrays from PDatas with a big map traversal.
 --
--- TODO: make this take the SSegd directly, instead of unzipped fields.
---
 {-# INLINE_UP extractsUP #-}
-extractsUP
-        :: Unbox a 
-        => VS.Vector (Vector a) -- ^ Source Vectors.
-        -> Vector Int           -- ^ Source array indices for each segment.
-        -> Vector Int           -- ^ Starting element for each segment in its source array.
-        -> Vector Int           -- ^ Length of each segment.
-        -> Vector a
-
-extractsUP !arrs !srcids !ixBase !lens 
- = let -- total length of the result
-        !dstLen    = sumUP lens
-        !segd      = UPSegd.fromLengths lens
-    
+extractsUP :: Unbox a => VS.Vector (Vector a) -> UPSSegd -> Vector a
+extractsUP !arrs !ssegd
+ = let  !segd      = UPSegd.fromLengths $ UPSSegd.takeLengths ssegd
+ 
         -- source array ids to load from
-        !srcids'   = UPSegd.replicateWithP segd srcids
+        !srcids'   = UPSegd.replicateWithP segd $ UPSSegd.takeSources ssegd
 
         -- base indices in the source array to load from
-        !baseixs   = UPSegd.replicateWithP segd ixBase
+        !baseixs   = UPSegd.replicateWithP segd $ UPSSegd.takeStarts  ssegd
         
-        -- starting indices for each of the segments
-        !startixs  = scanUP (+) 0 lens
-          
         -- starting indices for each of the segments in the result
-        !startixs' = UPSegd.replicateWithP segd startixs
+        !startixs' = UPSegd.replicateWithP segd $ UPSSegd.takeIndices ssegd
 
         {-# INLINE get #-}
         get (ixDst, ixSegDst) (ixSegSrcBase, srcid)
          = let  !arr    = arrs `VS.unsafeIndex` srcid
                 !ix     = ixDst - ixSegDst + ixSegSrcBase
            in   arr `US.unsafeIndex` ix
+       
+       -- total length of the result
+        !dstLen    = UPSSegd.takeElements ssegd
          
-        result    = zipWithUP get
-                        (US.zip (enumFromToUP 0 (dstLen - 1))
-                                 startixs')
-                        (US.zip baseixs
-                                 srcids')
+   in   zipWithUP get
+                (US.zip (enumFromToUP 0 (dstLen - 1)) startixs')
+                (US.zip baseixs                       srcids')
 
-   in result
+
+
+
+
+
+
+
+

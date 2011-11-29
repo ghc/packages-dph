@@ -36,10 +36,10 @@ where
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
-import Data.Array.Parallel.Unlifted.Sequential.USegd    ()
-import Data.Array.Parallel.Unlifted.Sequential.USel     ()
-import Data.Array.Parallel.Unlifted.Sequential.USSegd   ()
-import Data.Array.Parallel.Unlifted.Sequential.UVSegd   ()
+import Data.Array.Parallel.Unlifted.Sequential.USegd            ()
+import Data.Array.Parallel.Unlifted.Sequential.USel             ()
+import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
+import Data.Array.Parallel.Unlifted.Sequential.UVSegd           ()
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
@@ -53,14 +53,7 @@ import Prelude hiding (zip)
 --       USegd.replicateWith / segmented replicate. There is a corresponding
 --       version of extractsSU in the parallel prim library.
 {-# INLINE_U extractsSU #-}
-extractsSU
-        :: Unbox a 
-        => V.Vector (Vector a) 
-        -> Vector Int  -- source ids
-        -> Vector Int  -- base indices
-        -> Vector Int  -- segment lengths
-        -> Vector a
-
+extractsSU :: Unbox a => V.Vector (Vector a) -> USSegd -> Vector a
 extractsSU = error "Data.Array.Parallel.Unlifted.Sequential.extractsSU: not implemented"
 
 {-

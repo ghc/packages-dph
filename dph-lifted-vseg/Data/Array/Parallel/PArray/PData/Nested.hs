@@ -356,12 +356,9 @@ instance PR a => PR (PArray a) where
   extractsPR (PNesteds arrs) ussegd
    = {-# SCC "extractsPR" #-}
      let segsrcs        = U.sourcesOfSSegd ussegd
-         segstarts      = U.startsOfSSegd  ussegd
          seglens        = U.lengthsOfSSegd ussegd
 
-         vsegids_src    = U.extract_ss (V.map pnested_vsegids  arrs)
-                                        segsrcs segstarts seglens
-
+         vsegids_src    = U.extract_ss (V.map pnested_vsegids arrs) ussegd
          srcids'        = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
          -- See Note: psrcoffset

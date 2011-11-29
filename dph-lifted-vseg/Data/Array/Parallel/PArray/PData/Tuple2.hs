@@ -103,24 +103,24 @@ instance (PR a, PR b) => PR (a, b) where
         = PTuple2 (indexsPR xs srcs ixs)
                   (indexsPR ys srcs ixs)
 
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len
         = PTuple2 (extractPR arr1 start len) 
                   (extractPR arr2 start len)
 
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE_PDATA extractsPR #-}
   extractsPR (PTuple2s xs ys) ussegd
         = PTuple2 (extractsPR xs ussegd)
                   (extractsPR ys ussegd)
 
 
   -- Pack and Combine ---------------------------
-  {-# NOINLINE packByTagPR #-}
+  {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PTuple2 arr1 arr2) tags tag
         = PTuple2 (packByTagPR arr1 tags tag)
                   (packByTagPR arr2 tags tag)
 
-  {-# NOINLINE combine2PR #-}
+  {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PTuple2 xs1 ys1) (PTuple2 xs2 ys2)
         = PTuple2 (combine2PR sel xs1 xs2)
                   (combine2PR sel ys1 ys2)

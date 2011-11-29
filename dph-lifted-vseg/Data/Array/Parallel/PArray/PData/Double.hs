@@ -92,11 +92,8 @@ instance PR Double where
         = PDouble (U.extract arr start len)
 
   {-# NOINLINE extractsPR #-}
-  extractsPR (PDoubles vecpdatas) ussegd
-   = let segsrcs        = U.sourcesOfSSegd ussegd
-         segstarts      = U.startsOfSSegd  ussegd
-         seglens        = U.lengthsOfSSegd ussegd
-     in  PDouble (U.extract_ss vecpdatas segsrcs segstarts seglens)
+  extractsPR (PDoubles arrs) ssegd
+        = PDouble (U.extract_ss arrs ssegd)
                 
 
   -- Pack and Combine ---------------------------

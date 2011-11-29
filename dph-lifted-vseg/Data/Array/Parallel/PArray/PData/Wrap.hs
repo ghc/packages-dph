@@ -79,21 +79,21 @@ instance PA a => PR (Wrap a) where
   indexsPR (PWraps pdatas) srcs ixs
         = PWrap $ indexsPA pdatas srcs ixs
 
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PWrap xs) ix n
         = PWrap $ extractPA xs ix n
         
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE_PDATA extractsPR #-}
   extractsPR (PWraps pdatas) ssegd
         = PWrap $ extractsPA pdatas ssegd
 
 
   -- Pack and Combine ---------------------------
-  {-# NOINLINE packByTagPR #-}
+  {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PWrap xs) tags tag
         = PWrap $ packByTagPA xs tags tag
 
-  {-# NOINLINE combine2PR #-}
+  {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PWrap xs) (PWrap ys)
         = PWrap $ combine2PA sel xs ys
 

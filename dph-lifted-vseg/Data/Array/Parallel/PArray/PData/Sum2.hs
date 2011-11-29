@@ -251,15 +251,12 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   extractsPR (PSum2s sels pdatas0 pdatas1) ssegd
    = let                
          tagss          = V.map U.tagsSel2 sels
-         sources        = U.sourcesOfSSegd ssegd
-         starts         = U.startsOfSSegd  ssegd
-         lengths        = U.lengthsOfSSegd  ssegd
 
          -- Extract the tags of the result elements,
          --  and rebuild the result selector indices based on these tags.
          -- tags'       = [1     1     0     0     1     1     0      0     1]
          -- sel'        = [0     1     0     1     2     3     2      3     4]   
-         tags'          = U.extract_ss tagss sources starts lengths
+         tags'          = U.extract_ss tagss ssegd
          sel'           = U.tagsToSel2 tags'
 
          -- Extract the indices of the data elements we want.
@@ -267,7 +264,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          -- (result)      [R 60, R 70, L 80, L 20, R 30, R 90, L 100, L 40, R 50]
          --                ----------------0 ----------1 -----------2 ----3 ----4
          -- indices'    = [  1     2     0     0     0     3     1      1     0 ]
-         indices'       = U.extract_ss (V.map U.indicesSel2 sels) sources starts lengths
+         indices'       = U.extract_ss (V.map U.indicesSel2 sels) ssegd
 
          -- Count the number of L and R elements for each segment,
          --  then scan them to produce the starting index of each segment in the
@@ -343,8 +340,15 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          --  ALTS0:      [80  20  100  40 ]
          --  ALTS1:      [60  70   30  90 50]
 
-         pdata0         = extractsPR pdatas0 $ U.mkSSegd starts0 sources (U.lengthsToSegd lens0)
-         pdata1         = extractsPR pdatas1 $ U.mkSSegd starts1 sources (U.lengthsToSegd lens1)
+         pdata0         = extractsPR pdatas0 
+                        $ U.mkSSegd starts0
+                                (U.sourcesOfSSegd ssegd)
+                                (U.lengthsToSegd lens0)
+
+         pdata1         = extractsPR pdatas1 
+                        $ U.mkSSegd starts1 
+                                (U.sourcesOfSSegd ssegd)
+                                (U.lengthsToSegd lens1)
 
      in {- trace (render $ vcat 
                         [ text "tags'       = " <> pprp tags'

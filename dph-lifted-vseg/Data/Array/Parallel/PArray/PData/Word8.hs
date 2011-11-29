@@ -84,24 +84,21 @@ instance PR Word8 where
    where get !src !ix
                 = (pvecs `V.unsafeIndex` src) `U.unsafeIndex` ix
 
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PWord8 arr) start len 
         = PWord8 (U.extract arr start len)
 
-  {-# NOINLINE extractsPR #-}
-  extractsPR (PWord8s vecpdatas) ussegd
-   = let segsrcs        = U.sourcesOfSSegd ussegd
-         segstarts      = U.startsOfSSegd  ussegd
-         seglens        = U.lengthsOfSSegd ussegd
-     in  PWord8 $ U.extract_ss vecpdatas segsrcs segstarts seglens
+  {-# INLINE_PDATA extractsPR #-}
+  extractsPR (PWord8s arrs) ssegd
+        = PWord8 $ U.extract_ss arrs ssegd
 
 
   -- Pack and Combine ---------------------------
-  {-# NOINLINE packByTagPR #-}
+  {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PWord8 arr1) arrTags tag
         = PWord8 $ U.packByTag arr1 arrTags tag
 
-  {-# NOINLINE combine2PR #-}
+  {-# INLINE_PDATA combine2PR #-}
   combine2PR sel (PWord8 arr1) (PWord8 arr2)
         = PWord8 $ U.combine2 (U.tagsSel2 sel)
                            (U.repSel2  sel)
