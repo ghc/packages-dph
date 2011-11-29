@@ -25,10 +25,10 @@ import Control.Monad
 
 -- Config ---------------------------------------------------------------------
 debugLiftedTrace        :: Bool
-debugLiftedTrace        = True
+debugLiftedTrace        = False
 
 debugLiftedCompare      :: Bool
-debugLiftedCompare      = True
+debugLiftedCompare      = False
 
 class Similar a where
  similar :: a -> a -> Bool
