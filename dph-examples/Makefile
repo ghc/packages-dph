@@ -15,7 +15,6 @@ DPH_DEPENDS = \
 
 # Options for compiling DPH examples.
 DPH_OPTIONS= \
-	-dcore-lint \
         -rtsopts \
         -threaded \
 	-fllvm \
