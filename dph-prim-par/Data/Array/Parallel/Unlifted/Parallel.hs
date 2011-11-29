@@ -73,6 +73,8 @@ import qualified Data.Vector                                    as VS
 
 -- | O(n). Segmented extract.
 
+-- TODO: make a uvsegd version that backs off to this one if the uvsegd is manifest.
+--
 -- TODO: zip srcids ixBase and startsix before calling replicate_s
 --       don't want to replicate_s multiple times on same segd.
 --
@@ -90,28 +92,28 @@ extractsUP
         -> Vector Int           -- ^ Length of each segment.
         -> Vector a
 
-extractsUP arrs srcids ixBase lens 
+extractsUP !arrs !srcids !ixBase !lens 
  = let -- total length of the result
-        dstLen    = sumUP lens
-        segd      = UPSegd.fromLengths lens
+        !dstLen    = sumUP lens
+        !segd      = UPSegd.fromLengths lens
     
         -- source array ids to load from
-        srcids'   = UPSegd.replicateWithP segd srcids
+        !srcids'   = UPSegd.replicateWithP segd srcids
 
         -- base indices in the source array to load from
-        baseixs   = UPSegd.replicateWithP segd ixBase
+        !baseixs   = UPSegd.replicateWithP segd ixBase
         
         -- starting indices for each of the segments
-        startixs  = scanUP (+) 0 lens
+        !startixs  = scanUP (+) 0 lens
           
         -- starting indices for each of the segments in the result
-        startixs' = UPSegd.replicateWithP segd startixs
+        !startixs' = UPSegd.replicateWithP segd startixs
 
         {-# INLINE get #-}
         get (ixDst, ixSegDst) (ixSegSrcBase, srcid)
-         = let  !arr    = arrs VS.! srcid                        -- TODO: use unsafeIndex
+         = let  !arr    = arrs `VS.unsafeIndex` srcid
                 !ix     = ixDst - ixSegDst + ixSegSrcBase
-           in   arr US.! ix                                    -- TODO unsafe unsafeIndex
+           in   arr `US.unsafeIndex` ix
          
         result    = zipWithUP get
                         (US.zip (enumFromToUP 0 (dstLen - 1))

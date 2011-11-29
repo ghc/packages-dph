@@ -42,7 +42,6 @@ import qualified Data.Vector                                    as V
 import qualified Data.Vector.Fusion.Stream                      as S
 import qualified Data.Vector.Fusion.Stream.Size                 as S
 import qualified Data.Vector.Fusion.Stream.Monadic              as M
-import qualified Data.Vector.Unboxed            as VU
 
 
 -- USSegd ---------------------------------------------------------------------
@@ -217,8 +216,8 @@ getSeg (USSegd _ starts sources usegd) ix
  = let  (len, index) = USegd.getSeg usegd ix
    in   ( len
         , index
-        , starts  U.! ix
-        , sources U.! ix)
+        , starts  `U.unsafeIndex` ix
+        , sources `U.unsafeIndex` ix)
 {-# INLINE_U getSeg #-}
 
 
@@ -233,7 +232,7 @@ appendWith
         -> USSegd
 appendWith
         (USSegd _ starts1 srcs1 usegd1) pdatas1
-       (USSegd _ starts2 srcs2 usegd2) _
+        (USSegd _ starts2 srcs2 usegd2) _
         = USSegd False
                  (starts1  U.++  starts2)
                  (srcs1    U.++  U.map (+ pdatas1) srcs2)
@@ -292,7 +291,7 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
         -- 
         --      vsegids':       [0 1 1 2 3 3 4 4]
         --
-        vsegids'  = U.map (psegids_map U.!) vsegids
+        vsegids'  = U.map (U.unsafeIndex psegids_map) vsegids
 
         -- Rebuild the usegd.
         starts'   = U.pack starts  psegids_used
@@ -343,15 +342,15 @@ streamSegs ussegd@(USSegd _ starts sources usegd) pdatas
          = return $ S.Done
          
          -- Current pseg is done
-         | ix   >= pseglens `VU.unsafeIndex` pseg 
+         | ix   >= pseglens `U.unsafeIndex` pseg 
          = return $ S.Skip (pseg + 1, 0)
 
          -- Stream an element from this pseg
          | otherwise
-         = let  !srcid   = sources `VU.unsafeIndex` pseg
-                !pdata   = pdatas   `V.unsafeIndex` srcid
-                !start   = starts  `VU.unsafeIndex` pseg
-                !result  = pdata   `VU.unsafeIndex` (start + ix)
+         = let  !srcid   = sources `U.unsafeIndex` pseg
+                !pdata   = pdatas  `V.unsafeIndex` srcid
+                !start   = starts  `U.unsafeIndex` pseg
+                !result  = pdata   `U.unsafeIndex` (start + ix)
            in   return $ S.Yield result (pseg, ix + 1)
 
    in   M.Stream fn (0, 0) S.Unknown

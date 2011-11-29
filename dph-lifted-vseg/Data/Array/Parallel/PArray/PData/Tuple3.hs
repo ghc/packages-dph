@@ -16,10 +16,10 @@ import qualified Prelude                        as P
 
 -------------------------------------------------------------------------------
 data instance PData (a, b, c)
-        = PTuple3  (PData a) (PData b) (PData c)
+        = PTuple3  !(PData a)  !(PData b)  !(PData c)
 
 data instance PDatas (a, b, c)
-        = PTuple3s (PDatas a) (PDatas b) (PDatas c)
+        = PTuple3s !(PDatas a) !(PDatas b) !(PDatas c)
 
 
 -- PR -------------------------------------------------------------------------

@@ -13,7 +13,7 @@ import Data.Array.Parallel.Pretty
 
 -------------------------------------------------------------------------------
 data instance PData Word8
-        = PWord8 !(U.Array Word8)
+        = PWord8  !(U.Array Word8)
 
 data instance PDatas Word8
         = PWord8s !(V.Vector (U.Array Word8))
@@ -76,13 +76,13 @@ instance PR Word8 where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PWord8 uarr) ix
-        = uarr U.!: ix
+        = uarr `U.unsafeIndex` ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PWord8s pvecs) (PInt srcs) (PInt ixs)
    = PWord8 $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs V.! src) U.!: ix
+                = (pvecs `V.unsafeIndex` src) `U.unsafeIndex` ix
 
   {-# NOINLINE extractPR #-}
   extractPR (PWord8 arr) start len 
@@ -133,7 +133,7 @@ instance PR Word8 where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PWord8s vec) ix
-        = PWord8 $ vec V.! ix
+        = PWord8 $ vec `V.unsafeIndex` ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PWord8s xs) (PWord8s ys)

@@ -14,10 +14,10 @@ import qualified Data.Vector                    as V
 --   and rely on coversPR to check that indices are in bounds, like we do
 --   with arrays of type PData Void.
 data instance PData ()
-        = PUnit Int
+        = PUnit  !Int
 
 data instance PDatas ()
-        = PUnits (U.Array Int)
+        = PUnits !(U.Array Int)
 
 punit   :: Int -> PData ()
 punit   = PUnit
@@ -131,7 +131,7 @@ instance PR () where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PUnits pdatas) ix
-        = PUnit $ pdatas U.!: ix
+        = PUnit $ pdatas `U.unsafeIndex` ix
         
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PUnits lens1) (PUnits lens2)

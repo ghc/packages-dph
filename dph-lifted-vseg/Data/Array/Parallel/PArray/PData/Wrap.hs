@@ -10,7 +10,7 @@ import qualified Data.Vector                    as V
 
 -------------------------------------------------------------------------------
 newtype instance PData (Wrap a)
-        = PWrap (PData a)
+        = PWrap  (PData a)
 
 newtype instance PDatas (Wrap a)
         = PWraps (PDatas a)

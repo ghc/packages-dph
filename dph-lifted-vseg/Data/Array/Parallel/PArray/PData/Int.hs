@@ -67,13 +67,13 @@ instance PR Int where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PInt uarr) ix
-        = uarr U.!: ix
+        = uarr `U.unsafeIndex` ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PInts pvecs) (PInt srcs) (PInt ixs)
    = PInt $ U.zipWith get srcs ixs
    where get !src !ix
-                = (pvecs V.! src) U.!: ix         -- SAFE INDEXING SIMPLIFIER BUG WORKAROUND
+                = (pvecs `V.unsafeIndex` src) `U.unsafeIndex` ix
 
   {-# NOINLINE extractPR #-}
   extractPR (PInt arr) start len 
@@ -125,7 +125,7 @@ instance PR Int where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PInts vec) ix
-        = PInt $ vec V.! ix
+        = PInt $ vec `V.unsafeIndex` ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PInts xs) (PInts ys)

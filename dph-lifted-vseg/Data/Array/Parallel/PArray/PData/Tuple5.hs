@@ -17,10 +17,10 @@ import qualified Data.List                      as P
 
 -------------------------------------------------------------------------------
 data instance PData (a, b, c, d, e)
-        = PTuple5  (PData a) (PData b) (PData c) (PData d) (PData e)
+        = PTuple5  !(PData a)  !(PData b)  !(PData c)  !(PData d)  !(PData e)
 
 data instance PDatas (a, b, c, d, e)
-        = PTuple5s (PDatas a) (PDatas b) (PDatas c) (PDatas d) (PDatas e)
+        = PTuple5s !(PDatas a) !(PDatas b) !(PDatas c) !(PDatas d) !(PDatas e)
 
 
 -- PR -------------------------------------------------------------------------

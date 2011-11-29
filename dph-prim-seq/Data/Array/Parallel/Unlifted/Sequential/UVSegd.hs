@@ -42,8 +42,7 @@ import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
-
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 
@@ -59,7 +58,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 data UVSegd 
         = UVSegd 
         { uvsegd_manifest       :: !Bool
-          -- ^ When the vsegids field holds a lazy @(V.enumFromTo 0 (len - 1))@
+          -- ^ When the vsegids field holds a lazy @(U.enumFromTo 0 (len - 1))@
           --   then this field is True. This lets us perform some operations like
           --   `demoteToUPSSegd` without actually creating it.
           
@@ -75,7 +74,7 @@ data UVSegd
 instance PprPhysical UVSegd where
  pprp (UVSegd _ vsegids ussegd)
   = vcat
-  [ text "UVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ V.toList vsegids))
+  [ text "UVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ U.toList vsegids))
   , pprp ussegd ]
 
 
@@ -85,7 +84,7 @@ instance PprPhysical UVSegd where
 --   * TODO: check that all vsegs point to a valid pseg
 valid :: UVSegd -> Bool
 valid (UVSegd _ vsegids ussegd)
-        = V.length vsegids == USSegd.length ussegd
+        = U.length vsegids == USSegd.length ussegd
 {-# NOINLINE valid #-}
 --  NOINLINE because it's only enabled during debugging anyway.
 
@@ -110,7 +109,7 @@ mkUVSegd = UVSegd False
 fromUSSegd :: USSegd -> UVSegd
 fromUSSegd ussegd
         = UVSegd True
-                 (V.enumFromTo 0 (USSegd.length ussegd - 1))
+                 (U.enumFromTo 0 (USSegd.length ussegd - 1))
                  ussegd
 {-# INLINE_U fromUSSegd #-}
 
@@ -128,7 +127,7 @@ fromUSegd
 
 -- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: UVSegd
-empty   = UVSegd True V.empty USSegd.empty
+empty   = UVSegd True U.empty USSegd.empty
 {-# INLINE_U empty #-}
 
 
@@ -137,7 +136,7 @@ empty   = UVSegd True V.empty USSegd.empty
 --   with sourceid 0.
 singleton :: Int -> UVSegd
 singleton n 
-        = UVSegd True (V.singleton 0) (USSegd.singleton n)
+        = UVSegd True (U.singleton 0) (USSegd.singleton n)
 {-# INLINE_U singleton #-}
 
 
@@ -182,14 +181,14 @@ takeUSSegd      = uvsegd_ussegd
 
 -- | O(1). Yield the overall number of segments described by a `UVSegd`.
 length :: UVSegd -> Int
-length          = V.length . uvsegd_vsegids
+length          = U.length . uvsegd_vsegids
 {-# INLINE length #-}
 
 
 -- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
 takeLengths (UVSegd _ vsegids ussegd)
-        = V.map (USSegd.takeLengths ussegd V.!) vsegids
+        = U.map (U.unsafeIndex (USSegd.takeLengths ussegd)) vsegids
 {-# INLINE_U takeLengths #-}
 
 
@@ -202,7 +201,8 @@ takeLengths (UVSegd _ vsegids ussegd)
 --
 getSeg :: UVSegd -> Int -> (Int, Int, Int)
 getSeg (UVSegd _ vsegids ussegd) ix
- = let  (len, _index, start, source) = USSegd.getSeg ussegd (vsegids V.! ix)
+ = let  (len, _index, start, source) 
+                = USSegd.getSeg ussegd (vsegids `U.unsafeIndex` ix)
    in   (len, start, source)
 {-# INLINE_U getSeg #-}
 
@@ -253,9 +253,9 @@ updateVSegsReachable fUpdate (UVSegd _ vsegids upssegd)
 -- 
 demoteToUSSegd :: UVSegd -> USSegd
 demoteToUSSegd (UVSegd _ vsegids ussegd)
- = let  starts'         = V.bpermute (USSegd.takeStarts  ussegd)  vsegids
-        sources'        = V.bpermute (USSegd.takeSources ussegd) vsegids
-        lengths'        = V.bpermute (USSegd.takeLengths ussegd) vsegids
+ = let  starts'         = U.bpermute (USSegd.takeStarts  ussegd)  vsegids
+        sources'        = U.bpermute (USSegd.takeSources ussegd) vsegids
+        lengths'        = U.bpermute (USSegd.takeLengths ussegd) vsegids
         usegd'          = USegd.fromLengths lengths'
    in   USSegd.mkUSSegd starts' sources' usegd'
 {-# NOINLINE demoteToUSSegd #-}
@@ -276,7 +276,7 @@ demoteToUSSegd (UVSegd _ vsegids ussegd)
 unsafeDemoteToUSegd :: UVSegd -> USegd
 unsafeDemoteToUSegd (UVSegd _ vsegids ussegd)
         = USegd.fromLengths
-        $ V.bpermute (USSegd.takeLengths ussegd) vsegids
+        $ U.bpermute (USSegd.takeLengths ussegd) vsegids
 {-# NOINLINE unsafeDemoteToUSegd #-}
 --  NOINLINE because it won't fuse with anything.
 
@@ -326,10 +326,10 @@ appendWith
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
-        vsegids2' = V.map (+ USSegd.length ussegd1) vsegids2
+        vsegids2' = U.map (+ USSegd.length ussegd1) vsegids2
         
         -- append the vsegids
-        vsegids'  = vsegids1' V.++ vsegids2'
+        vsegids'  = vsegids1' U.++ vsegids2'
 
         -- All data from the source arrays goes into the result
         ussegd'   = USSegd.appendWith
@@ -386,10 +386,10 @@ combine2  usel2
 
  = let  -- vsegids relative to combined psegs
         vsegids1' = vsegids1
-        vsegids2' = V.map (+ (V.length vsegids1)) vsegids2
+        vsegids2' = U.map (+ (U.length vsegids1)) vsegids2
 
         -- combine the vsegids
-        vsegids'  = V.combine2ByTag (tagsUSel2 usel2)
+        vsegids'  = U.combine2ByTag (tagsUSel2 usel2)
                                     vsegids1' vsegids2'
 
          -- All data from the source arrays goes into the result

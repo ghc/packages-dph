@@ -47,7 +47,6 @@ import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
-
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSel    as UPSel
@@ -258,7 +257,7 @@ takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 takeLengths :: UPVSegd -> Vector Int
 takeLengths (UPVSegd manifest _ vsegids _ upssegd)
  | manifest     = UPSSegd.takeLengths upssegd
- | otherwise    = US.map (UPSSegd.takeLengths upssegd US.!) vsegids
+ | otherwise    = US.map (US.unsafeIndex (UPSSegd.takeLengths upssegd)) vsegids
 {-# NOINLINE takeLengths #-}
 --  NOINLINE because we don't want a case expression due to the test on the 
 --  manifest flag to appear in the core program.
@@ -276,7 +275,7 @@ getSeg upvsegd ix
  = let  vsegids = upvsegd_vsegids_redundant upvsegd
         upssegd = upvsegd_upssegd_redundant upvsegd
         (len, _index, start, source)
-                = UPSSegd.getSeg upssegd (vsegids US.! ix)
+                = UPSSegd.getSeg upssegd (vsegids `US.unsafeIndex` ix)
    in   (len, start, source)
 {-# INLINE_UP getSeg #-}
 

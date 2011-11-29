@@ -135,8 +135,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   
   {-# INLINE_PDATA indexPR #-}
   indexPR (PSum2 sel as bs) i
-   = let !k = U.indicesSel2 sel U.!: i
-     in  case U.tagsSel2 sel U.!: i of
+   = let !k = U.indicesSel2 sel `U.unsafeIndex` i
+     in  case U.tagsSel2    sel `U.unsafeIndex` i of
              0 -> Alt2_1 (indexPR as k)
              _ -> Alt2_2 (indexPR bs k)
 
@@ -144,9 +144,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   indexsPR (PSum2s sels ass bss) psrcs@(PInt srcs) (PInt ixs)
    = let 
          getFlagIndex !src !ix
-          = let !sel        = sels                V.!  src
-                !elemFlag   = (U.tagsSel2    sel) U.!: ix
-                !elemIndex  = (U.indicesSel2 sel) U.!: ix
+          = let !sel        = sels                `V.unsafeIndex` src
+                !elemFlag   = (U.tagsSel2    sel) `U.unsafeIndex` ix
+                !elemIndex  = (U.indicesSel2 sel) `U.unsafeIndex` ix
             in  (elemFlag, elemIndex)
             
          (flags', indices')
@@ -307,7 +307,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          -- starts0     = [ 0 0 1 1 0 ]
          sel0           = U.packByTag indices' tags' 0
          sel0_len       = U.length sel0
-         starts0        = U.map (\i -> if i >= sel0_len then 0 else sel0 U.!: i) indices0
+         starts0        = U.map (\i -> if i >= sel0_len
+                                        then 0 
+                                        else sel0 `U.unsafeIndex` i) indices0
 
          -- indices1    = [ 0 2 3 3 4 ] (from above)
          -- sel1        = [ 1 2 0 3 0 ]
@@ -315,7 +317,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          -- starts1     = [ 1 0 3 3 0 ]
          sel1           = U.packByTag indices' tags' 1
          sel1_len       = U.length sel1
-         starts1        = U.map (\i -> if i >= sel1_len then 0 else sel1 U.!: i) indices1
+         starts1        = U.map (\i -> if i >= sel1_len
+                                        then 0
+                                        else sel1 `U.unsafeIndex` i) indices1
 
          -- Extract the final alts data:
          -- sources     = [ 1 0 1 0 1 ] (from above)
@@ -456,7 +460,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
   {-# INLINE_PDATA indexdPR #-}
   indexdPR  (PSum2s sel2s xss yss) ix
-   = PSum2  (sel2s V.! ix)
+   = PSum2  (sel2s `V.unsafeIndex` ix)
             (indexdPR      xss   ix)
             (indexdPR      yss   ix)
 

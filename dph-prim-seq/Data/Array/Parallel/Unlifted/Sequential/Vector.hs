@@ -30,13 +30,18 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   interleave, indexed, repeat, repeatS,
 
   -- * Subarrays
-  slice, extract,
+  slice,   unsafeSlice,
+  extract, unsafeExtract,
   tail,
   take, drop, splitAt,
 
   -- * Permutations
-  permute, bpermute, mbpermute, bpermuteDft, reverse, update,
-
+  permute,
+  bpermute,
+  mbpermute,
+  bpermuteDft,
+  reverse,
+  update,
 
   -- * Higher-order operations
   map, zipWith, zipWith3,
@@ -55,10 +60,10 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   and, or, any, all,
 
   -- * Arithmetic operations
-  sum, product,
-  maximum, minimum,
-  maximumBy, minimumBy,
-  maxIndex, minIndex,
+  sum,        product,
+  maximum,    minimum,
+  maximumBy,  minimumBy,
+  maxIndex,   minIndex,
   maxIndexBy, minIndexBy,
 
   -- * Arrays of pairs
@@ -66,7 +71,11 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   zip3, unzip3,
 
   -- * Enumerations
-  enumFromTo, enumFromThenTo, enumFromStepLen, enumFromToEach, enumFromStepLenEach,
+  enumFromTo,
+  enumFromThenTo,
+  enumFromStepLen,
+  enumFromToEach,
+  enumFromStepLenEach,
 
   -- * Searching
   find, findIndex,
@@ -91,22 +100,22 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
 
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Base ( Tag, checkEq, ST )
+import qualified Data.Vector.Unboxed            as V
+import qualified Data.Vector.Unboxed.Mutable    as M
+import qualified Data.Vector.Unboxed.Base       as VBase
+import qualified Data.Vector.Generic            as G
+import qualified Data.Vector.Generic.Mutable    as MG
+import qualified Data.Vector.Storable           as Storable
+import qualified Data.Vector.Storable.Mutable   as MStorable
+import qualified Data.Vector.Generic.New        as New
+import qualified Data.Vector.Fusion.Stream      as S
+import Data.Vector.Fusion.Stream.Monadic        ( Stream(..), Step(..) )
+import Data.Vector.Fusion.Stream.Size           ( Size(..) )
+import Data.Vector.Generic                      ( stream, unstream )
 
 import Data.Vector.Unboxed 
-        hiding ( slice, zip, unzip, zip3, unzip3, foldl, foldl1, scanl, scanl1 )
-
-import qualified Data.Vector.Unboxed as V
-import qualified Data.Vector.Unboxed.Mutable as M
-import qualified Data.Vector.Unboxed.Base as VBase
-import Data.Vector.Generic ( stream, unstream )
-import qualified Data.Vector.Generic as G
-import qualified Data.Vector.Generic.Mutable as MG
-import qualified Data.Vector.Storable as Storable
-import qualified Data.Vector.Storable.Mutable as MStorable
-import qualified Data.Vector.Generic.New as New
-import qualified Data.Vector.Fusion.Stream as S
-import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
-import Data.Vector.Fusion.Stream.Size ( Size(..) )
+        hiding ( slice, zip, unzip, zip3, unzip3, foldl, foldl1, scanl, scanl1,
+                 unsafeSlice )
 
 import Prelude 
         hiding ( length, null,
@@ -172,14 +181,28 @@ repeatS k !xs = Stream next (0,k) (Exact (k*n))
                | otherwise = return $ Yield (unsafeIndex xs i) (i+1,k)
 
 
+-- Take a sub-range of a vector, avoiding copying.
 slice :: Unbox a => Vector a -> Int -> Int -> Vector a
 {-# INLINE_U slice #-}
 slice xs i n = V.slice i n xs
 
 
+-- Take a sub-range of a vector, avoiding copying, without bounds checks.
+unsafeSlice :: Unbox a => Vector a -> Int -> Int -> Vector a
+{-# INLINE_U unsafeSlice #-}
+unsafeSlice xs i n = V.unsafeSlice i n xs
+
+
+-- Copy out a subrange of a vector.
 extract :: Unbox a => Vector a -> Int -> Int -> Vector a
 {-# INLINE_U extract #-}
 extract xs i n = force (V.slice i n xs)
+
+
+-- Copy out a subrange of a vector, without bounds checks.
+unsafeExtract :: Unbox a => Vector a -> Int -> Int -> Vector a
+{-# INLINE_U unsafeExtract #-}
+unsafeExtract xs i n = force (V.unsafeSlice i n xs)
 
 
 mupdate :: Unbox e => MVector s e -> Vector (Int,e) -> ST s ()

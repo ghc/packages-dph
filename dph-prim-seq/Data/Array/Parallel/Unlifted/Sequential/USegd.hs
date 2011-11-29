@@ -20,7 +20,7 @@ module Data.Array.Parallel.Unlifted.Sequential.USegd (
   -- * Operations
   append, slice, extract
 ) where
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
@@ -30,7 +30,7 @@ import Prelude                                                  hiding (length)
 --   of elements.
 --  
 --   The defined array is an array of segments, where every segment covers some
---   of the elements from the flat array.
+--   of the elements from the flU.at array.
 --
 --   /INVARIANT:/ The segment starting indices must be monotonically increasing,
 --   and all elements from the flat array must be covered by some segment.
@@ -59,8 +59,8 @@ instance PprPhysical USegd where
  pprp (USegd lengths indices elements)
   =   text "USegd" 
   $$  (nest 7 $ vcat
-        [ text "lengths: " <+> (text $ show $ V.toList lengths)
-        , text "indices: " <+> (text $ show $ V.toList indices)
+        [ text "lengths: " <+> (text $ show $ U.toList lengths)
+        , text "indices: " <+> (text $ show $ U.toList indices)
         , text "elements:" <+> (text $ show elements)])
 
 
@@ -90,7 +90,7 @@ valid usegd@(USegd lengths _ _)
 
 -- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: USegd
-empty   = USegd V.empty V.empty 0
+empty   = USegd U.empty U.empty 0
 {-# INLINE_U empty #-}
 
 
@@ -98,7 +98,7 @@ empty   = USegd V.empty V.empty 0
 --   The single segment covers the given number of elements.
 singleton :: Int -> USegd
 singleton n
-        = USegd (V.singleton n) (V.singleton 0) n
+        = USegd (U.singleton n) (U.singleton 0) n
 {-# INLINE_U singleton #-}
 
 
@@ -108,7 +108,7 @@ singleton n
 --   indices from that.
 fromLengths :: Vector Int -> USegd
 fromLengths lens
-        = USegd lens (V.scanl (+) 0 lens) (V.sum lens)
+        = USegd lens (U.scanl (+) 0 lens) (U.sum lens)
 {-# INLINE_U fromLengths #-}
 
 
@@ -117,7 +117,7 @@ fromLengths lens
 
 -- | O(1). Yield the overall number of segments.
 length :: USegd -> Int
-length          = V.length . usegd_lengths
+length          = U.length . usegd_lengths
 {-# INLINE length #-}
 
 
@@ -142,8 +142,8 @@ takeElements    = usegd_elements
 -- | O(1). Get the length and segment index of a segment
 getSeg :: USegd -> Int -> (Int, Int)
 getSeg (USegd lengths indices _ ) ix
- =      ( lengths V.! ix
-        , indices V.! ix)
+ =      ( lengths `U.unsafeIndex` ix
+        , indices `U.unsafeIndex` ix)
 {-# INLINE_U getSeg #-}
 
 
@@ -153,8 +153,8 @@ getSeg (USegd lengths indices _ ) ix
 append :: USegd -> USegd -> USegd
 append (USegd lengths1 indices1 elems1)
             (USegd lengths2 indices2 elems2)
- = USegd (lengths1 V.++ lengths2)
-         (indices1 V.++ V.map (+ elems1) indices2)
+ = USegd (lengths1 U.++ lengths2)
+         (indices1 U.++ U.map (+ elems1) indices2)
          (elems1 + elems2)
 {-# INLINE_U append #-}
 
@@ -173,7 +173,7 @@ slice
         -> Int          -- ^ Number of segments to slice out.
         -> USegd
 slice segd i n
-        = fromLengths $ V.slice (takeLengths segd) i n
+        = fromLengths $ U.unsafeSlice (takeLengths segd) i n
 {-# INLINE_U slice #-}
 
 
@@ -190,6 +190,6 @@ extract
         -> Int          -- ^ Number of segments to extract out.
         -> USegd
 extract segd i n 
-        = fromLengths $ V.extract (takeLengths segd) i n
+        = fromLengths $ U.extract (takeLengths segd) i n
 {-# INLINE_U extract #-}
 

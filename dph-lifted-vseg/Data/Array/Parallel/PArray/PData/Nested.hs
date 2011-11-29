@@ -22,7 +22,6 @@ import qualified Data.IntSet                    as IS
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import GHC.Exts
-import Debug.Trace
 
 -- TODO: Using plain V.Vector for the psegdata field means that operations on
 --       this field aren't parallelised. In particular, when we append two
@@ -289,12 +288,13 @@ instance PR a => PR (PArray a) where
 
          -- length, start and srcid of the segments we're returning.
          --   Note that we need to offset the srcid 
+         -- TODO: don't unbox the VSegd for every iteration.
          seginfo :: U.Array (Int, Int, Int)
          seginfo 
           = U.zipWith (\srcid ix -> 
                         let (PNested vsegd _)   = pdatas `indexdPR` srcid
                             (len, start, srcid') = U.getSegOfVSegd vsegd ix
-                        in  (len, start, srcid' + (psrcoffset V.! srcid)))
+                        in  (len, start, srcid' + (psrcoffset `V.unsafeIndex` srcid)))
                 srcids
                 ixs
 
@@ -377,10 +377,10 @@ instance PR a => PR (PArray a) where
          -- Function to get one element of the result.
          {-# INLINE get #-}
          get srcid vsegid
-          = let !pseglen        = (arrs_pseglens   V.! srcid) U.!: vsegid
-                !psegstart      = (arrs_psegstarts V.! srcid) U.!: vsegid
-                !psegsrcid      = (arrs_psegsrcids V.! srcid) U.!: vsegid  
-                                + psrcoffset V.! srcid
+          = let !pseglen        = (arrs_pseglens   `V.unsafeIndex` srcid) `U.unsafeIndex` vsegid
+                !psegstart      = (arrs_psegstarts `V.unsafeIndex` srcid) `U.unsafeIndex` vsegid
+                !psegsrcid      = (arrs_psegsrcids `V.unsafeIndex` srcid) `U.unsafeIndex` vsegid  
+                                + psrcoffset `V.unsafeIndex` srcid
             in  (pseglen, psegstart, psegsrcid)
             
          (pseglens', psegstarts', psegsrcs')
@@ -456,7 +456,7 @@ instance PR a => PR (PArray a) where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PNesteds vec) ix
-        = vec V.! ix
+        = vec `V.unsafeIndex` ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PNesteds xs) (PNesteds ys)
@@ -587,7 +587,7 @@ concatlPR arr
 
         ixs'            = U.map (\ix -> if ix >= len2
                                                 then 0
-                                                else ixs2 U.!: ix)
+                                                else ixs2 `U.unsafeIndex` ix)
                         $ ixs1
 
         segd'           = U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
