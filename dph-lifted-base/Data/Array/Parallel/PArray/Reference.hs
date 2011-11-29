@@ -14,19 +14,21 @@ module Data.Array.Parallel.PArray.Reference
         , withRef1, withRef2
         , toRef1,   toRef2,   toRef3)
 where
-import Debug.Trace
 import Data.Array.Parallel.Pretty
 import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Vector                    as V
 import Data.Vector                              (Vector)
 import Prelude hiding (length)
+import System.IO
+import System.IO.Unsafe
+import Control.Monad
 
 -- Config ---------------------------------------------------------------------
 debugLiftedTrace        :: Bool
-debugLiftedTrace        = False
+debugLiftedTrace        = True
 
 debugLiftedCompare      :: Bool
-debugLiftedCompare      = False
+debugLiftedCompare      = True
 
 class Similar a where
  similar :: a -> a -> Bool
@@ -44,6 +46,16 @@ class PprPhysical1 a where
 
 -- withRef --------------------------------------------------------------------
 -- | Compare the result of some array operator against a reference.
+
+--  Careful:
+--   * We don't want to inline the whole body of this function into
+--     every use site, or we'll get code explosion. When debugging is off we
+--     want this wrapper to be inlined and eliminated as cheaply as possible.
+--   * We also do this with 'unsafePerformIO' instead of trace, because
+--     with trace, if the computation contructing the string throws an exception
+--     then we get no output. For debugging we want to see what function was
+--     entered before we try to print the result (which might be badly formed),
+--
 withRef1 :: ( A.Array r a
             , A.Array c a, PprPhysical1 (c a)
             , Similar a,   PprPhysical1 a)
@@ -52,9 +64,6 @@ withRef1 :: ( A.Array r a
          -> c a                 -- result using vseg implementation
          -> c a
 
---  Careful: We don't want to inline the whole body of this function into
---  every use site, or we'll get code explosion. When debugging is off we
---  want this wrapper to be inlined and eliminated as cheaply as possible.
 {-# INLINE withRef1 #-}
 withRef1 name arrRef arrImpl
  = if debugLiftedCompare || debugLiftedTrace
@@ -63,31 +72,25 @@ withRef1 name arrRef arrImpl
         
 {-# NOINLINE withRef1' #-}
 withRef1' name arrRef arrImpl
- = let  trace'
-         = if debugLiftedTrace  
-            then trace (render $ text " " 
-                        $$ text name 
-                        $$ (nest 8 $ pprp1 arrImpl))
-            else id    
-
-        resultOk
-         = A.valid arrImpl
-             && A.length arrRef == A.length arrImpl
-             && (V.and 
-                  $ V.zipWith
-                        similar
-                        (A.toVectors1 arrRef)
-                        (A.toVectors1 arrImpl))
-              
-        resultFail
-         = error $ render $ vcat
+ = unsafePerformIO
+ $ do   when debugLiftedTrace
+         $ do putStrLn  $   render
+                        $   text "* " <> text name
+                        $+$ (nest 4 $ pprp1 arrImpl)
+              hFlush stdout
+        
+        when ( debugLiftedCompare 
+             && or [ not $ A.valid arrImpl
+                   , not $ A.length arrRef == A.length arrImpl
+                   , not $ V.and $ V.zipWith similar
+                                (A.toVectors1 arrRef)
+                                (A.toVectors1 arrImpl)])
+         $ error $ render $ vcat
                 [ text "withRef1: failure " <> text name
                 , nest 4 $ pprp1v $ A.toVectors1 arrRef
                 , nest 4 $ pprp1  $ arrImpl ]
 
-   in   trace' (if debugLiftedCompare
-                 then (if resultOk then arrImpl else resultFail)
-                 else arrImpl)
+        return arrImpl
 
 
 -- | Compare the nested result of some array operator against a reference.
@@ -109,28 +112,25 @@ withRef2 name arrRef arrImpl
 
 {-# NOINLINE withRef2' #-}
 withRef2' name arrRef arrImpl
- = let  trace'
-         = if debugLiftedTrace  
-            then trace (render $ text " " 
-                        $$ text name 
-                        $$ (nest 8 $ pprp1 arrImpl))
-            else id
+ = unsafePerformIO
+ $ do   when debugLiftedTrace
+         $ do putStrLn  $  render
+                        $  text "* " <> text name
+                        $+$ (nest 4 $ pprp1 arrImpl)
+              hFlush stdout
 
-        resultOK
-         = A.valid arrImpl
-           && A.length arrRef == A.length arrImpl
-           && (V.and $ V.zipWith 
-                (\xs ys -> V.and $ V.zipWith similar xs ys)
-                (A.toVectors2 arrRef) (A.toVectors2 arrImpl))
-        
-        resultFail
-         = error $ render $ vcat
+        when ( debugLiftedCompare
+             && or [ not $ A.valid arrImpl
+                   , not $ A.length arrRef == A.length arrImpl
+                   , not $ V.and $ V.zipWith 
+                                (\xs ys -> V.and $ V.zipWith similar xs ys)
+                                (A.toVectors2 arrRef)
+                                (A.toVectors2 arrImpl) ])
+         $ error $ render $ vcat
                 [ text "withRef2: failure " <> text name
                 , nest 4 $ pprp1 arrImpl ]
 
-   in   trace' (if debugLiftedCompare
-                 then (if resultOK then arrImpl else resultFail)
-                 else arrImpl)
+        return arrImpl
 
 
 -- toRef ----------------------------------------------------------------------
