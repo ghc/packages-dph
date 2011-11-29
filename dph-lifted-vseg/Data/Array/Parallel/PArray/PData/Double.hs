@@ -12,6 +12,7 @@ import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 
+
 -------------------------------------------------------------------------------
 data instance PData Double
         = PDouble !(U.Array Double)
@@ -83,7 +84,7 @@ instance PR Double where
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PDoubles pvecs) (PInt srcs) (PInt ixs)
    = PDouble $ U.zipWith get srcs ixs
-   where get !ix !src    = (pvecs V.! src) U.!: ix     -- SAFE INDEXING SIMPLIFIER BUG WORKAROUND
+   where get !src !ix   = (pvecs V.! src) U.!: ix     -- SAFE INDEXING SIMPLIFIER BUG WORKAROUND
 
 
   {-# NOINLINE extractPR #-}
