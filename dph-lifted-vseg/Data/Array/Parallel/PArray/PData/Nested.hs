@@ -62,6 +62,7 @@ mkPNested vsegids pseglens psegstarts psegsrcids psegdata
                         $ U.mkSSegd psegstarts psegsrcids
                         $ U.lengthsToSegd pseglens)
                 psegdata
+{-# INLINE_PDATA mkPNested #-}
 
 
 -- Old projection functions. 
@@ -193,6 +194,7 @@ instance PR a => PR (PArray a) where
 
   -- When replicating an array we use the source as the single physical
   -- segment, then point all the virtual segments to it.
+  {-# INLINE_PDATA replicatePR #-}
   replicatePR c (PArray n# darr)
    = {-# SCC "replicatePR" #-}
      checkNotEmpty "replicatePR[PArray]" c
@@ -203,9 +205,6 @@ instance PR a => PR (PArray a) where
          uvsegd  = U.mkVSegd (U.replicate c 0) ussegd
 
      in  PNested uvsegd $ singletondPR darr
-  {-# NOINLINE replicatePR #-}
-  --  NOINLINE because it's a cheap segment descriptor operation, 
-  --  and doesn't need to fuse with anything.
                 
 
   -- For segmented replicates, we just replicate the vsegids field.
@@ -216,7 +215,7 @@ instance PR a => PR (PArray a) where
   -- TODO: If we know the lens does not contain zeros, then we don't need
   --       to cull down the psegs.
   --
-  {-# NOINLINE replicatesPR #-}
+  {-# INLINE_PDATA replicatesPR #-}
   replicatesPR segd (PNested uvsegd pdata)
    = PNested (U.updateVSegsOfVSegd
                 (\vsegids -> U.replicate_s segd vsegids) uvsegd)
@@ -316,7 +315,7 @@ instance PR a => PR (PArray a) where
   -- To extract a range of elements from a nested array, perform the extract
   -- on the vsegids field. The `updateVSegsOfUVSegd` function will then filter
   -- out all of the psegs that are no longer reachable from the new vsegids.
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PNested uvsegd pdata) start len
    = {-# SCC "extractPR" #-}
      PNested (U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd)
@@ -402,7 +401,7 @@ instance PR a => PR (PArray a) where
   --      vsegids:        [0 0 1 1 2 2 2 2 3 3 4 4 4 5 5 5 5 6 6]
   --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
   --       
-  {-# NOINLINE packByTagPR #-}
+  {-# INLINE_PDATA packByTagPR #-}
   packByTagPR (PNested uvsegd pdata) tags tag
    = PNested (U.updateVSegsOfVSegd (\vsegids -> U.packByTag vsegids tags tag) uvsegd)
              pdata
@@ -410,7 +409,7 @@ instance PR a => PR (PArray a) where
 
   -- Combine nested arrays by combining the segment descriptors, 
   -- and putting all physical arrays in the result.
-  {-# NOINLINE combine2PR #-}
+  {-# INLINE_PDATA combine2PR #-}
   combine2PR sel2 (PNested uvsegd1 pdatas1) (PNested uvsegd2 pdatas2)
    = PNested    (U.combine2VSegd sel2 
                         uvsegd1 (lengthdPR pdatas1)
@@ -545,7 +544,6 @@ concatPR (PNested vsegd pdatas)
 
                 -- Copy these segments into a new array.
           in   extractsPR pdatas ussegd
-
 {-# INLINE_PDATA concatPR  #-}
 
 
@@ -622,11 +620,7 @@ unconcatPR (PNested vsegd _) pdata
         !vsegd'         = U.promoteSegdToVSegd segd
 
    in   PNested vsegd' (singletondPR pdata)
-
-{-# NOINLINE unconcatPR #-}
---  NOINLINE because it won't fuse with anything.
---  The operation is also entierly on the segment descriptor, so we don't 
---  need to inline it to specialise it for the element type.
+{-# INLINE_PDATA unconcatPR #-}
 
 
 -- | Flatten a nested array, yielding a plain segment descriptor and 
@@ -636,16 +630,15 @@ unconcatPR (PNested vsegd _) pdata
 --   This can cause index space overflow, see the note in `concatPR`.
 --
 flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-{-# INLINE flattenPR #-}
 flattenPR arr@(PNested uvsegd _)
  =      ( U.unsafeDemoteToSegdOfVSegd uvsegd
         , concatPR arr)
+{-# INLINE_PDATA flattenPR #-}
 
 
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-{-# INLINE_PDATA appendlPR #-}
 appendlPR  arr1 arr2
  = let  (segd1, darr1)  = flattenPR arr1
         (segd2, darr2)  = flattenPR arr2
@@ -653,6 +646,7 @@ appendlPR  arr1 arr2
    in   PNested (U.promoteSegdToVSegd segd' )
                 (singletondPR
                  $ appendsPR segd' segd1 darr1 segd2 darr2)
+{-# INLINE_PDATA appendlPR #-}
 
 
 
@@ -671,7 +665,7 @@ appendlPR  arr1 arr2
 takeSegdPD :: PData (PArray a) -> U.Segd
 takeSegdPD (PNested vsegd _) 
         = U.unsafeDemoteToSegdOfVSegd vsegd
-{-# NOINLINE takeSegdPD #-}
+{-# INLINE_PDATA takeSegdPD #-}
 
 
 -- | Extract some slices from some arrays.
