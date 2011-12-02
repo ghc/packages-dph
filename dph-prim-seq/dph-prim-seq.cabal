@@ -18,6 +18,7 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.USSegd
         Data.Array.Parallel.Unlifted.Sequential.UVSegd
         Data.Array.Parallel.Unlifted.Sequential.Vector
+        Data.Array.Parallel.Unlifted.Sequential.Vectors
         Data.Array.Parallel.Unlifted.Sequential
         Data.Array.Parallel.Unlifted
         
@@ -38,8 +39,9 @@ Library
         -funbox-strict-fields -fcpr-off
 
   Build-Depends:  
-        base     == 4.4.*,
-        random   == 1.0.*,
-        vector   == 0.9.*,
-        dph-base == 0.5.*,
+        base      == 4.4.*,
+        random    == 1.0.*,
+        vector    == 0.9.*,
+        primitive == 0.4.*,
+        dph-base  == 0.5.*,
         dph-prim-interface == 0.5.*

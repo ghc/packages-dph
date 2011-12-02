@@ -1,18 +1,29 @@
 {-# LANGUAGE BangPatterns, FlexibleInstances, UndecidableInstances, CPP #-}
 #include "fusion-phases.h"
+
+-- | Irregular two dimensional arrays.
+--
+--   * TODO: The inner arrays should be unboxed so we don't get an unboxing overhead
+--           for every call to unsafeIndex2. This might need an extension to the GHC
+--           runtime if we alwo want to convert a U.Vector directly to this form.
+--
+--   * TODO: We currently only allow primitive types to be in a Vectors, but 
+--           in future we'll want `Vectors` of tuples etc.
+--
 module Data.Array.Parallel.Unlifted.Sequential.Vectors 
-        ( Unboxes
-        , Vectors(..)
+        ( Vectors(..)
+        , Unboxes
         , empty
         , singleton
-        , unsafeIndexUnpack
+        , unsafeIndex
         , unsafeIndex2
+        , unsafeIndexUnpack
         , append
         , fromVector
         , toVector
         
-        , unsafeStreamVectors
-        , unsafeExtractsSU)
+        , unsafeExtracts
+        , unsafeStreamVectors)
 where
 import qualified Data.Primitive.ByteArray                       as P
 import qualified Data.Primitive.Array                           as P
@@ -33,28 +44,30 @@ import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd(..))
 import System.IO.Unsafe
 import Prelude  hiding (length)
 import Debug.Trace
-
+import Data.Word
 
 -- | Class of element types that can be used in a `Vectors`
 class R.Prim a => Unboxes a
 instance Unboxes Int
+instance Unboxes Word8
+instance Unboxes Float
 instance Unboxes Double
 
 
--- | A 2-dimensional array of vectors, 
---   where the inner vectors can all have different lengths.
+-- | A 2-dimensional array,
+--   where the inner arrays can all have different lengths.
 data Vectors a
         = Vectors
-                {-# UNPACK #-} !Int                     -- number of vectors
-                {-# UNPACK #-} !P.ByteArray             -- starting indices
-                {-# UNPACK #-} !P.ByteArray             -- lengths
+                {-# UNPACK #-} !Int             -- number of inner vectors
+                {-# UNPACK #-} !P.ByteArray     -- starting index of each vector in its chunk
+                {-# UNPACK #-} !P.ByteArray     -- lengths of each inner vector
                 {-# UNPACK #-} !(P.Array P.ByteArray)   -- chunks
 
 instance (Unboxes a, Unbox a, Show a) => Show (Vectors a) where
         show = show . toVector
         {-# NOINLINE show #-}
 
--- | Conatruct an empty `Vectors` with no arrays of no elements.
+-- | Construct an empty `Vectors` with no arrays of no elements.
 empty :: Vectors a
 empty   
  = unsafePerformIO
@@ -67,7 +80,7 @@ empty
 
 
 -- | Construct a `Vectors` containing data from a single unboxed array.
-singleton :: P.Prim a => R.Vector a -> Vectors a
+singleton :: Unboxes a => R.Vector a -> Vectors a
 singleton vec 
  = unsafePerformIO
  $ do   R.MVector start len mbaData <- R.unsafeThaw vec
@@ -89,7 +102,7 @@ singleton vec
 
 
 -- | Yield the number of vectors in a `Vectors`.
-length :: P.Prim a => Vectors a -> Int
+length :: Unboxes a => Vectors a -> Int
 length (Vectors len _ _ _)      = len
 {-# INLINE_U length #-}
 
@@ -116,10 +129,8 @@ unsafeIndex2 (Vectors _ starts lens arrs) ix1 ix2
 {-# INLINE_U unsafeIndex2 #-}
 
 
--- | Retrieve the an inner vector from a `Vectors`.
---
---   Returns in unwrapped form:
---      array data, starting index in the array data, vector length.
+-- | Retrieve an inner array from a `Vectors`, returning the array data, 
+--   starting index in the data, and vector length.
 unsafeIndexUnpack :: Unboxes a => Vectors a -> Int -> (P.ByteArray, Int, Int)
 unsafeIndexUnpack (Vectors n starts lens arrs) ix
  =      ( arrs   `P.indexArray` ix
@@ -129,6 +140,9 @@ unsafeIndexUnpack (Vectors n starts lens arrs) ix
 
 
 -- | Append two `Vectors`.
+--
+--   * Important: appending two `Vectors` involes work proportional to
+--     the length of the outer arrays, not the size of the inner ones.
 append :: Unboxes a => Vectors a -> Vectors a -> Vectors a
 append  (Vectors len1 starts1 lens1 chunks1)
         (Vectors len2 starts2 lens2 chunks2)
@@ -211,13 +225,23 @@ packUVector ba start len
 {-# INLINE_U packUVector #-}
 
 
+-- | Copy segments from a `Vectors` and concatenate them into a new array.
+unsafeExtracts
+        :: (Unboxes a, U.Unbox a)
+        => USSegd -> Vectors a -> U.Vector a
+
+unsafeExtracts ussegd vectors
+        = G.unstream $ unsafeStreamVectors ussegd vectors
+{-# INLINE_U unsafeExtracts #-}
+
+
 -- Stream -----------------------------------------------------------------------------------------
 -- | Stream segments from a `Vectors`.
 -- 
 --   * There must be at least one segment in the `USSegd`, but this is not checked.
 -- 
 --   * No bounds checking is done for the `USSegd`.
-unsafeStreamVectors :: (Unboxes a, Show a) => USSegd -> Vectors a -> S.Stream a
+unsafeStreamVectors :: Unboxes a => USSegd -> Vectors a -> S.Stream a
 unsafeStreamVectors ussegd@(USSegd _ segStarts segSources usegd) vectors
  = segStarts `seq` segSources `seq` usegd `seq` vectors `seq`
    let  -- Length of each segment
@@ -271,12 +295,3 @@ unsafeStreamVectors ussegd@(USSegd _ segStarts segSources usegd) vectors
    in   M.Stream fnSeg initState (S.Exact elements) 
 {-# INLINE_STREAM unsafeStreamVectors #-}
 
-
-unsafeExtractsSU
-        :: (Unboxes a, U.Unbox a, Show a)
-        => USSegd -> Vectors a -> U.Vector a
-
-unsafeExtractsSU ussegd vectors
-        = G.unstream $ unsafeStreamVectors ussegd vectors
-{-# INLINE_U unsafeExtractsSU #-}        
-        
