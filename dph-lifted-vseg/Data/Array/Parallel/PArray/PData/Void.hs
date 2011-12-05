@@ -96,8 +96,11 @@ instance PR Void where
   {-# INLINE_PDATA extractPR #-}
   extractPR     = nope "extractl"
 
-  {-# INLINE_PDATA extractsPR #-}
-  extractsPR    = nope "extracts"
+  {-# INLINE_PDATA extractssPR #-}
+  extractssPR    = nope "extractss"
+
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR    = nope "extractvs"
 
 
   -- Pack and Combine ---------------------------

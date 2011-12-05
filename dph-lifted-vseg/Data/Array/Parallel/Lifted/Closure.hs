@@ -367,9 +367,13 @@ instance PR (a :-> b) where
   extractPR (AClo fv fl envs) start len
         = AClo fv fl $ extractPA envs start len
 
-  {-# INLINE_CLOSURE extractsPR #-}
-  extractsPR (AClos fv fl envs) ssegd
-        = AClo fv fl $ extractsPA envs ssegd
+  {-# INLINE_CLOSURE extractssPR #-}
+  extractssPR (AClos fv fl envs) ssegd
+        = AClo fv fl $ extractssPA envs ssegd
+
+  {-# INLINE_CLOSURE extractvsPR #-}
+  extractvsPR (AClos fv fl envs) vsegd
+        = AClo fv fl $ extractvsPA envs vsegd
 
 
   -- Pack and Combine ---------------------------

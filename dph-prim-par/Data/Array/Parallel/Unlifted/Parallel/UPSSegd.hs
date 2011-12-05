@@ -320,11 +320,11 @@ fixupFold f !mrs !dcarry = go 1
   where
     !p = gangSize theGang
 
-    go i | i >= p = return ()
+    go i | i >= p    = return ()
          | US.null c = go (i+1)
-         | otherwise   = do
-                           x <- US.read mrs k
-                           US.write mrs k (f x (c US.! 0))
-                           go (i + 1)
+         | otherwise   
+         = do   x <- US.read mrs k
+                US.write mrs k (f x (c US.! 0))
+                go (i + 1)
       where
         (k,c) = indexD dcarry i

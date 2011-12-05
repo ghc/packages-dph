@@ -91,10 +91,14 @@ instance PR () where
   extractPR _ _ len
         = PUnit len
         
-  {-# INLINE_PDATA extractsPR #-}
-  extractsPR _ ussegd
-        = PUnit (U.sum $ U.lengthsOfSSegd ussegd)
+  {-# INLINE_PDATA extractssPR #-}
+  extractssPR _ ussegd
+        = PUnit $ U.sum $ U.lengthsOfSSegd ussegd
 
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR _ uvsegd
+        = PUnit $ U.sum $ U.takeLengthsOfVSegd uvsegd
+  
 
   -- Pack and Combine ---------------------------        
   {-# INLINE_PDATA packByTagPR #-}

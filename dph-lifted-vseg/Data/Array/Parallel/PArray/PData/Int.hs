@@ -77,9 +77,13 @@ instance PR Int where
   extractPR (PInt arr) start len 
         = PInt (U.extract arr start len)
 
-  {-# INLINE_PDATA extractsPR #-}
-  extractsPR (PInts arrs) ssegd
+  {-# INLINE_PDATA extractssPR #-}
+  extractssPR (PInts arrs) ssegd
         = PInt $ U.unsafeExtracts_ass ssegd arrs
+
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR (PInts arrs) vsegd
+        = PInt $ U.unsafeExtracts_avs vsegd arrs
 
 
 

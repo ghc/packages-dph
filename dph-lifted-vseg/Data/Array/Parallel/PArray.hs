@@ -329,7 +329,7 @@ extracts arrs ssegd
  = let  pdatas          = fromVectordPA $ V.map (\(PArray _ vec) -> vec) arrs
         !(I# n#)        = (U.sum $ U.lengthsOfSSegd ssegd)
    in   PArray   n#
-                (extractsPA pdatas ssegd)
+                (extractssPA pdatas ssegd)
 {-# INLINE_PA extracts #-}
 
 

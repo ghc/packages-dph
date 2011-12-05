@@ -351,8 +351,8 @@ instance PR a => PR (PArray a) where
   --  We encode these offsets in the psrcoffset vector:
   --       psrcoffset :  [0, 2]
   --
-  {-# NOINLINE extractsPR #-}
-  extractsPR (PNesteds arrs) ussegd
+  {-# NOINLINE extractssPR #-}
+  extractssPR (PNesteds arrs) ussegd
    = {-# SCC "extractsPR" #-}
      let segsrcs        = U.sourcesOfSSegd ussegd
          seglens        = U.lengthsOfSSegd ussegd
@@ -526,6 +526,10 @@ indexlPR (PNested vsegd pdatas) (PInt ixs)
 --
 concatPR :: PR a => PData (PArray a) -> PData a
 concatPR (PNested vsegd pdatas)
+
+{-      TODO: we want to implement this as rewwrite rules instead of 
+              a branch, so we don't get the branch in the core code.
+        
         -- If we know that the segments are in a single contiguous array, 
         -- and there is no sharing between them, then we can just return
         -- that array directly.
@@ -533,17 +537,12 @@ concatPR (PNested vsegd pdatas)
         , U.isContiguousVSegd vsegd
         , lengthdPR pdatas == 1
         = pdatas `indexdPR` 0
-
+-}
         -- Otherwise we have to pull all the segments through the index 
         -- space transform defined by the vsegd, which copies them
         -- into a single contiguous array.
         | otherwise
-        = let   -- Flatten out the virtualization of the vsegd so that we have
-                -- a description of each segment individually.
-                ussegd  = U.demoteToSSegdOfVSegd vsegd
-
-                -- Copy these segments into a new array.
-          in   extractsPR pdatas ussegd
+        = extractvsPR pdatas vsegd
 {-# INLINE_PDATA concatPR  #-}
 
 

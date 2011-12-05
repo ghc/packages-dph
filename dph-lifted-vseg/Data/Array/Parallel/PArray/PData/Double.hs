@@ -90,9 +90,13 @@ instance PR Double where
   extractPR (PDouble arr) start len 
         = PDouble (U.extract arr start len)
 
-  {-# INLINE_PDATA extractsPR #-}
-  extractsPR (PDoubles arrs) ssegd
+  {-# INLINE_PDATA extractssPR #-}
+  extractssPR (PDoubles arrs) ssegd
         = PDouble (U.unsafeExtracts_ass ssegd arrs)
+
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR (PDoubles arrs) vsegd
+        = PDouble (U.unsafeExtracts_avs vsegd arrs)
                 
 
   -- Pack and Combine ---------------------------

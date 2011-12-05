@@ -119,11 +119,17 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
                   (extractPR arr2 start len)
                   (extractPR arr3 start len)
 
-  {-# INLINE_PDATA extractsPR #-}
-  extractsPR (PTuple3s xs ys zs) ussegd
-        = PTuple3 (extractsPR xs ussegd)
-                  (extractsPR ys ussegd)
-                  (extractsPR zs ussegd)
+  {-# INLINE_PDATA extractssPR #-}
+  extractssPR (PTuple3s xs ys zs) ussegd
+        = PTuple3 (extractssPR xs ussegd)
+                  (extractssPR ys ussegd)
+                  (extractssPR zs ussegd)
+
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR (PTuple3s xs ys zs) uvsegd
+        = PTuple3 (extractvsPR xs uvsegd)
+                  (extractvsPR ys uvsegd)
+                  (extractvsPR zs uvsegd)
 
 
   -- Pack and Combine ---------------------------

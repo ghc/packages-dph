@@ -83,9 +83,13 @@ instance PA a => PR (Wrap a) where
   extractPR (PWrap xs) ix n
         = PWrap $ extractPA xs ix n
         
-  {-# INLINE_PDATA extractsPR #-}
-  extractsPR (PWraps pdatas) ssegd
-        = PWrap $ extractsPA pdatas ssegd
+  {-# INLINE_PDATA extractssPR #-}
+  extractssPR (PWraps pdatas) ssegd
+        = PWrap $ extractssPA pdatas ssegd
+
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR (PWraps pdatas) vsegd
+        = PWrap $ extractvsPA pdatas vsegd
 
 
   -- Pack and Combine ---------------------------

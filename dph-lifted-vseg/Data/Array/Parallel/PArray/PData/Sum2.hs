@@ -247,8 +247,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   --   STARTS:  [1 0 4 2 0]
   --  LENGTHS:  [3 2 2 1 1]
   -- 
-  {-# NOINLINE extractsPR #-}
-  extractsPR (PSum2s sels pdatas0 pdatas1) ssegd
+  {-# NOINLINE extractssPR #-}
+  extractssPR (PSum2s sels pdatas0 pdatas1) ssegd
    = let                
          tagss          = V.map U.tagsSel2 sels
 
@@ -340,12 +340,12 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          --  ALTS0:      [80  20  100  40 ]
          --  ALTS1:      [60  70   30  90 50]
 
-         pdata0         = extractsPR pdatas0 
+         pdata0         = extractssPR pdatas0 
                         $ U.mkSSegd starts0
                                 (U.sourcesOfSSegd ssegd)
                                 (U.lengthsToSegd lens0)
 
-         pdata1         = extractsPR pdatas1 
+         pdata1         = extractssPR pdatas1 
                         $ U.mkSSegd starts1 
                                 (U.sourcesOfSSegd ssegd)
                                 (U.lengthsToSegd lens1)

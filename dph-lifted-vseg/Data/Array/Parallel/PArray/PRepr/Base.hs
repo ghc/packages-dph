@@ -27,7 +27,7 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , lengthPA
         , indexPA,      indexsPA
         , bpermutePA
-        , extractPA,    extractsPA
+        , extractPA,    extractssPA,  extractvsPA
 
         -- * Pack and Combine
         , packByTagPA
@@ -211,11 +211,18 @@ extractPA xs start len
  $ extractPR (toArrPRepr xs) start len
 
 
-{-# INLINE_PA extractsPA #-}
-extractsPA      :: PA a => PDatas a -> U.SSegd -> PData a
-extractsPA xss segd
+{-# INLINE_PA extractssPA #-}
+extractssPA      :: PA a => PDatas a -> U.SSegd -> PData a
+extractssPA xss segd
  = fromArrPRepr
- $ extractsPR (toArrPReprs xss) segd
+ $ extractssPR (toArrPReprs xss) segd
+
+
+{-# INLINE_PA extractvsPA #-}
+extractvsPA      :: PA a => PDatas a -> U.VSegd -> PData a
+extractvsPA xss segd
+ = fromArrPRepr
+ $ extractvsPR (toArrPReprs xss) segd
 
 
 -- Pack and Combine -----------------------------
