@@ -92,7 +92,7 @@ instance PR Double where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PDoubles arrs) ssegd
-        = PDouble (U.unsafeExtract_ss arrs ssegd)
+        = PDouble (U.unsafeExtract_ss ssegd arrs)
                 
 
   -- Pack and Combine ---------------------------

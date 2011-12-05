@@ -337,9 +337,9 @@ fixupFold f !mrs !dcarry = go 1
 {-# INLINE_UP unsafeExtractsWithP #-}
 unsafeExtractsWithP 
         :: (Unbox a, Unboxes a)
-        => Vectors a
-        -> UPSSegd
+        => UPSSegd
+        -> Vectors a
         -> Vector a
 
-unsafeExtractsWithP vectors upssegd
-        = Seq.unsafeExtracts vectors (takeUSSegd upssegd)
+unsafeExtractsWithP upssegd vectors
+        = Seq.unsafeExtracts (takeUSSegd upssegd) vectors

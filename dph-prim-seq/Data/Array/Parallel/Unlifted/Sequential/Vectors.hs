@@ -229,9 +229,9 @@ packUVector ba start len
 -- | Copy segments from a `Vectors` and concatenate them into a new array.
 unsafeExtracts
         :: (Unboxes a, U.Unbox a)
-        => Vectors a -> USSegd -> U.Vector a
+        => USSegd -> Vectors a -> U.Vector a
 
-unsafeExtracts vectors ussegd
+unsafeExtracts ussegd vectors
         = G.unstream $ unsafeStreamVectors ussegd vectors
 {-# INLINE_U unsafeExtracts #-}
 

@@ -53,7 +53,7 @@ import Prelude hiding (zip)
 --       USegd.replicateWith / segmented replicate. There is a corresponding
 --       version of extractsSU in the parallel prim library.
 {-# INLINE_U extractsSU #-}
-extractsSU :: Unbox a => V.Vector (Vector a) -> USSegd -> Vector a
+extractsSU :: Unbox a => USSegd -> V.Vector (Vector a) -> Vector a
 extractsSU = error "Data.Array.Parallel.Unlifted.Sequential.extractsSU: not implemented"
 
 {-

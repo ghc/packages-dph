@@ -88,7 +88,7 @@ instance PR Word8 where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PWord8s arrs) ssegd
-        = PWord8 $ U.unsafeExtract_ss arrs ssegd
+        = PWord8 $ U.unsafeExtract_ss ssegd arrs
 
 
   -- Pack and Combine ---------------------------

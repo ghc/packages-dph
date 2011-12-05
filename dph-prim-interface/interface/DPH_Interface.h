@@ -219,8 +219,8 @@ extract :: Elt a
 -- | O(n). Segmented extract.
 unsafeExtract_ss 
         :: (Elt a, Elts a)
-        => Arrays a     -- ^ Source arrays.
-        -> SSegd        -- ^ `SSegd` defining the slices to extract.
+        => SSegd        -- ^ `SSegd` defining the slices to extract.
+        -> Arrays a     -- ^ Source arrays.
         -> Array a
 {-# INLINE_BACKEND unsafeExtract_ss #-}
 
@@ -230,8 +230,8 @@ unsafeExtract_ss
 --         use the previous form.
 unsafeExtract_vs 
         :: Elt a
-        => VV.Vector (Array a)
-        -> SSegd
+        => SSegd
+        -> VV.Vector (Array a)
         -> Array a
 {-# INLINE_BACKEND unsafeExtract_vs #-}
 

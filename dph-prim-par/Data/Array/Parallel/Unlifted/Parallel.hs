@@ -84,8 +84,8 @@ import qualified Data.Vector                                    as VS
 --       to avoid unpackig all the arrays from PDatas with a big map traversal.
 --
 {-# INLINE_UP extractsUP #-}
-extractsUP :: Unbox a => VS.Vector (Vector a) -> UPSSegd -> Vector a
-extractsUP !arrs !ssegd
+extractsUP :: Unbox a => UPSSegd -> VS.Vector (Vector a) -> Vector a
+extractsUP !ssegd !arrs
  = let  !segd      = UPSegd.fromLengths $ UPSSegd.takeLengths ssegd
  
         -- source array ids to load from
