@@ -16,7 +16,7 @@ data instance PData Word8
         = PWord8  !(U.Array Word8)
 
 data instance PDatas Word8
-        = PWord8s !(V.Vector (U.Array Word8))
+        = PWord8s !(U.Arrays Word8)
 
 
 -- PR -------------------------------------------------------------------------
@@ -80,9 +80,7 @@ instance PR Word8 where
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PWord8s pvecs) (PInt srcs) (PInt ixs)
-   = PWord8 $ U.zipWith get srcs ixs
-   where get !src !ix
-                = (pvecs `V.unsafeIndex` src) `U.unsafeIndex` ix
+   = PWord8 $ U.zipWith (U.unsafeIndex2s pvecs) srcs ixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWord8 arr) start len 
@@ -90,7 +88,7 @@ instance PR Word8 where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PWord8s arrs) ssegd
-        = PWord8 $ U.unsafeExtract_vs arrs ssegd
+        = PWord8 $ U.unsafeExtract_ss arrs ssegd
 
 
   -- Pack and Combine ---------------------------
@@ -118,31 +116,33 @@ instance PR Word8 where
   -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
-        = PWord8s $ V.empty
+        = PWord8s $ U.emptys
         
   {-# INLINE_PDATA singletondPR #-}
   singletondPR (PWord8 pdata)
-        = PWord8s $ V.singleton pdata
+        = PWord8s $ U.singletons pdata
         
   {-# INLINE_PDATA lengthdPR #-}
-  lengthdPR (PWord8s vec)
-        = V.length vec
+  lengthdPR (PWord8s arrs)
+        = U.lengths arrs
         
   {-# INLINE_PDATA indexdPR #-}
-  indexdPR (PWord8s vec) ix
-        = PWord8 $ vec `V.unsafeIndex` ix
+  indexdPR (PWord8s arrs) ix
+        = PWord8 $ arrs `U.unsafeIndexs` ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PWord8s xs) (PWord8s ys)
-        = PWord8s $ xs V.++ ys
+        = PWord8s $ xs `U.appends` ys
                                 
   {-# NOINLINE fromVectordPR #-}
-  fromVectordPR vec
-        = PWord8s $ V.map (\(PWord8 xs) -> xs) vec
+  fromVectordPR pdatas
+        = PWord8s 
+        $ U.fromVectors
+        $ V.map (\(PWord8 xs) -> xs) pdatas
         
   {-# NOINLINE toVectordPR #-}
   toVectordPR (PWord8s vec)
-        = V.map PWord8 vec
+        = V.map PWord8 $ U.toVectors vec
 
 
 -- Show -----------------------------------------------------------------------

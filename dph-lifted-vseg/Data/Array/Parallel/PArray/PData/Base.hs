@@ -75,10 +75,10 @@ data family PDatas a
 
 -- Put these here to break an import loop.
 data instance PData Int
-        = PInt  (U.Array Int)
+        = PInt  (U.Array  Int)
 
 data instance PDatas Int
-        = PInts (V.Vector (U.Array Int))
+        = PInts (U.Arrays Int)
 
 
 -- PR -------------------------------------------------------------------------

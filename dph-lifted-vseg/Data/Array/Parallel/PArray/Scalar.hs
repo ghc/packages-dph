@@ -83,20 +83,21 @@ instance Scalar Bool where
       in  PBools sels
 
 
+-- TODO: transitory instances. conversions need to be O(1).
 instance Scalar Int where
   fromScalarPData  (PInt  xs)     = xs
-  fromScalarPDatas (PInts xss)    = xss
+  fromScalarPDatas (PInts xss)    = U.toVectors xss
   toScalarPData                   = PInt
-  toScalarPDatas                  = PInts
+  toScalarPDatas xss              = PInts $ U.fromVectors xss
 
-
+-- TODO: transitory instances. conversions need to be O(1).
 instance Scalar Word8 where
   fromScalarPData  (PWord8  xs)   = xs
-  fromScalarPDatas (PWord8s xss)  = xss
+  fromScalarPDatas (PWord8s xss)  = U.toVectors xss
   toScalarPData                   = PWord8
-  toScalarPDatas                  = PWord8s
+  toScalarPDatas xss              = PWord8s $ U.fromVectors xss
 
-
+-- TODO: transitory instances. conversions need to be O(1).
 instance Scalar Double where
   fromScalarPData  (PDouble xs)   = xs
   fromScalarPDatas (PDoubles xss) = U.toVectors xss

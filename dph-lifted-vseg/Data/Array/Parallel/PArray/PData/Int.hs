@@ -71,17 +71,15 @@ instance PR Int where
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PInts pvecs) (PInt srcs) (PInt ixs)
-   = PInt $ U.zipWith get srcs ixs
-   where get !src !ix
-                = (pvecs `V.unsafeIndex` src) `U.unsafeIndex` ix
+   = PInt $ U.zipWith (U.unsafeIndex2s pvecs) srcs ixs
 
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
         = PInt (U.extract arr start len)
 
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE_PDATA extractsPR #-}
   extractsPR (PInts arrs) ssegd
-        = PInt $ U.unsafeExtract_vs arrs ssegd
+        = PInt $ U.unsafeExtract_ss arrs ssegd
 
 
 
@@ -110,31 +108,33 @@ instance PR Int where
   -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
-        = PInts $ V.empty
+        = PInts $ U.emptys
         
   {-# INLINE_PDATA singletondPR #-}
-  singletondPR (PInt pdata)
-        = PInts $ V.singleton pdata
+  singletondPR (PInt arr)
+        = PInts $ U.singletons arr
         
   {-# INLINE_PDATA lengthdPR #-}
-  lengthdPR (PInts vec)
-        = V.length vec
+  lengthdPR (PInts arrs)
+        = U.lengths arrs
         
   {-# INLINE_PDATA indexdPR #-}
-  indexdPR (PInts vec) ix
-        = PInt $ vec `V.unsafeIndex` ix
+  indexdPR (PInts arrs) ix
+        = PInt $ arrs `U.unsafeIndexs` ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PInts xs) (PInts ys)
-        = PInts $ xs V.++ ys
+        = PInts $ xs `U.appends` ys
         
   {-# NOINLINE fromVectordPR #-}
-  fromVectordPR vec
-        = PInts $ V.map (\(PInt xs) -> xs) vec
+  fromVectordPR pdatas
+        = PInts 
+        $ U.fromVectors 
+        $ V.map (\(PInt vec) -> vec) pdatas
         
   {-# NOINLINE toVectordPR #-}
   toVectordPR (PInts vec)
-        = V.map PInt vec
+        = V.map PInt $ U.toVectors vec
 
 
 -- Show -----------------------------------------------------------------------
