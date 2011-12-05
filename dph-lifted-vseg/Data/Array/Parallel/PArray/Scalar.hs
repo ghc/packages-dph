@@ -38,7 +38,6 @@ import Data.Array.Parallel.Base
 import Data.Word
 import GHC.Exts
 import qualified Data.Array.Parallel.Unlifted   as U
-import qualified Data.Vector                    as V
 import Prelude hiding 
         ( map, zipWith, zipWith3
         , enumFromTo)
@@ -46,12 +45,11 @@ import Prelude hiding
 -- | Class of Scalar data that can be converted to and from single unboxed
 --   vectors.
 class (PA a, U.Elt a) => Scalar a where
-  fromScalarPData  :: PData  a             -> U.Array a
-  toScalarPData    :: U.Array a            -> PData a
+  fromScalarPData  :: PData  a    -> U.Array a
+  toScalarPData    :: U.Array a   -> PData a
   
-  -- TODO: make these return U.Arrays a, then need to be O(1).
-  fromScalarPDatas :: PDatas a             -> V.Vector (U.Array a)
-  toScalarPDatas   :: V.Vector (U.Array a) -> PDatas a
+  fromScalarPDatas :: PDatas a    -> U.Arrays a
+  toScalarPDatas   :: U.Arrays a  -> PDatas a
 
 
 -- Shorthands for the above methods used in this module only.
@@ -72,37 +70,35 @@ instance Scalar Bool where
   fromScalarPData (PBool sel)
     = U.map toBool (U.tagsSel2 sel)
 
-  {-# INLINE fromScalarPDatas #-}
-  fromScalarPDatas (PBools sels)
-    = V.map (U.map toBool . U.tagsSel2) sels
+  -- NOTE: There is no Arrays instance for Bool, 
+  --       but we don't need it yet because the PDatas Sel2s instance
+  --       just uses a boxed vector of Sel2s.
+  {-# NOINLINE fromScalarPDatas #-}
+  fromScalarPDatas _
+    = error "Data.Array.Parallel.PArray.Lifted.Scalar: no Arrays instance for Bool."
 
-  {-# INLINE toScalarPDatas #-}
-  toScalarPDatas bss
-    = let tagss = V.map (U.map fromBool) bss
-          sels  = V.map U.tagsToSel2 tagss
-      in  PBools sels
+  {-# NOINLINE toScalarPDatas #-}
+  toScalarPDatas _
+    = error "Data.Array.Parallel.PArray.Lifted.Scalar: no Arrays instance for Bool."
 
 
--- TODO: transitory instances. conversions need to be O(1).
 instance Scalar Int where
   fromScalarPData  (PInt  xs)     = xs
-  fromScalarPDatas (PInts xss)    = U.toVectors xss
+  fromScalarPDatas (PInts xss)    = xss
   toScalarPData                   = PInt
-  toScalarPDatas xss              = PInts $ U.fromVectors xss
+  toScalarPDatas                  = PInts
 
--- TODO: transitory instances. conversions need to be O(1).
 instance Scalar Word8 where
   fromScalarPData  (PWord8  xs)   = xs
-  fromScalarPDatas (PWord8s xss)  = U.toVectors xss
+  fromScalarPDatas (PWord8s xss)  = xss
   toScalarPData                   = PWord8
-  toScalarPDatas xss              = PWord8s $ U.fromVectors xss
+  toScalarPDatas                  = PWord8s
 
--- TODO: transitory instances. conversions need to be O(1).
 instance Scalar Double where
   fromScalarPData  (PDouble xs)   = xs
-  fromScalarPDatas (PDoubles xss) = U.toVectors xss
+  fromScalarPDatas (PDoubles xss) = xss
   toScalarPData                   = PDouble
-  toScalarPDatas xss              = PDoubles $ U.fromVectors xss
+  toScalarPDatas                  = PDoubles
 
 
 -- Conversions ----------------------------------------------------------------
@@ -182,7 +178,7 @@ fold1 f (PArray _ pdata)
 -- | Segmented fold of an array of arrays.
 --   Each segment is folded individually, yielding an array of the fold results.
 {-# INLINE_PA folds #-}
-folds   :: Scalar a
+folds   :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 
 folds f z (PArray _ (PNested vsegd pdatas))
@@ -202,7 +198,7 @@ folds f z (PArray _ (PNested vsegd pdatas))
 --   segment to initialse the state for that segment.
 --   Each segment is folded individually, yielding an array of all the fold results.
 {-# INLINE_PA fold1s #-}
-fold1s  :: Scalar a
+fold1s  :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> PArray (PArray a) -> PArray a
 
 fold1s f (PArray _ (PNested vsegd pdatas))
@@ -264,7 +260,7 @@ enumFromTol (PArray m# ms) (PArray _ ns)
   = PArray m#
   $ PNested (U.promoteSegdToVSegd segd)
   $ toScalarPDatas
-  $ V.singleton
+  $ U.singletons
   $ U.enumFromStepLenEach 
         (U.elementsSegd segd)
         (fromScalarPData ms)

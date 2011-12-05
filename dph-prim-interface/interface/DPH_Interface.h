@@ -405,7 +405,8 @@ fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
 
 -- | Undirected scattered segmented fold.
 --   Same preconditions as `fold`.
-fold_ss :: Elt a => (a -> a -> a) -> a -> SSegd -> VV.Vector (Array a) -> Array a
+fold_ss :: (Elts a, Elt a)
+        => (a -> a -> a) -> a -> SSegd -> Arrays a -> Array a
 {-# INLINE_BACKEND fold_ss #-}
 
 -- | Regular segmented fold. All segements have the given length.
@@ -431,7 +432,8 @@ fold1_s :: Elt a => (a -> a -> a) -> Segd -> Array a -> Array a
 -- | Undirected scattered segmented fold over an array, 
 --   using the first element of each segment to initialise the state of that segment.
 --   Same preconditions as `fold`.
-fold1_ss :: Elt a => (a -> a -> a) -> SSegd -> VV.Vector (Array a) -> Array a
+fold1_ss :: (Elts a, Elt a) 
+         => (a -> a -> a) -> SSegd -> Arrays a -> Array a
 {-# INLINE_BACKEND fold1_ss #-}
 
 
@@ -446,7 +448,8 @@ sum_s = fold_s (Prelude.+) 0
 {-# INLINE sum_s #-}
 
 -- | Scattered segmented sum.
-sum_ss :: (Num a, Elt a) => SSegd -> VV.Vector (Array a) -> Array a
+sum_ss :: (Num a, Elts a, Elt a) 
+       => SSegd -> Arrays a -> Array a
 sum_ss = fold_ss (Prelude.+) 0
 {-# INLINE sum_ss #-}
 
@@ -471,11 +474,11 @@ count_s segd xs !x
 
 -- | Scattered segmented count.
 
---   TODO: Adding V.map here will probably break fusion with sum_ss.
+--   TODO: Make this take Arrays directly.
 count_ss :: (Elt a, Eq a) => SSegd -> VV.Vector (Array a) -> a -> Array Int
 {-# INLINE_BACKEND count_ss #-}
 count_ss ssegd xs !x
-        = sum_ss ssegd (VV.map (map (tagToInt . fromBool . (==) x)) xs)
+        = sum_ss ssegd (fromVectors $ VV.map (map (tagToInt . fromBool . (==) x)) xs)
 
 
 -- And --------------------------------

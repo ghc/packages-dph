@@ -257,22 +257,22 @@ appendWith upssegd1 pdatas1
 
 -- Fold -----------------------------------------------------------------------
 -- | Fold segments specified by a `UPSSegd`.
-foldWithP :: Unbox a
-         => (a -> a -> a) -> a -> UPSSegd -> VS.Vector (Vector a) -> Vector a
+foldWithP :: (Unbox a, Unboxes a)
+         => (a -> a -> a) -> a -> UPSSegd -> Vectors a -> Vector a
 foldWithP f !z  = foldSegsWithP f (Seq.foldlSSU f z)
 {-# INLINE_UP foldWithP #-}
 
 
 -- | Fold segments specified by a `UPSSegd`, with a non-empty vector.
-fold1WithP :: Unbox a
-         => (a -> a -> a) -> UPSSegd -> VS.Vector (Vector a) -> Vector a
+fold1WithP :: (Unbox a, Unboxes a)
+           => (a -> a -> a) -> UPSSegd -> Vectors a -> Vector a
 fold1WithP f    = foldSegsWithP f (Seq.fold1SSU f)
 {-# INLINE_UP fold1WithP #-}
 
 
 -- | Sum up segments specified by a `UPSSegd`.
-sumWithP :: (Num a, Unbox a)
-        => UPSSegd -> VS.Vector (Vector a) -> Vector a
+sumWithP :: (Num a, Unbox a, Unboxes a)
+        => UPSSegd -> Vectors a -> Vector a
 sumWithP = foldWithP (+) 0
 {-# INLINE_UP sumWithP #-}
 
@@ -285,10 +285,10 @@ sumWithP = foldWithP (+) 0
 --   is split across multiple threads.
 --   
 foldSegsWithP
-        :: Unbox a
+        :: (Unbox a, Unboxes a)
         => (a -> a -> a)
-        -> (USSegd -> VS.Vector (Vector a) -> Vector a)
-        -> UPSSegd -> VS.Vector (Vector a) -> Vector a
+        -> (USSegd -> Vectors a -> Vector a)
+        -> UPSSegd -> Vectors a -> Vector a
 
 {-# INLINE_UP foldSegsWithP #-}
 foldSegsWithP fElem fSeg segd xss 
