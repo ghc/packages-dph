@@ -113,8 +113,9 @@ extract arr i n
         =  tracePrim (TraceExtract (Seq.length arr) i n)
         $! Seq.extract arr i n
 
-unsafeExtract_ss        = UPSSegd.unsafeExtractsWithP
-unsafeExtract_vs        = extractsUP
+unsafeExtracts_nss      = unsafeExtractsFromNestedWithUPSSegd
+unsafeExtracts_ass      = unsafeExtractsFromVectorsWithUPSSegd
+unsafeExtracts_avs      = unsafeExtractsFromVectorsWithUPVSegd
 
 drop n arr
         =  tracePrim (TraceDrop n (Seq.length arr))

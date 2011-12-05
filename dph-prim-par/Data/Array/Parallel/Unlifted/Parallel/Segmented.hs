@@ -3,24 +3,37 @@
 #include "fusion-phases.h"
 
 -- | Parallel combinators for segmented unboxed arrays
-module Data.Array.Parallel.Unlifted.Parallel.Segmented (
-  replicateRSUP, appendSUP,
-  foldRUP,
-  sumRUP
-) where
+module Data.Array.Parallel.Unlifted.Parallel.Segmented 
+        ( replicateRSUP
+        , appendSUP
+        , foldRUP
+        , sumRUP
+        , unsafeExtractsFromNestedWithUPSSegd
+        , unsafeExtractsFromVectorsWithUPSSegd
+        , unsafeExtractsFromVectorsWithUPVSegd)
+where
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
+import Data.Array.Parallel.Unlifted.Parallel.UPSSegd                    (UPSSegd)
+import Data.Array.Parallel.Unlifted.Parallel.UPVSegd                    (UPVSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
+import Data.Array.Parallel.Unlifted.Sequential.Vectors                  (Vectors)
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors        as US
+import qualified Data.Array.Parallel.Unlifted.Sequential.Streams        as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
-import qualified Data.Vector.Fusion.Stream              as S
-
+import qualified Data.Vector.Fusion.Stream                              as S
+import qualified Data.Vector                                            as V
 
 -- replicate ------------------------------------------------------------------
 
@@ -131,4 +144,47 @@ sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
 {-# INLINE_UP sumRUP #-}
 sumRUP = foldRUP (+) 0
 
+
+-- Extracts -------------------------------------------------------------------
+-- | Copy segments from a nested vectors and concatenate them into a new array.
+unsafeExtractsFromNestedWithUPSSegd
+        :: Unbox a
+        => UPSSegd -> V.Vector (Vector a) -> Vector a
+
+unsafeExtractsFromNestedWithUPSSegd upssegd vectors
+        = Seq.unstream 
+        $ US.unsafeStreamSegsFromNested 
+                (UPSSegd.takeUSSegd upssegd)
+                vectors
+{-# INLINE_U unsafeExtractsFromNestedWithUPSSegd #-}
+
+
+-- | TODO: make this parallel.
+unsafeExtractsFromVectorsWithUPSSegd
+        :: (Unbox a, US.Unboxes a)
+        => UPSSegd
+        -> Vectors a
+        -> Vector a
+
+unsafeExtractsFromVectorsWithUPSSegd upssegd vectors
+        = US.unsafeExtractsFromVectorsWithUSSegd
+                (UPSSegd.takeUSSegd upssegd) 
+                vectors
+{-# INLINE_UP unsafeExtractsFromVectorsWithUPSSegd #-}
+
+
+-- | TODO: make this parallel.
+unsafeExtractsFromVectorsWithUPVSegd
+        :: (Unbox a, US.Unboxes a)
+        => UPVSegd
+        -> Vectors a
+        -> Vector a
+
+unsafeExtractsFromVectorsWithUPVSegd upvsegd vectors
+        = Seq.unstream 
+        $ US.unsafeStreamSegsFromVectors 
+                (Just (UPVSegd.takeVSegidsRedundant upvsegd))
+                (UPSSegd.takeUSSegd $ UPVSegd.takeUPSSegd upvsegd)
+                vectors
+{-# INLINE_UP unsafeExtractsFromVectorsWithUPVSegd #-}
 

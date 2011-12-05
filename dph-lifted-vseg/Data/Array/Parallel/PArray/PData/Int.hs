@@ -79,7 +79,7 @@ instance PR Int where
 
   {-# INLINE_PDATA extractsPR #-}
   extractsPR (PInts arrs) ssegd
-        = PInt $ U.unsafeExtract_ss ssegd arrs
+        = PInt $ U.unsafeExtracts_ass ssegd arrs
 
 
 

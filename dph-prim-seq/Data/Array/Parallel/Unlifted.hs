@@ -7,7 +7,6 @@
 --   @dph-prim-par@ and @dph-prim-seq@ really do export the same symbols.
 #include "DPH_Header.h"
 
-import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox, Vector)
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
@@ -18,6 +17,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd  as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd  as UVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors as US
+import qualified Data.Array.Parallel.Unlifted.Sequential.Streams as US
 
 #include "DPH_Interface.h"
 
@@ -52,8 +52,9 @@ length                  = U.length
 (!:)                    = (U.!)
 unsafeIndex             = U.unsafeIndex
 extract                 = U.extract
-unsafeExtract_ss        = US.unsafeExtracts
-unsafeExtract_vs        = extractsSU
+unsafeExtracts_nss      = US.unsafeExtractsFromNestedWithUSSegd
+unsafeExtracts_ass      = US.unsafeExtractsFromVectorsWithUSSegd
+unsafeExtracts_avs      = US.unsafeExtractsFromVectorsWithUVSegd
 drop                    = U.drop
 
 

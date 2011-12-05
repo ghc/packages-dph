@@ -11,6 +11,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Combinators (
   combineSU
 ) where
 import Data.Array.Parallel.Stream
+import Data.Array.Parallel.Unlifted.Sequential.Streams
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import Data.Array.Parallel.Unlifted.Sequential.Vectors          as US
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
@@ -39,7 +40,7 @@ foldlSSU :: (Unbox a, Unboxes a, Unbox b)
 foldlSSU f z ssegd xss
         = unstream
         $ foldSS f z    (stream (USSegd.takeLengths ssegd))
-                        (US.unsafeStreamVectors ssegd xss)
+                        (unsafeStreamSegsFromVectors Nothing ssegd xss)
 
 
 -- fold -----------------------------------------------------------------------
@@ -78,7 +79,7 @@ foldl1SSU :: (Unbox a, Unboxes a)
 foldl1SSU f ssegd xxs
         = unstream
         $ fold1SS f     (stream (USSegd.takeLengths ssegd))
-                        (US.unsafeStreamVectors ssegd xxs)
+                        (unsafeStreamSegsFromVectors Nothing ssegd xxs)
 
 
 -- fold1 ----------------------------------------------------------------------

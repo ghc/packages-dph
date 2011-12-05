@@ -216,24 +216,33 @@ extract :: Elt a
 {-# INLINE_BACKEND extract #-}
 
 
--- | O(n). Segmented extract.
-unsafeExtract_ss 
-        :: (Elt a, Elts a)
-        => SSegd        -- ^ `SSegd` defining the slices to extract.
-        -> Arrays a     -- ^ Source arrays.
-        -> Array a
-{-# INLINE_BACKEND unsafeExtract_ss #-}
-
-
 -- | O(n). Segmented extract, from a vector of arrays.
 --   TODO: This is a transitory interface, we are refactoring code to always
 --         use the previous form.
-unsafeExtract_vs 
+unsafeExtracts_nss
         :: Elt a
         => SSegd
         -> VV.Vector (Array a)
         -> Array a
-{-# INLINE_BACKEND unsafeExtract_vs #-}
+{-# INLINE_BACKEND unsafeExtracts_nss #-}
+
+
+-- | O(n). Segmented extract.
+unsafeExtracts_ass
+        :: (Elt a, Elts a)
+        => SSegd        -- ^ `SSegd` defining the slices to extract.
+        -> Arrays a     -- ^ Source arrays.
+        -> Array a
+{-# INLINE_BACKEND unsafeExtracts_ass #-}
+
+
+-- | O(n). Segmented extract.
+unsafeExtracts_avs
+        :: (Elt a, Elts a)
+        => VSegd        -- ^ `VSegd` defining the slices to extract.
+        -> Arrays a     -- ^ Source arrays.
+        -> Array a
+{-# INLINE_BACKEND unsafeExtracts_avs #-}
 
 
 -- | O(n). Drop some elements from the front of an array, 

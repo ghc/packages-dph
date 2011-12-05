@@ -27,9 +27,6 @@ module Data.Array.Parallel.Unlifted.Sequential
         , maximumSU
         , minimumSU
 
-        -- * Projections
-        , extractsSU
-        
         -- * Pack and Combine
         , combineSU)
 where
@@ -44,46 +41,3 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
 import Prelude hiding (zip)
-
--- | O(n). Segmented extract.
---
---   * Currently broken, and will just `error`.
-
--- TODO: This isn't finished because we don't have a sequential version of
---       USegd.replicateWith / segmented replicate. There is a corresponding
---       version of extractsSU in the parallel prim library.
-{-# INLINE_U extractsSU #-}
-extractsSU :: Unbox a => USSegd -> V.Vector (Vector a) -> Vector a
-extractsSU = error "Data.Array.Parallel.Unlifted.Sequential.extractsSU: not implemented"
-
-{-
-extractsSU arrs srcids ixBase lens 
- = let -- total length of the result
-        dstLen    = sumSU lens
-        segd      = USegd.fromLengths lens
-    
-        -- source array ids to load from
-        srcids'   = USegd.replicateWithP segd srcids
-
-        -- base indices in the source array to load from
-        baseixs   = USegd.replicateWithP segd ixBase
-        
-        -- starting indices for each of the segments
-        startixs  = U.scanl (+) 0 lens
-          
-        -- starting indices for each of the segments in the result
-        startixs' = USegd.replicateWithP segd startixs
-
-        {-# INLINE get #-}
-        get (ixDst, ixSegDst) (ixSegSrcBase, srcid)
-         = let  !arr    = arrs V.! srcid                        -- TODO: use unsafeIndex
-                !ix     = ixDst - ixSegDst + ixSegSrcBase
-           in   arr U.! ix                                      -- TODO unsafe unsafeIndex
-         
-        result    = U.zipWith get
-                        (zip (U.enumFromTo 0 (dstLen - 1))
-                                 startixs')
-                        (zip baseixs
-                                 srcids')
-   in result
--}

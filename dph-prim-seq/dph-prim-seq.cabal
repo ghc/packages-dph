@@ -19,6 +19,7 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.UVSegd
         Data.Array.Parallel.Unlifted.Sequential.Vector
         Data.Array.Parallel.Unlifted.Sequential.Vectors
+        Data.Array.Parallel.Unlifted.Sequential.Streams
         Data.Array.Parallel.Unlifted.Sequential
         Data.Array.Parallel.Unlifted
         

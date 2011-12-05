@@ -31,10 +31,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   foldWithP,
   fold1WithP,
   sumWithP,
-  foldSegsWithP,
-  
-  -- * Segmented Projections
-  unsafeExtractsWithP
+  foldSegsWithP,  
 ) where
 import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
@@ -331,15 +328,3 @@ fixupFold f !mrs !dcarry = go 1
                            go (i + 1)
       where
         (k,c) = indexD dcarry i
-
--- Extracts -------------------------------------------------------------------
--- | TODO: make this parallel.
-{-# INLINE_UP unsafeExtractsWithP #-}
-unsafeExtractsWithP 
-        :: (Unbox a, Unboxes a)
-        => UPSSegd
-        -> Vectors a
-        -> Vector a
-
-unsafeExtractsWithP upssegd vectors
-        = Seq.unsafeExtracts (takeUSSegd upssegd) vectors

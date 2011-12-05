@@ -10,54 +10,56 @@
 --         Parallel modules, and the names are in the same order as in those
 --         modules.
 --
-module Data.Array.Parallel.Unlifted.Parallel (
-  -- * Basics
-  lengthUP,
-  nullUP,
-  emptyUP,
-  indexedUP,
-  replicateUP,
-  repeatUP,
-  interleaveUP,
+module Data.Array.Parallel.Unlifted.Parallel 
+        ( -- * Basics
+          lengthUP
+        , nullUP
+        , emptyUP
+        , indexedUP
+        , replicateUP
+        , repeatUP
+        , interleaveUP
   
-  -- * Combinators
-  mapUP,
-  filterUP,
-  packUP,
-  combineUP,  combine2UP,
-  zipWithUP,
-  foldUP,     fold1UP,
-  foldlUP,    foldl1UP,
-  scanUP,
-  extractsUP,
+          -- * Combinators
+        , mapUP
+        , filterUP
+        , packUP
+        , combineUP,  combine2UP
+        , zipWithUP
+        , foldUP,     fold1UP
+        , foldlUP,    foldl1UP
+        , scanUP
   
-  -- * Enum
-  enumFromToUP,
-  enumFromThenToUP,
-  enumFromStepLenUP,
-  enumFromStepLenEachUP,
+          -- * Enum
+        , enumFromToUP
+        , enumFromThenToUP
+        , enumFromStepLenUP
+        , enumFromStepLenEachUP
   
-  -- * Permute
-  bpermuteUP,
-  updateUP,
+          -- * Permute
+        , bpermuteUP
+        , updateUP
 
-  -- * Segmented
-  replicateRSUP,
-  appendSUP,
-  foldRUP,
-  sumRUP,
+          -- * Segmented
+        , replicateRSUP
+        , appendSUP
+        , foldRUP
+        , sumRUP
+        , unsafeExtractsFromNestedWithUPSSegd
+        , unsafeExtractsFromVectorsWithUPSSegd
+        , unsafeExtractsFromVectorsWithUPVSegd
 
-  -- * Subarrays
-  dropUP,
+          -- * Subarrays
+        , dropUP
   
-  -- * Sums
-  andUP,
-  orUP,
-  allUP,     anyUP,
-  sumUP,     productUP,
-  maximumUP, maximumByUP,
-  maximumIndexByUP
-) where
+          -- * Sums
+        , andUP
+        , orUP
+        , allUP,     anyUP
+        , sumUP,     productUP
+        , maximumUP, maximumByUP
+        , maximumIndexByUP)
+where
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Enum
@@ -72,49 +74,3 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Vector                                    as VS
-
--- | O(n). Segmented extract.
-
--- TODO: make a uvsegd version that backs off to this one if the uvsegd is manifest.
---
--- TODO: zip srcids ixBase and startsix before calling replicate_s
---       don't want to replicate_s multiple times on same segd.
---
--- TODO: pass in a projection function to get the correct array from the vector, 
---       to avoid unpackig all the arrays from PDatas with a big map traversal.
---
-{-# INLINE_UP extractsUP #-}
-extractsUP :: Unbox a => UPSSegd -> VS.Vector (Vector a) -> Vector a
-extractsUP !ssegd !arrs
- = let  !segd      = UPSegd.fromLengths $ UPSSegd.takeLengths ssegd
- 
-        -- source array ids to load from
-        !srcids'   = UPSegd.replicateWithP segd $ UPSSegd.takeSources ssegd
-
-        -- base indices in the source array to load from
-        !baseixs   = UPSegd.replicateWithP segd $ UPSSegd.takeStarts  ssegd
-        
-        -- starting indices for each of the segments in the result
-        !startixs' = UPSegd.replicateWithP segd $ UPSSegd.takeIndices ssegd
-
-        {-# INLINE get #-}
-        get (ixDst, ixSegDst) (ixSegSrcBase, srcid)
-         = let  !arr    = arrs `VS.unsafeIndex` srcid
-                !ix     = ixDst - ixSegDst + ixSegSrcBase
-           in   arr `US.unsafeIndex` ix
-       
-       -- total length of the result
-        !dstLen    = UPSSegd.takeElements ssegd
-         
-   in   zipWithUP get
-                (US.zip (enumFromToUP 0 (dstLen - 1)) startixs')
-                (US.zip baseixs                       srcids')
-
-
-
-
-
-
-
-
-

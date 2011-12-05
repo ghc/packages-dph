@@ -26,22 +26,15 @@ module Data.Array.Parallel.Unlifted.Sequential.USSegd (
         
         -- * Operators
         appendWith,
-        cullOnVSegids,
-        
-        -- * Streams
-        streamSegs
+        cullOnVSegids
 ) where
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector, Unbox)
+import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
 
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
-import qualified Data.Vector                                    as V
-import qualified Data.Vector.Fusion.Stream                      as S
-import qualified Data.Vector.Fusion.Stream.Size                 as S
-import qualified Data.Vector.Fusion.Stream.Monadic              as M
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
 
 
 -- USSegd ---------------------------------------------------------------------
@@ -221,7 +214,8 @@ getSeg (USSegd _ starts sources usegd) ix
 {-# INLINE_U getSeg #-}
 
 
--- Operators ------------------------------------------------------------------
+-- Operators ==================================================================
+
 -- | O(n). Produce a segment descriptor that describes the result of appending
 --   two arrays.
 appendWith
@@ -307,52 +301,5 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
 {-# NOINLINE cullOnVSegids #-}
 --  NOINLINE because it's complicated and won't fuse with anything
 --  This can also be expensive and we want to see the SCC in profiling builds.
-
-
--- Stream Functions -----------------------------------------------------------
--- | Stream some physical segments from many data arrays.
--- 
---   * TODO: make this more efficient, and fix fusion.
---           We should be able to eliminate a lot of the indexing happening in the 
---           inner loop by being cleverer about the loop state.
---
---   * TODO: If this is contiguous then we can stream the lot without worrying 
---           about jumping between segments. EXCEPT that this information must be
---           statically visible else streamSegs won't fuse, so we can't have an 
---           ifThenElse checking the manifest flag.
-
-streamSegs
-        :: Unbox a
-        => USSegd               -- ^ Segment descriptor defining segments base
-                                --   on source vectors.
-        -> V.Vector (Vector a)  -- ^ Source arrays.
-        -> S.Stream a
-
-{-# INLINE_STREAM streamSegs #-}
-streamSegs ussegd@(USSegd _ starts sources usegd) pdatas
- = let  
-        -- length of each segment
-        pseglens        = USegd.takeLengths usegd
- 
-        -- We've finished streaming this pseg
-        {-# INLINE_INNER fn #-}
-        fn (pseg, ix)
-         -- All psegs are done.
-         | pseg >= length ussegd
-         = return $ S.Done
-         
-         -- Current pseg is done
-         | ix   >= pseglens `U.unsafeIndex` pseg 
-         = return $ S.Skip (pseg + 1, 0)
-
-         -- Stream an element from this pseg
-         | otherwise
-         = let  !srcid   = sources `U.unsafeIndex` pseg
-                !pdata   = pdatas  `V.unsafeIndex` srcid
-                !start   = starts  `U.unsafeIndex` pseg
-                !result  = pdata   `U.unsafeIndex` (start + ix)
-           in   return $ S.Yield result (pseg, ix + 1)
-
-   in   M.Stream fn (0, 0) S.Unknown
 
 

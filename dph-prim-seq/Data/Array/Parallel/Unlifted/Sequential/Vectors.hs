@@ -21,10 +21,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vectors
         , unsafeIndexUnpack
         , append
         , fromVector
-        , toVector
-        
-        , unsafeExtracts
-        , unsafeStreamVectors)
+        , toVector)
 where
 import qualified Data.Primitive.ByteArray                       as P
 import qualified Data.Primitive.Array                           as P
@@ -225,74 +222,4 @@ packUVector ba start len
         return $ G.convert pvec
 {-# INLINE_U packUVector #-}
 
-
--- | Copy segments from a `Vectors` and concatenate them into a new array.
-unsafeExtracts
-        :: (Unboxes a, U.Unbox a)
-        => USSegd -> Vectors a -> U.Vector a
-
-unsafeExtracts ussegd vectors
-        = G.unstream $ unsafeStreamVectors ussegd vectors
-{-# INLINE_U unsafeExtracts #-}
-
-
--- Stream -----------------------------------------------------------------------------------------
--- | Stream segments from a `Vectors`.
--- 
---   * There must be at least one segment in the `USSegd`, but this is not checked.
--- 
---   * No bounds checking is done for the `USSegd`.
-unsafeStreamVectors :: Unboxes a => USSegd -> Vectors a -> S.Stream a
-unsafeStreamVectors ussegd@(USSegd _ segStarts segSources usegd) vectors
- = segStarts `seq` segSources `seq` usegd `seq` vectors `seq`
-   let  -- Length of each segment
-        !segLens        = USegd.takeLengths usegd
-
-        -- Total number of segments.
-        !segsTotal      = USSegd.length ussegd
- 
-        -- Total number of elements to stream.
-        !elements       = USegd.takeElements usegd
- 
-        -- seg, ix of that seg in usegd, length of seg, elem in seg
-        {-# INLINE_INNER fnSeg #-}
-        fnSeg (ixSeg, baSeg, ixEnd, ixElem)
-         = ixSeg `seq` baSeg `seq`
-           if ixElem >= ixEnd                   -- Was that the last elem in the current seg?
-            then if ixSeg + 1 >= segsTotal      -- Was that last seg?
-
-                       -- That was the last seg, we're done.
-                  then return $ S.Done
-                  
-                       -- Move to the next seg.
-                  else let ixSeg'       = ixSeg + 1
-                           sourceSeg    = U.unsafeIndex segSources ixSeg'
-                           startSeg     = U.unsafeIndex segStarts  ixSeg'
-                           lenSeg       = U.unsafeIndex segLens    ixSeg'
-                           (arr, startArr, lenArr) = unsafeIndexUnpack vectors sourceSeg
-                       in  return $ S.Skip
-                                  ( ixSeg'
-                                  , arr
-                                  , startArr + startSeg + lenSeg
-                                  , startArr + startSeg)
-
-                 -- Stream the next element from the segment.
-            else let !result  = P.indexByteArray baSeg ixElem
-                 in  return   $ S.Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
-
-        -- Starting state of the stream.
-        !initState
-         = let  sourceSeg       = U.unsafeIndex segSources 0
-                startSeg        = U.unsafeIndex segStarts  0
-                lenSeg          = U.unsafeIndex segLens    0
-                (arr, startArr, lenArr) = unsafeIndexUnpack vectors sourceSeg
-           in   ( 0                              -- starting segment id
-                , arr                            -- starting segment data
-                , startArr + startSeg + lenSeg   -- segment end
-                , startArr + startSeg)           -- segment start ix
-
-        -- It's important that we set the result stream size, so Data.Vector
-        -- doesn't need to add code to grow the result when it overflows.
-   in   M.Stream fnSeg initState (S.Exact elements) 
-{-# INLINE_STREAM unsafeStreamVectors #-}
 

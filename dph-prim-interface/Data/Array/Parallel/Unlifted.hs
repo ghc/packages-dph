@@ -89,9 +89,10 @@ length          = P.length
 (!:)            = (P.!!)
 unsafeIndex     = (P.!!)
 
-extract xs i n   = P.take n (P.drop i xs)
-unsafeExtract_ss = notImplemented "unsafeExtract_ss"
-unsafeExtract_vs = notImplemented "unsafeExtract_vs"
+extract xs i n     = P.take n (P.drop i xs)
+unsafeExtracts_nss = notImplemented "unsafeExtract_nss"
+unsafeExtracts_ass = notImplemented "unsafeExtract_ass"
+unsafeExtracts_avs = notImplemented "unsafeExtract_avs"
 
 drop            = P.drop
 
