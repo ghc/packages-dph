@@ -31,19 +31,24 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
   foldWithP,
   fold1WithP,
   sumWithP,
-  foldSegsWithP
+  foldSegsWithP,
+  
+  -- * Segmented Projections
+  unsafeExtractsWithP
 ) where
 import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector,  MVector, Unbox)
+import Data.Array.Parallel.Unlifted.Sequential.Vectors                  (Vectors, Unboxes)
 
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd        as DUSSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors        as Seq
 import qualified Data.Vector                                            as VS
 import Control.Monad.ST
 import Prelude hiding (length)
@@ -326,3 +331,15 @@ fixupFold f !mrs !dcarry = go 1
                            go (i + 1)
       where
         (k,c) = indexD dcarry i
+
+-- Extracts -------------------------------------------------------------------
+-- | TODO: make this parallel.
+{-# INLINE_UP unsafeExtractsWithP #-}
+unsafeExtractsWithP 
+        :: (Unbox a, Unboxes a)
+        => Vectors a
+        -> UPSSegd
+        -> Vector a
+
+unsafeExtractsWithP vectors upssegd
+        = Seq.unsafeExtracts vectors (takeUSSegd upssegd)

@@ -256,7 +256,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          --  and rebuild the result selector indices based on these tags.
          -- tags'       = [1     1     0     0     1     1     0      0     1]
          -- sel'        = [0     1     0     1     2     3     2      3     4]   
-         tags'          = U.extract_ss tagss ssegd
+         tags'          = U.unsafeExtract_vs tagss ssegd
          sel'           = U.tagsToSel2 tags'
 
          -- Extract the indices of the data elements we want.
@@ -264,7 +264,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          -- (result)      [R 60, R 70, L 80, L 20, R 30, R 90, L 100, L 40, R 50]
          --                ----------------0 ----------1 -----------2 ----3 ----4
          -- indices'    = [  1     2     0     0     0     3     1      1     0 ]
-         indices'       = U.extract_ss (V.map U.indicesSel2 sels) ssegd
+         indices'       = U.unsafeExtract_vs (V.map U.indicesSel2 sels) ssegd
 
          -- Count the number of L and R elements for each segment,
          --  then scan them to produce the starting index of each segment in the

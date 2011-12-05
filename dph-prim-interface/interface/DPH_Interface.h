@@ -10,6 +10,11 @@ instance Elt Float
 instance Elt Double
 instance (Elt a, Elt b) => Elt (a, b)
 
+instance Elts Int
+instance Elts Word8
+instance Elts Float
+instance Elts Double
+
 infixl 9 !:
 infixr 5 +:+
 
@@ -212,10 +217,23 @@ extract :: Elt a
 
 
 -- | O(n). Segmented extract.
-extract_ss :: Elt a
-        => VV.Vector (Array a) -- ^ Source arrays.
+unsafeExtract_ss 
+        :: (Elt a, Elts a)
+        => Arrays a     -- ^ Source arrays.
+        -> SSegd        -- ^ `SSegd` defining the slices to extract.
+        -> Array a
+{-# INLINE_BACKEND unsafeExtract_ss #-}
+
+
+-- | O(n). Segmented extract, from a vector of arrays.
+--   TODO: This is a transitory interface, we are refactoring code to always
+--         use the previous form.
+unsafeExtract_vs 
+        :: Elt a
+        => VV.Vector (Array a)
         -> SSegd
         -> Array a
+{-# INLINE_BACKEND unsafeExtract_vs #-}
 
 
 -- | O(n). Drop some elements from the front of an array, 

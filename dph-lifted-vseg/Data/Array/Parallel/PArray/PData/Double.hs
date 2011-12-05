@@ -15,10 +15,10 @@ import qualified Data.Vector                    as V
 
 -------------------------------------------------------------------------------
 data instance PData Double
-        = PDouble !(U.Array Double)
+        = PDouble  !(U.Array  Double)
 
 data instance PDatas Double
-        = PDoubles !(V.Vector (U.Array Double))
+        = PDoubles !(U.Arrays Double)
 
 
 -- PR -------------------------------------------------------------------------
@@ -83,17 +83,16 @@ instance PR Double where
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PDoubles pvecs) (PInt srcs) (PInt ixs)
-   = PDouble $ U.zipWith get srcs ixs
-   where get !src !ix   = (pvecs `V.unsafeIndex` src) `U.unsafeIndex` ix
+   = PDouble $ U.zipWith (U.unsafeIndex2s pvecs) srcs ixs
 
 
-  {-# NOINLINE extractPR #-}
+  {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
         = PDouble (U.extract arr start len)
 
-  {-# NOINLINE extractsPR #-}
+  {-# INLINE_PDATA extractsPR #-}
   extractsPR (PDoubles arrs) ssegd
-        = PDouble (U.extract_ss arrs ssegd)
+        = PDouble (U.unsafeExtract_ss arrs ssegd)
                 
 
   -- Pack and Combine ---------------------------
@@ -121,31 +120,33 @@ instance PR Double where
   -- PDatas -------------------------------------
   {-# INLINE_PDATA emptydPR #-}
   emptydPR 
-        = PDoubles $ V.empty
+        = PDoubles $ U.emptys
         
   {-# INLINE_PDATA singletondPR #-}
   singletondPR (PDouble pdata)
-        = PDoubles $ V.singleton pdata
+        = PDoubles $ U.singletons pdata
         
   {-# INLINE_PDATA lengthdPR #-}
   lengthdPR (PDoubles vec)
-        = V.length vec
+        = U.lengths vec
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PDoubles vec) ix
-        = PDouble $ vec `V.unsafeIndex` ix
+        = PDouble $ vec `U.unsafeIndexs` ix
 
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PDoubles xs) (PDoubles ys)
-        = PDoubles $ xs V.++ ys
+        = PDoubles $ xs `U.appends` ys
         
   {-# NOINLINE fromVectordPR #-}
-  fromVectordPR vec
-        = PDoubles $ V.map (\(PDouble xs) -> xs) vec
+  fromVectordPR pdatas
+        = PDoubles 
+        $ U.fromVectors 
+        $ V.map (\(PDouble vec) -> vec) pdatas
         
   {-# NOINLINE toVectordPR #-}
   toVectordPR (PDoubles vec)
-        = V.map PDouble vec
+        = V.map PDouble $ U.toVectors vec
 
 
 -- Show -----------------------------------------------------------------------

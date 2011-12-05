@@ -14,6 +14,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vectors
         ( Vectors(..)
         , Unboxes
         , empty
+        , length
         , singleton
         , unsafeIndex
         , unsafeIndex2
@@ -80,10 +81,10 @@ empty
 
 
 -- | Construct a `Vectors` containing data from a single unboxed array.
-singleton :: Unboxes a => R.Vector a -> Vectors a
+singleton :: (Unboxes a, Unbox a) => U.Vector a -> Vectors a
 singleton vec 
  = unsafePerformIO
- $ do   R.MVector start len mbaData <- R.unsafeThaw vec
+ $ do   R.MVector start len mbaData <- R.unsafeThaw $ G.convert vec
         baData  <- P.unsafeFreezeByteArray mbaData
         
         mbaStarts       <- P.newByteArray 1
@@ -228,9 +229,9 @@ packUVector ba start len
 -- | Copy segments from a `Vectors` and concatenate them into a new array.
 unsafeExtracts
         :: (Unboxes a, U.Unbox a)
-        => USSegd -> Vectors a -> U.Vector a
+        => Vectors a -> USSegd -> U.Vector a
 
-unsafeExtracts ussegd vectors
+unsafeExtracts vectors ussegd
         = G.unstream $ unsafeStreamVectors ussegd vectors
 {-# INLINE_U unsafeExtracts #-}
 

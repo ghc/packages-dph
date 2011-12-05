@@ -3,9 +3,9 @@
 
 module Data.Array.Parallel.Unlifted (
   -- * Types
-  Elt, Array,  
+  Elt,  Array,
   
-  -- * Constructors
+  -- * Array Constructors
   empty,
   (+:+),     append_s,
   replicate, replicate_s, replicate_rs,
@@ -21,7 +21,7 @@ module Data.Array.Parallel.Unlifted (
   -- * Projections
   length,
   (!:),     unsafeIndex,
-  extract,  extract_ss,
+  extract,  unsafeExtract_ss,  unsafeExtract_vs,
   drop,
   
   -- * Update
@@ -128,6 +128,17 @@ module Data.Array.Parallel.Unlifted (
   appendVSegd,
   combine2VSegd,
   
+
+  -- * Irregular two dimensional arrays.
+  Elts, Arrays,
+  emptys,
+  singletons,
+  lengths,
+  unsafeIndexs,
+  unsafeIndex2s,
+  appends,
+  fromVectors,
+  toVectors,
   
   -- * Random arrays
   randoms, randomRs,

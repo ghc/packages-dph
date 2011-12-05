@@ -24,12 +24,14 @@ import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Base.TracePrim
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 
-import Data.Array.Parallel.Unlifted.Sequential.Vector (Unbox, Vector)
+import Data.Array.Parallel.Unlifted.Sequential.Vector  (Unbox,   Vector)
+import Data.Array.Parallel.Unlifted.Sequential.Vectors (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors        as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 
 import Prelude (($!))
@@ -46,9 +48,8 @@ import Prelude (($!))
 --
 
 -- Basics ---------------------------------------------------------------------
-class (Unbox a, DT a) => Elt a
+class (Unbox a,   DT a) => Elt a
 type Array      = Vector
-
 
 -- Constructors ---------------------------------------------------------------
 empty   = Seq.empty
@@ -112,8 +113,8 @@ extract arr i n
         =  tracePrim (TraceExtract (Seq.length arr) i n)
         $! Seq.extract arr i n
 
-extract_ss
-        = extractsUP
+unsafeExtract_ss        = UPSSegd.unsafeExtractsWithP
+unsafeExtract_vs        = extractsUP
 
 drop n arr
         =  tracePrim (TraceDrop n (Seq.length arr))
@@ -308,6 +309,20 @@ updateVSegsOfVSegd              = UPVSegd.updateVSegs
 updateVSegsReachableOfVSegd     = UPVSegd.updateVSegsReachable
 appendVSegd                     = UPVSegd.appendWith
 combine2VSegd                   = UPVSegd.combine2
+
+
+-- Irregular 2D arrays --------------------------------------------------------
+class (Unboxes a, DT a) => Elts a
+
+type Arrays             = Vectors
+emptys                  = US.empty
+lengths                 = US.length
+singletons              = US.singleton
+unsafeIndexs            = US.unsafeIndex
+unsafeIndex2s           = US.unsafeIndex2
+appends                 = US.append
+fromVectors             = US.fromVector
+toVectors               = US.toVector
 
 
 -- Random arrays --------------------------------------------------------------

@@ -13,10 +13,11 @@ import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
 import Data.Array.Parallel.Unlifted.Sequential
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd  as USSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd  as UVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors as US
 
 #include "DPH_Interface.h"
 
@@ -51,7 +52,8 @@ length                  = U.length
 (!:)                    = (U.!)
 unsafeIndex             = U.unsafeIndex
 extract                 = U.extract
-extract_ss              = extractsSU
+unsafeExtract_ss        = US.unsafeExtracts
+unsafeExtract_vs        = extractsSU
 drop                    = U.drop
 
 
@@ -173,6 +175,19 @@ updateVSegsOfVSegd              = UVSegd.updateVSegs
 updateVSegsReachableOfVSegd     = UVSegd.updateVSegsReachable
 appendVSegd                     = UVSegd.appendWith
 combine2VSegd                   = UVSegd.combine2
+
+
+-- Irregular 2D Arrays --------------------------------------------------------
+class US.Unboxes a => Elts a
+type Arrays             = US.Vectors
+emptys                  = US.empty
+lengths                 = US.length
+singletons              = US.singleton
+unsafeIndexs            = US.unsafeIndex
+unsafeIndex2s           = US.unsafeIndex2
+appends                 = US.append
+fromVectors             = US.fromVector
+toVectors               = US.toVector
 
 
 -- Random Arrays --------------------------------------------------------------

@@ -81,7 +81,7 @@ instance PR Int where
 
   {-# NOINLINE extractsPR #-}
   extractsPR (PInts arrs) ssegd
-        = PInt $ U.extract_ss arrs ssegd
+        = PInt $ U.unsafeExtract_vs arrs ssegd
 
 
 

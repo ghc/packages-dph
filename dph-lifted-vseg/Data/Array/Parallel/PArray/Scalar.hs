@@ -49,6 +49,7 @@ class (PA a, U.Elt a) => Scalar a where
   fromScalarPData  :: PData  a             -> U.Array a
   toScalarPData    :: U.Array a            -> PData a
   
+  -- TODO: make these return U.Arrays a, then need to be O(1).
   fromScalarPDatas :: PDatas a             -> V.Vector (U.Array a)
   toScalarPDatas   :: V.Vector (U.Array a) -> PDatas a
 
@@ -98,9 +99,9 @@ instance Scalar Word8 where
 
 instance Scalar Double where
   fromScalarPData  (PDouble xs)   = xs
-  fromScalarPDatas (PDoubles xss) = xss
+  fromScalarPDatas (PDoubles xss) = U.toVectors xss
   toScalarPData                   = PDouble
-  toScalarPDatas                  = PDoubles
+  toScalarPDatas xss              = PDoubles $ U.fromVectors xss
 
 
 -- Conversions ----------------------------------------------------------------

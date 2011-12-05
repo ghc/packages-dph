@@ -89,8 +89,9 @@ length          = P.length
 (!:)            = (P.!!)
 unsafeIndex     = (P.!!)
 
-extract xs i n  = P.take n (P.drop i xs)
-extract_ss      = notImplemented "extract_ss"
+extract xs i n   = P.take n (P.drop i xs)
+unsafeExtract_ss = notImplemented "unsafeExtract_ss"
+unsafeExtract_vs = notImplemented "unsafeExtract_vs"
 
 drop            = P.drop
 
@@ -273,6 +274,19 @@ updateVSegsOfVSegd              = notImplemented "updateVSegsOfVSegd"
 updateVSegsReachableOfVSegd     = notImplemented "updateVSegsReachableOfVSegd"
 appendVSegd                     = notImplemented "appendVSegd"
 combine2VSegd                   = notImplemented "combine2VSegd"
+
+
+-- 2D Arrays ------------------------------------------------------------------
+class Elts a
+type Arrays a    = [[a]]
+emptys           = notImplemented "emptys"
+lengths          = notImplemented "lengths"
+singletons       = notImplemented "singletons"
+unsafeIndexs     = notImplemented "unsafeIndexs"
+unsafeIndex2s    = notImplemented "unsafeIndex2s"
+appends          = notImplemented "appends"
+fromVectors      = notImplemented "fromVectors"
+toVectors        = notImplemented "toVectors"
 
 
 -- Random Arrays --------------------------------------------------------------
