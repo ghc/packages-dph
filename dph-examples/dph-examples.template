@@ -86,12 +86,12 @@ Executable dph-smoke-reverse
 
 
 -- Imaginary ------------------------------------------------------------------
-Executable dph-imaginary-primes
-  Build-depends:  DPH_DEPENDS
-  Main-is:        Main.hs
-  other-modules:  Vectorised
-  hs-source-dirs: examples/imaginary/Primes lib
-  ghc-options:    DPH_OPTIONS
+-- Executable dph-imaginary-primes
+--   Build-depends:  DPH_DEPENDS
+--   Main-is:        Main.hs
+--   other-modules:  Vectorised
+--   hs-source-dirs: examples/imaginary/Primes lib
+--   ghc-options:    DPH_OPTIONS
 
 Executable dph-imaginary-words
   Build-depends:  DPH_DEPENDS
@@ -164,20 +164,18 @@ Executable dph-spectral-quicksort
 --     hs-source-dirs: lib real/NBody real/NBody/Gloss
 --     ghc-options:    DPH_OPTIONS -fno-liberate-case
 
-
-
--- Executable dph-real-nbody
---     Main-is:        MainBatch.hs
---     other-modules:  Common.Dump Common.World Common.Body Common.Util 
---                     Solver Solver.ListBH.Solver
---                            Solver.NestedBH.Solver
---                            Solver.VectorBH.Solver
---                            Solver.VectorNaive.Solver
---                     Timing Points2D.Types Points2D.Generate
---                     Batch.MainArgs Batch.Config
---     Build-depends:  DPH_DEPENDS
---     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
---     ghc-options:    DPH_OPTIONS
+Executable dph-real-nbody
+    Main-is:        MainBatch.hs
+    other-modules:  Common.Dump Common.World Common.Body Common.Util 
+                    Solver Solver.ListBH.Solver
+                           Solver.NestedBH.Solver
+                           Solver.VectorBH.Solver
+                           Solver.VectorNaive.Solver
+                    Timing Points2D.Types Points2D.Generate
+                    Batch.MainArgs Batch.Config
+    Build-depends:  DPH_DEPENDS
+    hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
+    ghc-options:    DPH_OPTIONS
 
 -- dph-real-nbody is broken due to vectorisation error
 -- *** Vectorisation error ***

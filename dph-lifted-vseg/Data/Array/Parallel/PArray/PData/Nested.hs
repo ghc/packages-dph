@@ -509,13 +509,13 @@ indexlPR (PNested vsegd pdatas) (PInt ixs)
 concatPR :: PR a => PData (PArray a) -> PData a
 concatPR (PNested vsegd pdatas)
 
-{-      TODO: we want to implement this as rewwrite rules instead of 
-              a branch, so we don't get the branch in the core code.
+--       TODO: we want to implement this as rewwrite rules instead of 
+--              a branch, so we don't get the branch in the core code.
         
         -- If we know that the segments are in a single contiguous array, 
         -- and there is no sharing between them, then we can just return
         -- that array directly.
-        | U.isManifestVSegd   vsegd
+{-        | U.isManifestVSegd   vsegd
         , U.isContiguousVSegd vsegd
         , lengthdPR pdatas == 1
         = pdatas `indexdPR` 0
@@ -525,7 +525,7 @@ concatPR (PNested vsegd pdatas)
         -- into a single contiguous array.
         | otherwise
         = extractvsPR pdatas vsegd
-{-# INLINE_PDATA concatPR  #-}
+{-# NOINLINE concatPR #-}
 
 
 -- | Lifted concatenation.
