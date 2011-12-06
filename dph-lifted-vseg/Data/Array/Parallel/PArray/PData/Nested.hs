@@ -464,41 +464,13 @@ instance PR a => PR (PArray a) where
 
 ------------------------------------------------------------------------------
 -- | O(len result). Lifted indexing
-
--- TODO: if we unfolded the definition of indexsPR into this function and
--- manually fused the two loops we wouldn't need the second traversal 
--- though ixs array.
---
 indexlPR :: PR a => PData (PArray a) -> PData Int -> PData a
 indexlPR (PNested vsegd pdatas) (PInt ixs)
- = let 
-{-      get ix1 ix2
-         = let  !(_len, segstart, segsrc) = U.getSegOfVSegd vsegd ix1
-           in   (segsrc, segstart + ix2)
-
-        (srcids', ixs')
-                = U.unzip
-                $ U.zipWith get 
-                        (U.enumFromTo 0 (U.length ixs - 1))
-                        ixs 
--}
-                        
-        !vsegids         = U.takeVSegidsRedundantOfVSegd vsegd
-        !ssegd           = U.takeSSegdOfVSegd vsegd
-        !sources         = U.sourcesOfSSegd ssegd
-        !starts          = U.startsOfSSegd  ssegd
-
-        !srcixs'
-         = U.zipWith 
-                (\ix1 ix2 -> let !psegid = U.unsafeIndex vsegids ix1
-                                 !source = U.unsafeIndex sources psegid
-                                 !start  = U.unsafeIndex starts  psegid
-                             in  (source, start + ix2))
-                (U.enumFromTo 0 (U.length ixs - 1))
-                ixs
-                        
-   in   indexsPR pdatas srcixs'
+ = indexvsPR pdatas vsegd 
+        (U.zip  (U.enumFromTo 0 (U.length ixs - 1))
+                ixs)
 {-# INLINE_PDATA indexlPR #-}
+
 
 -------------------------------------------------------------------------------
 -- | O(len result). Concatenate a nested array.

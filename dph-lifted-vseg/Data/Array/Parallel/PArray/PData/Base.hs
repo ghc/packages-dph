@@ -183,6 +183,25 @@ class PR a where
   --   given the chunkid and index in that chunk for each element.
   indexsPR      :: PDatas a -> U.Array (Int, Int) -> PData a
 
+  -- | O(1). Shared indexing
+  indexvsPR     :: PDatas a -> U.VSegd -> U.Array (Int, Int) -> PData a
+  indexvsPR pdatas vsegd srcixs
+   = let
+         !vsegids         = U.takeVSegidsRedundantOfVSegd vsegd
+         !ssegd           = U.takeSSegdOfVSegd vsegd
+         !sources         = U.sourcesOfSSegd   ssegd
+         !starts          = U.startsOfSSegd    ssegd
+
+         !srcixs' 
+          = U.map (\(ix1, ix2)
+                   -> let !psegid = U.unsafeIndex vsegids ix1
+                          !source = U.unsafeIndex sources psegid
+                          !start  = U.unsafeIndex starts  psegid
+                      in  (source, start + ix2))
+                   srcixs
+
+     in  indexsPR pdatas srcixs'
+
   -- | O(slice len). Extract a slice of elements from an array,
   --  given the starting index and length of the slice.
   extractPR     :: PData a -> Int -> Int -> PData a
