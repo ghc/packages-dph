@@ -83,11 +83,11 @@ instance PR Double where
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PDoubles pvecs) srcixs
-   = PDouble $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
+        = PDouble $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
   {-# INLINE_PDATA indexvsPR #-}
   indexvsPR (PDoubles arrs) vsegd srcixs 
-   = PDouble $ U.unsafeIndexs_avs arrs vsegd srcixs
+        = PDouble $ U.unsafeIndexs_avs arrs vsegd srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 

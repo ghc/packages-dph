@@ -201,6 +201,7 @@ class PR a where
                    srcixs
 
      in  indexsPR pdatas srcixs'
+  {-# INLINE_PDATA indexvsPR #-}
 
   -- | O(slice len). Extract a slice of elements from an array,
   --  given the starting index and length of the slice.
@@ -221,6 +222,7 @@ class PR a where
   extractvsPR    :: PDatas a -> U.VSegd -> PData a
   extractvsPR pdatas vsegd
         = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
+  {-# INLINE_PDATA extractvsPR #-}
   
   -- Pack and Combine ---------------------------
   -- | Select elements of an array that have their corresponding tag set to
