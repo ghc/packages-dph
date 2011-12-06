@@ -35,7 +35,6 @@ Library
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
               NoMonomorphismRestriction
   GHC-Options:
-        -dcore-lint
         -Odph
         -funbox-strict-fields -fcpr-off
 

@@ -21,7 +21,6 @@ module Data.Array.Parallel.Prelude.Int
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim                 ()      
-
 import Data.Array.Parallel.Prelude.Base
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray

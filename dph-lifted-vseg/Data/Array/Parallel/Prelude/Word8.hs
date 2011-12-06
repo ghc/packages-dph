@@ -21,7 +21,6 @@ module Data.Array.Parallel.Prelude.Word8
         , toInt)
 where
 import Data.Array.Parallel.Prim                         ()      
-
 import Data.Array.Parallel.Prelude.Base
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray

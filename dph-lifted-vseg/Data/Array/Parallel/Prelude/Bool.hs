@@ -7,7 +7,7 @@ module Data.Array.Parallel.Prelude.Bool
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim
-
+import Data.Array.Parallel.Prelude.Base                 ()
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted           as U

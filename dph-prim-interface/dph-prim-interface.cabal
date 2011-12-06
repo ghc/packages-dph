@@ -27,7 +27,6 @@ Library
   Extensions: BangPatterns
 
   GHC-Options:
-        -dcore-lint
         -Odph
         -funbox-strict-fields -fcpr-off
 

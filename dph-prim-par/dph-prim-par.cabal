@@ -58,7 +58,6 @@ Library
 
 
   GHC-Options:
-        -dcore-lint
         -Odph -funbox-strict-fields
         -fcpr-off
         -Werror
