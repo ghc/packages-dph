@@ -191,10 +191,10 @@ indexPA xs i
 
 
 {-# INLINE_PA indexsPA #-}
-indexsPA        :: PA a => PDatas a -> PData Int -> PData Int -> PData a
-indexsPA pdatas srcs ixs
+indexsPA        :: PA a => PDatas a -> U.Array (Int, Int) -> PData a
+indexsPA pdatas srcixs
  = fromArrPRepr
- $ indexsPR (toArrPReprs pdatas) srcs ixs
+ $ indexsPR (toArrPReprs pdatas) srcixs
 
 
 {-# INLINE_PDATA bpermutePA #-}

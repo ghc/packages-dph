@@ -79,8 +79,8 @@ instance PR Word8 where
         = uarr `U.unsafeIndex` ix
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PWord8s pvecs) (PInt srcs) (PInt ixs)
-   = PWord8 $ U.zipWith (U.unsafeIndex2s pvecs) srcs ixs
+  indexsPR (PWord8s pvecs) srcixs
+   = PWord8 $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWord8 arr) start len 

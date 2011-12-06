@@ -23,14 +23,6 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import GHC.Exts
 
--- TODO: Using plain V.Vector for the psegdata field means that operations on
---       this field aren't parallelised. In particular, when we append two
---       psegdata fields during appPR or combinePR this runs sequentially
---
--- TODO: Should make a new type familty PDatas to hold the vector of datas 
---       for all the segment slices.
---
-
 -- Nested arrays --------------------------------------------------------------
 data instance PData (PArray a)
         = PNested
@@ -42,9 +34,11 @@ data instance PData (PArray a)
           -- ^ Chunks of array data, where each chunk has a linear index space. 
         }
 
+-- TODO: should we unpack the vsegd fields here?
 data instance PDatas (PArray a)
         = PNesteds (V.Vector (PData (PArray a)))
 
+-- TODO: Do we actually use this? looks weird.
 data instance PDatas (PData a)
         = PPDatas (V.Vector (PData a))
 
@@ -279,10 +273,12 @@ instance PR a => PR (PArray a) where
 
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR pdatas@(PNesteds arrs) (PInt srcids) (PInt ixs)
-   = let 
+  indexsPR pdatas@(PNesteds arrs) srcixs
+   = let (srcids, ixs)  = U.unzip srcixs
+   
+   
          -- See Note: psrcoffset
-         psrcoffset     = V.prescanl (+) 0
+         !psrcoffset    = V.prescanl (+) 0
                         $ V.map (lengthdPR . pnested_psegdata) arrs
 
          -- length, start and srcid of the segments we're returning.
@@ -476,8 +472,7 @@ instance PR a => PR (PArray a) where
 indexlPR :: PR a => PData (PArray a) -> PData Int -> PData a
 indexlPR (PNested vsegd pdatas) (PInt ixs)
  = let 
-        {-# INLINE get #-}
-        get ix1 ix2
+{-      get ix1 ix2
          = let  !(_len, segstart, segsrc) = U.getSegOfVSegd vsegd ix1
            in   (segsrc, segstart + ix2)
 
@@ -485,9 +480,24 @@ indexlPR (PNested vsegd pdatas) (PInt ixs)
                 = U.unzip
                 $ U.zipWith get 
                         (U.enumFromTo 0 (U.length ixs - 1))
-                        ixs
+                        ixs 
+-}
                         
-   in   indexsPR pdatas (PInt srcids') (PInt ixs')
+        !vsegids         = U.takeVSegidsRedundantOfVSegd vsegd
+        !ssegd           = U.takeSSegdOfVSegd vsegd
+        !sources         = U.sourcesOfSSegd ssegd
+        !starts          = U.startsOfSSegd  ssegd
+
+        !srcixs'
+         = U.zipWith 
+                (\ix1 ix2 -> let !psegid = U.unsafeIndex vsegids ix1
+                                 !source = U.unsafeIndex sources psegid
+                                 !start  = U.unsafeIndex starts  psegid
+                             in  (source, start + ix2))
+                (U.enumFromTo 0 (U.length ixs - 1))
+                ixs
+                        
+   in   indexsPR pdatas srcixs'
 {-# INLINE_PDATA indexlPR #-}
 
 -------------------------------------------------------------------------------

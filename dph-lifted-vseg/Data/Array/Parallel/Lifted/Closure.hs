@@ -360,8 +360,8 @@ instance PR (a :-> b) where
         = Clo fv fl  $ indexPA envs ix
 
   {-# INLINE_CLOSURE indexsPR #-}
-  indexsPR (AClos fv fl envs) srcs ixs
-        = AClo fv fl $ indexsPA envs srcs ixs
+  indexsPR (AClos fv fl envs) srcixs
+        = AClo fv fl $ indexsPA envs srcixs
 
   {-# INLINE_CLOSURE extractPR #-}
   extractPR (AClo fv fl envs) start len

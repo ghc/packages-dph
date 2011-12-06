@@ -181,7 +181,7 @@ class PR a where
   -- | O(1). Shared indexing.
   --   Retrieve several elements from several chunks of array data, 
   --   given the chunkid and index in that chunk for each element.
-  indexsPR      :: PDatas a -> PData Int -> PData Int -> PData a
+  indexsPR      :: PDatas a -> U.Array (Int, Int) -> PData a
 
   -- | O(slice len). Extract a slice of elements from an array,
   --  given the starting index and length of the slice.
@@ -255,8 +255,8 @@ class PR a where
 bpermutePR :: PR a => PData a -> U.Array Int -> PData a
 bpermutePR pdata ixs
  = indexsPR     (singletondPR pdata) 
-                (PInt $ U.replicate (U.length ixs) 0)
-                (PInt $ ixs)
+                (U.zip  (U.replicate (U.length ixs) 0)
+                        ixs)
 
 
 -- Pretty ---------------------------------------------------------------------

@@ -99,9 +99,9 @@ instance (PR a, PR b) => PR (a, b) where
         = (indexPR arr1 ix, indexPR arr2 ix)
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PTuple2s xs ys) srcs ixs
-        = PTuple2 (indexsPR xs srcs ixs)
-                  (indexsPR ys srcs ixs)
+  indexsPR (PTuple2s xs ys) srcixs
+        = PTuple2 (indexsPR xs srcixs)
+                  (indexsPR ys srcixs)
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple2 arr1 arr2) start len

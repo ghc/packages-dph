@@ -76,8 +76,8 @@ instance PA a => PR (Wrap a) where
         = Wrap  $ indexPA xs ix
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PWraps pdatas) srcs ixs
-        = PWrap $ indexsPA pdatas srcs ixs
+  indexsPR (PWraps pdatas) srcixs
+        = PWrap $ indexsPA pdatas srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWrap xs) ix n

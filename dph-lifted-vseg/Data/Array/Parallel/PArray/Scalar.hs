@@ -192,7 +192,7 @@ folds f z (PArray _ (PNested vsegd pdatas))
         vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
 
    in   fromUArray vsegResults
-
+           
 
 -- | Segmented fold of an array of arrays, using the first element of each
 --   segment to initialse the state for that segment.

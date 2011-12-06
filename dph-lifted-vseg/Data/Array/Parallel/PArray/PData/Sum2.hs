@@ -141,8 +141,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
              _ -> Alt2_2 (indexPR bs k)
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PSum2s sels ass bss) psrcs@(PInt srcs) (PInt ixs)
-   = let 
+  indexsPR (PSum2s sels ass bss) srcixs
+   = let (srcids, ixs)  = U.unzip srcixs
+   
          getFlagIndex !src !ix
           = let !sel        = sels                `V.unsafeIndex` src
                 !elemFlag   = (U.tagsSel2    sel) `U.unsafeIndex` ix
@@ -150,14 +151,14 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
             in  (elemFlag, elemIndex)
             
          (flags', indices')
-                = U.unzip $ U.zipWith getFlagIndex srcs ixs 
+                = U.unzip $ U.zipWith getFlagIndex srcids ixs 
 
          sel'           = U.tagsToSel2 flags'    
          asIndices      = U.packByTag indices' flags' 0
          bsIndices      = U.packByTag indices' flags' 1
          
-         as'            = indexsPR ass psrcs (PInt asIndices)
-         bs'            = indexsPR bss psrcs (PInt bsIndices)
+         as'            = indexsPR ass (U.zip srcids asIndices) 
+         bs'            = indexsPR bss (U.zip srcids bsIndices)
 
     in   PSum2 sel' as' bs'
 

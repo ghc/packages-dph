@@ -70,8 +70,8 @@ instance PR Int where
         = uarr `U.unsafeIndex` ix
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PInts pvecs) (PInt srcs) (PInt ixs)
-   = PInt $ U.zipWith (U.unsafeIndex2s pvecs) srcs ixs
+  indexsPR (PInts pvecs) srcixs
+   = PInt $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 

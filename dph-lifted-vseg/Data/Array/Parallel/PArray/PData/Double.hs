@@ -82,8 +82,8 @@ instance PR Double where
         = arr `U.unsafeIndex` ix
 
   {-# INLINE_PDATA indexsPR #-}
-  indexsPR (PDoubles pvecs) (PInt srcs) (PInt ixs)
-   = PDouble $ U.zipWith (U.unsafeIndex2s pvecs) srcs ixs
+  indexsPR (PDoubles pvecs) srcixs
+   = PDouble $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
 
   {-# INLINE_PDATA extractPR #-}
