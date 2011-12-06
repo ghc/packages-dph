@@ -45,6 +45,7 @@ module Data.Array.Parallel.Unlifted.Parallel
         , appendSUP
         , foldRUP
         , sumRUP
+        , unsafeIndexsFromVectorsWithUPVSegd
         , unsafeExtractsFromNestedWithUPSSegd
         , unsafeExtractsFromVectorsWithUPSSegd
         , unsafeExtractsFromVectorsWithUPVSegd

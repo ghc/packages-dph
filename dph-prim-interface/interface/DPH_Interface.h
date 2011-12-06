@@ -205,6 +205,16 @@ unsafeIndex :: Elt a => Array a -> Int -> a
 {-# INLINE_BACKEND unsafeIndex #-}
 
 
+-- | O(n). Scattered indexing through a `VSegd`.
+unsafeIndexs_avs
+        :: (Elt a, Elts a)
+        => Arrays a
+        -> VSegd
+        -> Array (Int, Int)
+        -> Array a
+{-# INLINE_BACKEND unsafeIndexs_avs #-}
+
+
 -- | O(n). Extract a subrange of elements from an array.
 --  
 --   @extract [23, 42, 93, 50, 27] 1 3  = [42, 93, 50]@

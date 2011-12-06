@@ -51,6 +51,8 @@ enumFromStepLenEach     = U.enumFromStepLenEach
 length                  = U.length
 (!:)                    = (U.!)
 unsafeIndex             = U.unsafeIndex
+unsafeIndexs_avs        = Prelude.error "dph-prim-seq: unsafeIndex_avs wrapper not defined"
+
 extract                 = U.extract
 unsafeExtracts_nss      = US.unsafeExtractsFromNestedWithUSSegd
 unsafeExtracts_ass      = US.unsafeExtractsFromVectorsWithUSSegd

@@ -113,6 +113,12 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
                   (indexsPR ys srcixs)
                   (indexsPR zs srcixs)
 
+  {-# INLINE_PDATA indexvsPR #-}
+  indexvsPR (PTuple3s xs ys zs) vsegd srcixs
+        = PTuple3 (indexvsPR xs vsegd srcixs)
+                  (indexvsPR ys vsegd srcixs)
+                  (indexvsPR zs vsegd srcixs)
+
   {-# INLINE_PDATA extractPR #-}
   extractPR (PTuple3 arr1 arr2 arr3) start len
         = PTuple3 (extractPR arr1 start len) 

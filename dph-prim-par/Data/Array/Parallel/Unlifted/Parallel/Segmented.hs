@@ -8,6 +8,11 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented
         , appendSUP
         , foldRUP
         , sumRUP
+
+        -- * Scattered indexing.
+        , unsafeIndexsFromVectorsWithUPVSegd
+
+        -- * Scattered extracts.
         , unsafeExtractsFromNestedWithUPSSegd
         , unsafeExtractsFromVectorsWithUPSSegd
         , unsafeExtractsFromVectorsWithUPVSegd)
@@ -143,6 +148,29 @@ foldRUP f z !segSize xs =
 sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
 {-# INLINE_UP sumRUP #-}
 sumRUP = foldRUP (+) 0
+
+
+-- Indexvs --------------------------------------------------------------------
+-- | Lookup elements from some `Vectors` through a `UPVSegd`.
+--
+--   TODO: make this parallel.
+--
+unsafeIndexsFromVectorsWithUPVSegd 
+        :: (Unbox a, US.Unboxes a)
+        => Vectors a -> UPVSegd -> Vector (Int, Int) -> Vector a
+
+unsafeIndexsFromVectorsWithUPVSegd vectors upvsegd vsrcixs
+ = let  -- Because we're just doing indexing here, we don't need the culled
+        -- vsegids or ussegd, and can just use the redundant version.
+        !vsegids  = UPVSegd.takeVSegidsRedundant upvsegd
+        !upssegd  = UPVSegd.takeUPSSegdRedundant upvsegd
+        !ussegd   = UPSSegd.takeUSSegd upssegd
+   in   Seq.unstream
+         $ US.unsafeStreamElemsFromVectors        vectors
+         $ US.unsafeStreamSrcIxsThroughUSSegd  ussegd
+         $ US.unsafeStreamSrcIxsThroughVSegids vsegids
+         $ Seq.stream vsrcixs
+{-# INLINE_U unsafeIndexsFromVectorsWithUPVSegd #-}
 
 
 -- Extracts -------------------------------------------------------------------

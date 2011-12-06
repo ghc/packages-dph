@@ -87,6 +87,10 @@ instance PR () where
   indexsPR _ srcixs
         = PUnit $ U.length srcixs
 
+  {-# INLINE_PDATA indexvsPR #-}
+  indexvsPR _ _ srcixs
+        = PUnit $ U.length srcixs
+
   {-# INLINE_PDATA extractPR #-}
   extractPR _ _ len
         = PUnit len
