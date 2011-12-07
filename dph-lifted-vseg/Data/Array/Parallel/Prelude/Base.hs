@@ -24,8 +24,9 @@ import Data.Word (Word8)
 {-# VECTORISE SCALAR type PArray = PArray #-}
 {-# VECTORISE SCALAR type (->) = (:->) #-}
 
-{-# VECTORISE type () = () #-}
-{-# VECTORISE type Bool = Bool #-}
+{-# VECTORISE type ()       = () #-}
+{-# VECTORISE type Bool     = Bool #-}
+{-# VECTORISE type Ordering = Ordering #-}
 {-# VECTORISE SCALAR type Word8 #-}
 {-# VECTORISE SCALAR type Int #-}
 {-# VECTORISE SCALAR type Float #-}

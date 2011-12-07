@@ -13,12 +13,12 @@ import Data.Array.Parallel.PArray.PData.Base
 
 import Data.Array.Parallel.PArray.PData.Void
 import Data.Array.Parallel.PArray.PData.Sum2    
+import Data.Array.Parallel.PArray.PData.Word8
 import Data.Array.Parallel.PArray.PData.Wrap    ()
 import Data.Array.Parallel.PArray.PData.Unit    ()
 import Data.Array.Parallel.PArray.PData.Nested  ()
 import Data.Array.Parallel.PArray.PData.Tuple2  ()
 import Data.Array.Parallel.PArray.PData.Int     ()
-import Data.Array.Parallel.PArray.PData.Word8   ()
 import Data.Array.Parallel.PArray.PData.Double  ()
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
@@ -123,6 +123,45 @@ instance PA Bool where
   {-# INLINE fromArrPReprs #-}
   fromArrPReprs (PSum2s sels _ _)
         = PBools sels
+
+
+-- Ordering -------------------------------------------------------------------
+type instance PRepr  Ordering
+ = Word8
+
+data instance PData Ordering
+ = POrdering  !(U.Array Word8)
+ 
+data instance PDatas Ordering
+ = POrderings !(U.Arrays Word8)
+
+instance PA Ordering where
+ {-# INLINE toPRepr #-}
+ toPRepr LT     = 0
+ toPRepr EQ     = 1
+ toPRepr GT     = 2
+ 
+ {-# INLINE fromPRepr #-}
+ fromPRepr 0    = LT
+ fromPRepr 1    = EQ
+ fromPRepr 2    = GT
+ fromPRepr _    = error "dph-prim-vseg: bad value converting Word8 to Ordering"
+ 
+ {-# INLINE toArrPRepr #-}
+ toArrPRepr (POrdering arr)
+        = PWord8 arr
+        
+ {-# INLINE fromArrPRepr #-}
+ fromArrPRepr (PWord8 arr)
+        = POrdering arr
+
+ {-# INLINE toArrPReprs #-}
+ toArrPReprs (POrderings arrs)
+        = PWord8s arrs
+        
+ {-# INLINE fromArrPReprs #-}
+ fromArrPReprs (PWord8s arrs)
+        = POrderings arrs
 
 
 -- Either ---------------------------------------------------------------------
