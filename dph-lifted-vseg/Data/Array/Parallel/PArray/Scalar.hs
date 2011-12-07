@@ -100,7 +100,7 @@ instance Scalar Double where
   toScalarPData                   = PDouble
   toScalarPDatas                  = PDoubles
 
-
+        
 -- Conversions ----------------------------------------------------------------
 {-# INLINE_PA fromUArray #-}
 fromUArray  :: Scalar a => U.Array a -> PArray a
