@@ -25,12 +25,12 @@ import Data.Array.Parallel.Unlifted.Parallel.UPVSegd                    (UPVSegd
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
-import Data.Array.Parallel.Unlifted.Sequential.Vectors                  (Vectors)
+import Data.Array.Parallel.Unlifted.Vectors                             (Vectors)
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors        as US
-import qualified Data.Array.Parallel.Unlifted.Sequential.Streams        as US
+import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
+import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
@@ -181,9 +181,9 @@ unsafeExtractsFromNestedWithUPSSegd
 
 unsafeExtractsFromNestedWithUPSSegd upssegd vectors
         = Seq.unstream 
-        $ US.unsafeStreamSegsFromNested 
-                (UPSSegd.takeUSSegd upssegd)
+        $ US.unsafeStreamSegsFromNestedUSSegd
                 vectors
+                (UPSSegd.takeUSSegd upssegd)
 {-# INLINE_U unsafeExtractsFromNestedWithUPSSegd #-}
 
 
@@ -195,7 +195,7 @@ unsafeExtractsFromVectorsWithUPSSegd
         -> Vector a
 
 unsafeExtractsFromVectorsWithUPSSegd upssegd vectors
-        = US.unsafeExtractsFromVectorsWithUSSegd
+        = Seq.unsafeExtractsFromVectorsUSSegd
                 (UPSSegd.takeUSSegd upssegd) 
                 vectors
 {-# INLINE_UP unsafeExtractsFromVectorsWithUPSSegd #-}
@@ -210,9 +210,8 @@ unsafeExtractsFromVectorsWithUPVSegd
 
 unsafeExtractsFromVectorsWithUPVSegd upvsegd vectors
         = Seq.unstream 
-        $ US.unsafeStreamSegsFromVectors 
-                (Just (UPVSegd.takeVSegidsRedundant upvsegd))
-                (UPSSegd.takeUSSegd $ UPVSegd.takeUPSSegd upvsegd)
-                vectors
+        $ US.unsafeStreamSegsFromVectorsUSSegd
+                vectors         -- TODD: avoid demote, use the vsegd directly.
+                (UPSSegd.takeUSSegd $ UPVSegd.demoteToUPSSegd upvsegd)
 {-# INLINE_UP unsafeExtractsFromVectorsWithUPVSegd #-}
 
