@@ -25,9 +25,9 @@ dph_packages_dbs = \
 packages   : $(dph_packages_dbs)
 
 
-# Unregister all the DPH packages
+# Clean and unregister all the DPH packages
 .PHONY	   : unregsiter
-unregister :
+unregister : clean
 	@for p in $(dph_packages); do \
 		$(GHC_PKG) unregister $$p --force; \
 	done
