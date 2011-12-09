@@ -15,7 +15,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd  as USSegd
 import qualified Data.Vector.Unboxed                             as U
 import qualified Data.Vector                                     as V
 import qualified Data.Primitive.ByteArray                        as P
-
+import System.IO.Unsafe
 
 -- Nested -----------------------------------------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
@@ -119,16 +119,21 @@ unsafeStreamSegsFromVectorsUSSegd
                  in  return   $ Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
 
         -- Starting state of the stream.
+        -- CAREFUL:
+        --  The ussegd might not contain any segments, so we can't initialise the state
+        --  just by taking the first segment length etc from the ussegd.
+        --  On the other hand, we don't want to use an extra case expression to test for
+        --  this sitution, as that could break fusion.
+        --  Instead, start with a dummy state which forces the loop to grab the first 
+        --  segment, if there are any.
+        !dummy  = unsafePerformIO 
+                $ P.newByteArray 0 >>= P.unsafeFreezeByteArray
+
         !initState
-         = let  sourceSeg = U.unsafeIndex segSources 0
-                startSeg  = U.unsafeIndex segStarts  0
-                lenSeg    = U.unsafeIndex segLens    0
-                (arr, startArr, _) 
-                          = US.unsafeIndexUnpack vectors sourceSeg
-           in   ( 0                              -- starting segment id
-                , arr                            -- starting segment data
-                , startArr + startSeg + lenSeg   -- segment end
-                , startArr + startSeg)           -- segment start ix
+         =      ( -1    -- force fnSeg loop to load first seg
+                , dummy -- dummy array data to start with
+                , 0     -- force fnSeg loop to load first seg
+                , 0)           
 
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
