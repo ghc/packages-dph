@@ -214,6 +214,7 @@ ziplPR arr1 arr2
 
    in   PNested (U.promoteSegdToVSegd segd1)
                 (PTuple2s (singletondPR pdata1) (singletondPR pdata2))
+                (PTuple2  pdata1 pdata2)
 
 {-# INLINE_PA ziplPR #-}
 
@@ -226,9 +227,9 @@ unzipPD (PTuple2 xs ys) = (xs, ys)
 
 -- | Lifted unzip.
 unziplPD  :: PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unziplPD (PNested uvsegd (PTuple2s xsdata ysdata))
- =      PTuple2 (PNested uvsegd xsdata)
-                (PNested uvsegd ysdata)
+unziplPD (PNested uvsegd (PTuple2s xsdata ysdata) (PTuple2 xflat yflat))
+ =      PTuple2 (PNested uvsegd xsdata xflat)
+                (PNested uvsegd ysdata yflat)
 {-# INLINE_PA unziplPD #-}
 
 

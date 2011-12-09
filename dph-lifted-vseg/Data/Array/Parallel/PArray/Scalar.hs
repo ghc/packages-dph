@@ -181,7 +181,7 @@ fold1 f (PArray _ pdata)
 folds   :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 
-folds f z (PArray _ (PNested vsegd pdatas))
+folds f z (PArray _ (PNested vsegd pdatas _))
  = let  -- Grab all the flat physical arrays.
         uarrs           = fromScalarPDatas pdatas 
         
@@ -201,7 +201,7 @@ folds f z (PArray _ (PNested vsegd pdatas))
 fold1s  :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> PArray (PArray a) -> PArray a
 
-fold1s f (PArray _ (PNested vsegd pdatas))
+fold1s f (PArray _ (PNested vsegd pdatas _))
  = let  -- Grab all the flat physical arrays.
         uarrs           = fromScalarPDatas pdatas 
  
@@ -257,19 +257,22 @@ enumFromTo m n
 {-# INLINE_PA enumFromTol #-}
 enumFromTol :: PArray Int -> PArray Int -> PArray (PArray Int)
 enumFromTol (PArray m# ms) (PArray _ ns)
-  = PArray m#
-  $ PNested (U.promoteSegdToVSegd segd)
-  $ toScalarPDatas
-  $ U.singletons
-  $ U.enumFromStepLenEach 
-        (U.elementsSegd segd)
-        (fromScalarPData ms)
-        (U.replicate (U.elementsSegd segd) 1) 
-        lens
-  where
+  = let 
         lens  = U.zipWith distance (fromScalarPData ms) (fromScalarPData ns)
         segd  = U.lengthsToSegd lens
 
+        flat    = toScalarPData
+                $ U.enumFromStepLenEach 
+                        (U.elementsSegd segd)
+                        (fromScalarPData ms)
+                        (U.replicate (U.elementsSegd segd) 1) 
+                        lens
+                        
+        vsegd   = U.promoteSegdToVSegd segd
+        pdatas  = singletondPA flat
+        
+    in  PArray m# $ PNested vsegd pdatas flat
+        
 distance :: Int -> Int -> Int
 {-# INLINE_STREAM distance #-}
 distance m n = max 0 (n - m + 1)

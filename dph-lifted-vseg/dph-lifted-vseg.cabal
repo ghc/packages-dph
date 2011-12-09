@@ -77,7 +77,7 @@ Library
         PackageImports
 
   GHC-Options:
-        -Odph 
+        -Odph
         -fcpr-off -fno-liberate-case -fno-spec-constr
         -Wall
         -fno-warn-missing-methods

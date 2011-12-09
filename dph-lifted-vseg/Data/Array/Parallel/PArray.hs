@@ -206,7 +206,7 @@ replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
         !c       = I# n#
         
      in PArray n# 
-         $ mkPNested
+         $ mkPNestedPA
                 (U.enumFromTo 0 (c - 1))
                 lens
                 (U.indicesSegd segd)
@@ -282,7 +282,7 @@ nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
-	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata)	
+	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata) pdata	
 
         | otherwise
         = error $ unlines
@@ -296,7 +296,7 @@ nestUSegd segd (PArray n# pdata)
 -- Projections  ---------------------------------------------------------------
 -- | Take the length of some arrays.
 lengthl :: PA a => PArray (PArray a) -> PArray Int
-lengthl arr@(PArray n# (PNested vsegd _))
+lengthl arr@(PArray n# (PNested vsegd _ _))
  = withRef1 "lengthl" (R.lengthl (toRef2 arr))
  $ PArray n# $ PInt $ U.takeLengthsOfVSegd vsegd
 {-# INLINE_PA lengthl #-}
@@ -366,7 +366,7 @@ slice start len@(I# len#) (PArray _ darr)
 --   have the same length.
 slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
 slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
- = PArray n# (slicelPD sliceStarts sliceLens darr)
+ = PArray n# (slicelPA sliceStarts sliceLens darr)
 {-# INLINE_PA slicel #-}
 
 
@@ -395,7 +395,7 @@ pack arr@(PArray _ xs) flags@(PArray _ (PBool sel2))
 
 -- | Lifted pack.
 packl :: PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
-packl xss@(PArray n# xdata@(PNested vsegd _))
+packl xss@(PArray n# xdata@(PNested vsegd _ _))
       fss@(PArray _  fdata)
  = withRef2 "packl" (R.packl (toRef2 xss) (toRef2 fss))
  $ let  
@@ -414,9 +414,10 @@ packl xss@(PArray n# xdata@(PNested vsegd _))
 
         -- Build the result array
         vsegd'          = U.promoteSegdToVSegd segd'
-        xdata'          = packByTagPA xdata_flat tags 1
+        flat'           = packByTagPA xdata_flat tags 1
+        pdatas'         = singletondPA flat'
         
-   in   PArray n# (PNested vsegd' $ singletondPA xdata')
+   in   PArray n# (PNested vsegd' pdatas' flat')
 {-# INLINE_PA packl #-}
 
 
