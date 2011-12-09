@@ -74,9 +74,8 @@ withRef1 name arrRef arrImpl
 withRef1' name arrRef arrImpl
  = unsafePerformIO
  $ do   when debugLiftedTrace
-         $ do putStrLn  $   render
-                        $   text "* " <> text name
-                        $+$ (nest 4 $ pprp1 arrImpl)
+         $ do putStrLn  $ "* " ++ name
+              putStrLn  $ render (nest 4 $ pprp1 arrImpl)
               hFlush stdout
         
         when ( debugLiftedCompare 
@@ -114,9 +113,8 @@ withRef2 name arrRef arrImpl
 withRef2' name arrRef arrImpl
  = unsafePerformIO
  $ do   when debugLiftedTrace
-         $ do putStrLn  $  render
-                        $  text "* " <> text name
-                        $+$ (nest 4 $ pprp1 arrImpl)
+         $ do putStrLn  $ "* " ++ name
+              putStrLn  $ render (nest 4 $ pprp1 arrImpl)
               hFlush stdout
 
         when ( debugLiftedCompare
