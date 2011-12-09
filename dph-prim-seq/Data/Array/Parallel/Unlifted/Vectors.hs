@@ -10,7 +10,7 @@
 --   * TODO: We currently only allow primitive types to be in a Vectors, but 
 --           in future we'll want `Vectors` of tuples etc.
 --
-module Data.Array.Parallel.Unlifted.Sequential.Vectors 
+module Data.Array.Parallel.Unlifted.Vectors 
         ( Vectors(..)
         , Unboxes
         , empty
@@ -28,21 +28,14 @@ import qualified Data.Primitive.Array                           as P
 import qualified Data.Primitive.Types                           as P
 
 import qualified Data.Vector.Generic                            as G
-import qualified Data.Vector.Fusion.Stream                      as S
-import qualified Data.Vector.Fusion.Stream.Size                 as S
-import qualified Data.Vector.Fusion.Stream.Monadic              as M
 import qualified Data.Vector.Primitive                          as R
 import qualified Data.Vector.Unboxed                            as U
 import qualified Data.Vector                                    as V
 import Data.Vector.Unboxed                                      (Unbox)
-
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd(..))
 import System.IO.Unsafe
 import Prelude  hiding (length)
-import Debug.Trace
 import Data.Word
+
 
 -- | Class of element types that can be used in a `Vectors`
 class R.Prim a => Unboxes a
@@ -84,11 +77,11 @@ singleton vec
  $ do   R.MVector start len mbaData <- R.unsafeThaw $ G.convert vec
         baData  <- P.unsafeFreezeByteArray mbaData
         
-        mbaStarts       <- P.newByteArray 1
+        mbaStarts       <- P.newByteArray 4
         P.writeByteArray mbaStarts 0 start
         baStarts        <- P.unsafeFreezeByteArray mbaStarts
         
-        mbaLengths      <- P.newByteArray 1
+        mbaLengths      <- P.newByteArray 4
         P.writeByteArray mbaLengths 0 len
         baLengths       <- P.unsafeFreezeByteArray mbaLengths
         
@@ -122,15 +115,15 @@ unsafeIndex (Vectors _ starts lens arrs) ix
 -- | Retrieve a single element from a `Vectors`, 
 --   given the outer and inner indices.
 unsafeIndex2 :: Unboxes a => Vectors a -> Int -> Int -> a
-unsafeIndex2 (Vectors _ starts lens arrs) ix1 ix2
- = (arrs `P.indexArray` ix1) `P.indexByteArray` (starts `P.indexByteArray` ix1 + ix2)
+unsafeIndex2 (Vectors _ starts _ arrs) ix1 ix2
+ = (arrs `P.indexArray` ix1) `P.indexByteArray` ((starts `P.indexByteArray` ix1) + ix2)
 {-# INLINE_U unsafeIndex2 #-}
 
 
 -- | Retrieve an inner array from a `Vectors`, returning the array data, 
 --   starting index in the data, and vector length.
 unsafeIndexUnpack :: Unboxes a => Vectors a -> Int -> (P.ByteArray, Int, Int)
-unsafeIndexUnpack (Vectors n starts lens arrs) ix
+unsafeIndexUnpack (Vectors _ starts lens arrs) ix
  =      ( arrs   `P.indexArray` ix
         , starts `P.indexByteArray` ix
         , lens   `P.indexByteArray` ix)
@@ -141,7 +134,7 @@ unsafeIndexUnpack (Vectors n starts lens arrs) ix
 --
 --   * Important: appending two `Vectors` involes work proportional to
 --     the length of the outer arrays, not the size of the inner ones.
-append :: Unboxes a => Vectors a -> Vectors a -> Vectors a
+append :: (Unboxes a, Unbox a, Show a) => Vectors a -> Vectors a -> Vectors a
 append  (Vectors len1 starts1 lens1 chunks1)
         (Vectors len2 starts2 lens2 chunks2)
  = unsafePerformIO
@@ -169,7 +162,9 @@ append  (Vectors len1 starts1 lens1 chunks1)
         P.copyArray     maChunks len1       chunks2   0 len2
         chunks'         <- P.unsafeFreezeArray maChunks
         
-        return  $ Vectors len' starts' lens' chunks'
+        
+        let result      = Vectors len' starts' lens' chunks'
+        return  $ result
 {-# INLINE_U append #-}
 
 
@@ -178,7 +173,7 @@ fromVector :: (Unboxes a, Unbox a) => V.Vector (U.Vector a) -> Vectors a
 fromVector vecs
  = unsafePerformIO
  $ do   let len     = V.length vecs
-        let (barrs, vstarts, vlens)     = V.unzip3 $ V.map unpackUVector vecs
+        let (_, vstarts, vlens) = V.unzip3 $ V.map unpackUVector vecs
         let (baStarts, _, _)    = unpackUVector $ V.convert vstarts
         let (baLens,   _, _)    = unpackUVector $ V.convert vlens
         mchunks                 <- P.newArray len (error "Vectors: fromVector argh!")
@@ -211,15 +206,4 @@ unpackUVector vec
         ba              <- P.unsafeFreezeByteArray mba
         return  (ba, start, len)
 {-# INLINE_U unpackUVector #-}
-
-
--- | Pack some array data, starting index and vector length unto an unboxed vector.
-packUVector :: (Unbox a, P.Prim a) => P.ByteArray -> Int -> Int -> U.Vector a
-packUVector ba start len
- = unsafePerformIO
- $ do   mba             <- P.unsafeThawByteArray ba
-        pvec            <- R.unsafeFreeze $ R.MVector start len mba
-        return $ G.convert pvec
-{-# INLINE_U packUVector #-}
-
 

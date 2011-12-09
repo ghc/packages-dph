@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables, BangPatterns, CPP #-}
-
+{-# OPTIONS  -w #-}     -- TODO: enable warnings
 #include "fusion-phases.h"
 
 -- | Wrappers for primitives defined in @Data.Vector@.
