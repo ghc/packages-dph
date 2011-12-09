@@ -214,15 +214,12 @@ class PR a where
   --  slice, and all slices are concatenated together into the result.
   extractssPR    :: PDatas a -> U.SSegd -> PData a
 
-
   -- | O(sum seglens). Shared extract.
   --  Extract several slices from several source arrays.
   --  TODO: we're refactoring the library so functions use the VSeg form directly,
   --        instead of going via a SSegd.
   extractvsPR    :: PDatas a -> U.VSegd -> PData a
-  extractvsPR pdatas vsegd
-        = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
-  {-# INLINE_PDATA extractvsPR #-}
+
   
   -- Pack and Combine ---------------------------
   -- | Select elements of an array that have their corresponding tag set to

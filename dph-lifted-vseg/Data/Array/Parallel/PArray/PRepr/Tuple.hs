@@ -14,6 +14,7 @@ import Data.Array.Parallel.PArray.PData.Tuple2
 import Data.Array.Parallel.PArray.PData.Tuple3
 import Data.Array.Parallel.PArray.PData.Tuple4
 import Data.Array.Parallel.PArray.PData.Tuple5
+import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.PData.Wrap
 
 
@@ -51,12 +52,16 @@ instance (PA a, PA b) => PA (a, b) where
 ziplPA  :: (PA a, PA b) 
         => PData (PArray a) -> PData (PArray b) -> PData (PArray (a, b))
 ziplPA xs ys
- = let  PNested vsegd (PTuple2s xs' ys')
+ = let  
+        -- TODO: can we use the flat version here?
+        PNested vsegd (PTuple2s xs' ys') _
          = ziplPR (toNestedArrPRepr xs) (toNestedArrPRepr ys)
 
-   in   PNested vsegd (PTuple2s   
-                  (fromArrPReprs xs') (fromArrPReprs ys'))
+        pdatas  = PTuple2s (fromArrPReprs xs') (fromArrPReprs ys')
+        flat    = fromArrPRepr $ extractvs_delay (toArrPReprs pdatas) vsegd
 
+   in   PNested vsegd pdatas flat
+                
 
 -- Tuple3 --------------------------------------------------------------------
 type instance PRepr (a, b, c)
