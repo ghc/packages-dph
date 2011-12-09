@@ -111,8 +111,8 @@ tagsToIndices2 tags
 
 
 mapAccumS :: (acc -> a -> (acc,b)) -> acc -> S.Stream a -> S.Stream b
-mapAccumS f acc (Stream step s n)
-  = Stream step' (acc,s) n
+mapAccumS f acc0 (Stream step s0 n)
+  = Stream step' (acc0,s0) n
   where
    {-# INLINE_INNER step' #-}
    step' (acc,s) 

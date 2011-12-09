@@ -18,9 +18,12 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.USSegd
         Data.Array.Parallel.Unlifted.Sequential.UVSegd
         Data.Array.Parallel.Unlifted.Sequential.Vector
-        Data.Array.Parallel.Unlifted.Sequential.Vectors
-        Data.Array.Parallel.Unlifted.Sequential.Streams
         Data.Array.Parallel.Unlifted.Sequential
+        Data.Array.Parallel.Unlifted.Stream.Ixs
+        Data.Array.Parallel.Unlifted.Stream.Elems
+        Data.Array.Parallel.Unlifted.Stream.Segments
+        Data.Array.Parallel.Unlifted.Stream
+        Data.Array.Parallel.Unlifted.Vectors
         Data.Array.Parallel.Unlifted
         
   Other-Modules:
@@ -35,7 +38,7 @@ Library
               BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
               NoMonomorphismRestriction
   GHC-Options:
-        -Odph
+        -Odph -Wall
         -funbox-strict-fields -fcpr-off
 
   Build-Depends:  

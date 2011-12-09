@@ -11,13 +11,11 @@ import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
-import Data.Array.Parallel.Unlifted.Sequential
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd  as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd  as UVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vectors as US
-import qualified Data.Array.Parallel.Unlifted.Sequential.Streams as US
+import qualified Data.Array.Parallel.Unlifted.Vectors            as US
 
 #include "DPH_Interface.h"
 
@@ -54,9 +52,9 @@ unsafeIndex             = U.unsafeIndex
 unsafeIndexs_avs        = Prelude.error "dph-prim-seq: unsafeIndex_avs wrapper not defined"
 
 extract                 = U.extract
-unsafeExtracts_nss      = US.unsafeExtractsFromNestedWithUSSegd
-unsafeExtracts_ass      = US.unsafeExtractsFromVectorsWithUSSegd
-unsafeExtracts_avs      = US.unsafeExtractsFromVectorsWithUVSegd
+unsafeExtracts_nss      = unsafeExtractsFromNestedUSSegd
+unsafeExtracts_ass      = unsafeExtractsFromVectorsUSSegd
+unsafeExtracts_avs      = Prelude.error "dph-prim-seq: unsafeExtracts_avs: not done"
 drop                    = U.drop
 
 

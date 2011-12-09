@@ -8,18 +8,21 @@ module Data.Array.Parallel.Unlifted.Sequential.Combinators (
   foldl1SU,     foldl1SSU,
   fold1SU,      fold1SSU,
   foldlRU,
-  combineSU
+  combineSU,
+  
+  unsafeExtractsFromNestedUSSegd,
+  unsafeExtractsFromVectorsUSSegd
 ) where
 import Data.Array.Parallel.Stream
-import Data.Array.Parallel.Unlifted.Sequential.Streams
+import Data.Array.Parallel.Unlifted.Stream
+import Data.Array.Parallel.Unlifted.Vectors                     as US
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
-import Data.Array.Parallel.Unlifted.Sequential.Vectors          as US
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Vector                                    as V
-import Debug.Trace
+import qualified Data.Vector.Generic                            as G
 
 
 -- foldl ----------------------------------------------------------------------
@@ -40,7 +43,7 @@ foldlSSU :: (Unbox a, Unboxes a, Unbox b)
 foldlSSU f z ssegd xss
         = unstream
         $ foldSS f z    (stream (USSegd.takeLengths ssegd))
-                        (unsafeStreamSegsFromVectors Nothing ssegd xss)
+                        (unsafeStreamSegsFromVectorsUSSegd xss ssegd)
 
 
 -- fold -----------------------------------------------------------------------
@@ -79,7 +82,7 @@ foldl1SSU :: (Unbox a, Unboxes a)
 foldl1SSU f ssegd xxs
         = unstream
         $ fold1SS f     (stream (USSegd.takeLengths ssegd))
-                        (unsafeStreamSegsFromVectors Nothing ssegd xxs)
+                        (unsafeStreamSegsFromVectorsUSSegd xxs ssegd)
 
 
 -- fold1 ----------------------------------------------------------------------
@@ -116,4 +119,26 @@ combineSU bs xd xs yd ys
         $ combineSS (stream bs)
                     (stream (USegd.takeLengths xd)) (stream xs)
                     (stream (USegd.takeLengths yd)) (stream ys)
+
+
+
+-- Extracts wrappers ---------------------------------------------------------
+-- | Copy segments from a `Vectors` and concatenate them into a new array.
+unsafeExtractsFromNestedUSSegd
+        :: (U.Unbox a)
+        => USSegd -> V.Vector (Vector a) -> U.Vector a
+
+unsafeExtractsFromNestedUSSegd ussegd vectors
+        = G.unstream $ unsafeStreamSegsFromNestedUSSegd vectors ussegd
+{-# INLINE_U unsafeExtractsFromNestedUSSegd #-}
+
+
+-- | Copy segments from a `Vectors` and concatenate them into a new array.
+unsafeExtractsFromVectorsUSSegd
+        :: (Unboxes a, U.Unbox a)
+        => USSegd -> Vectors a -> U.Vector a
+
+unsafeExtractsFromVectorsUSSegd ussegd vectors
+        = G.unstream $ unsafeStreamSegsFromVectorsUSSegd vectors ussegd
+{-# INLINE_U unsafeExtractsFromVectorsUSSegd #-}
 
