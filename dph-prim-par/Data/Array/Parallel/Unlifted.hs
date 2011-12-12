@@ -106,9 +106,8 @@ enumFromStepLenEach n starts steps lens
 
 -- Projections ----------------------------------------------------------------
 length                  = Seq.length
-(!:)                    = (Seq.!)
-
-unsafeIndex             = Seq.unsafeIndex
+(!:)                    = Seq.index "dph-prim-par:Unlifted index wrapper"
+unsafeIndex             = Seq.index "dph-prim-par:Unlifted index wrapper"
 unsafeIndexs_avs        = unsafeIndexsFromVectorsWithUPVSegd
 
 extract arr i n

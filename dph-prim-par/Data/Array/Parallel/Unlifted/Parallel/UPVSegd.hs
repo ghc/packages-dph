@@ -53,6 +53,8 @@ import qualified Data.Array.Parallel.Unlifted.Parallel.UPSel    as UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
 
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Parallel.UPVSegd." Prelude.++ s
 
 -- UPVSegd ---------------------------------------------------------------------
 -- | A parallel virtual segment descriptor is an extension of `UPSSegd`
@@ -257,7 +259,7 @@ takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 takeLengths :: UPVSegd -> Vector Int
 takeLengths (UPVSegd manifest _ vsegids _ upssegd)
  | manifest     = UPSSegd.takeLengths upssegd
- | otherwise    = US.map (US.unsafeIndex (UPSSegd.takeLengths upssegd)) vsegids
+ | otherwise    = US.map (US.index (here "takeLengths") (UPSSegd.takeLengths upssegd)) vsegids
 {-# NOINLINE takeLengths #-}
 --  NOINLINE because we don't want a case expression due to the test on the 
 --  manifest flag to appear in the core program.
@@ -275,7 +277,7 @@ getSeg upvsegd ix
  = let  vsegids = upvsegd_vsegids_redundant upvsegd
         upssegd = upvsegd_upssegd_redundant upvsegd
         (len, _index, start, source)
-                = UPSSegd.getSeg upssegd (vsegids `US.unsafeIndex` ix)
+                = UPSSegd.getSeg upssegd (US.index (here "getSeg") vsegids ix)
    in   (len, start, source)
 {-# INLINE_UP getSeg #-}
 

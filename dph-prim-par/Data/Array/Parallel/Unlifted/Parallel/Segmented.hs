@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-
 #include "fusion-phases.h"
 
 -- | Parallel combinators for segmented unboxed arrays
@@ -34,14 +33,15 @@ import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
-
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 import qualified Data.Vector.Fusion.Stream                              as S
 import qualified Data.Vector                                            as V
 
--- replicate ------------------------------------------------------------------
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Parallel.Segmented." Prelude.++ s
 
+-- replicate ------------------------------------------------------------------
 -- | Segmented replication.
 --   Each element in the vector is replicated the given number of times.
 --   
@@ -95,21 +95,27 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
     !xlens = USegd.takeLengths xd
     !ylens = USegd.takeLengths yd
 
+    {-# INLINE index #-}
+    index  = Seq.index (here "appendSegS")
+
+    {-# INLINE index' #-}
+    index'  = Seq.index (here "appendSegS")
+    
     state
       | n == 0 = Nothing
-      | el_off < xlens ! seg_off
-      = let i = (USegd.takeIndices xd ! seg_off) + el_off
-            j =  USegd.takeIndices yd ! seg_off
-            k = (USegd.takeLengths xd ! seg_off) - el_off
+      | el_off < xlens `index` seg_off
+      = let i = (USegd.takeIndices xd `index` seg_off) + el_off
+            j =  USegd.takeIndices yd `index` seg_off
+            k = (USegd.takeLengths xd `index` seg_off) - el_off
         in  Just (False, seg_off, i, j, k, n)
 
       | otherwise
       = let -- NOTE: *not* indicesUSegd xd ! (seg_off+1) since seg_off+1
             -- might be out of bounds
-            i       = (USegd.takeIndices xd ! seg_off) + (USegd.takeLengths xd ! seg_off)
-            el_off' = el_off - USegd.takeLengths xd ! seg_off
-            j       = (USegd.takeIndices yd ! seg_off) + el_off'
-            k       = (USegd.takeLengths yd ! seg_off) - el_off'
+            i       = (USegd.takeIndices xd `index` seg_off) + (USegd.takeLengths xd `index` seg_off)
+            el_off' = el_off - USegd.takeLengths xd `index` seg_off
+            j       = (USegd.takeIndices yd `index` seg_off) + el_off'
+            k       = (USegd.takeLengths yd `index` seg_off) - el_off'
         in  Just (True, seg_off, i, j, k, n)
 
     {-# INLINE next #-}
@@ -117,16 +123,16 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
 
     next (Just (False, seg, i, j, k, n))
       | n == 0    = return Done
-      | k == 0    = return $ Skip (Just (True, seg, i, j, ylens ! seg, n))
-      | otherwise = return $ Yield (xs!i) (Just (False, seg, i+1, j, k-1, n-1))
+      | k == 0    = return $ Skip (Just (True, seg, i, j, ylens `index` seg, n))
+      | otherwise = return $ Yield (xs `index'` i) (Just (False, seg, i+1, j, k-1, n-1))
 
     next (Just (True, seg, i, j, k, n))
       | n == 0    = return Done
       | k == 0
       = let !seg' = seg+1
-        in  return $ Skip (Just (False, seg', i, j, xlens ! seg', n))
+        in  return $ Skip (Just (False, seg', i, j, xlens `index` seg', n))
 
-      | otherwise = return $ Yield (ys!j) (Just (True, seg, i, j+1, k-1, n-1))
+      | otherwise = return $ Yield (ys `index'` j) (Just (True, seg, i, j+1, k-1, n-1))
 
 
 -- foldR ----------------------------------------------------------------------

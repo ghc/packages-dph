@@ -46,6 +46,9 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 
+here :: String -> String 
+here s = "Data.Array.Parallel.Unlifted.Sequential.UVSegd." ++ s
+
 
 -- UVSegd ---------------------------------------------------------------------
 -- | Virtual segment descriptors. 
@@ -188,7 +191,7 @@ length          = U.length . uvsegd_vsegids
 -- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
 takeLengths (UVSegd _ vsegids ussegd)
-        = U.map (U.unsafeIndex (USSegd.takeLengths ussegd)) vsegids
+        = U.map (U.index (here "takeLengths") (USSegd.takeLengths ussegd)) vsegids
 {-# INLINE_U takeLengths #-}
 
 
@@ -202,7 +205,7 @@ takeLengths (UVSegd _ vsegids ussegd)
 getSeg :: UVSegd -> Int -> (Int, Int, Int)
 getSeg (UVSegd _ vsegids ussegd) ix
  = let  (len, _index, start, source) 
-                = USSegd.getSeg ussegd (vsegids `U.unsafeIndex` ix)
+                = USSegd.getSeg ussegd (U.index (here "getSeg") vsegids ix)
    in   (len, start, source)
 {-# INLINE_U getSeg #-}
 

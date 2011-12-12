@@ -36,9 +36,9 @@ class Unbox e => DPrim e where
 
 
 -- | Get the member corresponding to a thread index.
-primIndexD :: DPrim a => Dist a -> Int -> a
+primIndexD :: DPrim a => String -> Dist a -> Int -> a
 {-# INLINE primIndexD #-}
-primIndexD = (V.!) . unDPrim
+primIndexD str = (V.index (str P.++ "/primIndexD")) . unDPrim
 
 
 -- | Create a new distributed value, having as many members as threads

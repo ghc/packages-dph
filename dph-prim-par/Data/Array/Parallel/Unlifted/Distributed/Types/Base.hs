@@ -16,6 +16,9 @@ import Data.Array.Parallel.Unlifted.Distributed.Gang    (Gang, gangSize)
 import Data.Array.Parallel.Base
 import Data.List                                        (intercalate)
 
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Base." ++ s
+
 
 -- Distributed Types ----------------------------------------------------------
 infixl 9 `indexD`
@@ -29,7 +32,7 @@ class DT a where
   data MDist a :: * -> *
 
   -- | Extract a single element of an immutable distributed value.
-  indexD         :: Dist a -> Int -> a
+  indexD         :: String -> Dist a -> Int -> a
 
   -- | Create an unitialised distributed value for the given 'Gang'.
   --   The gang is used (only) to know how many elements are needed
@@ -71,18 +74,20 @@ class DT a where
 -- Show -----------------------------------------------------------------------
 -- Show instance (for debugging only) --
 instance (Show a, DT a) => Show (Dist a) where
-  show d = show (Prelude.map (indexD d) [0 .. sizeD d - 1])
+  show d = show (Prelude.map (indexD (here "show") d) [0 .. sizeD d - 1])
 
 
 -- Checking -------------------------------------------------------------------
 -- | Check that the sizes of the 'Gang' and of the distributed value match.
 checkGangD :: DT a => String -> Gang -> Dist a -> b -> b
-checkGangD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeD d) v
+checkGangD loc g d v
+        = checkEq loc "Wrong gang" (gangSize g) (sizeD d) v
 
 
 -- | Check that the sizes of the 'Gang' and of the mutable distributed value match.
 checkGangMD :: DT a => String -> Gang -> MDist a s -> b -> b
-checkGangMD loc g d v = checkEq loc "Wrong gang" (gangSize g) (sizeMD d) v
+checkGangMD loc g d v
+        = checkEq loc "Wrong gang" (gangSize g) (sizeMD d) v
 
 
 -- Operations -----------------------------------------------------------------
@@ -98,6 +103,6 @@ newD g mkInit =
 -- | Show all members of a distributed value.
 debugD :: DT a => Dist a -> String
 debugD d = "["
-         ++ intercalate "," [measureD (indexD d i) | i <- [0 .. sizeD d-1]]
+         ++ intercalate "," [measureD (indexD (here "debugD") d i) | i <- [0 .. sizeD d-1]]
          ++ "]"
 

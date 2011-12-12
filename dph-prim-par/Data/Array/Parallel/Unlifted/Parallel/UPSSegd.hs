@@ -50,6 +50,9 @@ import qualified Data.Vector                                            as VS
 import Control.Monad.ST
 import Prelude hiding (length)
 
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Parallel.UPSSegd." ++ s
+
 
 -- | Construct a Parallel Scattered Segment Descriptor from an array of source
 --   array indices, starting indices and an existing `UPSegd`.
@@ -324,7 +327,7 @@ fixupFold f !mrs !dcarry = go 1
          | US.null c = go (i+1)
          | otherwise   
          = do   x <- US.read mrs k
-                US.write mrs k (f x (c US.! 0))
+                US.write mrs k (f x (US.index (here "fixupFold") c 0))
                 go (i + 1)
       where
-        (k,c) = indexD dcarry i
+        (k,c) = indexD (here "fixupFold") dcarry i

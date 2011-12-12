@@ -3,22 +3,22 @@
 #include "fusion-phases.h"
 
 -- | Distribution of unit values.
-module Data.Array.Parallel.Unlifted.Distributed.Types.Unit (
-        unitD
-) where
+module Data.Array.Parallel.Unlifted.Distributed.Types.Unit 
+        (unitD)
+where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Base
 
+here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Unit." ++ s
-
 
 instance DT () where
   data Dist ()    = DUnit  !Int
   data MDist () s = MDUnit !Int
 
-  indexD  (DUnit n) i
-   = check (here "indexD")  n i
+  indexD str (DUnit n) i
+   = check (str ++ "/indexD[Unit]") n i
    $  ()
 
   newMD

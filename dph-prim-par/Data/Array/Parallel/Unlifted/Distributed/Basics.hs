@@ -1,4 +1,4 @@
-{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+{-# OPTIONS -Wall -fno-warn-orphans #-}
 
 -- | Basic operations on distributed types.
 module Data.Array.Parallel.Unlifted.Distributed.Basics (
@@ -10,7 +10,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Control.Monad ( zipWithM_ )
 
-
+here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Basics." ++ s
 
 
@@ -37,6 +37,8 @@ toD g xs = newD g (\md -> zipWithM_ (writeMD md) [0 .. gangSize g - 1] xs)
 --
 --   * For debugging only, don't use in production code.
 fromD :: DT a => Gang -> Dist a -> [a]
-fromD g dt = checkGangD (here "fromDT") g dt $
-             map (indexD dt) [0 .. gangSize g - 1]
+fromD g dt 
+        = checkGangD (here "fromDT") g dt 
+        $ map   (indexD (here "fromD") dt) 
+                [0 .. gangSize g - 1]
 

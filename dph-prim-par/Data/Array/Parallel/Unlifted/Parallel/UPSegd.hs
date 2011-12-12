@@ -38,9 +38,11 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import Data.Array.Parallel.Pretty                                       hiding (empty)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
-
 import Control.Monad.ST
 import Prelude  hiding (length)
+
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Parallel.UPSegd." ++ s
 
 
 -- | A parallel segment descriptor holds a global (undistributed) segment
@@ -274,7 +276,7 @@ fixupFold f !mrs !dcarry = go 1
          | US.null c = go (i+1)
          | otherwise   = do
                            x <- US.read mrs k
-                           US.write mrs k (f x (c US.! 0))
+                           US.write mrs k (f x (US.index (here "fixupFold") c 0))
                            go (i + 1)
       where
-        (k,c) = indexD dcarry i
+        (k,c) = indexD (here "fixupFold") dcarry i

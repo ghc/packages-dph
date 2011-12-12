@@ -16,7 +16,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, Unbox, (!))
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, Unbox)
 import Data.Array.Parallel.Base
 import Data.Bits                                                        (shiftR)
 import Control.Monad                                                    (when)
@@ -24,6 +24,8 @@ import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USegd   as DUSeg
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Distributed.USegd." ++ s
 
 -------------------------------------------------------------------------------
 -- | Split a segment descriptor across the gang, segment wise.
@@ -76,7 +78,7 @@ splitSegdOnSegsD g !segd
              | k <= 0    = i
              | otherwise = go (i+1) (k-m)
       where
-        m = lens ! i
+        m = Seq.index (here "splitSegdOnSegsD") lens i
 
 
 -------------------------------------------------------------------------------
@@ -189,11 +191,11 @@ getChunk !segd !nStart !nElems is_last
 
     -- The length of the left-most slice of this chunk.
     !left     | k == n      = nElems
-              | otherwise   = min ((idxs ! k) - nStart) nElems
+              | otherwise   = min ((Seq.index (here "getChunk") idxs k) - nStart) nElems
 
     -- The length of the right-most slice of this chunk.
     !right    | k' == k     = 0
-              | otherwise   = nStart + nElems - (idxs ! (k'-1))
+              | otherwise   = nStart + nElems - (Seq.index (here "getChunk") idxs (k'-1))
 
     -- Whether the first element in this chunk is an internal element of
     -- of a segment. Alternatively, indicates that the first element of 
@@ -204,7 +206,7 @@ getChunk !segd !nStart !nElems is_last
     -- If the first element of the chunk starts within a segment, 
     -- then gives the index within that segment, otherwise 0.
     !left_off | left == 0   = 0
-              | otherwise   = nStart - idxs ! (k-1)
+              | otherwise   = nStart - (Seq.index (here "getChunk") idxs (k-1))
 
     -- How many segments this chunk straddles.
     !n' = left_len + (k'-k)
@@ -267,7 +269,10 @@ search :: Int -> Vector Int -> Int
 search !x ys = go 0 (Seq.length ys)
   where
     go i n | n <= 0        = i
-           | ys ! mid < x  = go (mid + 1) (n - half - 1)
+
+           | Seq.index (here "search") ys mid < x  
+           = go (mid + 1) (n - half - 1)
+
            | otherwise     = go i half
       where
         half = n `shiftR` 1
@@ -319,7 +324,7 @@ glueSegdD gang bundle
          = generateD_cheap gang $ \ix 
          -> if ix >= sizeD lengths - 1
              then False
-             else indexD firstSegOffsets (ix + 1) /= 0
+             else indexD (here "glueSegdD") firstSegOffsets (ix + 1) /= 0
 
         !lengths'       = fst $ carryD gang (+)                  0 segSplits lengths
         !dusegd'        = mapD gang USegd.fromLengths lengths'

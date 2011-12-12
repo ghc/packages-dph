@@ -4,6 +4,7 @@
 module Data.Array.Parallel.Unlifted.Distributed.Types.Vector
         (lengthD)
 where
+import qualified Data.Array.Parallel.Base               as B
 import Data.Array.Parallel.Unlifted.Distributed.Types.Prim
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Pretty
@@ -13,17 +14,20 @@ import qualified Data.Vector.Mutable                    as MBV
 import Prelude                                          as P
 import Control.Monad
 
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Vector." P.++ s
 
 instance Unbox a => DT (V.Vector a) where
   data Dist  (Vector a)   = DVector  !(Dist  Int)   !(BV.Vector      (Vector a))
   data MDist (Vector a) s = MDVector !(MDist Int s) !(MBV.STVector s (Vector a))
 
-  indexD (DVector _ a) i
-   = a BV.! i
+  indexD str (DVector _ a) i
+   = B.check (here ("indexD[Vector]/" P.++ str)) (BV.length a) i $ a BV.! i
 
   newMD g
-   = liftM2 MDVector (newMD g) 
-                        (MBV.replicate (gangSize g) (error "MDist (Vector a) - uninitalised"))
+   = liftM2 MDVector
+        (newMD g) 
+        (MBV.replicate (gangSize g) (error "MDist (Vector a) - uninitalised"))
 
   readMD (MDVector _ marr)
    = MBV.read marr
