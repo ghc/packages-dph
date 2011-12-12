@@ -9,12 +9,12 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented
         , sumRUP
 
         -- * Scattered indexing.
-        , unsafeIndexsFromVectorsWithUPVSegd
+        , indexsFromVectorsWithUPVSegd
 
         -- * Scattered extracts.
-        , unsafeExtractsFromNestedWithUPSSegd
-        , unsafeExtractsFromVectorsWithUPSSegd
-        , unsafeExtractsFromVectorsWithUPVSegd)
+        , extractsFromNestedWithUPSSegd
+        , extractsFromVectorsWithUPSSegd
+        , extractsFromVectorsWithUPVSegd)
 where
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Basics
@@ -161,63 +161,63 @@ sumRUP = foldRUP (+) 0
 --
 --   TODO: make this parallel.
 --
-unsafeIndexsFromVectorsWithUPVSegd 
+indexsFromVectorsWithUPVSegd 
         :: (Unbox a, US.Unboxes a)
         => Vectors a -> UPVSegd -> Vector (Int, Int) -> Vector a
 
-unsafeIndexsFromVectorsWithUPVSegd vectors upvsegd vsrcixs
+indexsFromVectorsWithUPVSegd vectors upvsegd vsrcixs
  = let  -- Because we're just doing indexing here, we don't need the culled
         -- vsegids or ussegd, and can just use the redundant version.
         !vsegids  = UPVSegd.takeVSegidsRedundant upvsegd
         !upssegd  = UPVSegd.takeUPSSegdRedundant upvsegd
         !ussegd   = UPSSegd.takeUSSegd upssegd
    in   Seq.unstream
-         $ US.unsafeStreamElemsFromVectors        vectors
-         $ US.unsafeStreamSrcIxsThroughUSSegd  ussegd
-         $ US.unsafeStreamSrcIxsThroughVSegids vsegids
+         $ US.streamElemsFromVectors        vectors
+         $ US.streamSrcIxsThroughUSSegd  ussegd
+         $ US.streamSrcIxsThroughVSegids vsegids
          $ Seq.stream vsrcixs
-{-# INLINE_U unsafeIndexsFromVectorsWithUPVSegd #-}
+{-# INLINE_U indexsFromVectorsWithUPVSegd #-}
 
 
 -- Extracts -------------------------------------------------------------------
 -- | Copy segments from a nested vectors and concatenate them into a new array.
-unsafeExtractsFromNestedWithUPSSegd
+extractsFromNestedWithUPSSegd
         :: Unbox a
         => UPSSegd -> V.Vector (Vector a) -> Vector a
 
-unsafeExtractsFromNestedWithUPSSegd upssegd vectors
+extractsFromNestedWithUPSSegd upssegd vectors
         = Seq.unstream 
-        $ US.unsafeStreamSegsFromNestedUSSegd
+        $ US.streamSegsFromNestedUSSegd
                 vectors
                 (UPSSegd.takeUSSegd upssegd)
-{-# INLINE_U unsafeExtractsFromNestedWithUPSSegd #-}
+{-# INLINE_U extractsFromNestedWithUPSSegd #-}
 
 
 -- | TODO: make this parallel.
-unsafeExtractsFromVectorsWithUPSSegd
+extractsFromVectorsWithUPSSegd
         :: (Unbox a, US.Unboxes a)
         => UPSSegd
         -> Vectors a
         -> Vector a
 
-unsafeExtractsFromVectorsWithUPSSegd upssegd vectors
-        = Seq.unsafeExtractsFromVectorsUSSegd
+extractsFromVectorsWithUPSSegd upssegd vectors
+        = Seq.extractsFromVectorsUSSegd
                 (UPSSegd.takeUSSegd upssegd) 
                 vectors
-{-# INLINE_UP unsafeExtractsFromVectorsWithUPSSegd #-}
+{-# INLINE_UP extractsFromVectorsWithUPSSegd #-}
 
 
 -- | TODO: make this parallel.
-unsafeExtractsFromVectorsWithUPVSegd
+extractsFromVectorsWithUPVSegd
         :: (Unbox a, US.Unboxes a)
         => UPVSegd
         -> Vectors a
         -> Vector a
 
-unsafeExtractsFromVectorsWithUPVSegd upvsegd vectors
+extractsFromVectorsWithUPVSegd upvsegd vectors
         = Seq.unstream 
-        $ US.unsafeStreamSegsFromVectorsUSSegd
+        $ US.streamSegsFromVectorsUSSegd
                 vectors         -- TODD: avoid demote, use the vsegd directly.
                 (UPSSegd.takeUSSegd $ UPVSegd.demoteToUPSSegd upvsegd)
-{-# INLINE_UP unsafeExtractsFromVectorsWithUPVSegd #-}
+{-# INLINE_UP extractsFromVectorsWithUPVSegd #-}
 
