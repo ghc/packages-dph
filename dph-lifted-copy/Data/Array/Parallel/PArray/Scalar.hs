@@ -79,7 +79,7 @@ repeatPRScalar n# len# xs
 indexPRScalar :: Scalar a => T_indexPR a
 {-# INLINE indexPRScalar #-}
 indexPRScalar xs i#
-  = fromScalarPData xs U.!: I# i#
+  = U.index "indexPRScalar" (fromScalarPData xs) (I# i#)
 
 extractPRScalar :: Scalar a => T_extractPR a
 {-# INLINE extractPRScalar #-}
