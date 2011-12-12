@@ -9,7 +9,7 @@ import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
-import Debug.Trace
+
 
 -- PR -------------------------------------------------------------------------
 instance PR Int where
