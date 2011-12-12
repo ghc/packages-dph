@@ -139,7 +139,7 @@ instance PR () where
         
   {-# INLINE_PDATA indexdPR #-}
   indexdPR (PUnits pdatas) ix
-        = PUnit $ pdatas `U.unsafeIndex` ix
+        = PUnit $ U.index "indexdPR[Unit]" pdatas ix
         
   {-# INLINE_PDATA appenddPR #-}
   appenddPR (PUnits lens1) (PUnits lens2)

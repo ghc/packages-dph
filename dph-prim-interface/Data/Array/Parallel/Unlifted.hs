@@ -86,8 +86,7 @@ enumFromStepLenEach size starts steps lens
 
 -- Projections ----------------------------------------------------------------
 length                  = P.length
-(!:)                    = (P.!!)
-unsafeIndex             = (P.!!)
+index _                 = (P.!!)
 unsafeIndexs_avs        = notImplemented "unsafeIndexs_avs"
 
 extract xs i n          = P.take n (P.drop i xs)
@@ -104,7 +103,7 @@ update           = notImplemented "update"
 
 -- Permutation ----------------------------------------------------------------
 permute         = notImplemented "permute"
-bpermute xs ns  = map (xs !:) ns
+bpermute xs ns  = map (xs P.!!) ns
 mbpermute       = notImplemented "mbpermute"
 bpermuteDft     = notImplemented "bpermuteDft"
 

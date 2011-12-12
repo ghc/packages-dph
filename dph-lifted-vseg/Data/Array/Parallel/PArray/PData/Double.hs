@@ -79,15 +79,15 @@ instance PR Double where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PDouble arr) ix
-        = arr `U.unsafeIndex` ix
+        = U.index "indexPR[Double]" arr ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PDoubles pvecs) srcixs
         = PDouble $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
-  {-# INLINE_PDATA indexvsPR #-}
-  indexvsPR (PDoubles arrs) vsegd srcixs 
-        = PDouble $ U.unsafeIndexs_avs arrs vsegd srcixs
+  -- {-# INLINE_PDATA indexvsPR #-}
+  -- indexvsPR (PDoubles arrs) vsegd srcixs 
+  --       = PDouble $ U.unsafeIndexs_avs arrs vsegd srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
@@ -97,9 +97,9 @@ instance PR Double where
   extractssPR (PDoubles arrs) ssegd
         = PDouble (U.unsafeExtracts_ass ssegd arrs)
 
-  {-# INLINE_PDATA extractvsPR #-}
-  extractvsPR (PDoubles arrs) vsegd
-        = PDouble (U.unsafeExtracts_avs vsegd arrs)
+  -- {-# INLINE_PDATA extractvsPR #-}
+  -- extractvsPR (PDoubles arrs) vsegd
+  --       = PDouble (U.unsafeExtracts_avs vsegd arrs)
                 
 
   -- Pack and Combine ---------------------------

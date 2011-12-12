@@ -47,8 +47,7 @@ enumFromStepLenEach     = U.enumFromStepLenEach
 
 -- Projections ----------------------------------------------------------------
 length                  = U.length
-(!:)                    = U.index "dph-prim-seq:Unlifted index wrapper"
-unsafeIndex             = U.index "dph-prim-seq:Unlifted index wrapper" 
+index                   = U.index
 unsafeIndexs_avs        = Prelude.error "dph-prim-seq: unsafeIndex_avs wrapper not defined"
 
 extract                 = U.extract

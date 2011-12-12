@@ -9,6 +9,7 @@ import qualified Data.Vector                    as V
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
+import Debug.Trace
 
 -- PR -------------------------------------------------------------------------
 instance PR Int where
@@ -67,15 +68,15 @@ instance PR Int where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PInt uarr) ix
-        = uarr `U.unsafeIndex` ix
+        = U.index "indexPR[Int]" uarr ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PInts pvecs) srcixs
         = PInt $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
-  {-# INLINE_PDATA indexvsPR #-}
-  indexvsPR (PInts arrs) vsegd srcixs 
-        = PInt $ U.unsafeIndexs_avs arrs vsegd srcixs
+  -- {-# INLINE_PDATA indexvsPR #-}
+  -- indexvsPR (PInts arrs) vsegd srcixs 
+  --       = PInt $ U.unsafeIndexs_avs arrs vsegd srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
@@ -85,9 +86,9 @@ instance PR Int where
   extractssPR (PInts arrs) ssegd
         = PInt $ U.unsafeExtracts_ass ssegd arrs
 
-  {-# INLINE_PDATA extractvsPR #-}
-  extractvsPR (PInts arrs) vsegd
-        = PInt $ U.unsafeExtracts_avs vsegd arrs
+  -- {-# INLINE_PDATA extractvsPR #-}
+  -- extractvsPR (PInts arrs) vsegd
+  --       = PInt $ U.unsafeExtracts_avs vsegd arrs
 
 
 

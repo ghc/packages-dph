@@ -188,15 +188,15 @@ class PR a where
   indexvsPR pdatas vsegd srcixs
    = let
          !vsegids         = U.takeVSegidsRedundantOfVSegd vsegd
-         !ssegd           = U.takeSSegdOfVSegd vsegd
+         !ssegd           = U.takeSSegdRedundantOfVSegd   vsegd
          !sources         = U.sourcesOfSSegd   ssegd
          !starts          = U.startsOfSSegd    ssegd
 
          !srcixs' 
           = U.map (\(ix1, ix2)
-                   -> let !psegid = U.unsafeIndex vsegids ix1
-                          !source = U.unsafeIndex sources psegid
-                          !start  = U.unsafeIndex starts  psegid
+                   -> let !psegid = U.index "indexvsPR/vsegids" vsegids ix1
+                          !source = U.index "indexvsPR/sources" sources psegid
+                          !start  = U.index "indexvsPR/starts"  starts  psegid
                       in  (source, start + ix2))
                    srcixs
 
@@ -219,7 +219,8 @@ class PR a where
   --  TODO: we're refactoring the library so functions use the VSeg form directly,
   --        instead of going via a SSegd.
   extractvsPR    :: PDatas a -> U.VSegd -> PData a
-
+  extractvsPR pdatas vsegd
+        = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
   
   -- Pack and Combine ---------------------------
   -- | Select elements of an array that have their corresponding tag set to

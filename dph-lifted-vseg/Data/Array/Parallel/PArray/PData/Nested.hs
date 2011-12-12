@@ -23,8 +23,7 @@ import qualified Data.IntSet                    as IS
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import GHC.Exts
-import Debug.Trace
-
+import System.IO.Unsafe
 
 -- Nested arrays --------------------------------------------------------------
 data instance PData (PArray a)
@@ -103,7 +102,7 @@ instance PR a => PR (PArray a) where
          psegdata       = pnested_psegdata    arr
 
 
-        -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
+         -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
          fieldLensOK
                 = validBool "nested array field lengths not identical"
                 $ and 
@@ -115,8 +114,7 @@ instance PR a => PR (PArray a) where
                 = validBool "nested array vseg doesn't ref pseg"
                 $ U.and
                 $ U.map (\vseg -> vseg < U.length pseglens) vsegids
-                
-         
+                         
          -- Every pseg source id must point to a flat data array
          psegsrcsRefOK
                 = validBool "nested array psegsrc doesn't ref flat array"
@@ -156,12 +154,18 @@ instance PR a => PR (PArray a) where
                 || (U.and $ U.map (flip IS.member vsegs) 
                           $ U.enumFromTo 0 (U.length pseglens - 1))
 
-     in  and [ fieldLensOK
-             , vsegsRefOK
-             , psegsrcsRefOK
-             , psegSlicesOK
-             , psegsReffedOK ]
-
+     in unsafePerformIO
+         $ do {-print fieldLensOK
+              print vsegsRefOK
+              print psegsrcsRefOK
+              print psegSlicesOK
+              print psegsReffedOK-}
+              return $ 
+               and [ fieldLensOK
+                   , vsegsRefOK
+                   , psegsrcsRefOK
+                   , psegSlicesOK
+                   , psegsReffedOK ]
 
   {-# NOINLINE nfPR #-}
   nfPR    = error "nfPR[PArray]: not defined yet"
@@ -186,10 +190,10 @@ instance PR a => PR (PArray a) where
             $ pprpDataPR pdata)
 
   {-# NOINLINE pprpDataPR #-}
-  pprpDataPR (PNested vsegd pdatas flat)
+  pprpDataPR (PNested vsegd pdatas _flat)
         =   text "PNested"
         $+$ ( nest 4
-            $ pprp vsegd $$ pprp pdatas $$ text "FLAT: " <> pprp flat)
+            $ pprp vsegd $$ pprp pdatas)
 
 
   -- Constructors -----------------------------------------
@@ -384,8 +388,7 @@ instance PR a => PR (PArray a) where
   --
   {-# NOINLINE extractssPR #-}
   extractssPR (PNesteds arrs) ussegd
-   = {-# SCC "extractsPR" #-}
-     let segsrcs        = U.sourcesOfSSegd ussegd
+   = let segsrcs        = U.sourcesOfSSegd ussegd
          seglens        = U.lengthsOfSSegd ussegd
 
          vsegids_src    = U.unsafeExtracts_nss ussegd (V.map pnested_vsegids arrs)
@@ -401,20 +404,21 @@ instance PR a => PR (PArray a) where
          !arrs_psegstarts = V.map pnested_psegstarts arrs
          !arrs_psegsrcids = V.map pnested_psegsrcids arrs
 
+         !here'         = "extractssPR[Nested]"
          -- Function to get one element of the result.
          {-# INLINE get #-}
          get srcid vsegid
-          = let !pseglen        = (arrs_pseglens   `V.unsafeIndex` srcid) `U.unsafeIndex` vsegid
-                !psegstart      = (arrs_psegstarts `V.unsafeIndex` srcid) `U.unsafeIndex` vsegid
-                !psegsrcid      = (arrs_psegsrcids `V.unsafeIndex` srcid) `U.unsafeIndex` vsegid  
-                                + psrcoffset `V.unsafeIndex` srcid
+          = let !pseglen        =  U.index here' (arrs_pseglens   `V.unsafeIndex` srcid) vsegid
+                !psegstart      =  U.index here' (arrs_psegstarts `V.unsafeIndex` srcid) vsegid
+                !psegsrcid      = (U.index here' (arrs_psegsrcids `V.unsafeIndex` srcid) vsegid)
+                                + (psrcoffset `V.unsafeIndex` srcid)
             in  (pseglen, psegstart, psegsrcid)
             
          (pseglens', psegstarts', psegsrcs')
                 = U.unzip3 $ U.zipWith get srcids' vsegids_src
 
          -- All flat data arrays in the sources go into the result.
-         psegdatas'     = fromVectordPR
+         pdatas'        = fromVectordPR
                         $ V.concat $ V.toList 
                         $ V.map (toVectordPR . pnested_psegdata) arrs
                    
@@ -423,9 +427,9 @@ instance PR a => PR (PArray a) where
                         $ U.mkSSegd psegstarts' psegsrcs'
                         $ U.lengthsToSegd pseglens'
    
-         flat'          = extractvs_delay psegdatas' vsegd'
+         flat'          = extractvs_delay pdatas' vsegd'
    
-     in  PNested vsegd' psegdatas' flat'
+     in  PNested vsegd' pdatas' flat'
 
 
   {-# INLINE_PDATA extractvsPR #-}
@@ -558,7 +562,8 @@ indexlPR (PNested vsegd pdatas _uCantTouchThis) (PInt ixs)
 --   of the total number of elements within it.
 --
 concatPR :: PR a => PData (PArray a) -> PData a
-concatPR (PNested _ _ flat) = flat
+concatPR (PNested vsegd pdatas _flat) 
+ = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
 {-# INLINE concatPR #-}
 
 
@@ -614,7 +619,7 @@ concatlPR arr
 
         ixs'            = U.map (\ix -> if ix >= len2
                                                 then 0
-                                                else ixs2 `U.unsafeIndex` ix)
+                                                else U.index "concatlPR" ixs2 ix)
                         $ ixs1
 
         segd'           = U.mkSegd (U.sum_s segd1 (U.lengthsSegd segd2))
@@ -663,9 +668,9 @@ unconcatPR (PNested vsegd _ _uCantTouchThis) pdata
 --   concatenated data.
 --
 flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-flattenPR (PNested vsegd _ flat)
+flattenPR arr@(PNested vsegd _ _)
  =      ( U.unsafeDemoteToSegdOfVSegd vsegd
-        , flat)
+        , concatPR arr )
 {-# INLINE_PDATA flattenPR #-}
 
 
