@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP, NoMonomorphismRestriction #-}
 #include "fusion-phases.h"
 module Data.Array.Parallel.Unlifted.Stream.Ixs
-        ( unsafeStreamSrcIxsThroughVSegids
-        , unsafeStreamSrcIxsThroughUSSegd)
+        ( streamSrcIxsThroughVSegids
+        , streamSrcIxsThroughUSSegd)
 where
 import Data.Vector.Fusion.Stream.Monadic
 import Data.Array.Parallel.Unlifted.Sequential.USSegd            (USSegd(..))
@@ -13,11 +13,11 @@ import qualified Data.Vector.Unboxed                             as U
 -- VSegd Streamers ------------------------------------------------------------
 -- | Take a stream of virtual segment and segment element indices,
 --   and convert it to a stream of physical segment and segment element indices.
-unsafeStreamSrcIxsThroughVSegids
+streamSrcIxsThroughVSegids
         :: Monad m
         => U.Vector Int -> Stream m (Int, Int) -> Stream m (Int, Int)
 
-unsafeStreamSrcIxsThroughVSegids vsegids (Stream mkStep s0 size0)
+streamSrcIxsThroughVSegids vsegids (Stream mkStep s0 size0)
  = vsegids `seq` Stream mkStep' s0 size0
  where
         {-# INLINE_INNER mkStep' #-}
@@ -30,17 +30,17 @@ unsafeStreamSrcIxsThroughVSegids vsegids (Stream mkStep s0 size0)
                  
                  Skip s' -> return $ Skip s'
                  Done    -> return Done
-{-# INLINE_STREAM unsafeStreamSrcIxsThroughVSegids #-}
+{-# INLINE_STREAM streamSrcIxsThroughVSegids #-}
 
 
 -- SSegd Streamers ------------------------------------------------------------
 -- | Take a stream of segment and segment element indices,
 --   and convert it to a stream of chunk and chunk element indices.
-unsafeStreamSrcIxsThroughUSSegd 
+streamSrcIxsThroughUSSegd 
         :: Monad m
         => USSegd -> Stream m (Int, Int) -> Stream m (Int, Int)
         
-unsafeStreamSrcIxsThroughUSSegd ussegd (Stream mkStep s0 size0)
+streamSrcIxsThroughUSSegd ussegd (Stream mkStep s0 size0)
  = ussegd `seq` Stream mkStep' s0 size0
  where
         !sources = USSegd.takeSources ussegd
@@ -57,5 +57,5 @@ unsafeStreamSrcIxsThroughUSSegd ussegd (Stream mkStep s0 size0)
                  
                  Skip s' -> return $ Skip s'
                  Done    -> return Done
-{-# INLINE_STREAM unsafeStreamSrcIxsThroughUSSegd #-}
+{-# INLINE_STREAM streamSrcIxsThroughUSSegd #-}
 

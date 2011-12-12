@@ -95,7 +95,7 @@ instance PR Double where
 
   {-# INLINE_PDATA extractssPR #-}
   extractssPR (PDoubles arrs) ssegd
-        = PDouble (U.unsafeExtracts_ass ssegd arrs)
+        = PDouble (U.extracts_ass ssegd arrs)
 
   -- {-# INLINE_PDATA extractvsPR #-}
   -- extractvsPR (PDoubles arrs) vsegd

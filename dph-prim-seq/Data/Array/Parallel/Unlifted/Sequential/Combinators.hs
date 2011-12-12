@@ -2,17 +2,16 @@
 #include "fusion-phases.h"
 
 -- | Standard combinators for segmented unlifted arrays.
-module Data.Array.Parallel.Unlifted.Sequential.Combinators (
-  foldlSU,      foldlSSU,
-  foldSU,       foldSSU,
-  foldl1SU,     foldl1SSU,
-  fold1SU,      fold1SSU,
-  foldlRU,
-  combineSU,
-  
-  unsafeExtractsFromNestedUSSegd,
-  unsafeExtractsFromVectorsUSSegd
-) where
+module Data.Array.Parallel.Unlifted.Sequential.Combinators 
+        ( foldlSU,      foldlSSU
+        , foldSU,       foldSSU
+        , foldl1SU,     foldl1SSU
+        , fold1SU,      fold1SSU
+        , foldlRU
+        , combineSU
+        , extractsFromNestedUSSegd
+        , extractsFromVectorsUSSegd)
+where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Stream
 import Data.Array.Parallel.Unlifted.Vectors                     as US
@@ -43,7 +42,7 @@ foldlSSU :: (Unbox a, Unboxes a, Unbox b)
 foldlSSU f z ssegd xss
         = unstream
         $ foldSS f z    (stream (USSegd.takeLengths ssegd))
-                        (unsafeStreamSegsFromVectorsUSSegd xss ssegd)
+                        (streamSegsFromVectorsUSSegd xss ssegd)
 
 
 -- fold -----------------------------------------------------------------------
@@ -82,7 +81,7 @@ foldl1SSU :: (Unbox a, Unboxes a)
 foldl1SSU f ssegd xxs
         = unstream
         $ fold1SS f     (stream (USSegd.takeLengths ssegd))
-                        (unsafeStreamSegsFromVectorsUSSegd xxs ssegd)
+                        (streamSegsFromVectorsUSSegd xxs ssegd)
 
 
 -- fold1 ----------------------------------------------------------------------
@@ -124,21 +123,21 @@ combineSU bs xd xs yd ys
 
 -- Extracts wrappers ---------------------------------------------------------
 -- | Copy segments from a `Vectors` and concatenate them into a new array.
-unsafeExtractsFromNestedUSSegd
+extractsFromNestedUSSegd
         :: (U.Unbox a)
         => USSegd -> V.Vector (Vector a) -> U.Vector a
 
-unsafeExtractsFromNestedUSSegd ussegd vectors
-        = G.unstream $ unsafeStreamSegsFromNestedUSSegd vectors ussegd
-{-# INLINE_U unsafeExtractsFromNestedUSSegd #-}
+extractsFromNestedUSSegd ussegd vectors
+        = G.unstream $ streamSegsFromNestedUSSegd vectors ussegd
+{-# INLINE_U extractsFromNestedUSSegd #-}
 
 
 -- | Copy segments from a `Vectors` and concatenate them into a new array.
-unsafeExtractsFromVectorsUSSegd
+extractsFromVectorsUSSegd
         :: (Unboxes a, U.Unbox a)
         => USSegd -> Vectors a -> U.Vector a
 
-unsafeExtractsFromVectorsUSSegd ussegd vectors
-        = G.unstream $ unsafeStreamSegsFromVectorsUSSegd vectors ussegd
-{-# INLINE_U unsafeExtractsFromVectorsUSSegd #-}
+extractsFromVectorsUSSegd ussegd vectors
+        = G.unstream $ streamSegsFromVectorsUSSegd vectors ussegd
+{-# INLINE_U extractsFromVectorsUSSegd #-}
 

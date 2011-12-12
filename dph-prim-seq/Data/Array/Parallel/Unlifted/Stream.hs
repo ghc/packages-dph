@@ -1,16 +1,16 @@
 
 module Data.Array.Parallel.Unlifted.Stream
         ( -- * Index streamers.
-          unsafeStreamSrcIxsThroughVSegids
-        , unsafeStreamSrcIxsThroughUSSegd
+          streamSrcIxsThroughVSegids
+        , streamSrcIxsThroughUSSegd
 
           -- * Element streamers.
-        , unsafeStreamElemsFromVectors
-        , unsafeStreamElemsFromVectorsVSegd
+        , streamElemsFromVectors
+        , streamElemsFromVectorsVSegd
 
           -- * Segment streamers.
-        , unsafeStreamSegsFromNestedUSSegd
-        , unsafeStreamSegsFromVectorsUSSegd)
+        , streamSegsFromNestedUSSegd
+        , streamSegsFromVectorsUSSegd)
 where
 import Data.Array.Parallel.Unlifted.Stream.Ixs
 import Data.Array.Parallel.Unlifted.Stream.Elems

@@ -30,8 +30,8 @@ module Data.Array.Parallel.Unlifted.Sequential
         -- * Pack and Combine
         , combineSU
         
-        , unsafeExtractsFromNestedUSSegd
-        , unsafeExtractsFromVectorsUSSegd)
+        , extractsFromNestedUSSegd
+        , extractsFromVectorsUSSegd)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators

@@ -201,13 +201,13 @@ index :: Elt a => Prelude.String -> Array a -> Int -> a
 
 
 -- | O(n). Scattered indexing through a `VSegd`.
-unsafeIndexs_avs
+indexs_avs
         :: (Elt a, Elts a)
         => Arrays a
         -> VSegd
         -> Array (Int, Int)
         -> Array a
-{-# INLINE_BACKEND unsafeIndexs_avs #-}
+{-# INLINE_BACKEND indexs_avs #-}
 
 
 -- | O(n). Extract a subrange of elements from an array.
@@ -223,31 +223,31 @@ extract :: Elt a
 
 -- | O(n). Segmented extract, from a vector of arrays.
 --   TODO: This is a transitory interface, we are refactoring code to always
---         use the previous form.
-unsafeExtracts_nss
+--         use the `Arrays` form.
+extracts_nss
         :: Elt a
         => SSegd
         -> VV.Vector (Array a)
         -> Array a
-{-# INLINE_BACKEND unsafeExtracts_nss #-}
+{-# INLINE_BACKEND extracts_nss #-}
 
 
 -- | O(n). Segmented extract.
-unsafeExtracts_ass
+extracts_ass
         :: (Elt a, Elts a)
         => SSegd        -- ^ `SSegd` defining the slices to extract.
         -> Arrays a     -- ^ Source arrays.
         -> Array a
-{-# INLINE_BACKEND unsafeExtracts_ass #-}
+{-# INLINE_BACKEND extracts_ass #-}
 
 
 -- | O(n). Segmented extract.
-unsafeExtracts_avs
+extracts_avs
         :: (Elt a, Elts a)
         => VSegd        -- ^ `VSegd` defining the slices to extract.
         -> Arrays a     -- ^ Source arrays.
         -> Array a
-{-# INLINE_BACKEND unsafeExtracts_avs #-}
+{-# INLINE_BACKEND extracts_avs #-}
 
 
 -- | O(n). Drop some elements from the front of an array, 

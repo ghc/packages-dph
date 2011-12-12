@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP, NoMonomorphismRestriction #-}
 #include "fusion-phases.h"
 module Data.Array.Parallel.Unlifted.Stream.Segments
-        ( unsafeStreamSegsFromNestedUSSegd
-        , unsafeStreamSegsFromVectorsUSSegd)
+        ( streamSegsFromNestedUSSegd
+        , streamSegsFromVectorsUSSegd)
 where
 import Data.Vector.Fusion.Stream.Size
 import Data.Vector.Fusion.Stream.Monadic
@@ -29,13 +29,13 @@ import System.IO.Unsafe
 --           statically visible else streamSegs won't fuse, so we can't have an 
 --           ifThenElse checking the manifest flag.
 
-unsafeStreamSegsFromNestedUSSegd
+streamSegsFromNestedUSSegd
         :: (Unbox a, Monad m)
         => V.Vector (Vector a)  -- ^ Source arrays.
         -> USSegd               -- ^ Segment descriptor defining segments base on source vectors.
         -> Stream m a
 
-unsafeStreamSegsFromNestedUSSegd
+streamSegsFromNestedUSSegd
         pdatas
         ussegd@(USSegd _ starts sources usegd)
  = let  
@@ -62,7 +62,7 @@ unsafeStreamSegsFromNestedUSSegd
            in   return $ Yield result (pseg, ix + 1)
 
    in   Stream fn (0, 0) Unknown
-{-# INLINE_STREAM unsafeStreamSegsFromNestedUSSegd #-}
+{-# INLINE_STREAM streamSegsFromNestedUSSegd #-}
 
 
 -- Vectors ----------------------------------------------------------------------------------------
@@ -72,13 +72,13 @@ unsafeStreamSegsFromNestedUSSegd
 -- 
 --   * No bounds checking is done for the `USSegd`.
 --
-unsafeStreamSegsFromVectorsUSSegd
+streamSegsFromVectorsUSSegd
         :: (Unboxes a, Monad m)
         => Vectors a            -- ^ Vectors holding source data.
         -> USSegd               -- ^ Scattered segment descriptor
         -> Stream m a
 
-unsafeStreamSegsFromVectorsUSSegd
+streamSegsFromVectorsUSSegd
         vectors
         ussegd@(USSegd _ segStarts segSources usegd) 
  = segStarts `seq` segSources `seq` usegd `seq` vectors `seq`
@@ -138,5 +138,5 @@ unsafeStreamSegsFromVectorsUSSegd
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
    in   Stream fnSeg initState (Exact elements) 
-{-# INLINE_STREAM unsafeStreamSegsFromVectorsUSSegd #-}
+{-# INLINE_STREAM streamSegsFromVectorsUSSegd #-}
 
