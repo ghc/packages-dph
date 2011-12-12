@@ -23,15 +23,15 @@ module Data.Array.Parallel.Unlifted.Vectors
         , fromVector
         , toVector)
 where
-import qualified Data.Primitive.ByteArray                       as P
-import qualified Data.Primitive.Array                           as P
-import qualified Data.Primitive.Types                           as P
-
-import qualified Data.Vector.Generic                            as G
-import qualified Data.Vector.Primitive                          as R
-import qualified Data.Vector.Unboxed                            as U
-import qualified Data.Vector                                    as V
-import Data.Vector.Unboxed                                      (Unbox)
+import qualified Data.Primitive.ByteArray       as P
+import qualified Data.Primitive.Array           as P
+import qualified Data.Primitive.Types           as P
+import qualified Data.Primitive                 as P
+import qualified Data.Vector.Generic            as G
+import qualified Data.Vector.Primitive          as R
+import qualified Data.Vector.Unboxed            as U
+import qualified Data.Vector                    as V
+import Data.Vector.Unboxed                      (Unbox)
 import System.IO.Unsafe
 import Prelude  hiding (length)
 import Data.Word
