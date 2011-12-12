@@ -140,7 +140,7 @@ repeatPA_Int# n# len# is = U.repeat (I# n#) (I# len#) is
 {-# INLINE_PA repeatPA_Int# #-}
 
 indexPA_Int# :: PArray_Int# -> Int# -> Int#
-indexPA_Int# ns i# = case ns U.!: I# i# of { I# n# -> n# }
+indexPA_Int# ns i#      = case U.index "indexPA_Int#" ns (I# i#) of { I# n# -> n# }
 {-# INLINE_PA indexPA_Int# #-}
 
 extractPA_Int# :: PArray_Int# -> Int# -> Int# -> PArray_Int#
@@ -264,7 +264,7 @@ repeatPA_Word8# n# len# ds = U.repeat (I# n#) (I# len#) ds
 {-# INLINE_PA repeatPA_Word8# #-}
 
 indexPA_Word8# :: PArray_Word8# -> Int# -> Word#
-indexPA_Word8# ds i# = case ds U.!: I# i# of { W8# d# -> d# }
+indexPA_Word8# ds i# = case U.index "indexPA_Word8#" ds (I# i#) of { W8# d# -> d# }
 {-# INLINE_PA indexPA_Word8# #-}
 
 extractPA_Word8# :: PArray_Word8# -> Int# -> Int# -> PArray_Word8#
@@ -356,7 +356,7 @@ repeatPA_Double# n# len# ds = U.repeat (I# n#) (I# len#) ds
  #-}
 
 indexPA_Double# :: PArray_Double# -> Int# -> Double#
-indexPA_Double# ds i# = case ds U.!: I# i# of { D# d# -> d# }
+indexPA_Double# ds i# = case U.index "indexPA_Double#" ds (I# i#) of { D# d# -> d# }
 {-# INLINE_PA indexPA_Double# #-}
 
 extractPA_Double# :: PArray_Double# -> Int# -> Int# -> PArray_Double#

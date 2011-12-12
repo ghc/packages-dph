@@ -352,8 +352,8 @@ instance (PR a, PR b) => PR (Sum2 a b) where
   {-# INLINE indexPR #-}
   indexPR (PSum2 sel as bs) i#
     = traceFn "indexPR" "(Sum2 a b)" $
-    case U.indicesSel2 sel U.!: I# i# of
-      I# k# -> case U.tagsSel2 sel U.!: I# i# of
+    case U.index "indexPR[Sum2]" (U.indicesSel2 sel) (I# i#) of
+      I# k# -> case U.index "indexPR[Sum2]" (U.tagsSel2 sel) (I# i#) of
                  0 -> Alt2_1 (indexPR as k#)
                  _ -> Alt2_2 (indexPR bs k#)
 
@@ -420,8 +420,8 @@ instance PR a => PR (PArray a) where
   {-# INLINE indexPR #-}
   indexPR (PNested segd xs) i#
     = traceFn "indexPR" "(PArray a)" $
-      case U.lengthsSegd segd U.!: I# i# of { I# n# ->
-      case U.indicesSegd segd U.!: I# i# of { I# k# ->
+      case U.index "indexPR[Nested]" (U.lengthsSegd segd) (I# i#) of { I# n# ->
+      case U.index "indexPR[Nested]" (U.indicesSegd segd) (I# i#) of { I# k# ->
       PArray n# (extractPR xs k# n#) }}
 
   {-# INLINE extractPR #-}
@@ -434,8 +434,8 @@ instance PR a => PR (PArray a) where
 
       -- NB: not indicesSegd segd !: i because i might be one past the end
       !(I# k#) | I# i# == 0 = 0
-               | otherwise  = U.indicesSegd segd U.!: (I# i# - 1)
-                            + U.lengthsSegd segd U.!: (I# i# - 1)
+               | otherwise  = U.index "extractPR[Nested]" (U.indicesSegd segd) (I# i# - 1)
+                            + U.index "extractPR[Nested]" (U.lengthsSegd segd) (I# i# - 1)
 
   {-# INLINE bpermutePR #-}
   bpermutePR (PNested segd xs) _ is
