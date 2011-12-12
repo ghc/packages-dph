@@ -2,10 +2,12 @@
 #include "fusion-phases.h"
 
 -- | Sum-like operations on segmented list-like combinators.
-module Data.Array.Parallel.Unlifted.Sequential.Sums (
-  andSU, orSU, sumSU, productSU, maximumSU, minimumSU,
-  sumRU
-) where
+module Data.Array.Parallel.Unlifted.Sequential.Sums
+        ( andSU, orSU
+        , sumSU, sumRU
+        , productSU
+        , maximumSU, minimumSU)
+where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import Data.Array.Parallel.Unlifted.Sequential.USegd 
 import Data.Array.Parallel.Unlifted.Sequential.Combinators

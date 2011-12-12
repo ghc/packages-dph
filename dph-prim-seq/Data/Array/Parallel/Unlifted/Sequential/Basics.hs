@@ -2,9 +2,11 @@
 #include "fusion-phases.h"
 
 -- | Basic segmented operations on unlifted arrays.
-module Data.Array.Parallel.Unlifted.Sequential.Basics (
-  replicateSU, replicateRSU, appendSU, indicesSU, indicesSU'
-) where
+module Data.Array.Parallel.Unlifted.Sequential.Basics
+        ( replicateSU, replicateRSU
+        , appendSU
+        , indicesSU, indicesSU')
+where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)

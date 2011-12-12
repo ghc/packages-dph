@@ -17,6 +17,7 @@ import qualified Data.Vector                                     as V
 import qualified Data.Primitive.ByteArray                        as P
 import System.IO.Unsafe
 
+
 -- Nested -----------------------------------------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
 -- 

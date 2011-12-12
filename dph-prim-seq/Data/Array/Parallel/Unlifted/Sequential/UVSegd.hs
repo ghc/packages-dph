@@ -3,38 +3,38 @@
 #include "fusion-phases.h"
 
 -- | Segment descriptors for virtual arrays.
-module Data.Array.Parallel.Unlifted.Sequential.UVSegd (
-        -- * Types
-        UVSegd(..),
+module Data.Array.Parallel.Unlifted.Sequential.UVSegd
+        ( -- * Types
+          UVSegd(..)
 
-        -- * Consistency check
-        valid,
+          -- * Consistency check
+        , valid
         
-        -- * Constructors
-        mkUVSegd,
-        fromUSegd,
-        fromUSSegd,
-        empty,
-        singleton,
+          -- * Constructors
+        , mkUVSegd
+        , fromUSegd
+        , fromUSSegd
+        , empty
+        , singleton
         
-        -- * Predicates
-        isManifest,
-        isContiguous,
+          -- * Predicates
+        , isManifest
+        , isContiguous
         
-        -- * Projections
-        length,
-        takeVSegids,
-        takeUSSegd,
-        takeLengths,
-        getSeg,
+          -- * Projections
+        , length
+        , takeVSegids
+        , takeUSSegd
+        , takeLengths
+        , getSeg
 
-        -- * Operators
-        appendWith,
-        combine2,
-        updateVSegs,
-        updateVSegsReachable,
-        demoteToUSSegd,
-        unsafeDemoteToUSegd)
+          -- * Operators
+        , appendWith
+        , combine2
+        , updateVSegs
+        , updateVSegsReachable
+        , demoteToUSSegd
+        , unsafeDemoteToUSegd)
 where
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)

@@ -1,40 +1,38 @@
 {-# LANGUAGE CPP #-}
-{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+{-# OPTIONS -Wall -fno-warn-orphans #-}
 #include "fusion-phases.h"
 
 -- | Scattered Segment Descriptors
-module Data.Array.Parallel.Unlifted.Sequential.USSegd (
-        -- * Types
-        USSegd(..),
-        valid,
+module Data.Array.Parallel.Unlifted.Sequential.USSegd 
+        ( -- * Types
+          USSegd(..)
+        , valid
 
         -- * Constructors
-        mkUSSegd,
-        empty,
-        singleton,
-        fromUSegd,
+        , mkUSSegd
+        , empty
+        , singleton
+        , fromUSegd
         
         -- * Predicates
-        isContiguous,
+        , isContiguous
         
         -- * Projections
-        length,
-        takeUSegd, takeLengths, takeIndices, takeElements,
-        takeSources, takeStarts,
-
-        getSeg,
+        , length
+        , takeUSegd, takeLengths, takeIndices, takeElements
+        , takeSources, takeStarts
+        , getSeg
         
         -- * Operators
-        appendWith,
-        cullOnVSegids
-) where
+        , appendWith
+        , cullOnVSegids)
+where
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
-
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 
 here :: String -> String 
 here s = "Data.Array.Parallel.Unlifted.Sequential.USSegd." ++ s
