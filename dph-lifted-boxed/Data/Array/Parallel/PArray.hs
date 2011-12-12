@@ -364,7 +364,7 @@ packByTag (PArray n1# xs) tags tag
         , "  flags length = " ++ (show $ U.length tags) ]
 
  | otherwise
- = let  xs'      = V.ifilter (\i _ -> tags U.!: i == tag) $ toVectorPA xs
+ = let  xs'      = V.ifilter (\i _ -> U.index "packByTag" tags i == tag) $ toVectorPA xs
         !(I# n') = V.length xs'
    in   PArray n' $ fromVectorPA xs'
 
