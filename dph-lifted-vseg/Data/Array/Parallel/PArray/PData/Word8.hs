@@ -76,15 +76,15 @@ instance PR Word8 where
 
   {-# INLINE_PDATA indexPR #-}
   indexPR (PWord8 uarr) ix
-        = uarr `U.unsafeIndex` ix
+        = U.index "indexPR[Word8]" uarr ix
 
   {-# INLINE_PDATA indexsPR #-}
   indexsPR (PWord8s pvecs) srcixs
    = PWord8 $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
-  {-# INLINE_PDATA indexvsPR #-}
-  indexvsPR (PWord8s arrs) vsegd srcixs 
-   = PWord8 $ U.unsafeIndexs_avs arrs vsegd srcixs
+  -- {-# INLINE_PDATA indexvsPR #-}
+  -- indexvsPR (PWord8s arrs) vsegd srcixs 
+  --  = PWord8 $ U.unsafeIndexs_avs arrs vsegd srcixs
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PWord8 arr) start len 
@@ -94,9 +94,9 @@ instance PR Word8 where
   extractssPR (PWord8s arrs) ssegd
         = PWord8 $ U.unsafeExtracts_ass ssegd arrs
 
-  {-# INLINE_PDATA extractvsPR #-}
-  extractvsPR (PWord8s arrs) vsegd
-        = PWord8 $ U.unsafeExtracts_avs vsegd arrs
+  -- {-# INLINE_PDATA extractvsPR #-}
+  -- extractvsPR (PWord8s arrs) vsegd
+  --       = PWord8 $ U.unsafeExtracts_avs vsegd arrs
 
 
   -- Pack and Combine ---------------------------

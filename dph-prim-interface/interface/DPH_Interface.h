@@ -15,7 +15,7 @@ instance Elts Word8
 instance Elts Float
 instance Elts Double
 
-infixl 9 !:
+infixl 9 `index`
 infixr 5 +:+
 
 -- TRAGIC HACKS ===============================================================
@@ -196,13 +196,8 @@ length :: Elt a => Array a -> Int
 
 
 -- | O(1). Retrieve a numbered element from an array.
-(!:) :: Elt a => Array a -> Int -> a
-{-# INLINE_BACKEND (!:) #-}
-
-
--- | O(1). Retrieve a numbered element from an array, without bounds checks.
-unsafeIndex :: Elt a => Array a -> Int -> a
-{-# INLINE_BACKEND unsafeIndex #-}
+index :: Elt a => Prelude.String -> Array a -> Int -> a
+{-# INLINE_BACKEND index #-}
 
 
 -- | O(n). Scattered indexing through a `VSegd`.

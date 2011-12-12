@@ -135,8 +135,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
   
   {-# INLINE_PDATA indexPR #-}
   indexPR (PSum2 sel as bs) i
-   = let !k = U.indicesSel2 sel `U.unsafeIndex` i
-     in  case U.tagsSel2    sel `U.unsafeIndex` i of
+   = let !k = U.index "indexPR[Sum2]" (U.indicesSel2 sel) i
+     in  case U.index "indexPR[Sum2]" (U.tagsSel2    sel) i of
              0 -> Alt2_1 (indexPR as k)
              _ -> Alt2_2 (indexPR bs k)
 
@@ -145,9 +145,9 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
    = let (srcids, ixs)  = U.unzip srcixs
    
          getFlagIndex !src !ix
-          = let !sel        = sels                `V.unsafeIndex` src
-                !elemFlag   = (U.tagsSel2    sel) `U.unsafeIndex` ix
-                !elemIndex  = (U.indicesSel2 sel) `U.unsafeIndex` ix
+          = let !sel        = V.unsafeIndex sels src
+                !elemFlag   = U.index "indexPR[Sum2]" (U.tagsSel2 sel)    ix
+                !elemIndex  = U.index "indexPR[Sum2]" (U.indicesSel2 sel) ix
             in  (elemFlag, elemIndex)
             
          (flags', indices')
@@ -307,7 +307,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          sel0_len       = U.length sel0
          starts0        = U.map (\i -> if i >= sel0_len
                                         then 0 
-                                        else sel0 `U.unsafeIndex` i) indices0
+                                        else U.index "extractssPR[Sum2]" sel0 i)
+                                indices0
 
          -- indices1    = [ 0 2 3 3 4 ] (from above)
          -- sel1        = [ 1 2 0 3 0 ]
@@ -317,7 +318,8 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
          sel1_len       = U.length sel1
          starts1        = U.map (\i -> if i >= sel1_len
                                         then 0
-                                        else sel1 `U.unsafeIndex` i) indices1
+                                        else U.index "extractssPR[Sum2]" sel1 i)
+                                indices1
 
          -- Extract the final alts data:
          -- sources     = [ 1 0 1 0 1 ] (from above)
@@ -367,6 +369,10 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
                         , text "selindices' = " <> pprp selIndices'
                         , text ""]) $ -}
            PSum2 sel' pdata0 pdata1
+
+  {-# INLINE_PDATA extractvsPR #-}
+  extractvsPR pdatas vsegd
+   = extractssPR pdatas (demoteToSSegdOfVSegd vsegd)
 
 
   -- Pack and Combine ---------------------------

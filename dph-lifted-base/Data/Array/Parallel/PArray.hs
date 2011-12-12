@@ -64,9 +64,11 @@ import Prelude hiding
         , zip, unzip)
 
 -------------------------------------------------------------------------------
-die :: String -> String -> a
-die fn str = error $ "Data.Array.Parallel.PArray: " ++ fn ++ " " ++ str
+here :: String -> String
+here str   = "Data.Array.Parallel.PArray." ++ str
 
+die :: String -> String -> a
+die fn str = error (here $ fn ++ " " ++ str)
 
 -- Array Type -----------------------------------------------------------------
 type PArray a
@@ -312,7 +314,7 @@ packByTag xs tags tag
                 , "  flags length = " ++ (show $ U.length tags) ]
 
         | otherwise
-        = V.ifilter (\i _ -> tags U.!: i == tag) xs
+        = V.ifilter (\i _ -> U.index (here "packByTag") tags i == tag) xs
 
 
 -- | Combine two arrays based on a selector.
