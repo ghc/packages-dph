@@ -48,9 +48,9 @@ Library
         -funbox-strict-fields -fcpr-off 
 
   Build-Depends:  
-        base     == 4.4.*,
+        base     == 4.5.*,
         ghc-prim == 0.2.*,
-        array    == 0.3.*,
+        array    == 0.4.*,
         random   == 1.0.*,
         vector   == 0.9.*,
         pretty   == 1.1.*
