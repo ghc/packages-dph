@@ -1,4 +1,7 @@
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE
+        ScopedTypeVariables, BangPatterns, MagicHash, PackageImports,
+        TypeSynonymInstances, FlexibleInstances, FlexibleContexts,
+        UndecidableInstances, TemplateHaskell, MultiParamTypeClasses #-}
 
 -- | Tests for PR functions.
 --   These are the ones that take a PR dictionary, and work on PData arrays.
@@ -8,10 +11,10 @@
 -- 
 import DPH.Arbitrary
 import DPH.Testsuite
-import Util.Array
+import Data.Array.Parallel.Array
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
-import Data.Array.Parallel.PArray               (PA)
+import "dph-lifted-vseg" Data.Array.Parallel.PArray               (PA(..))
 import Data.Array.Parallel.PArray.PData.Base    ()
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PData.Nested
@@ -24,9 +27,10 @@ import Text.PrettyPrint                         as T
 import Prelude                                  as P
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
-import qualified Data.Array.Parallel.PArray     as PA
+import qualified "dph-lifted-vseg" Data.Array.Parallel.PArray     as PA
 import qualified DPH.Operators.List             as L
-
+import System.IO.Unsafe
+import Debug.Trace
 
 -- NOTE:
 -- The 'b' element type contains one less level of nesting compared with the
@@ -138,7 +142,7 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
             segd        = U.lengthsToSegd $ V.convert lens
             ssegd       = U.mkSSegd  (V.convert starts) (V.convert sources) segd
-            pdata'      = extractsPR (singletondPR pdata) ssegd
+            pdata'      = extractssPR (singletondPR pdata) ssegd
 
         in  validPR pdata' && vec' == toVector pdata'
 
@@ -269,10 +273,11 @@ $(testcases [ ""        <@ [t|  PArray Int |]
 
   -- | Lifted concat
   prop_concatl
-        :: (PR c, PA c, Eq c)
+        :: (PR c, PA c, Eq c, PprPhysical c)
         => AAArray (PData (PArray (PArray c))) -> Property
-  prop_concatl (AAArray pdata)
-   =  lengthPR pdata >= 1
+  prop_concatl arr@(AAArray pdata)
+   = trace (render $ pprp pdata)
+   $  lengthPR pdata >= 1
     ==> let vec'   = V.map join $ toVectors3 pdata
             pdata' = concatlPR pdata
 
@@ -316,14 +321,6 @@ instance PR a => Array PData a where
  append       = appendPR
  toVector     = toVectorPR
  fromVector   = fromVectorPR
-
-
-instance PA a => Array PArray a where
- length       = PA.length
- index        = PA.index
- append       = PA.append
- toVector     = PA.toVector
- fromVector   = PA.fromVector
 
 
 -- Arbitrary PArrays ----------------------------------------------------------

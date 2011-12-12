@@ -56,12 +56,13 @@ jobCompile (JobCompile
 		        ++ " -Idph-prim-interface/interface"
 		        ++ " -Idph-base/include"
 		        ++ " -idph-test/framework"
+		        ++ " -idph-lifted-base"
 		        ++ " -idph-base"
 		        ++ " -idph-prim-par"
 		        ++ " -idph-prim-seq"
 		        ++ " -idph-lifted-vseg"
 		        ++ " -package ghc"
-		        ++ " -Odph -fno-liberate-case -fdph-par"
+		        ++ " -Odph -fno-liberate-case"
 		        ++ " -outputdir " ++ buildDir 
 		        ++ " --make "     ++ srcCopyHS
 		        ++ " -o "         ++ mainBin)
