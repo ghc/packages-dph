@@ -6,20 +6,19 @@
 --   * This is an internal API and shouldn't need to be used directly.
 --     Client programs should use "Data.Array.Parallel.Unlifted"
 module Data.Array.Parallel.Unlifted.Sequential
-        ( 
-        -- * Constructors
+        ( -- * Constructors
           replicateSU
         , replicateRSU
         , appendSU
         , indicesSU,    indicesSU'
 
-        -- * Folds
+          -- * Folds
         , foldSU,       foldSSU
         , foldlSU,      foldlSSU,   foldlRU
         , foldl1SU,     foldl1SSU
         , fold1SU,      fold1SSU
         
-        -- * Sums
+          -- * Sums
         , andSU
         , orSU
         , sumSU,         sumRU
@@ -27,16 +26,17 @@ module Data.Array.Parallel.Unlifted.Sequential
         , maximumSU
         , minimumSU
 
-        -- * Pack and Combine
+          -- * Pack and Combine
         , combineSU
         
+          -- * Projections
         , extractsFromNestedUSSegd
         , extractsFromVectorsUSSegd)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
-import Data.Array.Parallel.Unlifted.Sequential.USegd            ()
-import Data.Array.Parallel.Unlifted.Sequential.USel             ()
-import Data.Array.Parallel.Unlifted.Sequential.UVSegd           ()
+import Data.Array.Parallel.Unlifted.Sequential.USegd     ()
+import Data.Array.Parallel.Unlifted.Sequential.USel      ()
+import Data.Array.Parallel.Unlifted.Sequential.UVSegd    ()
 import Prelude hiding (zip)

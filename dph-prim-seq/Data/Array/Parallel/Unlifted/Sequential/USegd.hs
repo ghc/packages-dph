@@ -1,25 +1,25 @@
 {-# LANGUAGE CPP #-}
-{-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+{-# OPTIONS -fno-warn-orphans #-}
 #include "fusion-phases.h"
 
 -- | Segment Descriptors
-module Data.Array.Parallel.Unlifted.Sequential.USegd (
-  -- * Types
-  USegd,
+module Data.Array.Parallel.Unlifted.Sequential.USegd 
+        ( -- * Types
+          USegd
 
-  -- * Constructors
-  mkUSegd, valid,
-  empty, singleton,
-  fromLengths,
+          -- * Constructors
+        , mkUSegd, valid
+        , empty, singleton
+        , fromLengths
 
-  -- * Projections
-  length,
-  takeLengths, takeIndices, takeElements, 
-  getSeg,
+          -- * Projections
+        , length
+        , takeLengths, takeIndices, takeElements
+        , getSeg
 
-  -- * Operations
-  append, slice, extract
-) where
+          -- * Operations
+        , append, slice, extract)
+where
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
