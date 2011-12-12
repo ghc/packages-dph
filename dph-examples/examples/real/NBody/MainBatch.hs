@@ -66,9 +66,13 @@ mainBatch config calcAccels worldStart
 		<- time 
 		$  let 	world	= mainBatchRun config calcAccels worldStart
 		   in	world `seq` return world
-					
-	putStr $ prettyTime tElapsed
-	mainEnd (configDumpFinal config) world'
+	
+	when (configPrintTimings config)
+	 $ putStr $ prettyTime tElapsed
+
+	mainEnd (configDumpFinal config) 
+	        (configPrintFinal config)
+	        world'
 
 
 mainBatchRun config calcAccels worldStart 
@@ -86,10 +90,13 @@ mainBatchRun config calcAccels worldStart
 
 -- | Called at end of run to dump final world state.
 mainEnd :: Maybe FilePath	-- ^ Write final bodies to this file.
+        -> Bool                 -- ^ Print final bodies to stdout
 	-> World		-- ^ Final world state.
 	-> IO ()
 
-mainEnd mDumpFinal world
+mainEnd mDumpFinal printFinal world
  = do	-- Dump the final world state to file if requested.
-	maybe 	(return ()) (dumpWorld world) mDumpFinal
+	maybe 	(return ())  (dumpWorld world) mDumpFinal
+	when    printFinal   (printWorld world)
+
 

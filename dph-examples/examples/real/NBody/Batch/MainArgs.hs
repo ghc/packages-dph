@@ -15,9 +15,9 @@ data MainArg
 	| ArgEpsilon
 	| ArgDiscSize
 	| ArgStartSpeed
-		
-	-- Dump output
 	| ArgDumpFinal
+	| ArgPrintFinal
+	| ArgPrintTimings
 	deriving (Eq, Ord, Show)
 	
 mainArgs :: [Arg MainArg]
@@ -83,5 +83,17 @@ mainArgs
 		, argName	= Just "dump-final"
 		, argData	= argDataOptional "FilePath" ArgtypeString
 		, argDesc	= "Dump final body positions and masses to file" }
+
+	, Arg	{ argIndex	= ArgPrintFinal
+		, argAbbr	= Nothing
+		, argName	= Just "print-final"
+		, argData	= Nothing
+		, argDesc	= "Print final body positions and masses to stdout" }
+
+	, Arg	{ argIndex	= ArgPrintTimings
+		, argAbbr	= Nothing
+		, argName	= Just "print-timings"
+		, argData	= Nothing
+		, argDesc	= "Print timings of the solver" }
 
 	]

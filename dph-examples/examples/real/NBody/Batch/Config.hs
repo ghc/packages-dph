@@ -28,7 +28,13 @@ data Config
 	, configMaxSteps	:: Int
 	
 	-- Dump points to file
-	, configDumpFinal	:: Maybe FilePath }
+	, configDumpFinal	:: Maybe FilePath 
+
+        -- Print points to stdout
+	, configPrintFinal      :: Bool
+	
+	-- Print timings to stdout
+	, configPrintTimings    :: Bool }
 	
 
 -- | Load program config from its command line arguments.	
@@ -54,4 +60,6 @@ loadConfig args
 	, configStartDiscSize	= discSize
 	, configStartSpeed	= startSpeed
 	, configMaxSteps	= maxSteps
-	, configDumpFinal	= mFilePath }
+	, configDumpFinal	= mFilePath 
+	, configPrintFinal      = gotArg args ArgPrintFinal 
+	, configPrintTimings    = gotArg args ArgPrintTimings }
