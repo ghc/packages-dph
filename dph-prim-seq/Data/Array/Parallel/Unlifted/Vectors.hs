@@ -77,11 +77,11 @@ singleton vec
  $ do   R.MVector start len mbaData <- R.unsafeThaw $ G.convert vec
         baData  <- P.unsafeFreezeByteArray mbaData
         
-        mbaStarts       <- P.newByteArray 4
+        mbaStarts       <- P.newByteArray (P.sizeOf (undefined :: Int))
         P.writeByteArray mbaStarts 0 start
         baStarts        <- P.unsafeFreezeByteArray mbaStarts
         
-        mbaLengths      <- P.newByteArray 4
+        mbaLengths      <- P.newByteArray (P.sizeOf (undefined :: Int))
         P.writeByteArray mbaLengths 0 len
         baLengths       <- P.unsafeFreezeByteArray mbaLengths
         
