@@ -23,7 +23,6 @@ import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USegd   as DUSeg
 import qualified Data.Array.Parallel.Unlifted.Distributed.Types.Vector  as DV
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 
-
 instance DT USSegd where
   data Dist USSegd   
         = DUSSegd  !(Dist (Vector Int))         -- segment starts
@@ -35,8 +34,11 @@ instance DT USSegd where
                    !(MDist (Vector Int) s)      -- segment sources
                    !(MDist USegd        s)      -- distributed usegd
 
-  indexD (DUSSegd starts sources usegds) i
-   = USSegd.mkUSSegd (indexD starts i) (indexD sources i) (indexD usegds i)
+  indexD str (DUSSegd starts sources usegds) i
+   = USSegd.mkUSSegd
+        (indexD (str ++ "/indexD[USSegd]") starts i)
+        (indexD (str ++ "/indexD[USSegd]") sources i)
+        (indexD (str ++ "/indexD[USSegd]") usegds i)
 
   newMD g
    = liftM3 MDUSSegd (newMD g) (newMD g) (newMD g)

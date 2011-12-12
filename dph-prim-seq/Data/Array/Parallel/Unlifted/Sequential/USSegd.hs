@@ -36,6 +36,9 @@ import Prelude                                                  hiding (length)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
 
+here :: String -> String 
+here s = "Data.Array.Parallel.Unlifted.Sequential.USSegd." ++ s
+
 
 -- USSegd ---------------------------------------------------------------------
 -- | Construct a Scattered Segment Descriptor from an array of source
@@ -206,11 +209,11 @@ takeSources     = ussegd_sources
 -- | O(1). Get the length, segment index, starting index, and source id of a segment.
 getSeg :: USSegd -> Int -> (Int, Int, Int, Int)
 getSeg (USSegd _ starts sources usegd) ix
- = let  (len, index) = USegd.getSeg usegd ix
+ = let  (len, ixl) = USegd.getSeg usegd ix
    in   ( len
-        , index
-        , starts  `U.unsafeIndex` ix
-        , sources `U.unsafeIndex` ix)
+        , ixl
+        , U.index (here "getSeg") starts  ix
+        , U.index (here "getSeg") sources ix)
 {-# INLINE_U getSeg #-}
 
 
@@ -285,7 +288,7 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
         -- 
         --      vsegids':       [0 1 1 2 3 3 4 4]
         --
-        vsegids'  = U.map (U.unsafeIndex psegids_map) vsegids
+        vsegids'  = U.map (U.index (here "cullOnVSegids") psegids_map) vsegids
 
         -- Rebuild the usegd.
         starts'   = U.pack starts  psegids_used

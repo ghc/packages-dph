@@ -24,9 +24,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   -- * Basic operations
   length, null, empty, singleton, cons, units,
   replicate,
-  -- replicateEachU,
-  (!), unsafeIndex,
-  (++),
+  (++), index,
   interleave, indexed, repeat, repeatS,
 
   -- * Subarrays
@@ -100,6 +98,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
 
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Base ( Tag, checkEq, ST )
+import qualified Data.Array.Parallel.Base       as B
 import qualified Data.Vector.Unboxed            as V
 import qualified Data.Vector.Unboxed.Mutable    as M
 import qualified Data.Vector.Unboxed.Base       as VBase
@@ -191,6 +190,12 @@ slice xs i n = V.slice i n xs
 unsafeSlice :: Unbox a => Vector a -> Int -> Int -> Vector a
 {-# INLINE_U unsafeSlice #-}
 unsafeSlice xs i n = V.unsafeSlice i n xs
+
+-- 
+index :: Unbox a => String -> Vector a -> Int -> a
+index here vec ix
+        = B.check here (V.length vec) ix
+        $ V.unsafeIndex vec ix
 
 
 -- Copy out a subrange of a vector.

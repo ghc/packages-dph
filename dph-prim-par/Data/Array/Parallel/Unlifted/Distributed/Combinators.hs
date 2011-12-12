@@ -130,12 +130,12 @@ foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
 {-# NOINLINE foldD #-}
 foldD g f !d 
   = checkGangD ("here foldD") g d 
-  $ fold 1 (d `indexD` 0)
+  $ fold 1 (indexD (here "foldD") d 0)
   where
     !n = gangSize g
     --
     fold i x | i == n    = x
-             | otherwise = fold (i+1) (f x $ d `indexD` i)
+             | otherwise = fold (i+1) (f x $ indexD (here "foldD") d i)
 
 
 -- | Prefix sum of the instances of a distributed value.
@@ -156,7 +156,7 @@ scanD g f z !d
         | i == n    = return x
         | otherwise
         = do    writeMD md i x
-                scan md (i+1) (f x $ d `indexD` i)
+                scan md (i+1) (f x $ indexD (here "scanD") d i)
 
 
 -- | Combination of map and fold.
@@ -181,7 +181,7 @@ mapAccumLD g f acc !d
     go md i acc'
         | i == n    = return acc'
         | otherwise
-        = case f acc' (d `indexD` i) of
+        = case f acc' (indexD (here "mapAccumLD") d i) of
                 (acc'',b) -> do
                       writeMD md i b
                       go md (i+1) acc''

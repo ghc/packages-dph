@@ -3,16 +3,15 @@
 #include "fusion-phases.h"
 
 -- | Operations on Distributed Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.USSegd (
-        splitSSegdOnElemsD
-)
+module Data.Array.Parallel.Unlifted.Distributed.USSegd 
+        (splitSSegdOnElemsD)
 where
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, (!))
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import Data.Array.Parallel.Base
 import Data.Bits                                                        (shiftR)
 import Control.Monad                                                    (when)
@@ -21,6 +20,8 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Distributed.USSegd." ++ s
 
 -------------------------------------------------------------------------------
 -- | Split a segment descriptor across the gang, element wise.
@@ -149,12 +150,12 @@ chunk !ussegd !nStart !nElems is_last
 
     -- The length of the left-most slice of this chunk.
     left     | k == n      = nElems
-             | otherwise   = min ((indices ! k) - nStart) nElems
+             | otherwise   = min ((Seq.index (here "chunk") indices k) - nStart) nElems
 
     -- The length of the right-most slice of this chunk.
     length_right   
              | k' == k     = 0
-             | otherwise   = nStart + nElems - (indices ! (k'-1))
+             | otherwise   = nStart + nElems - (Seq.index (here "chunk") indices (k'-1))
 
     -- Whether the first element in this chunk is an internal element of
     -- of a segment. Alternatively, indicates that the first element of 
@@ -165,7 +166,7 @@ chunk !ussegd !nStart !nElems is_last
     -- If the first element of the chunk starts within a segment, 
     -- then gives the index within that segment, otherwise 0.
     left_off | left == 0   = 0
-             | otherwise   = nStart - indices ! (k-1)
+             | otherwise   = nStart - (Seq.index (here "chunk") indices (k-1))
 
     -- How many segments this chunk straddles.
     n' = left_len + (k'-k)
@@ -185,8 +186,8 @@ chunk !ussegd !nStart !nElems is_last
             --   then update the length to be the length of the slice.
             when (left /= 0) 
              $ do Seq.write mlengths' 0 left
-                  Seq.write mstarts'  0 (starts  ! (k - left_len) + left_off)
-                  Seq.write msources' 0 (sources ! (k - left_len))
+                  Seq.write mstarts'  0 (Seq.index (here "chunk") starts  (k - left_len) + left_off)
+                  Seq.write msources' 0 (Seq.index (here "chunk") sources (k - left_len))
 
             -- Copy out array lengths for this chunk.
             Seq.copy (Seq.mdrop left_len mlengths') (Seq.slice lengths k (k'-k))
@@ -236,7 +237,8 @@ search :: Int -> Vector Int -> Int
 search !x ys = go 0 (Seq.length ys)
   where
     go i n | n <= 0        = i
-           | ys ! mid < x  = go (mid + 1) (n - half - 1)
+           | Seq.index (here "search") ys mid < x
+           = go (mid + 1) (n - half - 1)
            | otherwise     = go i half
       where
         half = n `shiftR` 1

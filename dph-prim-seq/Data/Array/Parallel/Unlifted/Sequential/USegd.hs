@@ -25,6 +25,9 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
 
+here :: String -> String 
+here s = "Data.Array.Parallel.Unlifted.Sequential.USegd." ++ s
+
 
 -- | A segment desciptor defines an irregular 2D array based on a flat, 1D array
 --   of elements.
@@ -142,8 +145,8 @@ takeElements    = usegd_elements
 -- | O(1). Get the length and segment index of a segment
 getSeg :: USegd -> Int -> (Int, Int)
 getSeg (USegd lengths indices _ ) ix
- =      ( lengths `U.unsafeIndex` ix
-        , indices `U.unsafeIndex` ix)
+ =      ( U.index (here "getSeg") lengths ix
+        , U.index (here "getSeg") indices ix)
 {-# INLINE_U getSeg #-}
 
 

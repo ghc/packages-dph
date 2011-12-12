@@ -19,8 +19,7 @@ import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Pretty
 import Control.Monad
-import Prelude                          as P
-
+import Prelude                                                          as P
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
 import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USSegd  as DUSegd
 
@@ -34,8 +33,10 @@ instance DT UVSegd where
         = MDUVSegd !(MDist (Vector Int) s)      -- vsegids
                    !(MDist USSegd       s)      -- distributed ussegd
 
-  indexD (DUVSegd vsegids ussegds) i
-   = UVSegd.mkUVSegd (indexD vsegids i) (indexD ussegds i)
+  indexD str (DUVSegd vsegids ussegds) i
+   = UVSegd.mkUVSegd
+        (indexD (str P.++ "/indexD[UVSegd]") vsegids i)
+        (indexD (str P.++ "/indexD[UVSegd]") ussegds i)
 
   newMD g
    = liftM2 MDUVSegd (newMD g) (newMD g)

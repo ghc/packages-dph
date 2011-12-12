@@ -35,6 +35,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import GHC.Base      ( quotInt, remInt )
 import Control.Monad
 
+here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." Prelude.++ s
 
 
@@ -323,11 +324,11 @@ carryD' f zero shouldCarry vec md_
         | ix >= sizeD vec    = return prev
         | otherwise
         = do let chunk :: Vector a
-                 !chunk      = indexD vec ix
+                 !chunk      = indexD (here "carryD'") vec ix
              let !chunkLen   = Seq.length chunk
 
              -- Whether to carry the last value of this chunk into the next chunk
-             let !carry      = indexD shouldCarry ix
+             let !carry      = indexD (here "carryD") shouldCarry ix
 
              -- The new length for this chunk
              let !chunkLen'  
@@ -336,7 +337,7 @@ carryD' f zero shouldCarry vec md_
                    | otherwise     = chunkLen
 
              -- The new value of the accumulator
-             let acc            = f prev (chunk Seq.! 0)
+             let acc            = f prev (Seq.index (here "carryD'") chunk 0)
                 
              -- Allocate a mutable vector to hold the new chunk and copy
              -- source elements into it.
@@ -353,7 +354,7 @@ carryD' f zero shouldCarry vec md_
              -- What value to carry into the next chunk
              let next
                   | chunkLen' == 0      = acc
-                  | carry               = chunk Seq.! (chunkLen - 1)
+                  | carry               = Seq.index (here "next") chunk (chunkLen - 1)
                   | otherwise           = zero
                                
              go md next (ix + 1)

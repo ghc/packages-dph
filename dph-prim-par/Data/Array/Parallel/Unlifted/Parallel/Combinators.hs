@@ -5,12 +5,15 @@
 module Data.Array.Parallel.Unlifted.Parallel.Combinators (
   mapUP, filterUP, packUP, combineUP, combine2UP,
   zipWithUP, foldUP, foldlUP, fold1UP, foldl1UP, scanUP
-) where
-
+) 
+where
 import Data.Array.Parallel.Base
-import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
+import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+
+here :: String -> String
+here s = "Data.Array.Parallel.Unlifted.Parallel.Combinators." Prelude.++ s
 
 
 -- | Apply a worker to all elements of an array.
@@ -142,7 +145,7 @@ foldl1UP f arr
         . mapD   theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
         where
-                z = arr ! 0
+                z = Seq.index (here "fold1UP") arr 0
                 combine (Just x) (Just y) = Just (f x y)
                 combine (Just x) Nothing  = Just x
                 combine Nothing  (Just y) = Just y

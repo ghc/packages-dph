@@ -6,13 +6,13 @@ import Data.Array.Parallel.Unlifted.Distributed.Types.Prim      ()
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Control.Monad
 
-
 instance DT a => DT (Maybe a) where
   data Dist  (Maybe a)   = DMaybe  !(Dist  Bool)   !(Dist  a)
   data MDist (Maybe a) s = MDMaybe !(MDist Bool s) !(MDist a s)
 
-  indexD (DMaybe bs as) i
-    | bs `indexD` i       = Just $ as `indexD` i
+  indexD str (DMaybe bs as) i
+    |        indexD (str ++ "/indexD[Maybe]") bs i
+    = Just $ indexD (str ++ "/indexD[Maybe]" ++ str) as i
     | otherwise           = Nothing
 
   newMD g

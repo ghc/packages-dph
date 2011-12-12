@@ -58,3 +58,4 @@ unsafeStreamSrcIxsThroughUSSegd ussegd (Stream mkStep s0 size0)
                  Skip s' -> return $ Skip s'
                  Done    -> return Done
 {-# INLINE_STREAM unsafeStreamSrcIxsThroughUSSegd #-}
+

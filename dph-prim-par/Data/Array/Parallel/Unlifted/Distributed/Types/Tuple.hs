@@ -15,16 +15,17 @@ import Data.Array.Parallel.Base
 import Data.Array.Parallel.Pretty
 import Control.Monad
 
+here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Tuple." ++ s
-
 
 -- Pairs ----------------------------------------------------------------------
 instance (DT a, DT b) => DT (a,b) where
   data Dist  (a,b)   = DProd  !(Dist a)    !(Dist b)
   data MDist (a,b) s = MDProd !(MDist a s) !(MDist b s)
 
-  indexD d i
-   = (fstD d `indexD` i, sndD d `indexD` i)
+  indexD str d i
+   = ( indexD (str ++ "/indexD[Tuple2]") (fstD d) i
+     , indexD (str ++ "/indexD[Tuple2]") (sndD d) i)
 
   newMD g
    = liftM2 MDProd (newMD g) (newMD g)
@@ -91,10 +92,10 @@ instance (DT a, DT b, DT c) => DT (a,b,c) where
   data Dist  (a,b,c)   = DProd3  !(Dist a)    !(Dist b)    !(Dist c)
   data MDist (a,b,c) s = MDProd3 !(MDist a s) !(MDist b s) !(MDist c s)
 
-  indexD (DProd3 xs ys zs) i
-   = ( xs `indexD` i
-     , ys `indexD` i
-     , zs `indexD` i)
+  indexD str (DProd3 xs ys zs) i
+   = ( indexD (here $ "indexD[Tuple3]/" ++ str) xs i
+     , indexD (here $ "indexD[Tuple3]/" ++ str) ys i
+     , indexD (here $ "indexD[Tuple3]/" ++ str) zs i)
 
   newMD g
    = liftM3 MDProd3 (newMD g) (newMD g) (newMD g)

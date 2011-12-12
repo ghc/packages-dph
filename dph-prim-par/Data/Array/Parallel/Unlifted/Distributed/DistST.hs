@@ -51,7 +51,7 @@ stToDistST p = DistST $ \_ -> p
 -- | Yields the 'Dist' element owned by the current thread.
 myD :: DT a => Dist a -> DistST s a
 {-# NOINLINE myD #-}
-myD dt = liftM (indexD dt) myIndex
+myD dt = liftM (indexD "myD" dt) myIndex
 
 
 -- | Yields the 'MDist' element owned by the current thread.

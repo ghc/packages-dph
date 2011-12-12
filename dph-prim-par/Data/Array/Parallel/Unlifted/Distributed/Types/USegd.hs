@@ -15,9 +15,9 @@ import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import Data.Array.Parallel.Pretty
 import Control.Monad
-import Prelude                                                          as P
 import qualified Data.Array.Parallel.Unlifted.Distributed.Types.Vector  as DV
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import Prelude                                                          as P
 
 
 instance DT USegd where
@@ -31,8 +31,11 @@ instance DT USegd where
                   !(MDist (Vector Int) s)       -- segment indices
                   !(MDist Int        s)         -- number of elements in this chunk
 
-  indexD (DUSegd lens idxs eles) i
-   = USegd.mkUSegd (indexD lens i) (indexD idxs i) (indexD eles i)
+  indexD str (DUSegd lens idxs eles) i
+   = USegd.mkUSegd
+        (indexD (str ++ "/indexD[USegd]") lens i)
+        (indexD (str ++ "/indexD[USegd]") idxs i)
+        (indexD (str ++ "/indexD[USegd]") eles i)
 
   newMD g
    = liftM3 MDUSegd (newMD g) (newMD g) (newMD g)
