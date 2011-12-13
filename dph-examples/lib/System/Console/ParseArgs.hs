@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, DatatypeContexts #-}
+{-# LANGUAGE FlexibleInstances, DeriveDataTypeable #-}
 -- Full-featured argument parsing library for Haskell programs
 -- Bart Massey <bart@cs.pdx.edu>
 
@@ -94,7 +94,7 @@ import System.IO
 -- `argDataRequired`, `argDataOptional`, and
 -- `argDataDefaulted` functions below, which are used to
 -- generate `argData`.
-data (Ord a) => Arg a =
+data Arg a =
     Arg { argIndex :: a              -- ^Connects the input description
                                      -- to the output argument.
         , argAbbr :: Maybe Char      -- ^One-character flag name.
@@ -171,7 +171,7 @@ newtype ArgRecord a = ArgRecord (Map.Map a Argval)
 
 -- |The data structure `parseArgs` produces.  The key
 -- element is the `ArgRecord` `args`.
-data (Ord a) => Args a =
+data Args a =
     Args { args :: ArgRecord a      -- ^The argument map.
          , argsProgName :: String   -- ^Basename of 0th argument.
          , argsUsage :: String      -- ^Full usage string.
@@ -186,12 +186,7 @@ data (Ord a) => Args a =
 -- when argument parsing fails.  The first argument is the usage
 -- message, the second the actual error message from the parser.
 data ParseArgsException = ParseArgsException String String
-     deriving Eq
-
-instance Typeable ParseArgsException where
-    typeOf _ = mkTyConApp e [s, s] where
-        e = mkTyCon "ParseArgsException"
-        s = typeOf ""
+     deriving (Eq, Typeable)
 
 instance Exception ParseArgsException
 
