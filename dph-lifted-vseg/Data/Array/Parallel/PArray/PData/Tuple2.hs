@@ -211,9 +211,11 @@ ziplPR arr1 arr2
         -- thus has internal sharing, while the other does not.
         (segd1, pdata1) = flattenPR arr1
         (_,     pdata2) = flattenPR arr2
+        vsegd'          = U.promoteSegdToVSegd segd1
 
-   in   PNested (U.promoteSegdToVSegd segd1)
+   in   PNested vsegd'
                 (PTuple2s (singletondPR pdata1) (singletondPR pdata2))
+                segd1
                 (PTuple2  pdata1 pdata2)
 
 {-# INLINE_PA ziplPR #-}
@@ -227,9 +229,9 @@ unzipPD (PTuple2 xs ys) = (xs, ys)
 
 -- | Lifted unzip.
 unziplPD  :: PData (PArray (a, b)) -> PData (PArray a, PArray b)
-unziplPD (PNested uvsegd (PTuple2s xsdata ysdata) (PTuple2 xflat yflat))
- =      PTuple2 (PNested uvsegd xsdata xflat)
-                (PNested uvsegd ysdata yflat)
+unziplPD (PNested vsegd (PTuple2s xsdata ysdata) segd (PTuple2 xflat yflat))
+ =      PTuple2 (PNested vsegd xsdata segd xflat)
+                (PNested vsegd ysdata segd yflat)
 {-# INLINE_PA unziplPD #-}
 
 

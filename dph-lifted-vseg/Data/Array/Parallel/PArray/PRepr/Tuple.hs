@@ -54,13 +54,13 @@ ziplPA  :: (PA a, PA b)
 ziplPA xs ys
  = let  
         -- TODO: can we use the flat version here?
-        PNested vsegd (PTuple2s xs' ys') _
+        PNested vsegd (PTuple2s xs' ys') segd _
          = ziplPR (toNestedArrPRepr xs) (toNestedArrPRepr ys)
 
         pdatas  = PTuple2s (fromArrPReprs xs') (fromArrPReprs ys')
         flat    = fromArrPRepr $ extractvs_delay (toArrPReprs pdatas) vsegd
 
-   in   PNested vsegd pdatas flat
+   in   PNested vsegd pdatas segd flat
                 
 
 -- Tuple3 --------------------------------------------------------------------

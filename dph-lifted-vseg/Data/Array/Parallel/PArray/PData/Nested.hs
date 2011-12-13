@@ -35,14 +35,15 @@ data instance PData (PArray a)
         , pnested_psegdata     :: !(PDatas a) 
           -- ^ Chunks of array data, where each chunk has a linear index space. 
 
+        , pnested_segd          :: U.Segd       -- LAZY FIELD
+          -- ^ A demoted version of the VSegd.
+          --   If the function that creates the array already has the plain Segd,
+          --   then it should stash it here, otherwise build a thunk that makes it.
+
         , pnested_flat          :: PData a      -- LAZY FIELD
           -- ^ A pre-concatenated version of the array.
-          --   If the function that creates the array already has a flat form
-          --   of the data then it should stash it in here, otherwise build
-          --   a thunk that the consumer can demand if needed.
-
-          -- TODO: we probably want the flattened SSegd as well here,
-          --       to avoid demoting it in flattenPR
+          --   If the function that creates the array already has a flat form,
+          --   then it should stash it here, otherwise build a thunk that makes it.
         }
 
 
@@ -50,8 +51,9 @@ data instance PData (PArray a)
 data instance PDatas (PArray a)
         = PNesteds (V.Vector (PData (PArray a)))
 
-
 -- | Conatruct a nested array.
+--   TODO: this function needs to die.
+--
 mkPNested :: PR a
           => U.Array Int        -- ^ Virtual segment ids.
           -> U.Array Int        -- ^ Lengths of physical segments.
@@ -64,8 +66,9 @@ mkPNested vsegids pseglens psegstarts psegsrcids pdatas
                         $ U.mkSSegd psegstarts psegsrcids
                         $ U.lengthsToSegd pseglens
 
+        segd    = U.unsafeDemoteToSegdOfVSegd vsegd
         flat    = extractvs_delay pdatas vsegd
-   in   PNested vsegd pdatas flat
+   in   PNested vsegd pdatas segd flat
 
 {-# INLINE_PDATA mkPNested #-}
 
@@ -179,7 +182,7 @@ instance PR a => PR (PArray a) where
 
 
   {-# NOINLINE coversPR #-}
-  coversPR weak (PNested vsegd _ _) ix
+  coversPR weak (PNested vsegd _ _ _) ix
    | weak       = ix <= (U.length $ U.takeVSegidsOfVSegd vsegd)
    | otherwise  = ix <  (U.length $ U.takeVSegidsOfVSegd vsegd)
 
@@ -190,7 +193,7 @@ instance PR a => PR (PArray a) where
             $ pprpDataPR pdata)
 
   {-# NOINLINE pprpDataPR #-}
-  pprpDataPR (PNested vsegd pdatas _flat)
+  pprpDataPR (PNested vsegd pdatas _ _)
         =   text "PNested"
         $+$ ( nest 4
             $ pprp vsegd $$ pprp pdatas)
@@ -198,7 +201,7 @@ instance PR a => PR (PArray a) where
 
   -- Constructors -----------------------------------------
   {-# INLINE_PDATA emptyPR #-}
-  emptyPR = PNested U.emptyVSegd emptydPR emptyPR
+  emptyPR = PNested U.emptyVSegd emptydPR U.emptySegd emptyPR
 
 
   -- When replicating an array we use the source as the single physical
@@ -211,13 +214,14 @@ instance PR a => PR (PArray a) where
          ussegd  = U.singletonSSegd (I# n#)
          
          -- All virtual segments point to the same physical segment.
-         vsegd  = U.mkVSegd (U.replicate c 0) ussegd
+         vsegd   = U.mkVSegd (U.replicate c 0) ussegd
          pdatas  = singletondPR darr
 
          -- Pre-concatenated version
+         segd   = U.unsafeDemoteToSegdOfVSegd vsegd
          flat   = extractvs_delay pdatas vsegd
 
-     in  PNested vsegd pdatas flat
+     in  PNested vsegd pdatas segd flat
                 
 
   -- For segmented replicates, we just replicate the vsegids field.
@@ -229,22 +233,26 @@ instance PR a => PR (PArray a) where
   --       to cull down the psegs.
   --
   {-# INLINE_PDATA replicatesPR #-}
-  replicatesPR segd (PNested uvsegd pdatas _)
-   = let vsegd  = U.updateVSegsOfVSegd (\vsegids -> U.replicate_s segd vsegids) uvsegd
-         flat   = extractvs_delay pdatas vsegd
-     in  PNested vsegd pdatas flat
+  replicatesPR segd (PNested uvsegd pdatas _ _)
+   = let vsegd' = U.updateVSegsOfVSegd (\vsegids -> U.replicate_s segd vsegids) uvsegd
+         segd'  = U.unsafeDemoteToSegdOfVSegd vsegd'
+         flat'  = extractvs_delay pdatas vsegd'
+     in  PNested vsegd' pdatas segd' flat'
 
 
   -- Append nested arrays by appending the segment descriptors,
   -- and putting all physical arrays in the result.
   {-# NOINLINE appendPR #-}
-  appendPR (PNested uvsegd1 pdatas1 _) (PNested uvsegd2 pdatas2 _)
+  appendPR (PNested uvsegd1 pdatas1 _ _) (PNested uvsegd2 pdatas2 _ _)
    = let vsegd'  = U.appendVSegd
                         uvsegd1 (lengthdPR pdatas1) 
                         uvsegd2 (lengthdPR pdatas2)
+
          pdatas' = appenddPR pdatas1 pdatas2
-         flat    = extractvs_delay pdatas' vsegd'
-     in  PNested vsegd' pdatas' flat
+         segd'   = U.unsafeDemoteToSegdOfVSegd vsegd'
+         flat'   = extractvs_delay pdatas' vsegd'
+
+     in  PNested vsegd' pdatas' segd' flat'
      
 
   -- Performing segmented append requires segments from the physical arrays to
@@ -279,12 +287,12 @@ instance PR a => PR (PArray a) where
 
          pdatas' = singletondPR flat'
 
-     in  PNested vsegd' pdatas' flat'
+     in  PNested vsegd' pdatas' segd' flat'
 
 
   -- Projections ------------------------------------------
   {-# INLINE_PDATA lengthPR #-}
-  lengthPR (PNested vsegd _ _)
+  lengthPR (PNested vsegd _ _ _)
         = U.lengthOfVSegd vsegd
 
 
@@ -296,7 +304,7 @@ instance PR a => PR (PArray a) where
   --   flat version, because we don't want to force creation of the
   --   entire manifest array.
   {-# INLINE_PDATA indexPR #-}
-  indexPR (PNested uvsegd pdatas _uCantTouchThis) ix
+  indexPR (PNested uvsegd pdatas _ _) ix
    | (pseglen@(I# pseglen#), psegstart, psegsrcid)    <- U.getSegOfVSegd uvsegd ix
    = let !psrc          = pdatas `indexdPR` psegsrcid
          !pdata'        = extractPR psrc psegstart pseglen
@@ -317,8 +325,8 @@ instance PR a => PR (PArray a) where
          seginfo :: U.Array (Int, Int, Int)
          seginfo 
           = U.zipWith (\srcid ix -> 
-                        let (PNested vsegd _ _)   = pdatas `indexdPR` srcid
-                            (len, start, srcid') = U.getSegOfVSegd vsegd ix
+                        let (PNested vsegd _ _ _)  = pdatas `indexdPR` srcid
+                            (len, start, srcid')   = U.getSegOfVSegd vsegd ix
                         in  (len, start, srcid' + (psrcoffset `V.unsafeIndex` srcid)))
                 srcids
                 ixs
@@ -327,9 +335,9 @@ instance PR a => PR (PArray a) where
                         = U.unzip3 seginfo
                 
          -- TODO: check that doing lengthsToSegd won't cause overflow
+         segd'   = U.lengthsToSegd pseglens'
          vsegd'  = U.promoteSSegdToVSegd
-                 $ U.mkSSegd psegstarts' psegsrcs'
-                 $ U.lengthsToSegd pseglens'
+                 $ U.mkSSegd psegstarts' psegsrcs' segd'
                                  
           -- All flat data arrays in the sources go into the result.
          pdatas' = fromVectordPR
@@ -338,7 +346,7 @@ instance PR a => PR (PArray a) where
    
          flat'  = extractvs_delay pdatas' vsegd'
    
-     in  PNested vsegd' pdatas' flat'
+     in  PNested vsegd' pdatas' segd' flat'
 
 
   -- To extract a range of elements from a nested array, perform the extract
@@ -350,11 +358,11 @@ instance PR a => PR (PArray a) where
   --   flat version, because we don't want to force creation of the
   --   entire manifest array.
   {-# INLINE_PDATA extractPR #-}
-  extractPR (PNested uvsegd pdatas _uCantTouchThis) start len
+  extractPR (PNested uvsegd pdatas _ _) start len
    = let vsegd' = U.updateVSegsOfVSegd (\vsegids -> U.extract vsegids start len) uvsegd
+         segd'  = U.unsafeDemoteToSegdOfVSegd vsegd'
          flat'  = extractvs_delay pdatas vsegd'
-     in  PNested vsegd' pdatas flat'
-
+     in  PNested vsegd' pdatas segd' flat'
 
 
   -- [Note: psrcoffset]
@@ -423,13 +431,13 @@ instance PR a => PR (PArray a) where
                         $ V.map (toVectordPR . pnested_psegdata) arrs
                    
          -- Build the result segment descriptor.
+         segd'          = U.lengthsToSegd pseglens'
          vsegd'         = U.promoteSSegdToVSegd
-                        $ U.mkSSegd psegstarts' psegsrcs'
-                        $ U.lengthsToSegd pseglens'
+                        $ U.mkSSegd psegstarts' psegsrcs' segd'
    
          flat'          = extractvs_delay pdatas' vsegd'
    
-     in  PNested vsegd' pdatas' flat'
+     in  PNested vsegd' pdatas' segd' flat'
 
 
   {-# INLINE_PDATA extractvsPR #-}
@@ -444,28 +452,29 @@ instance PR a => PR (PArray a) where
   --  =>  vsegids_packed: [  0 1 1         3         5   5   6 6]
   --       
   {-# INLINE_PDATA packByTagPR #-}
-  packByTagPR (PNested vsegd pdatas _uCantTouchThis) tags tag
+  packByTagPR (PNested vsegd pdatas _ _) tags tag
    = let vsegd' = U.updateVSegsOfVSegd (\vsegids -> U.packByTag vsegids tags tag) vsegd
+         segd'  = U.unsafeDemoteToSegdOfVSegd vsegd'
          flat'  = extractvs_delay pdatas vsegd'
-     in  PNested vsegd' pdatas flat'
+     in  PNested vsegd' pdatas segd' flat'
 
 
   -- Combine nested arrays by combining the segment descriptors, 
   -- and putting all physical arrays in the result.
   {-# INLINE_PDATA combine2PR #-}
-  combine2PR sel2 (PNested vsegd1 pdatas1 _) (PNested vsegd2 pdatas2 _)
+  combine2PR sel2 (PNested vsegd1 pdatas1 _ _) (PNested vsegd2 pdatas2 _ _)
    = let vsegd'  = U.combine2VSegd sel2 
                         vsegd1 (lengthdPR pdatas1)
                         vsegd2 (lengthdPR pdatas2)
 
          pdatas' = appenddPR pdatas1 pdatas2
-
+         segd'   = U.unsafeDemoteToSegdOfVSegd vsegd'
          flat'   = extractvs_delay pdatas' vsegd'
-
-     in  PNested vsegd' pdatas' flat'
+     in  PNested vsegd' pdatas' segd' flat'
 
 
   -- Conversions ----------------------
+  -- TODO: pack in pre-existing segd and flat version
   {-# NOINLINE fromVectorPR #-}
   fromVectorPR xx
    | V.length xx == 0 = emptyPR
@@ -517,7 +526,7 @@ instance PR a => PR (PArray a) where
 ------------------------------------------------------------------------------
 -- | O(len result). Lifted indexing
 indexlPR :: PR a => PData (PArray a) -> PData Int -> PData a
-indexlPR (PNested vsegd pdatas _uCantTouchThis) (PInt ixs)
+indexlPR (PNested vsegd pdatas _ _) (PInt ixs)
  = indexvsPR pdatas vsegd 
         (U.zip  (U.enumFromTo 0 (U.length ixs - 1))
                 ixs)
@@ -562,8 +571,7 @@ indexlPR (PNested vsegd pdatas _uCantTouchThis) (PInt ixs)
 --   of the total number of elements within it.
 --
 concatPR :: PR a => PData (PArray a) -> PData a
-concatPR (PNested _vsegd _pdatas flat) 
-        = flat
+concatPR (PNested _ _ _ flat) = flat
 {-# INLINE concatPR #-}
 
 
@@ -628,7 +636,7 @@ concatlPR arr
         flat'           = darr2
         pdatas'         = singletondPR flat'
 
-   in   PNested vsegd' pdatas' flat'
+   in   PNested vsegd' pdatas' segd' flat'
 {-# INLINE_PDATA concatlPR #-}
 
 
@@ -644,21 +652,21 @@ concatlPR arr
 --   This can cause index space overflow, see the note in `concatPR`.
 --
 unconcatPR :: PR b => PData (PArray a) -> PData b -> PData (PArray b)
-unconcatPR (PNested vsegd _ _uCantTouchThis) pdata
+unconcatPR (PNested vsegd _ _ _) pdata
  = {-# SCC "unconcatPD" #-}
    let  
         -- Demote the vsegd to a manifest vsegd so it contains all the segment
         -- lengths individually without going through the vsegids.
-        !segd           = U.unsafeDemoteToSegdOfVSegd vsegd
+        !segd'          = U.unsafeDemoteToSegdOfVSegd vsegd
 
         -- Rebuild the vsegd based on the manifest vsegd. 
         -- The vsegids will be just [0..len-1], but this field is constructed
         -- lazilly and consumers aren't required to demand it.
-        !vsegd'         = U.promoteSegdToVSegd segd
+        !vsegd'         = U.promoteSegdToVSegd segd'
         
         pdatas'         = singletondPR pdata
 
-   in   PNested vsegd' pdatas' pdata
+   in   PNested vsegd' pdatas' segd' pdata
 {-# INLINE_PDATA unconcatPR #-}
 
 
@@ -666,9 +674,8 @@ unconcatPR (PNested vsegd _ _uCantTouchThis) pdata
 --   concatenated data.
 --
 flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-flattenPR arr@(PNested vsegd _ _)
- =      ( U.unsafeDemoteToSegdOfVSegd vsegd
-        , concatPR arr )
+flattenPR (PNested _ _ segd flat)
+        = (segd, flat)
 {-# INLINE_PDATA flattenPR #-}
 
 
@@ -679,12 +686,13 @@ appendlPR  arr1 arr2
  = let  (segd1, darr1)  = flattenPR arr1
         (segd2, darr2)  = flattenPR arr2
         segd'           = U.plusSegd segd1 segd2
-        flat'           = appendsPR segd' segd1 darr1 segd2 darr2
-
         vsegd'          = U.promoteSegdToVSegd segd'
+
+        flat'           = appendsPR segd' segd1 darr1 segd2 darr2
         pdatas'         = singletondPR flat'
-   in   PNested vsegd' pdatas' flat'
+   in   PNested vsegd' pdatas' segd' flat'
 {-# INLINE_PDATA appendlPR #-}
+
 
 -- | Extract some slices from some arrays.
 --
@@ -732,8 +740,8 @@ slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 --   This can cause index space overflow, see the note in `concatPR`.
 --
 takeSegdPD :: PData (PArray a) -> U.Segd
-takeSegdPD (PNested vsegd _ _) 
-        = U.unsafeDemoteToSegdOfVSegd vsegd
+takeSegdPD (PNested _ _ segd _) 
+        = segd
 {-# INLINE_PDATA takeSegdPD #-}
 
 

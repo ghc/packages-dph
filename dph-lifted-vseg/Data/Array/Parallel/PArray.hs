@@ -291,7 +291,7 @@ nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
-	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata) pdata	
+	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata) segd pdata	
 
         | otherwise
         = error $ unlines
@@ -305,7 +305,7 @@ nestUSegd segd (PArray n# pdata)
 -- Projections  ---------------------------------------------------------------
 -- | Take the length of some arrays.
 lengthl :: PA a => PArray (PArray a) -> PArray Int
-lengthl arr@(PArray n# (PNested vsegd _ _))
+lengthl arr@(PArray n# (PNested vsegd _ _ _))
  = withRef1 "lengthl" (R.lengthl (toRef2 arr))
  $ PArray n# $ PInt $ U.takeLengthsOfVSegd vsegd
 {-# INLINE_PA lengthl #-}
@@ -412,13 +412,10 @@ pack arr@(PArray _ xs) flags@(PArray _ (PBool sel2))
 
 -- | Lifted pack.
 packl :: PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
-packl xss@(PArray n# xdata@(PNested vsegd _ _))
+packl xss@(PArray n# xdata@(PNested _ _ segd _))
       fss@(PArray _  fdata)
  = withRef2 "packl" (R.packl (toRef2 xss) (toRef2 fss))
  $ let  
-        -- Demote the vsegd to eliminate the virtual segmentation in the two arrays.
-        segd            = U.unsafeDemoteToSegdOfVSegd vsegd
-        
         -- Concatenate both arrays to get the flat data.
         --   Although the virtual segmentation should be the same,
         --   the physical segmentation of both arrays may be different.
@@ -434,7 +431,7 @@ packl xss@(PArray n# xdata@(PNested vsegd _ _))
         flat'           = packByTagPA xdata_flat tags 1
         pdatas'         = singletondPA flat'
         
-   in   PArray n# (PNested vsegd' pdatas' flat')
+   in   PArray n# (PNested vsegd' pdatas' segd' flat')
 {-# INLINE_PA packl #-}
 
 
