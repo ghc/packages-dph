@@ -85,8 +85,8 @@ toNestedArrPRepr
         => PData (PArray a)
         -> PData (PArray (PRepr a))
 
-toNestedArrPRepr (PNested vsegd pdatas flat)
-        = PNested vsegd (toArrPReprs pdatas) (toArrPRepr flat)
+toNestedArrPRepr (PNested vsegd pdatas segd flat)
+        = PNested vsegd (toArrPReprs pdatas) segd (toArrPRepr flat)
 
 
 -- PA Wrappers ----------------------------------------------------------------

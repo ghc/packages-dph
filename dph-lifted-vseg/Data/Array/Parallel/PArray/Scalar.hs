@@ -181,7 +181,7 @@ fold1 f (PArray _ pdata)
 folds   :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 
-folds f z (PArray _ (PNested vsegd pdatas _))
+folds f z (PArray _ (PNested vsegd pdatas _ _))
  = let  -- Grab all the flat physical arrays.
         uarrs           = fromScalarPDatas pdatas 
         
@@ -201,7 +201,7 @@ folds f z (PArray _ (PNested vsegd pdatas _))
 fold1s  :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> PArray (PArray a) -> PArray a
 
-fold1s f (PArray _ (PNested vsegd pdatas _))
+fold1s f (PArray _ (PNested vsegd pdatas _ _))
  = let  -- Grab all the flat physical arrays.
         uarrs           = fromScalarPDatas pdatas 
  
@@ -271,7 +271,7 @@ enumFromTol (PArray m# ms) (PArray _ ns)
         vsegd   = U.promoteSegdToVSegd segd
         pdatas  = singletondPA flat
         
-    in  PArray m# $ PNested vsegd pdatas flat
+    in  PArray m# $ PNested vsegd pdatas segd flat
         
 distance :: Int -> Int -> Int
 {-# INLINE_STREAM distance #-}

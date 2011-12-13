@@ -32,12 +32,12 @@ instance PA a => PA (PArray a) where
         = PArray n $ fromArrPRepr xs
 
   {-# INLINE_PA toArrPRepr #-}
-  toArrPRepr (PNested segd xs flat)
-        = PNested segd (toArrPReprs xs) (toArrPRepr flat)
+  toArrPRepr (PNested vsegd xs segd flat)
+        = PNested vsegd (toArrPReprs xs) segd (toArrPRepr flat)
 
   {-# INLINE_PA fromArrPRepr #-}
-  fromArrPRepr (PNested segd xs flat)
-        = PNested segd (fromArrPReprs xs) (fromArrPRepr flat)
+  fromArrPRepr (PNested vsegd xs segd flat)
+        = PNested vsegd (fromArrPReprs xs) segd (fromArrPRepr flat)
 
   {-# INLINE_PA toArrPReprs #-}
   toArrPReprs (PNesteds vec)
