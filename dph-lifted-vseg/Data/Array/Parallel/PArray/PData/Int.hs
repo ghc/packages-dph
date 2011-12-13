@@ -80,16 +80,15 @@ instance PR Int where
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PInt arr) start len 
-        = PInt (U.extract arr start len)
+        = PInt $ U.extract arr start len
 
   {-# INLINE_PDATA extractssPR #-}
   extractssPR (PInts arrs) ssegd
         = PInt $ U.extracts_ass ssegd arrs
 
   -- {-# INLINE_PDATA extractvsPR #-}
-  -- extractvsPR (PInts arrs) vsegd
-  --       = PInt $ U.unsafeExtracts_avs vsegd arrs
-
+  extractvsPR (PInts arrs) vsegd
+        = PInt $ U.extracts_avs vsegd arrs
 
 
   -- Pack and Combine ---------------------------

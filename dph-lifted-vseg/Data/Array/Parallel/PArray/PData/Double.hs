@@ -57,15 +57,15 @@ instance PR Double where
 
   {-# INLINE_PDATA replicatePR #-}
   replicatePR len x
-        = PDouble (U.replicate len x)
+        = PDouble $ U.replicate len x
 
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR segd (PDouble arr)
-        = PDouble (U.replicate_s segd arr)
+        = PDouble $ U.replicate_s segd arr
 
   {-# INLINE_PDATA appendPR #-}
   appendPR (PDouble arr1) (PDouble arr2)
-        = PDouble (arr1 U.+:+ arr2)
+        = PDouble $ arr1 U.+:+ arr2
 
   {-# INLINE_PDATA appendsPR #-}
   appendsPR segdResult segd1 (PDouble arr1) segd2 (PDouble arr2)
@@ -91,15 +91,15 @@ instance PR Double where
 
   {-# INLINE_PDATA extractPR #-}
   extractPR (PDouble arr) start len 
-        = PDouble (U.extract arr start len)
+        = PDouble $ U.extract arr start len
 
   {-# INLINE_PDATA extractssPR #-}
   extractssPR (PDoubles arrs) ssegd
-        = PDouble (U.extracts_ass ssegd arrs)
+        = PDouble $ U.extracts_ass ssegd arrs
 
   -- {-# INLINE_PDATA extractvsPR #-}
-  -- extractvsPR (PDoubles arrs) vsegd
-  --       = PDouble (U.unsafeExtracts_avs vsegd arrs)
+  extractvsPR (PDoubles arrs) vsegd
+        = PDouble $ U.extracts_avs vsegd arrs
                 
 
   -- Pack and Combine ---------------------------
@@ -109,9 +109,9 @@ instance PR Double where
 
   {-# NOINLINE combine2PR #-}
   combine2PR sel (PDouble arr1) (PDouble arr2)
-        = PDouble (U.combine2 (U.tagsSel2 sel)
+        = PDouble $ U.combine2 (U.tagsSel2 sel)
                            (U.repSel2  sel)
-                           arr1 arr2)
+                           arr1 arr2
 
 
   -- Conversions --------------------------------
