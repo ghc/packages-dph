@@ -208,16 +208,10 @@ replicatel_ :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
  = if n# ==# 0# then empty else 
     let !segd    = U.lengthsToSegd lens
+        !vsegd   = U.promoteSegdToVSegd segd
         !pdata'  = replicatesPA segd pdata
-        !c       = I# n#
-        
-     in PArray n# 
-         $ mkPNestedPA
-                (U.enumFromTo 0 (c - 1))
-                lens
-                (U.indicesSegd segd)
-                (U.replicate c 0)
-                (singletondPA pdata')
+        !pdatas' = singletondPA pdata'        
+     in PArray n# $ mkPNestedPA vsegd pdatas' segd pdata'
 {-# INLINE_PA replicatel_ #-}
 
 

@@ -52,25 +52,13 @@ data instance PData (PArray a)
 data instance PDatas (PArray a)
         = PNesteds (V.Vector (PData (PArray a)))
 
--- | Conatruct a nested array.
---   TODO: this function needs to die.
---
+
+-- | Construct a nested array.
 mkPNested :: PR a
-          => U.Array Int        -- ^ Virtual segment ids.
-          -> U.Array Int        -- ^ Lengths of physical segments.
-          -> U.Array Int        -- ^ Starting indices of physical segments.
-          -> U.Array Int        -- ^ Source id (what chunk to get each segment from).
-          -> PDatas a           -- ^ Chunks of array data.
+          => U.VSegd -> PDatas a
+          -> U.Segd  -> PData  a
           -> PData (PArray a)
-mkPNested vsegids pseglens psegstarts psegsrcids pdatas
- = let  vsegd   = U.mkVSegd vsegids 
-                        $ U.mkSSegd psegstarts psegsrcids
-                        $ U.lengthsToSegd pseglens
-
-        segd    = U.unsafeDemoteToSegdOfVSegd vsegd
-        flat    = extractvs_delay pdatas vsegd
-   in   PNested vsegd pdatas segd flat
-
+mkPNested = PNested
 {-# INLINE_PDATA mkPNested #-}
 
 
@@ -488,18 +476,16 @@ instance PR a => PR (PArray a) where
 
 
   -- Conversions ----------------------
-  -- TODO: pack in pre-existing segd and flat version
   {-# NOINLINE fromVectorPR #-}
   fromVectorPR xx
    | V.length xx == 0 = emptyPR
    | otherwise
-   = let segd      = U.lengthsToSegd $ U.fromList $ V.toList $ V.map PA.length xx
-     in  mkPNested
-                (U.enumFromTo 0 (V.length xx - 1))
-                (U.lengthsSegd segd)
-                (U.indicesSegd segd)
-                (U.replicate (V.length xx) 0)
-                (singletondPR (V.foldl1 appendPR $ V.map takeData xx))
+   = let segd   = U.lengthsToSegd $ U.fromList $ V.toList $ V.map PA.length xx
+         vsegd  = U.promoteSegdToVSegd segd
+         pdata  = V.foldl1 appendPR $ V.map takeData xx
+         pdatas = singletondPR pdata
+         flat   = extractvs_delay pdatas vsegd
+     in  PNested vsegd pdatas segd flat
 
 
   {-# NOINLINE toVectorPR #-}
@@ -681,18 +667,24 @@ slicelPR
 
 slicelPR (PInt sliceStarts) (PInt sliceLens)
          (PNested vsegd pdatas _segd _flat)
- = let  segs            = U.length vsegids
-        vsegids         = U.takeVSegidsOfVSegd vsegd
-        ssegd           = U.takeSSegdOfVSegd vsegd
-        psegstarts      = U.startsOfSSegd  ssegd
-        psegsrcs        = U.sourcesOfSSegd ssegd
-   in   mkPNested
-                (U.enumFromTo 0 (segs - 1))
-                sliceLens
-                (U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts)
-                (U.bpermute psegsrcs vsegids)
-                pdatas
+ = let  -- Build the new Segd
+        segd'           = U.lengthsToSegd sliceLens
 
+        -- Build the new SSegd
+        vsegids         = U.takeVSegidsOfVSegd vsegd
+        ssegd           = U.takeSSegdOfVSegd   vsegd
+        psegstarts      = U.startsOfSSegd      ssegd
+        psegsrcs        = U.sourcesOfSSegd     ssegd
+
+        psegstarts'     = U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts
+        psegsources'    = U.bpermute psegsrcs vsegids
+        ssegd'          = U.mkSSegd psegstarts' psegsources' segd'
+
+        -- Promote SSegd to a VSegd
+        vsegd'          = U.promoteSSegdToVSegd ssegd'
+        flat'           = extractvs_delay pdatas vsegd'
+
+   in   PNested vsegd' pdatas segd' flat'
 {-# NOINLINE slicelPR #-}
 --  NOINLINE because it won't fuse with anything.
 --  The operation is also entierly on the segment descriptor, so we don't 
