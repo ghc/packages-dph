@@ -58,16 +58,14 @@ instance PA a => PA (PArray a) where
 -- | Conatruct a nested array.
 mkPNestedPA 
         :: PA a
-        => U.Array Int        -- ^ Virtual segment ids.
-        -> U.Array Int        -- ^ Lengths of physical segments.
-        -> U.Array Int        -- ^ Starting indices of physical segments.
-        -> U.Array Int        -- ^ Source id (what chunk to get each segment from).
-        -> PDatas a           -- ^ Chunks of array data.
+        => U.VSegd -> PDatas a
+        -> U.Segd  -> PData a
         -> PData (PArray a)
 
-mkPNestedPA vsegids pseglens psegstart psegsrcs pdatas
+mkPNestedPA vsegd pdatas segd pdata
  = let  pdatas' = toArrPReprs pdatas
-   in   fromArrPRepr $ mkPNested vsegids pseglens psegstart psegsrcs pdatas'
+        pdata'  = toArrPRepr  pdata
+   in   fromArrPRepr $ mkPNested vsegd pdatas' segd pdata'
 
 
 {-# INLINE_PA concatPA #-}
