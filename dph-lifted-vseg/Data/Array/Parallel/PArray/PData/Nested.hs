@@ -562,8 +562,8 @@ indexlPR (PNested vsegd pdatas _uCantTouchThis) (PInt ixs)
 --   of the total number of elements within it.
 --
 concatPR :: PR a => PData (PArray a) -> PData a
-concatPR (PNested vsegd pdatas _flat) 
- = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
+concatPR (PNested _vsegd _pdatas flat) 
+        = flat
 {-# INLINE concatPR #-}
 
 
@@ -585,8 +585,6 @@ extractvs_delay pdatas vsegd
 -- | Lifted concatenation.
 -- 
 --   Concatenate all the arrays in a triply nested array.
---
---   BUGS: this does bad indexing for an array  [[]] :: PArray (PArray (PArray Int))
 --
 concatlPR :: PR a => PData (PArray (PArray a)) -> PData (PArray a)
 concatlPR arr
