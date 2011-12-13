@@ -22,7 +22,6 @@ import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
 import Data.Array.Parallel.Unlifted.Parallel.UPSSegd                    (UPSSegd)
 import Data.Array.Parallel.Unlifted.Parallel.UPVSegd                    (UPVSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
-import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
 import Data.Array.Parallel.Unlifted.Vectors                             (Vectors)
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
@@ -32,7 +31,6 @@ import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
 import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 import qualified Data.Vector.Fusion.Stream                              as S
