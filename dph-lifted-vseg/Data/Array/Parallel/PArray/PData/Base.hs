@@ -185,23 +185,6 @@ class PR a where
 
   -- | O(1). Shared indexing
   indexvsPR     :: PDatas a -> U.VSegd -> U.Array (Int, Int) -> PData a
-  indexvsPR pdatas vsegd srcixs
-   = let
-         !vsegids         = U.takeVSegidsRedundantOfVSegd vsegd
-         !ssegd           = U.takeSSegdRedundantOfVSegd   vsegd
-         !sources         = U.sourcesOfSSegd   ssegd
-         !starts          = U.startsOfSSegd    ssegd
-
-         !srcixs' 
-          = U.map (\(ix1, ix2)
-                   -> let !psegid = U.index "indexvsPR/vsegids" vsegids ix1
-                          !source = U.index "indexvsPR/sources" sources psegid
-                          !start  = U.index "indexvsPR/starts"  starts  psegid
-                      in  (source, start + ix2))
-                   srcixs
-
-     in  indexsPR pdatas srcixs'
-  {-# INLINE_PDATA indexvsPR #-}
 
   -- | O(slice len). Extract a slice of elements from an array,
   --  given the starting index and length of the slice.
