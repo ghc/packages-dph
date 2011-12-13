@@ -45,8 +45,6 @@ import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd        as DUSSe
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
-import qualified Data.Array.Parallel.Unlifted.Vectors                   as Seq
-import qualified Data.Vector                                            as VS
 import Control.Monad.ST
 import Prelude hiding (length)
 

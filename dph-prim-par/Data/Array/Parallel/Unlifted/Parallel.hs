@@ -69,9 +69,3 @@ import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays
 import Data.Array.Parallel.Unlifted.Parallel.Sums
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd            (UPSSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector           as US
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import qualified Data.Vector                                    as VS
