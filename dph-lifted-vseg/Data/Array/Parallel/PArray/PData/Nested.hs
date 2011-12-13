@@ -25,6 +25,7 @@ import qualified Data.Vector                    as V
 import GHC.Exts
 import System.IO.Unsafe
 
+
 -- Nested arrays --------------------------------------------------------------
 data instance PData (PArray a)
         = PNested
@@ -87,6 +88,32 @@ pnested_psegstarts  = U.startsOfSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
 pnested_psegsrcids :: PData (PArray a) -> U.Array Int
 pnested_psegsrcids  = U.sourcesOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
 
+
+-- Projections ----------------------------------------------------------------
+-- These functions take concatenated forms of the vsegd and array data from
+-- the representation of the nested array. Although the projections themselves
+-- are O(1), they could return thunks.
+
+-- | Concatenate a nested array.
+concatPR :: PR a => PData (PArray a) -> PData a
+concatPR (PNested _ _ _ flat)
+        = flat
+{-# INLINE concatPR #-}
+
+-- | Take the segment descriptor from a nested array and demote it to a
+--   plain Segd.
+takeSegdPD :: PData (PArray a) -> U.Segd
+takeSegdPD (PNested _ _ segd _) 
+        = segd
+{-# INLINE_PDATA takeSegdPD #-}
+
+-- | Flatten a nested array, yielding a plain segment descriptor and 
+--   concatenated data.
+--
+flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
+flattenPR (PNested _ _ segd flat)
+        = (segd, flat)
+{-# INLINE_PDATA flattenPR #-}
 
 
 -- PR Instances ---------------------------------------------------------------
@@ -523,58 +550,8 @@ instance PR a => PR (PArray a) where
   toVectordPR (PNesteds vec)
         = vec
 
-------------------------------------------------------------------------------
--- | O(len result). Lifted indexing
-indexlPR :: PR a => PData (PArray a) -> PData Int -> PData a
-indexlPR (PNested vsegd pdatas _ _) (PInt ixs)
- = indexvsPR pdatas vsegd 
-        (U.zip  (U.enumFromTo 0 (U.length ixs - 1))
-                ixs)
-{-# INLINE_PDATA indexlPR #-}
-
 
 -------------------------------------------------------------------------------
--- | O(len result). Concatenate a nested array.
---
---   OLD COMMENTS Attach to extracts instead.
---   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--- 
---   This physically performs a gather operation, whereby array data is copied
---   through the index-space transformation defined by the segment descriptor
---   in the nested array. We must perform this copy because reducing the level
---   of nesting corresponds to discarding the segment descriptor, which means we
---   can no longer represent the layout of the array other than by physically
---   creating it.
---
---   As an optimisation, if the segment descriptor knows that the segments are
---   already in a single contiguous `PData` no sharing, then concat can just
---   return the underlying array directly, in constant time.
--- 
---   WARNING: 
---   Concatenating a replicated array can cause index overflow, because the 
---   source array can define more elements than we can count with a single
---   machine word.
---   For example, if we replicate an array with 1Meg elements 1Meg times then
---   the result defines a total of 1Meg*1Meg = 1Tera elements. This in itself
---   is fine, because the nested array is defined by an index space transform
---   that maps all the inner arrays back to the original data. However, if we 
---   then concatenate the replicated array then we must physically copy the 
---   data as we loose the segment descriptor that defines the mapping. Sad 
---   things will happen when the library tries to construct an physical array
---   1Tera elements long, especially on 32 bit machines.
-
---   IMPORTANT:
---   In the case where there is sharing between segments, or they are scattered
---   through multiple arrays, only outer-most two levels of nesting are physically
---   merged. The data for lower levels is not touched. This ensures that concat
---   has complexity proportional to the length of the result array, instead
---   of the total number of elements within it.
---
-concatPR :: PR a => PData (PArray a) -> PData a
-concatPR (PNested _ _ _ flat) = flat
-{-# INLINE concatPR #-}
-
-
 -- | Wrapper for extracts that is NOT INLINED.
 --
 --   This is experimental, used to initialise the pnested_flat field
@@ -590,6 +567,17 @@ extractvs_delay pdatas vsegd
 --           be generated at the use site.
 
 
+------------------------------------------------------------------------------
+-- | O(len result). Lifted indexing
+indexlPR :: PR a => PData (PArray a) -> PData Int -> PData a
+indexlPR (PNested vsegd pdatas _ _) (PInt ixs)
+ = indexvsPR pdatas vsegd 
+        (U.zip  (U.enumFromTo 0 (U.length ixs - 1))
+                ixs)
+{-# INLINE_PDATA indexlPR #-}
+
+
+-- concatlPR ------------------------------------------------------------------
 -- | Lifted concatenation.
 -- 
 --   Concatenate all the arrays in a triply nested array.
@@ -600,25 +588,7 @@ concatlPR arr
         (segd2, darr2)  = flattenPR darr1
 
         -- Generate indices for the result array
-        --  There is a tedious edge case when the last segment in the nested
-        --  array has length 0. For example:
-        --
-        --    concatl [ [[1, 2, 3] [4, 5, 6]] [] ]
-        --  
-        --  After the calls to flattenPR we get:
-        --   segd1: lengths1 = [ 2 0 ]
-        --          indices1 = [ 0 2 ]
-        
-        --   segd2: lengths2 = [ 3 3 ]
-        --          indices2 = [ 0 3 ]
-        -- 
-        --  The problem is that the last element of 'indices1' points off the end
-        --  of 'indices2' so we can't use use 'backpermute' as we'd like to:
-        --    ixs' = (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))        
-        --  Instead, we have to explicitly check for the out-of-bounds condition.
-        --  TODO: We want a faster way of doing this, that doesn't require the 
-        --        test for every element.
-        -- 
+        -- See Note: Empty Arrays on End.
         ixs1            = U.indicesSegd segd1
         ixs2            = U.indicesSegd segd2
         len2            = U.length ixs2
@@ -633,13 +603,38 @@ concatlPR arr
                                    (U.elementsSegd segd2)
 
         vsegd'          = U.promoteSegdToVSegd segd'
-        flat'           = darr2
         pdatas'         = singletondPR flat'
+        flat'           = darr2
 
    in   PNested vsegd' pdatas' segd' flat'
 {-# INLINE_PDATA concatlPR #-}
 
+--  [Note: Empty Arrays on End]
+--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--
+--  There is a tedious edge case when the last segment in the nested
+--  array has length 0. For example:
+--
+--    concatl [ [[1, 2, 3] [4, 5, 6]] [] ]
+--  
+--  After the calls to flattenPR we get:
+--   segd1: lengths1 = [ 2 0 ]
+--          indices1 = [ 0 2 ]
 
+--   segd2: lengths2 = [ 3 3 ]
+--          indices2 = [ 0 3 ]
+-- 
+--  The problem is that the last element of 'indices1' points off the end
+--  of 'indices2' so we can't use use 'backpermute' as we'd like to:
+--    ixs' = (U.bpermute (U.indicesSegd segd2) (U.indicesSegd segd1))        
+--  Instead, we have to explicitly check for the out-of-bounds condition.
+--
+--  TODO: We want a faster way of doing this, that doesn't require the 
+--        test for every element.
+
+
+
+-- unconcatPR -----------------------------------------------------------------
 -- | Build a nested array given a single flat data vector, 
 --   and a template nested array that defines the segmentation.
 
@@ -647,9 +642,6 @@ concatlPR arr
 --   internal sharing, the provided data array has manifest elements
 --   for every segment. Because of this we need flatten out the virtual
 --   segmentation of the template array.
---
---   WARNING:
---   This can cause index space overflow, see the note in `concatPR`.
 --
 unconcatPR :: PR b => PData (PArray a) -> PData b -> PData (PArray b)
 unconcatPR (PNested vsegd _ _ _) pdata
@@ -670,15 +662,7 @@ unconcatPR (PNested vsegd _ _ _) pdata
 {-# INLINE_PDATA unconcatPR #-}
 
 
--- | Flatten a nested array, yielding a plain segment descriptor and 
---   concatenated data.
---
-flattenPR :: PR a => PData (PArray a) -> (U.Segd, PData a)
-flattenPR (PNested _ _ segd flat)
-        = (segd, flat)
-{-# INLINE_PDATA flattenPR #-}
-
-
+-- appendlPR ------------------------------------------------------------------
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
@@ -694,6 +678,7 @@ appendlPR  arr1 arr2
 {-# INLINE_PDATA appendlPR #-}
 
 
+-- slicelPR -------------------------------------------------------------------
 -- | Extract some slices from some arrays.
 --
 --   All three parameters must have the same length, and we take
@@ -725,25 +710,6 @@ slicelPR (PInt sliceStarts) (PInt sliceLens) arr
 --  NOINLINE because it won't fuse with anything.
 --  The operation is also entierly on the segment descriptor, so we don't 
 --  need to inline it to specialise it for the element type.
-
-
--- PD Functions ---------------------------------------------------------------
--- These functions work on nested PData arrays, but don't need a PR or PA
--- dictionary. They are segment descriptor operations that only care about the
--- outermost later of segmentation, and thus are oblivous to the element type.
---
-
--- | Take the segment descriptor from a nested array and demote it to a
---   plain Segd.
--- 
---   WARNING:
---   This can cause index space overflow, see the note in `concatPR`.
---
-takeSegdPD :: PData (PArray a) -> U.Segd
-takeSegdPD (PNested _ _ segd _) 
-        = segd
-{-# INLINE_PDATA takeSegdPD #-}
-
 
 
 -- Testing --------------------------------------------------------------------
