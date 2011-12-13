@@ -74,21 +74,6 @@ mkPNested vsegids pseglens psegstarts psegsrcids pdatas
 {-# INLINE_PDATA mkPNested #-}
 
 
--- Old projection functions. 
--- TODO: refactor to eliminate the need for these.
-pnested_vsegids    :: PData (PArray a) -> U.Array Int
-pnested_vsegids    =  U.takeVSegidsOfVSegd . pnested_uvsegd
-
-pnested_pseglens   :: PData (PArray a) -> U.Array Int
-pnested_pseglens   =  U.lengthsOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
-
-pnested_psegstarts :: PData (PArray a) -> U.Array Int
-pnested_psegstarts  = U.startsOfSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd
-
-pnested_psegsrcids :: PData (PArray a) -> U.Array Int
-pnested_psegsrcids  = U.sourcesOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
-
-
 -- Projections ----------------------------------------------------------------
 -- These functions take concatenated forms of the vsegd and array data from
 -- the representation of the nested array. Although the projections themselves
@@ -124,13 +109,12 @@ instance PR a => PR (PArray a) where
   -- TODO: ensure that all psegdata arrays are referenced from some psegsrc.
   -- TODO: shift segd checks into associated modules.
   {-# NOINLINE validPR #-}
-  validPR arr
-   = let vsegids        = pnested_vsegids     arr
-         pseglens       = pnested_pseglens    arr
-         psegstarts     = pnested_psegstarts  arr
-         psegsrcs       = pnested_psegsrcids  arr
-         psegdata       = pnested_psegdata    arr
-
+  validPR (PNested vsegd pdatas _ _)
+   = let vsegids        = U.takeVSegidsOfVSegd vsegd
+         ssegd          = U.takeSSegdOfVSegd   vsegd
+         pseglens       = U.lengthsOfSSegd     ssegd
+         psegstarts     = U.startsOfSSegd      ssegd
+         psegsrcs       = U.sourcesOfSSegd     ssegd
 
          -- The lengths of the pseglens, psegstarts and psegsrcs fields must all be the same
          fieldLensOK
@@ -149,7 +133,7 @@ instance PR a => PR (PArray a) where
          psegsrcsRefOK
                 = validBool "nested array psegsrc doesn't ref flat array"
                 $ U.and 
-                $ U.map (\srcid -> srcid < lengthdPR psegdata) psegsrcs
+                $ U.map (\srcid -> srcid < lengthdPR pdatas) psegsrcs
 
          -- Every physical segment must be a valid slice of the corresponding flat array.
          -- 
@@ -171,7 +155,7 @@ instance PR a => PR (PArray a) where
                 $ U.and 
                 $ U.zipWith3 
                         (\len start srcid
-                           -> let pdata = psegdata `indexdPR` srcid
+                           -> let pdata = pdatas `indexdPR` srcid
                               in  and [ coversPR (len == 0) pdata start
                                       , coversPR True       pdata (start + len) ])
                         pseglens psegstarts psegsrcs
@@ -423,10 +407,13 @@ instance PR a => PR (PArray a) where
   --
   {-# NOINLINE extractssPR #-}
   extractssPR (PNesteds arrs) ussegd
-   = let segsrcs        = U.sourcesOfSSegd ussegd
+   = let 
+   
+         segsrcs        = U.sourcesOfSSegd ussegd
          seglens        = U.lengthsOfSSegd ussegd
 
-         vsegids_src    = U.extracts_nss ussegd (V.map pnested_vsegids arrs)
+         vsegidss       = V.map (U.takeVSegidsOfVSegd . pnested_uvsegd) arrs
+         vsegids_src    = U.extracts_nss ussegd vsegidss
          srcids'        = U.replicate_s (U.lengthsToSegd seglens) segsrcs
 
          -- See Note: psrcoffset
@@ -435,9 +422,9 @@ instance PR a => PR (PArray a) where
 
          -- Unpack the lens and srcids arrays so we don't need to 
          -- go though all the segment descriptors each time.
-         !arrs_pseglens   = V.map pnested_pseglens   arrs
-         !arrs_psegstarts = V.map pnested_psegstarts arrs
-         !arrs_psegsrcids = V.map pnested_psegsrcids arrs
+         !arrs_pseglens   = V.map (U.lengthsOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd) arrs
+         !arrs_psegstarts = V.map (U.startsOfSSegd  . U.takeSSegdOfVSegd . pnested_uvsegd) arrs
+         !arrs_psegsrcids = V.map (U.sourcesOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd) arrs
 
          !here'         = "extractssPR[Nested]"
          -- Function to get one element of the result.
@@ -516,9 +503,9 @@ instance PR a => PR (PArray a) where
 
 
   {-# NOINLINE toVectorPR #-}
-  toVectorPR arr
-   = V.generate (U.length (pnested_vsegids arr))
-   $ indexPR arr
+  toVectorPR arr@(PNested vsegd _ _ _)
+   = let len    = U.length $ U.takeVSegidsOfVSegd vsegd
+     in  V.generate len (indexPR arr)
 
 
   -- PData --------------------------------------
@@ -692,19 +679,19 @@ slicelPR
         -> PData (PArray a)     -- ^ Arrays to slice.
         -> PData (PArray a)
 
-slicelPR (PInt sliceStarts) (PInt sliceLens) arr
+slicelPR (PInt sliceStarts) (PInt sliceLens)
+         (PNested vsegd pdatas _segd _flat)
  = let  segs            = U.length vsegids
-        vsegids        = pnested_vsegids     arr
-        psegstarts     = pnested_psegstarts  arr
-        psegsrcs       = pnested_psegsrcids  arr
-        psegdata       = pnested_psegdata    arr
-   in   
-        mkPNested
+        vsegids         = U.takeVSegidsOfVSegd vsegd
+        ssegd           = U.takeSSegdOfVSegd vsegd
+        psegstarts      = U.startsOfSSegd  ssegd
+        psegsrcs        = U.sourcesOfSSegd ssegd
+   in   mkPNested
                 (U.enumFromTo 0 (segs - 1))
                 sliceLens
                 (U.zipWith (+) (U.bpermute psegstarts vsegids) sliceStarts)
                 (U.bpermute psegsrcs vsegids)
-                psegdata
+                pdatas
 
 {-# NOINLINE slicelPR #-}
 --  NOINLINE because it won't fuse with anything.
