@@ -15,10 +15,10 @@ import qualified Data.Vector                    as V
 
 -------------------------------------------------------------------------------
 data instance PData Double
-        = PDouble  !(U.Array  Double)
+        = PDouble  (U.Array  Double)
 
 data instance PDatas Double
-        = PDoubles !(U.Arrays Double)
+        = PDoubles (U.Arrays Double)
 
 
 -- PR -------------------------------------------------------------------------
@@ -97,7 +97,7 @@ instance PR Double where
   extractssPR (PDoubles arrs) ssegd
         = PDouble $ U.extracts_ass ssegd arrs
 
-  -- {-# INLINE_PDATA extractvsPR #-}
+  {-# INLINE_PDATA extractvsPR #-}
   extractvsPR (PDoubles arrs) vsegd
         = PDouble $ U.extracts_avs vsegd arrs
                 

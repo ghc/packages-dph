@@ -2,21 +2,23 @@
 #include "fusion-phases.h"
 module Data.Array.Parallel.Unlifted.Stream.Segments
         ( streamSegsFromNestedUSSegd
-        , streamSegsFromVectorsUSSegd)
+        , streamSegsFromVectorsUSSegd
+        , streamSegsFromVectorsUVSegd)
 where
 import Data.Vector.Fusion.Stream.Size
 import Data.Vector.Fusion.Stream.Monadic
-import Data.Vector.Unboxed                                       (Unbox,   Vector)
-import Data.Array.Parallel.Unlifted.Vectors                      (Unboxes, Vectors)
-import Data.Array.Parallel.Unlifted.Sequential.USSegd            (USSegd(..))
-import qualified Data.Array.Parallel.Unlifted.Vectors            as US
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd  as USSegd
-import qualified Data.Vector.Unboxed                             as U
-import qualified Data.Vector                                     as V
-import qualified Data.Primitive.ByteArray                        as P
+import Data.Vector.Unboxed                                      (Unbox,   Vector)
+import Data.Array.Parallel.Unlifted.Vectors                     (Unboxes, Vectors)
+import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd(..))
+import Data.Array.Parallel.Unlifted.Sequential.UVSegd		(UVSegd(..))
+import qualified Data.Array.Parallel.Unlifted.Vectors           as US
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd	as UVSegd
+import qualified Data.Vector.Unboxed                            as U
+import qualified Data.Vector                                    as V
+import qualified Data.Primitive.ByteArray                       as P
 import System.IO.Unsafe
-
 
 -- Nested -----------------------------------------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
@@ -29,7 +31,6 @@ import System.IO.Unsafe
 --           about jumping between segments. EXCEPT that this information must be
 --           statically visible else streamSegs won't fuse, so we can't have an 
 --           ifThenElse checking the manifest flag.
-
 streamSegsFromNestedUSSegd
         :: (Unbox a, Monad m)
         => V.Vector (Vector a)  -- ^ Source arrays.
@@ -91,7 +92,7 @@ streamSegsFromVectorsUSSegd
  
         -- Total number of elements to stream.
         !elements       = USegd.takeElements usegd
- 
+
         -- seg, ix of that seg in usegd, length of seg, elem in seg
         {-# INLINE_INNER fnSeg #-}
         fnSeg (ixSeg, baSeg, ixEnd, ixElem)
@@ -118,7 +119,7 @@ streamSegsFromVectorsUSSegd
                  -- Stream the next element from the segment.
             else let !result  = P.indexByteArray baSeg ixElem
                  in  return   $ Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
-
+				 
         -- Starting state of the stream.
         -- CAREFUL:
         --  The ussegd might not contain any segments, so we can't initialise the state
@@ -140,4 +141,74 @@ streamSegsFromVectorsUSSegd
         -- doesn't need to add code to grow the result when it overflows.
    in   Stream fnSeg initState (Exact elements) 
 {-# INLINE_STREAM streamSegsFromVectorsUSSegd #-}
+
+
+
+-- Vectors ----------------------------------------------------------------------------------------
+-- | Stream segments from a `Vectors`.
+-- 
+--   * There must be at least one segment in the `USSegd`, but this is not checked.
+-- 
+--   * No bounds checking is done for the `USSegd`.
+--
+streamSegsFromVectorsUVSegd
+        :: (Unboxes a, Monad m)
+        => Vectors a            -- ^ Vectors holding source data.
+        -> UVSegd               -- ^ Scattered segment descriptor
+        -> Stream m a
+
+streamSegsFromVectorsUVSegd
+        vectors
+        uvsegd@(UVSegd _ vsegids (USSegd _ segStarts segSources _usegd) )
+ = segStarts `seq` segSources `seq` uvsegd `seq` vectors `seq`
+   let  -- Length of each segment.
+        !segLens        = UVSegd.takeLengths uvsegd
+        !elemsTotal	= U.sum segLens
+
+        -- Total number of segments.
+        !segsTotal      = UVSegd.length uvsegd
+ 
+        -- seg, ix of that seg in usegd, length of seg, elem in seg
+        {-# INLINE_INNER fnSeg #-}
+        fnSeg (ixSeg, baSeg, ixEnd, ixElem)
+         = ixSeg `seq` baSeg `seq`
+           if ixElem >= ixEnd                   -- Was that the last elem in the current seg?
+            then if ixSeg + 1 >= segsTotal      -- Was that last seg?
+
+                       -- That was the last seg, we're done.
+                  then return $ Done
+                  
+                       -- Move to the next seg.
+                  else let ixSeg'       = ixSeg + 1
+			   ixPSeg	= U.unsafeIndex vsegids    ixSeg'                  		
+                           sourceSeg    = U.unsafeIndex segSources ixPSeg
+                           startSeg     = U.unsafeIndex segStarts  ixPSeg
+                           lenSeg       = U.unsafeIndex segLens    ixPSeg
+                           (arr, startArr, _) 
+                                        = US.unsafeIndexUnpack vectors sourceSeg
+                       in  return $ Skip
+                                  ( ixSeg'
+                                  , arr
+                                  , startArr + startSeg + lenSeg
+                                  , startArr + startSeg)
+
+                 -- Stream the next element from the segment.
+            else let !result  = P.indexByteArray baSeg ixElem
+                 in  return   $ Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
+				 
+        -- Starting state of the stream.
+        !dummy  = unsafePerformIO 
+                $ P.newByteArray 0 >>= P.unsafeFreezeByteArray
+
+        !initState
+         =      ( -1    -- force fnSeg loop to load first seg
+                , dummy -- dummy array data to start with
+                , 0     -- force fnSeg loop to load first seg
+                , 0)           
+
+        -- It's important that we set the result stream size, so Data.Vector
+        -- doesn't need to add code to grow the result when it overflows.
+   in   Stream fnSeg initState (Exact elemsTotal)
+{-# INLINE_STREAM streamSegsFromVectorsUVSegd #-}
+
 

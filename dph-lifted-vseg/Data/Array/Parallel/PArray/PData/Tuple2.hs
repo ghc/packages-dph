@@ -20,10 +20,10 @@ import qualified Data.Array.Parallel.Unlifted   as U
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
-        = PTuple2  !(PData a) !(PData b)
+        = PTuple2  (PData a)  (PData b)
 
 data instance PDatas (a, b)
-        = PTuple2s !(PDatas a) !(PDatas b)
+        = PTuple2s (PDatas a) (PDatas b)
 
 
 -- PR -------------------------------------------------------------------------

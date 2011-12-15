@@ -29,11 +29,11 @@ import System.IO.Unsafe
 -- Nested arrays --------------------------------------------------------------
 data instance PData (PArray a)
         = PNested
-        { pnested_uvsegd       :: !U.VSegd
+        { pnested_uvsegd        :: U.VSegd
           -- ^ Virtual segmentation descriptor. 
           --   Defines a virtual nested array based on physical data.
 
-        , pnested_psegdata     :: !(PDatas a) 
+        , pnested_psegdata      :: PDatas a
           -- ^ Chunks of array data, where each chunk has a linear index space. 
 
         , pnested_segd          :: U.Segd       -- LAZY FIELD
@@ -635,21 +635,16 @@ concatlPR arr
 --   segmentation of the template array.
 --
 unconcatPR :: PR b => PData (PArray a) -> PData b -> PData (PArray b)
-unconcatPR (PNested vsegd _ _ _) pdata
+unconcatPR (PNested _ _ segd _) pdata
  = {-# SCC "unconcatPD" #-}
-   let  
-        -- Demote the vsegd to a manifest vsegd so it contains all the segment
+   let  -- Demote the vsegd to a manifest vsegd so it contains all the segment
         -- lengths individually without going through the vsegids.
-        !segd'          = U.unsafeDemoteToSegdOfVSegd vsegd
-
-        -- Rebuild the vsegd based on the manifest vsegd. 
+        -- Then Rebuild the vsegd based on the manifest vsegd. 
         -- The vsegids will be just [0..len-1], but this field is constructed
         -- lazilly and consumers aren't required to demand it.
-        !vsegd'         = U.promoteSegdToVSegd segd'
-        
+        vsegd'         = U.promoteSegdToVSegd segd
         pdatas'         = singletondPR pdata
-
-   in   PNested vsegd' pdatas' segd' pdata
+   in   PNested vsegd' pdatas' segd pdata
 {-# INLINE_PDATA unconcatPR #-}
 
 

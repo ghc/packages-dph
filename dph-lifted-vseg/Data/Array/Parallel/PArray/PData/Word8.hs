@@ -13,10 +13,10 @@ import Data.Array.Parallel.Pretty
 
 -------------------------------------------------------------------------------
 data instance PData Word8
-        = PWord8  !(U.Array Word8)
+        = PWord8  (U.Array Word8)
 
 data instance PDatas Word8
-        = PWord8s !(U.Arrays Word8)
+        = PWord8s (U.Arrays Word8)
 
 
 -- PR -------------------------------------------------------------------------
@@ -94,7 +94,7 @@ instance PR Word8 where
   extractssPR (PWord8s arrs) ssegd
         = PWord8 $ U.extracts_ass ssegd arrs
 
-  -- {-# INLINE_PDATA extractvsPR #-}
+  {-# INLINE_PDATA extractvsPR #-}
   extractvsPR (PWord8s arrs) vsegd
         = PWord8 $ U.extracts_avs vsegd arrs
 
