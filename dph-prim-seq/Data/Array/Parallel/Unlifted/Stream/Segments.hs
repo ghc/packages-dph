@@ -7,18 +7,19 @@ module Data.Array.Parallel.Unlifted.Stream.Segments
 where
 import Data.Vector.Fusion.Stream.Size
 import Data.Vector.Fusion.Stream.Monadic
-import Data.Vector.Unboxed                                      (Unbox,   Vector)
+import Data.Array.Parallel.Unlifted.Sequential.Vector           (Unbox,   Vector, index)
 import Data.Array.Parallel.Unlifted.Vectors                     (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd(..))
-import Data.Array.Parallel.Unlifted.Sequential.UVSegd		(UVSegd(..))
+import Data.Array.Parallel.Unlifted.Sequential.UVSegd           (UVSegd(..))
 import qualified Data.Array.Parallel.Unlifted.Vectors           as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd	as UVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
 import qualified Data.Vector.Unboxed                            as U
 import qualified Data.Vector                                    as V
 import qualified Data.Primitive.ByteArray                       as P
 import System.IO.Unsafe
+
 
 -- Nested -----------------------------------------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
@@ -41,6 +42,8 @@ streamSegsFromNestedUSSegd
         pdatas
         ussegd@(USSegd _ starts sources usegd)
  = let  
+        here            = "streamSegsFromNestedUSSegd"
+
         -- length of each segment
         pseglens        = USegd.takeLengths usegd
  
@@ -57,10 +60,10 @@ streamSegsFromNestedUSSegd
 
          -- Stream an element from this pseg
          | otherwise
-         = let  !srcid   = sources `U.unsafeIndex` pseg
+         = let  !srcid   = index here sources pseg
                 !pdata   = pdatas  `V.unsafeIndex` srcid
-                !start   = starts  `U.unsafeIndex` pseg
-                !result  = pdata   `U.unsafeIndex` (start + ix)
+                !start   = index here starts pseg
+                !result  = index here pdata  (start + ix)
            in   return $ Yield result (pseg, ix + 1)
 
    in   Stream fn (0, 0) Unknown
@@ -84,7 +87,9 @@ streamSegsFromVectorsUSSegd
         vectors
         ussegd@(USSegd _ segStarts segSources usegd) 
  = segStarts `seq` segSources `seq` usegd `seq` vectors `seq`
-   let  -- Length of each segment
+   let  here            = "stremSegsFromVectorsUSSegd"
+
+        -- Length of each segment
         !segLens        = USegd.takeLengths usegd
 
         -- Total number of segments.
@@ -105,9 +110,9 @@ streamSegsFromVectorsUSSegd
                   
                        -- Move to the next seg.
                   else let ixSeg'       = ixSeg + 1
-                           sourceSeg    = U.unsafeIndex segSources ixSeg'
-                           startSeg     = U.unsafeIndex segStarts  ixSeg'
-                           lenSeg       = U.unsafeIndex segLens    ixSeg'
+                           sourceSeg    = index here segSources ixSeg'
+                           startSeg     = index here segStarts  ixSeg'
+                           lenSeg       = index here segLens    ixSeg'
                            (arr, startArr, _) 
                                         = US.unsafeIndexUnpack vectors sourceSeg
                        in  return $ Skip
@@ -119,7 +124,7 @@ streamSegsFromVectorsUSSegd
                  -- Stream the next element from the segment.
             else let !result  = P.indexByteArray baSeg ixElem
                  in  return   $ Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
-				 
+                                 
         -- Starting state of the stream.
         -- CAREFUL:
         --  The ussegd might not contain any segments, so we can't initialise the state
@@ -139,7 +144,8 @@ streamSegsFromVectorsUSSegd
 
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
-   in   Stream fnSeg initState (Exact elements) 
+   in   Stream fnSeg initState (Exact elements)
+
 {-# INLINE_STREAM streamSegsFromVectorsUSSegd #-}
 
 
@@ -159,15 +165,18 @@ streamSegsFromVectorsUVSegd
 
 streamSegsFromVectorsUVSegd
         vectors
-        uvsegd@(UVSegd _ vsegids (USSegd _ segStarts segSources _usegd) )
+        uvsegd@(UVSegd _ vsegids (USSegd _ segStarts segSources usegd) )
  = segStarts `seq` segSources `seq` uvsegd `seq` vectors `seq`
-   let  -- Length of each segment.
-        !segLens        = UVSegd.takeLengths uvsegd
-        !elemsTotal	= U.sum segLens
+   let  here            = "stremSegsFromVectorsUVSegd"
+
+        !elemsTotal     = U.sum $ UVSegd.takeLengths uvsegd
 
         -- Total number of segments.
         !segsTotal      = UVSegd.length uvsegd
  
+        -- Length of each physical segment.
+        !segLens        = USegd.takeLengths usegd
+        
         -- seg, ix of that seg in usegd, length of seg, elem in seg
         {-# INLINE_INNER fnSeg #-}
         fnSeg (ixSeg, baSeg, ixEnd, ixElem)
@@ -180,10 +189,10 @@ streamSegsFromVectorsUVSegd
                   
                        -- Move to the next seg.
                   else let ixSeg'       = ixSeg + 1
-			   ixPSeg	= U.unsafeIndex vsegids    ixSeg'                  		
-                           sourceSeg    = U.unsafeIndex segSources ixPSeg
-                           startSeg     = U.unsafeIndex segStarts  ixPSeg
-                           lenSeg       = U.unsafeIndex segLens    ixPSeg
+                           ixPSeg       = index here vsegids    ixSeg'
+                           sourceSeg    = index here segSources ixPSeg
+                           startSeg     = index here segStarts  ixPSeg
+                           lenSeg       = index here segLens    ixPSeg
                            (arr, startArr, _) 
                                         = US.unsafeIndexUnpack vectors sourceSeg
                        in  return $ Skip
@@ -195,7 +204,7 @@ streamSegsFromVectorsUVSegd
                  -- Stream the next element from the segment.
             else let !result  = P.indexByteArray baSeg ixElem
                  in  return   $ Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
-				 
+                                 
         -- Starting state of the stream.
         !dummy  = unsafePerformIO 
                 $ P.newByteArray 0 >>= P.unsafeFreezeByteArray
