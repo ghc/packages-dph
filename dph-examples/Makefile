@@ -2,28 +2,27 @@
 
 # Package dependencies for DPH examples.
 DPH_DEPENDS = \
-        base         	== 4.4.*, \
-        vector       	== 0.9.*, \
-        random       	== 1.0.*, \
-        old-time     	== 1.0.*, \
+	base         	== 4.4.*, \
+	vector       	== 0.9.*, \
+	random       	== 1.0.*, \
+	old-time     	== 1.0.*, \
 	containers      == 0.4.*, \
-        dph-base     	== 0.5.*, \
-        dph-prim-par	== 0.5.*, \
-        dph-lifted-vseg	== 0.5.*, \
+	dph-base     	== 0.5.*, \
+	dph-prim-par	== 0.5.*, \
+	dph-lifted-vseg	== 0.5.*, \
 	HUnit           == 1.2.*
 
 
 # Options for compiling DPH examples.
 DPH_OPTIONS= \
-        -rtsopts \
-        -threaded \
+	-rtsopts \
+	-threaded \
 	-fllvm \
-        -Odph \
-        -package dph-lifted-vseg \
-        -fcpr-off \
+	-Odph \
+	-package dph-lifted-vseg \
+	-fcpr-off \
 	-fno-liberate-case \
-	-fno-spec-constr \
-        -fsimpl-tick-factor=1000 
+	-fsimpl-tick-factor=1000 
 
 
 .PHONY : all
