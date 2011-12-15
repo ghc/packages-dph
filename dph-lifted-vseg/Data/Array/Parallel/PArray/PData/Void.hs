@@ -29,7 +29,7 @@ data instance PData Void
 
 -- | PVoids instance counts how many "vectors" of void we have
 data instance PDatas Void
-        = PVoids !Int
+        = PVoids Int
 
 pvoid :: PData Void
 pvoid   = error "Data.Array.Parallel.PData.Void"

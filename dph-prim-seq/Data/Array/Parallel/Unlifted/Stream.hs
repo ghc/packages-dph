@@ -10,7 +10,8 @@ module Data.Array.Parallel.Unlifted.Stream
 
           -- * Segment streamers.
         , streamSegsFromNestedUSSegd
-        , streamSegsFromVectorsUSSegd)
+        , streamSegsFromVectorsUSSegd
+        , streamSegsFromVectorsUVSegd)
 where
 import Data.Array.Parallel.Unlifted.Stream.Ixs
 import Data.Array.Parallel.Unlifted.Stream.Elems

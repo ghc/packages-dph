@@ -95,7 +95,7 @@ instance Scalar Word8 where
   toScalarPDatas                  = PWord8s
 
 instance Scalar Double where
-  fromScalarPData  (PDouble xs)   = xs
+  fromScalarPData  (PDouble xs)   = xs `seq` xs
   fromScalarPDatas (PDoubles xss) = xss
   toScalarPData                   = PDouble
   toScalarPDatas                  = PDoubles
@@ -176,42 +176,24 @@ fold1 f (PArray _ pdata)
 
 
 -- | Segmented fold of an array of arrays.
---   Each segment is folded individually, yielding an array of the fold results.
-{-# INLINE_PA folds #-}
 folds   :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 
 folds f z (PArray _ (PNested vsegd pdatas _ _))
- = let  -- Grab all the flat physical arrays.
-        uarrs           = fromScalarPDatas pdatas 
-        
-        -- Sum up each physical segment individually.
-        psegResults     = U.fold_ss f z (U.takeSSegdOfVSegd vsegd) uarrs
-        
-        -- Replicate the physcal results according to the vsegids
-        vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
-
-   in   fromUArray vsegResults
+  = pdatas `seq`  -- Don't seq on vsegd. See Note: fold/promoteSegd
+    fromUArray $ U.fold_vs f z vsegd $ fromScalarPDatas pdatas
+{-# INLINE_PA folds #-}
            
 
 -- | Segmented fold of an array of arrays, using the first element of each
 --   segment to initialse the state for that segment.
---   Each segment is folded individually, yielding an array of all the fold results.
-{-# INLINE_PA fold1s #-}
 fold1s  :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> PArray (PArray a) -> PArray a
 
 fold1s f (PArray _ (PNested vsegd pdatas _ _))
- = let  -- Grab all the flat physical arrays.
-        uarrs           = fromScalarPDatas pdatas 
- 
-        -- Sum up each physical segment individually.
-        psegResults     = U.fold1_ss f (U.takeSSegdOfVSegd vsegd) uarrs
-        
-        -- Replicate the physcal results according to the vsegids
-        vsegResults     = U.bpermute psegResults (U.takeVSegidsOfVSegd vsegd) 
-
-   in   fromUArray vsegResults
+ = pdatas `seq`  -- Don't seq on vsegd. See Note: fold/promoteSegd
+   fromUArray $ U.fold1_vs f vsegd $ fromScalarPDatas pdatas
+{-# INLINE_PA fold1s #-}
 
 
 -- | Left fold over an array, also passing the index of each element
@@ -220,9 +202,9 @@ fold1Index
         :: Scalar a
         => ((Int, a) -> (Int, a) -> (Int, a)) -> PArray a -> Int
 
-{-# INLINE_PA fold1Index #-}
 fold1Index f
         = fst . U.fold1 f . U.indexed . toUArray
+{-# INLINE_PA fold1Index #-}
 
 
 -- | Segmented fold over an array, also passing the index of each 
@@ -245,6 +227,12 @@ fold1sIndex f (PArray n# pdata)
          $ U.zip (U.indices_s segd)
          $ fromScalarPData xs
 
+{- [Note: fold/promoteSegd]
+   ~~~~~~~~~~~~~~~~~~~~~~~~
+   In the segmented fold functions above, don't seq on the vsegd because we
+   we need to to remain as an argument to the fold function so the 
+   fold/promoteSegdToVSegd rules from DPH_Interface.h fill fire.
+-}
 
 -- Enumerations --------------------------------------------------------------
 -- | Construct a range of integers.

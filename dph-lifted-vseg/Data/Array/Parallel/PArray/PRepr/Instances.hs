@@ -130,10 +130,10 @@ type instance PRepr  Ordering
  = Word8
 
 data instance PData Ordering
- = POrdering  !(U.Array Word8)
+ = POrdering  (U.Array Word8)
  
 data instance PDatas Ordering
- = POrderings !(U.Arrays Word8)
+ = POrderings (U.Arrays Word8)
 
 instance PA Ordering where
  {-# INLINE toPRepr #-}

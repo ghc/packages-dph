@@ -74,7 +74,7 @@ instance PR Int where
   indexsPR (PInts pvecs) srcixs
         = PInt $ U.map (\(src, ix) -> U.unsafeIndex2s pvecs src ix) srcixs
 
-  -- {-# INLINE_PDATA indexvsPR #-}
+  {-# INLINE_PDATA indexvsPR #-}
   indexvsPR (PInts arrs) vsegd srcixs 
         = PInt $ U.indexs_avs arrs vsegd srcixs
 
@@ -86,7 +86,7 @@ instance PR Int where
   extractssPR (PInts arrs) ssegd
         = PInt $ U.extracts_ass ssegd arrs
 
-  -- {-# INLINE_PDATA extractvsPR #-}
+  {-# INLINE_PDATA extractvsPR #-}
   extractvsPR (PInts arrs) vsegd
         = PInt $ U.extracts_avs vsegd arrs
 

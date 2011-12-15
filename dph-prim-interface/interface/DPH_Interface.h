@@ -412,10 +412,12 @@ zipWith4 f as bs cs ds
 fold :: Elt a => (a -> a -> a) -> a -> Array a -> a
 {-# INLINE_BACKEND fold #-}
 
+
 -- | Undirected segmented fold.
 --   Same preconditions as `fold`.
 fold_s :: Elt a => (a -> a -> a) -> a -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold_s #-}
+
 
 -- | Undirected scattered segmented fold.
 --   Same preconditions as `fold`.
@@ -423,10 +425,43 @@ fold_ss :: (Elts a, Elt a)
         => (a -> a -> a) -> a -> SSegd -> Arrays a -> Array a
 {-# INLINE_BACKEND fold_ss #-}
 
+
 -- | Regular segmented fold. All segements have the given length.
 --   Same preconditions as `fold`.
 fold_r :: Elt a => (a -> a -> a) -> a -> Int -> Array a -> Array a
 {-# INLINE_BACKEND fold_r #-}
+
+
+-- | Undirected fold over virtual segments.
+--   Same preconditions as fold_ss
+fold_vs :: (Elts a, Elt a)
+         => (a -> a -> a) -> a -> VSegd -> Arrays a -> Array a
+fold_vs f x vsegd arrs
+ = let  -- Fold each physical segment individually
+        psegResults     = fold_ss f x (takeSSegdOfVSegd vsegd) arrs
+
+        -- Replicate the physical results accorsing to the vsegids
+    in  bpermute psegResults (takeVSegidsOfVSegd vsegd)
+{-# INLINE_BACKEND fold_vs #-}
+
+
+-- When we know the array data is manifest and/or contiguous then we want 
+-- to avoid using the extended information in the VSegd and SSegd types.
+{-# RULES 
+
+"fold_ss/promoteSegdToSSegd"  forall f x segd arr.
+ fold_ss f x (promoteSegdToSSegd  segd) (singletons arr) 
+    = fold_s f x segd arr
+
+"fold_vs/promoteSegdToVSegd"  forall f x segd arr.
+ fold_vs f x (promoteSegdToVSegd  segd) (singletons arr)
+    = fold_s f x segd arr
+
+"fold_vs/promoteSSegdToVSegd" forall f x ssegd arrs.
+ fold_vs f x (promoteSSegdToVSegd ssegd) arrs 
+    = fold_ss f x ssegd arrs
+
+ #-}
 
 
 -- Fold1 -------------------------------
@@ -437,11 +472,13 @@ fold_r :: Elt a => (a -> a -> a) -> a -> Int -> Array a -> Array a
 fold1 :: Elt a => (a -> a -> a) -> Array a -> a
 {-# INLINE_BACKEND fold1 #-}
 
+
 -- | Undirected segmented fold,
 --   using the first element of each segment to initialise the state of that segment.
 --   Same preconditions as `fold`.
 fold1_s :: Elt a => (a -> a -> a) -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold1_s #-}
+
 
 -- | Undirected scattered segmented fold over an array, 
 --   using the first element of each segment to initialise the state of that segment.
@@ -450,6 +487,37 @@ fold1_ss :: (Elts a, Elt a)
          => (a -> a -> a) -> SSegd -> Arrays a -> Array a
 {-# INLINE_BACKEND fold1_ss #-}
 
+
+-- | Undirected fold over virtual segments.
+--   Same preconditions as fold_ss
+fold1_vs :: (Elts a, Elt a)
+         => (a -> a -> a)  -> VSegd -> Arrays a -> Array a
+fold1_vs f vsegd arrs
+ = let  -- Fold each physical segment individually
+        psegResults     = fold1_ss f (takeSSegdOfVSegd vsegd) arrs
+
+        -- Replicate the physical results accorsing to the vsegids
+    in  bpermute psegResults (takeVSegidsOfVSegd vsegd)
+{-# INLINE_BACKEND fold1_vs #-}
+
+
+-- When we know the array data is manifest and/or contiguous then we want 
+-- to avoid using the extended information in the VSegd and SSegd types.
+{-# RULES 
+
+"fold1_ss/promoteSegdToSSegd"  forall f segd arr.
+ fold1_ss f (promoteSegdToSSegd  segd)  (singletons arr) 
+    = fold1_s f segd arr
+
+"fold1_vs/promoteSegdToVSegd"  forall f segd arr.
+ fold1_vs f (promoteSegdToVSegd  segd)  (singletons arr)
+    = fold1_s f segd arr
+
+"fold1_vs/promoteSSegdToVSegd" forall f ssegd arrs.
+ fold1_vs f (promoteSSegdToVSegd ssegd) arrs 
+    = fold1_ss f ssegd arrs
+
+ #-}
 
 -- Sums -------------------------------
 -- | Sum the elements of an array.
@@ -928,14 +996,14 @@ singletonVSegd :: Int -> VSegd
 --   The result contains one virtual segment for every physical segment
 --   the provided `Segd`.
 promoteSegdToVSegd :: Segd -> VSegd
-{-# INLINE_BACKEND promoteSegdToVSegd #-}
+{-# INLINE CONLIKE PHASE_BACKEND promoteSegdToVSegd #-}
 
 
 -- | O(segs). Promote a plain `SSegd` to a `VSegd`.
 --   The result contains one virtual segment for every physical segment
 --   the provided `SSegd`.
 promoteSSegdToVSegd :: SSegd -> VSegd
-{-# INLINE_BACKEND promoteSSegdToVSegd #-}
+{-# INLINE CONLIKE PHASE_BACKEND promoteSSegdToVSegd #-}
 
 
 -- | O(1). Checks whether all the segments are manifest (unshared / non-virtual).
@@ -1073,6 +1141,18 @@ combine2VSegd
         -> VSegd
 {-# INLINE_BACKEND combine2VSegd #-}
 
+{-# RULES
+
+"updateVSegsOfVSegd/updateVSegsOfVSegd" forall f g vsegd.
+  updateVSegsOfVSegd f (updateVSegsOfVSegd g vsegd)
+   = updateVSegsOfVSegd (f . g) vsegd
+
+ #-}
+
+
+-- Irregular 2D arrays --------------------------------------------------------
+singletons :: (Elt a, Elts a) => Array a -> Arrays a
+{-# INLINE_BACKEND singletons #-}
 
 -- Random Arrays --------------------------------------------------------------
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)

@@ -27,6 +27,7 @@ import Data.Array.Parallel.Unlifted.Vectors                             (Vectors
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
 import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
 import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
@@ -214,8 +215,9 @@ extractsFromVectorsWithUPVSegd
 
 extractsFromVectorsWithUPVSegd upvsegd vectors
         = Seq.unstream 
-        $ US.streamSegsFromVectorsUSSegd
-                vectors         -- TODD: avoid demote, use the vsegd directly.
-                (UPSSegd.takeUSSegd $ UPVSegd.demoteToUPSSegd upvsegd)
+        $ US.streamSegsFromVectorsUVSegd vectors
+        $ UVSegd.mkUVSegd 
+                (UPVSegd.takeVSegidsRedundant upvsegd)
+                (UPSSegd.takeUSSegd $ UPVSegd.takeUPSSegdRedundant upvsegd)
 {-# INLINE_UP extractsFromVectorsWithUPVSegd #-}
 

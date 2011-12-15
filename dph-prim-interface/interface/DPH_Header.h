@@ -47,8 +47,8 @@ module Data.Array.Parallel.Unlifted (
   map, zipWith, zipWith3, zipWith4,
 
   -- * Folds and Scans
-  fold,  fold_s,  fold_ss,  fold_r,  
-  fold1, fold1_s, fold1_ss,
+  fold,  fold_s,  fold_ss,   fold_vs, fold_r,  
+  fold1, fold1_s, fold1_ss,  fold1_vs,
   sum,   sum_s,   sum_ss,    sum_r,  
   count, count_s, count_ss,
   and, 

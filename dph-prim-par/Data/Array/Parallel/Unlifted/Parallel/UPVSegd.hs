@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
-
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Parallel virtual segment descriptors.
