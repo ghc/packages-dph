@@ -191,7 +191,8 @@ length          = U.length . uvsegd_vsegids
 -- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
 takeLengths (UVSegd _ vsegids ussegd)
-        = U.map (U.index (here "takeLengths") (USSegd.takeLengths ussegd)) vsegids
+ = let 	!lengths	= USSegd.takeLengths ussegd
+   in	U.map (U.index (here "takeLengths") lengths) vsegids
 {-# INLINE_U takeLengths #-}
 
 
