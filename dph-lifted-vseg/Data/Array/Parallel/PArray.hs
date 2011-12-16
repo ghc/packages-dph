@@ -293,7 +293,7 @@ nestUSegd segd (PArray n# pdata)
                         ++ "segment descriptor and data array do not match"
                 , " length of segment desciptor = " ++ show (U.elementsSegd segd)
                 , " length of data array        = " ++ show (I# n#) ]
-{-# NOINLINE nestUSegd #-}
+{-# INLINE_PA nestUSegd #-}
 
 
 -- Projections  ---------------------------------------------------------------
