@@ -108,15 +108,15 @@ enumFromStepLenEach n starts steps lens
 -- Projections ----------------------------------------------------------------
 length          = Seq.length
 index           = Seq.index
-indexs_avs      = indexsFromVectorsWithUPVSegd
+indexs_avs      = indexsFromVectorsUPVSegd
 
 extract arr i n
         =  tracePrim (TraceExtract (Seq.length arr) i n)
         $! Seq.extract arr i n
 
-extracts_nss    = extractsFromNestedWithUPSSegd
-extracts_ass    = extractsFromVectorsWithUPSSegd
-extracts_avs    = extractsFromVectorsWithUPVSegd
+extracts_nss    = extractsFromNestedUPSSegd
+extracts_ass    = extractsFromVectorsUPSSegd
+extracts_avs    = extractsFromVectorsUPVSegd
 
 drop n arr
         =  tracePrim (TraceDrop n (Seq.length arr))

@@ -47,10 +47,10 @@ module Data.Array.Parallel.Unlifted.Parallel
         , sumRUP
 
           -- * Index and Extracts
-        , indexsFromVectorsWithUPVSegd
-        , extractsFromNestedWithUPSSegd
-        , extractsFromVectorsWithUPSSegd
-        , extractsFromVectorsWithUPVSegd
+        , indexsFromVectorsUPVSegd
+        , extractsFromNestedUPSSegd
+        , extractsFromVectorsUPSSegd
+        , extractsFromVectorsUPVSegd
 
           -- * Subarrays
         , dropUP
