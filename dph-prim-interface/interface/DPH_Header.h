@@ -115,6 +115,7 @@ module Data.Array.Parallel.Unlifted (
   validVSegd,
   emptyVSegd,
   singletonVSegd,
+  replicatedVSegd,
   promoteSegdToVSegd,
   promoteSSegdToVSegd,
   isManifestVSegd,
