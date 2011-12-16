@@ -25,7 +25,10 @@ streamElemsFromVectors vectors (Stream mkStep s0 size0)
         mkStep' s
          = do   step    <- mkStep s
                 case step of
-                 Yield (ix1, ix2) s' -> return $ Yield (US.unsafeIndex2 vectors ix1 ix2) s'
+                 Yield (ix1, ix2) s' 
+                  -> let !result = US.unsafeIndex2 vectors ix1 ix2
+                     in  return $ Yield result s'
+
                  Skip s'             -> return $ Skip s'
                  Done                -> return Done
 {-# INLINE_STREAM streamElemsFromVectors #-}
@@ -41,8 +44,8 @@ streamElemsFromVectorsVSegd
 streamElemsFromVectorsVSegd vectors uvsegd vsrcixs
  = let  -- Because we're just doing indexing here, we don't need the culled
         -- vsegids or ussegd, and can just use the redundant version.
-        !vsegids  = UVSegd.takeVSegidsRedundant uvsegd
-        !ussegd   = UVSegd.takeUSSegdRedundant  uvsegd
+        vsegids  = UVSegd.takeVSegidsRedundant uvsegd
+        ussegd   = UVSegd.takeUSSegdRedundant  uvsegd
    in   streamElemsFromVectors        vectors
          $ streamSrcIxsThroughUSSegd  ussegd
          $ streamSrcIxsThroughVSegids vsegids

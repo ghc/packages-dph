@@ -15,7 +15,7 @@ import Data.Array.Parallel.Unlifted.Stream                      as US
 import Data.Array.Parallel.Unlifted.Vectors                     as US
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
+import Data.Array.Parallel.Unlifted.Sequential.UVSegd           (UVSegd)
 import qualified Data.Vector                                    as V
 
 
