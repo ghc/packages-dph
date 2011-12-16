@@ -30,7 +30,7 @@ replicateUP :: Unbox e => Int -> e -> Vector e
 {-# INLINE_UP replicateUP #-}
 replicateUP n !e 
         = joinD theGang balanced
-        . mapD theGang (\n ->Seq.replicate n e)
+        . mapD theGang (\n' ->Seq.replicate n' e)
         $ splitLenD theGang n
 
 

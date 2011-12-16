@@ -182,7 +182,7 @@ indicesP
         . mapD  theGang indices
         . takeDistributed
   where
-    indices ((segd,k),off) = Seq.indicesSU' off segd
+    indices ((segd,_k),off) = Seq.indicesSU' off segd
 {-# NOINLINE indicesP #-}
 --  NOINLINE because we're not using it yet.
 
@@ -252,8 +252,8 @@ foldSegsWithP fElem fSeg segd xs
           $ zipD (takeDistributed segd)
                  (splitD theGang balanced xs)
 
-        partial (((segd, k), off), as)
-         = let rs = fSeg segd as
+        partial (((segd', k), off), as)
+         = let rs = fSeg segd' as
                {-# INLINE [0] n #-}
                n | off == 0  = 0
                  | otherwise = 1

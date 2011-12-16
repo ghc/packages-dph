@@ -52,7 +52,7 @@ enumFromStepLenUP start delta len =
 
 enumFromStepLenEachUP :: Int -> Vector Int -> Vector Int -> Vector Int -> Vector Int
 {-# INLINE_UP enumFromStepLenEachUP #-}
-enumFromStepLenEachUP n starts steps lens
+enumFromStepLenEachUP _n starts steps lens
   = joinD theGang unbalanced
   $ mapD theGang enum
   $ splitD theGang unbalanced (Seq.zip (Seq.zip starts steps) lens)

@@ -141,15 +141,15 @@ foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 {-# INLINE_UP foldl1UP #-}
 foldl1UP f arr 
         = (maybe z (f z)
-        . foldD  theGang combine
+        . foldD  theGang combine'
         . mapD   theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
         where
                 z = Seq.index (here "fold1UP") arr 0
-                combine (Just x) (Just y) = Just (f x y)
-                combine (Just x) Nothing  = Just x
-                combine Nothing  (Just y) = Just y
-                combine Nothing  Nothing  = Nothing
+                combine' (Just x) (Just y) = Just (f x y)
+                combine' (Just x) Nothing  = Just x
+                combine' Nothing  (Just y) = Just y
+                combine' Nothing  Nothing  = Nothing
 
 
 -- | Prefix scan. Similar to fold, but produce an array of the intermediate states.

@@ -60,7 +60,7 @@ maximumByUP :: (DT e, Unbox e) => (e -> e -> Ordering) -> Vector e -> e
 {-# INLINE_UP maximumByUP #-}
 maximumByUP = fold1UP . maxBy
   where
-    maxBy compare x y = case x `compare` y of
+    maxBy compare' x y = case x `compare'` y of
                           LT -> y
                           _  -> x
 
