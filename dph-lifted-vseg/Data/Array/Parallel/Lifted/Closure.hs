@@ -239,7 +239,7 @@ closure2'
 
 closure2' fv fl 
  = let  {-# INLINE fl' #-}
-        fl' (I# n#) pdata1 pdata2
+        fl' (I# n#) !pdata1 !pdata2
          = case fl (PArray n# pdata1) (PArray n# pdata2) of
                  PArray _ pdata' -> pdata'
    in   closure2 fv fl'
@@ -255,7 +255,7 @@ closure3'
 
 closure3' fv fl 
  = let  {-# INLINE fl' #-}
-        fl' (I# n#) pdata1 pdata2 pdata3
+        fl' (I# n#) !pdata1 !pdata2 !pdata3
          = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) of
                  PArray _ pdata' -> pdata'
    in   closure3 fv fl'
@@ -271,7 +271,7 @@ closure4'
 
 closure4' fv fl 
  = let  {-# INLINE fl' #-}
-        fl' (I# n#) pdata1 pdata2 pdata3 pdata4
+        fl' (I# n#) !pdata1 !pdata2 !pdata3 !pdata4
          = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) (PArray n# pdata4) of
                  PArray _ pdata' -> pdata'
    in   closure4 fv fl'
@@ -287,7 +287,7 @@ closure5'
 
 closure5' fv fl 
  = let  {-# INLINE fl' #-}
-        fl' (I# n#) pdata1 pdata2 pdata3 pdata4 pdata5
+        fl' (I# n#) !pdata1 !pdata2 !pdata3 !pdata4 !pdata5
          = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) (PArray n# pdata4) (PArray n# pdata5) of
                  PArray _ pdata' -> pdata'
    in   closure5 fv fl'
