@@ -16,6 +16,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd (
         fromUPSSegd,
         empty,
         singleton,
+        replicated,
         
         -- * Predicates
         isManifest,
@@ -178,6 +179,26 @@ singleton n
         upssegd = UPSSegd.singleton n
    in   UPVSegd True vsegids vsegids upssegd upssegd
 {-# INLINE_UP singleton #-}
+
+
+-- | O(1). Construct a `UPVSegd` that describes an array created by replicating
+--   a single segment several times.
+---
+--   NOTE: This is a helpful target for rewrite rules, because when we 
+--   see a 'replicated' we know that all segments in the virtual array
+--   point to the same data.
+replicated 
+        :: Int          -- ^ Length of segment.
+        -> Int          -- ^ Number of times replicated.
+        -> UPVSegd
+
+replicated len reps
+ = let  -- We have a single physical segment.
+        ssegd   = UPSSegd.singleton len
+
+        -- All virtual segments point to the same physical segment.
+   in   mkUPVSegd (US.replicate reps 0) ssegd                           -- TODO: use parallel replicate
+{-# INLINE_U replicated #-}
 
 
 -- Predicates -----------------------------------------------------------------
