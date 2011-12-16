@@ -46,12 +46,12 @@ enumFromStepLenEach     = U.enumFromStepLenEach
 -- Projections ----------------------------------------------------------------
 length                  = U.length
 index                   = U.index
-indexs_avs              = Prelude.error "dph-prim-seq: indexs_avs wrapper not defined"
+indexs_avs              = indexsFromVectorsUVSegd
 
 extract                 = U.extract
 extracts_nss            = extractsFromNestedUSSegd
 extracts_ass            = extractsFromVectorsUSSegd
-extracts_avs            = Prelude.error "dph-prim-seq: extracts_avs: not done"
+extracts_avs            = extractsFromVectorsUVSegd
 drop                    = U.drop
 
 
