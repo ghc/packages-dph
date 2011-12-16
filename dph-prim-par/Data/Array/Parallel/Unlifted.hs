@@ -1,4 +1,5 @@
 {-# LANGUAGE PackageImports, CPP, NoMonomorphismRestriction #-}
+{-# OPTIONS -fno-warn-missing-signatures #-}
 
 -- | Primitive parallel combinators that work on flat, unlifted arrays.
 --   Some of them don't actually have parallel implementations, so we bail out

@@ -60,8 +60,7 @@ Library
 
   GHC-Options:
         -Odph -funbox-strict-fields
-        -fcpr-off
-        -Werror
+        -fcpr-off -Wall
 
   Build-Depends:  
         base               == 4.4.*,

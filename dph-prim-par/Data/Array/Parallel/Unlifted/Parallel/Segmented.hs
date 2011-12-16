@@ -11,23 +11,14 @@ where
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
-import Data.Array.Parallel.Unlifted.Parallel.UPSSegd                    (UPSSegd)
-import Data.Array.Parallel.Unlifted.Parallel.UPVSegd                    (UPVSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
-import Data.Array.Parallel.Unlifted.Vectors                             (Vectors)
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
-import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
-import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
 import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 import qualified Data.Vector.Fusion.Stream                              as S
-import qualified Data.Vector                                            as V
 
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Parallel.Segmented." Prelude.++ s
@@ -60,11 +51,11 @@ appendSUP segd !xd !xs !yd !ys
   = joinD theGang balanced
   . mapD  theGang append
   $ UPSegd.takeDistributed segd
-  where append ((segd,seg_off),el_off)
+  where append ((segd',seg_off),el_off)
          = Seq.unstream
          $ appendSegS (UPSegd.takeUSegd xd) xs
                       (UPSegd.takeUSegd yd) ys
-                      (USegd.takeElements segd)
+                      (USegd.takeElements segd')
                       seg_off el_off
 
 -- append ---------------------------------------------------------------------
@@ -86,44 +77,44 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
     !xlens = USegd.takeLengths xd
     !ylens = USegd.takeLengths yd
 
-    {-# INLINE index #-}
-    index  = Seq.index (here "appendSegS")
+    {-# INLINE index1 #-}
+    index1  = Seq.index (here "appendSegS")
 
-    {-# INLINE index' #-}
-    index'  = Seq.index (here "appendSegS")
+    {-# INLINE index2 #-}
+    index2  = Seq.index (here "appendSegS")
     
     state
       | n == 0 = Nothing
-      | el_off < xlens `index` seg_off
-      = let i = (USegd.takeIndices xd `index` seg_off) + el_off
-            j =  USegd.takeIndices yd `index` seg_off
-            k = (USegd.takeLengths xd `index` seg_off) - el_off
+      | el_off < xlens `index1` seg_off
+      = let i = (USegd.takeIndices xd `index1` seg_off) + el_off
+            j =  USegd.takeIndices yd `index1` seg_off
+            k = (USegd.takeLengths xd `index1` seg_off) - el_off
         in  Just (False, seg_off, i, j, k, n)
 
       | otherwise
       = let -- NOTE: *not* indicesUSegd xd ! (seg_off+1) since seg_off+1
             -- might be out of bounds
-            i       = (USegd.takeIndices xd `index` seg_off) + (USegd.takeLengths xd `index` seg_off)
-            el_off' = el_off - USegd.takeLengths xd `index` seg_off
-            j       = (USegd.takeIndices yd `index` seg_off) + el_off'
-            k       = (USegd.takeLengths yd `index` seg_off) - el_off'
+            i       = (USegd.takeIndices xd `index1` seg_off) + (USegd.takeLengths xd `index1` seg_off)
+            el_off' = el_off - USegd.takeLengths xd `index1` seg_off
+            j       = (USegd.takeIndices yd `index1` seg_off) + el_off'
+            k       = (USegd.takeLengths yd `index1` seg_off) - el_off'
         in  Just (True, seg_off, i, j, k, n)
 
     {-# INLINE next #-}
     next Nothing = return Done
 
-    next (Just (False, seg, i, j, k, n))
-      | n == 0    = return Done
-      | k == 0    = return $ Skip (Just (True, seg, i, j, ylens `index` seg, n))
-      | otherwise = return $ Yield (xs `index'` i) (Just (False, seg, i+1, j, k-1, n-1))
+    next (Just (False, seg, i, j, k, n'))
+      | n' == 0    = return Done
+      | k  == 0    = return $ Skip (Just (True, seg, i, j, ylens `index1` seg, n'))
+      | otherwise  = return $ Yield (xs `index2` i) (Just (False, seg, i+1, j, k-1, n'-1))
 
-    next (Just (True, seg, i, j, k, n))
-      | n == 0    = return Done
-      | k == 0
+    next (Just (True, seg, i, j, k, n'))
+      | n' == 0    = return Done
+      | k  == 0
       = let !seg' = seg+1
-        in  return $ Skip (Just (False, seg', i, j, xlens `index` seg', n))
+        in  return $ Skip (Just (False, seg', i, j, xlens `index1` seg', n'))
 
-      | otherwise = return $ Yield (ys `index'` j) (Just (True, seg, i, j+1, k-1, n-1))
+      | otherwise = return $ Yield (ys `index2` j) (Just (True, seg, i, j+1, k-1, n'-1))
 
 
 -- foldR ----------------------------------------------------------------------

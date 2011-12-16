@@ -156,9 +156,9 @@ indicesUPSelRep2 tags rep
              (splitD theGang balanced tags)
               rep
   where
-    indices tags ((i,j), (m,n))
-      = US.combine2ByTag tags (US.enumFromStepLen i 1 m)
-                              (US.enumFromStepLen j 1 n)
+    indices tags' ((i,j), (m,n))
+      = US.combine2ByTag tags' (US.enumFromStepLen i 1 m)
+                               (US.enumFromStepLen j 1 n)
 {-# INLINE_UP indicesUPSelRep2 #-}
 
 
