@@ -29,9 +29,11 @@ module Data.Array.Parallel.Unlifted.Sequential
           -- * Pack and Combine
         , combineSU
         
-          -- * Extracts
+          -- * Extracts and Indexing
+        , indexsFromVectorsUVSegd
         , extractsFromNestedUSSegd
-        , extractsFromVectorsUSSegd)
+        , extractsFromVectorsUSSegd
+        , extractsFromVectorsUVSegd)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
