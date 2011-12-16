@@ -1,6 +1,5 @@
-{-# LANGUAGE PackageImports, CPP, NoMonomorphismRestriction #-}
+{-# LANGUAGE CPP, NoMonomorphismRestriction #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
-
 -- | Primitive parallel combinators that work on flat, unlifted arrays.
 --   Some of them don't actually have parallel implementations, so we bail out
 --   to the regular sequential ones.
@@ -13,36 +12,33 @@
 --   which this library does not support, and any attempts to do so will
 --   just run sequentially. If you want to run nested parallel code then
 --   you need to use the vectoriser.
---
+
 --   This API is used by the @dph-lifted-*@ libraries, and is defined in
 --   @DPH_Header.h@ and @DPH_Interface.h@. We use header files to ensure
 --   that this API is implemented identically by both the 
 --   @dph-prim-par@ and @dph-prim-seq@ packages.
 --
 #include "DPH_Header.h"
-
 import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Base.TracePrim
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
 
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Unbox,   Vector)
-import Data.Array.Parallel.Unlifted.Vectors                             (Unboxes, Vectors)
+import Data.Array.Parallel.Unlifted.Sequential.Vector           (Unbox,   Vector)
+import Data.Array.Parallel.Unlifted.Vectors                     (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
-import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
-import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
-
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd  as UPSSegd
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd  as UPVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
+import qualified Data.Array.Parallel.Unlifted.Vectors           as US
+import qualified Data.Array.Parallel.Unlifted.Sequential        as Seq
 import Prelude (($!))
-
 #include "DPH_Interface.h"
 
--- NOTE -----------------------------------------------------------------------
+-- NOTE 
 -- See DPH_Interface.h for documentation. 
 --
--- The definitions should appear in the same order as they are defined in DPH_Interface.h
+-- The defs should appear in the same order as they are listed in DPH_Interface.h
 --
 -- Operations with at least O(n) time will print trace messages to console when
 -- dph-base/D/A/P/Config.tracePrimEnabled is set to True.
@@ -51,6 +47,7 @@ import Prelude (($!))
 -- Basics ---------------------------------------------------------------------
 class (Unbox a,   DT a) => Elt a
 type Array      = Vector
+
 
 -- Constructors ---------------------------------------------------------------
 empty   = Seq.empty
@@ -247,16 +244,17 @@ indicesSel2 sel
  = let  arr     = indicesUPSel2 sel
    in   tracePrim (TraceIndicesSel2 (Seq.length arr)) arr
 
-elementsSel2_0          = elementsUPSel2_0
-elementsSel2_1          = elementsUPSel2_1
-repSel2                 = repUPSel2
 
-type SelRep2            = UPSelRep2
-mkSelRep2               = mkUPSelRep2
+elementsSel2_0                  = elementsUPSel2_0
+elementsSel2_1                  = elementsUPSel2_1
+repSel2                         = repUPSel2
 
-indicesSelRep2          = indicesUPSelRep2
-elementsSelRep2_0       = elementsUPSelRep2_0
-elementsSelRep2_1       = elementsUPSelRep2_1
+type SelRep2                    = UPSelRep2
+mkSelRep2                       = mkUPSelRep2
+
+indicesSelRep2                  = indicesUPSelRep2
+elementsSelRep2_0               = elementsUPSelRep2_0
+elementsSelRep2_1               = elementsUPSelRep2_1
 
 
 -- Segment Descriptors --------------------------------------------------------
@@ -316,24 +314,25 @@ combine2VSegd                   = UPVSegd.combine2
 -- Irregular 2D arrays --------------------------------------------------------
 class (Unboxes a, DT a) => Elts a
 
-type Arrays             = Vectors
-emptys                  = US.empty
-lengths                 = US.length
-singletons              = US.singleton
-unsafeIndexs            = US.unsafeIndex
-unsafeIndex2s           = US.unsafeIndex2
-appends                 = US.append
-fromVectors             = US.fromVector
-toVectors               = US.toVector
+type Arrays                     = Vectors
+emptys                          = US.empty
+lengths                         = US.length
+singletons                      = US.singleton
+unsafeIndexs                    = US.unsafeIndex
+unsafeIndex2s                   = US.unsafeIndex2
+appends                         = US.append
+fromVectors                     = US.fromVector
+toVectors                       = US.toVector
 
 
 -- Random arrays --------------------------------------------------------------
-randoms                 = Seq.random
-randomRs                = Seq.randomR
+randoms                         = Seq.random
+randomRs                        = Seq.randomR
+
 
 -- IO -------------------------------------------------------------------------
 class Seq.UIO a => IOElt a
-hPut                    = Seq.hPut
-hGet                    = Seq.hGet
-toList                  = Seq.toList
-fromList                = Seq.fromList
+hPut                            = Seq.hPut
+hGet                            = Seq.hGet
+toList                          = Seq.toList
+fromList                        = Seq.fromList
