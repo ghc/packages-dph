@@ -23,8 +23,8 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd
         
           -- * Projections
         , length
-        , takeVSegids
-        , takeUSSegd
+        , takeVSegids,  takeVSegidsRedundant
+        , takeUSSegd,   takeUSSegdRedundant
         , takeLengths
         , getSeg
 
@@ -64,18 +64,44 @@ data UVSegd
           -- ^ When the vsegids field holds a lazy @(U.enumFromTo 0 (len - 1))@
           --   then this field is True. This lets us perform some operations like
           --   `demoteToUPSSegd` without actually creating it.
-          
-        , uvsegd_vsegids        :: (Vector Int) 
-          -- ^ Array saying which physical segment to use for each virtual segment. 
 
-        , uvsegd_ussegd         :: !USSegd
-          -- ^ Slice segment descriptor describing physical segments.
+          -- | Virtual segment identifiers that indicate what physical segment
+          --   to use for each virtual segment.
+        , uvsegd_vsegids_redundant     :: Vector Int           -- LAZY FIELD 
+        , uvsegd_vsegids_culled        :: Vector Int           -- LAZY FIELD
+        
+          -- | Scattered segment descriptor that defines how physical segments
+          --   are layed out in memory.
+        , uvsegd_ussegd_redundant      :: USSegd               -- LAZY FIELD
+        , uvsegd_ussegd_culled         :: USSegd               -- LAZY FIELD
+        
+          -- IMPORTANT:
+          -- When vsegids are transformed due to a segmented replication operation, 
+          -- if some of the segment lengths were zero, then we will end up with 
+          -- physical segments that are unreachable from the vsegids.
+          -- 
+          -- For some operations (like indexing) the fact that we have unreachable
+          -- psegids doesn't matter, but for others (like segmented fold) it does.
+          -- The problem is that we perform segmented fold by first folding all 
+          -- the physical segments, then replicating the results according to the 
+          -- vsegids. If no vsegids referenced a physical segment then we didn't 
+          -- need to fold it.
+          -- 
+          -- When vsegids are updated the version that may have unreachable psegs
+          -- is stored in the vsegids_redundant and upssegd_redundant. The _culled
+          -- versions are then set to a SUSPENDED call to callOnVSegids. If no
+          -- consumers every demand the culled version then we never need to compute
+          -- it.
+          -- 
+          -- The vsegids_redundant field must also be lazy (no bang) because when it
+          -- has the value (V.enumFromTo 0 (len - 1)) we want to avoid building the
+          -- enumeration unless it's strictly demanded.
         }
         deriving (Show)
 
 
 instance PprPhysical UVSegd where
- pprp (UVSegd _ vsegids ussegd)
+ pprp (UVSegd _ _ vsegids _ ussegd)
   = vcat
   [ text "UVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ U.toList vsegids))
   , pprp ussegd ]
@@ -86,7 +112,7 @@ instance PprPhysical UVSegd where
 --
 --   * TODO: check that all vsegs point to a valid pseg
 valid :: UVSegd -> Bool
-valid (UVSegd _ vsegids ussegd)
+valid (UVSegd _ _ vsegids _ ussegd)
         = U.length vsegids == USSegd.length ussegd
 {-# NOINLINE valid #-}
 --  NOINLINE because it's only enabled during debugging anyway.
@@ -101,7 +127,8 @@ mkUVSegd
         -> USSegd       -- ^ Slice segment descriptor describing physical segments.
         -> UVSegd
 
-mkUVSegd = UVSegd False
+mkUVSegd vsegids ussegd
+        = UVSegd False vsegids vsegids ussegd ussegd
 {-# INLINE mkUVSegd #-}
 
 
@@ -111,9 +138,8 @@ mkUVSegd = UVSegd False
 --
 fromUSSegd :: USSegd -> UVSegd
 fromUSSegd ussegd
-        = UVSegd True
-                 (U.enumFromTo 0 (USSegd.length ussegd - 1))
-                 ussegd
+ = let  vsegids = U.enumFromTo 0 (USSegd.length ussegd - 1)
+   in   UVSegd True vsegids vsegids ussegd ussegd
 {-# INLINE_U fromUSSegd #-}
 
 
@@ -130,7 +156,10 @@ fromUSegd
 
 -- | O(1). Construct an empty segment descriptor, with no elements or segments.
 empty :: UVSegd
-empty   = UVSegd True U.empty USSegd.empty
+empty   
+ = let  vsegids = U.empty
+        ssegd   = USSegd.empty
+   in   UVSegd True vsegids vsegids ssegd ssegd
 {-# INLINE_U empty #-}
 
 
@@ -139,7 +168,9 @@ empty   = UVSegd True U.empty USSegd.empty
 --   with sourceid 0.
 singleton :: Int -> UVSegd
 singleton n 
-        = UVSegd True (U.singleton 0) (USSegd.singleton n)
+ = let  vsegids = U.singleton 0
+        ssegd   = USSegd.singleton n
+   in   UVSegd True vsegids vsegids ssegd ssegd
 {-# INLINE_U singleton #-}
 
 
@@ -164,7 +195,7 @@ isManifest      = uvsegd_manifest
 --   sources fields.
 --
 isContiguous :: UVSegd -> Bool
-isContiguous    = USSegd.isContiguous . uvsegd_ussegd
+isContiguous    = USSegd.isContiguous . uvsegd_ussegd_culled
 {-# INLINE isContiguous #-}
 
 
@@ -173,27 +204,57 @@ isContiguous    = USSegd.isContiguous . uvsegd_ussegd
 
 -- | O(1). Yield the vsegids of a `UVSegd`
 takeVSegids :: UVSegd -> Vector Int
-takeVSegids     = uvsegd_vsegids
+takeVSegids     = uvsegd_vsegids_culled
 {-# INLINE takeVSegids #-}
+
+
+-- | O(1). Take the vsegids of a `UVSegd`, but don't require that every physical
+--   segment is referenced by some virtual segment.
+--
+--   If you're just performing indexing and don't need the invariant that all
+--   physical segments are reachable from some virtual segment, then use this
+--   version as it's faster. This sidesteps the code that maintains the invariant.
+--
+--   The stated O(1) complexity assumes that the array has already been fully
+--   evalauted. If this is not the case then we can avoid demanding the result
+--   of a prior computation on the vsegids, thus reducing the cost attributed
+--   to that prior computation.
+takeVSegidsRedundant :: UVSegd -> Vector Int
+takeVSegidsRedundant = uvsegd_vsegids_redundant
+{-# INLINE takeVSegidsRedundant #-}
 
 
 -- | O(1). Yield the `USSegd` of a `UVSegd`.
 takeUSSegd :: UVSegd -> USSegd
-takeUSSegd      = uvsegd_ussegd
+takeUSSegd      = uvsegd_ussegd_culled
 {-# INLINE takeUSSegd #-}
+
+
+-- | O(1). Take the `UPSSegd` of a `UPVSegd`, but don't require that every physical
+--   segment is referenced by some virtual segment.
+--
+--   See the note in `takeVSegidsRedundant`.
+takeUSSegdRedundant :: UVSegd -> USSegd
+takeUSSegdRedundant    = uvsegd_ussegd_redundant
+{-# INLINE takeUSSegdRedundant #-}
+
 
 -- | O(1). Yield the overall number of segments described by a `UVSegd`.
 length :: UVSegd -> Int
-length          = U.length . uvsegd_vsegids
+length          = U.length . uvsegd_vsegids_redundant
 {-# INLINE length #-}
 
 
 -- | O(segs). Yield the lengths of the segments described by a `UVSegd`.
 takeLengths :: UVSegd -> Vector Int
-takeLengths (UVSegd _ vsegids ussegd)
+takeLengths (UVSegd manifest _ vsegids _ ussegd)
+ | manifest     = USSegd.takeLengths ussegd 
+ | otherwise
  = let 	!lengths	= USSegd.takeLengths ussegd
    in	U.map (U.index (here "takeLengths") lengths) vsegids
-{-# INLINE_U takeLengths #-}
+{-# NOINLINE takeLengths #-}
+--  NOINLINE because we don't want a case expression due to the test on the 
+--  manifest flag to appear in the core program.
 
 
 -- | O(1). Get the length, starting index, and source id of a segment.
@@ -204,50 +265,18 @@ takeLengths (UVSegd _ vsegids ussegd)
 --        to a UVSegd index it could overflow.
 --
 getSeg :: UVSegd -> Int -> (Int, Int, Int)
-getSeg (UVSegd _ vsegids ussegd) ix
- = let  (len, _index, start, source) 
+getSeg uvsegd ix
+ = let  vsegids = uvsegd_vsegids_redundant uvsegd
+        ussegd  = uvsegd_ussegd_redundant  uvsegd
+        (len, _index, start, source) 
                 = USSegd.getSeg ussegd (U.index (here "getSeg") vsegids ix)
    in   (len, start, source)
 {-# INLINE_U getSeg #-}
 
-   
--- Operators ------------------------------------------------------------------
--- | Update the vsegids of `UPVSegd`, and then cull the physical
---   segment descriptor so that all phsyical segments are reachable from
---   some virtual segment.
---
---   This function lets you perform filtering operations on the virtual segments,
---   while maintaining the invariant that all physical segments are referenced
---   by some virtual segment.
--- 
-updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
-updateVSegs f (UVSegd _ vsegids ussegd)
- = let  (vsegids', ussegd') = USSegd.cullOnVSegids (f vsegids) ussegd
-   in   UVSegd False vsegids' ussegd'
-{-# INLINE_U updateVSegs #-}
---  INLINE_UP because we want to inline the parameter function fUpdate.
 
-
--- | Update the vsegids of `UPVSegd`, where the result covers
---   all physical segments.
---
---   * The resulting vsegids must cover all physical segments.
---     If they do not then there will be physical segments that are not 
---     reachable from some virtual segment, and performing operations like
---     segmented fold will waste work.
---
---   * Using this version saves performing the 'cull' operation which 
---     discards unreachable physical segments. This is O(result segments), 
---     but can be expensive in absolute terms.
---   
-updateVSegsReachable :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
-updateVSegsReachable fUpdate (UVSegd _ vsegids upssegd)
- = UVSegd False (fUpdate vsegids) upssegd
-{-# INLINE_UP updateVSegsReachable #-}
---  INLINE_UP because we want to inline the parameter function fUpdate.
-
-
--- | O(segs). Yield a `USSegd` that describes each segment of a `UVSegd` individually.
+-- Demotion -------------------------------------------------------------------
+-- | O(segs). Yield a `USSegd` that describes each segment of a `UVSegd` 
+--   individually.
 -- 
 --   * By doing this we lose information about virtual segments corresponding
 --     to the same physical segments.
@@ -256,8 +285,12 @@ updateVSegsReachable fUpdate (UVSegd _ vsegids upssegd)
 --     segmentation from a nested array.
 -- 
 demoteToUSSegd :: UVSegd -> USSegd
-demoteToUSSegd (UVSegd _ vsegids ussegd)
- = let  starts'         = U.bpermute (USSegd.takeStarts  ussegd)  vsegids
+demoteToUSSegd uvsegd
+ | uvsegd_manifest uvsegd       = uvsegd_ussegd_culled uvsegd           -- TODO: take the redundant ones
+ | otherwise
+ = let  vsegids         = uvsegd_vsegids_culled uvsegd
+        ussegd          = uvsegd_ussegd_culled  uvsegd
+        starts'         = U.bpermute (USSegd.takeStarts  ussegd) vsegids
         sources'        = U.bpermute (USSegd.takeSources ussegd) vsegids
         lengths'        = U.bpermute (USSegd.takeLengths ussegd) vsegids
         usegd'          = USegd.fromLengths lengths'
@@ -278,11 +311,62 @@ demoteToUSSegd (UVSegd _ vsegids ussegd)
 -- 
 --
 unsafeDemoteToUSegd :: UVSegd -> USegd
-unsafeDemoteToUSegd (UVSegd _ vsegids ussegd)
+unsafeDemoteToUSegd (UVSegd _ _ vsegids _ ussegd)
         = USegd.fromLengths
         $ U.bpermute (USSegd.takeLengths ussegd) vsegids
 {-# NOINLINE unsafeDemoteToUSegd #-}
 --  NOINLINE because it won't fuse with anything.
+
+
+
+   
+-- Operators ------------------------------------------------------------------
+-- | Update the vsegids of `UPVSegd`, and then cull the physical
+--   segment descriptor so that all phsyical segments are reachable from
+--   some virtual segment.
+--
+--   This function lets you perform filtering operations on the virtual segments,
+--   while maintaining the invariant that all physical segments are referenced
+--   by some virtual segment.
+-- 
+updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd    -- TODO: update the redundant version
+updateVSegs fUpdate (UVSegd _ vsegids _ ussegd _)
+ = let  -- When we transform the vsegids, we don't know whether they all 
+        -- made it into the result. 
+        vsegids_redundant      = fUpdate vsegids
+ 
+        -- Cull the psegs down to just those reachable from the vsegids, 
+        -- but do it lazilly so consumers can avoid demanding this 
+        -- culled version and save creating it.
+        (  vsegids_culled
+         , ussegd_culled)       = USSegd.cullOnVSegids vsegids_redundant ussegd
+
+   in   UVSegd False
+               vsegids_redundant vsegids_culled
+               ussegd            ussegd_culled
+{-# INLINE_U updateVSegs #-}
+--  INLINE_UP because we want to inline the parameter function fUpdate.
+
+
+-- | Update the vsegids of `UPVSegd`, where the result covers
+--   all physical segments.
+--
+--   * The resulting vsegids must cover all physical segments.
+--     If they do not then there will be physical segments that are not 
+--     reachable from some virtual segment, and performing operations like
+--     segmented fold will waste work.
+--
+--   * Using this version saves performing the 'cull' operation which 
+--     discards unreachable physical segments. This is O(result segments), 
+--     but can be expensive in absolute terms.
+--   
+updateVSegsReachable :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
+updateVSegsReachable fUpdate (UVSegd _ _ vsegids _ ssegd)
+ = let  vsegids' = fUpdate vsegids
+   in   UVSegd False vsegids' vsegids' ssegd ssegd
+{-# INLINE_UP updateVSegsReachable #-}
+--  INLINE_UP because we want to inline the parameter function fUpdate.
+
 
 
 -- append ---------------------------------------------------------------------
@@ -325,8 +409,8 @@ appendWith
         -> UVSegd
 
 appendWith
-        (UVSegd _ vsegids1 ussegd1) pdatas1
-        (UVSegd _ vsegids2 ussegd2) pdatas2
+        (UVSegd _ _ vsegids1 _ ussegd1) pdatas1
+        (UVSegd _ _ vsegids2 _ ussegd2) pdatas2
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
@@ -340,7 +424,7 @@ appendWith
                                 ussegd1 pdatas1
                                 ussegd2 pdatas2
                                  
-   in   UVSegd False vsegids' ussegd'
+   in   UVSegd False vsegids' vsegids' ussegd' ussegd'
 {-# INLINE_U appendWith #-}
 
 
@@ -385,8 +469,8 @@ combine2
         -> UVSegd
         
 combine2  usel2
-        (UVSegd _ vsegids1 ussegd1) pdatas1
-        (UVSegd _ vsegids2 ussegd2) pdatas2
+        (UVSegd _ _ vsegids1 _ ussegd1) pdatas1
+        (UVSegd _ _ vsegids2 _ ussegd2) pdatas2
 
  = let  -- vsegids relative to combined psegs
         vsegids1' = vsegids1
@@ -401,5 +485,5 @@ combine2  usel2
                                 ussegd1 pdatas1
                                 ussegd2 pdatas2
                                   
-   in   UVSegd False vsegids' ussegd'
+   in   UVSegd False vsegids' vsegids' ussegd' ussegd'
 {-# INLINE_U combine2 #-}

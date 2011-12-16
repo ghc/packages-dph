@@ -165,7 +165,7 @@ streamSegsFromVectorsUVSegd
 
 streamSegsFromVectorsUVSegd
         vectors
-        uvsegd@(UVSegd _ vsegids (USSegd _ segStarts segSources usegd) )
+        uvsegd@(UVSegd _ _ vsegids _ (USSegd _ segStarts segSources usegd) )
  = segStarts `seq` segSources `seq` uvsegd `seq` vectors `seq`
    let  here            = "stremSegsFromVectorsUVSegd"
 
