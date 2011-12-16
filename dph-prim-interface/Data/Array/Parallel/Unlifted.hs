@@ -256,12 +256,13 @@ data VSegd
 
 mkVSegd                         = VSegd
 validVSegd                      = notImplemented "validSSegd"       
+emptyVSegd                      = VSegd [] emptySSegd
+singletonVSegd                  = notImplemented "singletonVSegd"
+replicatedVSegd                 = notImplemented "replicatedVSegd"
 promoteSegdToVSegd              = notImplemented "promoteSegdToVSegd"
 promoteSSegdToVSegd             = notImplemented "promoteSSegdToVSegd"
 isContiguousVSegd               = notImplemented "isContiguousVSegd"
 isManifestVSegd                 = notImplemented "isManifestVSegd"
-emptyVSegd                      = VSegd [] emptySSegd
-singletonVSegd                  = notImplemented "singletonVSegd"
 lengthOfVSegd                   = notImplemented "lengthOfVSegd"
 takeVSegidsOfVSegd              = vsegd_vsegids
 takeVSegidsRedundantOfVSegd     = vsegd_vsegids

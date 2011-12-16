@@ -16,6 +16,7 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd
         , fromUSSegd
         , empty
         , singleton
+        , replicated
         
           -- * Predicates
         , isManifest
@@ -174,6 +175,26 @@ singleton n
 {-# INLINE_U singleton #-}
 
 
+-- | O(1). Construct a `UVSegd` that describes an array created by replicating
+--   a single segment several times.
+---
+--   NOTE: This is a helpful target for rewrite rules, because when we 
+--   see a 'replicated' we know that all segments in the virtual array
+--   point to the same data.
+replicated 
+        :: Int          -- ^ Length of segment.
+        -> Int          -- ^ Number of times replicated.
+        -> UVSegd
+
+replicated len reps
+ = let  -- We have a single physical segment.
+        ssegd   = USSegd.singleton len
+
+        -- All virtual segments point to the same physical segment.
+   in   mkUVSegd (U.replicate reps 0) ssegd
+{-# INLINE_U replicated #-}
+
+
 -- Predicates -----------------------------------------------------------------
 -- | O(1). Checks whether all the segments are manifest (unshared / non-virtual).
 --   If this is the case, then the vsegids field will be [0..len-1]. 
@@ -329,8 +350,8 @@ unsafeDemoteToUSegd (UVSegd _ _ vsegids _ ussegd)
 --   while maintaining the invariant that all physical segments are referenced
 --   by some virtual segment.
 -- 
-updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd    -- TODO: update the redundant version
-updateVSegs fUpdate (UVSegd _ vsegids _ ussegd _)
+updateVSegs :: (Vector Int -> Vector Int) -> UVSegd -> UVSegd
+updateVSegs fUpdate (UVSegd _ _ vsegids _ ussegd)
  = let  -- When we transform the vsegids, we don't know whether they all 
         -- made it into the result. 
         vsegids_redundant      = fUpdate vsegids

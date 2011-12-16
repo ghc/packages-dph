@@ -206,17 +206,16 @@ instance PR a => PR (PArray a) where
   -- When replicating an array we use the source as the single physical
   -- segment, then point all the virtual segments to it.
   {-# INLINE_PDATA replicatePR #-}
-  replicatePR c (PArray n# darr)
-   = {-# SCC "replicatePR" #-}
-     checkNotEmpty "replicatePR[PArray]" c
-   $ let -- Physical segment descriptor contains a single segment.
-         ussegd  = U.singletonSSegd (I# n#)
-         
-         -- All virtual segments point to the same physical segment.
-         vsegd   = U.mkVSegd (U.replicate c 0) ussegd
-         pdatas  = singletondPR darr
+  replicatePR c (PArray n# pdata)
+   = checkNotEmpty "replicatePR[PArray]" c
+   $ let -- All virtual segments point to the same physical segment.
+         vsegd   = U.replicatedVSegd (I# n#) c
 
-         -- Pre-concatenated version
+         -- There is only one physical array.
+         pdatas  = singletondPR pdata
+
+         -- Pre-concatenated version.
+         -- If the consumer pulls on this then the single segment gets physically copied.
          segd   = U.unsafeDemoteToSegdOfVSegd vsegd
          flat   = extractvs_delay pdatas vsegd
 
@@ -233,7 +232,7 @@ instance PR a => PR (PArray a) where
   --
   {-# INLINE_PDATA replicatesPR #-}
   replicatesPR segd (PNested uvsegd pdatas _ _)
-   = let vsegd' = U.updateVSegsOfVSegd (\vsegids -> U.replicate_s segd vsegids) uvsegd
+   = let vsegd' = U.updateVSegsOfVSegd (U.replicate_s segd) uvsegd
          segd'  = U.unsafeDemoteToSegdOfVSegd vsegd'
          flat'  = extractvs_delay pdatas vsegd'
      in  PNested vsegd' pdatas segd' flat'
