@@ -15,7 +15,6 @@ import Data.Array.Parallel.Unlifted.Stream                      as US
 import Data.Array.Parallel.Unlifted.Vectors                     as US
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
-import Data.Array.Parallel.Unlifted.Sequential.UVSegd           (UVSegd)
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
 import qualified Data.Vector                                    as V
 
@@ -27,15 +26,9 @@ indexsFromVectorsUVSegd
         => Vectors a -> UVSegd -> Vector (Int, Int) -> Vector a
 
 indexsFromVectorsUVSegd vectors uvsegd vsrcixs
- = let  -- Because we're just doing indexing here, we don't need the culled
-        -- vsegids or ussegd, and can just use the redundant version.
-        !vsegids  = UVSegd.takeVSegidsRedundant uvsegd
-        !ussegd   = UVSegd.takeUSSegdRedundant  uvsegd
-   in   U.unstream
-         $ US.streamElemsFromVectors     vectors
-         $ US.streamSrcIxsThroughUSSegd  ussegd
-         $ US.streamSrcIxsThroughVSegids vsegids
-         $ U.stream vsrcixs
+        = U.unstream 
+        $ streamElemsFromVectorsVSegd vectors uvsegd 
+        $ U.stream vsrcixs
 {-# INLINE_U indexsFromVectorsUVSegd #-}
 
 

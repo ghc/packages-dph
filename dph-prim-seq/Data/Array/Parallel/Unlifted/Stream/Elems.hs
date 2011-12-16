@@ -38,9 +38,11 @@ streamElemsFromVectorsVSegd
         :: (Monad m, Unboxes a)
         => Vectors a -> UVSegd -> Stream m (Int, Int) -> Stream m a
 
-streamElemsFromVectorsVSegd vectors vsegd vsrcixs
- = let  !vsegids = UVSegd.takeVSegids vsegd
-        !ussegd  = UVSegd.takeUSSegd  vsegd
+streamElemsFromVectorsVSegd vectors uvsegd vsrcixs
+ = let  -- Because we're just doing indexing here, we don't need the culled
+        -- vsegids or ussegd, and can just use the redundant version.
+        !vsegids  = UVSegd.takeVSegidsRedundant uvsegd
+        !ussegd   = UVSegd.takeUSSegdRedundant  uvsegd
    in   streamElemsFromVectors        vectors
          $ streamSrcIxsThroughUSSegd  ussegd
          $ streamSrcIxsThroughVSegids vsegids
