@@ -18,8 +18,6 @@ import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Vector                                    as V
-import qualified Data.Vector.Generic                            as G
 
 
 -- foldl ----------------------------------------------------------------------
@@ -27,7 +25,7 @@ import qualified Data.Vector.Generic                            as G
 foldlSU  :: (Unbox a, Unbox b)
          => (b -> a -> b) -> b -> USegd -> Vector a -> Vector b
 {-# INLINE_U foldlSU #-}
-foldlSU f z segd xs 
+foldlSU f !z segd xs 
         = unstream
         $ foldSS f z    (stream (USegd.takeLengths segd))
                         (stream xs)
@@ -104,7 +102,7 @@ fold1SSU = foldl1SSU
 -- | Regular arrar reduction 
 foldlRU :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
 {-# INLINE_U foldlRU #-}
-foldlRU f z segSize
+foldlRU f !z segSize
         = unstream . foldValuesR f z segSize . stream
 
 

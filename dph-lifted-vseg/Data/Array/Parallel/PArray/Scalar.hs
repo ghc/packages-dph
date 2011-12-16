@@ -170,7 +170,7 @@ zipWith3 f (PArray len xs) (PArray _ ys) (PArray _ zs)
 fold    :: Scalar a 
         => (a -> a -> a) -> a -> PArray a -> a
 
-fold f z (PArray _ pdata)
+fold f !z (PArray _ pdata)
         = U.fold f z $ from pdata
 
 
@@ -187,7 +187,7 @@ fold1 f (PArray _ pdata)
 folds   :: (Scalar a, U.Elts a)
         => (a -> a -> a) -> a -> PArray (PArray a) -> PArray a
 
-folds f z (PArray _ (PNested vsegd pdatas _ _))
+folds f !z (PArray _ (PNested vsegd pdatas _ _))
   = pdatas `seq`  -- Don't seq on vsegd. See Note: fold/promoteSegd
     fromUArray $ U.fold_vs f z vsegd $ fromScalarPDatas pdatas
 {-# INLINE_PA folds #-}

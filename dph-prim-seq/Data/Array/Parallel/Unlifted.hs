@@ -153,6 +153,7 @@ mkVSegd                         = UVSegd.mkUVSegd
 validVSegd                      = UVSegd.valid
 emptyVSegd                      = UVSegd.empty
 singletonVSegd                  = UVSegd.singleton
+replicatedVSegd                 = UVSegd.replicated
 promoteSegdToVSegd              = UVSegd.fromUSegd
 promoteSSegdToVSegd             = UVSegd.fromUSSegd
 isManifestVSegd                 = UVSegd.isManifest
