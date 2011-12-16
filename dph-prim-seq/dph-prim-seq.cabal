@@ -24,6 +24,7 @@ Library
         Data.Array.Parallel.Unlifted.Stream.Segments
         Data.Array.Parallel.Unlifted.Stream
         Data.Array.Parallel.Unlifted.Vectors
+        Data.Array.Parallel.Unlifted.ArrayArray
         Data.Array.Parallel.Unlifted
         
   Other-Modules:
@@ -46,5 +47,6 @@ Library
         random    == 1.0.*,
         vector    == 0.9.*,
         primitive == 0.4.*,
+        ghc-prim  == 0.2.*,
         dph-base  == 0.5.*,
         dph-prim-interface == 0.5.*
