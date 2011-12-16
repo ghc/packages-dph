@@ -1,6 +1,6 @@
 import Data.Array.Parallel.Base ( Tag, tagToInt, fromBool )
 import qualified GHC.Base
-import Prelude ((.), ($), Num(..), Eq(..), seq)
+import Prelude ((.), ($), Num(..), Eq(..), seq, snd)
 import qualified Prelude
 
 instance Elt Int
@@ -117,15 +117,24 @@ replicate_rs :: Elt a => Int -> Array a -> Array a
 
 {-# RULES
 
-"replicate_s/replicate" forall segd k x.
-  replicate_s segd (replicate k x) = replicate (elementsSegd segd) x
+"replicate_s/replicate" 
+  forall segd k x
+  . replicate_s segd (replicate k x) 
+  = replicate (elementsSegd segd) x
 
-"replicate_s->replicate_rs" forall n m idxs nm xs.
-  replicate_s (mkSegd (replicate n m) idxs nm) xs
-    = replicate_rs m xs
+"replicate_s/replicate_s"  
+  forall segd1 segd2 arr
+  . replicate_s segd1 (replicate_s segd2 arr)
+  = replicate_s (segd1 `plusSegd` segd2) arr
 
-"replicate_rs/replicate" forall m n x.
-  replicate_rs m (replicate n x) = replicate (m*n) x
+"replicate_s->replicate_rs" 
+  forall n m idxs nm xs
+  . replicate_s (mkSegd (replicate n m) idxs nm) xs
+  = replicate_rs m xs
+
+"replicate_rs/replicate" 
+  forall m n x
+  . replicate_rs m (replicate n x) = replicate (m*n) x
 
  #-}
 
@@ -254,6 +263,15 @@ extracts_avs
 --         returning the latter portion.
 drop :: Elt a => Int -> Array a -> Array a
 {-# INLINE_BACKEND drop #-}
+
+{-# RULES 
+
+"indexs_avs/singletons/replicatedVSegd"
+  forall arr len reps srcixs
+  . indexs_avs (singletons arr) (replicatedVSegd len reps) srcixs
+  = arr `seq` map (index "rule" arr) (map snd srcixs)
+
+ #-}
 
 
 -- Update =====================================================================
@@ -992,6 +1010,15 @@ singletonVSegd :: Int -> VSegd
 {-# INLINE_BACKEND singletonVSegd #-}
 
 
+-- | O(len). Construct a `VSegd` that describes an array where all virtual 
+--   segmentspoint to the same physical segment.
+replicatedVSegd 
+        :: Int          -- ^ Length of segment.
+        -> Int          -- ^ Number of times replicated.
+        -> VSegd
+{-# INLINE_BACKEND replicatedVSegd #-}
+
+
 -- | O(segs). Promote a plain `Segd` to a `VSegd`.
 --   The result contains one virtual segment for every physical segment
 --   the provided `Segd`.
@@ -1143,9 +1170,15 @@ combine2VSegd
 
 {-# RULES
 
-"updateVSegsOfVSegd/updateVSegsOfVSegd" forall f g vsegd.
-  updateVSegsOfVSegd f (updateVSegsOfVSegd g vsegd)
-   = updateVSegsOfVSegd (f . g) vsegd
+"updateVSegsOfVSegd/updateVSegsOfVSegd" 
+  forall f g vsegd
+  . updateVSegsOfVSegd f (updateVSegsOfVSegd g vsegd)
+  = updateVSegsOfVSegd (f . g) vsegd
+
+"updateVSegsOfVSegd/replicate_s/replicateVSegd"
+  forall segd len reps
+  . updateVSegsOfVSegd (replicate_s segd) (replicatedVSegd len reps)
+  = replicatedVSegd len (elementsSegd segd)
 
  #-}
 
