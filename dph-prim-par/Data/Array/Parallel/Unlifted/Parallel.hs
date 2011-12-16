@@ -45,6 +45,8 @@ module Data.Array.Parallel.Unlifted.Parallel
         , appendSUP
         , foldRUP
         , sumRUP
+
+          -- * Index and Extracts
         , indexsFromVectorsWithUPVSegd
         , extractsFromNestedWithUPSSegd
         , extractsFromVectorsWithUPSSegd
@@ -65,6 +67,7 @@ import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.Combinators
 import Data.Array.Parallel.Unlifted.Parallel.Enum
 import Data.Array.Parallel.Unlifted.Parallel.Permute
+import Data.Array.Parallel.Unlifted.Parallel.Extracts
 import Data.Array.Parallel.Unlifted.Parallel.Segmented
 import Data.Array.Parallel.Unlifted.Parallel.Text       ()
 import Data.Array.Parallel.Unlifted.Parallel.Subarrays

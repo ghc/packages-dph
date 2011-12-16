@@ -29,13 +29,14 @@ module Data.Array.Parallel.Unlifted.Sequential
           -- * Pack and Combine
         , combineSU
         
-          -- * Projections
+          -- * Extracts
         , extractsFromNestedUSSegd
         , extractsFromVectorsUSSegd)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Basics
 import Data.Array.Parallel.Unlifted.Sequential.Combinators
 import Data.Array.Parallel.Unlifted.Sequential.Sums
+import Data.Array.Parallel.Unlifted.Sequential.Extracts
 import Data.Array.Parallel.Unlifted.Sequential.USegd     ()
 import Data.Array.Parallel.Unlifted.Sequential.USel      ()
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd    ()
