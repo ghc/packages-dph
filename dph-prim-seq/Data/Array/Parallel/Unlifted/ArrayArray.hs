@@ -11,7 +11,8 @@ module Data.Array.Parallel.Unlifted.ArrayArray
         , readArrayArray
         , indexArrayArray
         , unsafeFreezeArrayArray
-        , unsafeDeepFreezeArrayArray)
+        , unsafeDeepFreezeArrayArray
+        , copyArrayArray)
 where	
 import GHC.Prim
 import GHC.Base
@@ -91,4 +92,19 @@ unsafeDeepFreezeArrayArray marrs@(MutableArrayArray marrs#)
             ba  <- unsafeFreezeByteArray mba
             writeArrayArray marrs_halfFrozen i ba
 {-# INLINE unsafeDeepFreezeArrayArray #-}
+
+
+-- | Copy an ArrayArray
+copyArrayArray 
+        :: MutableArrayArray s ByteArray -> Int
+        -> ArrayArray ByteArray -> Int
+        -> Int -> ST s ()
+
+copyArrayArray dst startDst src startSrc len
+ = loop startDst startSrc len
+ where  loop !ixDst !ixSrc !len'
+         | len' <= 0     = return ()
+         | otherwise
+         = do   writeArrayArray dst ixDst $ indexArrayArray src ixSrc
+                loop (ixDst + 1) (ixSrc + 1) (len' - 1)
 
