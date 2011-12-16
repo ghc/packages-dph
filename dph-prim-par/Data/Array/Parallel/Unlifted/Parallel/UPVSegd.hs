@@ -20,7 +20,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd (
         -- * Predicates
         isManifest,
         isContiguous,
-        
+
         -- * Projections
         length,
         takeVSegids, takeVSegidsRedundant,
@@ -258,7 +258,9 @@ takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 takeLengths :: UPVSegd -> Vector Int
 takeLengths (UPVSegd manifest _ vsegids _ upssegd)
  | manifest     = UPSSegd.takeLengths upssegd
- | otherwise    = US.map (US.index (here "takeLengths") (UPSSegd.takeLengths upssegd)) vsegids
+ | otherwise    
+ = let !lengths        = (UPSSegd.takeLengths upssegd)
+   in  US.map (US.index (here "takeLengths") lengths) vsegids
 {-# NOINLINE takeLengths #-}
 --  NOINLINE because we don't want a case expression due to the test on the 
 --  manifest flag to appear in the core program.
@@ -290,7 +292,7 @@ getSeg upvsegd ix
 -- 
 demoteToUPSSegd :: UPVSegd -> UPSSegd
 demoteToUPSSegd upvsegd
- | upvsegd_manifest upvsegd     = upvsegd_upssegd_culled upvsegd
+ | upvsegd_manifest upvsegd     = upvsegd_upssegd_culled upvsegd        -- TODO: take the redundant ones
  | otherwise
  = let  vsegids         = upvsegd_vsegids_culled upvsegd
         upssegd         = upvsegd_upssegd_culled upvsegd
