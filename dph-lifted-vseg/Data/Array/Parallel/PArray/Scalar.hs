@@ -37,10 +37,9 @@ import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.Base
 import Data.Word
 import GHC.Exts
-import qualified Data.Array.Parallel.Unlifted   as U
-import Prelude hiding 
-        ( map, zipWith, zipWith3
-        , enumFromTo)
+import qualified Data.Array.Parallel.Unlifted           as U
+import Prelude hiding ( map, zipWith, zipWith3, enumFromTo)
+
 
 -- | Class of Scalar data that can be converted to and from single unboxed
 --   vectors.
@@ -82,24 +81,33 @@ instance Scalar Bool where
     = error "Data.Array.Parallel.PArray.Lifted.Scalar: no Arrays instance for Bool."
 
 
+-- See Note: Seqs in fromScalar
 instance Scalar Int where
-  fromScalarPData  (PInt  xs)     = xs
-  fromScalarPDatas (PInts xss)    = xss
+  fromScalarPData  (PInt  xs)     = xs  `seq` xs
+  fromScalarPDatas (PInts xss)    = xss `seq` xss
   toScalarPData                   = PInt
   toScalarPDatas                  = PInts
 
 instance Scalar Word8 where
-  fromScalarPData  (PWord8  xs)   = xs
-  fromScalarPDatas (PWord8s xss)  = xss
+  fromScalarPData  (PWord8  xs)   = xs  `seq` xs
+  fromScalarPDatas (PWord8s xss)  = xss `seq` xss
   toScalarPData                   = PWord8
   toScalarPDatas                  = PWord8s
 
 instance Scalar Double where
-  fromScalarPData  (PDouble xs)   = xs `seq` xs
-  fromScalarPDatas (PDoubles xss) = xss
+  fromScalarPData  (PDouble xs)   = xs  `seq` xs
+  fromScalarPDatas (PDoubles xss) = xss `seq` xss
   toScalarPData                   = PDouble
   toScalarPDatas                  = PDoubles
 
+
+-- [Note: Seqs in fromScalar]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- As we expect the result of fromScalarPData to always be demanded by the 
+-- consuming function, we seq on it to force the demand. This helps to avoid
+-- fusion problems when GHC can't see that the consumer actually demands the
+-- data. This shows up in SMVM where removing the `seq in the Doubles instance
+-- prevents the fold_vs/promoteSegdToVSegd rule from firing.
         
 -- Conversions ----------------------------------------------------------------
 {-# INLINE_PA fromUArray #-}
@@ -230,8 +238,9 @@ fold1sIndex f (PArray n# pdata)
 {- [Note: fold/promoteSegd]
    ~~~~~~~~~~~~~~~~~~~~~~~~
    In the segmented fold functions above, don't seq on the vsegd because we
-   we need to to remain as an argument to the fold function so the 
-   fold/promoteSegdToVSegd rules from DPH_Interface.h fill fire.
+   we need the vsegd to remain as an argument to the fold function. 
+   This ensures that the fold/promoteSegdToVSegd rules from DPH_Interface.h
+   will fire, which shows up in SMVM.
 -}
 
 -- Enumerations --------------------------------------------------------------
