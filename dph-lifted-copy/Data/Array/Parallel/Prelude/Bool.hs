@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -fvectorise #-}
 
-module Data.Array.Parallel.Prelude.Bool (
-  Bool(..),
+module Data.Array.Parallel.Prelude.Bool
+  ( Bool(..)
 
-  otherwise, (&&), (||), not, andP, orP,
-) where
+  , otherwise, (&&), (||), not, andP, orP
+  , fromBool, toBool
+  )
+where
 
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
@@ -81,3 +83,13 @@ orP_v :: PArray Bool :-> Bool
 {-# INLINE orP_v #-}
 orP_v = closure1 (scalar_fold (||) False) (scalar_folds (||) False)
 {-# NOVECTORISE orP_v #-}
+
+fromBool :: Bool -> Int
+fromBool False = 0
+fromBool True  = 1
+{-# VECTORISE SCALAR fromBool #-}
+
+toBool :: Int -> Bool
+toBool 0 = False
+toBool _ = True
+{-# VECTORISE SCALAR toBool #-}

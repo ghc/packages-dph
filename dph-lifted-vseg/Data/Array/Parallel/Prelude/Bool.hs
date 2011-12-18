@@ -3,11 +3,15 @@
 module Data.Array.Parallel.Prelude.Bool 
         ( Bool(..)
         , otherwise
-        , (&&), (||), not) --, andP, orP)
+        , (&&), (||), not,  andP, orP
+        , fromBool, toBool)
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim
-import Data.Array.Parallel.Prelude.Base                 ()
+import Data.Array.Parallel.PArr
+import Data.Array.Parallel.Prelude.Base ()
+import Data.Array.Parallel.Prelude.Int as I             (sumP, (==), (/=))  -- just temporary
+import Data.Array.Parallel.Lifted                       (mapPP, lengthPP)   -- just temporary
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted           as U
@@ -91,3 +95,36 @@ orPP   = L.closure1' (SC.fold (||) False) (SC.folds (||) False)
 {-# INLINE      orPP #-}
 {-# NOVECTORISE orPP #-}
 -}
+
+-- Until we have Unboxes for Bool, we use the following definitions instead.
+
+andP :: PArr Bool -> Bool
+andP bs = I.sumP (mapP fromBool bs) I.== lengthP bs
+
+orP :: PArr Bool -> Bool
+orP bs = sumP (mapP fromBool bs) I./= 0
+
+-- Defining 'mapP' and 'lengthP' here is just a kludge until the original definitions of
+-- 'andP' and 'orP' work again.
+mapP :: (a -> b) -> PArr a -> PArr b
+mapP !_ !_              = emptyPArr
+{-# NOINLINE  mapP #-}
+{-# VECTORISE mapP      = mapPP #-}
+
+lengthP :: PArr a -> Int
+lengthP = lengthPArr
+{-# NOINLINE  lengthP #-}
+{-# VECTORISE lengthP   = lengthPP #-}
+
+
+-- conversion functions --------------------------------------------------------
+
+fromBool :: Bool -> Int
+fromBool False = 0
+fromBool True  = 1
+{-# VECTORISE SCALAR fromBool #-}
+
+toBool :: Int -> Bool
+toBool 0 = False
+toBool _ = True
+{-# VECTORISE SCALAR toBool #-}
