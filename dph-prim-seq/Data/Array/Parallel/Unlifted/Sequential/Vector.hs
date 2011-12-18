@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, BangPatterns, CPP #-}
+{-# LANGUAGE ScopedTypeVariables, MultiParamTypeClasses, BangPatterns, CPP #-}
 {-# OPTIONS  -w #-}     -- TODO: enable warnings
 #include "fusion-phases.h"
 
@@ -133,6 +133,7 @@ import qualified Prelude
 import qualified System.Random as R
 import Foreign hiding ( new )
 import System.IO
+import Control.Monad
 
 here s = "Data.Array.Parallel.Unlifted.Sequential.Flat." Prelude.++ s
 
@@ -523,3 +524,62 @@ instance (UIO a, UIO b) => UIO (a,b) where
               ys <- hGet h
               return (V.zip xs ys)
 
+-- Additional types
+--
+
+fromOrdering :: Ordering -> Word8
+{-# INLINE fromOrdering #-}
+fromOrdering LT = 0
+fromOrdering EQ = 1
+fromOrdering GT = 2
+
+toOrdering :: Word8 -> Ordering
+{-# INLINE toOrdering #-}
+toOrdering 0 = LT
+toOrdering 1 = EQ
+toOrdering _ = GT
+
+newtype instance MVector s Ordering = MV_Ordering (M.MVector s Word8)
+newtype instance Vector    Ordering = V_Ordering  (V.Vector    Word8)
+
+instance Unbox Ordering
+
+instance MG.MVector MVector Ordering where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_Ordering v) = MG.basicLength v
+  basicUnsafeSlice i n (MV_Ordering v) = MV_Ordering $ MG.basicUnsafeSlice i n v
+  basicOverlaps (MV_Ordering v1) (MV_Ordering v2) = MG.basicOverlaps v1 v2
+  basicUnsafeNew n = MV_Ordering `liftM` MG.basicUnsafeNew n
+  basicUnsafeReplicate n x = MV_Ordering `liftM` MG.basicUnsafeReplicate n (fromOrdering x)
+  basicUnsafeRead (MV_Ordering v) i = toOrdering `liftM` MG.basicUnsafeRead v i
+  basicUnsafeWrite (MV_Ordering v) i x = MG.basicUnsafeWrite v i (fromOrdering x)
+  basicClear (MV_Ordering v) = MG.basicClear v
+  basicSet (MV_Ordering v) x = MG.basicSet v (fromOrdering x)
+  basicUnsafeCopy (MV_Ordering v1) (MV_Ordering v2) = MG.basicUnsafeCopy v1 v2
+  basicUnsafeMove (MV_Ordering v1) (MV_Ordering v2) = MG.basicUnsafeMove v1 v2
+  basicUnsafeGrow (MV_Ordering v) n = MV_Ordering `liftM` MG.basicUnsafeGrow v n
+
+instance G.Vector Vector Ordering where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_Ordering v) = V_Ordering `liftM` G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Ordering v) = MV_Ordering `liftM` G.basicUnsafeThaw v
+  basicLength (V_Ordering v) = G.basicLength v
+  basicUnsafeSlice i n (V_Ordering v) = V_Ordering $ G.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_Ordering v) i = toOrdering `liftM` G.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_Ordering mv) (V_Ordering v) = G.basicUnsafeCopy mv v
+  elemseq _ = seq
