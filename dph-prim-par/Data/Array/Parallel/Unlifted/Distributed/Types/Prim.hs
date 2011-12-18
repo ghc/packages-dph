@@ -81,7 +81,6 @@ primSizeMD :: DPrim a => MDist a s -> Int
 primSizeMD = MV.length . unMDPrim
 
 
-
 -- Bool -----------------------------------------------------------------------
 instance DPrim Bool where
   mkDPrim           = DBool
@@ -94,6 +93,28 @@ instance DPrim Bool where
 instance DT Bool where
   data Dist  Bool   = DBool  !(V.Vector    Bool)
   data MDist Bool s = MDBool !(MV.STVector s Bool)
+
+  indexD         = primIndexD
+  newMD          = primNewMD
+  readMD         = primReadMD
+  writeMD        = primWriteMD
+  unsafeFreezeMD = primUnsafeFreezeMD
+  sizeD          = primSizeD
+  sizeMD         = primSizeMD
+
+
+-- Ordering -----------------------------------------------------------------------
+instance DPrim Ordering where
+  mkDPrim               = DOrdering
+  unDPrim (DOrdering a) = a
+
+  mkMDPrim                = MDOrdering
+  unMDPrim (MDOrdering a) = a
+
+
+instance DT Ordering where
+  data Dist  Ordering   = DOrdering  !(V.Vector    Ordering)
+  data MDist Ordering s = MDOrdering !(MV.STVector s Ordering)
 
   indexD         = primIndexD
   newMD          = primNewMD

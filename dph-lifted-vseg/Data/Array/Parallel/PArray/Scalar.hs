@@ -80,6 +80,25 @@ instance Scalar Bool where
   toScalarPDatas _
     = error "Data.Array.Parallel.PArray.Lifted.Scalar: no Arrays instance for Bool."
 
+instance U.Elt Ordering
+
+instance Scalar Ordering where
+  {-# INLINE toScalarPData #-}
+  toScalarPData
+    = POrdering . U.map toPRepr
+
+  {-# INLINE fromScalarPData #-}
+  fromScalarPData (POrdering w8s)
+    = U.map fromPRepr w8s
+
+    -- FIXME: no idea whether these are used; should be possible to convert, though
+  {-# INLINE toScalarPDatas #-}
+  toScalarPDatas _
+    = error "Data.Array.Parallel.PArray.Lifted.Scalar: no 'Arrays' instance for 'Ordering'."
+
+  {-# INLINE fromScalarPDatas #-}
+  fromScalarPDatas _
+    = error "Data.Array.Parallel.PArray.Lifted.Scalar: no 'Arrays' instance for 'Ordering'."
 
 -- See Note: Seqs in fromScalar
 instance Scalar Int where
