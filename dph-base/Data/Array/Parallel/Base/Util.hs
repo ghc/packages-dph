@@ -3,7 +3,6 @@
 module Data.Array.Parallel.Base.Util (
   Tag, fromBool, toBool, tagToInt, intToTag
 ) where
-import Data.Word ( Word8 )
 
 
 -- | Given a value of an algebraic type, the tag tells us what
