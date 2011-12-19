@@ -31,3 +31,6 @@ import Data.Word (Word8)
 {-# VECTORISE SCALAR type Int #-}
 {-# VECTORISE SCALAR type Float #-}
 {-# VECTORISE SCALAR type Double #-}
+
+-- FIXME: currently a fake definition to allow 'Integer' in SCALAR class instances
+{-# VECTORISE SCALAR type Integer #-}

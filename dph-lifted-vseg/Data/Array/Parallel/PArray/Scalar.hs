@@ -30,6 +30,7 @@ module Data.Array.Parallel.PArray.Scalar
         -- * Enumerations
         , enumFromTo, enumFromTol)
 where
+import Data.Array.Parallel.PArray.PData.Void
 import Data.Array.Parallel.PArray.PData.Word8
 import Data.Array.Parallel.PArray.PData.Double
 import Data.Array.Parallel.PArray.PData
@@ -99,6 +100,19 @@ instance Scalar Ordering where
   {-# INLINE fromScalarPDatas #-}
   fromScalarPDatas _
     = error "Data.Array.Parallel.PArray.Lifted.Scalar: no 'Arrays' instance for 'Ordering'."
+
+-- FIXME: this is a fake instance to enable us to vectorise 'Num'
+type instance PRepr  Integer = Void
+data instance PData  Integer = PInteger
+data instance PDatas Integer = PIntegers
+instance PA Integer
+instance U.Elt Integer
+instance Scalar Integer where
+  toScalarPData = fakeScalarInteger
+  fromScalarPData = fakeScalarInteger
+  toScalarPDatas = fakeScalarInteger
+  fromScalarPDatas = fakeScalarInteger
+fakeScalarInteger = error "D.A.P.PArray.Scalar: fake instance 'Scalar Integer'"
 
 -- See Note: Seqs in fromScalar
 instance Scalar Int where

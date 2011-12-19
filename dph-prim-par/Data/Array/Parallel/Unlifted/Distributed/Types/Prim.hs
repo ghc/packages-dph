@@ -125,6 +125,12 @@ instance DT Ordering where
   sizeMD         = primSizeMD
 
 
+-- Integer -----------------------------------------------------------------------
+-- FIXME: fake instances
+instance DPrim Integer
+instance DT Integer
+
+
 -- Char -----------------------------------------------------------------------
 instance DPrim Char where
   mkDPrim           = DChar
