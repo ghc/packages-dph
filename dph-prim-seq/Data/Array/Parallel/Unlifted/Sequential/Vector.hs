@@ -583,3 +583,7 @@ instance G.Vector Vector Ordering where
   basicUnsafeIndexM (V_Ordering v) i = toOrdering `liftM` G.basicUnsafeIndexM v i
   basicUnsafeCopy (MV_Ordering mv) (V_Ordering v) = G.basicUnsafeCopy mv v
   elemseq _ = seq
+
+instance Unbox Integer
+instance MG.MVector MVector Integer
+instance G.Vector Vector Integer
