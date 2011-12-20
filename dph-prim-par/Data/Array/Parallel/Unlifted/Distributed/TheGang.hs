@@ -5,8 +5,8 @@ module Data.Array.Parallel.Unlifted.Distributed.TheGang (
   theGang
 ) where
 import Data.Array.Parallel.Unlifted.Distributed.Gang 
+import Control.Concurrent (getNumCapabilities)
 import System.IO.Unsafe (unsafePerformIO)
-import GHC.Conc (numCapabilities)
 
 
 -- | DPH programs use this single, shared gang of threads.
@@ -21,5 +21,5 @@ import GHC.Conc (numCapabilities)
 --
 theGang :: Gang
 {-# NOINLINE theGang #-}
-theGang = unsafePerformIO (forkGang numCapabilities)
+theGang = unsafePerformIO (getNumCapabilities >>= forkGang)
 
