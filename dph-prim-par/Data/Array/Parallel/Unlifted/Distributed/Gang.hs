@@ -12,7 +12,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Gang (
 
 import GHC.IO
 import GHC.ST
-import GHC.Conc                  ( forkOn )
+import Control.Concurrent        ( forkOn )
 import Control.Concurrent.MVar
 import Control.Exception         ( assert )
 import Control.Monad
