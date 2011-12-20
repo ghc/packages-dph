@@ -43,6 +43,7 @@ enumFromStepLenEach             = U.enumFromStepLenEach
 -- Projections ----------------------------------------------------------------
 length                          = U.length
 index                           = U.index
+indexs                          = indexsFromVector
 indexs_avs                      = indexsFromVectorsUVSegd
 
 extract                         = U.extract

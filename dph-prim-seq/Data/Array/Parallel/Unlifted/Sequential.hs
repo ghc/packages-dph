@@ -30,6 +30,7 @@ module Data.Array.Parallel.Unlifted.Sequential
         , combineSU
         
           -- * Extracts and Indexing
+        , indexsFromVector
         , indexsFromVectorsUVSegd
         , extractsFromNestedUSSegd
         , extractsFromVectorsUSSegd

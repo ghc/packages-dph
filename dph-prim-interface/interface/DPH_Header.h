@@ -21,6 +21,7 @@ module Data.Array.Parallel.Unlifted (
   -- * Projections
   length,
   index,
+  indexs,
   indexs_avs,
 
   extract,

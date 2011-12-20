@@ -209,6 +209,14 @@ index :: Elt a => Prelude.String -> Array a -> Int -> a
 {-# INLINE_BACKEND index #-}
 
 
+-- | O(n). Scattered indexing from a single `Array`
+indexs  :: Elt a
+        => Array a
+        -> Array Int
+        -> Array a
+{-# INLINE_BACKEND indexs #-}
+
+
 -- | O(n). Scattered indexing through a `VSegd`.
 indexs_avs
         :: (Elt a, Elts a)
@@ -269,7 +277,7 @@ drop :: Elt a => Int -> Array a -> Array a
 "indexs_avs/singletons/replicatedVSegd"
   forall arr len reps srcixs
   . indexs_avs (singletons arr) (replicatedVSegd len reps) srcixs
-  = arr `seq` map (index "rule" arr) (map snd srcixs)
+  = indexs arr (map snd srcixs)
 
  #-}
 

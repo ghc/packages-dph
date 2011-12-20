@@ -5,7 +5,7 @@ module Data.Array.Parallel.Unlifted.Stream
         , streamSrcIxsThroughUSSegd
 
           -- * Element streamers.
-        , streamElemsFromVectors
+        , streamElemsFromVector
         , streamElemsFromVectorsVSegd
 
           -- * Segment streamers.
