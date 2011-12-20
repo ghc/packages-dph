@@ -35,7 +35,7 @@ foldlSU f !z segd xs
 foldlSSU :: (Unbox a, Unboxes a, Unbox b)
          => (b -> a -> b) -> b -> USSegd -> Vectors a -> Vector b
 {-# INLINE_U foldlSSU #-}
-foldlSSU f z ssegd xss
+foldlSSU f !z ssegd xss
         = unstream
         $ foldSS f z    (stream (USSegd.takeLengths ssegd))
                         (streamSegsFromVectorsUSSegd xss ssegd)

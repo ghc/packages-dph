@@ -4,7 +4,8 @@
 -- | Standard combinators for segmented unlifted arrays.
 module Data.Array.Parallel.Unlifted.Sequential.Extracts
         ( -- * Scattered indexing.
-          indexsFromVectorsUVSegd
+          indexsFromVector
+        , indexsFromVectorsUVSegd
 
           -- * Scattered extracts
         , extractsFromNestedUSSegd
@@ -20,6 +21,18 @@ import qualified Data.Vector                                    as V
 
 
 -- Indexs --------------------------------------------------------------------
+-- | Lookup elements from a `Vector`.
+indexsFromVector
+        :: Unbox a
+        => Vector a -> Vector Int -> Vector a
+
+indexsFromVector vector ixs
+        = U.unstream 
+        $ streamElemsFromVector vector 
+        $ U.stream ixs
+{-# INLINE_U indexsFromVector #-}
+
+
 -- | Lookup elements from some `Vectors` through a `UPVSegd`.
 indexsFromVectorsUVSegd 
         :: (Unbox a, US.Unboxes a)

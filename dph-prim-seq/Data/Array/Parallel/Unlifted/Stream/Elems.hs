@@ -1,15 +1,38 @@
 {-# LANGUAGE CPP, NoMonomorphismRestriction #-}
 #include "fusion-phases.h"
 module Data.Array.Parallel.Unlifted.Stream.Elems
-        ( streamElemsFromVectors
+        ( streamElemsFromVector
+        , streamElemsFromVectors
         , streamElemsFromVectorsVSegd)
 where
 import Data.Array.Parallel.Unlifted.Stream.Ixs
 import Data.Vector.Fusion.Stream.Monadic
+import Data.Array.Parallel.Unlifted.Sequential.Vector            (Unbox, Vector)
 import Data.Array.Parallel.Unlifted.Vectors                      (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd            (UVSegd(..))
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
 import qualified Data.Array.Parallel.Unlifted.Vectors            as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd  as UVSegd
+
+
+streamElemsFromVector
+        :: (Monad m, Unbox a)
+        => Vector a -> Stream m Int -> Stream m a
+
+streamElemsFromVector vector (Stream mkStep s0 size0)
+ = vector `seq` Stream mkStep' s0 size0
+ where
+        {-# INLINE_INNER mkStep' #-}
+        mkStep' s
+         = do   step    <- mkStep s
+                case step of
+                 Yield ix s'
+                  -> let !result = U.index "streamElemsFromVector" vector ix
+                     in  return $ Yield result s'
+                 
+                 Skip s'        -> return $ Skip s'
+                 Done           -> return Done
+
 
 
 -- | Take a stream of chunk and chunk element indices, look them up from
@@ -29,8 +52,8 @@ streamElemsFromVectors vectors (Stream mkStep s0 size0)
                   -> let !result = US.unsafeIndex2 vectors ix1 ix2
                      in  return $ Yield result s'
 
-                 Skip s'             -> return $ Skip s'
-                 Done                -> return Done
+                 Skip s'        -> return $ Skip s'
+                 Done           -> return Done
 {-# INLINE_STREAM streamElemsFromVectors #-}
 
 
