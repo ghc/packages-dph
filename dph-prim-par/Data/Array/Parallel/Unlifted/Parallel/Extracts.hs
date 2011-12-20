@@ -4,7 +4,8 @@
 -- | Parallel combinators for segmented unboxed arrays
 module Data.Array.Parallel.Unlifted.Parallel.Extracts 
         ( -- * Scattered indexing
-          indexsFromVectorsUPVSegd
+          indexsFromVector
+        , indexsFromVectorsUPVSegd
 
           -- * Scattered extracts
         , extractsFromNestedUPSSegd
@@ -25,6 +26,17 @@ import qualified Data.Vector                                            as V
 
 
 -- Indexvs --------------------------------------------------------------------
+-- | Lookup elements from a `Vector`.
+--
+--   TODO: make this parallel.
+--
+indexsFromVector
+        :: Unbox a
+        => Vector a -> Vector Int -> Vector a
+
+indexsFromVector = Seq.indexsFromVector
+
+
 -- | Lookup elements from some `Vectors` through a `UPVSegd`.
 --
 --   TODO: make this parallel.
@@ -40,7 +52,7 @@ indexsFromVectorsUPVSegd vectors upvsegd vsrcixs
         !upssegd  = UPVSegd.takeUPSSegdRedundant upvsegd
         !ussegd   = UPSSegd.takeUSSegd upssegd
    in   Seq.unstream
-         $ US.streamElemsFromVectors        vectors
+         $ US.streamElemsFromVectors     vectors
          $ US.streamSrcIxsThroughUSSegd  ussegd
          $ US.streamSrcIxsThroughVSegids vsegids
          $ Seq.stream vsrcixs
