@@ -105,6 +105,7 @@ enumFromStepLenEach n starts steps lens
 -- Projections ----------------------------------------------------------------
 length          = Seq.length
 index           = Seq.index
+indexs          = indexsFromVector
 indexs_avs      = indexsFromVectorsUPVSegd
 
 extract arr i n

@@ -47,6 +47,7 @@ module Data.Array.Parallel.Unlifted.Parallel
         , sumRUP
 
           -- * Index and Extracts
+        , indexsFromVector
         , indexsFromVectorsUPVSegd
         , extractsFromNestedUPSSegd
         , extractsFromVectorsUPSSegd
