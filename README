@@ -1,0 +1,20 @@
+Directories in libraries/dph
+
+   dph-lifted-boxed/  Inefficient reference model, no fusion
+   dph-lifted-copy/   Does fusion, but has the replicate problem
+   dph-lifted-vseg/   Cool new version
+
+   dph-lifted-base/   Common definitions used by all three above
+
+   dph-base/    ???? what is this ???
+
+   dph-prim-interface/  Interface to the unboxed-array implementation
+   dph-prim-seq/        Sequential implementation of dph-prim-interface
+   dph-prim-par/        Parallel implementation of dph-prim-interface
+
+
+A build includes
+  * One of {dph-lifted-boxed, dph-lifted-copy, dph-lifted-vseg}
+  * dph-lifted-base
+  * One of dph-prim-par, dph-prim-seq
+
