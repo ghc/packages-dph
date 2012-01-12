@@ -118,7 +118,7 @@ endif
 
 endef
 
-# Instantiate the above dph_th_deps definintion for each build way.
+# Instantiate the above dph_th_deps definition for each build way.
 ifneq "$(CLEANING)" "YES"
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way))))
 endif
