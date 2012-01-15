@@ -11,3 +11,7 @@ module Data.Array.Parallel.Prelude (
 
 import Data.Array.Parallel.Prelude.Base
 import Data.Array.Parallel.Prelude.Bool
+import Data.Array.Parallel.Prelude.Ordering ()
+import Data.Array.Parallel.Prelude.Int      ()
+import Data.Array.Parallel.Prelude.Word8    ()
+import Data.Array.Parallel.Prelude.Double   ()
