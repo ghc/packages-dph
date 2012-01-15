@@ -2,71 +2,76 @@
 
 module Data.Array.Parallel.Prelude.Bool 
         ( Bool(..)
-        , otherwise
-        , (&&), (||), not,  andP, orP
+        , P.otherwise
+        , (P.&&), (P.||), P.not,  andP, orP
         , fromBool, toBool)
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim
 import Data.Array.Parallel.PArr
-import Data.Array.Parallel.Prelude.Base ()
+import Data.Array.Parallel.Prelude.Base                 (Bool(..), Int, Eq, Ord)
 import Data.Array.Parallel.Prelude.Int as I             (sumP, (==), (/=))  -- just temporary
 import Data.Array.Parallel.Lifted                       (mapPP, lengthPP)   -- just temporary
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted           as U
 import Data.Bits
+import qualified Prelude as P
         
 
+-- instances of standard type classes from the Prelude 
+{-# VECTORISE SCALAR instance Eq Bool #-}
+{-# VECTORISE SCALAR instance Ord Bool #-}
+
 -- and ------------------------------------------------------------------------
-{-# VECTORISE (&&) = (&&*) #-}
+{-# VECTORISE (P.&&) = (&&*) #-}
 
 (&&*) :: Bool :-> Bool :-> Bool
-(&&*) = closure2 (&&) and_l
+(&&*) = closure2 (P.&&) and_l
 {-# INLINE      (&&*) #-}
 {-# NOVECTORISE (&&*) #-}
 
 and_l :: PArray Bool -> PArray Bool -> PArray Bool
 and_l (PArray n# bs) (PArray _ cs)
-  = PArray n# $
+  = PArray n# P.$
       case bs of { PBool sel1 ->
       case cs of { PBool sel2 ->
-      PBool $ U.tagsToSel2 (U.zipWith (.&.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
+      PBool P.$ U.tagsToSel2 (U.zipWith (.&.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
 {-# INLINE      and_l #-}
 {-# NOVECTORISE and_l #-}
 
 
 -- or -------------------------------------------------------------------------
-{-# VECTORISE (||) = (||*) #-}
+{-# VECTORISE (P.||) = (||*) #-}
 
 (||*) :: Bool :-> Bool :-> Bool
-(||*) = closure2 (||) or_l
+(||*) = closure2 (P.||) or_l
 {-# INLINE (||*) #-}
 {-# NOVECTORISE (||*) #-}
 
 or_l :: PArray Bool -> PArray Bool -> PArray Bool
 or_l (PArray n# bs) (PArray _ cs)
-  = PArray n# $
+  = PArray n# P.$
       case bs of { PBool sel1 ->
       case cs of { PBool sel2 ->
-      PBool $ U.tagsToSel2 (U.zipWith (.|.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
+      PBool P.$ U.tagsToSel2 (U.zipWith (.|.) (U.tagsSel2 sel1) (U.tagsSel2 sel2)) }}
 {-# INLINE or_l #-}
 {-# NOVECTORISE or_l #-}
 
 
 -- not ------------------------------------------------------------------------
-{-# VECTORISE not = notPP #-}
+{-# VECTORISE P.not = notPP #-}
 
 notPP :: Bool :-> Bool
-notPP   = closure1 not notPP_l
+notPP   = closure1 P.not notPP_l
 {-# INLINE notPP #-}
 {-# NOVECTORISE notPP #-}
 
 notPP_l :: PArray Bool -> PArray Bool
 notPP_l (PArray n# bs)
-  = PArray n# $
+  = PArray n# P.$
       case bs of { PBool sel ->
-      PBool $ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
+      PBool P.$ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
 {-# NOVECTORISE notPP_l #-}
 {-# INLINE notPP_l #-}
 

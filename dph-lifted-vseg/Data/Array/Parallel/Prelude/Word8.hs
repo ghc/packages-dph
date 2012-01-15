@@ -21,14 +21,19 @@ module Data.Array.Parallel.Prelude.Word8
         , toInt)
 where
 import Data.Array.Parallel.Prim                         ()      
-import Data.Array.Parallel.Prelude.Base
+import Data.Array.Parallel.Prelude.Base                 (Bool, Int, Word8, Eq, Ord, Num)
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Lifted                       ((:->)(..))
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
-        
+
+
+{-# VECTORISE SCALAR instance P.Eq  Word8 #-}
+{-# VECTORISE SCALAR instance P.Ord Word8 #-}
+{-# VECTORISE SCALAR instance P.Num Word8 #-}
+
 
 infixl 7 *
 infixl 6 +, -

@@ -20,8 +20,8 @@ module Data.Array.Parallel.Prelude.Int
         , enumFromToP)
 where
 -- Primitives needed by the vectoriser.
-import Data.Array.Parallel.Prim                 ()      
-import Data.Array.Parallel.Prelude.Base
+import Data.Array.Parallel.Prim                         ()      
+import Data.Array.Parallel.Prelude.Base                 (Bool, Int, Eq, Ord, Num)
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Lifted                       ((:->)(..))
@@ -29,6 +29,11 @@ import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
         
+
+{-# VECTORISE SCALAR instance P.Eq  Int #-}
+{-# VECTORISE SCALAR instance P.Ord Int #-}
+{-# VECTORISE SCALAR instance P.Num Int #-}
+
 
 infixl 7 *
 infixl 6 +, -

@@ -28,14 +28,19 @@ module Data.Array.Parallel.Prelude.Double
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim                 ()      
-import Data.Array.Parallel.Prelude.Base
+import Data.Array.Parallel.Prelude.Base         (Bool, Int, Double, Eq, Ord, Num)
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Lifted                       ((:->)(..))
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
-        
+
+
+{-# VECTORISE SCALAR instance P.Eq  Double #-}
+{-# VECTORISE SCALAR instance P.Ord Double #-}
+{-# VECTORISE SCALAR instance P.Num Double #-}
+
 
 infixl 7 *, /
 infixl 6 +, -
