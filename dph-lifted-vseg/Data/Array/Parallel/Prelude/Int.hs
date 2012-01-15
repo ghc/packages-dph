@@ -30,9 +30,9 @@ import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
         
 
-{-# VECTORISE SCALAR instance P.Eq  Int #-}
-{-# VECTORISE SCALAR instance P.Ord Int #-}
-{-# VECTORISE SCALAR instance P.Num Int #-}
+{-# VECTORISE SCALAR instance Eq  Int #-}
+{-# VECTORISE SCALAR instance Ord Int #-}
+{-# VECTORISE SCALAR instance Num Int #-}
 
 
 infixl 7 *

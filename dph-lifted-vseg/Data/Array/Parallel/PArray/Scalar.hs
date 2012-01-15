@@ -1,5 +1,7 @@
 #include "fusion-phases.h"
 
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
+
 -- | Functions that work on parallel arrays of scalar elements.
 --   Unlike the functions defined in D.A.P.PArray, these only need
 --   Scalar dictionaries, instead of PR or PA dictionaries. 
@@ -112,6 +114,7 @@ instance Scalar Integer where
   fromScalarPData = fakeScalarInteger
   toScalarPDatas = fakeScalarInteger
   fromScalarPDatas = fakeScalarInteger
+fakeScalarInteger :: a
 fakeScalarInteger = error "D.A.P.PArray.Scalar: fake instance 'Scalar Integer'"
 
 -- See Note: Seqs in fromScalar

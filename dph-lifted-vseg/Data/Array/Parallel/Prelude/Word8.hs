@@ -30,9 +30,9 @@ import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
 
 
-{-# VECTORISE SCALAR instance P.Eq  Word8 #-}
-{-# VECTORISE SCALAR instance P.Ord Word8 #-}
-{-# VECTORISE SCALAR instance P.Num Word8 #-}
+{-# VECTORISE SCALAR instance Eq  Word8 #-}
+{-# VECTORISE SCALAR instance Ord Word8 #-}
+{-# VECTORISE SCALAR instance Num Word8 #-}
 
 
 infixl 7 *

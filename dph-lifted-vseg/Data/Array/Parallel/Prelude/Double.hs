@@ -37,9 +37,9 @@ import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
 
 
-{-# VECTORISE SCALAR instance P.Eq  Double #-}
-{-# VECTORISE SCALAR instance P.Ord Double #-}
-{-# VECTORISE SCALAR instance P.Num Double #-}
+{-# VECTORISE SCALAR instance Eq  Double #-}
+{-# VECTORISE SCALAR instance Ord Double #-}
+{-# VECTORISE SCALAR instance Num Double #-}
 
 
 infixl 7 *, /
