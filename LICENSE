@@ -1,6 +1,11 @@
-Copyright (c) 2001-2002, Manuel M T Chakravarty & Gabriele Keller
-Copyright (c) 2006-2007, Manuel M T Chakravarty & Roman Leshchinskiy
-All rights reserved.
+Copyright (c) 2001-2012, The DPH Team
+
+The DPH Team is:
+  Manuel M T Chakravarty
+  Gabriele Keller
+  Roman Leshchinskiy
+  Ben Lippmeier
+  George Roldugin
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -28,4 +33,3 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
-
