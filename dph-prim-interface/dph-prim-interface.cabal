@@ -6,7 +6,10 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Backend interface for Data Parallel Haskell
+Synopsis:       Data Parallel Haskell flat parallel arrays. (abstract interface)
+Description:    Empty implementation of flat parallel arrays. 
+                This package exists only so that dph-prim-par and dph-prim-seq
+                can provide the same interface.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple

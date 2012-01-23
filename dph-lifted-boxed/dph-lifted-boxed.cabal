@@ -6,7 +6,14 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Sequential reference implementation of lifted DPH array primitives.
+Synopsis:       Data Parallel Haskell lifted array combinators. (reference implementation)
+Description:    This package provides the following:
+                 nested arrays and the primitive operators that work on them (PA functions);
+                 the lifted array combinators that the vectoriser introduces (PP functions);
+                 the user facing library functions that work on [::] style arrays (P functions).
+                This incomplete implementation uses boxed arrays and is very slow.
+                It is only used during debugging.
+                Use dph-lifted-vseg instead.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple

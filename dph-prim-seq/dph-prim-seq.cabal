@@ -6,7 +6,11 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Sequential primitives for Data Parallel Haskell
+Synopsis:       Data Parallel Haskell flat parallel arrays. (reference implementation)
+Description:    Sequential implementation of the flat parallel array API defined
+                in dph-prim-interface.
+                This is normall only used during debugging.
+                You probably want dph-prim-par instead.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple
