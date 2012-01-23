@@ -6,7 +6,14 @@ Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Data structures for the Data Parallel Haskell vectoriser.
+Synopsis:       Data Parallel Haskell lifted array combinators.
+Description:    This package provides the following:
+                 nested arrays and the primitive operators that work on them (PA functions);
+                 the lifted array combinators that the vectoriser introduces (PP functions);
+                 the user facing library functions that work on [::] style arrays (P functions).
+                This implementation directly encodes sharing between array segments,
+                and avoids the copying that dph-lifted-copy would otherwise do.
+                Use this version for production code.
 
 Cabal-Version:  >= 1.6
 Build-Type:     Simple
