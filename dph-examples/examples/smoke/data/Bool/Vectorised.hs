@@ -2,8 +2,8 @@
 {-# LANGUAGE ParallelArrays #-}
 {-# OPTIONS -fvectorise #-}
 module Vectorised (test) where
-import Data.Array.Parallel              hiding (Bool, True, False, not)
-import Data.Array.Parallel.Prelude      hiding (Bool, True, False, not)
+import Data.Array.Parallel              hiding (Bool, True, False, not, fromBool, toBool)
+import Data.Array.Parallel.Prelude      hiding (Bool, True, False, not, fromBool, toBool)
 import Data.Array.Parallel.Prelude.Int
 import qualified Prelude        as P
         
