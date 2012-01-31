@@ -151,18 +151,19 @@ Executable dph-spectral-quicksort
 
 
 -- Real -----------------------------------------------------------------------
--- Executable dph-real-nbody-gloss
---     Main-is:        MainGloss.hs
---     other-modules:  Common.Dump Common.World Common.Body Common.Util 
---                     Solver Solver.ListBH.Solver
---                            Solver.NestedBH.Solver
---                            Solver.VectorBH.Solver
---                            Solver.VectorNaive.Solver
---                     Timing Points2D.Types Points2D.Generate
---                     Gloss.MainArgs Gloss.Draw Gloss.Config
---     Build-depends:  DPH_DEPENDS, parseargs == 0.1.*, gloss == 1.3.*
---     hs-source-dirs: lib real/NBody real/NBody/Gloss
---     ghc-options:    DPH_OPTIONS -fno-liberate-case
+Executable dph-real-nbody-gloss
+    Main-is:        MainGloss.hs
+    other-modules:  Common.Dump Common.World Common.Body Common.Util 
+                     Solver Solver.ListBH.Solver
+                            Solver.NestedBH.Solver
+                            Solver.VectorBH.Solver
+                            Solver.VectorNaive.Solver
+                     Timing Points2D.Types Points2D.Generate
+                     System.Console.ParseArgs
+                     Gloss.MainArgs Gloss.Draw Gloss.Config
+    Build-depends:  DPH_DEPENDS, gloss == 1.6.*
+    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
+    ghc-options:    DPH_OPTIONS
 
 Executable dph-real-nbody
     Main-is:        MainBatch.hs
@@ -176,11 +177,4 @@ Executable dph-real-nbody
     Build-depends:  DPH_DEPENDS
     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
     ghc-options:    DPH_OPTIONS
-
--- dph-real-nbody is broken due to vectorisation error
--- *** Vectorisation error ***
---     No exact 'PData' family instance for
---         Data.Array.Parallel.PArray.Types.Wrap
---           (Data.Array.Parallel.PArray.PData.Base.PArray
---              Solver.NestedBH.Solver.V:BHTree)
 
