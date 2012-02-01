@@ -53,7 +53,10 @@ packUP xs flags
 combineUP :: Unbox a => Vector Bool -> Vector a -> Vector a -> Vector a
 {-# INLINE combineUP #-}
 combineUP flags xs ys 
-        = combine2UP tags (mkUPSelRep2 tags) xs ys
+        = checkEq (here "combineUP")
+                ("tags length /= sum of args length")
+                (Seq.length flags) (Seq.length xs + Seq.length ys)
+        $ combine2UP tags (mkUPSelRep2 tags) xs ys
         where tags = Seq.map (fromBool . not) flags
 
 
@@ -65,14 +68,17 @@ combineUP flags xs ys
 combine2UP :: Unbox a => Vector Tag -> UPSelRep2 -> Vector a -> Vector a -> Vector a
 {-# INLINE_UP combine2UP #-}
 combine2UP tags rep !xs !ys 
-        = joinD    theGang balanced
+        = checkEq (here "combine2UP")
+                ("tags length /= sum of args length")
+                (Seq.length tags) (Seq.length xs + Seq.length ys)
+        $ joinD    theGang balanced
         $ zipWithD theGang go rep
         $ splitD   theGang balanced tags
         where   go ((i,j), (m,n)) ts 
                  = Seq.combine2ByTag ts 
-                        (Seq.slice xs i m)
-                        (Seq.slice ys j n)
-    
+                        (Seq.slice (here "combine2UP") xs i m)
+                        (Seq.slice (here "combine2UP") ys j n)
+
 
 -- | Apply a worker function to correponding elements of two arrays.
 zipWithUP :: (Unbox a, Unbox b, Unbox c) 

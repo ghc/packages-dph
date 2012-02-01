@@ -182,9 +182,11 @@ repeatS k !xs = Stream next (0,k) (Exact (k*n))
 
 
 -- Take a sub-range of a vector, avoiding copying.
-slice :: Unbox a => Vector a -> Int -> Int -> Vector a
+slice :: Unbox a => String -> Vector a -> Int -> Int -> Vector a
 {-# INLINE_U slice #-}
-slice xs i n = V.slice i n xs
+slice here xs i n 
+        = B.checkSlice here (V.length xs) i n
+        $ V.slice i n xs
 
 
 -- Take a sub-range of a vector, avoiding copying, without bounds checks.

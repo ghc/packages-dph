@@ -190,9 +190,9 @@ chunk !ussegd !nStart !nElems is_last
                   Seq.write msources' 0 (Seq.index (here "chunk") sources (k - left_len))
 
             -- Copy out array lengths for this chunk.
-            Seq.copy (Seq.mdrop left_len mlengths') (Seq.slice lengths k (k'-k))
-            Seq.copy (Seq.mdrop left_len mstarts')  (Seq.slice  starts k (k'-k))
-            Seq.copy (Seq.mdrop left_len msources') (Seq.slice sources k (k'-k))
+            Seq.copy (Seq.mdrop left_len mlengths') (Seq.slice (here "chunk") lengths k (k'-k))
+            Seq.copy (Seq.mdrop left_len mstarts')  (Seq.slice (here "chunk")  starts k (k'-k))
+            Seq.copy (Seq.mdrop left_len msources') (Seq.slice (here "chunk") sources k (k'-k))
 
             -- If the last element is inside a segment, 
             --   then update the length to be the length of the slice.

@@ -227,7 +227,7 @@ getChunk !segd !nStart !nElems is_last
 
             -- Copy out array lengths for this chunk.
             Seq.copy (Seq.mdrop left_len mlens')
-                     (Seq.slice lens k (k'-k))
+                     (Seq.slice "getChunk" lens k (k'-k))
 
             -- If the last element is inside a segment, 
             --   then update the length to be the length of the slice.
