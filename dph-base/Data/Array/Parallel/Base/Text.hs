@@ -1,8 +1,10 @@
 -- | Utilities for defining Read\/Show instances.
-module Data.Array.Parallel.Base.Text (
-  showsApp, readApp, readsApp,
-  Read(..)
-) where
+module Data.Array.Parallel.Base.Text 
+        ( showsApp
+        , readApp
+        , readsApp
+        , Read(..))
+where
 import Text.Read
 
 showsApp :: Show a => Int -> String -> a -> ShowS
