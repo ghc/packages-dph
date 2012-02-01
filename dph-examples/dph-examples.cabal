@@ -14,15 +14,6 @@ Homepage:            http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskel
 Description:         Examples using Data Parallel Haskell
 Synopsis:            Examples using Data Parallel Haskell
 
--- Flag gloss
--- Description:        Enable graphical front ends that use the gloss library.
--- Default:            False
-
--- With these examples, 
---   the plain dph-NAME versions are parallel versions built against dph-par
---   while the dph_NAME-seq versions are sequential ones built against dph-seq
-
-
 -- Smoke ----------------------------------------------------------------------
 -- examples/smoke/data
 Executable dph-smoke-bool
@@ -153,18 +144,19 @@ Executable dph-spectral-quicksort
 
 
 -- Real -----------------------------------------------------------------------
-Executable dph-real-nbody-gloss
-     Main-is:        MainGloss.hs
-     other-modules:  Common.Dump Common.World Common.Body Common.Util 
-                     Solver Solver.ListBH.Solver
-                            Solver.NestedBH.Solver
-                            Solver.VectorBH.Solver
-                            Solver.VectorNaive.Solver
-                     Timing Points2D.Types Points2D.Generate
-                     Gloss.MainArgs Gloss.Draw Gloss.Config
-     Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.4.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*, HUnit == 1.2.*, parseargs == 0.1.*, gloss == 1.7.*
-     hs-source-dirs: lib real/NBody real/NBody/Gloss
-     ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000 -fno-liberate-case
+--Executable dph-real-nbody-gloss
+--    Main-is:        MainGloss.hs
+--    other-modules:  Common.Dump Common.World Common.Body Common.Util 
+--                     Solver Solver.ListBH.Solver
+--                            Solver.NestedBH.Solver
+--                            Solver.VectorBH.Solver
+--                            Solver.VectorNaive.Solver
+--                     Timing Points2D.Types Points2D.Generate
+--                     System.Console.ParseArgs
+--                     Gloss.MainArgs Gloss.Draw Gloss.Config
+--    Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.4.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*, HUnit == 1.2.*, gloss == 1.6.*
+--    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
+--    ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 Executable dph-real-nbody
     Main-is:        MainBatch.hs
@@ -178,11 +170,4 @@ Executable dph-real-nbody
     Build-depends:  base == 4.4.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.4.*, dph-base == 0.5.*, dph-prim-par == 0.5.*, dph-lifted-vseg == 0.5.*, HUnit == 1.2.*
     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
     ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
-
--- dph-real-nbody is broken due to vectorisation error
--- *** Vectorisation error ***
---     No exact 'PData' family instance for
---         Data.Array.Parallel.PArray.Types.Wrap
---           (Data.Array.Parallel.PArray.PData.Base.PArray
---              Solver.NestedBH.Solver.V:BHTree)
 
