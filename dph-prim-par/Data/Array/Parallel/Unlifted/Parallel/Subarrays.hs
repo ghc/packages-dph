@@ -3,9 +3,9 @@
 #include "fusion-phases.h"
 
 -- | Subarrays of flat unlifted arrays.
-module Data.Array.Parallel.Unlifted.Parallel.Subarrays (
-  dropUP
-) where
+module Data.Array.Parallel.Unlifted.Parallel.Subarrays 
+        (dropUP)
+where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
 
@@ -13,5 +13,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 dropUP :: Unbox e => Int -> Vector e -> Vector e
 {-# INLINE_UP dropUP #-}
 dropUP n xs 
-        = Seq.slice xs  (min (max 0 n)       (Seq.length xs))
-                        (min (Seq.length xs) (Seq.length xs - n)) 
+        = Seq.slice "dropUP"
+                xs  
+                (min (max 0 n)       (Seq.length xs))
+                (min (Seq.length xs) (Seq.length xs - n)) 

@@ -117,7 +117,7 @@ joinLengthD g = sumD g . lengthD
 splitAsD :: Unbox a => Gang -> Dist Int -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitAsD #-}
 splitAsD g dlen !arr 
-  = zipWithD (seqGang g) (Seq.slice arr) is dlen
+  = zipWithD (seqGang g) (Seq.slice "splitAsD" arr) is dlen
   where
     is = fst $ scanD g (+) 0 dlen
 
@@ -134,7 +134,7 @@ splitD g _ arr = splitD_impl g arr
 splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
 {-# INLINE_DIST splitD_impl #-}
 splitD_impl g !arr 
-  = generateD_cheap g (\i -> Seq.slice arr (idx i) (len i))
+  = generateD_cheap g (\i -> Seq.slice "splitD_impl" arr (idx i) (len i))
   where
     n  = Seq.length arr
     !p = gangSize g
@@ -342,7 +342,7 @@ carryD' f zero shouldCarry vec md_
              -- Allocate a mutable vector to hold the new chunk and copy
              -- source elements into it.
              mchunk' <- Seq.newM chunkLen'
-             Seq.copy mchunk' (Seq.slice chunk 0 chunkLen')
+             Seq.copy mchunk' (Seq.slice (here "carryD'") chunk 0 chunkLen')
 
              when (chunkLen' /= 0)
               $ Seq.write mchunk' 0 acc

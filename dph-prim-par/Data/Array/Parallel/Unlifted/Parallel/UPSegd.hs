@@ -200,7 +200,9 @@ replicateWithP segd !xs
   $ takeDistributed segd
   where
     rep ((dsegd,di),_)
-      = Seq.replicateSU dsegd (US.slice xs di (USegd.length dsegd))
+      = Seq.replicateSU dsegd 
+      $ US.slice (here "replicateWithP")
+                xs di (USegd.length dsegd)
 {-# INLINE_UP replicateWithP #-}
 
 
