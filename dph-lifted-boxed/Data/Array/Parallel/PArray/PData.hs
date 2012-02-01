@@ -102,4 +102,3 @@ instance (PR a, PR b) => PR (a, b) where
    = V.zip (toVectorPR as) (toVectorPR bs)
 
 
-

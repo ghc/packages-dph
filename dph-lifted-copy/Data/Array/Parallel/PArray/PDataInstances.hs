@@ -10,7 +10,7 @@ module Data.Array.Parallel.PArray.PDataInstances(
   punit,
 
   -- * Operators on arrays of tuples
-  zipPA#,  unzipPA#, zip3PA#, unzip3PA#,
+  zipPA#,  unzipPA#, zip3PA#, unzip3PA#, unzip4PA#,
   zip4PA#, zip5PA#, 
   
   -- * Operators on nested arrays
@@ -274,6 +274,11 @@ unzip3PA# :: PArray (a, b, c) -> (PArray a, PArray b, PArray c)
 {-# INLINE_PA unzip3PA# #-}
 unzip3PA# (PArray n# (P_3 xs ys zs))
   = (PArray n# xs, PArray n# ys, PArray n# zs)
+
+unzip4PA# :: PArray (a, b, c, d) -> (PArray a, PArray b, PArray c, PArray d)
+{-# INLINE_PA unzip4PA# #-}
+unzip4PA# (PArray n# (P_4 ws xs ys zs))
+  = (PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
 
 
 zip4PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray (a, b, c, d)

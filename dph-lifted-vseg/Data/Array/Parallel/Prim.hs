@@ -19,6 +19,7 @@ module Data.Array.Parallel.Prim
         , scalar_map
         , scalar_zipWith
         , scalar_zipWith3
+        , scalar_zipWith4
 
         -- Types used in the generic representation
         , Void, void, fromVoid, pvoid, pvoids#
@@ -30,7 +31,7 @@ module Data.Array.Parallel.Prim
         , (:->)(..)
         , closure,              ($:)
         , liftedClosure,        liftedApply
-        , closure1, closure2, closure3
+        , closure1, closure2, closure3, closure4
         
         -- Selectors
         , Sel2
@@ -207,6 +208,19 @@ closure3 fv fl
    in   C.closure3 fv fl'
 {-# INLINE_CLOSURE closure3 #-}
 
+{-# INLINE_CLOSURE closure4 #-}
+closure4 :: forall a b c d e.  (PA a, PA b, PA c)
+         => (a -> b -> c -> d -> e)
+         -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e)
+         -> (a :-> b :-> c :-> d :-> e)
+closure4 fv fl
+ = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e
+        fl' (I# c#) pdata1 pdata2 pdata3 pdata4
+         = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) of
+                 PArray _ pdata' -> pdata'
+                
+   in   C.closure4 fv fl'
+
 
 -- Selector functions ---------------------------------------------------------
 -- The vectoriser wants versions of these that take unboxed integers
@@ -280,6 +294,13 @@ scalar_zipWith3
 
 scalar_zipWith3 = Scalar.zipWith3
 {-# INLINE scalar_zipWith3 #-}
+
+{-# INLINE scalar_zipWith4 #-}
+scalar_zipWith4
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e)
+        => (a -> b -> c -> d -> e) -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e
+
+scalar_zipWith4 = Scalar.zipWith4
 
 
 -- Int functions --------------------------------------------------------------

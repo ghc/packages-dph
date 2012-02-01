@@ -24,6 +24,7 @@ module Data.Array.Parallel.PArray.Scalar
         , map
         , zipWith
         , zipWith3
+        , zipWith4
         
         -- * Folds
         , fold,         folds
@@ -199,6 +200,15 @@ zipWith3
 
 zipWith3 f (PArray len xs) (PArray _ ys) (PArray _ zs)
         = PArray len $ to $ U.zipWith3 f (from xs) (from ys) (from zs)
+
+-- | Zip four arrays, yielding a new array.
+{-# INLINE_PA zipWith4 #-}
+zipWith4
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e)
+        => (a -> b -> c -> d -> e) -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e
+
+zipWith4 f (PArray len ws) (PArray _ xs) (PArray _ ys) (PArray _ zs)
+        = PArray len $ to $ U.zipWith4 f (from ws) (from xs) (from ys) (from zs)
 
 
 -- Folds ----------------------------------------------------------------------

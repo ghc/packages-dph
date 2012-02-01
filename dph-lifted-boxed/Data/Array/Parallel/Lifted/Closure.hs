@@ -13,8 +13,8 @@ module Data.Array.Parallel.Lifted.Closure
         , ($:^), liftedApply
 
         -- * Closure Construction.
-        , closure1,  closure2,  closure3
-        , closure1', closure2', closure3')
+        , closure1,  closure2,  closure3,  closure4
+        , closure1', closure2', closure3', closure4')
 where
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
@@ -151,6 +151,33 @@ closure3 fv fl
    in   Clo fv_1 fl_1 ()
 {-# INLINE_CLOSURE closure3 #-}
 
+-- | Construct an arity-4 closure
+--   from lifted and unlifted versions of a primitive function.
+closure4 
+        :: forall a b c d e. (PA a, PA b, PA c)
+        => (a -> b -> c -> d -> e)
+        -> (Int -> PData a -> PData b -> PData c -> PData d -> PData e)
+        -> (a :-> b :-> c :-> d :-> e)
+        
+closure4 fv fl
+ = let  fv_1   _ xa = Clo   fv_2 fl_2 xa
+        fl_1 _ _ xs = AClo  fv_2 fl_2 xs
+
+        -----
+        fv_2 xa yb   = Clo  fv_3 fl_3 (xa, yb)
+        fl_2 _ xs ys = AClo fv_3 fl_3 (PTuple2 xs ys)
+
+        -----
+        fv_3 (xa, yb) zc           = Clo  fv_4 fl_4 ((xa, yb), zc)
+        fl_3 n (PTuple2 xs ys) zs  = AClo fv_4 fl_4 (PTuple2 (PTuple2 xs ys) zs)
+
+        -----
+        fv_4 ((xa, yb), zc)   wd        = fv xa yb zc wd
+        fl_4 n (PTuple2 (PTuple2 xs ys) zs)  ws  = fl n xs ys zs ws
+
+   in   Clo fv_1 fl_1 ()
+{-# INLINE_CLOSURE closure4 #-}
+
 
 -- Closure constructors that take PArrays -------------------------------------
 -- These versions are useful when defining prelude functions such as in 
@@ -203,6 +230,22 @@ closure3' fv fl
                  PArray _ pdata' -> pdata'
    in   closure3 fv fl'
 {-# INLINE_CLOSURE closure3' #-}
+
+
+-- | Construct an arity-3 closure.
+closure4'
+        :: forall a b c d e. (PA a, PA b, PA c) 
+        => (a -> b -> c -> d -> e)
+        -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e)
+        -> (a :-> b :-> c :-> d :-> e) 
+
+closure4' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) pdata1 pdata2 pdata3 pdata4
+         = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) (PArray n# pdata4) of
+                 PArray _ pdata' -> pdata'
+   in   closure4 fv fl'
+{-# INLINE_CLOSURE closure4' #-}
 
 
 -- PData instance for closures ------------------------------------------------

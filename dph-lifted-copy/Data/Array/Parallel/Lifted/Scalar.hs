@@ -132,6 +132,19 @@ scalar_zipWith3 f xs ys zs
         $ U.zipWith3 f (toUArray xs) (toUArray ys) (toUArray zs)
 
 
+
+
+-- | Zip four arrays, yielding a new array.
+scalar_zipWith4
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e)
+        => (a -> b -> c -> d -> e) -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e
+
+{-# INLINE_PA scalar_zipWith4 #-}
+scalar_zipWith4 f ws xs ys zs 
+        = fromUArray' (prim_lengthPA ws)
+        $ U.zipWith4 f (toUArray ws) (toUArray xs) (toUArray ys) (toUArray zs)
+
+
 -- | Left fold over an array.
 scalar_fold 
         :: Scalar a
