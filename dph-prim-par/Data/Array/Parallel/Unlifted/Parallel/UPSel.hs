@@ -75,8 +75,8 @@ data UPSel2
 --
 -- @
 --            PE0                PE1               PE2
--- tags:    [A0,A1]            [A2]              [A3,A4]
--- indices: [B0]               [B1,B2]           [B3]
+-- data_A:   [A0,A1]            [A2]              [A3,A4]
+-- data_B:   [B0]               [B1,B2]           [B3]
 -- @
 --
 --  The `UPSelRep2` contains the starting index and length of each of of these
