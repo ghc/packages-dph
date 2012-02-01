@@ -1,22 +1,23 @@
 -- | Basic functionality, imported by most modules.
-module Data.Array.Parallel.Base (
-  -- * Debugging infrastructure
-  module Data.Array.Parallel.Base.Debug,
-  module Data.Array.Parallel.Base.Config,
+module Data.Array.Parallel.Base 
+        ( -- * Debugging infrastructure
+          module Data.Array.Parallel.Base.Debug
+        , module Data.Array.Parallel.Base.Config
 
-  -- * Data constructor tags
-  module Data.Array.Parallel.Base.Util,
+          -- * Data constructor tags
+        , module Data.Array.Parallel.Base.Util
 
-  -- * Utils for defining Read\/Show instances.
-  module Data.Array.Parallel.Base.Text,
+          -- * Utils for defining Read\/Show instances.
+        , module Data.Array.Parallel.Base.Text
 
-  -- * Tracing infrastructure
-  module Data.Array.Parallel.Base.DTrace,
-  module Data.Array.Parallel.Base.TracePrim,
-  
-  -- * ST monad re-exported from GHC
-  ST(..), runST
-) where
+          -- * Tracing infrastructure
+        , module Data.Array.Parallel.Base.DTrace
+        , module Data.Array.Parallel.Base.TracePrim
+
+          -- * ST monad re-exported from GHC
+        , ST(..)
+        , runST)
+where
 import Data.Array.Parallel.Base.Debug
 import Data.Array.Parallel.Base.Config
 import Data.Array.Parallel.Base.Util

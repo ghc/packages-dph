@@ -1,40 +1,37 @@
 -- | Stream functions not implemented in @Data.Vector@
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Stream (
+module Data.Array.Parallel.Stream 
+        ( indexedS
+        , replicateEachS
+        , replicateEachRS
+        , interleaveS
+        , combine2ByTagS
+        , combineSS
+        , enumFromToEachS
+        , enumFromStepLenEachS
+        , foldSS
+        , fold1SS
+        , foldValuesR
+        , appendSS
+        , indicesSS)
+where
+import Data.Array.Parallel.Base                 (Tag)
+import qualified Data.Vector.Fusion.Stream      as S
+import Data.Vector.Fusion.Stream.Monadic        (Stream(..), Step(..))
+import Data.Vector.Fusion.Stream.Size           (Size(..))
 
-  -- * Flat stream operators
-  indexedS, replicateEachS, replicateEachRS,
-  interleaveS, combine2ByTagS,
-  enumFromToEachS, enumFromStepLenEachS,
-  
-  -- * Segmented stream operators
-  foldSS, fold1SS, combineSS, appendSS,
-  foldValuesR,
-  indicesSS
-) where
-import Data.Array.Parallel.Base ( Tag )
-import qualified Data.Vector.Fusion.Stream as S
-import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
-import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 
--- TODO: The use of INLINE pragmas in some of these function isn't consistent.
---       for indexedS and combine2ByTagS, there is an INLINE_INNER on the 'next'
---       function, but replicateEachS uses a plain INLINE and fold1SS uses
---       a hard INLINE [0]. Can we make a rule that all top-level stream functions
---       in this module have INLINE_STREAM, and all 'next' functions have
---       INLINE_INNER? If not we should document the reasons for the special cases.
---
---
--- Note: [NEVER ENTERED]
--- ~~~~~~~~~~~~~~~~~~~~~
---  Cases marked NEVER ENTERED should be unreachable, assuming there are no 
---  bugs elsewhere in the library. We used to throw an error when these
---  branches were entered, but this was confusing the simplifier. It would be 
---  better if we could put the errors back, but we'll need to check that 
---  performance does not regress when we do so.
+-- TODO: 
+--  The use of INLINE pragmas in some of these function isn't consistent.
+--  for indexedS and combine2ByTagS, there is an INLINE_INNER on the 'next'
+--  function, but replicateEachS uses a plain INLINE and fold1SS uses
+--  a hard INLINE [0]. Can we make a rule that all top-level stream functions
+--  in this module have INLINE_STREAM, and all 'next' functions have
+--  INLINE_INNER? If not we should document the reasons for the special cases.
 --
 
+-- Indexed --------------------------------------------------------------------
 -- | Tag each element of an stream with its index in that stream.
 --
 -- @
@@ -54,6 +51,7 @@ indexedS (Stream next s n) = Stream next' (0,s) n
                       Done       -> return Done
 
 
+-- Replicate ------------------------------------------------------------------
 -- | Given a stream of pairs containing a count an an element,
 --   replicate element the number of times given by the count.
 --
@@ -110,6 +108,7 @@ multSize (Max   n) k = Max   (n*k)
 multSize Unknown   _ = Unknown
 
 
+-- Interleave -----------------------------------------------------------------
 -- | Interleave the elements of two streams. We alternate between the first
 --   and second streams, stopping when we can't find a matching element.
 --
@@ -142,6 +141,7 @@ interleaveS (Stream next1 s1 n1) (Stream next2 s2 n2)
           Done        -> return Done -- NEVER ENTERED (See Note)
 
 
+-- Combine --------------------------------------------------------------------
 -- | Combine two streams, using a tag stream to tell us which of the data
 --   streams to take the next element from.
 --
@@ -185,6 +185,80 @@ combine2ByTagS (Stream next_tag s m) (Stream next0 s0 _)
             Yield x s1' -> return $ Yield x (Nothing,s,s0,s1')
 
 
+-- | Segmented Stream combine. Like `combine2ByTagS`, except that the tags select
+--   entire segments of each data stream, instead of selecting one element at a time.
+--
+-- @
+-- combineSS [True, True, False, True, False, False]
+--           [2,1,3] [10,20,30,40,50,60]
+--           [1,2,3] [11,22,33,44,55,66]
+--  = [10,20,30,11,40,50,60,22,33,44,55,66]
+-- @
+--
+--   This says take two elements from the first stream, then another one element 
+--   from the first stream, then one element from the second stream, then three
+--   elements from the first stream...
+--
+combineSS 
+        :: S.Stream Bool        -- ^ tag values
+        -> S.Stream Int         -- ^ segment lengths for first data stream
+        -> S.Stream a           -- ^ first data stream
+        -> S.Stream Int         -- ^ segment lengths for second data stream
+        -> S.Stream a           -- ^ second data stream
+        -> S.Stream a
+
+{-# INLINE_STREAM combineSS #-}
+combineSS (Stream nextf sf _) 
+          (Stream nexts1 ss1 _) (Stream nextv1 vs1 nv1)
+          (Stream nexts2 ss2 _) (Stream nextv2 vs2 nv2)
+  = Stream next (Nothing,True,sf,ss1,vs1,ss2,vs2)
+                (nv1+nv2)
+  where
+    {-# INLINE next #-}
+    next (Nothing,f,sf,ss1,vs1,ss2,vs2) =
+      do
+        r <- nextf sf
+        case r of
+          Done        -> return Done
+          Skip sf'    -> return $ Skip (Nothing,f,sf',ss1,vs1,ss2,vs2) 
+          Yield c sf'
+            | c ->
+              do
+                r <- nexts1 ss1
+                case r of
+                  Done         -> return Done
+                  Skip ss1'    -> return $ Skip (Nothing,f,sf,ss1',vs1,ss2,vs2) 
+                  Yield n ss1' -> return $ Skip (Just n,c,sf',ss1',vs1,ss2,vs2) 
+
+            | otherwise ->
+              do
+                r <- nexts2 ss2
+                case r of
+                  Done         -> return Done
+                  Skip ss2'    -> return $ Skip (Nothing,f,sf,ss1,vs1,ss2',vs2) 
+                  Yield n ss2' -> return $ Skip (Just n,c,sf',ss1,vs1,ss2',vs2)
+
+    next (Just 0,_,sf,ss1,vs1,ss2,vs2) =
+         return $ Skip (Nothing,True,sf,ss1,vs1,ss2,vs2)
+
+    next (Just n,True,sf,ss1,vs1,ss2,vs2) =
+      do
+        r <- nextv1 vs1
+        case r of
+          Done         -> return Done
+          Skip vs1'    -> return $ Skip (Just n,True,sf,ss1,vs1',ss2,vs2) 
+          Yield x vs1' -> return $ Yield x (Just (n-1),True,sf,ss1,vs1',ss2,vs2)
+
+    next (Just n,False,sf,ss1,vs1,ss2,vs2) =
+      do
+        r <- nextv2 vs2
+        case r of
+          Done         -> return Done
+          Skip vs2'    -> return $ Skip (Just n,False,sf,ss1,vs1,ss2,vs2') 
+          Yield x vs2' -> return $ Yield x (Just (n-1),False,sf,ss1,vs1,ss2,vs2')
+
+
+-- Enum -----------------------------------------------------------------------
 -- | Create a stream of integer ranges. The pairs in the input stream
 --   give the first and last value of each range.
 --
@@ -243,6 +317,7 @@ enumFromStepLenEachS len (Stream next s _)
       = return $ Yield from (Just (from+step,step,n-1),s)
 
 
+-- Fold -----------------------------------------------------------------------
 -- | Segmented Stream fold. Take segments from the given stream and fold each
 --   using the supplied function and initial element. 
 --
@@ -319,79 +394,42 @@ fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
                          in r `seq` return (Skip (Just (n-1),Just r,ss,vs'))
 
 
--- | Segmented Stream combine. Like `combine2ByTagS`, except that the tags select
---   entire segments of each data stream, instead of selecting one element at a time.
+-- | Segmented Stream fold, with a fixed segment length.
+-- 
+--   Like `foldSS` but use a fixed length for each segment.
 --
--- @
--- combineSS [True, True, False, True, False, False]
---           [2,1,3] [10,20,30,40,50,60]
---           [1,2,3] [11,22,33,44,55,66]
---  = [10,20,30,11,40,50,60,22,33,44,55,66]
--- @
---
---   This says take two elements from the first stream, then another one element 
---   from the first stream, then one element from the second stream, then three
---   elements from the first stream...
---
-combineSS 
-        :: S.Stream Bool        -- ^ tag values
-        -> S.Stream Int         -- ^ segment lengths for first data stream
-        -> S.Stream a           -- ^ first data stream
-        -> S.Stream Int         -- ^ segment lengths for second data stream
-        -> S.Stream a           -- ^ second data stream
+foldValuesR 
+        :: (a -> b -> a)        -- ^ function to perform the fold
+        -> a                    -- ^ initial element for fold
+        -> Int                  -- ^ length of each segment
+        -> S.Stream b           -- ^ data stream
         -> S.Stream a
 
-{-# INLINE_STREAM combineSS #-}
-combineSS (Stream nextf sf _) 
-          (Stream nexts1 ss1 _) (Stream nextv1 vs1 nv1)
-          (Stream nexts2 ss2 _) (Stream nextv2 vs2 nv2)
-  = Stream next (Nothing,True,sf,ss1,vs1,ss2,vs2)
-                (nv1+nv2)
+{-# INLINE_STREAM foldValuesR #-}
+foldValuesR f z segSize (Stream nextv vs nv) =
+  Stream next (segSize,z,vs) (nv `divSize` segSize)
   where
-    {-# INLINE next #-}
-    next (Nothing,f,sf,ss1,vs1,ss2,vs2) =
+    {-# INLINE next #-}  
+    next (0,x,vs) = return $ Yield x (segSize,z,vs)
+
+    next (n,x,vs) =
       do
-        r <- nextf sf
+        r <- nextv vs
         case r of
           Done        -> return Done
-          Skip sf'    -> return $ Skip (Nothing,f,sf',ss1,vs1,ss2,vs2) 
-          Yield c sf'
-            | c ->
-              do
-                r <- nexts1 ss1
-                case r of
-                  Done         -> return Done
-                  Skip ss1'    -> return $ Skip (Nothing,f,sf,ss1',vs1,ss2,vs2) 
-                  Yield n ss1' -> return $ Skip (Just n,c,sf',ss1',vs1,ss2,vs2) 
-
-            | otherwise ->
-              do
-                r <- nexts2 ss2
-                case r of
-                  Done         -> return Done
-                  Skip ss2'    -> return $ Skip (Nothing,f,sf,ss1,vs1,ss2',vs2) 
-                  Yield n ss2' -> return $ Skip (Just n,c,sf',ss1,vs1,ss2',vs2)
-
-    next (Just 0,_,sf,ss1,vs1,ss2,vs2) =
-         return $ Skip (Nothing,True,sf,ss1,vs1,ss2,vs2)
-
-    next (Just n,True,sf,ss1,vs1,ss2,vs2) =
-      do
-        r <- nextv1 vs1
-        case r of
-          Done         -> return Done
-          Skip vs1'    -> return $ Skip (Just n,True,sf,ss1,vs1',ss2,vs2) 
-          Yield x vs1' -> return $ Yield x (Just (n-1),True,sf,ss1,vs1',ss2,vs2)
-
-    next (Just n,False,sf,ss1,vs1,ss2,vs2) =
-      do
-        r <- nextv2 vs2
-        case r of
-          Done         -> return Done
-          Skip vs2'    -> return $ Skip (Just n,False,sf,ss1,vs1,ss2,vs2') 
-          Yield x vs2' -> return $ Yield x (Just (n-1),False,sf,ss1,vs1,ss2,vs2')
+          Skip    vs' -> return $ Skip (n,x,vs')
+          Yield y vs' -> let r = f x y
+                         in r `seq` return (Skip ((n-1),r,vs'))
 
 
+-- | Divide a size hint by a scalar.
+divSize :: Size -> Int -> Size
+divSize (Exact n) k = Exact (n `div` k)
+divSize (Max   n) k = Max   (n `div` k)
+divSize Unknown   _ = Unknown
+
+
+-- Append ---------------------------------------------------------------------
 -- | Segmented Strem append. Append corresponding segments from each stream.
 --
 -- @
@@ -452,41 +490,7 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
           Yield x sv2' -> return $ Yield x (False,Just (n-1),ss1,sv1,ss2,sv2')
 
 
--- | Segmented Stream fold, with a fixed segment length.
--- 
---   Like `foldSS` but use a fixed length for each segment.
---
-foldValuesR 
-        :: (a -> b -> a)        -- ^ function to perform the fold
-        -> a                    -- ^ initial element for fold
-        -> Int                  -- ^ length of each segment
-        -> S.Stream b           -- ^ data stream
-        -> S.Stream a
-
-{-# INLINE_STREAM foldValuesR #-}
-foldValuesR f z segSize (Stream nextv vs nv) =
-  Stream next (segSize,z,vs) (nv `divSize` segSize)
-  where
-    {-# INLINE next #-}  
-    next (0,x,vs) = return $ Yield x (segSize,z,vs)
-
-    next (n,x,vs) =
-      do
-        r <- nextv vs
-        case r of
-          Done        -> return Done
-          Skip    vs' -> return $ Skip (n,x,vs')
-          Yield y vs' -> let r = f x y
-                         in r `seq` return (Skip ((n-1),r,vs'))
-
-
--- | Divide a size hint by a scalar.
-divSize :: Size -> Int -> Size
-divSize (Exact n) k = Exact (n `div` k)
-divSize (Max   n) k = Max   (n `div` k)
-divSize Unknown   _ = Unknown
-
-
+-- Indices --------------------------------------------------------------------
 -- | Segmented Stream indices.
 -- 
 -- @
@@ -523,3 +527,12 @@ indicesSS n i (Stream next s _) =
       | k > 0     = return $ Yield i (i+1,Just (k-1),s)
       | otherwise = return $ Skip    (0  ,Nothing   ,s)
 
+
+
+-- Note: [NEVER ENTERED]
+-- ~~~~~~~~~~~~~~~~~~~~~
+--  Cases marked NEVER ENTERED should be unreachable, assuming there are no 
+--  bugs elsewhere in the library. We used to throw an error when these
+--  branches were entered, but this was confusing the simplifier. It would be 
+--  better if we could put the errors back, but we'll need to check that 
+--  performance does not regress when we do so.
