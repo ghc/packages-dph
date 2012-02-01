@@ -2,7 +2,7 @@
 {-# OPTIONS -fvectorise #-}
 module Vectorised (treeReversePA) where
 import Data.Array.Parallel
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Int  as I
 import Data.Array.Parallel.Prelude.Bool
 import qualified Prelude as P
 
@@ -17,7 +17,7 @@ treeReversePA ps
 treeReverse :: [:Int:] -> [:Int:]
 {-# NOINLINE treeReverse #-}
 treeReverse xx
-        | lengthP xx == 1
+        | lengthP xx I.== 1
         = xx
         
         | otherwise
