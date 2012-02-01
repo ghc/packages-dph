@@ -4,14 +4,14 @@
 module Vectorised (test) where
 import Data.Array.Parallel              hiding (Bool, True, False, not, fromBool, toBool)
 import Data.Array.Parallel.Prelude      hiding (Bool, True, False, not, fromBool, toBool)
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Int  as I
 import qualified Prelude        as P
         
 data Bool = True | False
 
 toBool :: Int -> Bool
 toBool n
- | n == 0       = False
+ | n I.== 0     = False
  | otherwise    = True
 
 fromBool :: Bool -> Int

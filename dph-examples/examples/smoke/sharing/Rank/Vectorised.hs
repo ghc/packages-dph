@@ -2,7 +2,7 @@
 {-# OPTIONS -fvectorise #-}
 module Vectorised (ranksPA) where
 import Data.Array.Parallel
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Int  as I
 import Data.Array.Parallel.Prelude.Bool
 import qualified Prelude as P
 
@@ -13,6 +13,6 @@ ranksPA ps = toPArrayP (ranks (fromPArrayP ps))
 
 
 ranks :: [:Int:] -> [:Int:]
-ranks arr  = [: lengthP [: a | a <- arr, a < b :] | b <- arr :]
+ranks arr  = [: lengthP [: a | a <- arr, a I.< b :] | b <- arr :]
 {-# NOINLINE ranks #-}
 

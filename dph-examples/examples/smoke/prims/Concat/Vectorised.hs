@@ -5,7 +5,7 @@ module Vectorised
         (test0, test1, test2, test3, test4)
 where
 import Data.Array.Parallel
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Int  as I
 import qualified Prelude as P
 
 arr2   :: [:[:Int:]:]
@@ -29,10 +29,10 @@ test2   = toPArrayP test2'
 
 
 test3'  :: [:Int:]
-test3'  = concatP [: mapP (+1) x | x <- [: [:1, 2:], [:3, 4:] :] :]
+test3'  = concatP [: mapP (I.+ 1) x | x <- [: [:1, 2:], [:3, 4:] :] :]
 test3   = toPArrayP test3'
 
 
 test4'   :: [:Int:]
-test4'   = concatP (mapP (mapP (+1)) arr2)
+test4'   = concatP (mapP (mapP (I.+ 1)) arr2)
 test4    = toPArrayP test4'

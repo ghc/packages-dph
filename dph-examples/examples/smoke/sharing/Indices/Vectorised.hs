@@ -3,7 +3,7 @@
 {-# OPTIONS -fvectorise #-}
 module Vectorised (indicesPA, indices) where
 import Data.Array.Parallel
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Int  as I
 import Data.Array.Parallel.Prelude.Bool
 import qualified Prelude as P
 
@@ -20,7 +20,7 @@ indices arr ixs
 {-# NOINLINE treeLookup #-}
 treeLookup :: [:Int:] -> [:Int:] -> [:Int:]
 treeLookup table xx
- | lengthP xx == 1
+ | lengthP xx I.== 1
  = [: table !: (xx !: 0) :]
         
  | otherwise

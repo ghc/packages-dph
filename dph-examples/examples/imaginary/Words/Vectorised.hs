@@ -7,7 +7,7 @@ module Vectorised
 where
 import qualified Data.Array.Parallel.Prelude.Word8	as W
 import Data.Array.Parallel.Prelude.Word8		(Word8)
-import Data.Array.Parallel.Prelude.Int
+import Data.Array.Parallel.Prelude.Int                  as I
 import Data.Array.Parallel
 
 import qualified Prelude as Prel
@@ -39,7 +39,7 @@ plusState str1 str2
 
 joinEmpty :: [:[:Word8:]:] -> [:[:Word8:]:]
 joinEmpty ws 
-	| lengthP ws == 1 && lengthP (ws !: 0) == 0	= [::]
+	| lengthP ws I.== 1 && lengthP (ws !: 0) I.== 0	= [::]
 	| otherwise					= ws
 
 
@@ -55,12 +55,12 @@ stateOfString :: String -> State
 stateOfString str
  = let 	len	= lengthP str
    	result
-	 | len == 0	= Chunk [::]
-	 | len == 1	= stateOfChar (str !: 0)
+	 | len I.== 0	= Chunk [::]
+	 | len I.== 1	= stateOfChar (str !: 0)
 	 | otherwise	
 	 =  let	half	= len `div` 2
-		s1	= sliceP 0    half         str
-		s2	= sliceP half (len - half) str
+		s1	= sliceP 0    half           str
+		s2	= sliceP half (len I.- half) str
 	    in	plusState (stateOfString s1) (stateOfString s2)
     in	result
 
@@ -70,11 +70,11 @@ countWordsOfState :: State -> Int
 countWordsOfState state
  = case state of
 	Chunk c		-> wordsInChunkArr c
-	Seg c1 ws c2 	-> wordsInChunkArr c1 + lengthP ws + wordsInChunkArr c2
+	Seg c1 ws c2 	-> wordsInChunkArr c1 I.+ lengthP ws I.+ wordsInChunkArr c2
 	
 wordsInChunkArr :: [:Word8:] -> Int
 wordsInChunkArr arr
-	| lengthP arr == 0	= 0
+	| lengthP arr I.== 0	= 0
 	| otherwise		= 1
 
 
