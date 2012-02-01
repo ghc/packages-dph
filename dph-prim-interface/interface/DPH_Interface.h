@@ -122,11 +122,6 @@ replicate_rs :: Elt a => Int -> Array a -> Array a
   . replicate_s segd (replicate k x) 
   = replicate (elementsSegd segd) x
 
-"replicate_s/replicate_s"  
-  forall segd1 segd2 arr
-  . replicate_s segd1 (replicate_s segd2 arr)
-  = replicate_s (segd1 `plusSegd` segd2) arr
-
 "replicate_s->replicate_rs" 
   forall n m idxs nm xs
   . replicate_s (mkSegd (replicate n m) idxs nm) xs
