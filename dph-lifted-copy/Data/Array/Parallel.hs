@@ -411,10 +411,10 @@ replicateP n e  = runST (do
 --  cycle                     -- parallel arrays must be finite
 
 takeP   :: Int -> [:a:] -> [:a:]
-takeP n  = sliceP 0 (n - 1)
+takeP n  = sliceP 0 n
 
 dropP     :: Int -> [:a:] -> [:a:]
-dropP n a  = sliceP n (lengthP a - 1) a
+dropP n a  = sliceP n (lengthP a - n) a
 
 splitAtP      :: Int -> [:a:] -> ([:a:],[:a:])
 splitAtP n xs  = (takeP n xs, dropP n xs)
