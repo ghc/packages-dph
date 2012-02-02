@@ -93,9 +93,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
 
   -- * I\/O
   UIO(..)
-
-) where
-
+) 
+where
 import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Base ( Tag, checkEq, ST )
 import qualified Data.Array.Parallel.Base       as B
@@ -129,6 +128,7 @@ import Prelude
                 maximum, minimum,
                 zip, unzip, zip3, unzip3,
                 enumFromTo, enumFromThenTo )
+
 import qualified Prelude
 import qualified System.Random as R
 import Foreign hiding ( new )
@@ -137,36 +137,37 @@ import Control.Monad
 
 here s = "Data.Array.Parallel.Unlifted.Sequential.Flat." Prelude.++ s
 
-
+-------------------------------------------------------------------------------
 new :: Unbox a => Int -> (forall s. MVector s a -> ST s ()) -> Vector a
+new n p 
+ = V.create 
+ $ do   v <- M.new n
+        p v
+        return v
 {-# INLINE new #-}
-new n p = V.create (do
-                      v <- M.new n
-                      p v
-                      return v)
 
 
 newM :: Unbox a => Int -> ST s (MVector s a)
-{-# INLINE newM #-}
 newM = M.new
+{-# INLINE newM #-}
 
 
 -- Yield an array of units 
 units :: Int -> Vector ()
-{-# INLINE units #-}
 units n = replicate n ()
+{-# INLINE units #-}
                         
 
 -- Interleave the elements of two arrays
 interleave :: Unbox e => Vector e -> Vector e -> Vector e
-{-# INLINE_U interleave #-}
 interleave xs ys = unstream (interleaveS (stream xs) (stream ys))
+{-# INLINE_U interleave #-}
 
 
 -- Repeat an array @n@ times
 repeat :: Unbox e => Int -> Vector e -> Vector e
-{-# INLINE_U repeat #-}
 repeat n xs = unstream (repeatS n xs)
+{-# INLINE_U repeat #-}
 
 
 repeatS :: Unbox e => Int -> Vector e -> S.Stream e
@@ -183,72 +184,80 @@ repeatS k !xs = Stream next (0,k) (Exact (k*n))
 
 -- Take a sub-range of a vector, avoiding copying.
 slice :: Unbox a => String -> Vector a -> Int -> Int -> Vector a
-{-# INLINE_U slice #-}
 slice here xs i n 
         = B.checkSlice here (V.length xs) i n
         $ V.slice i n xs
+{-# INLINE_U slice #-}
 
 
 -- Take a sub-range of a vector, avoiding copying, without bounds checks.
 unsafeSlice :: Unbox a => Vector a -> Int -> Int -> Vector a
-{-# INLINE_U unsafeSlice #-}
 unsafeSlice xs i n = V.unsafeSlice i n xs
+{-# INLINE_U unsafeSlice #-}
 
--- 
+
 index :: Unbox a => String -> Vector a -> Int -> a
 index here vec ix
         = B.check here (V.length vec) ix
         $ V.unsafeIndex vec ix
+{-# INLINE_U index #-}
 
 
 -- Copy out a subrange of a vector.
 extract :: Unbox a => Vector a -> Int -> Int -> Vector a
 {-# INLINE_U extract #-}
-extract xs i n = force (V.slice i n xs)
+extract xs i n 
+        = force (V.slice i n xs)
 
 
 -- Copy out a subrange of a vector, without bounds checks.
 unsafeExtract :: Unbox a => Vector a -> Int -> Int -> Vector a
-{-# INLINE_U unsafeExtract #-}
 unsafeExtract xs i n = force (V.unsafeSlice i n xs)
+{-# INLINE_U unsafeExtract #-}
 
 
 mupdate :: Unbox e => MVector s e -> Vector (Int,e) -> ST s ()
+mupdate marr xs 
+        = MG.update marr (stream xs)
 {-# INLINE_U mupdate #-}
-mupdate marr xs = MG.update marr (stream xs)
 
 
 mpermute :: Unbox e => MVector s e -> Vector e -> Vector Int -> ST s ()
+mpermute marr xs is 
+        = MG.update marr (stream (zip is xs))
 {-# INLINE_U mpermute #-}
-mpermute marr xs is = MG.update marr (stream (zip is xs))
 
 
 permute :: Unbox e => Vector e -> Vector Int -> Vector e
 {-# INLINE_U permute #-}
-permute xs is = create (do
-                          v <- M.new (length xs)
-                          mpermute v xs is
-                          return v)
+permute xs is 
+ = create 
+ $ do   v <- M.new (length xs)
+        mpermute v xs is
+        return v
 
 
 bpermute :: Unbox e => Vector e -> Vector Int -> Vector e
-{-# INLINE_U bpermute #-}
 bpermute = backpermute
+{-# INLINE_U bpermute #-}
 
 
 mbpermute :: (Unbox e, Unbox d) => (e -> d) -> Vector e -> Vector Int -> Vector d
+mbpermute f es is
+        = unstream (mbpermuteS f es (stream is))
 {-# INLINE_STREAM mbpermute #-}
-mbpermute f es is  = unstream (mbpermuteS f es (stream is))
 
 
 bpermuteS :: Unbox e => Vector e -> S.Stream Int -> S.Stream e
+bpermuteS !a s 
+        = S.map (a!) s
 {-# INLINE_STREAM bpermuteS #-}
-bpermuteS !a s = S.map (a!) s
 
 
 mbpermuteS:: Unbox e => (e -> d) -> Vector e -> S.Stream Int -> S.Stream d
+mbpermuteS f !a 
+        = S.map (f . (a!))
 {-# INLINE_STREAM mbpermuteS #-}
-mbpermuteS f !a = S.map (f . (a!))
 
 
 -- Default back permute
@@ -264,120 +273,125 @@ bpermuteDft :: Unbox e
 	    -> (Int -> e)		        -- initialiser function
 	    -> Vector (Int,e)	        	-- index-value pairs
 	    -> Vector e
+bpermuteDft n init
+        = update (map init (enumFromN 0 n))
 {-# INLINE_U bpermuteDft #-}
-bpermuteDft n init = update (map init (enumFromN 0 n))
 
 
 -- Extract all elements from an array according to a given flag array
 pack:: Unbox e => Vector e -> Vector Bool -> Vector e
-{-# INLINE_U pack #-}
 pack xs = map fst . filter snd . zip xs
+{-# INLINE_U pack #-}
 
 
 combine :: Unbox a
 	 => Vector Bool -> Vector a -> Vector a -> Vector a
+combine bs
+        = combine2ByTag (map (\b -> if b then 0 else 1) bs)
 {-# INLINE combine #-}
-combine bs = combine2ByTag (map (\b -> if b then 0 else 1) bs)
 
 
 combine2ByTag :: Unbox a => Vector Tag -> Vector a -> Vector a -> Vector a
-{-# INLINE_U combine2ByTag #-}
 combine2ByTag ts xs ys
   = checkEq (here "combine2ByTag")
             ("tags length /= sum of args length")
             (length ts) (length xs + length ys)
   $ unstream (combine2ByTagS (stream ts) (stream xs) (stream ys))
+{-# INLINE_U combine2ByTag #-}
 
 
 -- Array reduction proceeding from the left
 foldl :: Unbox a => (b -> a -> b) -> b -> Vector a -> b
-{-# INLINE_U foldl #-}
 foldl = foldl'
+{-# INLINE_U foldl #-}
 
 
 -- Array reduction proceeding from the left for non-empty arrays
 foldl1 :: Unbox a => (a -> a -> a) -> Vector a -> a
-{-# INLINE_U foldl1 #-}
 foldl1 = foldl1'
+{-# INLINE_U foldl1 #-}
+
 
 -- Array reduction that requires an associative combination function with its
 -- unit
 fold :: Unbox a => (a -> a -> a) -> a -> Vector a -> a
-{-# INLINE_U fold #-}
 fold = foldl
+{-# INLINE_U fold #-}
 
 
 -- Reduction of a non-empty array which requires an associative combination
 -- function
 fold1 :: Unbox a => (a -> a -> a) -> Vector a -> a
-{-# INLINE_U fold1 #-}
 fold1 = foldl1
+{-# INLINE_U fold1 #-}
 
 
 foldl1Maybe :: Unbox a => (a -> a -> a) -> Vector a -> Maybe a
-{-# INLINE_U foldl1Maybe #-}
 foldl1Maybe f xs = foldl' join Nothing xs
   where
     {-# INLINE join #-}
     join Nothing  y = Just $! y
     join (Just x) y = Just $! f x y
+{-# INLINE_U foldl1Maybe #-}
 
 
 fold1Maybe :: Unbox a => (a -> a -> a) -> Vector a -> Maybe a
-{-# INLINE_U fold1Maybe #-}
 fold1Maybe = foldl1Maybe
+{-# INLINE_U fold1Maybe #-}
+
 
 -- Prefix scan proceedings from left to right
 scanl :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Vector a -> Vector b
-{-# INLINE_U scanl #-}
 scanl = prescanl'
+{-# INLINE_U scanl #-}
 
 
 -- Prefix scan of a non-empty array proceeding from left to right
 scanl1 :: Unbox a => (a -> a -> a) -> Vector a -> Vector a
-{-# INLINE_U scanl1 #-}
 scanl1 = scanl1'
+{-# INLINE_U scanl1 #-}
 
 
 -- Prefix scan proceeding from left to right that needs an associative
 -- combination function with its unit
 scan :: Unbox a => (a -> a -> a) -> a -> Vector a -> Vector a
-{-# INLINE_U scan #-}
 scan = scanl
+{-# INLINE_U scan #-}
 
 
 -- Prefix scan of a non-empty array proceeding from left to right that needs
 -- an associative combination function
 scan1 :: Unbox a => (a -> a -> a) -> Vector a -> Vector a
-{-# INLINE_U scan1 #-}
 scan1 = scanl1
+{-# INLINE_U scan1 #-}
 
 
 scanRes :: Unbox a => (a -> a -> a) -> a -> Vector a -> (Vector a,a)
+scanRes f z xs 
+ = let  ys = scanl' f z xs
+   in   (unsafeInit ys, unsafeLast ys)
 {-# INLINE_U scanRes #-}
-scanRes f z xs = let ys = scanl' f z xs
-                 in
-                 (unsafeInit ys, unsafeLast ys)
 
 
 fsts :: (Unbox a, Unbox b) => Vector (a,b) -> Vector a
-{-# INLINE_STREAM fsts #-}
 fsts (VBase.V_2 _ xs ys) = xs
+{-# INLINE_STREAM fsts #-}
 
 
 snds :: (Unbox a, Unbox b) => Vector (a,b) -> Vector b
-{-# INLINE_STREAM snds #-}
 snds (VBase.V_2 _ xs ys) = ys
+{-# INLINE_STREAM snds #-}
 
 
 zip :: (Unbox a, Unbox b) => Vector a -> Vector b -> Vector (a,b)
-{-# INLINE_STREAM zip #-}
 zip !xs !ys = V.zip xs ys
+{-# INLINE_STREAM zip #-}
 
 
 unzip :: (Unbox a, Unbox b) => Vector (a,b) -> (Vector a, Vector b)
-{-# INLINE_STREAM unzip #-}
 unzip ps = V.unzip ps
+{-# INLINE_STREAM unzip #-}
+
 
 {-# RULES
 
@@ -395,73 +409,83 @@ unzip ps = V.unzip ps
 
 zip3    :: (Unbox a, Unbox b, Unbox c)
         => Vector a -> Vector b -> Vector c -> Vector (a,b,c)
+zip3 !xs !ys !zs 
+        = V.zip3 xs ys zs
 {-# INLINE_STREAM zip3 #-}
-zip3 !xs !ys !zs = V.zip3 xs ys zs
 
 
 unzip3  :: (Unbox a, Unbox b, Unbox c)
         => Vector (a,b,c) -> (Vector a, Vector b, Vector c)
-{-# INLINE_STREAM unzip3 #-}
 unzip3 ps = V.unzip3 ps
+{-# INLINE_STREAM unzip3 #-}
 
 
 enumFromStepLen :: Int -> Int -> Int -> Vector Int
-{-# INLINE_U enumFromStepLen #-}
 enumFromStepLen = enumFromStepN
+{-# INLINE_U enumFromStepLen #-}
 
 
 enumFromToEach :: Int -> Vector (Int,Int) -> Vector Int
+enumFromToEach n 
+        = unstream . enumFromToEachS n . stream
 {-# INLINE_U enumFromToEach #-}
-enumFromToEach n = unstream . enumFromToEachS n . stream
 
 
 enumFromStepLenEach :: Int -> Vector Int -> Vector Int -> Vector Int -> Vector Int
-{-# INLINE_U enumFromStepLenEach #-}
 enumFromStepLenEach len starts steps lens
-  = unstream $ enumFromStepLenEachS len $ stream $ V.zip3 starts steps lens
+        = unstream 
+        $ enumFromStepLenEachS len 
+        $ stream 
+        $ V.zip3 starts steps lens
+{-# INLINE_U enumFromStepLenEach #-}
 
 
 random :: (Unbox a, R.Random a, R.RandomGen g) => Int -> g -> Vector a
-{-# INLINE_U random #-}
 random n = unstream . randomS n
+{-# INLINE_U random #-}
 
 
 randomR :: (Unbox a, R.Random a, R.RandomGen g) => Int -> (a,a) -> g -> Vector a
-{-# INLINE_U randomR #-}
 randomR n r = unstream . randomRS n r
+{-# INLINE_U randomR #-}
 
 
 randomS :: (R.RandomGen g, R.Random a) => Int -> g -> S.Stream a
-{-# INLINE_STREAM randomS #-}
-randomS n g = Stream step (g,n) (Exact n)
+randomS n g 
+  = Stream step (g,n) (Exact n)
   where
     {-# INLINE step #-}
     step (g,0) = return Done
     step (g,n) = let (x,g') = R.random g
                  in return $ Yield x (g',n-1)
+{-# INLINE_STREAM randomS #-}
 
 
 randomRS :: (R.RandomGen g, R.Random a) => Int -> (a,a) -> g -> S.Stream a
-{-# INLINE_STREAM randomRS #-}
-randomRS n r g = Stream step (g,n) (Exact n)
+randomRS n r g 
+  = Stream step (g,n) (Exact n)
   where
     {-# INLINE step #-}
     step (g,0) = return Done
     step (g,n) = let (x,g') = R.randomR r g
                  in return $ Yield x (g',n-1)
+{-# INLINE_STREAM randomRS #-}
 
 
 mdrop :: Unbox a => Int -> MVector s a -> MVector s a
-{-# INLINE mdrop #-}
 mdrop = M.drop
+{-# INLINE mdrop #-}
 
 
 mslice :: Unbox a => Int -> Int -> MVector s a -> MVector s a
-{-# INLINE mslice #-}
 mslice = M.slice
+{-# INLINE mslice #-}
 
 
-hGetStorable :: forall a. Storable a => Handle -> IO (Storable.Vector a)
+-- IO Functions ---------------------------------------------------------------
+hGetStorable 
+        :: forall a. Storable a 
+        => Handle -> IO (Storable.Vector a)
 hGetStorable h =
   alloca $ \iptr ->
   do
@@ -473,7 +497,9 @@ hGetStorable h =
     Storable.unsafeFreeze (MStorable.take r v)
 
 
-hPutStorable :: forall a. Storable a => Handle -> Storable.Vector a -> IO ()
+hPutStorable 
+        :: forall a. Storable a
+        => Handle -> Storable.Vector a -> IO ()
 hPutStorable h xs =
   alloca $ \iptr ->
   do
@@ -486,24 +512,26 @@ hPutStorable h xs =
   where
     !n = Storable.length xs
 
+
 class Unbox a => UIO a where
   hPut :: Handle -> Vector a -> IO ()
   hGet :: Handle -> IO (Vector a)
 
 
 primPut :: (Unbox a, Storable a) => Handle -> Vector a -> IO ()
-{-# INLINE primPut #-}
 primPut h = hPutStorable h . Storable.convert
+{-# INLINE primPut #-}
 
 
 primGet :: (Unbox a, Storable a) => Handle -> IO (Vector a)
-{-# INLINE primGet #-}
 primGet = fmap convert . hGetStorable
+{-# INLINE primGet #-}
 
 
 instance UIO Int where
   {-# INLINE hPut #-}
   hPut = primPut
+
   {-# INLINE hGet #-}
   hGet = primGet
 
@@ -511,6 +539,7 @@ instance UIO Int where
 instance UIO Double where
   {-# INLINE hPut #-}
   hPut = primPut
+
   {-# INLINE hGet #-}
   hGet = primGet
 
@@ -526,21 +555,8 @@ instance (UIO a, UIO b) => UIO (a,b) where
               ys <- hGet h
               return (V.zip xs ys)
 
--- Additional types
---
 
-fromOrdering :: Ordering -> Word8
-{-# INLINE fromOrdering #-}
-fromOrdering LT = 0
-fromOrdering EQ = 1
-fromOrdering GT = 2
-
-toOrdering :: Word8 -> Ordering
-{-# INLINE toOrdering #-}
-toOrdering 0 = LT
-toOrdering 1 = EQ
-toOrdering _ = GT
-
+-- Additional Unbox instances -------------------------------------------------
 newtype instance MVector s Ordering = MV_Ordering (M.MVector s Word8)
 newtype instance Vector    Ordering = V_Ordering  (V.Vector    Word8)
 
@@ -558,18 +574,42 @@ instance MG.MVector MVector Ordering where
   {-# INLINE basicSet #-}
   {-# INLINE basicUnsafeCopy #-}
   {-# INLINE basicUnsafeGrow #-}
-  basicLength (MV_Ordering v) = MG.basicLength v
-  basicUnsafeSlice i n (MV_Ordering v) = MV_Ordering $ MG.basicUnsafeSlice i n v
-  basicOverlaps (MV_Ordering v1) (MV_Ordering v2) = MG.basicOverlaps v1 v2
-  basicUnsafeNew n = MV_Ordering `liftM` MG.basicUnsafeNew n
-  basicUnsafeReplicate n x = MV_Ordering `liftM` MG.basicUnsafeReplicate n (fromOrdering x)
-  basicUnsafeRead (MV_Ordering v) i = toOrdering `liftM` MG.basicUnsafeRead v i
-  basicUnsafeWrite (MV_Ordering v) i x = MG.basicUnsafeWrite v i (fromOrdering x)
-  basicClear (MV_Ordering v) = MG.basicClear v
-  basicSet (MV_Ordering v) x = MG.basicSet v (fromOrdering x)
-  basicUnsafeCopy (MV_Ordering v1) (MV_Ordering v2) = MG.basicUnsafeCopy v1 v2
-  basicUnsafeMove (MV_Ordering v1) (MV_Ordering v2) = MG.basicUnsafeMove v1 v2
-  basicUnsafeGrow (MV_Ordering v) n = MV_Ordering `liftM` MG.basicUnsafeGrow v n
+  basicLength (MV_Ordering v)           
+        = MG.basicLength v
+
+  basicUnsafeSlice i n (MV_Ordering v)  
+        = MV_Ordering $ MG.basicUnsafeSlice i n v
+
+  basicOverlaps (MV_Ordering v1) (MV_Ordering v2) 
+        = MG.basicOverlaps v1 v2
+
+  basicUnsafeNew n                      
+        = MV_Ordering `liftM` MG.basicUnsafeNew n
+
+  basicUnsafeReplicate n x              
+        = MV_Ordering `liftM` MG.basicUnsafeReplicate n (fromOrdering x)
+
+  basicUnsafeRead (MV_Ordering v) i     
+        = toOrdering `liftM` MG.basicUnsafeRead v i
+
+  basicUnsafeWrite (MV_Ordering v) i x  
+        = MG.basicUnsafeWrite v i (fromOrdering x)
+
+  basicClear (MV_Ordering v) 
+        = MG.basicClear v
+
+  basicSet (MV_Ordering v) x
+        = MG.basicSet v (fromOrdering x)
+
+  basicUnsafeCopy (MV_Ordering v1) (MV_Ordering v2) 
+        = MG.basicUnsafeCopy v1 v2
+
+  basicUnsafeMove (MV_Ordering v1) (MV_Ordering v2) 
+        = MG.basicUnsafeMove v1 v2
+
+  basicUnsafeGrow (MV_Ordering v) n 
+        = MV_Ordering `liftM` MG.basicUnsafeGrow v n
+
 
 instance G.Vector Vector Ordering where
   {-# INLINE basicUnsafeFreeze #-}
@@ -578,14 +618,42 @@ instance G.Vector Vector Ordering where
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_Ordering v) = V_Ordering `liftM` G.basicUnsafeFreeze v
-  basicUnsafeThaw (V_Ordering v) = MV_Ordering `liftM` G.basicUnsafeThaw v
-  basicLength (V_Ordering v) = G.basicLength v
-  basicUnsafeSlice i n (V_Ordering v) = V_Ordering $ G.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_Ordering v) i = toOrdering `liftM` G.basicUnsafeIndexM v i
-  basicUnsafeCopy (MV_Ordering mv) (V_Ordering v) = G.basicUnsafeCopy mv v
+  basicUnsafeFreeze (MV_Ordering v) 
+        = V_Ordering `liftM` G.basicUnsafeFreeze v
+
+  basicUnsafeThaw (V_Ordering v) 
+        = MV_Ordering `liftM` G.basicUnsafeThaw v
+
+  basicLength (V_Ordering v) 
+        = G.basicLength v
+
+  basicUnsafeSlice i n (V_Ordering v) 
+        = V_Ordering $ G.basicUnsafeSlice i n v
+
+  basicUnsafeIndexM (V_Ordering v) i 
+        = toOrdering `liftM` G.basicUnsafeIndexM v i
+
+  basicUnsafeCopy (MV_Ordering mv) (V_Ordering v) 
+        = G.basicUnsafeCopy mv v
+
   elemseq _ = seq
+
+
+fromOrdering :: Ordering -> Word8
+{-# INLINE fromOrdering #-}
+fromOrdering LT = 0
+fromOrdering EQ = 1
+fromOrdering GT = 2
+
+toOrdering :: Word8 -> Ordering
+{-# INLINE toOrdering #-}
+toOrdering 0 = LT
+toOrdering 1 = EQ
+toOrdering _ = GT
+
 
 instance Unbox Integer
 instance MG.MVector MVector Integer
 instance G.Vector Vector Integer
+
+

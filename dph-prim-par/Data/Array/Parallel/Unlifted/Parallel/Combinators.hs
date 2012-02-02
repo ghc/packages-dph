@@ -2,10 +2,14 @@
 #include "fusion-phases.h"
 
 -- | Parallel combinators for unlifted arrays. 
-module Data.Array.Parallel.Unlifted.Parallel.Combinators (
-  mapUP, filterUP, packUP, combineUP, combine2UP,
-  zipWithUP, foldUP, foldlUP, fold1UP, foldl1UP, scanUP
-) 
+module Data.Array.Parallel.Unlifted.Parallel.Combinators 
+        ( mapUP
+        , filterUP
+        , packUP
+        , combineUP, combine2UP
+        , zipWithUP
+        , foldUP, foldlUP, fold1UP, foldl1UP
+        , scanUP)
 where
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Unlifted.Distributed
@@ -18,18 +22,18 @@ here s = "Data.Array.Parallel.Unlifted.Parallel.Combinators." Prelude.++ s
 
 -- | Apply a worker to all elements of an array.
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
-{-# INLINE_UP mapUP #-}
 mapUP f xs 
         = splitJoinD theGang (mapD theGang (Seq.map f)) xs
+{-# INLINE_UP mapUP #-}
 
 
 -- | Keep elements that match the given predicate.
 filterUP :: Unbox a => (a -> Bool) -> Vector a -> Vector a
-{-# INLINE_UP filterUP #-}
 filterUP f
         = joinD  theGang unbalanced
         . mapD   theGang (Seq.filter f)
         . splitD theGang unbalanced
+{-# INLINE_UP filterUP #-}
 
 
 -- | Take elements of an array where a flag value is true, and pack them into
@@ -38,9 +42,9 @@ filterUP f
 --   * The souce and flag arrays must have the same length, but this is not checked.
 --
 packUP :: Unbox e => Vector e -> Vector Bool -> Vector e
-{-# INLINE_UP packUP #-}
 packUP xs flags 
         = Seq.fsts . filterUP snd $ Seq.zip xs flags
+{-# INLINE_UP packUP #-}
 
 
 -- | Combine two vectors based on a selector. 
@@ -51,13 +55,13 @@ packUP xs flags
 --     but this is not checked.
 --  
 combineUP :: Unbox a => Vector Bool -> Vector a -> Vector a -> Vector a
-{-# INLINE combineUP #-}
 combineUP flags xs ys 
         = checkEq (here "combineUP")
                 ("tags length /= sum of args length")
                 (Seq.length flags) (Seq.length xs + Seq.length ys)
         $ combine2UP tags (mkUPSelRep2 tags) xs ys
         where tags = Seq.map (fromBool . not) flags
+{-# INLINE combineUP #-}
 
 
 -- | Combine two vectors based on a selector. 
@@ -66,7 +70,6 @@ combineUP flags xs ys
 --     but this is not checked.
 --
 combine2UP :: Unbox a => Vector Tag -> UPSelRep2 -> Vector a -> Vector a -> Vector a
-{-# INLINE_UP combine2UP #-}
 combine2UP tags rep !xs !ys 
         = checkEq (here "combine2UP")
                 ("tags length /= sum of args length")
@@ -78,16 +81,17 @@ combine2UP tags rep !xs !ys
                  = Seq.combine2ByTag ts 
                         (Seq.slice (here "combine2UP") xs i m)
                         (Seq.slice (here "combine2UP") ys j n)
+{-# INLINE_UP combine2UP #-}
 
 
 -- | Apply a worker function to correponding elements of two arrays.
 zipWithUP :: (Unbox a, Unbox b, Unbox c) 
           => (a -> b -> c) -> Vector a -> Vector b -> Vector c
-{-# INLINE_UP zipWithUP #-}
 zipWithUP f xs ys
         = splitJoinD theGang 
                 (mapD theGang (Seq.map (uncurry f))) 
                 (Seq.zip xs ys)
+{-# INLINE_UP zipWithUP #-}
 
 
 -- | Undirected fold.
@@ -104,11 +108,11 @@ zipWithUP f xs ys
 --   then we fold together all the results in the main thread.
 --
 foldUP  :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
-{-# INLINE_UP foldUP #-}
 foldUP f !z xs
         = foldD theGang f
                 (mapD   theGang (Seq.fold f z)
                 (splitD theGang unbalanced xs))
+{-# INLINE_UP foldUP #-}
 
 
 -- | Left fold over an array. 
@@ -121,16 +125,16 @@ foldUP f !z xs
 --     see `foldUP` for discussion.
 --
 foldlUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> a
-{-# INLINE_UP foldlUP #-}
 foldlUP f z arr 
   | Seq.null arr = z
   | otherwise    = foldl1UP f arr
+{-# INLINE_UP foldlUP #-}
 
 
 -- | Alias for `foldl1UP`
 fold1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
-{-# INLINE_UP fold1UP #-}
 fold1UP = foldl1UP
+{-# INLINE_UP fold1UP #-}
 
 
 -- | Left fold over an array, using the first element of the vector as the
@@ -144,7 +148,6 @@ fold1UP = foldl1UP
 --     see `foldUP` for discussion.
 --
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
-{-# INLINE_UP foldl1UP #-}
 foldl1UP f arr 
         = (maybe z (f z)
         . foldD  theGang combine'
@@ -156,6 +159,7 @@ foldl1UP f arr
                 combine' (Just x) Nothing  = Just x
                 combine' Nothing  (Just y) = Just y
                 combine' Nothing  Nothing  = Nothing
+{-# INLINE_UP foldl1UP #-}
 
 
 -- | Prefix scan. Similar to fold, but produce an array of the intermediate states.
@@ -166,10 +170,10 @@ foldl1UP f arr
 --     see `foldUP` for discussion.
 --
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
-{-# INLINE_UP scanUP #-}
 scanUP f z 
         = splitJoinD theGang go
         where   go xs = let (ds,zs) = unzipD $ mapD theGang (Seq.scanRes f z) xs
                             zs'     = fst (scanD theGang f z zs)
                         in  zipWithD theGang (Seq.map . f) zs' ds
+{-# INLINE_UP scanUP #-}
 

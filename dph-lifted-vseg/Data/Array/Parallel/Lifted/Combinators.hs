@@ -203,6 +203,7 @@ crossMapPP = closure2' crossMapPP_v crossMapPP_l
 
 {-# INLINE_PA crossMapPP #-}
 
+
 -- Filtering ------------------------------------------------------------------
 -- | Extract the elements from an array that match the given predicate.
 filterPP :: PA a => (a :-> Bool) :-> PArray a :-> PArray a

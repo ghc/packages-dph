@@ -8,10 +8,16 @@
 --  thread.
 --
 -- /TODO:/ Add facilities for implementing parallel scans etc.
-module Data.Array.Parallel.Unlifted.Distributed.DistST (
-  DistST, stToDistST, distST_, distST, runDistST, runDistST_seq, traceDistST,
-  myIndex, myD, readMyMD, writeMyMD
-) where
+module Data.Array.Parallel.Unlifted.Distributed.DistST 
+        ( DistST
+        , stToDistST
+        , distST_, distST
+        , runDistST, runDistST_seq
+        , traceDistST
+        , myIndex
+        , myD
+        , readMyMD, writeMyMD)
+where
 import Data.Array.Parallel.Base (ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Types (DT(..), Dist, MDist)
@@ -37,62 +43,62 @@ instance Monad (DistST s) where
 
 -- | Yields the index of the current thread within its gang.
 myIndex :: DistST s Int
-{-# INLINE myIndex #-}
 myIndex = DistST return
+{-# INLINE myIndex #-}
 
 
 -- | Lifts an 'ST' computation into the 'DistST' monad.
 --   The lifted computation should be data parallel.
 stToDistST :: ST s a -> DistST s a
-{-# INLINE stToDistST #-}
 stToDistST p = DistST $ \_ -> p
+{-# INLINE stToDistST #-}
 
 
 -- | Yields the 'Dist' element owned by the current thread.
 myD :: DT a => Dist a -> DistST s a
-{-# NOINLINE myD #-}
 myD dt = liftM (indexD "myD" dt) myIndex
+{-# NOINLINE myD #-}
 
 
 -- | Yields the 'MDist' element owned by the current thread.
 readMyMD :: DT a => MDist a s -> DistST s a
-{-# NOINLINE readMyMD #-}
 readMyMD mdt 
  = do	i <- myIndex
 	stToDistST $ readMD mdt i
+{-# NOINLINE readMyMD #-}
 
 
 -- | Writes the 'MDist' element owned by the current thread.
 writeMyMD :: DT a => MDist a s -> a -> DistST s ()
-{-# NOINLINE writeMyMD #-}
 writeMyMD mdt x 
  = do	i <- myIndex
 	stToDistST $ writeMD mdt i x
+{-# NOINLINE writeMyMD #-}
 
 
 -- | Execute a data-parallel computation on a 'Gang'.
 --   The same DistST comutation runs on each thread.
 distST_ :: Gang -> DistST s () -> ST s ()
-{-# INLINE distST_ #-}
 distST_ g = gangST g . unDistST
+{-# INLINE distST_ #-}
 
 
 -- | Execute a data-parallel computation, yielding the distributed result.
 distST :: DT a => Gang -> DistST s a -> ST s (Dist a)
-{-# INLINE distST #-}
 distST g p 
  = do	md <- newMD g
         distST_ g $ writeMyMD md =<< p
         unsafeFreezeMD md
+{-# INLINE distST #-}
 
 
 -- | Run a data-parallel computation, yielding the distributed result.
 runDistST :: DT a => Gang -> (forall s. DistST s a) -> Dist a
-{-# NOINLINE runDistST #-}
 runDistST g p = runST (distST g p)
+{-# NOINLINE runDistST #-}
+
 
 runDistST_seq :: forall a. DT a => Gang -> (forall s. DistST s a) -> Dist a
-{-# NOINLINE runDistST_seq #-}
 runDistST_seq g p = runST (
   do
      md <- newMD g
@@ -105,6 +111,8 @@ runDistST_seq g p = runST (
                             writeMD md i =<< unDistST p i
                             go md (i+1)
             | otherwise = return ()
+{-# NOINLINE runDistST_seq #-}
+
 
 traceDistST :: String -> DistST s ()
 traceDistST s = DistST $ \n -> traceGangST ("Worker " ++ show n ++ ": " ++ s)

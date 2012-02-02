@@ -77,7 +77,6 @@ import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified "dph-lifted-base" Data.Array.Parallel.PArray           as R
 import qualified "dph-lifted-base" Data.Array.Parallel.PArray.Reference as R
--- import qualified Debug.Trace
 
 import qualified Prelude                        as P
 import Prelude hiding 

@@ -3,16 +3,16 @@
 #include "fusion-phases.h"
 
 -- | Distribution of Virtual Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.Types.UVSegd (
-        lengthD,
-        takeLengthsD,
-        takeIndicesD,
-        takeElementsD,
-        takeStartsD,
-        takeSourcesD,
-        takeVSegidsD,
-        takeUSSegdD
-) where
+module Data.Array.Parallel.Unlifted.Distributed.Types.UVSegd 
+        ( lengthD
+        , takeLengthsD
+        , takeIndicesD
+        , takeElementsD
+        , takeStartsD
+        , takeSourcesD
+        , takeVSegidsD
+        , takeUSSegdD)
+where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd                   (UVSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
@@ -74,55 +74,55 @@ instance PprPhysical (Dist UVSegd) where
 
 -- | O(1). Yield the overall number of segments.
 lengthD :: Dist UVSegd -> Dist Int
-{-# INLINE_DIST lengthD #-}
 lengthD (DUVSegd _ ussegd) 
         = DUSegd.lengthD ussegd
+{-# INLINE_DIST lengthD #-}
 
 
 -- | O(1). Yield the lengths of the individual segments.
 takeLengthsD :: Dist UVSegd -> Dist (Vector Int)
-{-# INLINE_DIST takeLengthsD #-}
 takeLengthsD (DUVSegd _ ussegd)
         = DUSegd.takeLengthsD ussegd
+{-# INLINE_DIST takeLengthsD #-}
 
 
 -- | O(1). Yield the segment indices.
 takeIndicesD :: Dist UVSegd -> Dist (Vector Int)
-{-# INLINE_DIST takeIndicesD #-}
 takeIndicesD (DUVSegd _ ussegd)
         = DUSegd.takeIndicesD ussegd
+{-# INLINE_DIST takeIndicesD #-}
 
 
 -- | O(1). Yield the number of data elements.
 takeElementsD :: Dist UVSegd -> Dist Int
-{-# INLINE_DIST takeElementsD #-}
 takeElementsD (DUVSegd _ ussegd)
         = DUSegd.takeElementsD ussegd
+{-# INLINE_DIST takeElementsD #-}
 
 
 -- | O(1). Yield the starting indices.
 takeStartsD :: Dist UVSegd -> Dist (Vector Int)
-{-# INLINE_DIST takeStartsD #-}
 takeStartsD (DUVSegd _ ussegd)
         = DUSegd.takeStartsD ussegd
+{-# INLINE_DIST takeStartsD #-}
         
         
 -- | O(1). Yield the source ids
 takeSourcesD :: Dist UVSegd -> Dist (Vector Int)
-{-# INLINE_DIST takeSourcesD #-}
 takeSourcesD (DUVSegd _ ussegd)
         = DUSegd.takeSourcesD ussegd
+{-# INLINE_DIST takeSourcesD #-}
 
 
 -- | O(1). Yield the vsegids
 takeVSegidsD :: Dist UVSegd -> Dist (Vector Int)
-{-# INLINE_DIST takeVSegidsD #-}
 takeVSegidsD (DUVSegd vsegids _)
         = vsegids
+{-# INLINE_DIST takeVSegidsD #-}
 
 
 -- | O(1). Yield the USSegd
 takeUSSegdD :: Dist UVSegd -> Dist USSegd
-{-# INLINE_DIST takeUSSegdD #-}
 takeUSSegdD (DUVSegd _ ussegd)
         = ussegd
+{-# INLINE_DIST takeUSSegdD #-}

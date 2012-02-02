@@ -160,7 +160,8 @@ singletonl :: PA a => PArray a -> PArray (PArray a)
 singletonl = lift1 singleton
 
 
--- | O(n). Define an array of the given size, that maps all elements to the same value.
+-- | O(n). Define an array of the given size, that maps all elements to the same
+--         value.
 replicate :: PA a => Int -> a -> PArray a
 replicate n@(I# n#) x
         = PArray n# $ fromVectorPA $ V.replicate n x
@@ -232,21 +233,22 @@ unconcat arr1 arr2
 --   in the flat data array, else `error`
 nestUSegd :: PA a => U.Segd -> PArray a -> PArray (PArray a)
 nestUSegd segd (PArray n# pdata)
-        | U.elementsSegd segd     == I# n#
-        , I# n2#                <- U.lengthSegd segd
-        = PArray n2#
-        $ fromVectorPA 
-        $ V.zipWith
-                (\start len@(I# len#) -> PArray len# $ fromVectorPA $ V.slice start len (toVectorPA pdata))
-                (V.convert $ U.indicesSegd segd)
-                (V.convert $ U.lengthsSegd segd)
+ | U.elementsSegd segd   == I# n#
+ , I# n2#                <- U.lengthSegd segd
+ = PArray n2#
+ $ fromVectorPA 
+ $ V.zipWith
+        (\start len@(I# len#) -> PArray len# 
+                        $ fromVectorPA $ V.slice start len (toVectorPA pdata))
+        (V.convert $ U.indicesSegd segd)
+        (V.convert $ U.lengthsSegd segd)
 
-        | otherwise
-        = error $ unlines
-                [ "Data.Array.Parallel.PArray.nestSegd: number of elements defined by "
-                        ++ "segment descriptor and data array do not match"
-                , " length of segment desciptor = " ++ show (U.elementsSegd segd)
-                , " length of data array        = " ++ show (I# n#) ]
+ | otherwise
+ = error $ unlines
+        [ "Data.Array.Parallel.PArray.nestSegd: number of elements defined by "
+                ++ "segment descriptor and data array do not match"
+        , " length of segment desciptor = " ++ show (U.elementsSegd segd)
+        , " length of data array        = " ++ show (I# n#) ]
 {-# NOINLINE nestUSegd #-}
 
 
@@ -319,7 +321,8 @@ slice start len arr
 -- | Extract some slices from some arrays.
 --   The arrays of starting indices and lengths must themselves
 --   have the same length.
-slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
+slicel  :: PA a 
+        => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
 slicel  = lift3 slice
 
 
@@ -364,7 +367,8 @@ packByTag (PArray n1# xs) tags tag
         , "  flags length = " ++ (show $ U.length tags) ]
 
  | otherwise
- = let  xs'      = V.ifilter (\i _ -> U.index "packByTag" tags i == tag) $ toVectorPA xs
+ = let  xs'      = V.ifilter (\i _ -> U.index "packByTag" tags i == tag) 
+                 $ toVectorPA xs
         !(I# n') = V.length xs'
    in   PArray n' $ fromVectorPA xs'
 
@@ -409,7 +413,8 @@ zip (PArray n1# pdata1) (PArray _ pdata2)
 
 
 -- | Lifted zip
-zipl    :: (PA a, PA b) => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
+zipl    :: (PA a, PA b) 
+        => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
 zipl    = lift2 zip
 
 

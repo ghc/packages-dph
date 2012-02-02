@@ -33,7 +33,8 @@ instance (Show a, PA a)
         = render 
         $ brackets 
         $ text "|"
-                <> (hcat $ punctuate comma $ map (text . show) $ V.toList $ toVectorPA pdata)
+                <> (hcat $ punctuate comma 
+                         $ map (text . show) $ V.toList $ toVectorPA pdata)
                 <> text "|"
 
 
@@ -42,7 +43,8 @@ instance  (PprVirtual a, PA a)
  pprv (PArray _ pdata)
         = brackets 
         $ text "|"
-                <> (hcat $ punctuate comma $ map pprv $ V.toList $ toVectorPA pdata)
+                <> (hcat $ punctuate comma 
+                         $ map pprv $ V.toList $ toVectorPA pdata)
                 <> text "|"
 
 

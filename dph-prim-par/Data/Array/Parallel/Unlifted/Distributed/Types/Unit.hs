@@ -41,5 +41,5 @@ instance DT () where
 
 -- | Yield a distributed unit.
 unitD :: Gang -> Dist ()
-{-# INLINE_DIST unitD #-}
 unitD = DUnit . gangSize
+{-# INLINE_DIST unitD #-}

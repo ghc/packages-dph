@@ -14,8 +14,10 @@ import qualified Data.Vector.Mutable                    as MBV
 import Prelude                                          as P
 import Control.Monad
 
+
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Vector." P.++ s
+
 
 instance Unbox a => DT (V.Vector a) where
   data Dist  (Vector a)   = DVector  !(Dist  Int)   !(BV.Vector      (Vector a))

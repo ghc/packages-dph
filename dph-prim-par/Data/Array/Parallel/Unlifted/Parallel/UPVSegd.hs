@@ -3,43 +3,43 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Parallel virtual segment descriptors.
-module Data.Array.Parallel.Unlifted.Parallel.UPVSegd (
-        -- * Types
-        UPVSegd,
+module Data.Array.Parallel.Unlifted.Parallel.UPVSegd 
+        ( -- * Types
+          UPVSegd
 
-        -- * Consistency check
-        valid,
-        
-        -- * Constructors
-        mkUPVSegd,
-        fromUPSegd,
-        fromUPSSegd,
-        empty,
-        singleton,
-        replicated,
+          -- * Consistency check
+        , valid
+
+          -- * Constructors
+        , mkUPVSegd
+        , fromUPSegd
+        , fromUPSSegd
+        , empty
+        , singleton
+        , replicated
         
         -- * Predicates
-        isManifest,
-        isContiguous,
+        , isManifest
+        , isContiguous
 
         -- * Projections
-        length,
-        takeVSegids, takeVSegidsRedundant,
-        takeUPSSegd, takeUPSSegdRedundant,
-        takeLengths,
-        getSeg,
+        , length
+        , takeVSegids, takeVSegidsRedundant
+        , takeUPSSegd, takeUPSSegdRedundant
+        , takeLengths
+        , getSeg
 
         -- * Demotion
-        demoteToUPSSegd,
-        unsafeDemoteToUPSegd,
+        , demoteToUPSSegd
+        , unsafeDemoteToUPSegd
 
         -- * Operators
-        updateVSegs,
-        updateVSegsReachable,
+        , updateVSegs
+        , updateVSegsReachable
 
-        appendWith,
-        combine2,
-) where
+        , appendWith
+        , combine2)
+where
 import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.UPSel              (UPSel2)
 import Data.Array.Parallel.Unlifted.Parallel.UPSSegd            (UPSSegd)
@@ -60,9 +60,6 @@ here s = "Data.Array.Parallel.Unlifted.Parallel.UPVSegd." Prelude.++ s
 -- | A parallel virtual segment descriptor is an extension of `UPSSegd`
 --   that explicitly represents sharing of data between multiple segments.
 --   
---   * TODO: It would probably be better to represent the vsegids as a lens (function)
---           instead of a vector of segids. Much of the time the vsegids are just [0..n] 
---
 data UPVSegd 
         = UPVSegd 
         { upvsegd_manifest      :: !Bool
@@ -80,27 +77,27 @@ data UPVSegd
         , upvsegd_upssegd_redundant     :: UPSSegd              -- LAZY FIELD
         , upvsegd_upssegd_culled        :: UPSSegd              -- LAZY FIELD
         
-          -- IMPORTANT:
-          -- When vsegids are transformed due to a segmented replication operation, 
-          -- if some of the segment lengths were zero, then we will end up with 
-          -- physical segments that are unreachable from the vsegids.
-          -- 
-          -- For some operations (like indexing) the fact that we have unreachable
-          -- psegids doesn't matter, but for others (like segmented fold) it does.
-          -- The problem is that we perform segmented fold by first folding all 
-          -- the physical segments, then replicating the results according to the 
-          -- vsegids. If no vsegids referenced a physical segment then we didn't 
-          -- need to fold it.
-          -- 
-          -- When vsegids are updated the version that may have unreachable psegs
-          -- is stored in the vsegids_redundant and upssegd_redundant. The _culled
-          -- versions are then set to a SUSPENDED call to callOnVSegids. If no
-          -- consumers every demand the culled version then we never need to compute
-          -- it.
-          -- 
-          -- The vsegids_redundant field must also be lazy (no bang) because when it
-          -- has the value (V.enumFromTo 0 (len - 1)) we want to avoid building the
-          -- enumeration unless it's strictly demanded.
+        -- IMPORTANT:
+        -- When vsegids are transformed due to a segmented replication operation, 
+        -- if some of the segment lengths were zero, then we will end up with 
+        -- physical segments that are unreachable from the vsegids.
+        -- 
+        -- For some operations (like indexing) the fact that we have unreachable
+        -- psegids doesn't matter, but for others (like segmented fold) it does.
+        -- The problem is that we perform segmented fold by first folding all 
+        -- the physical segments, then replicating the results according to the 
+        -- vsegids. If no vsegids referenced a physical segment then we didn't 
+        -- need to fold it.
+        -- 
+        -- When vsegids are updated the version that may have unreachable psegs
+        -- is stored in the vsegids_redundant and upssegd_redundant. The _culled
+        -- versions are then set to a SUSPENDED call to callOnVSegids. If no
+        -- consumers every demand the culled version then we never need to compute
+        -- it.
+        -- 
+        -- The vsegids_redundant field must also be lazy (no bang) because when it
+        -- has the value (V.enumFromTo 0 (len - 1)) we want to avoid building the
+        -- enumeration unless it's strictly demanded.
         }
         deriving (Show)
 
@@ -129,8 +126,10 @@ valid UPVSegd{} = True
 
 -- | O(1). Construct a new virtual segment descriptor.
 mkUPVSegd
-        :: Vector Int   -- ^ Array saying which physical segment to use for each virtual segment.
-        -> UPSSegd      -- ^ Scattered segment descriptor defining the physical segments.
+        :: Vector Int   -- ^ Array saying which physical segment to use for
+                        --   each virtual segment.
+        -> UPSSegd      -- ^ Scattered segment descriptor defining the physical
+                        --   segments.
         -> UPVSegd
 
 mkUPVSegd vsegids ussegd

@@ -68,37 +68,38 @@ mkPNestedPA vsegd pdatas segd pdata
    in   fromArrPRepr $ mkPNested vsegd pdatas' segd pdata'
 
 
-{-# INLINE_PA concatPA #-}
 concatPA        :: PA a => PData (PArray a) -> PData a
 concatPA arr
  = fromArrPRepr $ concatPR $ toArrPRepr arr
+{-# INLINE_PA concatPA #-}
  
  
-{-# INLINE_PA unconcatPA #-}
 unconcatPA      :: (PA a, PA b) => PData (PArray a) -> PData b -> PData (PArray b)
 unconcatPA arr1 arr2
  = fromArrPRepr $ unconcatPR (toArrPRepr arr1) (toArrPRepr arr2)
+{-# INLINE_PA unconcatPA #-}
 
 
-{-# INLINE_PA concatlPA #-}
 concatlPA       :: PA a => PData (PArray (PArray a)) -> PData (PArray a)
 concatlPA arr
  = fromArrPRepr $ concatlPR (toArrPRepr arr)
+{-# INLINE_PA concatlPA #-}
 
 
-{-# INLINE_PA appendlPA #-}
 appendlPA       :: PA a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
 appendlPA arr1 arr2
  = fromArrPRepr $ appendlPR (toArrPRepr arr1) (toArrPRepr arr2)
+{-# INLINE_PA appendlPA #-}
 
 
-{-# INLINE_PA indexlPA #-}
 indexlPA        :: PA a => PData (PArray a) -> PData Int -> PData a
 indexlPA arr ixs
  = fromArrPRepr $ indexlPR (toArrPRepr arr) ixs
+{-# INLINE_PA indexlPA #-}
 
-{-# INLINE_PA slicelPA #-}
+
 slicelPA        :: PA a => PData Int -> PData Int -> PData (PArray a) -> PData (PArray a)
 slicelPA starts lens arr
  = fromArrPRepr $ slicelPR starts lens (toArrPRepr arr)
+{-# INLINE_PA slicelPA #-}
 

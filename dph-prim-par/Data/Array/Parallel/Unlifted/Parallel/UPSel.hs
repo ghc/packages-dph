@@ -2,24 +2,24 @@
 #include "fusion-phases.h"
 
 -- | Parallel selectors.
-module Data.Array.Parallel.Unlifted.Parallel.UPSel (
-  -- * Types
-  UPSel2,
-  UPSelRep2,
+module Data.Array.Parallel.Unlifted.Parallel.UPSel 
+        ( -- * Types
+          UPSel2
+        , UPSelRep2
 
-  -- * Operations
-  tagsUPSel2,
-  indicesUPSel2,
-  elementsUPSel2_0,
-  elementsUPSel2_1,
-  selUPSel2,
-  repUPSel2,
-  mkUPSel2,
-  mkUPSelRep2,
-  indicesUPSelRep2,
-  elementsUPSelRep2_0,
-  elementsUPSelRep2_1,
-) where
+          -- * Operations
+        , tagsUPSel2
+        , indicesUPSel2
+        , elementsUPSel2_0
+        , elementsUPSel2_1
+        , selUPSel2
+        , repUPSel2
+        , mkUPSel2
+        , mkUPSelRep2
+        , indicesUPSelRep2
+        , elementsUPSelRep2_0
+        , elementsUPSelRep2_1)
+where
 import Data.Array.Parallel.Unlifted.Sequential.Vector   as US
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Distributed
@@ -131,8 +131,9 @@ repUPSel2       = upsel2_rep
 
 
 -- Representation selectors ---------------------------------------------------
--- | Computes a `UPSelRep2` from an array of tags. This is used when parallelising
---   a `combine` operation. See the docs for `UPSelRep2` for details.
+-- | Computes a `UPSelRep2` from an array of tags.
+--   This is used when parallelising a `combine` operation.
+--   See the docs for `UPSelRep2` for details.
 mkUPSelRep2 :: Vector Tag -> UPSelRep2
 mkUPSelRep2 tags = zipD idxs lens
   where

@@ -1,28 +1,28 @@
 #include "fusion-phases.h"
 
--- | Defines the extra types we use when representing algebraic data in parallel arrays.
---   We don't store values of user defined algebraic type directly in PArrays. Instead,
---   we convert these to a generic representation and store that representation.
+-- | Defines the extra types we use when representing algebraic data in
+--   parallel arrays. We don't store values of user defined algebraic type
+--   directly in PArrays. Instead, we convert these to a generic representation
+--   and store that representation.
 --
---   Conversion to and from the generic representation is handled by the methods
---   of the PA class defined in "Data.Array.Parallel.PArray.PRepr".
+--   Conversion to and from the generic representation is handled by the
+--   methods of the PA class defined in "Data.Array.Parallel.PArray.PRepr".
 --
 ---  For further information see:
 --     "Instant Generics: Fast and Easy", Chakravarty, Ditu and Keller, 2009
 -- 
-module Data.Array.Parallel.PArray.Types (
-  -- * The Void type
-  Void,
-  void,
-  fromVoid,     
+module Data.Array.Parallel.PArray.Types 
+        ( -- * The Void type
+          Void
+        , void
+        , fromVoid
 
-  -- * Generic sums
-  Sum2(..), tagOfSum2,
-  Sum3(..), tagOfSum3,
-
-  -- * The Wrap type
-  Wrap (..)
-)
+          -- * Generic sums
+        , Sum2(..), tagOfSum2
+        , Sum3(..), tagOfSum3
+        
+          -- * The Wrap type
+        , Wrap (..))
 where
 import Data.Array.Parallel.Base (Tag)
 import Data.Array.Parallel.Pretty
@@ -75,7 +75,6 @@ instance (PprPhysical a, PprPhysical b)
         Alt2_2 y        -> text "Alt2_2" <+> pprp y
 
 
-
 -- Sum3 -----------------------------------------------------------------------
 data Sum3 a b c
         = Alt3_1 a | Alt3_2 b | Alt3_3 c
@@ -113,6 +112,4 @@ tagOfSum3 ss
 --   functions from "Data.Array.Parallel.PArray.PRepr".
 --
 newtype Wrap a = Wrap { unWrap :: a }
-
-
 

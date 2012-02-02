@@ -2,49 +2,48 @@
 #include "fusion-phases.h"
 
 -- | Parallel scattered segment descriptors.
-module Data.Array.Parallel.Unlifted.Parallel.UPSSegd (
-  -- * Types
-  UPSSegd, valid,
+module Data.Array.Parallel.Unlifted.Parallel.UPSSegd 
+        ( -- * Types
+          UPSSegd, valid
 
-  -- * Constructors
-  mkUPSSegd, fromUSSegd, fromUPSegd,
-  empty, singleton,
+          -- * Constructors
+        , mkUPSSegd, fromUSSegd, fromUPSegd
+        , empty, singleton
   
-  -- * Predicates
-  isContiguous,
+          -- * Predicates
+        , isContiguous
+
+          -- * Projections
+        , length
+        , takeUSSegd
+        , takeDistributed
+        , takeLengths
+        , takeIndices
+        , takeElements
+        , takeStarts
+        , takeSources
+        , getSeg
   
-  -- * Projections
-  length,
-  takeUSSegd,
-  takeDistributed,
-  takeLengths,
-  takeIndices,
-  takeElements,
-  takeStarts,
-  takeSources,
-  getSeg,
-  
-  -- * Append
-  appendWith,
-  
-  -- * Segmented Folds
-  foldWithP,
-  fold1WithP,
-  sumWithP,
-  foldSegsWithP,  
-) where
-import Data.Array.Parallel.Pretty                                       hiding (empty)
+          -- * Append
+        , appendWith  
+
+          -- * Segmented Folds
+        , foldWithP
+        , fold1WithP
+        , sumWithP
+        , foldSegsWithP)
+where
+import Data.Array.Parallel.Pretty                                 hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
-import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector,  MVector, Unbox)
-import Data.Array.Parallel.Unlifted.Vectors                             (Vectors, Unboxes)
-
-import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd           as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd        as DUSSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as US
-import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
+import Data.Array.Parallel.Unlifted.Parallel.UPSegd               (UPSegd)
+import Data.Array.Parallel.Unlifted.Sequential.USSegd             (USSegd)
+import Data.Array.Parallel.Unlifted.Sequential.Vector             (Vector,  MVector, Unbox)
+import Data.Array.Parallel.Unlifted.Vectors                       (Vectors, Unboxes)
+import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd     as UPSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd  as DUSSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd   as USSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector   as US
+import qualified Data.Array.Parallel.Unlifted.Sequential          as Seq
 import Control.Monad.ST
 import Prelude hiding (length)
 
@@ -288,7 +287,6 @@ foldSegsWithP
         -> (USSegd -> Vectors a -> Vector a)
         -> UPSSegd -> Vectors a -> Vector a
 
-{-# INLINE_UP foldSegsWithP #-}
 foldSegsWithP fElem fSeg segd xss 
  = dcarry `seq` drs `seq` 
    runST (do
@@ -307,6 +305,7 @@ foldSegsWithP fElem fSeg segd xss
                  | otherwise = 1
 
            in  ((k, US.take n rs), US.drop n rs)
+{-# INLINE_UP foldSegsWithP #-}
 
 
 fixupFold
@@ -316,7 +315,6 @@ fixupFold
         -> Dist (Int,Vector a)
         -> ST s ()
 
-{-# NOINLINE fixupFold #-}
 fixupFold f !mrs !dcarry = go 1
   where
     !p = gangSize theGang
@@ -329,3 +327,5 @@ fixupFold f !mrs !dcarry = go 1
                 go (i + 1)
       where
         (k,c) = indexD (here "fixupFold") dcarry i
+{-# NOINLINE fixupFold #-}
+

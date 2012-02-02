@@ -1,9 +1,10 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Distribution of values of primitive types.
-module Data.Array.Parallel.Unlifted.Distributed.Types.Prim (
-        DPrim(..), DT(..), Dist(..)
-)
+module Data.Array.Parallel.Unlifted.Distributed.Types.Prim 
+        ( DPrim (..)
+        , DT    (..)
+        , Dist  (..))
 where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Unlifted.Distributed.Gang
@@ -37,48 +38,48 @@ class Unbox e => DPrim e where
 
 -- | Get the member corresponding to a thread index.
 primIndexD :: DPrim a => String -> Dist a -> Int -> a
-{-# INLINE primIndexD #-}
 primIndexD str = (V.index (str P.++ "/primIndexD")) . unDPrim
+{-# INLINE primIndexD #-}
 
 
 -- | Create a new distributed value, having as many members as threads
 --   in the given 'Gang'.
 primNewMD :: DPrim a => Gang -> ST s (MDist a s)
-{-# INLINE primNewMD #-}
 primNewMD = liftM mkMDPrim . MV.new . gangSize
+{-# INLINE primNewMD #-}
 
 
 -- | Read the member of a distributed value corresponding to the given thread index.
 primReadMD :: DPrim a => MDist a s -> Int -> ST s a
-{-# INLINE primReadMD #-}
 primReadMD = MV.read . unMDPrim
+{-# INLINE primReadMD #-}
 
 
 -- | Write the member of a distributed value corresponding to the given thread index.
 primWriteMD :: DPrim a => MDist a s -> Int -> a -> ST s ()
-{-# INLINE primWriteMD #-}
 primWriteMD = MV.write . unMDPrim
+{-# INLINE primWriteMD #-}
 
 
 -- | Freeze a mutable distributed value to an immutable one.
 --   You promise not to update the mutable one any further.
 primUnsafeFreezeMD :: DPrim a => MDist a s -> ST s (Dist a)
-{-# INLINE primUnsafeFreezeMD #-}
 primUnsafeFreezeMD = liftM mkDPrim . V.unsafeFreeze . unMDPrim
+{-# INLINE primUnsafeFreezeMD #-}
 
 
 -- | Get the size of a distributed value, that is, the number of threads
 --   in the gang that it was created for.
 primSizeD :: DPrim a => Dist a -> Int
-{-# INLINE primSizeD #-}
 primSizeD = V.length . unDPrim
+{-# INLINE primSizeD #-}
 
 
 -- | Get the size of a distributed mutable value, that is, the number of threads
 --   in the gang it was created for.
 primSizeMD :: DPrim a => MDist a s -> Int
-{-# INLINE primSizeMD #-}
 primSizeMD = MV.length . unMDPrim
+{-# INLINE primSizeMD #-}
 
 
 -- Bool -----------------------------------------------------------------------

@@ -3,42 +3,59 @@
 --   * This is an internal API and shouldn't need to be used directly.
 --     Client programs should use "Data.Array.Parallel.Unlifted"
 --
-module Data.Array.Parallel.Unlifted.Distributed (
-  -- * Gang operations
-  Gang, forkGang, gangSize,
+module Data.Array.Parallel.Unlifted.Distributed 
+        ( -- * Gang operations
+          Gang, forkGang, gangSize
 
-  -- * Gang hacks
-  theGang,
+          -- * Gang hacks
+        , theGang
 
-  -- * Distributed types and classes
-  DT(..),
+          -- * Distributed types and classes
+        , DT(..)
 
-  -- * Higher-order combinators
-  mapD, zipWithD, foldD, scanD,
+          -- * Higher-order combinators
+        , mapD, zipWithD
+        , foldD
+        , scanD
 
-  -- * Equality
-  eqD, neqD,
+          -- * Equality
+        , eqD, neqD
 
-  -- * Distributed scalars
-  scalarD,
-  andD, orD, sumD,
+          -- * Distributed scalars
+        , scalarD
+        , andD, orD
+        , sumD
 
-  -- * Distributed pairs
-  zipD, unzipD, fstD, sndD,
+          -- * Distributed pairs
+        , zipD, unzipD
+        , fstD, sndD
 
-  -- * Distributed arrays
-  lengthD, splitLenD, splitLenIdxD,
-  splitD, splitAsD, joinLengthD, joinD, splitJoinD, joinDM,
-  glueSegdD, carryD,
-  Distribution, balanced, unbalanced,
+          -- * Distributed arrays
+        , lengthD
+        , splitLenD
+        , splitLenIdxD
+        , splitD
+        , splitAsD
+        , joinLengthD
+        , joinD
+        , splitJoinD
+        , joinDM
+        , glueSegdD
+        , carryD
 
-  -- * Permutations
-  permuteD, bpermuteD, atomicUpdateD,
+        , Distribution
+        , balanced
+        , unbalanced
 
-  -- * Debugging
-  fromD, toD, debugD
-) where
+          -- * Permutations
+        , permuteD, bpermuteD
 
+          -- * Update
+        , atomicUpdateD
+
+          -- * Debugging
+        , fromD, toD, debugD)
+where
 import Data.Array.Parallel.Unlifted.Distributed.TheGang
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars

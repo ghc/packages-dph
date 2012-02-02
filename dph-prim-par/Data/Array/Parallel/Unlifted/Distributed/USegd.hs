@@ -3,13 +3,12 @@
 #include "fusion-phases.h"
 
 -- | Operations on Distributed Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.USegd (
-        splitSegdOnSegsD,
-        splitSegdOnElemsD,
-        splitSD,
-        joinSegdD,
-        glueSegdD,
-)
+module Data.Array.Parallel.Unlifted.Distributed.USegd 
+        ( splitSegdOnSegsD
+        , splitSegdOnElemsD
+        , splitSD
+        , joinSegdD
+        , glueSegdD)
 where
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
@@ -56,7 +55,6 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.USegd." ++ s
 --  NOTE: This splitSegdOnSegsD function isn't currently used.
 --
 splitSegdOnSegsD :: Gang -> USegd -> Dist USegd
-{-# NOINLINE splitSegdOnSegsD #-}
 splitSegdOnSegsD g !segd 
   = mapD g USegd.fromLengths
   $ splitAsD g d lens
@@ -79,6 +77,7 @@ splitSegdOnSegsD g !segd
              | otherwise = go (i+1) (k-m)
       where
         m = Seq.index (here "splitSegdOnSegsD") lens i
+{-# NOINLINE splitSegdOnSegsD #-}
 
 
 -------------------------------------------------------------------------------
@@ -131,8 +130,8 @@ splitSegdOnElemsD g !segd
             (# lens, l, o #) -> ((USegd.fromLengths lens, l), o)
 
 {-# NOINLINE splitSegdOnElemsD #-}
---  NOINLINE because this function has a large body of code and we don't want to blow up
---  the client modules by inlining it everywhere.
+--  NOINLINE because this function has a large body of code and we don't want
+--  to blow up the client modules by inlining it everywhere.
 
 
 -------------------------------------------------------------------------------
@@ -297,11 +296,11 @@ search !x ys = go 0 (Seq.length ys)
 -- TODO: sequential runtime is O(segs) due to application of lengthsToUSegd
 -- 
 joinSegdD :: Gang -> Dist USegd -> USegd
-{-# INLINE_DIST joinSegdD #-}
 joinSegdD gang
         = USegd.fromLengths
         . joinD gang unbalanced
         . mapD  gang USegd.takeLengths
+{-# INLINE_DIST joinSegdD #-}
 
 
 -------------------------------------------------------------------------------
@@ -311,7 +310,6 @@ joinSegdD gang
 --   NOTE: This is runs sequentially and should only be used for testing purposes.
 --
 glueSegdD :: Gang -> Dist ((USegd, Int), Int)  -> Dist USegd
-{-# INLINE_DIST glueSegdD #-}
 glueSegdD gang bundle
  = let  !usegd           = fstD $ fstD $ bundle
         !lengths         = DUSegd.takeLengthsD usegd
@@ -330,13 +328,14 @@ glueSegdD gang bundle
         !dusegd'        = mapD gang USegd.fromLengths lengths'
 
   in    dusegd'
+{-# INLINE_DIST glueSegdD #-}
 
 
 -------------------------------------------------------------------------------
 splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
-{-# INLINE_DIST splitSD #-}
 splitSD g dsegd xs
         = splitAsD g (DUSegd.takeElementsD dsegd) xs
+{-# INLINE_DIST splitSD #-}
 
 {-# RULES
 

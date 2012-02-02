@@ -278,7 +278,8 @@ drop :: Elt a => Int -> Array a -> Array a
 
 
 -- Update =====================================================================
--- | O(n). Copy the source array in the destination, using new values for the given indices.
+-- | O(n). Copy the source array in the destination, using new values for the
+--         given indices.
 update :: Elt a => Array a -> Array (Int, a) -> Array a
 {-# INLINE_BACKEND update #-}
 
@@ -337,13 +338,13 @@ bpermuteDft:: Elt e => Int -> (Int -> e) -> Array (Int, e) -> Array e
 
 -- Zipping and Unzipping ======================================================
 -- | O(1). Zip two arrays into an array of pairs.
---         If one array is short, excess elements of the longer array are discarded.
+--   If one array is short, excess elements of the longer array are discarded.
 zip :: (Elt a, Elt b) => Array a -> Array b -> Array (a, b)
 {-# INLINE CONLIKE PHASE_BACKEND zip #-}
 
 
 -- | O(1). Zip three arrays into an array of triples.
---         If one array is short, excess elements of the longer arrays are discarded.
+--   If one array is short, excess elements of the longer arrays are discarded.
 zip3 :: (Elt a, Elt b, Elt c) => Array a -> Array b -> Array c -> Array (a, b, c)
 {-# INLINE CONLIKE PHASE_BACKEND zip3 #-}
 
@@ -495,14 +496,16 @@ fold1 :: Elt a => (a -> a -> a) -> Array a -> a
 
 
 -- | Undirected segmented fold,
---   using the first element of each segment to initialise the state of that segment.
+--    using the first element of each segment to initialise the state of
+--    that segment.
 --   Same preconditions as `fold`.
 fold1_s :: Elt a => (a -> a -> a) -> Segd -> Array a -> Array a
 {-# INLINE_BACKEND fold1_s #-}
 
 
--- | Undirected scattered segmented fold over an array, 
---   using the first element of each segment to initialise the state of that segment.
+-- | Undirected scattered segmented fold,
+---   using the first element of each segment to initialise the state of
+--    that segment.
 --   Same preconditions as `fold`.
 fold1_ss :: (Elts a, Elt a) 
          => (a -> a -> a) -> SSegd -> Arrays a -> Array a
@@ -829,7 +832,8 @@ singletonSegd :: Int -> Segd
 {-# INLINE_BACKEND singletonSegd #-}
 
 
--- | O(max(segs,threads) . log segs). Construct a `Segd` from an array of segment lengths.
+-- | O(max(segs,threads) . log segs). 
+---  Construct a `Segd` from an array of segment lengths.
 lengthsToSegd :: Array Int -> Segd
 lengthsToSegd ns = mkSegd ns (scan (+) 0 ns) (sum ns)
 {-# INLINE_BACKEND lengthsToSegd #-}
@@ -854,7 +858,8 @@ indicesSegd :: Segd -> Array Int
 elementsSegd :: Segd -> Int
 {-# INLINE_BACKEND elementsSegd #-}
 
--- | O(max(segs,threads) . log segs). Add the lengths of corresponding segments in two descriptors.
+-- | O(max(segs,threads) . log segs). 
+--   Add the lengths of corresponding segments in two descriptors.
 --
 --   @plusSegd [lens: 2 3 1] [lens: 3 1 1] = [lens: 5 4 2]@
 --    

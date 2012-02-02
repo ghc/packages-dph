@@ -3,20 +3,20 @@
 module Data.Array.Parallel.Prelude.Int 
         ( Int
           
-        -- * Ord
+          -- * Ord
         , (==), (/=), (<), (<=), (>), (>=), min, max
         , maximumP,  minimumP
         , maxIndexP, minIndexP
      
-        -- * Num
+          -- * Num
         , (+), (-), (*)
         , negate, abs
         , sumP, productP
         
-        -- * Integral
+          -- * Integral
         , div, mod, sqrt
         
-        -- * Enum
+          -- * Enum
         , enumFromToP)
 where
 -- Primitives needed by the vectoriser.

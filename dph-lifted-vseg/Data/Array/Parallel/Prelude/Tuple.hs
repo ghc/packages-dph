@@ -1,10 +1,12 @@
-module Data.Array.Parallel.Prelude.Tuple (
-  tup2, tup3, tup4, tup5
-) where
-  
+
+-- | Closure converted tuple data constructors used by the vectoriser.
+module Data.Array.Parallel.Prelude.Tuple 
+        (tup2, tup3, tup4, tup5)
+where  
 import Data.Array.Parallel.Lifted.Closure
 import Data.Array.Parallel.PArray.PRepr
 import qualified Data.Array.Parallel.PArray     as PA
+
 
 tup2    :: (PA a, PA b)
         => a :-> b :-> (a, b)

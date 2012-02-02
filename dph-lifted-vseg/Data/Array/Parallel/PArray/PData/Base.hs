@@ -1,7 +1,6 @@
 {-# OPTIONS_HADDOCK hide #-}
 {-# LANGUAGE UndecidableInstances, ParallelListComp #-}
 -- Undeciable instances only need for derived Show instance
-
 #include "fusion-phases.h"
 
 -- | Parallel array types and the PR class that works on the generic
