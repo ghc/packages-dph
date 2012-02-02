@@ -1,13 +1,13 @@
 Name:           dph-base
-Version:        0.5.2.0
+Version:        0.6.1.1
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
 Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
-Synopsis:       Common config and debugging functions for Data Parallel Haskell
-Description:    Common config and debugging functions for Data Parallel Haskell.
+Synopsis:       Data Parallel Haskell common config and debugging functions.
+Description:    Data Parallel Haskell common config and debugging functions.
 
 
 Cabal-Version:  >= 1.6
