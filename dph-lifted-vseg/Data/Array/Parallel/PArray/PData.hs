@@ -4,22 +4,21 @@
 --   This is an interface onto the internal array types and operators defined
 --   by the library, and should not normally be used by client programs.
 module Data.Array.Parallel.PArray.PData 
-        (
-        -- * Parallel array types
+        ( -- * Parallel array types
           PArray (..), PData(..), PDatas(..)
         , length, takeData
         
-        -- * PR (Parallel Representation)
+          -- * PR (Parallel Representation)
         , PR (..)        
 
-        -- * Extra conversions
+          -- * Extra conversions
         , fromListPR
         , toListPR
 
-        -- * Nested arrays
+          -- * Nested arrays
         , module Data.Array.Parallel.PArray.PData.Nested
 
-        -- * Tuple arrays
+          -- * Tuple arrays
         , module Data.Array.Parallel.PArray.PData.Tuple2
         , module Data.Array.Parallel.PArray.PData.Tuple3
         , module Data.Array.Parallel.PArray.PData.Tuple4

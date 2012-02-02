@@ -1,20 +1,18 @@
 {-# OPTIONS_GHC -fvectorise #-}
 
 -- |This module sets up the basic vectorisation map for vectorising the DPH Prelude.
-
 module Data.Array.Parallel.Prelude.Base
-  ( PArr
-  -- , ()
-  , Bool(..)
-  , Ordering(..)
-  , Word8, Int
-  , Float, Double
-  , Eq(..), Ord(..)
-  , Show
-  , Num(..)
-  )
+        ( PArr
+        -- , ()
+        , Bool(..)
+        , Ordering(..)
+        , Word8, Int
+        , Float, Double
+        , Eq(..), Ord(..)
+        , Show
+        , Num(..)
+        )
 where
-
 import Data.Array.Parallel.Prim ()       -- dependency required by the vectoriser
 
 import Data.Array.Parallel.PArr

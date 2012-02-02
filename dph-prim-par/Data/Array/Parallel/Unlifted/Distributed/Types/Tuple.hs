@@ -3,13 +3,13 @@
 #include "fusion-phases.h"
 
 -- | Distribution of Tuples
-module Data.Array.Parallel.Unlifted.Distributed.Types.Tuple (
-        -- * Pairs
-        zipD, unzipD, fstD, sndD,
+module Data.Array.Parallel.Unlifted.Distributed.Types.Tuple 
+        ( -- * Pairs
+          zipD, unzipD, fstD, sndD
         
-        -- * Triples
-        zip3D, unzip3D
-) where
+           -- * Triples
+        , zip3D, unzip3D)
+where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Pretty
@@ -17,6 +17,7 @@ import Control.Monad
 
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Tuple." ++ s
+
 
 -- Pairs ----------------------------------------------------------------------
 instance (DT a, DT b) => DT (a,b) where
@@ -64,27 +65,28 @@ instance (PprPhysical (Dist a), PprPhysical (Dist b))
 -- | Pairing of distributed values.
 --   The two values must belong to the same 'Gang'.
 zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
-{-# INLINE [0] zipD #-}
 zipD !x !y 
         = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) 
         $ DProd x y
+{-# INLINE [0] zipD #-}
+
 
 -- | Unpairing of distributed values.
 unzipD :: (DT a, DT b) => Dist (a,b) -> (Dist a, Dist b)
-{-# INLINE_DIST unzipD #-}
 unzipD (DProd dx dy) = (dx,dy)
+{-# INLINE_DIST unzipD #-}
 
 
 -- | Extract the first elements of a distributed pair.
 fstD :: (DT a, DT b) => Dist (a,b) -> Dist a
-{-# INLINE_DIST fstD #-}
 fstD = fst . unzipD
+{-# INLINE_DIST fstD #-}
 
 
 -- | Extract the second elements of a distributed pair.
 sndD :: (DT a, DT b) => Dist (a,b) -> Dist b
-{-# INLINE_DIST sndD #-}
 sndD = snd . unzipD
+{-# INLINE_DIST sndD #-}
 
 
 -- Triples --------------------------------------------------------------------
@@ -130,14 +132,14 @@ instance (DT a, DT b, DT c) => DT (a,b,c) where
 -- | Pairing of distributed values.
 -- /The two values must belong to the same/ 'Gang'.
 zip3D   :: (DT a, DT b, DT c) => Dist a -> Dist b -> Dist c -> Dist (a,b,c)
-{-# INLINE [0] zip3D #-}
 zip3D !x !y !z
         = checkEq (here "zip3DT") "Size mismatch" (sizeD x) (sizeD y) 
         $ checkEq (here "zip3DT") "Size mismatch" (sizeD x) (sizeD z) 
         $ DProd3 x y z
+{-# INLINE [0] zip3D #-}
 
 
 -- | Unpairing of distributed values.
 unzip3D  :: (DT a, DT b, DT c) => Dist (a,b,c) -> (Dist a, Dist b, Dist c)
-{-# INLINE_DIST unzip3D #-}
 unzip3D (DProd3 dx dy dz) = (dx,dy,dz)
+{-# INLINE_DIST unzip3D #-}

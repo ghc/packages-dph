@@ -1,27 +1,33 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP #-}
 
--- | Gang primitives.
---
+-- If a work request is sent to the gang while another is already running
+-- then just run it sequentially instead of dying.
 #define SEQ_IF_GANG_BUSY 1
+
+-- Trace all work requests sent to the gang.
 #define TRACE_GANG 0
 
-module Data.Array.Parallel.Unlifted.Distributed.Gang (
-  Gang, seqGang, forkGang, gangSize, gangIO, gangST, traceGang, traceGangST 
-) where
-
+-- | Gang primitives.
+module Data.Array.Parallel.Unlifted.Distributed.Gang 
+        ( Gang
+        , seqGang
+        , forkGang
+        , gangSize
+        , gangIO, gangST
+        , traceGang, traceGangST )
+where
 import GHC.IO
 import GHC.ST
-import Control.Concurrent        ( forkOn )
+import Control.Concurrent        (forkOn)
 import Control.Concurrent.MVar
-import Control.Exception         ( assert )
+import Control.Exception         (assert)
 import Control.Monad
 
 #if TRACE_GANG
-import GHC.Exts                  ( traceEvent )
+import GHC.Exts                  (traceEvent)
 import System.Time ( ClockTime(..), getClockTime )
 #endif 
-
 
 -- Requests and operations on them --------------------------------------------
 -- | The 'Req' type encapsulates work requests for individual members of a gang. 
@@ -30,9 +36,9 @@ data Req
 	--   by writing to the MVar.
 	= ReqDo	       (Int -> IO ()) (MVar ())
 
-	-- | Tell the worker that we're shutting the gang down. The worker should
-	--   signal that it's received the equest down by writing to the MVar before
-	--   returning to its caller (forkGang) 	
+	-- | Tell the worker that we're shutting the gang down.
+        --   The worker should signal that it's received the equest down by
+        --   writing to the MVar before returning to its caller (forkGang) 	
 	| ReqShutdown  (MVar ())
 
 
@@ -54,9 +60,10 @@ waitReq req
 
 -- Thread gangs and operations on them ----------------------------------------
 -- | A 'Gang' is a group of threads which execute arbitrary work requests.
-data Gang = Gang !Int           -- Number of 'Gang' threads
-                 [MVar Req]     -- One 'MVar' per thread
-                 (MVar Bool)    -- Indicates whether the 'Gang' is busy
+data Gang 
+        = Gang !Int           -- Number of 'Gang' threads
+               [MVar Req]     -- One 'MVar' per thread
+               (MVar Bool)    -- Indicates whether the 'Gang' is busy
 
 
 instance Show Gang where
@@ -84,7 +91,8 @@ gangWorker threadId varReq
 		start 	<- getGangTime
 		action threadId
 		end 	<- getGangTime
-		traceGang $ "Worker " ++ show threadId ++ " end (" ++ diffTime start end ++ ")"
+		traceGang $ "Worker " ++ show threadId 
+                          ++ " end (" ++ diffTime start end ++ ")"
 		
 		putMVar varDone ()
 		gangWorker threadId varReq
@@ -95,18 +103,19 @@ gangWorker threadId varReq
 
 
 -- | Finaliser for worker threads.
---   We want to shutdown the corresponding thread when it's MVar becomes unreachable.
---     Without this Repa programs can complain about "Blocked indefinitely on an MVar"
---     because worker threads are still blocked on the request MVars when the program ends.
---     Whether the finalizer is called or not is very racey. It happens about 1 in 10 runs
---     when for the repa-edgedetect benchmark, and less often with the others.
+--   We want to shutdown the corresponding thread when it's MVar becomes
+--   unreachable. Without this the program can compilain about 
+--   "Blocked indefinitely on an MVar" because worker threads are still
+--   blocked on the request MVars when the program ends. Whether this finalizer
+--   is called or not is very racey. It can happen 1 in 10 times, or less often.
 -- 
 --   We're relying on the comment in System.Mem.Weak that says
---    "If there are no other threads to run, the runtime system will check for runnable
---     finalizers before declaring the system to be deadlocked."
+--   "If there are no other threads to run, the runtime system will check for
+--    runnable finalizers before declaring the system to be deadlocked."
 -- 
---   If we were creating and destroying the gang cleanly we wouldn't need this, but theGang 
---     is created with a top-level unsafePerformIO. Hacks beget hacks beget hacks...
+--   If we were creating and destroying the gang cleanly we wouldn't need this,
+--   but theGang is created with a top-level unsafePerformIO.
+--   Hacks beget hacks beget hacks...
 --
 finaliseWorker :: MVar Req -> IO ()
 finaliseWorker varReq
@@ -124,7 +133,8 @@ forkGang n
 	-- Create the vars we'll use to issue work requests.
 	mvs	<- sequence . replicate n $ newEmptyMVar
 	
-	-- Add finalisers so we can shut the workers down cleanly if they become unreachable.
+	-- Add finalisers so we can shut the workers down cleanly if they
+        -- become unreachable.
 	mapM_ (\var -> addMVarFinalizer var (finaliseWorker var)) mvs
 
 	-- Create all the worker threads
@@ -143,8 +153,8 @@ gangSize (Gang n _ _) = n
 
 
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
---   If the gang is already busy then just run the action in the requesting thread. 
---
+--   If the gang is already busy then just run the action in the requesting
+--   thread. 
 gangIO	:: Gang
 	-> (Int -> IO ())
 	-> IO ()
@@ -168,11 +178,13 @@ gangIO (Gang n mvs busy) p
 gangIO (Gang n mvs busy) p = parIO n mvs p
 #endif
 
+
 -- | Issue some requests to the worker threads and wait for them to complete.
 parIO 	:: Int			-- ^ Number of threads in the gang.
 	-> [MVar Req]		-- ^ Request vars for worker threads.
-	-> (Int -> IO ())	-- ^ Action to run in all the workers, it's given the ix of
-				--   the particular worker thread it's running on.
+	-> (Int -> IO ())	-- ^ Action to run in all the workers, it's
+                                --   given the ix of the particular worker
+                                ---  thread it's running on.
 	-> IO ()
 
 parIO n mvs p 
@@ -222,8 +234,8 @@ diffTime _ _ = ""
 -- | Emit a GHC event for debugging.
 traceGang :: String -> IO ()
 traceGang _ = return ()
-
 #endif
+
 
 -- | Emit a GHC event for debugging, in the `ST` monad.
 traceGangST :: String -> ST s ()

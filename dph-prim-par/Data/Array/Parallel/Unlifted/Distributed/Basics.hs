@@ -1,9 +1,9 @@
 {-# OPTIONS -Wall -fno-warn-orphans #-}
 
 -- | Basic operations on distributed types.
-module Data.Array.Parallel.Unlifted.Distributed.Basics (
-  eqD, neqD, toD, fromD
-) where
+module Data.Array.Parallel.Unlifted.Distributed.Basics 
+        (eqD, neqD, toD, fromD)
+where
 import Data.Array.Parallel.Unlifted.Distributed.Gang 
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.Combinators 
@@ -17,13 +17,15 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Basics." ++ s
 -- | Test whether to distributed values are equal. 
 --   This requires a 'Gang' and hence can't be defined in terms of 'Eq'.
 eqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
-eqD g dx dy = andD g (zipWithD g (==) dx dy)
+eqD g dx dy 
+        = andD g (zipWithD g (==) dx dy)
 
 
 -- | Test whether to distributed values are not equal.
 --   This requires a 'Gang' and hence can't be defined in terms of 'Eq'.
 neqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
-neqD g dx dy = orD g (zipWithD g (/=) dx dy)
+neqD g dx dy 
+        = orD g (zipWithD g (/=) dx dy)
 
 
 -- | Generate a distributed value from the first @p@ elements of a list.

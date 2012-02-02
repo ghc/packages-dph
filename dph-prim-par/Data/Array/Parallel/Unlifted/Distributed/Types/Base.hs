@@ -1,16 +1,15 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
-module Data.Array.Parallel.Unlifted.Distributed.Types.Base (
-  -- * Distributable Types
-  DT(..),
+module Data.Array.Parallel.Unlifted.Distributed.Types.Base 
+        ( -- * Distributable Types
+          DT(..)
+        
+          -- * Checking
+        , checkGangD
+        , checkGangMD
 
-  -- * Checking
-  checkGangD,
-  checkGangMD,
-  
-  -- * General Operations
-  newD, 
-  debugD
-)
+          -- * General Operations
+        , newD
+        , debugD)
 where
 import Data.Array.Parallel.Unlifted.Distributed.Gang    (Gang, gangSize)
 import Data.Array.Parallel.Base
@@ -103,6 +102,7 @@ newD g mkInit =
 -- | Show all members of a distributed value.
 debugD :: DT a => Dist a -> String
 debugD d = "["
-         ++ intercalate "," [measureD (indexD (here "debugD") d i) | i <- [0 .. sizeD d-1]]
+         ++ intercalate "," [measureD (indexD (here "debugD") d i) 
+                            | i <- [0 .. sizeD d-1]]
          ++ "]"
 

@@ -18,7 +18,7 @@ import qualified Data.Array.Parallel.Unlifted           as U
 import Data.Bits
 import qualified Prelude as P
         
-
+        
 -- instances of standard type classes from the Prelude 
 {-# VECTORISE SCALAR instance Eq Bool #-}
 {-# VECTORISE SCALAR instance Ord Bool #-}

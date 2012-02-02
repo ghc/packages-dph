@@ -2,17 +2,11 @@
 #include "fusion-phases.h"
 
 -- | Parallel permutations for unlifted arrays
-module Data.Array.Parallel.Unlifted.Parallel.Permute (
-  bpermuteUP, updateUP
-) where
+module Data.Array.Parallel.Unlifted.Parallel.Permute 
+        ( bpermuteUP, updateUP)
+where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
-
-
--- | Backwards permutation.
-bpermuteUP :: Unbox a => Vector a -> Vector Int -> Vector a
-{-# INLINE_UP bpermuteUP #-}
-bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
 
 {-
   We can't support this for arbitrary types. The problem is:
@@ -31,9 +25,14 @@ bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
   atomic. Otherwise, we do a sequential update.
 -}
 
+-- | Backwards permutation.
+bpermuteUP :: Unbox a => Vector a -> Vector Int -> Vector a
+bpermuteUP as is = splitJoinD theGang (bpermuteD theGang as) is
+{-# INLINE_UP bpermuteUP #-}
+
+
 -- | Update elements in an array.
 updateUP :: forall a. Unbox a => Vector a -> Vector (Int,a) -> Vector a
-{-# INLINE_UP updateUP #-}
 updateUP as us
   {- hasAtomicWriteMU (undefined :: a) 
   = atomicUpdateD theGang (splitD theGang unbalanced as)
@@ -42,4 +41,5 @@ updateUP as us
 
   | otherwise
   = Seq.update as us
+{-# INLINE_UP updateUP #-}
 

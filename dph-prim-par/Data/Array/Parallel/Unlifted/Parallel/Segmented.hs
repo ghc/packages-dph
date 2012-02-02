@@ -23,6 +23,7 @@ import qualified Data.Vector.Fusion.Stream                              as S
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Parallel.Segmented." Prelude.++ s
 
+
 -- replicate ------------------------------------------------------------------
 -- | Segmented replication.
 --   Each element in the vector is replicated the given number of times.
@@ -32,9 +33,9 @@ here s = "Data.Array.Parallel.Unlifted.Parallel.Segmented." Prelude.++ s
 
 --   TODO: make this efficient
 replicateRSUP :: Unbox a => Int -> Vector a -> Vector a
-{-# INLINE_UP replicateRSUP #-}
 replicateRSUP n xs
         = UPSegd.replicateWithP (UPSegd.fromLengths (replicateUP (Seq.length xs) n)) xs
+{-# INLINE_UP replicateRSUP #-}
 
 
 -- Append ---------------------------------------------------------------------
@@ -46,7 +47,6 @@ appendSUP
         -> UPSegd -> Vector a
         -> Vector a
 
-{-# INLINE_UP appendSUP #-}
 appendSUP segd !xd !xs !yd !ys
   = joinD theGang balanced
   . mapD  theGang append
@@ -57,6 +57,8 @@ appendSUP segd !xd !xs !yd !ys
                       (UPSegd.takeUSegd yd) ys
                       (USegd.takeElements segd')
                       seg_off el_off
+{-# INLINE_UP appendSUP #-}
+
 
 -- append ---------------------------------------------------------------------
 appendSegS
@@ -70,7 +72,6 @@ appendSegS
         -> Int
         -> S.Stream a
 
-{-# INLINE_STREAM appendSegS #-}
 appendSegS !xd !xs !yd !ys !n seg_off el_off
   = Stream next state (Exact n)
   where
@@ -115,26 +116,27 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
         in  return $ Skip (Just (False, seg', i, j, xlens `index1` seg', n'))
 
       | otherwise = return $ Yield (ys `index2` j) (Just (True, seg, i, j+1, k-1, n'-1))
+{-# INLINE_STREAM appendSegS #-}
 
 
 -- foldR ----------------------------------------------------------------------
 -- | Regular segmented fold.
 foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
-{-# INLINE_UP foldRUP #-}
-foldRUP f z !segSize xs = 
-   joinD theGang unbalanced
-    (mapD theGang 
-      (Seq.foldlRU f z segSize)
-      (splitAsD theGang (mapD theGang (*segSize) dlen) xs))
+foldRUP f z !segSize xs 
+  = joinD theGang unbalanced
+          (mapD theGang 
+              (Seq.foldlRU f z segSize)
+              (splitAsD theGang (mapD theGang (*segSize) dlen) xs))
   where
-    noOfSegs = Seq.length xs `div` segSize
-    dlen = splitLenD theGang noOfSegs
+    noOfSegs    = Seq.length xs `div` segSize
+    dlen        = splitLenD theGang noOfSegs
+{-# INLINE_UP foldRUP #-}
 
 
 -- sumR -----------------------------------------------------------------------
 -- | Regular segmented sum.
 sumRUP :: (Num e, Unbox e) => Int -> Vector e -> Vector e
-{-# INLINE_UP sumRUP #-}
 sumRUP = foldRUP (+) 0
+{-# INLINE_UP sumRUP #-}
 
 

@@ -3,17 +3,17 @@
 module Data.Array.Parallel.Prelude.Double 
         ( Double
         
-        -- * Ord
+          -- * Ord
         , (==), (/=), (<), (<=), (>), (>=), min, max
         , maximumP,  minimumP
         , maxIndexP, minIndexP
 
-        -- * Num
+          -- * Num
         , (+), (-), (*), (/)
         , negate, abs
         , sumP, productP
         
-        -- * Floating
+          -- * Floating
         , pi
         , sqrt
         , exp, (**)
@@ -23,7 +23,7 @@ module Data.Array.Parallel.Prelude.Double
         ,  sinh,  tanh,  cosh
         , asinh, atanh, acosh
         
-        -- * RealFrac
+          -- * RealFrac
         , fromInt)
 where
 -- Primitives needed by the vectoriser.

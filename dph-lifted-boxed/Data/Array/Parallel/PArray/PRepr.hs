@@ -12,7 +12,7 @@ import Data.Vector                      (Vector)
 import Data.Word
 
 
--- Wrap
+-- Wrap -----------------------------------------------------------------------
 newtype instance PData  (Wrap a)   = PWrap  (PData  a)
 newtype instance PDatas (Wrap a)   = PWraps (PDatas a)
 
@@ -24,7 +24,7 @@ instance PA a => PR (Wrap a) where
         = V.map Wrap $ toVectorPA pdata
 
 
-------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- | Fake PRepr and PA classes.
 --   The vectoriser wants to build PA instances involving these types, 
 --   but we don't need that support for this library.
@@ -41,7 +41,7 @@ class PR (PRepr a) => PA a where
   fromArrPReprs :: PDatas (PRepr a) -> PDatas a
 
 
--- PA Functions ------------------------------------------
+-- PA Functions ---------------------------------------------------------------
 fromVectorPA    :: PA a => Vector a -> PData a
 fromVectorPA vec
         = fromArrPRepr
@@ -53,9 +53,8 @@ toVectorPA pdata
         = V.map fromPRepr
         $ toVectorPR (toArrPRepr pdata)
 
------------------------------------------------------------
 
--- Void
+-- Void -----------------------------------------------------------------------
 type instance PRepr Void
         = Void
 
@@ -68,7 +67,7 @@ instance PA Void where
   fromArrPReprs         = id
 
 
--- ()
+-- () ------------------------------------------------------------------------
 type instance PRepr ()
         = ()
 
@@ -80,7 +79,8 @@ instance PA () where
   toArrPReprs           = id
   fromArrPReprs         = id
 
--- Int
+
+-- Int ------------------------------------------------------------------------
 type instance PRepr Int
         = Int
 
@@ -92,7 +92,8 @@ instance PA Int where
   toArrPReprs           = id
   fromArrPReprs         = id
 
--- Double
+
+-- Double ---------------------------------------------------------------------
 type instance PRepr Double
         = Double
 
@@ -104,7 +105,8 @@ instance PA Double where
   toArrPReprs           = id
   fromArrPReprs         = id
 
--- Word8
+
+-- Word8 ----------------------------------------------------------------------
 type instance PRepr Word8
         = Word8
 
@@ -116,7 +118,8 @@ instance PA Word8 where
   toArrPReprs           = id
   fromArrPReprs         = id
 
--- Tuple2
+
+-- Tuple2 ---------------------------------------------------------------------
 type instance PRepr (a, b)      
         = (Wrap a, Wrap b)
 
@@ -139,7 +142,8 @@ instance (PA a, PA b) => PA (a, b) where
   fromArrPReprs (PTuple2s (PWraps as) (PWraps bs))
         = PTuple2s as bs
 
--- PArray
+
+-- PArray ---------------------------------------------------------------------
 type instance PRepr (PArray a)
         = PArray (PRepr a)
 
@@ -163,7 +167,7 @@ instance PA a => PA (PArray a) where
         = PNesteds $ V.map fromArrPRepr vec
 
 
--- Bool
+-- Bool -----------------------------------------------------------------------
 type instance PRepr Bool
         = Bool
 

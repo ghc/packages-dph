@@ -145,7 +145,6 @@ streamSegsFromVectorsUSSegd
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
    in   Stream fnSeg initState (Exact elements)
-
 {-# INLINE_STREAM streamSegsFromVectorsUSSegd #-}
 
 

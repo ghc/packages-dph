@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
--- Distribution of Maybes
+-- | Distribution of Maybes.
 module Data.Array.Parallel.Unlifted.Distributed.Types.Maybe where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Prim      ()
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base

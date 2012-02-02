@@ -2,42 +2,42 @@
 #include "fusion-phases.h"
 
 -- | Parallel segment descriptors.
-module Data.Array.Parallel.Unlifted.Parallel.UPSegd (
-  -- * Types
-  UPSegd, valid,
+module Data.Array.Parallel.Unlifted.Parallel.UPSegd 
+        ( -- * Types
+          UPSegd, valid
 
-  -- * Constructors
-  mkUPSegd, fromUSegd, 
-  empty, singleton, fromLengths,
-  
-  -- * Projections
-  length,
-  takeUSegd,
-  takeDistributed,
-  takeLengths,
-  takeIndices,
-  takeElements,
+          -- * Constructors
+        , mkUPSegd, fromUSegd
+        , empty, singleton, fromLengths
 
-  -- * Indices
-  indicesP,
+          -- * Projections
+        , length
+        , takeUSegd
+        , takeDistributed
+        , takeLengths
+        , takeIndices
+        , takeElements
+
+          -- * Indices
+        , indicesP
   
-  -- * Replicate
-  replicateWithP,
+          -- * Replicate
+        , replicateWithP
     
-  -- * Segmented Folds
-  foldWithP,
-  fold1WithP,
-  sumWithP,
-  foldSegsWithP
-) where
+          -- * Segmented Folds
+        , foldWithP
+        , fold1WithP
+        , sumWithP
+        , foldSegsWithP)
+where
 import Data.Array.Parallel.Unlifted.Distributed
-import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
-import qualified Data.Array.Parallel.Unlifted.Distributed.USegd         as USegd
-import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
-import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as US
-import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
-import Data.Array.Parallel.Pretty                                       hiding (empty)
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, MVector, Unbox)
+import Data.Array.Parallel.Unlifted.Sequential.USegd             (USegd)
+import qualified Data.Array.Parallel.Unlifted.Distributed.USegd  as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential         as Seq
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as US
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd
+import Data.Array.Parallel.Pretty                                hiding (empty)
+import Data.Array.Parallel.Unlifted.Sequential.Vector  (Vector, MVector, Unbox)
 import Control.Monad.ST
 import Prelude  hiding (length)
 

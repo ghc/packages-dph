@@ -3,13 +3,13 @@
 #include "fusion-phases.h"
 
 -- | Distribution of Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.Types.USegd (
-        mkDUSegd,
-        lengthD,
-        takeLengthsD,
-        takeIndicesD,
-        takeElementsD
-) where
+module Data.Array.Parallel.Unlifted.Distributed.Types.USegd 
+        ( mkDUSegd
+        , lengthD
+        , takeLengthsD
+        , takeIndicesD
+        , takeElementsD)
+where
 import Data.Array.Parallel.Unlifted.Distributed.Types.Base
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
@@ -87,27 +87,27 @@ mkDUSegd = DUSegd
 
 -- | O(1). Yield the overall number of segments.
 lengthD :: Dist USegd -> Dist Int
-{-# INLINE_DIST lengthD #-}
 lengthD (DUSegd lens _ _) 
         = DV.lengthD lens
+{-# INLINE_DIST lengthD #-}
 
 
 -- | O(1). Yield the lengths of the individual segments.
 takeLengthsD :: Dist USegd -> Dist (Vector Int)
-{-# INLINE_DIST takeLengthsD #-}
 takeLengthsD (DUSegd lens _ _ )
         = lens
+{-# INLINE_DIST takeLengthsD #-}
 
 
 -- | O(1). Yield the segment indices of a segment descriptor.
 takeIndicesD :: Dist USegd -> Dist (Vector Int)
-{-# INLINE_DIST takeIndicesD #-}
 takeIndicesD (DUSegd _ idxs _)
         = idxs
+{-# INLINE_DIST takeIndicesD #-}
 
 
 -- | O(1). Yield the number of data elements.
 takeElementsD :: Dist USegd -> Dist Int
-{-# INLINE_DIST takeElementsD #-}
 takeElementsD (DUSegd _ _ dns)
         = dns
+{-# INLINE_DIST takeElementsD #-}

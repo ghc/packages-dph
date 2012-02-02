@@ -2,9 +2,8 @@
 #include "fusion-phases.h"
 
 -- | Definition of the PRepr/PA family and class.
---   This module manages the conversion between the user level view of the element
---   data, and our internal generic view.
---
+--   This module manages the conversion between the user level view of the 
+--   element data, and our internal generic view.
 module Data.Array.Parallel.PArray.PRepr.Base 
         ( PRepr
         , PA (..)
@@ -170,7 +169,8 @@ appendPA xs ys
 
 
 {-# INLINE_PA appendsPA #-}
-appendsPA       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd -> PData a -> PData a
+appendsPA       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd 
+                        -> PData a -> PData a
 appendsPA segdResult segd1 xs segd2 ys
  = fromArrPRepr
  $ appendsPR segdResult segd1 (toArrPRepr xs) segd2 (toArrPRepr ys)

@@ -1,6 +1,8 @@
 {-# LANGUAGE TypeOperators, CPP #-}
 
--- | WARNING: This is a fake module and most of the functions here will just `error` if called. 
+-- | WARNING: 
+--   This is a fake module and most of the functions here will just 
+--   `error` if called. 
 --
 --   This "dph-prim-interface" module provides an API and a partial reference
 --   implentation for the unlifted array primitives used by DPH. This code is 
@@ -36,7 +38,8 @@ assert _ _ _ x = x
 
 notImplemented :: P.String -> a
 notImplemented fnName
-        = P.error $ "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted." P.++ fnName
+ = P.error $ "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted."
+   P.++ fnName
 
 
 -- Types ----------------------------------------------------------------------
@@ -217,14 +220,14 @@ data Segd
         , segd_indices  :: [Int]
         , segd_elements :: Int }
 
-mkSegd                  = Segd
-emptySegd               = Segd [] [] 0
-singletonSegd           = notImplemented "singletonSegd"
-validSegd               = notImplemented "validSegd"
-lengthSegd              = length . lengthsSegd
-lengthsSegd             = segd_lengths
-indicesSegd             = segd_indices
-elementsSegd            = segd_elements
+mkSegd                          = Segd
+emptySegd                       = Segd [] [] 0
+singletonSegd                   = notImplemented "singletonSegd"
+validSegd                       = notImplemented "validSegd"
+lengthSegd                      = length . lengthsSegd
+lengthsSegd                     = segd_lengths
+indicesSegd                     = segd_indices
+elementsSegd                    = segd_elements
 
 
 -- Scattered Segment Descriptors ----------------------------------------------
@@ -234,19 +237,19 @@ data SSegd
         , ssegd_sources :: [Int]
         , ssegd_segd    :: Segd }
 
-mkSSegd                 = SSegd
-validSSegd              = notImplemented "validSSegd"
-emptySSegd              = SSegd [] [] emptySegd
-singletonSSegd          = notImplemented "singletonSSegd"
-promoteSegdToSSegd      = notImplemented "promoteSegdToSSegd"
-isContiguousSSegd       = notImplemented "isContiguousSSegd"
-lengthOfSSegd           = lengthSegd  . ssegd_segd
-lengthsOfSSegd          = lengthsSegd . ssegd_segd
-indicesOfSSegd          = indicesSegd . ssegd_segd
-startsOfSSegd           = ssegd_starts
-sourcesOfSSegd          = ssegd_sources
-getSegOfSSegd           = notImplemented "getSegOfSSegd"
-appendSSegd             = notImplemented "appendSSegd"
+mkSSegd                         = SSegd
+validSSegd                      = notImplemented "validSSegd"
+emptySSegd                      = SSegd [] [] emptySegd
+singletonSSegd                  = notImplemented "singletonSSegd"
+promoteSegdToSSegd              = notImplemented "promoteSegdToSSegd"
+isContiguousSSegd               = notImplemented "isContiguousSSegd"
+lengthOfSSegd                   = lengthSegd  . ssegd_segd
+lengthsOfSSegd                  = lengthsSegd . ssegd_segd
+indicesOfSSegd                  = indicesSegd . ssegd_segd
+startsOfSSegd                   = ssegd_starts
+sourcesOfSSegd                  = ssegd_sources
+getSegOfSSegd                   = notImplemented "getSegOfSSegd"
+appendSSegd                     = notImplemented "appendSSegd"
 
 
 -- Virtual Segment Descriptors ------------------------------------------------
@@ -281,15 +284,15 @@ combine2VSegd                   = notImplemented "combine2VSegd"
 
 -- 2D Arrays ------------------------------------------------------------------
 class Elts a
-type Arrays a    = [[a]]
-emptys           = notImplemented "emptys"
-lengths          = notImplemented "lengths"
-singletons       = notImplemented "singletons"
-unsafeIndexs     = notImplemented "unsafeIndexs"
-unsafeIndex2s    = notImplemented "unsafeIndex2s"
-appends          = notImplemented "appends"
-fromVectors      = notImplemented "fromVectors"
-toVectors        = notImplemented "toVectors"
+type Arrays a                   = [[a]]
+emptys                          = notImplemented "emptys"
+lengths                         = notImplemented "lengths"
+singletons                      = notImplemented "singletons"
+unsafeIndexs                    = notImplemented "unsafeIndexs"
+unsafeIndex2s                   = notImplemented "unsafeIndex2s"
+appends                         = notImplemented "appends"
+fromVectors                     = notImplemented "fromVectors"
+toVectors                       = notImplemented "toVectors"
 
 
 -- Random Arrays --------------------------------------------------------------

@@ -4,26 +4,25 @@
 #include "fusion-phases.h"
 
 -- | Operations on distributed arrays.
-module Data.Array.Parallel.Unlifted.Distributed.Arrays (
-  -- * Distribution phantom parameter
-  Distribution, balanced, unbalanced,
+module Data.Array.Parallel.Unlifted.Distributed.Arrays 
+        ( -- * Distribution phantom parameter
+          Distribution, balanced, unbalanced
 
-  -- * Array Lengths
-  lengthD, splitLenD, splitLenIdxD,
-  
-  -- * Splitting and joining
-  splitAsD, splitD, joinLengthD, joinD, splitJoinD, joinDM,
+         -- * Array Lengths
+        , lengthD, splitLenD, splitLenIdxD
 
-  -- * Permutations
-  permuteD, bpermuteD,
-  
-  -- * Update
-  atomicUpdateD,
-  
-  -- * Carry
-  carryD
+         -- * Splitting and joining
+        , splitAsD, splitD, joinLengthD, joinD, splitJoinD, joinDM
 
-) where
+         -- * Permutations
+        , permuteD, bpermuteD
+
+          -- * Update
+        , atomicUpdateD
+
+          -- * Carry
+        , carryD)
+ where
 import Data.Array.Parallel.Base (ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Distributed.DistST
@@ -46,12 +45,13 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Arrays." Prelude.++ s
 data Distribution
 
 balanced :: Distribution
-{-# NOINLINE balanced #-}
 balanced   = error $ here "balanced: touched"
+{-# NOINLINE balanced #-}
+
 
 unbalanced :: Distribution
-{-# NOINLINE unbalanced #-}
 unbalanced = error $ here "unbalanced: touched"
+{-# NOINLINE unbalanced #-}
 
 
 -- Splitting and Joining array lengths ----------------------------------------
@@ -65,7 +65,6 @@ unbalanced = error $ here "unbalanced: touched"
 --      = [128,128,128,127]@
 -- 
 splitLenD :: Gang -> Int -> Dist Int
-{-# INLINE splitLenD #-}
 splitLenD g n = generateD_cheap g len
   where
     !p = gangSize g
@@ -75,6 +74,7 @@ splitLenD g n = generateD_cheap g len
     {-# INLINE [0] len #-}
     len i | i < m     = l+1
           | otherwise = l
+{-# INLINE splitLenD #-}
 
 
 -- | O(threads).
@@ -86,7 +86,6 @@ splitLenD g n = generateD_cheap g len
 --      = [(128,0),(128,128),(128,256),(127,384)]@
 --
 splitLenIdxD :: Gang -> Int -> Dist (Int, Int)
-{-# INLINE splitLenIdxD #-}
 splitLenIdxD g n = generateD_cheap g len_idx
   where
     !p = gangSize g
@@ -96,6 +95,7 @@ splitLenIdxD g n = generateD_cheap g len_idx
     {-# INLINE [0] len_idx #-}
     len_idx i | i < m     = (l+1, i*(l+1))
               | otherwise = (l,   i*l + m)
+{-# INLINE splitLenIdxD #-}
 
 
 -- | O(threads).
@@ -103,8 +103,8 @@ splitLenIdxD g n = generateD_cheap g len_idx
 --   This is implemented by reading the chunk length from each thread, 
 --   and summing them up.
 joinLengthD :: Unbox a => Gang -> Dist (Vector a) -> Int
-{-# INLINE joinLengthD #-}
 joinLengthD g = sumD g . lengthD
+{-# INLINE joinLengthD #-}
                                                
 
 -- Splitting and Joining arrays -----------------------------------------------
@@ -115,11 +115,11 @@ joinLengthD g = sumD g . lengthD
 --      = [[1 2 3] [4 5 6] [7 8] [9 0]]@
 -- 
 splitAsD :: Unbox a => Gang -> Dist Int -> Vector a -> Dist (Vector a)
-{-# INLINE_DIST splitAsD #-}
 splitAsD g dlen !arr 
   = zipWithD (seqGang g) (Seq.slice "splitAsD" arr) is dlen
   where
     is = fst $ scanD g (+) 0 dlen
+{-# INLINE_DIST splitAsD #-}
 
 
 -- | Distribute an array over a 'Gang'.
@@ -128,11 +128,11 @@ splitAsD g dlen !arr
 --         through RULES. Without it, splitJoinD would be a loop breaker.
 -- 
 splitD :: Unbox a => Gang -> Distribution -> Vector a -> Dist (Vector a)
-{-# INLINE_DIST splitD #-}
 splitD g _ arr = splitD_impl g arr
+{-# INLINE_DIST splitD #-}
+
 
 splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
-{-# INLINE_DIST splitD_impl #-}
 splitD_impl g !arr 
   = generateD_cheap g (\i -> Seq.slice "splitD_impl" arr (idx i) (len i))
   where
@@ -148,6 +148,7 @@ splitD_impl g !arr
     {-# INLINE [0] len #-}
     len i | i < m     = l+1
           | otherwise = l
+{-# INLINE_DIST splitD_impl #-}
 
 
 -- | Join a distributed array.
@@ -158,11 +159,11 @@ splitD_impl g !arr
 --         through RULES. Without it, splitJoinD would be a loop breaker.
 --
 joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
-{-# INLINE CONLIKE [1] joinD #-}
 joinD g _ darr  = joinD_impl g darr
+{-# INLINE CONLIKE [1] joinD #-}
+
 
 joinD_impl :: forall a. Unbox a => Gang -> Dist (Vector a) -> Vector a
-{-# INLINE_DIST joinD_impl #-}
 joinD_impl g !darr 
   = checkGangD (here "joinD") g darr 
   $ Seq.new n (\ma -> zipWithDST_ g (copy ma) di darr)
@@ -171,6 +172,7 @@ joinD_impl g !darr
 
     copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
     copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
+{-# INLINE_DIST joinD_impl #-}
 
 
 -- | Split a vector over a gang, run a distributed computation, then
@@ -181,23 +183,24 @@ splitJoinD
         -> (Dist (Vector a) -> Dist (Vector b))
         -> Vector a
         -> Vector b
+splitJoinD g f !xs 
+  = joinD_impl g (f (splitD_impl g xs))
 {-# INLINE_DIST splitJoinD #-}
-splitJoinD g f !xs = joinD_impl g (f (splitD_impl g xs))
 
 
 
 -- | Join a distributed array, yielding a mutable global array
 joinDM :: Unbox a => Gang -> Dist (Vector a) -> ST s (MVector s a)
+joinDM g darr 
+ = checkGangD (here "joinDM") g darr 
+ $ do   marr <- Seq.newM n
+        zipWithDST_ g (copy marr) di darr
+        return marr
+ where
+        (!di,!n) = scanD g (+) 0 $ lengthD darr
+
+        copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 {-# INLINE joinDM #-}
-joinDM g darr = checkGangD (here "joinDM") g darr $
-                do
-                  marr <- Seq.newM n
-                  zipWithDST_ g (copy marr) di darr
-                  return marr
-  where
-    (!di,!n) = scanD g (+) 0 $ lengthD darr
-    --
-    copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 
 
 {-# RULES
@@ -240,20 +243,24 @@ joinDM g darr = checkGangD (here "joinDM") g darr $
 
 -- Permutation ----------------------------------------------------------------
 -- | Permute for distributed arrays.
-permuteD :: forall a. Unbox a => Gang -> Dist (Vector a) -> Dist (Vector Int) -> Vector a
-{-# INLINE_DIST permuteD #-}
-permuteD g darr dis = Seq.new n (\ma -> zipWithDST_ g (permute ma) darr dis)
+permuteD 
+        :: forall a. Unbox a 
+        => Gang -> Dist (Vector a) -> Dist (Vector Int) -> Vector a
+permuteD g darr dis 
+  = Seq.new n (\ma -> zipWithDST_ g (permute ma) darr dis)
   where
     n = joinLengthD g darr
+
     permute :: forall s. MVector s a -> Vector a -> Vector Int -> DistST s ()
     permute ma arr is = stToDistST (Seq.mpermute ma arr is)
+{-# INLINE_DIST permuteD #-}
 
 
 -- NOTE: The bang is necessary because the array must be fully evaluated
 -- before we pass it to the parallel computation.
 bpermuteD :: Unbox a => Gang -> Vector a -> Dist (Vector Int) -> Dist (Vector a)
-{-# INLINE bpermuteD #-}
 bpermuteD g !as ds = mapD g (Seq.bpermute as) ds
+{-# INLINE bpermuteD #-}
 
 
 -- Update ---------------------------------------------------------------------
@@ -262,16 +269,15 @@ bpermuteD g !as ds = mapD g (Seq.bpermute as) ds
 -- error.
 atomicUpdateD :: forall a. Unbox a
              => Gang -> Dist (Vector a) -> Dist (Vector (Int,a)) -> Vector a
+atomicUpdateD g darr upd 
+ = runST 
+ $ do   marr <- joinDM g darr
+        mapDST_ g (update marr) upd
+        Seq.unsafeFreeze marr
+ where
+        update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()
+        update marr arr = stToDistST (Seq.mupdate marr arr)
 {-# INLINE atomicUpdateD #-}
-atomicUpdateD g darr upd = runST (
-  do
-    marr <- joinDM g darr
-    mapDST_ g (update marr) upd
-    Seq.unsafeFreeze marr
-  )
-  where
-    update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()
-    update marr arr = stToDistST (Seq.mupdate marr arr)
 
 
 -- Carry ----------------------------------------------------------------------
@@ -303,11 +309,11 @@ carryD  :: forall a
         -> (Dist (Vector a), a)
 
 carryD gang f zero shouldCarry vec
- = runST (do
-        md      <- newMD gang
+ = runST 
+ $ do   md      <- newMD gang
         acc     <- carryD' f zero shouldCarry vec md
         d       <- unsafeFreezeMD md
-        return (d, acc))
+        return (d, acc)
 
 
 carryD' :: forall a s

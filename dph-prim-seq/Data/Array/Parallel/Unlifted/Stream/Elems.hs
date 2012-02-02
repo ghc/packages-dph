@@ -32,7 +32,7 @@ streamElemsFromVector vector (Stream mkStep s0 size0)
                  
                  Skip s'        -> return $ Skip s'
                  Done           -> return Done
-
+{-# INLINE_STREAM streamElemsFromVector #-}
 
 
 -- | Take a stream of chunk and chunk element indices, look them up from

@@ -28,9 +28,10 @@
 --  operations are not supported on parallel arrays, as they would require the
 --  infinite parallel arrays: `iterate', `repeat', and `cycle'.
 --
---  UGLY HACK ALERT: Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
---                   using the type synonym 'PArr' instead of '[::]', but that would lead to
---                   significantly worse error message for end users.
+--  UGLY HACK ALERT: 
+--   Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
+--   using the type synonym 'PArr' instead of '[::]', but that would lead to
+--   significantly worse error message for end users.
 --
 module Data.Array.Parallel 
         ( module Data.Array.Parallel.Prelude

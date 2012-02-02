@@ -4,14 +4,14 @@
 --
 --   @combine [F,F,T,F,T,T] [1,2,3] [4,5,6] = [4,5,1,6,2,3]@
 --
--- This is difficult to parallelise. For each element in the result, the source 
--- array we get this element from depends on the tag values associated with 
--- all previous elements.
+-- This is difficult to parallelise. For each element in the result, the
+-- source array we get this element from depends on the tag values associated
+-- with all previous elements.
 --
--- However, if we going to perform several combines with the same tag array, we
--- can precompute a selector that tells us where to get each element. The selector
--- contains the original tags, as well as the source index telling us where to get
--- each element for the result array.
+-- However, if we going to perform several combines with the same tag array, 
+-- we can precompute a selector that tells us where to get each element. 
+-- The selector contains the original tags, as well as the source index telling
+-- us where to get each element for the result array.
 --
 -- For example:
 --
@@ -20,7 +20,8 @@
 --               = [0,1,0,2,1,2]   -- indices
 --  @
 --
---  This says get the first element from index 0 in the second array, then from index 1 in the second array,
+--  This says get the first element from index 0 in the second array, 
+--   then from index 1 in the second array,
 --  then index 0 in the first array ...
 --  
 --  The selector then consists of both the @tag@ and @indices@ arrays.
@@ -51,8 +52,8 @@ data USel2
         = USel2
         { usel2_tags      :: !(Vector Tag)
         , usel2_indices   :: !(Vector Int)
-        , usel2_elements0 :: !Int               -- ^ Number of tags with value 0.
-        , usel2_elements1 :: !Int               -- ^ Number of tags with value 1.
+        , usel2_elements0 :: !Int       -- ^ Number of tags with value 0.
+        , usel2_elements1 :: !Int       -- ^ Number of tags with value 1.
         }
 
 
