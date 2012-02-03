@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
@@ -52,19 +53,19 @@ import Data.Array.Parallel.PArray               as PA
 -- functions that convert between the source level array type [:a:] and the 
 -- PArray type which is used in the library. 
 
--- | Identity function, used as the vectorised version of fromPArrayP.
+-- | Identity function, used as the vectorised version of `fromPArrayP`.
 fromPArrayPP :: PA a => PArray a :-> PArray a
 fromPArrayPP         = closure1 (\x -> x) (\_ xs -> xs)
 {-# INLINE fromPArrayPP #-}
 
 
--- | Identity function, used as the vectorised version of toPArrayP.
+-- | Identity function, used as the vectorised version of `toPArrayP`.
 toPArrayPP :: PA a => PArray a :-> PArray a
 toPArrayPP         = closure1 (\x -> x) (\_ xs -> xs)
 {-# INLINE toPArrayPP #-}
 
 
--- | Identity function, used as the vectorised version of fromNestedPArrayP
+-- | Identity function, used as the vectorised version of `fromNestedPArrayP`
 fromNestedPArrayPP :: PA a => (PArray (PArray a) :-> PArray (PArray a))
 fromNestedPArrayPP = closure1 (\xs -> xs) (\_ xss -> xss)
 {-# INLINE fromNestedPArrayPP #-}

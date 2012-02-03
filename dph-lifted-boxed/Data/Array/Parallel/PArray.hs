@@ -10,7 +10,7 @@
 --   * In general, the operators here are all unsafe and don't do bounds checks.
 --     The lifted versions also don't check that each of the argument arrays
 --     have the same length.
---
+---
 --   TODO: check lengths properly in functions like zip, extracts
 --
 module Data.Array.Parallel.PArray

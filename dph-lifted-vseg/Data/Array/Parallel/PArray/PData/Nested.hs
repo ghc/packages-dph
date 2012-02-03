@@ -1,5 +1,5 @@
 {-# OPTIONS_HADDOCK hide #-}
-{-# LANGUAGE UndecidableInstances, ParallelListComp #-}
+{-# LANGUAGE CPP, UndecidableInstances, ParallelListComp #-}
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 
@@ -546,7 +546,7 @@ instance PR a => PR (PArray a) where
 --
 --   This is experimental, used to initialise the pnested_flat field
 --   of a nested array. It's' marked at NOINLINE to avoid code explosion.
---
+---
 --   TODO: at a later fusion stage we could rewrite this to an INLINED
 --         version to generate core for the occurrences we actually use.
 extractvs_delay :: PR a => PDatas a -> U.VSegd -> PData a

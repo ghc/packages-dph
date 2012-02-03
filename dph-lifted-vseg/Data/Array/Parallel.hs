@@ -9,7 +9,7 @@
 --  parallel arrays in unvectorised code, use the functions in
 --  "Data.Array.Parallel.PArray" and convert between array representations by
 --  using `fromPArrayP` and `toPArrayP` from /vectorised/ code.
---
+---
 --  The semantic difference between standard Haskell arrays (aka "lazy
 --  arrays") and parallel arrays (aka "strict arrays") is that the evaluation
 --  of two different elements of a lazy array is independent, whereas in a
@@ -196,7 +196,8 @@ zipWithP !_ !_ !_       = emptyP
 {-# NOINLINE  zipWithP #-}
 {-# VECTORISE zipWithP  = zipWithPP #-}
 
-
+-- | For every element 'a' apply the function to get an array of 'b' then,
+--   and return an array of all the 'a's and 'b's.
 crossMapP :: [:a:] -> (a -> [:b:]) -> [:(a, b):]
 {-# NOINLINE crossMapP #-}
 crossMapP !_ !_ = emptyP

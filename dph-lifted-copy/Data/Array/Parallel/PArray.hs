@@ -1,6 +1,6 @@
 
 -- | Parallel Arrays.
---
+---
 --   Parallel arrays use a fixed generic representation. All data stored in
 --   them is converted to the generic representation, and we have a small
 --   number of operators that work on arrays of these generic types.

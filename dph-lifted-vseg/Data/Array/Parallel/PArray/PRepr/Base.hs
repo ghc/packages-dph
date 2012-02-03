@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK hide #-}
+{-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
 -- | Definition of the PRepr/PA family and class.

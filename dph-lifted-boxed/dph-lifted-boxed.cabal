@@ -28,7 +28,6 @@ Library
         Data.Array.Parallel.Lifted.Combinators
 
   Extensions:
-        CPP,
         BangPatterns,
         PatternGuards
         TypeFamilies,

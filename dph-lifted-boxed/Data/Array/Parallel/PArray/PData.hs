@@ -10,14 +10,18 @@ import GHC.Exts
 import Data.Word
 
 -------------------------------------------------------------------------------
--- | Parallel Ararys.
+-- | Parallel arrays.
 data PArray a
         = PArray Int# (PData a)
 
-
+-- | A chunk of parallel array data.
 data family PData a
+
+-- | An array of chunks of parallel array data.
 data family PDatas a
 
+
+-- | Class of element types that we can store in parallel arrays.
 class PR a where
   fromVectorPR :: Vector a -> PData  a
   toVectorPR   :: PData a  -> Vector a

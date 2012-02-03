@@ -59,7 +59,6 @@ Library
         False
 
   Extensions:
-        CPP,
         BangPatterns,
         PatternGuards
         TypeFamilies,

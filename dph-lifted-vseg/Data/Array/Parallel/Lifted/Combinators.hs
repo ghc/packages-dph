@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# OPTIONS -fno-spec-constr #-}
 #include "fusion-phases.h"
 

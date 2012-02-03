@@ -1,5 +1,5 @@
 {-# OPTIONS_HADDOCK hide #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE CPP, UndecidableInstances #-}
 #include "fusion-phases.h"
 
 -- | Simple instances for the PRRepr/PA family and class.
