@@ -10,7 +10,7 @@ import qualified Data.Vector            as V
 import Data.Vector                      (Vector)
 
 
--- | Pretty print physical structure of data.
+-- | Pretty print the physical structure of data.
 class PprPhysical a where
  pprp :: a -> Doc
 
