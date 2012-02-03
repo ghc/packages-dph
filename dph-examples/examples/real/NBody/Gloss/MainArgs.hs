@@ -37,7 +37,7 @@ mainArgs
 	, Arg	{ argIndex	= ArgSolver
 		, argAbbr	= Just 's'
 		, argName	= Just "solver"
-		, argData	= argDataDefaulted "name" ArgtypeString "vector-naive"
+		, argData	= argDataDefaulted "name" ArgtypeString "vector-bh"
 		, argDesc	= "One of: list-bh, vector-naive, vector-bh, nested-bh. (default vector-naive)" }
 
 	-- Simulation setup.
