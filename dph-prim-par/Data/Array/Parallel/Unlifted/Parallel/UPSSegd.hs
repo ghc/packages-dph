@@ -1,7 +1,10 @@
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
--- | Parallel scattered segment descriptors.
+-- | Parallel Scattered Segment descriptors.
+--
+--   See "Data.Array.Parallel.Unlifted" for how this works.
+--
 module Data.Array.Parallel.Unlifted.Parallel.UPSSegd 
         ( -- * Types
           UPSSegd, valid
@@ -51,23 +54,7 @@ here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Parallel.UPSSegd." ++ s
 
 
--- | Construct a Parallel Scattered Segment Descriptor from an array of source
---   array indices, starting indices and an existing `UPSegd`.
---
---   * A `UPSSegd` is an extension of a `UPSegd` that that allows the segments to be
---     scattered through multiple flat arrays.
---
---   * Each segment is associated with a source id that indicates what 
---     flat array it is in, along with the starting index in that flat array.
---
---   * The segments need not cover the entire flat array.
---
---   * Different segments may point to the same elements.
---
---   * As different segments may point to the same elements, it is possible
---     for the total number of elements covered by the segment descriptor
---     to overflow a machine word.
---
+-- | Parallel Scattered Segment sescriptor
 data UPSSegd 
         = UPSSegd 
         { upssegd_ussegd        :: !USSegd
@@ -92,7 +79,7 @@ instance PprPhysical UPSSegd where
 
 -- | O(1).
 --   Check the internal consistency of a scattered segment descriptor.
--- 
+--- 
 --   * TODO: this doesn't do any checks yet
 valid :: UPSSegd -> Bool
 valid _ = True
@@ -123,7 +110,7 @@ fromUSSegd ssegd
 
 -- | Promote a plain `UPSegd` to a `UPSSegd`, by assuming that all segments
 --   come from a single flat array with source id 0.
---
+---
 --   * TODO:
 --     This sequentially constructs the indices and source fields, and we
 --     throw out the existing distributed `USegd`. We could probably keep
@@ -233,7 +220,7 @@ getSeg upssegd ix
 --   a `UPSSegd` can contain segments from multiple flat data arrays, we can
 --   represent the result of the append without copying elements from the
 --   underlying flat data arrays.
---
+---
 --   * TODO: This calls out to the sequential version.
 --
 appendWith
