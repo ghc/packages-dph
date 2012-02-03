@@ -33,7 +33,7 @@ mainArgs
 		, argAbbr	= Just 's'
 		, argName	= Just "solver"
 		, argData	= argDataDefaulted "name" ArgtypeString "vector-bh"
-		, argDesc	= "One of: list-bh, vector-naive, vector-bh, nested-bh. (default vector-naive)" }
+		, argDesc	= "One of: list-bh, vector-naive, vector-bh, nested-bh. (default vector-bh)" }
 
 	-- Simulation setup.
 	, Arg	{ argIndex	= ArgTimeStep
