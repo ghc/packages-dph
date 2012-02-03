@@ -10,7 +10,6 @@ module Data.Array.Parallel.Unlifted.Sequential.Combinators
         , foldlRU
         , combineSU)
 where
-import Data.Array.Parallel.Stream
 import Data.Array.Parallel.Unlifted.Stream
 import Data.Array.Parallel.Unlifted.Vectors                     as US
 import Data.Array.Parallel.Unlifted.Sequential.Vector           as U

@@ -7,7 +7,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Basics
         , appendSU
         , indicesSU, indicesSU')
 where
-import Data.Array.Parallel.Stream
+import Data.Array.Parallel.Unlifted.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd

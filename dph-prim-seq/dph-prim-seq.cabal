@@ -23,9 +23,6 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.UVSegd
         Data.Array.Parallel.Unlifted.Sequential.Vector
         Data.Array.Parallel.Unlifted.Sequential
-        Data.Array.Parallel.Unlifted.Stream.Ixs
-        Data.Array.Parallel.Unlifted.Stream.Elems
-        Data.Array.Parallel.Unlifted.Stream.Segments
         Data.Array.Parallel.Unlifted.Stream
         Data.Array.Parallel.Unlifted.Vectors
         Data.Array.Parallel.Unlifted.ArrayArray
@@ -36,6 +33,10 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Combinators
         Data.Array.Parallel.Unlifted.Sequential.Sums
         Data.Array.Parallel.Unlifted.Sequential.Extracts
+        Data.Array.Parallel.Unlifted.Stream.Segmented
+        Data.Array.Parallel.Unlifted.Stream.Ixs
+        Data.Array.Parallel.Unlifted.Stream.Elems
+        Data.Array.Parallel.Unlifted.Stream.Segments
   
 
   Exposed: False
