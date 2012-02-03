@@ -2,7 +2,7 @@
 #include "fusion-phases.h"
 
 -- | Irregular two dimensional arrays.
---
+---
 --   * TODO: The inner arrays should be unboxed so we don't get an unboxing overhead
 --           for every call to unsafeIndex2. This might need an extension to the GHC
 --           runtime if we alwo want to convert a U.Vector directly to this form.
@@ -135,11 +135,9 @@ unsafeIndexUnpack (Vectors _ starts lens arrs) ix
 {-# INLINE_U unsafeIndexUnpack #-}
 
 
--- | Append two `Vectors`.
---
---   * Important: appending two `Vectors` involes work proportional to
---     the length of the outer arrays, not the size of the inner ones.
-append :: (Unboxes a, Unbox a, Show a) => Vectors a -> Vectors a -> Vectors a
+-- | Appending two `Vectors` uses work proportional to
+--   the length of the outer arrays.
+append :: (Unboxes a, Unbox a) => Vectors a -> Vectors a -> Vectors a
 append  (Vectors len1 starts1 lens1 chunks1)
         (Vectors len2 starts2 lens2 chunks2)
  = runST

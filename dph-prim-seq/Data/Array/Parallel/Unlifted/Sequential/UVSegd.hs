@@ -2,7 +2,10 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 #include "fusion-phases.h"
 
--- | Segment descriptors for virtual arrays.
+-- | Virtual Segment Descriptors.
+--
+--   See "Data.Array.Parallel.Unlifted" for how this works.
+--
 module Data.Array.Parallel.Unlifted.Sequential.UVSegd
         ( -- * Types
           UVSegd(..)
@@ -52,10 +55,8 @@ here s = "Data.Array.Parallel.Unlifted.Sequential.UVSegd." ++ s
 
 
 -- UVSegd ---------------------------------------------------------------------
--- | Virtual segment descriptors. 
---   Represents an index space transformation between indices for the nested
---   array and indices for the physical data.
---   
+-- | Virtual segment descriptor.
+----   
 --   * TODO: It would probably be better to represent the vsegids as a lens (function)
 --           instead of a vector of segids. Much of the time the vsegids are just @[0..n]@
 --
@@ -110,7 +111,7 @@ instance PprPhysical UVSegd where
 
 
 -- | O(1). Check the internal consistency of a virutal segmentation descriptor.
---
+---
 --   * TODO: check that all vsegs point to a valid pseg
 valid :: UVSegd -> Bool
 valid (UVSegd _ _ vsegids _ ussegd)
@@ -123,9 +124,9 @@ valid (UVSegd _ _ vsegids _ ussegd)
 -- | O(1). Construct a new virtual segment descriptor.
 --   All the provided arrays must have the same lengths.
 mkUVSegd
-        :: Vector Int   -- ^ Array saying which physical segment to use for each
-                        --   virtual segment.
-        -> USSegd       -- ^ Slice segment descriptor describing physical segments.
+        :: Vector Int   -- ^ (vsegids) Mapping from virtual to physical segments.
+        -> USSegd       -- ^ Scattered Segment descriptor defining the 
+                        --   physical segments.
         -> UVSegd
 
 mkUVSegd vsegids ussegd
@@ -133,10 +134,10 @@ mkUVSegd vsegids ussegd
 {-# INLINE mkUVSegd #-}
 
 
--- | O(segs). Promote a plain `USSegd` to a `UVSegd`
---   The result contains one virtual segment for every physical segment
---   the provided `USSegd`.
+-- | O(segs). Promote a plain `USegd` to a `UVSegd`.
 --
+--   The result contains one virtual segment for every physical segment
+--   the provided `Segd`.
 fromUSSegd :: USSegd -> UVSegd
 fromUSSegd ussegd
  = let  vsegids = U.enumFromTo 0 (USSegd.length ussegd - 1)
@@ -144,11 +145,10 @@ fromUSSegd ussegd
 {-# INLINE_U fromUSSegd #-}
 
 
--- | O(segs). Promote a plain `USegd` to a `UVSegd`.
---   All segments are assumed to come from a flat array with sourceid 0.
---   The result contains one virtual segment for every physical segment
---   the provided USegd.
+-- | O(segs). Promote a plain `Segd` to a `VSegd`.
 --
+--   The result contains one virtual segment for every physical segment
+--   the provided `SSegd`.
 fromUSegd :: USegd -> UVSegd
 fromUSegd
         = fromUSSegd . USSegd.fromUSegd

@@ -23,7 +23,7 @@ import System.IO.Unsafe
 
 -- Nested -----------------------------------------------------------------------------------------
 -- | Stream some physical segments from many data arrays.
--- 
+--- 
 --   * TODO: make this more efficient, and fix fusion.
 --           We should be able to eliminate a lot of the indexing happening in the 
 --           inner loop by being cleverer about the loop state.

@@ -949,6 +949,16 @@ tagsToSel2 tags
 --
 --   * If you don't want to cover all the elements from the flat arrary then
 --     use a `SSegd` instead.
+--
+--  Example:
+--
+--   @
+--   flat array data: [1 2 3 4 5 6 7 8]
+--     (segmentation)  --- ----- - ---
+--     segd  lengths: [2, 3, 1, 2]
+--           indices: [0, 2, 5, 6]
+--          elements: 8 
+--   @
 ---
 --   * This ensures that the indices are monotonically increasing,
 --     and all elements from the flat array are covered by some segment.
@@ -957,6 +967,7 @@ tagsToSel2 tags
 --     search the indices to determine which segment an element of the 
 --     flat array belongs to. It also means that the segment indices can always
 --     be reconstructed from the segment lengths by `lengthsToSegd`.
+--
 --
 mkSegd  :: Array Int    -- ^ (lengths) Segment lengths.
         -> Array Int    -- ^ (indices) Segment indices.

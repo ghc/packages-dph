@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
--- | Primitive sequential combinators that work on flat, unlifted arrays.
+-- | Sequential implementation of the segmented array API defined in 
+--   @dph-prim-interface@. 
+--
+--   There is a parallel implementation in @dph-prim-par@, 
+--   so you probably want that instead.
 
 --   The API is defined in @DPH_Header.h@ and @DPH_Interface.h@ to ensure that both
 --   @dph-prim-par@ and @dph-prim-seq@ really do export the same symbols.
@@ -21,6 +25,9 @@ import qualified Data.Array.Parallel.Unlifted.Vectors            as US
 
 -- Basics ---------------------------------------------------------------------
 class U.Unbox a => Elt a
+
+-- | Arrays are stored as unboxed vectors. 
+--   They have bulk-strict semantics, so demanding one element demands them all.
 type Array                      = U.Vector
 
 

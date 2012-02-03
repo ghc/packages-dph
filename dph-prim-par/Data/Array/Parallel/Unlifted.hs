@@ -1,18 +1,17 @@
 {-# LANGUAGE CPP, NoMonomorphismRestriction #-}
 {-# OPTIONS -fno-warn-missing-signatures #-}
--- | Primitive parallel combinators that work on flat, unlifted arrays.
---   Some of them don't actually have parallel implementations, so we bail out
---   to the regular sequential ones.
+-- | Parallel implementation of the segmented array API defined in @dph-prim-interface@.
+--
+--   Some of them don't yet have parallel implementations, so we fall back
+--   to the sequential ones from @dph-prim-seq@.
 --
 --   /WARNING:/ Although this library is intended to be used as a target
---   for the DPH vectoriser, it is also perfectly reasonable to use it directly
---   from non DPH programs. However, you can NOT perform further parallel
---   computations in the workers passed to higher order functions such as 
---   `map`, `zipWith`, `filter`, `fold`, etc. Doing this is nested parallelism, 
---   which this library does not support, and any attempts to do so will
---   just run sequentially. If you want to run nested parallel code then
---   you need to use the vectoriser.
-
+--   for the DPH vectoriser, it is also fine to use it directly from non
+--   DPH programs. However, this library does not support nested parallelism
+--   by itself. If you try to run further parallel computations in the workers
+--   passed to `map`, `zipWith`, `fold` etc, then they will just run
+--   sequentially.
+---
 --   This API is used by the @dph-lifted-*@ libraries, and is defined in
 --   @DPH_Header.h@ and @DPH_Interface.h@. We use header files to ensure
 --   that this API is implemented identically by both the 
@@ -46,6 +45,9 @@ import Prelude (($!))
 
 -- Basics ---------------------------------------------------------------------
 class (Unbox a,   DT a) => Elt a
+
+-- | Arrays are stored as unboxed vectors. 
+--   They have bulk-strict semantics, so demanding one element demands them all.
 type Array      = Vector
 
 

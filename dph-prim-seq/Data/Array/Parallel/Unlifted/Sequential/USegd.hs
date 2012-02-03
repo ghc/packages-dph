@@ -2,10 +2,13 @@
 {-# OPTIONS -fno-warn-orphans #-}
 #include "fusion-phases.h"
 
--- | Segment Descriptors
+-- | Segment Descriptors.
+--
+--   See "Data.Array.Parallel.Unlifted" for how this works.
+--
 module Data.Array.Parallel.Unlifted.Sequential.USegd 
         ( -- * Types
-          USegd
+          USegd(..)
 
           -- * Constructors
         , mkUSegd, valid
@@ -29,27 +32,7 @@ here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Sequential.USegd." ++ s
 
 
--- | A segment desciptor defines an irregular 2D array based on a flat, 1D array
---   of elements.
---  
---   The defined array is an array of segments, where every segment covers some
---   of the elements from the flU.at array.
---
---   /INVARIANT:/ The segment starting indices must be monotonically increasing,
---   and all elements from the flat array must be covered by some segment.
---   This is because, in parallel implementations of `lengthsToSegd`, we binary
---   search the indices to determine which segment an element of the 
---   flat array belongs to. It also means that the segment indices can always
---   be reconstructed from the segment lengths by `lengthsToSegd`.
---
---   @
---   flat array data: [1 2 3 4 5 6 7 8]
---     (segmentation)  --- ----- - ---
---     segd  lengths: [2, 3, 1, 2]
---           indices: [0, 2, 5, 6]
---          elements: 8 
---   @
---
+-- | Segment descriptor. 
 data USegd 
         = USegd 
         { usegd_lengths  :: !(Vector Int)  -- ^ Length of each segment.
