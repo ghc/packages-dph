@@ -2,9 +2,13 @@
 #include "fusion-phases.h"
 
 -- | Parallel segment descriptors.
+--
+--   See "Data.Array.Parallel.Unlifted" for how this works.
+--
 module Data.Array.Parallel.Unlifted.Parallel.UPSegd 
         ( -- * Types
-          UPSegd, valid
+          UPSegd(..)
+        , valid
 
           -- * Constructors
         , mkUPSegd, fromUSegd
@@ -73,7 +77,7 @@ instance PprPhysical UPSegd where
 -- Valid ----------------------------------------------------------------------
 -- | O(1).
 --   Check the internal consistency of a parallel segment descriptor.
--- 
+--- 
 --   * TODO: this doesn't do any checks yet
 valid :: UPSegd -> Bool
 valid _ = True
