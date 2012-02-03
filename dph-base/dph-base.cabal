@@ -23,7 +23,6 @@ Library
         Data.Array.Parallel.Base.Text
         Data.Array.Parallel.Base.DTrace
         Data.Array.Parallel.Base.TracePrim
-        Data.Array.Parallel.Stream
         Data.Array.Parallel.Pretty
         Data.Array.Parallel.Array
 
@@ -31,7 +30,7 @@ Library
         Data.Array.Parallel.Base.Config
         Data.Array.Parallel.Base.Debug
         Data.Array.Parallel.Base.Tag
-        
+
   Include-Dirs:
         include
 

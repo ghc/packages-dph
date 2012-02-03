@@ -1,7 +1,19 @@
--- | Stream functions not implemented in @Data.Vector@
+{-# LANGUAGE CPP #-}
+{-# OPTIONS -fno-warn-name-shadowing -fno-warn-unused-matches -fno-warn-incomplete-patterns #-}
 #include "fusion-phases.h"
 
-module Data.Array.Parallel.Stream 
+-- TODO: 
+--  The use of INLINE pragmas in some of these function isn't consistent.
+--  for indexedS and combine2ByTagS, there is an INLINE_INNER on the 'next'
+--  function, but replicateEachS uses a plain INLINE and fold1SS uses
+--  a hard INLINE [0]. Can we make a rule that all top-level stream functions
+--  in this module have INLINE_STREAM, and all 'next' functions have
+--  INLINE_INNER? If not we should document the reasons for the special cases.
+--
+--  Fix warnings in this module.
+
+-- | Stream functions not implemented in @Data.Vector@
+module Data.Array.Parallel.Unlifted.Stream.Segmented
         ( indexedS
         , replicateEachS
         , replicateEachRS
@@ -21,15 +33,6 @@ import qualified Data.Vector.Fusion.Stream      as S
 import Data.Vector.Fusion.Stream.Monadic        (Stream(..), Step(..))
 import Data.Vector.Fusion.Stream.Size           (Size(..))
 
-
--- TODO: 
---  The use of INLINE pragmas in some of these function isn't consistent.
---  for indexedS and combine2ByTagS, there is an INLINE_INNER on the 'next'
---  function, but replicateEachS uses a plain INLINE and fold1SS uses
---  a hard INLINE [0]. Can we make a rule that all top-level stream functions
---  in this module have INLINE_STREAM, and all 'next' functions have
---  INLINE_INNER? If not we should document the reasons for the special cases.
---
 
 -- Indexed --------------------------------------------------------------------
 -- | Tag each element of an stream with its index in that stream.

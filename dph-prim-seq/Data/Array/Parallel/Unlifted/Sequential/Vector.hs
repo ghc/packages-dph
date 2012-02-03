@@ -95,7 +95,7 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
   UIO(..)
 ) 
 where
-import Data.Array.Parallel.Stream
+import Data.Array.Parallel.Unlifted.Stream.Segmented
 import Data.Array.Parallel.Base ( Tag, checkEq, ST )
 import qualified Data.Array.Parallel.Base       as B
 import qualified Data.Vector.Unboxed            as V
