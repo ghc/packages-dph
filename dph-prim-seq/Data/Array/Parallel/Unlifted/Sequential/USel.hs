@@ -1,34 +1,7 @@
--- | A selector is a description of how to perform a `combine` operation.
---
--- Suppose we are evaluating the following expression:
---
---   @combine [F,F,T,F,T,T] [1,2,3] [4,5,6] = [4,5,1,6,2,3]@
---
--- This is difficult to parallelise. For each element in the result, the
--- source array we get this element from depends on the tag values associated
--- with all previous elements.
---
--- However, if we going to perform several combines with the same tag array, 
--- we can precompute a selector that tells us where to get each element. 
--- The selector contains the original tags, as well as the source index telling
--- us where to get each element for the result array.
---
--- For example:
---
---  @
---  tagsToIndices2 [F,F,T,F,T,T]   -- tags
---               = [0,1,0,2,1,2]   -- indices
---  @
---
---  This says get the first element from index 0 in the second array, 
---   then from index 1 in the second array,
---  then index 0 in the first array ...
---  
---  The selector then consists of both the @tag@ and @indices@ arrays.
---
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
+-- | Selectors. See the docs in dph-prim-interface for how these work.
 module Data.Array.Parallel.Unlifted.Sequential.USel 
         ( -- * Types
           USel2

@@ -24,7 +24,8 @@ module Data.Array.Parallel.PArray.Scalar (
 )
 where
 import Data.Array.Parallel.PArray.PData
-import Data.Array.Parallel.Base                 (intToTag, traceF )
+import Data.Array.Parallel.Base
+import Data.Array.Parallel.Base.DTrace
 import qualified Data.Array.Parallel.Unlifted   as U
 import GHC.Exts                                 (Int(..))
 

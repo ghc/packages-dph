@@ -1,20 +1,19 @@
 {-# LANGUAGE TypeOperators, CPP #-}
 
 -- | WARNING: 
---   This is a fake module and most of the functions here will just 
---   `error` if called. 
+--   This is an abstract interface. All the functions will just `error` if called. 
 --
---   This "dph-prim-interface" module provides an API and a partial reference
---   implentation for the unlifted array primitives used by DPH. This code is 
---   not used during runtime.
+--   This module provides an API for the unlifted array primitives used by DPH.
+--   None of the functions here have implementations.
 --
---  Client programs should use the @dph-prim-seq@ or @dph-prim-par@ packages
---  instead, provide the same API and contain real code.
+--   Client programs should use either the @dph-prim-seq@ or @dph-prim-par@
+--   packages, as these provide the same API and contain real code.
 --
 
---  NOTE: The API is enforced by the DPH_Header.h and DPH_Interface.h headers.
---  The dph-prim-interface, dph-prim-seq, and dph-prim-par modules all import
---  the same headers so we can be sure we're presenting the same API.
+--   NOTE: The API is enforced by the DPH_Header.h and DPH_Interface.h headers.
+--   The dph-prim-interface, dph-prim-seq, and dph-prim-par modules all import
+--   the same headers so we can be sure we're presenting the same API.
+
 #include "DPH_Header.h"
 
 import qualified Prelude as P
@@ -22,24 +21,15 @@ import Prelude ( Eq(..), Num(..), Bool(..), ($), (.) )
 
 #include "DPH_Interface.h"
 
--- NOTE -----------------------------------------------------------------------
--- See DPH_Interface.h for documentation. 
---   As these functions are defined multiple times in different packages, 
---   we keep all the docs there.
---
--- The definitions should appear in the same order as they are defined in DPH_Interface.h
---
-#define ASSERT assert __FILE__ __LINE__
 
-assert :: P.String -> Int -> Bool -> a -> a
-assert file line False _
-  = P.error $ file P.++ " (line " P.++ P.show line P.++ "): assertion failure"
-assert _ _ _ x = x
-
+------------------------------------------------------------------------------
 notImplemented :: P.String -> a
 notImplemented fnName
- = P.error $ "Not implemented: dph-prim-interface:Data.Array.Parallel.Unlifted."
-   P.++ fnName
+ = P.error $ P.unlines
+ [ "dph-prim-interface:Data.Array.Parallel.Unlifted." P.++ fnName
+ , "This module is an abstract interface and does not contain real code."
+ , "Use dph-prim-seq or dph-prim-par instead." ]
+{-# NOINLINE notImplemented #-}
 
 
 -- Types ----------------------------------------------------------------------
@@ -49,131 +39,86 @@ type Array a    = [a]
 
 
 -- Constructors ---------------------------------------------------------------
-empty   = []
+empty                           = notImplemented "empty"
+(+:+)                           = notImplemented "(+:+)"
+append_s                        = notImplemented "append_s"
+replicate                       = notImplemented "replicate"
+replicate_s                     = notImplemented "replicate_s"
+replicate_rs                    = notImplemented "replicate_rs"
+repeat                          = notImplemented "repeat"
+indexed                         = notImplemented "indexed"
+indices_s                       = notImplemented "indices_s"
+enumFromTo                      = notImplemented "enumFromTo"
+enumFromThenTo                  = notImplemented "enumFromThenTo"
+enumFromStepLen                 = notImplemented "enumFromStepLen"
+enumFromStepLenEach             = notImplemented "enumFromStepLenEach"
 
-(+:+)   = (P.++)
 
-append_s _ xd xs yd ys 
-        = P.concat (P.zipWith (P.++) (nest xd xs) (nest yd ys))
-
-replicate
-        = P.replicate
-
-replicate_s segd xs
-        = P.concat
-        $ zipWith replicate (lengthsSegd segd) xs
-
-replicate_rs n xs
-        = P.concat
-        $ P.map (P.replicate n) xs
-
-repeat n _ xs
-        = P.concat (replicate n xs)
-
-indexed xs
-        = zip [0 .. length xs - 1] xs
-
-indices_s segd
-        = P.concat [[0 .. n-1] | n <- segd_lengths segd] 
-
-enumFromTo m n          = [m .. n]
-enumFromThenTo m n s    = [m, n..s]
-enumFromStepLen i k 0   = []
-enumFromStepLen i k n   = i : enumFromStepLen (i+k) k (n-1)
-
-enumFromStepLenEach size starts steps lens
-  = ASSERT (size == sum lens)
-    P.concat
-  $ P.zipWith3 (\x y z -> P.enumFromThenTo x (x+y) (x+y*z)) starts steps lens
+-- Conversions ----------------------------------------------------------------
+nest                            = notImplemented "nest"
+toList                          = notImplemented "toList"
+fromList                        = notImplemented "fromList"
+toList_s                        = notImplemented "toList_s"
+fromList_s                      = notImplemented "fromList_s"
 
 
 -- Projections ----------------------------------------------------------------
-length          = P.length
-index _         = (P.!!)
-indexs          = notImplemented "indexs"
-indexs_avs      = notImplemented "indexs_avs"
-
-extract xs i n  = P.take n (P.drop i xs)
-extracts_nss    = notImplemented "extract_nss"
-extracts_ass    = notImplemented "extract_ass"
-extracts_avs    = notImplemented "extract_avs"
-
-drop            = P.drop
+length                          = notImplemented "length"
+index                           = notImplemented "index"
+indexs                          = notImplemented "indexs"
+indexs_avs                      = notImplemented "indexs_avs"
+extract                         = notImplemented "extract"
+extracts_nss                    = notImplemented "extract_nss"
+extracts_ass                    = notImplemented "extract_ass"
+extracts_avs                    = notImplemented "extract_avs"
+drop                            = notImplemented "drop"
 
 
 -- Update ---------------------------------------------------------------------
-update          = notImplemented "update"
+update                          = notImplemented "update"
 
 
 -- Permutation ----------------------------------------------------------------
-permute         = notImplemented "permute"
-bpermute xs ns  = map (xs P.!!) ns
-mbpermute       = notImplemented "mbpermute"
-bpermuteDft     = notImplemented "bpermuteDft"
+permute                         = notImplemented "permute"
+bpermute                        = notImplemented "bpermute"
+mbpermute                       = notImplemented "mbpermute"
+bpermuteDft                     = notImplemented "bpermuteDft"
 
 
 -- Zipping and Unzipping ------------------------------------------------------
-zip             = P.zip
-zip3            = P.zip3
-unzip           = P.unzip
-unzip3          = P.unzip3
-fsts            = map P.fst
-snds            = map P.snd
+zip                             = notImplemented "zip"
+zip3                            = notImplemented "zip3"
+unzip                           = notImplemented "unzip"
+unzip3                          = notImplemented "unzip3"
+fsts                            = notImplemented "fsts"
+snds                            = notImplemented "snds"
 
 
 -- Map and zipWith ------------------------------------------------------------
-map             = P.map
-zipWith         = P.zipWith
+map                             = notImplemented "map"
+zipWith                         = notImplemented "zipWith"
 
 
 -- Scans and Folds -----------------------------------------------------------
-scan f z
-        = P.init . P.scanl f z
-
-fold    = P.foldr
-
-fold_s  f z segd xs
-        = P.map (P.foldr f z) (nest segd xs)
-
-fold_ss = notImplemented "fold_ss"
-
-fold_r  f z segSize xs 
-        = notImplemented "fold_r"
-
-fold1   = P.foldr1
-
-fold1_s f   segd xs
-        = P.map (P.foldr1 f)  (nest segd xs)
-
-fold1_ss = notImplemented "fold1_ss"
-
-sum     = P.sum
-
-sum_r segSize xs 
-        = notImplemented "sum_r"
-
-and     = P.and
+scan                            = notImplemented "scan"
+fold                            = notImplemented "fold"
+fold_s                          = notImplemented "fold_s"
+fold_ss                         = notImplemented "fold_ss"
+fold_r                          = notImplemented "fold_r"
+fold1                           = notImplemented "fold1"
+fold1_s                         = notImplemented "fold1_s"
+fold1_ss                        = notImplemented "fold1_ss"
+sum                             = notImplemented "sum"
+sum_r                           = notImplemented "sum_r"
+and                             = notImplemented "and"
 
 
 -- Packing and Combining ------------------------------------------------------
-pack xs bs
-        = [x | (x,b) <- P.zip xs bs, b]
-
-filter  = P.filter
-
-
--- Combine and Interleave -----------------------------------------------------
-combine [] [] [] = []
-combine (True  : bs) (x : xs) ys       = x : combine bs xs ys
-combine (False : bs) xs       (y : ys) = y : combine bs xs ys
-
-combine2 tags _ xs ys = go tags xs ys
-  where
-    go [] [] [] = []
-    go (0 : bs) (x : xs) ys = x : go bs xs ys
-    go (1 : bs) xs (y : ys) = y : go bs xs ys
-
-interleave xs ys = P.concat [[x,y] | (x,y) <- P.zip xs ys]
+pack                            = notImplemented "pack"
+filter                          = notImplemented "filter"
+combine                         = notImplemented "combine"
+combine2                        = notImplemented "combine2"
+interleave                      = notImplemented "interleave"
 
 
 -- Selectors ------------------------------------------------------------------
@@ -184,33 +129,19 @@ data Sel2
         , sel2_elements0 :: Int
         , sel2_elements1 :: Int }
 
-mkSel2 tags idxs n0 n1 _ 
-        = Sel2 tags idxs n0 n1
-
-tagsSel2        = sel2_tags
-indicesSel2     = sel2_indices
-elementsSel2_0  = sel2_elements0
-elementsSel2_1  = sel2_elements1
-repSel2 _       = ()
-
-
 type SelRep2    = ()
-mkSelRep2 _     = ()
 
-indicesSelRep2 tags _ 
-  = P.zipWith pick tags
-  $ P.init
-  $ P.scanl add (0,0) tags
-  where
-    pick 0 (i,j) = i
-    pick 1 (i,j) = j
+mkSel2                          = notImplemented "mkSel2"
+tagsSel2                        = notImplemented "tagsSel2"
+indicesSel2                     = notImplemented "indicesSel2"
+elementsSel2_0                  = notImplemented "elementsSel2_0"
+elementsSel2_1                  = notImplemented "elementsSel2_1"
+repSel2                         = notImplemented "repSel2"
 
-    add (i,j) 0 = (i+1,j)
-    add (i,j) 1 = (i,j+1)
-
-elementsSelRep2_0 tags _ = P.length [() | 0 <- tags]
-elementsSelRep2_1 tags _ = P.length [() | 1 <- tags]
-
+mkSelRep2                       = notImplemented "mkSelRep2"
+indicesSelRep2                  = notImplemented "indicesSelRep2"
+elementsSelRep2_0               = notImplemented "elementsSelRep2_0"
+elementsSelRep2_1               = notImplemented "elementsSelRep2_1"
 
 
 -- Segment Descriptors --------------------------------------------------------
@@ -220,14 +151,14 @@ data Segd
         , segd_indices  :: [Int]
         , segd_elements :: Int }
 
-mkSegd                          = Segd
-emptySegd                       = Segd [] [] 0
+mkSegd                          = notImplemented "mkSegd"
+emptySegd                       = notImplemented "emptySegd"
 singletonSegd                   = notImplemented "singletonSegd"
 validSegd                       = notImplemented "validSegd"
-lengthSegd                      = length . lengthsSegd
-lengthsSegd                     = segd_lengths
-indicesSegd                     = segd_indices
-elementsSegd                    = segd_elements
+lengthSegd                      = notImplemented "lengthSegd"
+lengthsSegd                     = notImplemented "lengthsSegd"
+indicesSegd                     = notImplemented "indicesSegd"
+elementsSegd                    = notImplemented "elementsSegd"
 
 
 -- Scattered Segment Descriptors ----------------------------------------------
@@ -237,17 +168,17 @@ data SSegd
         , ssegd_sources :: [Int]
         , ssegd_segd    :: Segd }
 
-mkSSegd                         = SSegd
+mkSSegd                         = notImplemented "mkSSegd"
 validSSegd                      = notImplemented "validSSegd"
-emptySSegd                      = SSegd [] [] emptySegd
+emptySSegd                      = notImplemented "emptySSegd"
 singletonSSegd                  = notImplemented "singletonSSegd"
 promoteSegdToSSegd              = notImplemented "promoteSegdToSSegd"
 isContiguousSSegd               = notImplemented "isContiguousSSegd"
-lengthOfSSegd                   = lengthSegd  . ssegd_segd
-lengthsOfSSegd                  = lengthsSegd . ssegd_segd
-indicesOfSSegd                  = indicesSegd . ssegd_segd
-startsOfSSegd                   = ssegd_starts
-sourcesOfSSegd                  = ssegd_sources
+lengthOfSSegd                   = notImplemented "lengthOfSSegd"
+lengthsOfSSegd                  = notImplemented "lenghtsOfSSegd"
+indicesOfSSegd                  = notImplemented "indicesOfSSegd"
+startsOfSSegd                   = notImplemented "startsOfSSegd"
+sourcesOfSSegd                  = notImplemented "sourcesOfSSegd"
 getSegOfSSegd                   = notImplemented "getSegOfSSegd"
 appendSSegd                     = notImplemented "appendSSegd"
 
@@ -258,9 +189,9 @@ data VSegd
         { vsegd_vsegids :: [Int]
         , vsegd_ssegd   :: SSegd }
 
-mkVSegd                         = VSegd
+mkVSegd                         = notImplemented "mkVSegd"
 validVSegd                      = notImplemented "validSSegd"       
-emptyVSegd                      = VSegd [] emptySSegd
+emptyVSegd                      = notImplemented "emptyVSegd"
 singletonVSegd                  = notImplemented "singletonVSegd"
 replicatedVSegd                 = notImplemented "replicatedVSegd"
 promoteSegdToVSegd              = notImplemented "promoteSegdToVSegd"
@@ -268,13 +199,13 @@ promoteSSegdToVSegd             = notImplemented "promoteSSegdToVSegd"
 isContiguousVSegd               = notImplemented "isContiguousVSegd"
 isManifestVSegd                 = notImplemented "isManifestVSegd"
 lengthOfVSegd                   = notImplemented "lengthOfVSegd"
-takeVSegidsOfVSegd              = vsegd_vsegids
-takeVSegidsRedundantOfVSegd     = vsegd_vsegids
-takeSSegdOfVSegd                = vsegd_ssegd
-takeSSegdRedundantOfVSegd       = vsegd_ssegd
+takeVSegidsOfVSegd              = notImplemented "takeVSegidsOfVSegd"
+takeVSegidsRedundantOfVSegd     = notImplemented "takeVSegidsRedundantOfVSegd"
+takeSSegdOfVSegd                = notImplemented "takeSSegdOfVSegd"
+takeSSegdRedundantOfVSegd       = notImplemented "takeSSegdRedundantOfVSegd"
 takeLengthsOfVSegd              = notImplemented "takeLengthsOfVSegd"
 getSegOfVSegd                   = notImplemented "getSegOfVSegd"
-demoteToSSegdOfVSegd            = notImplemented "demoteToSSegdOfVSegd"
+unsafeDemoteToSSegdOfVSegd      = notImplemented "unsafeDemoteToSSegdOfVSegd"
 unsafeDemoteToSegdOfVSegd       = notImplemented "unsafeDemoteToSegdOfVSegd"
 updateVSegsOfVSegd              = notImplemented "updateVSegsOfVSegd"
 updateVSegsReachableOfVSegd     = notImplemented "updateVSegsReachableOfVSegd"
@@ -282,9 +213,11 @@ appendVSegd                     = notImplemented "appendVSegd"
 combine2VSegd                   = notImplemented "combine2VSegd"
 
 
--- 2D Arrays ------------------------------------------------------------------
+-- Irregular two dimensional arrays -------------------------------------------
 class Elts a
-type Arrays a                   = [[a]]
+type Arrays a
+        = [[a]]
+
 emptys                          = notImplemented "emptys"
 lengths                         = notImplemented "lengths"
 singletons                      = notImplemented "singletons"
@@ -296,27 +229,12 @@ toVectors                       = notImplemented "toVectors"
 
 
 -- Random Arrays --------------------------------------------------------------
-randoms n       = P.take n . System.Random.randoms
-randomRs n r    = P.take n . System.Random.randomRs r
+randoms n                       = notImplemented "randoms"
+randomRs n r                    = notImplemented "randomRs"
 
 
 -- Array IO -------------------------------------------------------------------
 class Elt a => IOElt a
-hPut            = notImplemented "hPut"
-hGet            = notImplemented "hGet"
-
-toList x        = x
-fromList x      = x
-
-
--- Other Stuff ----------------------------------------------------------------
-nest :: Segd -> [a] -> [[a]]
-nest (Segd ns is _) xs = go ns xs
-  where
-    go [] [] = []
-    go (n : ns) xs = let (ys, zs) = P.splitAt n xs
-                     in ys : go ns zs
-
-toList_s x      = x
-fromList_s x    = x
+hPut                            = notImplemented "hPut"
+hGet                            = notImplemented "hGet"
 

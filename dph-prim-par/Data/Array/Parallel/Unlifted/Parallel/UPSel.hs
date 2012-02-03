@@ -38,55 +38,6 @@ data UPSel2
         , upsel2_rep  :: UPSelRep2 }
 
 
--- | A `UPSelRep2` describes how to distribute the two data vectors
---   corresponding to a `UPSel2` across several PEs.
---
---   Suppose we want to perform the following combine operation:
---
--- @
--- combine [0,0,1,1,0,1,0,0,1] [A0,A1,A2,A3,A4] [B0,B1,B2,B3] 
---   = [A0,A1,B0,B1,A2,B2,A3,A4,B3]
--- @
---
---   The first array is the tags array, that says which of the data arrays to
---   get each successive element from. As `combine` is difficult to compute
---   in parallel, if we are going to perform several combines with the same
---   tag array, we can precompute a selector that tells us where to get each
---   element. The selector contains the original tags, as well as the source
---   index telling us where to get each element for the result array.
--- 
--- @
--- tags:    [0,0,1,1,0,1,0,0,1]
--- indices: [0,1,0,1,2,2,3,4,3]
--- @
---
---  Suppose we want to distribute the combine operation across 3 PEs. It's
---  easy to split the selector like so:
---
--- @
---            PE0                PE1               PE2
--- tags:    [0,0,1]            [1,0,1]           [0,0,1] 
--- indices: [0,1,0]            [1,2,2]           [3,4,3]
--- @
---
---  We now need to split the two data arrays. Each PE needs slices of the data
---  arrays that correspond to the parts of the selector that were given to it.
---  For the current example we get:
---
--- @
---            PE0                PE1               PE2
--- data_A:   [A0,A1]            [A2]              [A3,A4]
--- data_B:   [B0]               [B1,B2]           [B3]
--- @
---
---  The `UPSelRep2` contains the starting index and length of each of of these
---  slices:
---
--- @
---            PE0                PE1               PE2
---      ((0, 0), (2, 1))   ((2, 1), (1, 2))  ((3, 3), (2, 1))
---       indices   lens      indices  lens    indices  lens
--- @
 --
 type UPSelRep2
         = Dist ((Int,Int), (Int,Int))

@@ -461,7 +461,7 @@ instance PR a => PR (PArray a) where
 
   {-# INLINE_PDATA extractvsPR #-}
   extractvsPR pdatas vsegd
-   = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
+   = extractssPR pdatas (U.unsafeDemoteToSSegdOfVSegd vsegd)
 
                 
   -- Pack and Combine -------------------------------------

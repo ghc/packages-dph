@@ -87,13 +87,11 @@ import Data.Array.Parallel.Lifted.PArray
 import Data.Array.Parallel.PArray.PReprInstances        ()
 import Data.Array.Parallel.Lifted.Combinators
 import Data.Array.Parallel.Lifted.Scalar
+import Data.Array.Parallel.Base.Text
 import qualified Data.Array.Parallel.Unlifted           as U
-
-import Data.Array.Parallel.Base ( showsApp )
-
 import qualified System.Random as R
-
 import Prelude          hiding ( length, replicate, zip, unzip, enumFromTo, concat )
+
 
 -- NOTE: 
 -- Most of these functions just export the corresponding "vectorised" 
