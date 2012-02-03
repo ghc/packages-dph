@@ -1,4 +1,5 @@
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
 -- | Defines the `PRepr` family and `PA` class that converts between the user

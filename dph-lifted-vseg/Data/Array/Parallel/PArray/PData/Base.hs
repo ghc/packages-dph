@@ -1,5 +1,5 @@
 {-# OPTIONS_HADDOCK hide #-}
-{-# LANGUAGE UndecidableInstances, ParallelListComp #-}
+{-# LANGUAGE CPP, UndecidableInstances, ParallelListComp #-}
 -- Undeciable instances only need for derived Show instance
 #include "fusion-phases.h"
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
 -- | Closures.

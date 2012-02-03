@@ -9,7 +9,7 @@
 --   * The operators should also all do bounds checks, sanity checks, and 
 --     give nice error messages if something is wrong. The ideas is that
 --     this code can be run side-by-side production code during debugging.
---
+---
 --   TODO: check lengths properly in functions like zip, extracts
 --
 module Data.Array.Parallel.PArray

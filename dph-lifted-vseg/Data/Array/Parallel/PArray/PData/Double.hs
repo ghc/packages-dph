@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK hide #-}
+{-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
 -- | PR instance for Doubles.

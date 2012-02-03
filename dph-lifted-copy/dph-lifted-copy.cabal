@@ -7,14 +7,15 @@ Maintainer:     Ben Lippmeier <benl@cse.unsw.edu.au>
 Homepage:       http://www.haskell.org/haskellwiki/GHC/Data_Parallel_Haskell
 Category:       Data Structures
 Synopsis:       Data Parallel Haskell lifted array combinators. (deprecated version)
-Description:    This package provides the following:
+Description:    Using this package can cause the vectorised program to have worse
+                asymptotic complexity than the original.
+                Use dph-lifted-vseg instead.
+                This package provides the following:
                  nested arrays and the primitive operators that work on them (PA functions);
                  the lifted array combinators that the vectoriser introduces (PP functions);
                  the user facing library functions that work on [::] style arrays (P functions).
                 Deprecated implementation that performs deep copying replicate.
-                Using this package can cause the vectorised program to have worse
-                asymptotic complexity than the original.
-                Use dph-lifted-vseg instead.
+                
                 
 
 Cabal-Version:  >= 1.6

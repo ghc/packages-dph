@@ -1,5 +1,5 @@
 {-# OPTIONS -fno-spec-constr #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE CPP, UndecidableInstances #-}
 #include "fusion-phases.h"
 
 -- | Unvectorised parallel arrays.

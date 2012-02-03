@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
 -- | Defines the extra types we use when representing algebraic data in

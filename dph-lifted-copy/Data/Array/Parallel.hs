@@ -3,6 +3,18 @@
 
 -- | User level interface of parallel arrays.
 --
+--   This library is deprecated. Using it can result in the vectorised program
+--   having asymptotically worse complexity than the original. Your program
+--   could be 10000x slower than it should be with this library.
+--
+--   Use the @dph-lifted-vseg@ package instead.
+ 
+-- 
+-- /WARNING:/ In the current implementation, the functionality provided in
+-- this module is tied to the vectoriser pass of GHC invoked by passing the
+-- `-fvectorise` option.  Without vectorisation these functions will not work
+-- at all!
+---
 -- The semantic difference between standard Haskell arrays (aka "lazy
 -- arrays") and parallel arrays (aka "strict arrays") is that the evaluation
 -- of two different elements of a lazy array is independent, whereas in a
@@ -20,15 +32,11 @@
 -- permutations) that are not provided for lists.  The following list of
 -- operations are not supported on parallel arrays, as they would require the
 -- infinite parallel arrays: `iterate', `repeat', and `cycle'.
--- 
--- /WARNING:/ In the current implementation, the functionality provided in
--- this module is tied to the vectoriser pass of GHC invoked by passing the
--- `-fvectorise` option.  Without vectorisation these functions will not work
--- at all!
 --
--- UGLY HACK ALERT: Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
---                  using the type synonym 'PArr' instead of '[::]', but that would lead to
---                  significantly worse error message for end users.
+-- UGLY HACK ALERT: 
+--  Same ugly hack as in 'base:GHC.PArr'!  We could do without in this module by
+--  using the type synonym 'PArr' instead of '[::]', but that would lead to
+--  significantly worse error message for end users.
 
 module Data.Array.Parallel (
   module Data.Array.Parallel.Prelude,
