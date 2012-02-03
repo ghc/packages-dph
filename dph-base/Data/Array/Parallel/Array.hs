@@ -15,12 +15,25 @@ import Prelude                  hiding (length)
 
 
 class Array a e where
+ -- | Check whether an array has a valid internal representation.
  valid      :: a e -> Bool
+
+ -- | Yield an array with just a single element.
  singleton  :: e   -> a e
+
+ -- | Append two arrays.
  append     :: a e -> a e -> a e
+
+ -- | Yield the length of an array.
  length     :: a e -> Int
+
+ -- | Retrieve the element at the given index. 
  index      :: a e -> Int -> e
+
+ -- | Convert an array to a vector.
  toVector   :: a e -> Vector e
+
+ -- | Convert a vector to an array.
  fromVector :: Vector e -> a e
  
 

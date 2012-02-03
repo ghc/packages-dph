@@ -82,7 +82,7 @@ checkLen loc n i v
 
 -- | Slice check, enable when `debug` = `True`.
 --
---   The vector must contain at least sliceStart + sliceLen elements.
+--   The vector must contain at least `sliceStart` + `sliceLen` elements.
 -- 
 checkSlice :: String -> Int -> Int -> Int -> a -> a
 checkSlice loc vecLen sliceStart sliceLen v
