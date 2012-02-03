@@ -372,7 +372,7 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
 
   {-# INLINE_PDATA extractvsPR #-}
   extractvsPR pdatas vsegd
-   = extractssPR pdatas (demoteToSSegdOfVSegd vsegd)
+   = extractssPR pdatas (unsafeDemoteToSSegdOfVSegd vsegd)
 
 
   -- Pack and Combine ---------------------------

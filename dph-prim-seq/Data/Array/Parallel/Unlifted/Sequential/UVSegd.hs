@@ -34,7 +34,7 @@ module Data.Array.Parallel.Unlifted.Sequential.UVSegd
         , combine2
         , updateVSegs
         , updateVSegsReachable
-        , demoteToUSSegd
+        , unsafeDemoteToUSSegd
         , unsafeDemoteToUSegd)
 where
 import Data.Array.Parallel.Unlifted.Sequential.USel
@@ -305,8 +305,8 @@ getSeg uvsegd ix
 --   * This operation is used in concatPR as the first step in eliminating
 --     segmentation from a nested array.
 -- 
-demoteToUSSegd :: UVSegd -> USSegd
-demoteToUSSegd uvsegd
+unsafeDemoteToUSSegd :: UVSegd -> USSegd
+unsafeDemoteToUSSegd uvsegd
  | uvsegd_manifest uvsegd       = uvsegd_ussegd_culled uvsegd           -- TODO: take the redundant ones
  | otherwise
  = let  vsegids         = uvsegd_vsegids_culled uvsegd
@@ -316,7 +316,7 @@ demoteToUSSegd uvsegd
         lengths'        = U.bpermute (USSegd.takeLengths ussegd) vsegids
         usegd'          = USegd.fromLengths lengths'
    in   USSegd.mkUSSegd starts' sources' usegd'
-{-# NOINLINE demoteToUSSegd #-}
+{-# NOINLINE unsafeDemoteToUSSegd #-}
 --  NOINLINE because it's complicated and won't fuse with anything.
 
 

@@ -30,7 +30,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd
         , getSeg
 
         -- * Demotion
-        , demoteToUPSSegd
+        , unsafeDemoteToUPSSegd
         , unsafeDemoteToUPSegd
 
         -- * Operators
@@ -310,8 +310,8 @@ getSeg upvsegd ix
 --   By doing this we lose information about which virtual segments
 --   correspond to the same physical segments.
 -- 
-demoteToUPSSegd :: UPVSegd -> UPSSegd
-demoteToUPSSegd upvsegd
+unsafeDemoteToUPSSegd :: UPVSegd -> UPSSegd
+unsafeDemoteToUPSSegd upvsegd
  | upvsegd_manifest upvsegd     = upvsegd_upssegd_culled upvsegd        -- TODO: take the redundant ones
  | otherwise
  = let  vsegids         = upvsegd_vsegids_culled upvsegd
@@ -321,7 +321,7 @@ demoteToUPSSegd upvsegd
         lengths'        = bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
         upsegd'         = UPSegd.fromLengths lengths'
    in   UPSSegd.mkUPSSegd starts' sources' upsegd'
-{-# NOINLINE demoteToUPSSegd #-}
+{-# NOINLINE unsafeDemoteToUPSSegd #-}
 --  NOINLINE because it's complicated and won't fuse with anything.
 --  In core we want to see when VSegds are being demoted.
 

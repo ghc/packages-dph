@@ -202,7 +202,7 @@ class PR a where
   --        instead of going via a SSegd.
   extractvsPR    :: PDatas a -> U.VSegd -> PData a
   extractvsPR pdatas vsegd
-        = extractssPR pdatas (U.demoteToSSegdOfVSegd vsegd)
+        = extractssPR pdatas (U.unsafeDemoteToSSegdOfVSegd vsegd)
   
   -- Pack and Combine ---------------------------
   -- | Select elements of an array that have their corresponding tag set to

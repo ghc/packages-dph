@@ -5,13 +5,13 @@ module Data.Array.Parallel.Unlifted (
   -- * Types
   Elt,  Array,
   
-  -- * Array Constructors
+  -- * Constructors
   empty,
-  (+:+),     append_s,
+  generate,
   replicate, replicate_s, replicate_rs,
   repeat,
   indexed,
-  generate,
+  (+:+),     append_s,
   indices_s,
   enumFromTo,
   enumFromThenTo,
@@ -47,13 +47,13 @@ module Data.Array.Parallel.Unlifted (
   -- * Map and ZipWith
   map, zipWith, zipWith3, zipWith4,
 
-  -- * Folds and Scans
+  -- * Scans and Folds
+  scan,
   fold,  fold_s,  fold_ss,   fold_vs, fold_r,  
   fold1, fold1_s, fold1_ss,  fold1_vs,
   sum,   sum_s,   sum_ss,    sum_r,  
   count, count_s, count_ss,
   and, 
-  scan,
 
   -- * Pack and Filter
   pack,
@@ -75,6 +75,7 @@ module Data.Array.Parallel.Unlifted (
   repSel2,
   tagsToSel2,
   
+  -- * Selector Representations
   SelRep2,
   mkSelRep2,
   indicesSelRep2,
@@ -128,15 +129,14 @@ module Data.Array.Parallel.Unlifted (
   takeSSegdRedundantOfVSegd,
   takeLengthsOfVSegd,
   getSegOfVSegd,
-  demoteToSSegdOfVSegd,
+  unsafeDemoteToSSegdOfVSegd,
   unsafeDemoteToSegdOfVSegd,
   updateVSegsOfVSegd,
   updateVSegsReachableOfVSegd,
   appendVSegd,
   combine2VSegd,
   
-
-  -- * Irregular two dimensional arrays.
+  -- * Irregular two dimensional arrays
   Elts, Arrays,
   emptys,
   singletons,
@@ -160,4 +160,4 @@ import System.IO                  (IO, Handle)
 import Data.Word                  (Word8)
 import qualified System.Random
 import qualified Prelude
-import qualified Data.Vector    as VV
+import qualified Data.Vector       as VV
