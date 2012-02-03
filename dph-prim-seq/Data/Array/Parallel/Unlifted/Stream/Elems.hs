@@ -14,7 +14,9 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as U
 import qualified Data.Array.Parallel.Unlifted.Vectors            as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd  as UVSegd
 
-
+-- | Take a stream of indices, 
+--    look them up from a vector, 
+--    and produce a stream of elements.
 streamElemsFromVector
         :: (Monad m, Unbox a)
         => Vector a -> Stream m Int -> Stream m a
@@ -35,8 +37,9 @@ streamElemsFromVector vector (Stream mkStep s0 size0)
 {-# INLINE_STREAM streamElemsFromVector #-}
 
 
--- | Take a stream of chunk and chunk element indices, look them up from
---   some vectors, and produce a stream of elements.
+-- | Take a stream of chunk and chunk element indices, 
+--    look them up from some vectors, 
+--    and produce a stream of elements.
 streamElemsFromVectors 
         :: (Monad m, Unboxes a) 
         => Vectors a -> Stream m (Int, Int) -> Stream m a

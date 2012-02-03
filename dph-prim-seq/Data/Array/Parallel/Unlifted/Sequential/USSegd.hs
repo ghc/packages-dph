@@ -2,7 +2,10 @@
 {-# OPTIONS -Wall -fno-warn-orphans #-}
 #include "fusion-phases.h"
 
--- | Scattered Segment Descriptors
+-- | Scattered Segment Descriptors.
+--
+--   See "Data.Array.Parallel.Unlifted" for how this works.
+--
 module Data.Array.Parallel.Unlifted.Sequential.USSegd 
         ( -- * Types
           USSegd(..)
@@ -39,23 +42,7 @@ here s = "Data.Array.Parallel.Unlifted.Sequential.USSegd." ++ s
 
 
 -- USSegd ---------------------------------------------------------------------
--- | Construct a Scattered Segment Descriptor from an array of source
---   array indices, starting indices and an existing `USegd`.
---
---   * A `USSegd` is an extension of a `USegd` that that allows the segments to be
---     scattered through multiple flat arrays.
---
---   * Each segment is associated with a source id that indicates what 
---     flat array it is in, along with the starting index in that flat array.
---
---   * The segments need not cover the entire flat array.
---
---   * Different segments may point to the same elements.
---
---   * As different segments may point to the same elements, it is possible
---     for the total number of elements covered by the segment descriptor
---     to overflow a machine word.
--- 
+-- | Scattered Segment Descriptor.
 data USSegd
         = USSegd
         { ussegd_contiguous     :: !Bool
@@ -236,8 +223,8 @@ appendWith
 --  NOINLINE because we're worried about code explosion. Might be useful though.
 
 
--- | Cull the segments in a SSegd down to only those reachable from an array
---   of vsegids, and also update the vsegids to point to the same segments
+-- | Cull the segments of a `USSegd` down to only those reachable from an array
+--   of @vsegids@, and also update the @vsegids@ to point to the same segments
 --   in the result.
 --
 cullOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)

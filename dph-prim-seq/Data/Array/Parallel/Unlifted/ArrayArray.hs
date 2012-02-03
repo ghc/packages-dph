@@ -1,6 +1,11 @@
 
--- | Nested unboxed arrays.
---  
+-- | Irregular 2D unboxed arrays.
+--
+--   The difference between this type and something like 
+--   @Data.Vector (Data.Vector.Unboxed a)@ is that the inner arrays have kind
+--   @#@ and cannot be bottom. This ensures that we can always lookup an element
+--   from an `ArrayArray#` without performing unboxings or checking for thunks.
+---
 --   TODO: move this into the Data.Primitive library.
 module Data.Array.Parallel.Unlifted.ArrayArray
         ( MutableArrayArray (..)

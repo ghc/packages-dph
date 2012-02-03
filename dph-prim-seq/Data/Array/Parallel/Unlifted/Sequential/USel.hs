@@ -1,10 +1,13 @@
 {-# LANGUAGE CPP #-}
 #include "fusion-phases.h"
 
--- | Selectors. See the docs in dph-prim-interface for how these work.
+-- | Selectors. 
+--
+--   See "Data.Array.Parallel.Unlifted" for how this works.
+--
 module Data.Array.Parallel.Unlifted.Sequential.USel 
         ( -- * Types
-          USel2
+          USel2(..)
 
           -- * Operations on selectors
         , mkUSel2
@@ -19,8 +22,7 @@ import Data.Vector.Fusion.Stream.Monadic                ( Stream(..) )
 import Data.Array.Parallel.Base                         (Tag)
 
 
--- | Abstract selector. 
---   Contains both the @tags@ and @indices@ arrays outlined above.
+-- | Selector.
 data USel2 
         = USel2
         { usel2_tags      :: !(Vector Tag)

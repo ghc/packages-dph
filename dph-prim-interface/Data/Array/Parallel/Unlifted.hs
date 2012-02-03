@@ -3,7 +3,7 @@
 -- | WARNING: 
 --   This is an abstract interface. All the functions will just `error` if called. 
 --
---   This module provides an API for the unlifted array primitives used by DPH.
+--   This module provides an API for the segmented array primitives used by DPH.
 --   None of the functions here have implementations.
 --
 --   Client programs should use either the @dph-prim-seq@ or @dph-prim-par@
