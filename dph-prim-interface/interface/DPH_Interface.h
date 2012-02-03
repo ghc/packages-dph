@@ -1345,14 +1345,60 @@ combine2VSegd
 
 
 -- Irregular 2D arrays --------------------------------------------------------
+
+-- | O(1). Construct an empty `Arrays` with no elements.
+emptys :: Arrays a
+{-# INLINE_BACKEND emptys #-}
+
+
+-- | O(1). Construct an `Arrays` consisting of a single `Array`.
 singletons :: (Elt a, Elts a) => Array a -> Arrays a
 {-# INLINE_BACKEND singletons #-}
 
+
+-- | O(1). Yield the number of `Array` in an `Arrays`.
+lengths :: Elts a => Arrays a -> Int
+{-# INLINE_BACKEND lengths #-}
+
+
+-- | O(1). Take one of the outer `Array` from an `Arrays`.
+unsafeIndexs :: (Elt a, Elts a) => Arrays a -> Int -> Array a
+{-# INLINE_BACKEND unsafeIndexs #-}
+
+
+-- | O(1). Retrieve a single element from an `Arrays`, 
+--        given the outer and inner indices.
+unsafeIndex2s :: (Elt a, Elts a) => Arrays a -> Int -> Int -> a
+{-# INLINE_BACKEND unsafeIndex2s #-}
+
+
+-- | O(n). Append two `Arrays`, using work proportional to the length
+--         of the outer array.
+appends :: (Elt a, Elts a) => Arrays a -> Arrays a -> Arrays a
+{-# INLINE_BACKEND appends #-}
+
+
+-- | O(number of inner arrays). 
+--   Convert a boxed vector of `Array` to an `Arrays`.
+fromVectors :: (Elt a, Elts a) => VV.Vector (Array a) -> Arrays a
+{-# INLINE_BACKEND fromVectors #-}
+
+
+-- | O(number of inner arrays). 
+--   Convert an `Arrays` to a boxed vector of `Array`.
+toVectors :: (Elt a, Elts a) => Arrays a -> VV.Vector (Array a)
+{-# INLINE_BACKEND toVectors #-}
+
+
 -- Random Arrays --------------------------------------------------------------
+-- | Generate an array of the given length full of random data. 
+--   Good for testing.
 randoms :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
         => Int -> g -> Array a
 {-# INLINE_BACKEND randoms #-}
 
+-- | Generate an array of the given length full of random data.
+--   Good for testing.
 randomRs :: (Elt a, System.Random.Random a, System.Random.RandomGen g)
           => Int -> (a,a) -> g -> Array a
 {-# INLINE_BACKEND randomRs #-}
