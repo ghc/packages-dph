@@ -25,7 +25,7 @@ import Control.Exception         (assert)
 import Control.Monad
 
 #if TRACE_GANG
-import GHC.Exts                  (traceEvent)
+import Debug.Trace              (traceEventIO)
 import System.Time ( ClockTime(..), getClockTime )
 #endif 
 
@@ -222,7 +222,7 @@ diffTime x y = show (y-x)
 traceGang :: String -> IO ()
 traceGang s
  = do	t <- getGangTime
-	traceEvent $ show t ++ " @ " ++ s
+	traceEventIO $ show t ++ " @ " ++ s
 
 #else
 getGangTime :: IO ()
