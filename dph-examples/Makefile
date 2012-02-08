@@ -2,15 +2,15 @@
 
 # Package dependencies for DPH examples.
 DPH_DEPENDS = \
-	base         	== 4.4.*, \
+	base         	== 4.5.*, \
 	vector       	== 0.9.*, \
 	random       	== 1.0.*, \
-	old-time     	== 1.0.*, \
+	old-time     	== 1.1.*, \
 	containers      == 0.4.*, \
-	dph-base     	== 0.6.*, \
-	dph-prim-par	== 0.6.*, \
-	dph-lifted-vseg	== 0.6.*, \
-	HUnit           == 1.2.*
+	HUnit           == 1.2.*, \
+	dph-base     	== 0.6.1.*, \
+	dph-prim-par	== 0.6.1.*, \
+	dph-lifted-vseg	== 0.6.1.*
 
 
 # Options for compiling DPH examples.

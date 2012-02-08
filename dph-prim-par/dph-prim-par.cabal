@@ -1,5 +1,5 @@
 Name:           dph-prim-par
-Version:        0.6.0.1
+Version:        0.6.1.1
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
@@ -69,6 +69,6 @@ Library
         random             == 1.0.*,
         vector             == 0.9.*,
         old-time           == 1.1.*,
-        dph-base           == 0.6.*,
-        dph-prim-interface == 0.6.*,
-        dph-prim-seq       == 0.6.*
+        dph-base           == 0.6.1.*,
+        dph-prim-interface == 0.6.1.*,
+        dph-prim-seq       == 0.6.1.*

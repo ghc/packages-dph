@@ -1,5 +1,5 @@
 Name:                dph-examples
-Version:             0.6.0.1
+Version:             0.6.1.1
 License:             BSD3
 License-file:        LICENSE
 Author:              The DPH Team
@@ -152,7 +152,7 @@ Executable dph-spectral-quicksort
 --                     Timing Points2D.Types Points2D.Generate
 --                     System.Console.ParseArgs
 --                     Gloss.MainArgs Gloss.Draw Gloss.Config
---    Build-depends:  DPH_DEPENDS, gloss == 1.6.*
+--    Build-depends:  DPH_DEPENDS, gloss == 1.6.1.*
 --    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
 --    ghc-options:    DPH_OPTIONS
 

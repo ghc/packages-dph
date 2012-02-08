@@ -1,5 +1,5 @@
 Name:           dph-prim-seq
-Version:        0.6.0.1
+Version:        0.6.1.1
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
@@ -53,5 +53,5 @@ Library
         vector    == 0.9.*,
         primitive == 0.4.*,
         ghc-prim  == 0.2.*,
-        dph-base  == 0.6.*,
-        dph-prim-interface == 0.6.*
+        dph-base  == 0.6.1.*,
+        dph-prim-interface == 0.6.1.*

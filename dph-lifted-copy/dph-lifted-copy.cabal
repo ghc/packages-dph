@@ -1,5 +1,5 @@
 Name:           dph-lifted-copy
-Version:        0.6.0.1
+Version:        0.6.1.1
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
@@ -69,6 +69,6 @@ Library
         array            == 0.4.*,
         random           == 1.0.*,
         template-haskell == 2.7.*,
-        dph-base         == 0.6.*,
-        dph-prim-par     == 0.6.*,
-        vector           == 0.9.*
+        vector           == 0.9.*,
+        dph-base         == 0.6.1.*,
+        dph-prim-par     == 0.6.1.*
