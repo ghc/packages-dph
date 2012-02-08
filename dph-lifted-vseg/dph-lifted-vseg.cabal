@@ -1,5 +1,5 @@
 Name:           dph-lifted-vseg
-Version:        0.6.1.1
+Version:        0.6.1.2
 License:        BSD3
 License-File:   LICENSE
 Author:         The DPH Team
@@ -23,24 +23,7 @@ Library
         Data.Array.Parallel.Lifted.Closure
         Data.Array.Parallel.Lifted.Combinators
         Data.Array.Parallel.Lifted
-        Data.Array.Parallel.PArray.PData.Base
-        Data.Array.Parallel.PArray.PData.Double
-        Data.Array.Parallel.PArray.PData.Int
-        Data.Array.Parallel.PArray.PData.Word8
-        Data.Array.Parallel.PArray.PData.Nested
-        Data.Array.Parallel.PArray.PData.Sum2
-        Data.Array.Parallel.PArray.PData.Tuple2
-        Data.Array.Parallel.PArray.PData.Tuple3
-        Data.Array.Parallel.PArray.PData.Tuple4
-        Data.Array.Parallel.PArray.PData.Tuple5
-        Data.Array.Parallel.PArray.PData.Unit
-        Data.Array.Parallel.PArray.PData.Void
-        Data.Array.Parallel.PArray.PData.Wrap
         Data.Array.Parallel.PArray.PData
-        Data.Array.Parallel.PArray.PRepr.Base
-        Data.Array.Parallel.PArray.PRepr.Instances
-        Data.Array.Parallel.PArray.PRepr.Nested
-        Data.Array.Parallel.PArray.PRepr.Tuple
         Data.Array.Parallel.PArray.PRepr
         Data.Array.Parallel.PArray.Scalar
         Data.Array.Parallel.PArray
@@ -55,6 +38,26 @@ Library
         Data.Array.Parallel
         Data.Array.Parallel.Prim
         
+  Other-Modules:
+        Data.Array.Parallel.PArray.PData.Base
+        Data.Array.Parallel.PArray.PData.Double
+        Data.Array.Parallel.PArray.PData.Int
+        Data.Array.Parallel.PArray.PData.Word8
+        Data.Array.Parallel.PArray.PData.Nested
+        Data.Array.Parallel.PArray.PData.Sum2
+        Data.Array.Parallel.PArray.PData.Tuple2
+        Data.Array.Parallel.PArray.PData.Tuple3
+        Data.Array.Parallel.PArray.PData.Tuple4
+        Data.Array.Parallel.PArray.PData.Tuple5
+        Data.Array.Parallel.PArray.PData.Unit
+        Data.Array.Parallel.PArray.PData.Void
+        Data.Array.Parallel.PArray.PData.Wrap
+        Data.Array.Parallel.PArray.PRepr.Base
+        Data.Array.Parallel.PArray.PRepr.Instances
+        Data.Array.Parallel.PArray.PRepr.Nested
+        Data.Array.Parallel.PArray.PRepr.Tuple
+  
+
   Exposed:
         False
 
