@@ -1,5 +1,5 @@
 Name:                dph-examples
-Version:             0.6.1.1
+Version:             0.6.1.3
 License:             BSD3
 License-file:        LICENSE
 Author:              The DPH Team
@@ -71,7 +71,7 @@ Executable dph-smoke-rank
 Executable dph-smoke-reverse
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  Vectorised Randomish
+  other-modules:  Vectorised Randomish Vector
   hs-source-dirs: examples/smoke/sharing/Reverse lib
   ghc-options:    DPH_OPTIONS
 
@@ -142,19 +142,19 @@ Executable dph-spectral-quicksort
 
 
 -- Real -----------------------------------------------------------------------
---Executable dph-real-nbody-gloss
---    Main-is:        MainGloss.hs
---    other-modules:  Common.Dump Common.World Common.Body Common.Util 
---                     Solver Solver.ListBH.Solver
---                            Solver.NestedBH.Solver
---                            Solver.VectorBH.Solver
---                            Solver.VectorNaive.Solver
---                     Timing Points2D.Types Points2D.Generate
---                     System.Console.ParseArgs
---                     Gloss.MainArgs Gloss.Draw Gloss.Config
---    Build-depends:  DPH_DEPENDS, gloss == 1.6.1.*
---    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
---    ghc-options:    DPH_OPTIONS
+Executable dph-real-nbody-gloss
+    Main-is:        MainGloss.hs
+    other-modules:  Common.Dump Common.World Common.Body Common.Util 
+                     Solver Solver.ListBH.Solver
+                            Solver.NestedBH.Solver
+                            Solver.VectorBH.Solver
+                            Solver.VectorNaive.Solver
+                     Timing Points2D.Types Points2D.Generate
+                     System.Console.ParseArgs
+                     Gloss.MainArgs Gloss.Draw Gloss.Config
+    Build-depends:  DPH_DEPENDS, gloss == 1.6.1.*
+    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
+    ghc-options:    DPH_OPTIONS
 
 Executable dph-real-nbody
     Main-is:        MainBatch.hs
@@ -164,6 +164,7 @@ Executable dph-real-nbody
                            Solver.VectorBH.Solver
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
+                    System.Console.ParseArgs
                     Batch.MainArgs Batch.Config
     Build-depends:  DPH_DEPENDS
     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
