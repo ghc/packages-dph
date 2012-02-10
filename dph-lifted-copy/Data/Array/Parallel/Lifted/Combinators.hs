@@ -24,6 +24,7 @@
 module Data.Array.Parallel.Lifted.Combinators (
   lengthPA, replicatePA, singletonPA, mapPA, crossMapPA,
   zipPA, zip3PA, zip4PA, zipWithPA, zipWith3PA, unzipPA, unzip3PA, unzip4PA ,
+  zipWith4PA,
   packPA, filterPA, combine2PA, indexPA, concatPA, appPA, enumFromToPA_Int,
   indexedPA, slicePA, updatePA, bpermutePA,
 

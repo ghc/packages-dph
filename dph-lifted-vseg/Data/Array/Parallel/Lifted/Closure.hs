@@ -13,8 +13,8 @@ module Data.Array.Parallel.Lifted.Closure
         , ($:^), liftedApply
 
         -- * Closure Construction.
-        , closure1,  closure2,  closure3,  closure4,  closure5
-        , closure1', closure2', closure3', closure4', closure5')
+        , closure1,  closure2,  closure3,  closure4,  closure5,  closure6,  closure7,  closure8
+        , closure1', closure2', closure3', closure4', closure5', closure6', closure7', closure8')
 where
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.PArray.PData.Base
@@ -22,6 +22,10 @@ import Data.Array.Parallel.PArray.PData.Unit
 import Data.Array.Parallel.PArray.PData.Tuple2
 import Data.Array.Parallel.PArray.PData.Tuple3
 import Data.Array.Parallel.PArray.PData.Tuple4
+import Data.Array.Parallel.PArray.PData.Tuple5
+import Data.Array.Parallel.PArray.PData.Tuple6
+import Data.Array.Parallel.PArray.PData.Tuple7
+
 import Data.Array.Parallel.PArray.PRepr
 import qualified Data.Vector            as V
 import GHC.Exts
@@ -210,6 +214,109 @@ closure5 fv fl
 {-# INLINE_CLOSURE closure5 #-}
 
 
+
+-- | Construct an arity-6 closure
+--   from lifted and unlifted versions of a primitive function.
+closure6
+        :: forall a b c d e f g. (PA a, PA b, PA c, PA d, PA e)
+        => (a -> b -> c -> d -> e -> f -> g)
+        -> (Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g)
+        -> (a :-> b :-> c :-> d :-> e :-> f :-> g)
+        
+closure6 fv fl
+ = let  fv_1   _ xa                     = Clo  fv_2 fl_2 xa
+        fl_1 _ _ xs                     = AClo fv_2 fl_2 xs
+
+        fv_2   xa yb                    = Clo  fv_3 fl_3 (xa, yb)
+        fl_2 _ xs ys                    = AClo fv_3 fl_3 (PTuple2 xs ys)
+
+        fv_3 (xa, yb) zc                = Clo  fv_4 fl_4 (xa, yb, zc)
+        fl_3 _ (PTuple2 xs ys) zs       = AClo fv_4 fl_4 (PTuple3 xs ys zs)
+
+        fv_4 (wa, xb, yc) zd            = Clo  fv_5 fl_5 (wa, xb, yc, zd)
+        fl_4 _ (PTuple3 ws xs ys) zs    = AClo fv_5 fl_5 (PTuple4 ws xs ys zs)
+
+        fv_5 (va, wb, xc, yd) ze          = Clo  fv_6 fl_6 (va, wb, xc, yd, ze)
+        fl_5 _ (PTuple4 vs ws xs ys) zs   = AClo fv_6 fl_6 (PTuple5 vs ws xs ys zs)
+
+        fv_6 (ua, vb, wc, xd, ye) zf      = fv ua vb wc xd ye zf 
+        fl_6 n (PTuple5 us  vs ws xs ys) zs = fl n us vs ws xs ys zs 
+
+
+   in   Clo fv_1 fl_1 ()
+{-# INLINE_CLOSURE closure6 #-}
+
+
+-- | Construct an arity-6 closure
+--   from lifted and unlifted versions of a primitive function.
+closure7
+        :: forall a b c d e f g h. (PA a, PA b, PA c, PA d, PA e, PA f)
+        => (a -> b -> c -> d -> e -> f -> g -> h)
+        -> (Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g -> PData h)
+        -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h)
+        
+closure7 fv fl
+ = let  fv_1   _ xa                     = Clo  fv_2 fl_2 xa
+        fl_1 _ _ xs                     = AClo fv_2 fl_2 xs
+
+        fv_2   xa yb                    = Clo  fv_3 fl_3 (xa, yb)
+        fl_2 _ xs ys                    = AClo fv_3 fl_3 (PTuple2 xs ys)
+
+        fv_3 (xa, yb) zc                = Clo  fv_4 fl_4 (xa, yb, zc)
+        fl_3 _ (PTuple2 xs ys) zs       = AClo fv_4 fl_4 (PTuple3 xs ys zs)
+
+        fv_4 (wa, xb, yc) zd            = Clo  fv_5 fl_5 (wa, xb, yc, zd)
+        fl_4 _ (PTuple3 ws xs ys) zs    = AClo fv_5 fl_5 (PTuple4 ws xs ys zs)
+
+        fv_5 (va, wb, xc, yd) ze          = Clo  fv_6 fl_6 (va, wb, xc, yd, ze)
+        fl_5 _ (PTuple4 vs ws xs ys) zs   = AClo fv_6 fl_6 (PTuple5 vs ws xs ys zs)
+
+        fv_6 (ua, vb, wc, xd, ye) zf        = Clo fv_7 fl_7 (ua, vb, wc, xd, ye, zf)
+        fl_6 n (PTuple5 us  vs ws xs ys) zs = AClo fv_7 fl_7 (PTuple6 us vs ws xs ys zs)
+
+        fv_7 (ta, ub, vc, wd, xe, yf) zg      = fv ta ub vc wd xe yf zg
+        fl_7 n (PTuple6 ts us vs ws xs ys) zs = fl n ts us vs ws xs ys zs 
+
+   in   Clo fv_1 fl_1 ()
+{-# INLINE_CLOSURE closure7 #-}
+
+
+-- | Construct an arity-6 closure
+--   from lifted and unlifted versions of a primitive function.
+closure8
+        :: forall a b c d e f g h i. (PA a, PA b, PA c, PA d, PA e, PA f, PA g)
+        => (a -> b -> c -> d -> e -> f -> g -> h -> i)
+        -> (Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g -> PData h -> PData i)
+        -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h :-> i)
+        
+closure8 fv fl
+ = let  fv_1   _ xa                     = Clo  fv_2 fl_2 xa
+        fl_1 _ _ xs                     = AClo fv_2 fl_2 xs
+
+        fv_2   xa yb                    = Clo  fv_3 fl_3 (xa, yb)
+        fl_2 _ xs ys                    = AClo fv_3 fl_3 (PTuple2 xs ys)
+
+        fv_3 (xa, yb) zc                = Clo  fv_4 fl_4 (xa, yb, zc)
+        fl_3 _ (PTuple2 xs ys) zs       = AClo fv_4 fl_4 (PTuple3 xs ys zs)
+
+        fv_4 (wa, xb, yc) zd            = Clo  fv_5 fl_5 (wa, xb, yc, zd)
+        fl_4 _ (PTuple3 ws xs ys) zs    = AClo fv_5 fl_5 (PTuple4 ws xs ys zs)
+
+        fv_5 (va, wb, xc, yd) ze          = Clo  fv_6 fl_6 (va, wb, xc, yd, ze)
+        fl_5 _ (PTuple4 vs ws xs ys) zs   = AClo fv_6 fl_6 (PTuple5 vs ws xs ys zs)
+
+        fv_6 (ua, vb, wc, xd, ye) zf        = Clo fv_7 fl_7 (ua, vb, wc, xd, ye, zf)
+        fl_6 n (PTuple5 us  vs ws xs ys) zs = AClo fv_7 fl_7 (PTuple6 us vs ws xs ys zs)
+
+        fv_7 (ta, ub, vc, wd, xe, yf) zg      = Clo fv_8 fl_8 (ta, ub, vc, wd, xe, yf, zg)
+        fl_7 n (PTuple6 ts us vs ws xs ys) zs = AClo fv_8 fl_8 (PTuple7 ts us vs ws xs ys zs) 
+
+        fv_8 (sa, tb, uc, vd, we, xf, yg) zh      = fv sa tb uc vd we xf yg zh
+        fl_8 n (PTuple7 ss ts us vs ws xs ys) zs = fl n ss ts us vs ws xs ys zs 
+
+   in   Clo fv_1 fl_1 ()
+{-# INLINE_CLOSURE closure8 #-}
+
 -- Closure constructors that take PArrays -------------------------------------
 -- These versions are useful when defining prelude functions such as in 
 -- D.A.P.Prelude.Int. They let us promote functions that work on PArrays 
@@ -296,6 +403,57 @@ closure5' fv fl
                  PArray _ pdata' -> pdata'
    in   closure5 fv fl'
 {-# INLINE_CLOSURE closure5' #-}
+
+-- | Construct an arity-6 closure.
+closure6'
+        :: forall a b c d e f g. (PA a, PA b, PA c, PA d, PA e, PA f) 
+        => (a -> b -> c -> d -> e -> f -> g)
+        -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g)
+        -> (a :-> b :-> c :-> d :-> e :-> f :-> g) 
+
+closure6' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) !pdata1 !pdata2 !pdata3 !pdata4 !pdata5 !pdata6
+         = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) (PArray n# pdata4) (PArray n# pdata5) (PArray n# pdata6) of
+                 PArray _ pdata' -> pdata'
+   in   closure6 fv fl'
+{-# INLINE_CLOSURE closure6' #-}
+
+
+
+-- | Construct an arity-7 closure.
+closure7'
+        :: forall a b c d e f g h. (PA a, PA b, PA c, PA d, PA e, PA f, PA g) 
+        => (a -> b -> c -> d -> e -> f -> g -> h)
+        -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g -> PArray h)
+        -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h) 
+
+closure7' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) !pdata1 !pdata2 !pdata3 !pdata4 !pdata5 !pdata6 !pdata7
+         = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) (PArray n# pdata4) 
+		           (PArray n# pdata5) (PArray n# pdata6) (PArray n# pdata7) of
+                 PArray _ pdata' -> pdata'
+   in   closure7 fv fl'
+{-# INLINE_CLOSURE closure7' #-}
+
+-- | Construct an arity-8 closure.
+closure8'
+        :: forall a b c d e f g h i. (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h) 
+        => (a -> b -> c -> d -> e -> f -> g -> h -> i)
+        -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> 
+		    PArray g -> PArray h -> PArray i)
+        -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h :-> i) 
+
+closure8' fv fl 
+ = let  {-# INLINE fl' #-}
+        fl' (I# n#) !pdata1 !pdata2 !pdata3 !pdata4 !pdata5 !pdata6 !pdata7 !pdata8
+         = case fl (PArray n# pdata1) (PArray n# pdata2) (PArray n# pdata3) (PArray n# pdata4) 
+		           (PArray n# pdata5) (PArray n# pdata6) (PArray n# pdata7) (PArray n# pdata8) of
+                 PArray _ pdata' -> pdata'
+   in   closure8 fv fl'
+{-# INLINE_CLOSURE closure8' #-}
+
 
 
 -- PData instance for closures ------------------------------------------------

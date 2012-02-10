@@ -17,11 +17,13 @@ module Data.Array.Parallel.Prim (
   PData, PDatas(..), PRepr, PA(..), PR(..),
   replicatePD, emptyPD, packByTagPD, combine2PD,
   Scalar(..),
-  scalar_map, scalar_zipWith, scalar_zipWith3, scalar_zipWith4,
+  scalar_map, scalar_zipWith, scalar_zipWith3, scalar_zipWith4, scalar_zipWith5, scalar_zipWith6,
+  scalar_zipWith7, scalar_zipWith8,
   Void, Sum2(..), Sum3(..), Wrap(..),
   void, fromVoid, pvoid, pvoids#, punit,
   (:->)(..), 
-  closure, liftedClosure, ($:), liftedApply, closure1, closure2, closure3, closure4,
+  closure, liftedClosure, ($:), liftedApply, closure1, closure2, closure3, closure4, 
+  closure5, closure6, closure7, closure8,
   Sel2,  replicateSel2#, tagsSel2, elementsSel2_0#, elementsSel2_1#,
   Sels2, lengthSels2#,
   replicatePA_Int#, replicatePA_Double#,
@@ -45,14 +47,16 @@ import Data.Array.Parallel.PArray.PReprInstances  ( {-we required instances-} )
 import Data.Array.Parallel.PArray.PData           (PData, PDatas, PR(..))
 import Data.Array.Parallel.PArray.PDataInstances  (pvoid, punit, Sels2)
 import Data.Array.Parallel.Lifted.Closure         ((:->)(..), closure, liftedClosure, ($:),
-                                                   liftedApply, closure1, closure2, closure3, closure4)
+                                                   liftedApply, closure1, closure2, closure3, closure4, 
+												   closure5, closure6, closure7, closure8)
 import Data.Array.Parallel.Lifted.Unboxed         (Sel2, replicateSel2#, tagsSel2, elementsSel2_0#,
                                                    elementsSel2_1#,
                                                    replicatePA_Int#, replicatePA_Double#,
                                                    emptyPA_Int#, emptyPA_Double#,
                                                    {- packByTagPA_Int#, packByTagPA_Double# -}
                                                    combine2PA_Int#, combine2PA_Double#)
-import Data.Array.Parallel.Lifted.Scalar          (scalar_map, scalar_zipWith, scalar_zipWith3, scalar_zipWith4)
+import Data.Array.Parallel.Lifted.Scalar          (scalar_map, scalar_zipWith, scalar_zipWith3, scalar_zipWith4,
+                                                   scalar_zipWith5, scalar_zipWith6, scalar_zipWith7, scalar_zipWith8)
 import Data.Array.Parallel.Prelude.Tuple          (tup2, tup3, tup4)
 import GHC.Exts
 

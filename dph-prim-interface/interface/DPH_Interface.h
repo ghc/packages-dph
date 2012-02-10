@@ -438,6 +438,47 @@ zipWith4 f as bs cs ds
                    (zip cs ds)
 {-# INLINE zipWith4 #-}
 
+-- | Apply a worker function to corresponding elements of five arrays.
+zipWith5 :: (Elt a, Elt b, Elt c, Elt d, Elt e, Elt f)
+         => (a -> b -> c -> d -> e -> f)
+         -> Array a -> Array b -> Array c -> Array d -> Array e -> Array f
+{-# INLINE zipWith5 #-}
+zipWith5 f as bs cs ds es
+         = zipWith (\(a, b) ((c, d),e) -> f a b c d e)
+                   (zip as bs)
+                   (zip (zip cs ds) es)
+
+-- | Apply a worker function to corresponding elements of six arrays.
+zipWith6 :: (Elt a, Elt b, Elt c, Elt d, Elt e, Elt f, Elt g)
+         => (a -> b -> c -> d -> e -> f ->g)
+         -> Array a -> Array b -> Array c -> Array d -> Array e -> Array f -> Array g
+{-# INLINE zipWith6 #-}
+zipWith6 fn as bs cs ds es fs
+         = zipWith (\((a, b), c) ((d, e), f) -> fn a b c d e f)
+                   (zip (zip as bs) cs)
+                   (zip (zip ds es) fs)
+
+-- | Apply a worker function to corresponding elements of seven arrays.
+zipWith7 :: (Elt a, Elt b, Elt c, Elt d, Elt e, Elt f, Elt g, Elt h)
+         => (a -> b -> c -> d -> e -> f -> g ->h)
+         -> Array a -> Array b -> Array c -> Array d -> Array e -> Array f -> Array g 
+         -> Array h
+{-# INLINE zipWith7 #-}
+zipWith7 fn as bs cs ds es fs gs
+         = zipWith (\((a, b), c) ((d, e), (f, g)) -> fn a b c d e f g)
+                   (zip (zip as bs) cs)
+                   (zip (zip ds es) (zip fs gs))
+
+-- | Apply a worker function to corresponding elements of six arrays.
+zipWith8 :: (Elt a, Elt b, Elt c, Elt d, Elt e, Elt f, Elt g, Elt h, Elt i)
+         => (a -> b -> c -> d -> e -> f -> g ->h -> i)
+         -> Array a -> Array b -> Array c -> Array d -> Array e -> Array f -> Array g 
+         -> Array h -> Array i
+{-# INLINE zipWith8 #-}
+zipWith8 fn as bs cs ds es fs gs hs
+         = zipWith (\((a, b), (c, d)) ((e, f), (g, h)) -> fn a b c d e f g h)
+                   (zip (zip as bs) (zip cs ds))
+                   (zip (zip es fs) (zip gs hs))
 
 {-# RULES
         

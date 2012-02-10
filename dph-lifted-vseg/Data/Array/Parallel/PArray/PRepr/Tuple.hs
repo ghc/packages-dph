@@ -15,6 +15,8 @@ import Data.Array.Parallel.PArray.PData.Tuple2
 import Data.Array.Parallel.PArray.PData.Tuple3
 import Data.Array.Parallel.PArray.PData.Tuple4
 import Data.Array.Parallel.PArray.PData.Tuple5
+import Data.Array.Parallel.PArray.PData.Tuple6
+import Data.Array.Parallel.PArray.PData.Tuple7
 import Data.Array.Parallel.PArray.PData.Nested
 import Data.Array.Parallel.PArray.PData.Wrap
 
@@ -124,7 +126,7 @@ instance (PA a, PA b, PA c, PA d) => PA (a, b, c, d) where
         = PTuple4s as bs cs ds
 
 
--- Tuple4 --------------------------------------------------------------------
+-- Tuple5 --------------------------------------------------------------------
 type instance PRepr (a, b, c, d, e)
         = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e)
 
@@ -154,3 +156,60 @@ instance (PA a, PA b, PA c, PA d, PA e) => PA (a, b, c, d, e) where
         = PTuple5s as bs cs ds es
 
 
+-- Tuple6 --------------------------------------------------------------------
+type instance PRepr (a, b, c, d, e, f)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f) => PA (a, b, c, d, e, f) where
+  {-# INLINE_PA toPRepr #-}
+  toPRepr (a, b, c, d, e, f)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f)
+
+  {-# INLINE_PA fromPRepr #-}
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f)
+        = (a, b, c, d, e, f)
+
+  {-# INLINE_PA toArrPRepr #-}
+  toArrPRepr (PTuple6 as bs cs ds es fs)
+        = PTuple6 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs)
+
+  {-# INLINE_PA fromArrPRepr #-}
+  fromArrPRepr (PTuple6 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs))
+        = PTuple6 as bs cs ds es fs
+
+  {-# INLINE_PA toArrPReprs #-}
+  toArrPReprs (PTuple6s as bs cs ds es fs)
+        = PTuple6s (PWraps as) (PWraps bs) (PWraps cs) (PWraps ds) (PWraps es) (PWraps fs) 
+
+  {-# INLINE_PA fromArrPReprs #-}
+  fromArrPReprs (PTuple6s (PWraps as) (PWraps bs) (PWraps cs) (PWraps ds) (PWraps es) (PWraps fs))
+        = PTuple6s as bs cs ds es fs
+
+-- Tuple7 --------------------------------------------------------------------
+type instance PRepr (a, b, c, d, e, f, g)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g)
+
+instance (PA a, PA b, PA c, PA d, PA e, PA f, PA g) => PA (a, b, c, d, e, f, g) where
+  {-# INLINE_PA toPRepr #-}
+  toPRepr (a, b, c, d, e, f, g)
+        = (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g)
+
+  {-# INLINE_PA fromPRepr #-}
+  fromPRepr (Wrap a, Wrap b, Wrap c, Wrap d, Wrap e, Wrap f, Wrap g)
+        = (a, b, c, d, e, f, g)
+
+  {-# INLINE_PA toArrPRepr #-}
+  toArrPRepr (PTuple7 as bs cs ds es fs gs)
+        = PTuple7 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs)
+
+  {-# INLINE_PA fromArrPRepr #-}
+  fromArrPRepr (PTuple7 (PWrap as) (PWrap bs) (PWrap cs) (PWrap ds) (PWrap es) (PWrap fs) (PWrap gs))
+        = PTuple7 as bs cs ds es fs gs
+
+  {-# INLINE_PA toArrPReprs #-}
+  toArrPReprs (PTuple7s as bs cs ds es fs gs)
+        = PTuple7s (PWraps as) (PWraps bs) (PWraps cs) (PWraps ds) (PWraps es) (PWraps fs)  (PWraps gs)
+
+  {-# INLINE_PA fromArrPReprs #-}
+  fromArrPReprs (PTuple7s (PWraps as) (PWraps bs) (PWraps cs) (PWraps ds) (PWraps es) (PWraps fs) (PWraps gs))
+        = PTuple7s as bs cs ds es fs gs

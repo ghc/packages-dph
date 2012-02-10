@@ -11,7 +11,8 @@ module Data.Array.Parallel.PArray.PDataInstances(
 
   -- * Operators on arrays of tuples
   zipPA#,  unzipPA#, zip3PA#, unzip3PA#, unzip4PA#,
-  zip4PA#, zip5PA#, 
+  zip4PA#, unzip4PA#, zip5PA#, unzip5PA#, zip6PA#, unzip6PA#, 
+  zip7PA#, unzip7PA#, zip8PA#, unzip8PA#, 
   
   -- * Operators on nested arrays
   segdPA#, concatPA#, segmentPA#, copySegdPA#
@@ -275,21 +276,59 @@ unzip3PA# :: PArray (a, b, c) -> (PArray a, PArray b, PArray c)
 unzip3PA# (PArray n# (P_3 xs ys zs))
   = (PArray n# xs, PArray n# ys, PArray n# zs)
 
-unzip4PA# :: PArray (a, b, c, d) -> (PArray a, PArray b, PArray c, PArray d)
-{-# INLINE_PA unzip4PA# #-}
-unzip4PA# (PArray n# (P_4 ws xs ys zs))
-  = (PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
-
 
 zip4PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray (a, b, c, d)
 {-# INLINE_PA zip4PA# #-}
 zip4PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as)
   = PArray n# (P_4 xs ys zs as)
 
+unzip4PA# :: PArray (a, b, c, d) -> (PArray a, PArray b, PArray c, PArray d)
+{-# INLINE_PA unzip4PA# #-}
+unzip4PA# (PArray n# (P_4 ws xs ys zs))
+   = (PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
+
 zip5PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray (a, b, c, d, e)
 {-# INLINE_PA zip5PA# #-}
 zip5PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as) (PArray _ bs)
   = PArray n# (P_5 xs ys zs as bs)
+
+unzip5PA# :: PArray (a, b, c, d, e) -> (PArray a, PArray b, PArray c, PArray d, PArray e)
+{-# INLINE_PA unzip5PA# #-}
+unzip5PA# (PArray n# (P_5 vs ws xs ys zs))
+  = (PArray n# vs, PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
+
+zip6PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray (a, b, c, d, e, f)
+{-# INLINE_PA zip6PA# #-}
+zip6PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as) (PArray _ bs) (PArray _ cs)
+  = PArray n# (P_6 xs ys zs as bs cs)
+
+unzip6PA# :: PArray (a, b, c, d, e, f) -> (PArray a, PArray b, PArray c, PArray d, PArray e, PArray f)
+{-# INLINE_PA unzip6PA# #-}
+unzip6PA# (PArray n# (P_6 us vs ws xs ys zs))
+  = (PArray n# us, PArray n# vs, PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
+
+
+zip7PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g ->
+  PArray (a, b, c, d, e, f, g)
+{-# INLINE_PA zip7PA# #-}
+zip7PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as) (PArray _ bs) (PArray _ cs) (PArray _ ds)
+  = PArray n# (P_7 xs ys zs as bs cs ds)
+
+unzip7PA# :: PArray (a, b, c, d, e, f, g) -> (PArray a, PArray b, PArray c, PArray d, PArray e, PArray f, PArray g)
+{-# INLINE_PA unzip7PA# #-}
+unzip7PA# (PArray n# (P_7 ts us vs ws xs ys zs))
+  = (PArray n# ts, PArray n# us, PArray n# vs, PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
+
+zip8PA# :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g -> PArray h ->
+  PArray (a, b, c, d, e, f, g, h)
+{-# INLINE_PA zip8PA# #-}
+zip8PA# (PArray n# xs) (PArray _ ys) (PArray _ zs) (PArray _ as) (PArray _ bs) (PArray _ cs) (PArray _ ds) (PArray _ es)
+  = PArray n# (P_8 xs ys zs as bs cs ds es)
+
+unzip8PA# :: PArray (a, b, c, d, e, f, g, h) -> (PArray a, PArray b, PArray c, PArray d, PArray e, PArray f, PArray g, PArray h)
+{-# INLINE_PA unzip8PA# #-}
+unzip8PA# (PArray n# (P_8 ss ts us vs ws xs ys zs))
+  = (PArray n# ss, PArray n# ts, PArray n# us, PArray n# vs, PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
 
 
 -- Sums -----------------------------------------------------------------------

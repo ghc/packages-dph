@@ -25,6 +25,10 @@ module Data.Array.Parallel.PArray.Scalar
         , zipWith
         , zipWith3
         , zipWith4
+        , zipWith5
+        , zipWith6
+        , zipWith7
+        , zipWith8
         
         -- * Folds
         , fold,         folds
@@ -210,6 +214,53 @@ zipWith4
 zipWith4 f (PArray len ws) (PArray _ xs) (PArray _ ys) (PArray _ zs)
         = PArray len $ to $ U.zipWith4 f (from ws) (from xs) (from ys) (from zs)
 
+-- | Zip five arrays, yielding a new array.
+{-# INLINE_PA zipWith5 #-}
+zipWith5
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f)
+        => (a -> b -> c -> d -> e -> f) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f
+
+zipWith5 f (PArray len vs)  (PArray _ ws) (PArray _ xs) (PArray _ ys) (PArray _ zs)
+        = PArray len $ to $ U.zipWith5 f (from vs) (from ws) (from xs) (from ys) (from zs)
+
+
+-- | Zip six arrays, yielding a new array.
+{-# INLINE_PA zipWith6 #-}
+zipWith6
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g)
+        => (a -> b -> c -> d -> e -> f -> g) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g
+
+zipWith6 f (PArray len us)  (PArray _ vs)(PArray _ ws) (PArray _ xs) (PArray _ ys) (PArray _ zs)
+        = PArray len $ to $ U.zipWith6 f (from us) (from vs) (from ws) (from xs) (from ys) (from zs)
+
+
+-- | Zip seven arrays, yielding a new array.
+{-# INLINE_PA zipWith7 #-}
+zipWith7
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h)
+        => (a -> b -> c -> d -> e -> f -> g -> h) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g
+        -> PArray h
+        
+zipWith7 f (PArray len ts) (PArray _ us)  (PArray _ vs)(PArray _ ws) (PArray _ xs) (PArray _ ys) (PArray _ zs)
+        = PArray len $ to $ U.zipWith7 f (from ts) (from us) (from vs) (from ws) (from xs) (from ys) (from zs)
+
+
+-- | Eight seven arrays, yielding a new array.
+{-# INLINE_PA zipWith8 #-}
+zipWith8
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h, Scalar i)
+        => (a -> b -> c -> d -> e -> f -> g -> h -> i) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g
+        -> PArray h -> PArray i
+        
+zipWith8 f (PArray len ss) (PArray _ ts) (PArray _ us)  (PArray _ vs)(PArray _ ws) (PArray _ xs) (PArray _ ys) (PArray _ zs)
+        = PArray len $ to $ U.zipWith8 f (from ss) (from ts) (from us) (from vs) (from ws) (from xs) (from ys) (from zs)
+
+
+                
 
 -- Folds ----------------------------------------------------------------------
 -- | Left fold over an array.

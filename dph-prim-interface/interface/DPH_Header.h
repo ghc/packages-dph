@@ -42,10 +42,10 @@ module Data.Array.Parallel.Unlifted (
   -- * Zipping and Unzipping
   zip,   zip3,
   unzip, unzip3,
-  fsts,  snds,
+  fsts,  snds,  
 
   -- * Map and ZipWith
-  map, zipWith, zipWith3, zipWith4,
+  map, zipWith, zipWith3, zipWith4, zipWith5, zipWith6, zipWith7,  zipWith8, 
 
   -- * Scans and Folds
   scan,

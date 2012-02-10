@@ -26,7 +26,7 @@ tup4    = closure4' (,,,) PA.zip4
 {-# INLINE tup4 #-}
 
 
-tup5    :: (PA a, PA b, PA c, PA d)
+tup5    :: (PA a, PA b, PA c, PA d, PA e)
         =>  a :-> b :-> c :-> d :-> e :-> (a, b, c, d, e)
 tup5    = closure5' (,,,,) PA.zip5
 {-# INLINE tup5 #-}

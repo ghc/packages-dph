@@ -20,6 +20,10 @@ module Data.Array.Parallel.Prim
         , scalar_zipWith
         , scalar_zipWith3
         , scalar_zipWith4
+        , scalar_zipWith5
+        , scalar_zipWith6
+		, scalar_zipWith7
+        , scalar_zipWith8
 
         -- Types used in the generic representation
         , Void, void, fromVoid, pvoid, pvoids#
@@ -31,7 +35,8 @@ module Data.Array.Parallel.Prim
         , (:->)(..)
         , closure,              ($:)
         , liftedClosure,        liftedApply
-        , closure1, closure2, closure3, closure4
+        , closure1, closure2, closure3, closure4, closure5
+        , closure6, closure7, closure8
         
         -- Selectors
         , Sel2
@@ -222,6 +227,62 @@ closure4 fv fl
    in   C.closure4 fv fl'
 
 
+
+{-# INLINE_CLOSURE closure5 #-}
+closure5 :: forall a b c d e f.  (PA a, PA b, PA c, PA d)
+         => (a -> b -> c -> d -> e -> f)
+         -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f)
+         -> (a :-> b :-> c :-> d :-> e :-> f)
+closure5 fv fl
+ = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f
+        fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5
+         = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) (PArray c# pdata5) of
+                 PArray _ pdata' -> pdata'
+                
+   in   C.closure5 fv fl'
+
+{-# INLINE_CLOSURE closure6 #-}
+closure6 :: forall a b c d e f g.  (PA a, PA b, PA c, PA d, PA e)
+         => (a -> b -> c -> d -> e -> f -> g)
+         -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g)
+         -> (a :-> b :-> c :-> d :-> e :-> f :-> g)
+closure6 fv fl
+ = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g
+        fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5 pdata6
+         = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) (PArray c# pdata5) (PArray c# pdata6) of
+                 PArray _ pdata' -> pdata'
+                
+   in   C.closure6 fv fl'
+   
+{-# INLINE_CLOSURE closure7 #-}
+closure7 :: forall a b c d e f g h.  (PA a, PA b, PA c, PA d, PA e, PA f, PA g)
+         => (a -> b -> c -> d -> e -> f -> g -> h)
+         -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g -> PArray h)
+         -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h)
+closure7 fv fl
+ = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g  -> PData h
+        fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5 pdata6 pdata7
+         = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) (PArray c# pdata5) (PArray c# pdata6) (PArray c# pdata7) of
+                 PArray _ pdata' -> pdata'
+                
+   in   C.closure7 fv fl'
+
+
+{-# INLINE_CLOSURE closure8 #-}
+closure8 :: forall a b c d e f g h i.  (PA a, PA b, PA c, PA d, PA e, PA f, PA g, PA h)
+         => (a -> b -> c -> d -> e -> f -> g -> h -> i)
+         -> (PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g -> PArray h -> PArray i)
+         -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h :-> i)
+closure8 fv fl
+ = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g -> PData h  -> PData i
+        fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5 pdata6 pdata7 pdata8 
+         = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) 
+                   (PArray c# pdata5) (PArray c# pdata6) (PArray c# pdata7) (PArray c# pdata8) of
+                 PArray _ pdata' -> pdata'
+                
+   in   C.closure8 fv fl'   
+   
+   
 -- Selector functions ---------------------------------------------------------
 -- The vectoriser wants versions of these that take unboxed integers
 -- for some arguments.
@@ -302,6 +363,39 @@ scalar_zipWith4
 
 scalar_zipWith4 = Scalar.zipWith4
 
+
+{-# INLINE scalar_zipWith5 #-}
+scalar_zipWith5
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f)
+        => (a -> b -> c -> d -> e -> f) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f
+
+scalar_zipWith5 = Scalar.zipWith5
+
+{-# INLINE scalar_zipWith6 #-}
+scalar_zipWith6
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g)
+        => (a -> b -> c -> d -> e -> f -> g) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g
+
+scalar_zipWith6 = Scalar.zipWith6
+
+{-# INLINE scalar_zipWith7 #-}
+scalar_zipWith7
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h)
+        => (a -> b -> c -> d -> e -> f -> g -> h) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f -> PArray g -> PArray h
+
+scalar_zipWith7 = Scalar.zipWith7
+
+{-# INLINE scalar_zipWith8 #-}
+scalar_zipWith8
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h, Scalar i)
+        => (a -> b -> c -> d -> e -> f -> g -> h -> i) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f     
+        -> PArray g -> PArray h -> PArray i
+
+scalar_zipWith8 = Scalar.zipWith8
 
 -- Int functions --------------------------------------------------------------
 type PArray_Int# = U.Array Int

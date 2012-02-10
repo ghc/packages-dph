@@ -145,6 +145,51 @@ scalar_zipWith4 f ws xs ys zs
         $ U.zipWith4 f (toUArray ws) (toUArray xs) (toUArray ys) (toUArray zs)
 
 
+-- | Zip five arrays, yielding a new array.
+scalar_zipWith5
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f)
+        => (a -> b -> c -> d -> e -> f) -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray f
+
+{-# INLINE_PA scalar_zipWith5 #-}
+scalar_zipWith5 f vs ws xs ys zs  
+        = fromUArray' (prim_lengthPA vs)
+        $ U.zipWith5 f (toUArray vs) (toUArray ws) (toUArray xs) (toUArray ys) (toUArray zs)
+        
+        
+-- | Zip six arrays, yielding a new array.
+scalar_zipWith6
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g)
+        => (a -> b -> c -> d -> e -> f -> g) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray  f-> PArray g
+
+{-# INLINE_PA scalar_zipWith6 #-}
+scalar_zipWith6 f us vs ws xs ys zs 
+        = fromUArray' (prim_lengthPA us)
+        $ U.zipWith6 f (toUArray us) (toUArray vs) (toUArray ws) (toUArray xs) (toUArray ys) (toUArray zs)
+        
+-- | Zip seven arrays, yielding a new array.
+scalar_zipWith7
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h)
+        => (a -> b -> c -> d -> e -> f -> g -> h) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray  f-> PArray g -> PArray h
+
+{-# INLINE_PA scalar_zipWith7 #-}
+scalar_zipWith7 f ts us vs ws xs ys zs 
+        = fromUArray' (prim_lengthPA us)
+        $ U.zipWith7 f (toUArray ts) (toUArray us) (toUArray vs) (toUArray ws) (toUArray xs) (toUArray ys) (toUArray zs)
+                        
+
+-- | Zip eight arrays, yielding a new array.
+scalar_zipWith8
+        :: (Scalar a, Scalar b, Scalar c, Scalar d, Scalar e, Scalar f, Scalar g, Scalar h, Scalar i)
+        => (a -> b -> c -> d -> e -> f -> g -> h -> i) 
+        -> PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray  f-> PArray g -> PArray h -> PArray i
+
+{-# INLINE_PA scalar_zipWith8 #-}
+scalar_zipWith8 f ss ts us vs ws xs ys zs 
+        = fromUArray' (prim_lengthPA ss)
+        $ U.zipWith8 f (toUArray ss)  (toUArray ts) (toUArray us) (toUArray vs) (toUArray ws) (toUArray xs) (toUArray ys) (toUArray zs)
+                        
 -- | Left fold over an array.
 scalar_fold 
         :: Scalar a

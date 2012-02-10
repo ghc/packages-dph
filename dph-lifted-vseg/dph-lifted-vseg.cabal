@@ -33,6 +33,8 @@ Library
         Data.Array.Parallel.PArray.PData.Tuple3
         Data.Array.Parallel.PArray.PData.Tuple4
         Data.Array.Parallel.PArray.PData.Tuple5
+        Data.Array.Parallel.PArray.PData.Tuple6
+        Data.Array.Parallel.PArray.PData.Tuple7
         Data.Array.Parallel.PArray.PData.Unit
         Data.Array.Parallel.PArray.PData.Void
         Data.Array.Parallel.PArray.PData.Wrap
