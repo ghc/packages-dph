@@ -394,13 +394,13 @@ unzip7Generic :: (G.Vector v a, G.Vector v b, G.Vector v c, G.Vector v d, G.Vect
        => v (a, b, c, d, e, f, g) -> (v a, v b, v c, v d, v e, v f, v g)
 {-# INLINE unzip7Generic #-}
 unzip7Generic xs = 
-            (mapG (\(a, b, c, d, e, f, g) -> a) xs,
-             mapG (\(a, b, c, d, e, f, g) -> b) xs,
-             mapG (\(a, b, c, d, e, f, g) -> c) xs,
-             mapG (\(a, b, c, d, e, f, g) -> d) xs,
-             mapG (\(a, b, c, d, e, f, g) -> e) xs,
-             mapG (\(a, b, c, d, e, f, g) -> f) xs,
-             mapG (\(a, b, c, d, e, f, g) -> g) xs)
+            (mapG (\(a, _b, _c, _d, _e, _f, _g) -> a) xs,
+             mapG (\(_a, b, _c, _d, _e, _f, _g) -> b) xs,
+             mapG (\(_a, _b, c, _d, _e, _f, _g) -> c) xs,
+             mapG (\(_a, _b, _c, d, _e, _f, _g) -> d) xs,
+             mapG (\(_a, _b, _c, _d, e, _f, _g) -> e) xs,
+             mapG (\(_a, _b, _c, _d, _e, f, _g) -> f) xs,
+             mapG (\(_a, _b, _c, _d, _e, _f, g) -> g) xs)
   where
     -- | /O(n)/ Map a function over a vector
     mapG :: (G.Vector v a, G.Vector v b) => (a -> b) -> v a -> v b
