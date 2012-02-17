@@ -272,7 +272,7 @@ closure7 fv fl
         fl_5 _ (PTuple4 vs ws xs ys) zs   = AClo fv_6 fl_6 (PTuple5 vs ws xs ys zs)
 
         fv_6 (ua, vb, wc, xd, ye) zf        = Clo fv_7 fl_7 (ua, vb, wc, xd, ye, zf)
-        fl_6 n (PTuple5 us  vs ws xs ys) zs = AClo fv_7 fl_7 (PTuple6 us vs ws xs ys zs)
+        fl_6 _ (PTuple5 us  vs ws xs ys) zs = AClo fv_7 fl_7 (PTuple6 us vs ws xs ys zs)
 
         fv_7 (ta, ub, vc, wd, xe, yf) zg      = fv ta ub vc wd xe yf zg
         fl_7 n (PTuple6 ts us vs ws xs ys) zs = fl n ts us vs ws xs ys zs 
@@ -309,7 +309,7 @@ closure8 fv fl
         fl_6 n (PTuple5 us  vs ws xs ys) zs = AClo fv_7 fl_7 (PTuple6 us vs ws xs ys zs)
 
         fv_7 (ta, ub, vc, wd, xe, yf) zg      = Clo fv_8 fl_8 (ta, ub, vc, wd, xe, yf, zg)
-        fl_7 n (PTuple6 ts us vs ws xs ys) zs = AClo fv_8 fl_8 (PTuple7 ts us vs ws xs ys zs) 
+        fl_7 _ (PTuple6 ts us vs ws xs ys) zs = AClo fv_8 fl_8 (PTuple7 ts us vs ws xs ys zs) 
 
         fv_8 (sa, tb, uc, vd, we, xf, yg) zh      = fv sa tb uc vd we xf yg zh
         fl_8 n (PTuple7 ss ts us vs ws xs ys) zs = fl n ss ts us vs ws xs ys zs 
