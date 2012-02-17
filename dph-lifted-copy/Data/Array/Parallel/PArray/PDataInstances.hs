@@ -10,7 +10,7 @@ module Data.Array.Parallel.PArray.PDataInstances(
   punit,
 
   -- * Operators on arrays of tuples
-  zipPA#,  unzipPA#, zip3PA#, unzip3PA#, unzip4PA#,
+  zipPA#,  unzipPA#, zip3PA#, unzip3PA#, 
   zip4PA#, unzip4PA#, zip5PA#, unzip5PA#, zip6PA#, unzip6PA#, 
   zip7PA#, unzip7PA#, zip8PA#, unzip8PA#, 
   
