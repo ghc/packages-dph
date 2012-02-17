@@ -169,7 +169,7 @@ closure4 fv fl
 
         -----
         fv_3 (xa, yb) zc           = Clo  fv_4 fl_4 ((xa, yb), zc)
-        fl_3 n (PTuple2 xs ys) zs  = AClo fv_4 fl_4 (PTuple2 (PTuple2 xs ys) zs)
+        fl_3 _ (PTuple2 xs ys) zs  = AClo fv_4 fl_4 (PTuple2 (PTuple2 xs ys) zs)
 
         -----
         fv_4 ((xa, yb), zc)   wd        = fv xa yb zc wd
