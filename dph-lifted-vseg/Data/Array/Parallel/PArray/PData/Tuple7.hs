@@ -16,6 +16,13 @@ import qualified Data.Vector                    as V
 import qualified Prelude                        as P
 import qualified Data.List                      as P
 
+
+-- The following are only imported for zip7,
+-- remove once that's where it's supposed to be
+import qualified Data.Vector as DV
+import qualified Data.Vector.Fusion.Stream.Monadic  as MS 
+import qualified Data.Vector.Generic                as G
+
 -------------------------------------------------------------------------------
 data instance PData (a, b, c, d, e, f, g)
         = PTuple7  (PData a)  (PData b)  (PData c)  (PData d)  (PData e) (PData f) (PData g)
@@ -240,13 +247,13 @@ instance (PR a, PR b, PR c, PR d, PR e, PR f, PR g) => PR (a, b, c, d, e, f, g) 
 
   {-# NOINLINE toVectorPR #-}
   toVectorPR (PTuple7 xs ys zs ds es fs gs)
-        = V.zip7  (toVectorPR xs)
-                  (toVectorPR ys)
-                  (toVectorPR zs)
-                  (toVectorPR ds)
-                  (toVectorPR es)
-                  (toVectorPR fs)
-                  (toVectorPR gs)
+        =    zip7  (toVectorPR xs)
+                   (toVectorPR ys)
+                   (toVectorPR zs)
+                   (toVectorPR ds)
+                   (toVectorPR es)
+                   (toVectorPR fs)
+                   (toVectorPR gs)
 
 
   -- PData --------------------------------------
@@ -352,4 +359,61 @@ instance ( PR a, PR b, PR c, PR d, PR e, PR f, PR g, Show a, Show b, Show c, Sho
                  (V.toList $ toVectorPR gs)
 
                  
+-- zips and related functions -------------------------------------------------
+-- should be in Data.Vector
+
+zipWith7MS :: Monad m => (a -> b -> c -> d -> e -> f -> g -> h)
+                    -> MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
+                    -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m h
+{-# INLINE zipWith7MS #-}
+zipWith7MS fn = zipWith7M (\a b c d e f g -> return (fn a b c d e f g))
+
+
+zipWith7Generic :: (G.Vector v a, G.Vector v b, G.Vector v c, G.Vector v d, G.Vector v e,
+             G.Vector v f, G.Vector v g, G.Vector v h)
+         => (a -> b -> c -> d -> e -> f -> g -> h)
+         -> v a -> v b -> v c -> v d -> v e -> v f -> v g -> v h
+{-# INLINE zipWith7Generic #-}
+zipWith7Generic f as bs cs ds es fs gs
+  = G.unstream (zipWith7MS f (G.stream as)
+                          (G.stream bs)
+                          (G.stream cs)
+                          (G.stream ds)
+                          (G.stream es)
+                          (G.stream fs)
+                          (G.stream gs))
+zip7Generic :: (G.Vector v a, G.Vector v b, G.Vector v c, G.Vector v d, G.Vector v e,
+         G.Vector v f, G.Vector v g, G.Vector v (a, b, c, d, e, f, g))
+     => v a -> v b -> v c -> v d -> v e -> v f -> v g -> v (a, b, c, d, e, f, g)
+{-# INLINE zip7Generic #-}
+zip7Generic = zipWith7Generic (,,,,,,)
+
+
+zipWith7M :: Monad m => (a -> b -> c -> d -> e -> f -> g -> m h)
+                     -> MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
+                     -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m h
+{-# INLINE zipWith7M #-}
+zipWith7M fn sa sb sc sd se sf sg
+  = MS.zipWithM (\(a,b,c) (d,e,(f, g)) -> fn a b c d e f g) (MS.zip3 sa sb sc)
+                                                  (MS.zip3 sd se (MS.zip sf sg))
+
+                                                  
+zipWith7Monad :: Monad m => (a -> b -> c -> d -> e -> f -> g -> h)
+                    -> MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
+                    -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m h
+{-# INLINE zipWith7Monad #-}
+zipWith7Monad fn = zipWith7M (\a b c d e f g -> return (fn a b c d e f g))
+
+
+
+zip7Monad :: Monad m => MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
+                -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m (a,b,c,d,e,f,g)
+{-# INLINE zip7Monad #-}
+zip7Monad = zipWith7Monad (,,,,,,)
+  
+zip7 :: DV.Vector a -> DV.Vector b -> DV.Vector c -> DV.Vector d -> DV.Vector e -> DV.Vector f -> DV.Vector g
+     -> DV.Vector (a, b, c, d, e, f, g)
+{-# INLINE zip7 #-}
+zip7 = zip7Generic
+
                  
