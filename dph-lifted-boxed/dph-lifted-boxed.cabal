@@ -65,7 +65,7 @@ Library
         array            == 0.3.*,
         pretty           == 1.1.*,
         vector           == 0.9.*,
-        containers       == 0.4.*,
+        containers       == 0.5.*,
         dph-base         == 0.6.*,
         dph-prim-par     == 0.6.*
 

@@ -62,4 +62,4 @@ Library
         dph-prim-par            == 0.6.*,
         vector                  == 0.9.*,
         pretty                  == 1.1.*,
-        containers              == 0.4.*
+        containers              == 0.5.*
