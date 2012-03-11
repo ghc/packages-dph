@@ -5,47 +5,112 @@ import Vectorised
 import System.IO
 import Foreign.Storable
 import Foreign.Marshal.Alloc
-import Data.Array.Parallel.PArray	as P
 import Data.Array.Parallel
-import qualified Data.Array.Parallel.Unlifted as U
 import System.Environment
-import Control.Exception (evaluate)
+import qualified Data.Vector                    as V
+import qualified Vector                         as V
+import Control.Exception                        (evaluate)
+import qualified Data.Vector.Unboxed            as U
+import qualified Data.Array.Parallel.Unlifted   as P
+import Data.Array.Parallel.PArray               as PA
 
 main :: IO ()
 main 
  = do	args	<- getArgs
 	case args of
-	  [fileName] -> run fileName
-	  _	     -> usage
+	  [alg, reps, fileName] -> run alg (read reps) fileName
+	  _	                -> usage
 	
 usage	
  = putStr $ unlines
-	[ "usage: smvm <file>" ]
+	[ "usage: smvm <alg> <reps> <file>" ]
 
-run fileName
- = do	(matrix, vector) <- loadPA fileName
+
+-- Vectorised Nested Data Parallel Version
+run "vectorised" reps fileName
+ = do	(matrix, vector)    <- loadPA fileName
 
 	matrix `seq` return ()
 	vector `seq` return ()
 
-	-- Multiply sparse matrix by the dense vector.
-	(vResult, tElapsed)
-	 <- time $ let result	= smvmPA matrix vector
-		   in  P.nf result `seq` return result
+--	-- Multiply sparse matrix by the dense vector.
+--	(vResult, tElapsed)
+--	 <- time $ let result	= smvmPA 0 matrix vector
+--		   in  PA.nf result `seq` return result
 					
+        -- Multiply sparse matrix by the dense vector
+        (vResult, tElapsed)
+         <- time $ let loop n
+                         | n == 0    
+                         = let  result   = smvmPA n matrix vector
+                           in   PA.nf result `seq` result
+
+                         | otherwise 
+                         = let  result   = smvmPA n matrix vector
+                           in   PA.nf result `seq` loop (n - 1)
+
+                       final       = loop reps
+                   in  final `seq` return final
+
 	-- Print how long it took.
 	putStr $ prettyTime tElapsed
 
 	-- Print some info about the test setup.
-	putStrLn $ "vector length   = " ++ show (U.length (P.toUArray vector))
---	putStrLn $ "matrix height   = " ++ show (U.length (toUArrPA matrix))
+	putStrLn $ "vector length   = " ++ show (U.length (PA.toUArray vector))
 	
-	
+--        putStrLn $ "matrix          = " ++ show matrix
+
 	-- Print checksum of resulting vector.
-	putStrLn $ "result sum      = " ++ show (U.sum (P.toUArray vResult))
+	putStrLn $ "result sum      = " ++ show (U.sum    (PA.toUArray vResult))
 
 
+-- Sequential version using Data.Vector
+run "vector" reps fileName
+ = do   (segd, uaMatrix, uaVector) <- loadUArr fileName
+        let vMatrix     = U.fromList $ P.toList uaMatrix
+        let vVector     = U.fromList $ P.toList uaVector
 
+        let matrix
+                = V.force
+                $ V.map U.force
+                $ V.zipWith 
+                        (\start len -> U.slice start len vMatrix)
+                        (U.convert $ P.indicesSegd segd)
+                        (U.convert $ P.lengthsSegd segd)
+
+
+        let vector      = U.fromList $ U.toList uaVector
+        matrix `seq` return ()
+        vector `seq` return ()
+
+        -- Multiply sparse matrix by the dense vector
+        (vResult, tElapsed)
+         <- time $ let loop n
+                         | n == 0    
+                         = let  result   = U.force $ V.smvm n matrix vector
+                           in   result `seq` result
+
+                         | otherwise 
+                         = let  result   = U.force $ V.smvm n matrix vector
+                           in   result `seq` loop (n - 1)
+
+                       final       = loop reps
+
+                   in  final `seq` return final
+                                        
+        -- Print how long it took.
+        putStr $ prettyTime tElapsed
+
+        -- Print some info about the test setup.
+        putStrLn $ "vector length   = " ++ show (U.length vector)
+        
+--        putStrLn $ "matrix          = " ++ show matrix
+
+        -- Print checksum of resulting vector.
+        putStrLn $ "result sum      = " ++ show (U.sum   vResult)
+
+
+-- Load Matrices --------------------------------------------------------------
 -- | Load a test file containing a sparse matrix and dense vector.
 loadPA 	:: String 				-- ^ filename.
 	-> IO  ( PArray (PArray (Int, Double))	-- sparse matrix
@@ -54,17 +119,17 @@ loadPA 	:: String 				-- ^ filename.
 loadPA fileName
  = do 	(segd, arrMatrixElems, arrVector) <- loadUArr fileName
 
-    	let paMatrix	= P.nestUSegd segd (P.fromUArray2 arrMatrixElems)
-	let paVector	= P.fromUArray arrVector
+    	let paMatrix	= PA.nestUSegd segd (PA.fromUArray2 arrMatrixElems)
+	let paVector	= PA.fromUArray arrVector
 	return (paMatrix, paVector)
 
 
 -- | Load a test file containing a sparse matrix and dense vector.
-loadUArr :: String				-- ^ filename
-	 -> IO ( U.Segd				-- segment descriptor saying what array elements
-						--    belong to each row of the matrix.
-	       , U.Array (Int, Double)		-- column indices and matrix elements
-	       , U.Array Double)		-- the dense vector
+loadUArr :: String			-- ^ filename
+	 -> IO ( P.Segd			-- segment descriptor saying what array elements
+					--    belong to each row of the matrix.
+	       , P.Array (Int, Double)	-- column indices and matrix elements
+	       , P.Array Double)	-- the dense vector
 
 loadUArr fname 
  = do	h <- openBinaryFile fname ReadMode
@@ -80,23 +145,23 @@ loadUArr fname
 			else error $ "bad magic in " ++ fname
 
 	-- number of elements in each row of the matrix.
-	lengths <- U.hGet h
+	lengths <- P.hGet h
 
 	-- indices of all the elements.
-	indices <- U.hGet h
+	indices <- P.hGet h
 
 	-- values of the matrix elements.
-	values  <- U.hGet h
+	values  <- P.hGet h
 
 	-- the dense vector.
-	vector  <- U.hGet h
+	vector  <- P.hGet h
 
 	evaluate lengths
 	evaluate indices
 	evaluate values
 	evaluate vector
 
-	let segd    = U.lengthsToSegd lengths
-	    matrix  = U.zip indices values
+	let segd    = P.lengthsToSegd lengths
+	    matrix  = P.zip indices values
 
 	return (segd, matrix, vector)
