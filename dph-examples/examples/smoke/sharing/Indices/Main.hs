@@ -8,19 +8,23 @@ import Timing
 import Randomish
 import System.Environment
 import Control.Exception
+import qualified Vector                         as IU
 import qualified Vectorised                     as ID
 import qualified Data.Array.Parallel.PArray     as P
-import qualified Data.Vector.Unboxed            as V
+import qualified Data.Vector.Unboxed            as U
 
 main
  = do   args    <- getArgs
         
         case args of
-         [alg, count] -> run alg (read count)
+         [alg, countMin, countMax] -> run alg (read countMin) (read countMax)
          _            -> usage
 
 
-run "vectorised" count
+-- Vectorised Nested Data Parallel Version.
+run "vectorised" count countMax
+ | count > countMax = return ()
+ | otherwise
  = do   let arr = P.fromList [0 .. count - 1]
         arr `seq` return ()     
                 
@@ -29,14 +33,39 @@ run "vectorised" count
          $  let  arr'    = ID.indicesPA arr arr
             in   P.nf arr' `seq` return arr'
 
-        print   $ P.length arrResult
-        putStr  $ prettyTime tElapsed
+--        print   $ P.length arrResult
+--        putStr  $ prettyTime tElapsed
 
-run _ _
+        putStrLn $  (show $ P.length arrResult) 
+                 ++ "\t " 
+                 ++ (show  $ wallTime milliseconds tElapsed)
+        run "vectorised" (count * 2) countMax
+
+-- Sequential version using Data.Vector
+run "vector" count countMax
+ | count > countMax = return ()
+ | otherwise
+ = do   let arr = U.fromList [0 .. count - 1]
+        arr `seq` return ()     
+                
+        (arrResult, tElapsed)
+         <- time
+         $  let  arr'    = U.force $ IU.treeLookup arr arr
+            in   arr' `seq` return arr'
+
+--        print   $ U.length arrResult
+--        putStr  $ prettyTime tElapsed
+        putStrLn $  (show $ U.length arrResult) 
+                 ++ "\t " 
+                 ++ (show  $ wallTime milliseconds tElapsed)
+
+        run "vector" (count * 2) countMax
+
+run _ _ _
  = usage
 
 
 usage   = putStr $ unlines
-        [ "usage: indices <algorithm> <count>\n"
-        , "  algorithm one of " ++ show ["vectorised"]
+        [ "usage: indices <algorithm> <countMin> <countMax>\n"
+        , "  algorithm one of " ++ show ["vectorised", "vector"]
         , ""]

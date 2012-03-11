@@ -1,5 +1,6 @@
 module Timing
-	(time, showTime, prettyTime)
+	( time, showTime, prettyTime
+        , wallTime, cpuTime, milliseconds)
 where
 import System.CPUTime
 import System.Time
