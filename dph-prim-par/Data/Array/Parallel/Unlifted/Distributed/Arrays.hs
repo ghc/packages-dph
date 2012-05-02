@@ -74,7 +74,8 @@ splitLenD g n = generateD_cheap g len
     {-# INLINE [0] len #-}
     len i | i < m     = l+1
           | otherwise = l
-{-# INLINE splitLenD #-}
+{-# NOINLINE splitLenD #-}
+--  NOINLINE because it's cheap and doesn't need to fuse with anything.
 
 
 -- | O(threads).
@@ -95,7 +96,8 @@ splitLenIdxD g n = generateD_cheap g len_idx
     {-# INLINE [0] len_idx #-}
     len_idx i | i < m     = (l+1, i*(l+1))
               | otherwise = (l,   i*l + m)
-{-# INLINE splitLenIdxD #-}
+{-# NOINLINE splitLenIdxD #-}
+--  NOINLINE because it's cheap and doesn't need to fuse with anything.
 
 
 -- | O(threads).
@@ -104,8 +106,11 @@ splitLenIdxD g n = generateD_cheap g len_idx
 --   and summing them up.
 joinLengthD :: Unbox a => Gang -> Dist (Vector a) -> Int
 joinLengthD g = sumD g . lengthD
-{-# INLINE joinLengthD #-}
-                                               
+{-# NOINLINE joinLengthD #-}
+--  NOINLINE because it's cheap and doesn't need to fuse with anything.
+--  No operations are performed on the elements, so we don't need
+--  to specialise for the element type.                                         
+
 
 -- Splitting and Joining arrays -----------------------------------------------
 -- | Distribute an array over a 'Gang' such that each threads gets the given
