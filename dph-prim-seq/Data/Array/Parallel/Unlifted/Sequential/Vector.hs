@@ -186,13 +186,14 @@ repeatS k !xs = Stream next (0,k) (Exact (k*n))
 slice :: Unbox a => String -> Vector a -> Int -> Int -> Vector a
 slice here xs i n 
         = B.checkSlice here (V.length xs) i n
-        $ V.slice i n xs
+        $ V.unsafeSlice i n xs
 {-# INLINE_U slice #-}
 
 
 -- Take a sub-range of a vector, avoiding copying, without bounds checks.
 unsafeSlice :: Unbox a => Vector a -> Int -> Int -> Vector a
-unsafeSlice xs i n = V.unsafeSlice i n xs
+unsafeSlice xs i n 
+        = V.unsafeSlice i n xs
 {-# INLINE_U unsafeSlice #-}
 
 
@@ -205,9 +206,10 @@ index here vec ix
 
 -- Copy out a subrange of a vector.
 extract :: Unbox a => Vector a -> Int -> Int -> Vector a
+extract xs i n
+        = B.checkSlice "extract" (V.length xs) i n
+        $ force (V.unsafeSlice i n xs)
 {-# INLINE_U extract #-}
-extract xs i n 
-        = force (V.slice i n xs)
 
 
 -- Copy out a subrange of a vector, without bounds checks.
@@ -478,7 +480,9 @@ mdrop = M.drop
 
 
 mslice :: Unbox a => Int -> Int -> MVector s a -> MVector s a
-mslice = M.slice
+mslice i n xs
+        = B.checkSlice "mslice" (M.length xs) i n
+        $ M.unsafeSlice i n xs
 {-# INLINE mslice #-}
 
 
