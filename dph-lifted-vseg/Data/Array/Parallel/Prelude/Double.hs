@@ -144,12 +144,6 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 (*) = (P.*)
 {-# VECTORISE SCALAR (*) #-}
 
-mulPP :: Double :-> Double :-> Double
-mulPP   = L.closure2' (P.*) (SC.zipWith (P.*))
-{-# INLINE mulPP #-}
-{-# NOVECTORISE mulPP #-}
-
-
 (/) = (P./)
 {-# VECTORISE SCALAR (/) #-}
 

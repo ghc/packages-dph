@@ -22,7 +22,7 @@ module Data.Array.Parallel.Prim
         , scalar_zipWith4
         , scalar_zipWith5
         , scalar_zipWith6
-		, scalar_zipWith7
+        , scalar_zipWith7
         , scalar_zipWith8
 
         -- Types used in the generic representation
@@ -178,6 +178,7 @@ closure1 :: forall a b
          -> (a :-> b)
 closure1 fv fl
  = let  fl' :: Int -> PData a -> PData b
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata 
          = case fl (PArray c# pdata) of
                  PArray _ pdata' -> pdata'
@@ -192,6 +193,7 @@ closure2 :: forall a b c. PA a
          -> (a :-> b :-> c)
 closure2 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2
          = case fl (PArray c# pdata1) (PArray c# pdata2) of
                  PArray _ pdata' -> pdata'
@@ -206,6 +208,7 @@ closure3 :: forall a b c d.  (PA a, PA b)
          -> (a :-> b :-> c :-> d)
 closure3 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2 pdata3
          = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) of
                  PArray _ pdata' -> pdata'
@@ -220,6 +223,7 @@ closure4 :: forall a b c d e.  (PA a, PA b, PA c)
          -> (a :-> b :-> c :-> d :-> e)
 closure4 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2 pdata3 pdata4
          = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) of
                  PArray _ pdata' -> pdata'
@@ -235,6 +239,7 @@ closure5 :: forall a b c d e f.  (PA a, PA b, PA c, PA d)
          -> (a :-> b :-> c :-> d :-> e :-> f)
 closure5 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5
          = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) (PArray c# pdata5) of
                  PArray _ pdata' -> pdata'
@@ -248,6 +253,7 @@ closure6 :: forall a b c d e f g.  (PA a, PA b, PA c, PA d, PA e)
          -> (a :-> b :-> c :-> d :-> e :-> f :-> g)
 closure6 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5 pdata6
          = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) (PArray c# pdata5) (PArray c# pdata6) of
                  PArray _ pdata' -> pdata'
@@ -261,6 +267,7 @@ closure7 :: forall a b c d e f g h.  (PA a, PA b, PA c, PA d, PA e, PA f, PA g)
          -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h)
 closure7 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g  -> PData h
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5 pdata6 pdata7
          = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) (PArray c# pdata5) (PArray c# pdata6) (PArray c# pdata7) of
                  PArray _ pdata' -> pdata'
@@ -275,6 +282,7 @@ closure8 :: forall a b c d e f g h i.  (PA a, PA b, PA c, PA d, PA e, PA f, PA g
          -> (a :-> b :-> c :-> d :-> e :-> f :-> g :-> h :-> i)
 closure8 fv fl
  = let  fl' :: Int -> PData a -> PData b -> PData c -> PData d -> PData e -> PData f -> PData g -> PData h  -> PData i
+        {-# INLINE_CLOSURE fl' #-}
         fl' (I# c#) pdata1 pdata2 pdata3 pdata4 pdata5 pdata6 pdata7 pdata8 
          = case fl (PArray c# pdata1) (PArray c# pdata2) (PArray c# pdata3) (PArray c# pdata4) 
                    (PArray c# pdata5) (PArray c# pdata6) (PArray c# pdata7) (PArray c# pdata8) of
