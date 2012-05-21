@@ -27,7 +27,8 @@ infixr 5 +:+
 {-# RULES
 
 "map/zipWith (+)/enumFromStepLen" forall m n is.
-  map (dph_mod_index m) (zipWith GHC.Base.plusInt (enumFromStepLen 0 m n) is)
+  map (dph_mod_index m) (zipWith ((+) :: Int -> Int -> Int)
+                                 (enumFromStepLen 0 m n) is)
     = map (dph_mod_index m) is
 
 "map dph_mod_index/enumFromStepLenEach" forall k l is n1 n2.
@@ -486,14 +487,15 @@ zipWith8 fn as bs cs ds es fs gs hs
   zipWith f (replicate m x) (replicate n y) = replicate m (f x y)
 
 "zipWith/plusInt0_1" forall n xs.
-  zipWith GHC.Base.plusInt (replicate n (GHC.Base.I# 0#)) xs = xs
+  zipWith (+) (replicate n (GHC.Base.I# 0#)) xs = xs
 
 "zipWith/plusInt0_2" forall n xs.
-  zipWith GHC.Base.plusInt xs (replicate n (GHC.Base.I# 0#)) = xs
+  zipWith (+) xs (replicate n (GHC.Base.I# 0#)) = xs
 
 "zipWith(plusInt)/enumFromStepLen" forall i1 k1 n1 i2 k2 n2.
-  zipWith GHC.Base.plusInt (enumFromStepLen i1 k1 n1)
-                           (enumFromStepLen i2 k2 n2)
+  zipWith ((+) :: Int -> Int -> Int)
+              (enumFromStepLen i1 k1 n1)
+              (enumFromStepLen i2 k2 n2)
     = enumFromStepLen (i1+i2) (k1+k2) n1
   #-}
 
@@ -706,11 +708,11 @@ and :: Array Bool -> Bool
 "seq/sum" forall xs e.
   seq (sum xs) e = seq xs e
 
-"seq/scan<Int> (+)" forall i xs e.
-  seq (scan GHC.Base.plusInt i xs) e = i `seq` xs `seq` e
+"seq/scan<Int> (+)" forall (i :: Int) xs e.
+  seq (scan (+) i xs) e = i `seq` xs `seq` e
 
-"scan/replicate" forall z n x.
-  scan GHC.Base.plusInt z (replicate n x)
+"scan/replicate" forall (z :: Int) n x.
+  scan (+) z (replicate n x)
     = enumFromStepLen z x n
 
 "sum/replicate_rs" forall n xs.
