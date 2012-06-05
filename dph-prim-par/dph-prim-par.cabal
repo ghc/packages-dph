@@ -24,8 +24,6 @@ Library
         Data.Array.Parallel.Unlifted.Parallel.UPVSegd
         Data.Array.Parallel.Unlifted.Parallel.UPSel
         Data.Array.Parallel.Unlifted
-
-  Other-Modules:
         Data.Array.Parallel.Unlifted.Distributed.DistST
         Data.Array.Parallel.Unlifted.Distributed.Types
         Data.Array.Parallel.Unlifted.Distributed.Combinators
