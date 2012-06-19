@@ -60,7 +60,7 @@ Library
         False
 
   Build-Depends:  
-        base             == 4.5.*,
+        base             == 4.6.*,
         ghc              == 7.*,
         array            == 0.3.*,
         pretty           == 1.1.*,

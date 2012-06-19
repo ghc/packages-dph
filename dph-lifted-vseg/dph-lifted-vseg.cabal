@@ -92,7 +92,7 @@ Library
         -fno-warn-orphans
 
   Build-Depends:  
-        base                    == 4.5.*,
+        base                    == 4.6.*,
         ghc                     == 7.*,
         array                   == 0.3.*,
         random                  == 1.0.*,
