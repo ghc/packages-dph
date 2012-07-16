@@ -44,6 +44,18 @@ instance PA a => PR (Wrap a) where
   pprpDataPR (PWrap pdata)
         = pprpDataPA pdata
 
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR  (Wrap x)
+        = typeRepPA x
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PWrap pdata)
+        = typeRepDataPA pdata
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR (PWraps pdata)
+        = typeRepDatasPA pdata
+
 
   -- Constructors -------------------------------
   {-# INLINE_PDATA emptyPR #-}

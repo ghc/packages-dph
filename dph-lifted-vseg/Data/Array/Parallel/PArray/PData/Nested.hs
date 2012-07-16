@@ -18,10 +18,12 @@ module Data.Array.Parallel.PArray.PData.Nested
 where
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Pretty
+import Data.Array.Parallel.PArray.PData.Unit
 import Data.Array.Parallel.PArray.PData.Base    as PA
 import qualified Data.IntSet                    as IS
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
 import GHC.Exts
 import System.IO.Unsafe
 
@@ -46,6 +48,8 @@ data instance PData (PArray a)
           --   If the function that creates the array already has a flat form,
           --   then it should stash it here, otherwise build a thunk that makes it.
         }
+
+deriving instance T.Typeable1 PData
 
 
 -- TODO: should we unpack the vsegd fields here?
@@ -196,6 +200,30 @@ instance PR a => PR (PArray a) where
         =   text "PNested"
         $+$ ( nest 4
             $ pprp vsegd $$ pprp pdatas)
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR arr@(PArray _ pdata)
+        = T.typeOf1 arr
+                `T.mkAppTy` typeRepDataPR pdata
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PNested _ pdatas _ _)
+        = T.typeOf1 (PArray 0# (emptyPR :: PData ()))
+                `T.mkAppTy` typeRepDatasPR pdatas
+
+  {-# NOINLINE typeRepDatasPR #-}
+  -- CAREFUL: 
+  --  Our generics setup turns implicitly recursive types in the source
+  --  program (defined via data type declarations) into explicitly recursive
+  --  ones in the Core program. If there is no data in the PNesteds then we
+  --  can't continue printing the type. An empty vector may have an infinite
+  --  type, and we could loop forever. This happens in the Barnes-Hut benchmark,
+  --  due to the recursive tree structure.
+  typeRepDatasPR (PNesteds vec)
+        = T.typeOf1 (PArray 0# (emptyPR :: PData ()))
+                `T.mkAppTy` (if V.length vec == 0 
+                                then T.typeOf ()
+                                else typeRepDataPR (vec V.! 0))
 
 
   -- Constructors -----------------------------------------

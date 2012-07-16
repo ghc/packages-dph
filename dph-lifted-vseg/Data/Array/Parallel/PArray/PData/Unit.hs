@@ -8,6 +8,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.Pretty
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
 
 -------------------------------------------------------------------------------
 -- | TODO: For arrays of units, we're currently maintaining their length so
@@ -51,6 +52,18 @@ instance PR () where
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR uu
         = text $ show uu
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x
+        = T.typeOf x
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR _
+        = T.typeOf ()
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR _
+        = T.typeOf ()
 
 
   -- Constructors -------------------------------
@@ -153,6 +166,7 @@ instance PR () where
   {-# NOINLINE toVectordPR #-}
   toVectordPR (PUnits uvecs)
         = V.map PUnit $ V.convert uvecs
+
 
 -- Show -----------------------------------------------------------------------
 deriving instance Show (PData  ())

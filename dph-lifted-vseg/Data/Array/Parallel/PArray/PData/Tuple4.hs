@@ -12,6 +12,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import GHC.Exts
 import Prelude hiding (zip, unzip)
+import qualified Data.Typeable                  as T
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
 import qualified Data.List                      as P
@@ -69,6 +70,30 @@ instance (PR a, PR b, PR c, PR d) => PR (a, b, c, d) where
                 , pprpDataPR ys
                 , pprpDataPR zs
                 , pprpDataPR ds]
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x@(a, b, c, d)
+        = T.typeOf4 x 
+                `T.mkAppTy` (typeRepPR a)
+                `T.mkAppTy` (typeRepPR b)
+                `T.mkAppTy` (typeRepPR c)
+                `T.mkAppTy` (typeRepPR d)
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PTuple4 as bs cs ds)
+        = T.typeOf4 ((), (), (), ())
+                `T.mkAppTy` (typeRepDataPR as)
+                `T.mkAppTy` (typeRepDataPR bs)
+                `T.mkAppTy` (typeRepDataPR cs)
+                `T.mkAppTy` (typeRepDataPR ds)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR (PTuple4s as bs cs ds)
+        = T.typeOf4 ((), (), (), ())
+                `T.mkAppTy` (typeRepDatasPR as)
+                `T.mkAppTy` (typeRepDatasPR bs)
+                `T.mkAppTy` (typeRepDatasPR cs)
+                `T.mkAppTy` (typeRepDatasPR ds)
 
 
   -- Constructors -------------------------------

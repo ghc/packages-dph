@@ -10,6 +10,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PRepr.Base    ()
 import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.Pretty
+import qualified Data.Typeable                  as T
 import qualified Data.Vector                    as V
 
 -------------------------------------------------------------------------------
@@ -63,6 +64,16 @@ instance PR Void where
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR _    = text "pvoid"
 
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x     = T.typeOf x
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR _
+        = T.typeOf (error "typeRepDataPR:  void proxy" :: Void)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR _
+        = T.typeOf (error "typeRepDatasPR: void proxy" :: Void)
 
   -- Constructors -------------------------------        
   {-# INLINE_PDATA emptyPR #-}

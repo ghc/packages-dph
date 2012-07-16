@@ -12,6 +12,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import GHC.Exts
 import Prelude hiding (zip, unzip)
+import qualified Data.Typeable                  as T
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
 import qualified Data.List                      as P
@@ -57,7 +58,6 @@ instance (PR a, PR b, PR c, PR d, PR e, PR f, PR g) => PR (a, b, c, d, e, f, g) 
         && similarPR g1 g2
         
 
-
   {-# NOINLINE coversPR #-}
   coversPR weak (PTuple7 arr1 arr2 arr3 arr4 arr5 arr6 arr7) ix
         =  coversPR weak arr1 ix
@@ -91,6 +91,42 @@ instance (PR a, PR b, PR c, PR d, PR e, PR f, PR g) => PR (a, b, c, d, e, f, g) 
                 , pprpDataPR es
                 , pprpDataPR fs
                 , pprpDataPR gs]
+
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x@(a, b, c, d, e, f, g)
+        = T.typeOf7 x 
+                `T.mkAppTy` (typeRepPR a)
+                `T.mkAppTy` (typeRepPR b)
+                `T.mkAppTy` (typeRepPR c)
+                `T.mkAppTy` (typeRepPR d)
+                `T.mkAppTy` (typeRepPR e)
+                `T.mkAppTy` (typeRepPR f)
+                `T.mkAppTy` (typeRepPR g)
+
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PTuple7 as bs cs ds es fs gs)
+        = T.typeOf7 ((), (), (), (), (), (), ())
+                `T.mkAppTy` (typeRepDataPR as)
+                `T.mkAppTy` (typeRepDataPR bs)
+                `T.mkAppTy` (typeRepDataPR cs)
+                `T.mkAppTy` (typeRepDataPR ds)
+                `T.mkAppTy` (typeRepDataPR es)
+                `T.mkAppTy` (typeRepDataPR fs)
+                `T.mkAppTy` (typeRepDataPR gs)
+
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR (PTuple7s as bs cs ds es fs gs)
+        = T.typeOf7 ((), (), (), (), (), (), ())
+                `T.mkAppTy` (typeRepDatasPR as)
+                `T.mkAppTy` (typeRepDatasPR bs)
+                `T.mkAppTy` (typeRepDatasPR cs)
+                `T.mkAppTy` (typeRepDatasPR ds)
+                `T.mkAppTy` (typeRepDatasPR es)
+                `T.mkAppTy` (typeRepDatasPR fs)
+                `T.mkAppTy` (typeRepDatasPR gs)
 
 
   -- Constructors -------------------------------

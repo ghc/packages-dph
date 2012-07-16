@@ -27,6 +27,7 @@ import Data.Array.Parallel.PArray.PData.Tuple6
 import Data.Array.Parallel.PArray.PData.Tuple7
 
 import Data.Array.Parallel.PArray.PRepr
+import qualified Data.Typeable          as T
 import qualified Data.Vector            as V
 import GHC.Exts
 
@@ -51,6 +52,8 @@ data (a :-> b)
         => Clo  (env -> a -> b)
                 (Int -> PData env -> PData a -> PData b)
                 env
+
+deriving instance T.Typeable2 (:->)
 
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b
@@ -495,6 +498,14 @@ instance PR (a :-> b) where
         = vcat
         [ text "AClo"
         , pprpDataPA envs ]
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR (Clo _ _ env)
+        = typeRepPA env
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (AClo _ _ envs)
+        = typeRepDataPA envs
 
 
   -- Constructors -------------------------------

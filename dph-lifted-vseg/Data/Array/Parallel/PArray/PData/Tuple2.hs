@@ -15,9 +15,11 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import GHC.Exts
 import Prelude hiding (zip, unzip)
-import qualified Data.Vector                    as V
-import qualified Prelude                        as P
 import qualified Data.Array.Parallel.Unlifted   as U
+import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
+import qualified Prelude                        as P
+
 
 -------------------------------------------------------------------------------
 data instance PData (a, b)
@@ -59,6 +61,25 @@ instance (PR a, PR b) => PR (a, b) where
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PTuple2 xs ys)
         = text "PTuple2 " <> vcat [pprpDataPR xs, pprpDataPR ys]
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x@(a, b)
+        = T.typeOf2 x 
+                `T.mkAppTy` (typeRepPR a)
+                `T.mkAppTy` (typeRepPR b)
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PTuple2 xs ys)
+        = T.typeOf2 ((), ())
+                `T.mkAppTy` (typeRepDataPR xs)
+                `T.mkAppTy` (typeRepDataPR ys)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR (PTuple2s xs ys)
+        = T.typeOf2 ((), ())
+                `T.mkAppTy` (typeRepDatasPR xs)
+                `T.mkAppTy` (typeRepDatasPR ys)
+
 
   -- Constructors -------------------------------
   {-# INLINE_PDATA emptyPR #-}

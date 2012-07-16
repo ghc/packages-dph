@@ -21,7 +21,9 @@ import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
 import Prelude hiding (length)
+
 
 -- PArray ---------------------------------------------------------------------
 -- | A parallel array consisting of a length field and some array data.
@@ -36,6 +38,9 @@ import Prelude hiding (length)
 {-# ANN type PArray NoSpecConstr #-}
 data PArray a
         = PArray Int# (PData  a)
+
+deriving instance T.Typeable1 PArray
+
 
 -- | Take the length field of a `PArray`.
 {-# INLINE_PA length #-}
@@ -125,6 +130,17 @@ class PR a where
 
   -- | (debugging) Pretty print the physical representation of some array data.
   pprpDataPR    :: PData a -> Doc
+
+  -- | (debugging) Get the representation of this type.
+  --   We don't use the Typeable class for this because the vectoriser
+  --   won't handle the Typeable superclass on PR.
+  typeRepPR      :: a        -> T.TypeRep
+
+  -- | (debugging) Given a 'PData a' get the representation of the 'a'
+  typeRepDataPR  :: PData  a -> T.TypeRep
+
+  -- | (debugging) Given a 'PDatas a' get the representation of the 'a'
+  typeRepDatasPR :: PDatas a -> T.TypeRep
 
 
   -- Constructors -------------------------------

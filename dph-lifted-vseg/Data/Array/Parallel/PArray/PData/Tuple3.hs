@@ -12,6 +12,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import GHC.Exts
 import Prelude hiding (zip, unzip)
+import qualified Data.Typeable                  as T
 import qualified Data.Vector                    as V
 import qualified Prelude                        as P
 
@@ -63,6 +64,27 @@ instance (PR a, PR b, PR c) => PR (a, b, c) where
         <> vcat [ pprpDataPR xs
                 , pprpDataPR ys
                 , pprpDataPR zs]
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x@(a, b, c)
+        = T.typeOf3 x 
+                `T.mkAppTy` (typeRepPR a)
+                `T.mkAppTy` (typeRepPR b)
+                `T.mkAppTy` (typeRepPR c)
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PTuple3 as bs cs)
+        = T.typeOf3 ((), (), ())
+                `T.mkAppTy` (typeRepDataPR as)
+                `T.mkAppTy` (typeRepDataPR bs)
+                `T.mkAppTy` (typeRepDataPR cs)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR (PTuple3s as bs cs)
+        = T.typeOf3 ((), (), ())
+                `T.mkAppTy` (typeRepDatasPR as)
+                `T.mkAppTy` (typeRepDatasPR bs)
+                `T.mkAppTy` (typeRepDatasPR cs)
 
 
   -- Constructors -------------------------------

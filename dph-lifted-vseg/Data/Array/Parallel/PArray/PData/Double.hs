@@ -12,6 +12,7 @@ import Data.Array.Parallel.PArray.PData.Base
 import Data.Array.Parallel.PArray.PData.Nested
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
 
 
 -------------------------------------------------------------------------------
@@ -49,6 +50,15 @@ instance PR Double where
   pprpDataPR (PDouble vec)
    =   text "PDouble"
    <+> text (show $ U.toList vec)
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x           = T.typeOf x
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR xx      = T.typeOf (5 :: Double)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR xx     = T.typeOf (5 :: Double)
 
 
   -- Constructors -------------------------------

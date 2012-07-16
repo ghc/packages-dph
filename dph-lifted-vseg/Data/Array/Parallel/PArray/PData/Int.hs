@@ -5,6 +5,7 @@
 -- | PR instance for Ints
 module Data.Array.Parallel.PArray.PData.Int () where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Typeable                            as T
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import Text.PrettyPrint
@@ -38,6 +39,15 @@ instance PR Int where
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PInt uarr)
    =    text "PInt" <+> pprp uarr
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x           = T.typeOf x
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR xx      = T.typeOf (5 :: Int)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR xx     = T.typeOf (5 :: Int)
 
 
   -- Constructors -------------------------------

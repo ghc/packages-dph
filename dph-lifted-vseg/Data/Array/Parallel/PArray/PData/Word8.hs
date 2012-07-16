@@ -5,12 +5,12 @@
 -- | PR instance for Word8.
 module Data.Array.Parallel.PArray.PData.Word8 where
 import Data.Array.Parallel.PArray.PData.Base
+import Data.Array.Parallel.Pretty
+import Data.Word
+import qualified Data.Typeable                  as T
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import Text.PrettyPrint
 import Prelude                                  as P
-import Data.Word
-import Data.Array.Parallel.Pretty
 
 -------------------------------------------------------------------------------
 data instance PData Word8
@@ -46,6 +46,18 @@ instance PR Word8 where
   {-# NOINLINE pprpDataPR #-}
   pprpDataPR (PWord8 uarr)
    =    text "PWord8" <+> pprp uarr
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR x
+   =    T.typeOf x
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR _
+   =    T.typeOf (5 :: Word8)
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR _
+   =    T.typeOf (5 :: Word8)
 
 
   -- Constructors -------------------------------

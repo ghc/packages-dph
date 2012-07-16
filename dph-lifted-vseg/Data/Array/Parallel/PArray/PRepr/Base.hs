@@ -17,6 +17,9 @@ module Data.Array.Parallel.PArray.PRepr.Base
         , coversPA
         , pprpPA
         , pprpDataPA
+        , typeRepPA
+        , typeRepDataPA
+        , typeRepDatasPA
 
         -- * Constructors
         , emptyPA
@@ -51,6 +54,8 @@ import Data.Array.Parallel.Base                 (Tag)
 import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
+import Debug.Trace
 
 -- PRepr / PA -----------------------------------------------------------------
 -- | Family of Representable types. These are the types that we know how to
@@ -136,9 +141,25 @@ pprpPA x
 
 
 {-# INLINE_PA pprpDataPA #-}
-pprpDataPA          :: PA a => PData a -> Doc
+pprpDataPA      :: PA a => PData a -> Doc
 pprpDataPA x
  = pprpDataPR (toArrPRepr x)
+
+
+{-# INLINE_PA typeRepPA #-}
+typeRepPA       :: PA a => a -> T.TypeRep
+typeRepPA x
+ = typeRepPR (toPRepr x)
+
+{-# INLINE_PA typeRepDataPA #-}
+typeRepDataPA    :: PA a => PData a -> T.TypeRep
+typeRepDataPA x
+ = typeRepDataPR (toArrPRepr x)
+
+{-# INLINE_PA typeRepDatasPA #-}
+typeRepDatasPA    :: PA a => PDatas a -> T.TypeRep
+typeRepDatasPA x
+ = typeRepDatasPR (toArrPReprs x)
 
 
 -- Constructors ---------------------------------

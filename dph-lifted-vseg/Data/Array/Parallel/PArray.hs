@@ -26,6 +26,7 @@ module Data.Array.Parallel.PArray
         ( PArray, PA
         , valid
         , nf
+        , typeRep
 
         -- * Constructors
         , empty
@@ -64,7 +65,7 @@ module Data.Array.Parallel.PArray
         , fromUArray,   toUArray        -- from D.A.P.PArray.Scalar
 	, fromUArray2)                  -- from D.A.P.PArray.Scalar
 where
-import qualified Data.Array.Parallel.Pretty     as T
+import Data.Array.Parallel.Trace
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
@@ -72,11 +73,13 @@ import Data.Array.Parallel.PArray.Reference
 import GHC.Exts
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
+import qualified Data.Array.Parallel.Pretty     as T
 import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified "dph-lifted-base" Data.Array.Parallel.PArray           as R
 import qualified "dph-lifted-base" Data.Array.Parallel.PArray.Reference as R
+import Data.Typeable
 
 import qualified Prelude                        as P
 import Prelude hiding 
@@ -98,10 +101,6 @@ instance PA a => Similar a where
 instance PA a => R.PprPhysical1 a where
  pprp1          = pprpPA
 
-
-trace :: String -> a -> a
-trace _str x
-        = x -- Debug.Trace.trace ("! " ++ str) x
 
 -- Array -----------------------------------------------------------------------
 --  Generic interface to PArrays.
@@ -142,8 +141,7 @@ instance (Eq a, PA a)  => Eq (PArray a) where
 -- | Check that an array has a valid internal representation.
 valid :: PA a => PArray a -> Bool
 valid (PArray n# darr1)
- = trace "valid"
- $ validPA  darr1
+ = validPA  darr1
  && coversPA True darr1 (I# n#)
 {-# INLINE_PA valid #-}
 
@@ -151,43 +149,51 @@ valid (PArray n# darr1)
 -- | Force an array to normal form.
 nf :: PA a => PArray a -> ()
 nf (PArray _ d)
- = trace "nf"
- $ nfPA d
+ = nfPA d
 {-# INLINE_PA nf #-}
 
 
--- Constructors ----------------------------------------------------------------
+-- | Get the type of a thing.
+typeRep :: PA a => a -> TypeRep
+typeRep x = typeRepPA x
+
+
+-- Empty ---------------------------------------------------------------------
 -- | O(1). An empty array.
 empty :: PA a => PArray a
 empty
  = withRef1 "empty" R.empty
  $ PArray 0# emptyPA
-
 {-# INLINE_PA empty #-}
 
 
+-- Singleton ------------------------------------------------------------------
 -- | O(1). Produce an array containing a single element.
 singleton :: PA a => a -> PArray a
 singleton x
- = withRef1 "singleton" (R.singleton x)
+ = traceOp (OpSingleton (typeRepPA x))
+ $ withRef1 "singleton" (R.singleton x)
  $ PArray 1# (replicatePA 1 x)
 {-# INLINE_PA singleton #-}
 
 
 -- | O(n). Produce an array of singleton arrays.
 singletonl :: PA a => PArray a -> PArray (PArray a)
-singletonl arr
- = withRef2 "singletonl" (R.singletonl (toRef1 arr))
+singletonl arr@(PArray n# pdata)
+ = traceOp (OpSingletonL (typeRepDataPA pdata) (I# n#))
+ $ withRef2 "singletonl" (R.singletonl (toRef1 arr))
  $ replicatel_ (replicate_ (length arr) 1) arr
 {-# INLINE_PA singletonl #-}
 
 
+-- Replicate ------------------------------------------------------------------
 -- | O(n). Define an array of the given size, that maps all elements to the same value.
 --   We require the replication count to be > 0 so that it's easier to maintain
 --   the validPR invariants for nested arrays.
 replicate :: PA a => Int -> a -> PArray a
 replicate n x
- = withRef1 "replicate" (R.replicate n x)
+ = traceOp (OpReplicate (typeRepPA x) n)
+ $ withRef1 "replicate" (R.replicate n x)
  $ replicate_ n x
 {-# INLINE_PA replicate #-}
  
@@ -199,8 +205,10 @@ replicate_ (I# n#) x
 
 -- | O(sum lengths). Lifted replicate.
 replicatel :: PA a => PArray Int -> PArray a -> PArray (PArray a)
-replicatel reps arr
- = withRef2 "replicatel" (R.replicatel (toRef1 reps) (toRef1 arr))
+replicatel reps arr@(PArray n# pdata)
+ = traceOp (OpReplicateL (typeRepDataPA pdata) 
+                         (I# n#))
+ $ withRef2 "replicatel" (R.replicatel (toRef1 reps) (toRef1 arr))
  $ replicatel_ reps arr
 
 replicatel_ :: PA a => PArray Int -> PArray a -> PArray (PArray a)
@@ -217,7 +225,8 @@ replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
 -- | O(sum lengths). Segmented replicate.
 replicates :: PA a => U.Segd -> PArray a -> PArray a
 replicates segd arr@(PArray _ pdata)
- = trace (T.render $ T.text "!!! replicates " T.$+$ T.pprp segd T.$+$ T.pprp arr)
+ = traceOp (OpReplicateS (typeRepDataPA pdata) 
+                         (U.elementsSegd segd))
  $ withRef1 "replicates" (R.replicates segd (toRef1 arr))
  $ let  !(I# n#) = U.elementsSegd segd
    in   PArray n# $ replicatesPA segd pdata
@@ -228,16 +237,18 @@ replicates segd arr@(PArray _ pdata)
 --  and uses them to build the `U.Segd`.
 replicates' :: PA a => PArray Int -> PArray a -> PArray a
 replicates' (PArray _ (PInt reps)) arr
- = trace "replicates'"
- $ replicates (U.lengthsToSegd reps) arr
+ = replicates (U.lengthsToSegd reps) arr
 {-# INLINE_PA replicates' #-}
  
  
+-- Append ---------------------------------------------------------------------
 -- | Append two arrays.
 append :: PA a => PArray a -> PArray a -> PArray a
-append arr1@(PArray n1# darr1) arr2@(PArray n2# darr2)
- = withRef1 "append" (R.append (toRef1 arr1) (toRef1 arr2))
- $ PArray (n1# +# n2#) (appendPA darr1 darr2)
+append arr1@(PArray n1# pdata1) arr2@(PArray n2# pdata2)
+ = traceOp (OpAppend    (typeRepDataPA pdata1) 
+                        (I# n1#) (I# n2#) (I# (n1# +# n2#)))
+ $ withRef1 "append"    (R.append (toRef1 arr1) (toRef1 arr2))
+ $ PArray (n1# +# n2#)  (appendPA pdata1 pdata2)
 {-# INLINE_PA append #-}
 
 
@@ -245,33 +256,40 @@ append arr1@(PArray n1# darr1) arr2@(PArray n2# darr2)
 --   Both arrays must have the same length
 appendl :: PA a => PArray (PArray a) -> PArray (PArray a) -> PArray (PArray a)
 appendl arr1@(PArray n# pdata1) arr2@(PArray _ pdata2)
- = withRef2 "appendl" (R.appendl (toRef2 arr1) (toRef2 arr2))
+ = traceOp (OpAppendL   (typeRepDataPA pdata1)
+                        (I# n#))
+ $ withRef2 "appendl"   (R.appendl (toRef2 arr1) (toRef2 arr2))
  $ PArray n# $ appendlPA pdata1 pdata2
 {-# INLINE_PA appendl #-}
 
 
+-- Concat ---------------------------------------------------------------------
 -- | Concatenate a nested array.
 concat :: PA a => PArray (PArray a) -> PArray a
-concat arr@(PArray _ darr)
- = withRef1 "concat" (R.concat (toRef2 arr))
- $ let  darr'           = concatPA darr
-        !(I# n#)        = lengthPA darr'
-   in   PArray  n# darr'
+concat arr@(PArray n# pdata)
+ = let  pdata'          = concatPA pdata
+        !(I# n2#)       = lengthPA pdata'
+   in   traceOp (OpConcat    (typeRepDataPA pdata)
+                             (I# n#) (I# n2#))
+      $ withRef1 "concat"    (R.concat (toRef2 arr))
+      $ PArray  n2# pdata'
 {-# INLINE_PA concat #-}
 
 
 -- | Lifted concat.
 concatl :: PA a => PArray (PArray (PArray a)) -> PArray (PArray a)
-concatl arr@(PArray n# pdata1)
- = withRef2 "concatl" (R.concatl (toRef3 arr))
- $ PArray n# $ concatlPA pdata1
+concatl arr@(PArray n# pdata)
+ = traceOp (OpConcatL   (typeRepDataPA pdata)
+                        (I# n#))
+ $ withRef2 "concatl"   (R.concatl (toRef3 arr))
+ $ PArray n# $ concatlPA pdata
 {-# INLINE_PA concatl #-}
 
 
 -- | Impose a nesting structure on a flat array
 unconcat :: (PA a, PA b) => PArray (PArray a) -> PArray b -> PArray (PArray b)
 unconcat (PArray n# pdata1) (PArray _ pdata2)
- = trace "! unconcat"
+ = traceOp (OpUnconcat  (typeRepDataPA pdata1) (I# n#))
  $ PArray n# $ unconcatPA pdata1 pdata2
 {-# INLINE_PA unconcat #-}
 
@@ -299,7 +317,8 @@ nestUSegd segd (PArray n# pdata)
 -- | Take the length of some arrays.
 lengthl :: PA a => PArray (PArray a) -> PArray Int
 lengthl arr@(PArray n# (PNested vsegd _ _ _))
- = withRef1 "lengthl" (R.lengthl (toRef2 arr))
+ = traceOp (OpLengthL (I# n#))
+ $ withRef1 "lengthl" (R.lengthl (toRef2 arr))
  $ PArray n# $ PInt $ U.takeLengthsOfVSegd vsegd
 {-# INLINE_PA lengthl #-}
 
@@ -307,7 +326,7 @@ lengthl arr@(PArray n# (PNested vsegd _ _ _))
 -- | O(1). Lookup a single element from the source array.
 index    :: PA a => PArray a -> Int -> a
 index (PArray _ arr) ix
- = trace "index"
+ = traceOp (OpIndex)
  $ indexPA arr ix
 {-# INLINE_PA index #-}
 
@@ -315,7 +334,7 @@ index (PArray _ arr) ix
 -- | O(len indices). Lookup a several elements from several source arrays
 indexl    :: PA a => PArray (PArray a) -> PArray Int -> PArray a
 indexl (PArray n# darr) (PArray _ ixs)
- = trace "indexl"
+ = traceOp (OpIndexL (I# n#))
  $ PArray n# (indexlPA darr ixs)
 {-# INLINE_PA indexl #-}
 
@@ -323,7 +342,7 @@ indexl (PArray n# darr) (PArray _ ixs)
 -- | Extract a range of elements from an array.
 extract  :: PA a => PArray a -> Int -> Int -> PArray a
 extract (PArray _ arr) start len@(I# len#)
- = trace "extract"
+ = traceOp (OpExtract (I# len#))
  $ PArray len# (extractPA arr start len)
 {-# INLINE_PA extract #-}
 
@@ -331,7 +350,7 @@ extract (PArray _ arr) start len@(I# len#)
 -- | Segmented extract.
 extracts :: PA a => Vector (PArray a) -> U.SSegd -> PArray a
 extracts arrs ssegd
- = trace "extracts"
+ = traceOp (OpExtractS (U.sum $ U.lengthsOfSSegd ssegd))
  $ let  pdatas          = fromVectordPA $ V.map (\(PArray _ vec) -> vec) arrs
         !(I# n#)        = (U.sum $ U.lengthsOfSSegd ssegd)
    in   PArray   n#
@@ -353,8 +372,7 @@ extracts'
         -> PArray Int           -- ^ length of each segment.
         -> PArray a
 extracts' arrs (PArray _ (PInt sources)) (PArray _ (PInt starts)) (PArray _ (PInt lengths))
- = trace "extracts'"
- $ let segd    = U.lengthsToSegd lengths
+ = let segd    = U.lengthsToSegd lengths
        ssegd   = U.mkSSegd starts sources segd
    in  extracts arrs ssegd
 {-# INLINE_PA extracts' #-}
@@ -364,7 +382,7 @@ extracts' arrs (PArray _ (PInt sources)) (PArray _ (PInt starts)) (PArray _ (PIn
 --   Like `extract` but with the parameters in a different order.
 slice :: PA a => Int -> Int -> PArray a -> PArray a
 slice start len@(I# len#) (PArray _ darr)
- = trace "slice"
+ = traceOp (OpSlice len)
  $ PArray len# (extractPA darr start len)
 {-# INLINE_PA slice #-}
 
@@ -374,7 +392,7 @@ slice start len@(I# len#) (PArray _ darr)
 --   have the same length.
 slicel :: PA a => PArray Int -> PArray Int -> PArray (PArray a) -> PArray (PArray a)
 slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
- = trace "slicel"
+ = traceOp (OpSliceL (I# n#))
  $ PArray n# (slicelPA sliceStarts sliceLens darr)
 {-# INLINE_PA slicel #-}
 
@@ -383,16 +401,16 @@ slicel (PArray n# sliceStarts) (PArray _ sliceLens) (PArray _ darr)
 --   plain Segd. This is unsafe because it can cause index space overflow.
 takeUSegd :: PArray (PArray a) -> U.Segd
 takeUSegd (PArray _ pdata)
- = trace "takeUSegd"
- $ takeSegdPD pdata
+ = takeSegdPD pdata
 {-# INLINE_PA takeUSegd #-}
 
 
 -- Pack and Combine -----------------------------------------------------------
 -- | Select the elements of an array that have their tag set to True.
 pack :: PA a => PArray a -> PArray Bool -> PArray a
-pack arr@(PArray _ xs) flags@(PArray _ (PBool sel2))
- = withRef1 "pack" (R.pack (toRef1 arr) (toRef1 flags))
+pack arr@(PArray _ xs) flags@(PArray len# (PBool sel2))
+ = traceOp (OpPack (I# len#))
+ $ withRef1 "pack" (R.pack (toRef1 arr) (toRef1 flags))
  $ let  darr'           = packByTagPA xs (U.tagsSel2 sel2) 1
 
         -- The selector knows how many elements are set to '1',
@@ -407,7 +425,8 @@ pack arr@(PArray _ xs) flags@(PArray _ (PBool sel2))
 packl :: PA a => PArray (PArray a) -> PArray (PArray Bool) -> PArray (PArray a)
 packl xss@(PArray n# xdata@(PNested _ _ segd _))
       fss@(PArray _  fdata)
- = withRef2 "packl" (R.packl (toRef2 xss) (toRef2 fss))
+ = traceOp (OpPackL (I# n#))
+ $ withRef2 "packl" (R.packl (toRef2 xss) (toRef2 fss))
  $ let  
         -- Concatenate both arrays to get the flat data.
         --   Although the virtual segmentation should be the same,
@@ -430,11 +449,12 @@ packl xss@(PArray n# xdata@(PNested _ _ segd _))
 
 -- | Filter an array based on some tags.
 packByTag :: PA a => PArray a -> U.Array Tag -> Tag -> PArray a
-packByTag arr@(PArray _ darr) tags tag
- = withRef1 "packByTag" (R.packByTag (toRef1 arr) tags tag)
+packByTag arr@(PArray n# darr) tags tag
+ = traceOp (OpPackByTag (I# n#))
+ $ withRef1 "packByTag" (R.packByTag (toRef1 arr) tags tag)
  $ let  darr'           = packByTagPA darr tags tag
-        !(I# n#)        = lengthPA darr'
-   in   PArray  n# darr'
+        !(I# n2#)        = lengthPA darr'
+   in   PArray  n2# darr'
 
 {-# INLINE_PA packByTag #-}
 
@@ -442,7 +462,8 @@ packByTag arr@(PArray _ darr) tags tag
 -- | Combine two arrays based on a selector.
 combine2  :: forall a. PA a => U.Sel2 -> PArray a -> PArray a -> PArray a
 combine2 sel arr1@(PArray _ darr1) arr2@(PArray _ darr2)
- = withRef1 "combine2" (R.combine2 sel (toRef1 arr1) (toRef1 arr2))
+ = traceOp (OpCombine2 (U.elementsSel2_0 sel + U.elementsSel2_1 sel))
+ $ withRef1 "combine2" (R.combine2 sel (toRef1 arr1) (toRef1 arr2))
  $ let  darr'           = combine2PA sel darr1 darr2
         !(I# n#)        = lengthPA darr'
    in   PArray  n# darr'
@@ -454,7 +475,7 @@ combine2 sel arr1@(PArray _ darr1) arr2@(PArray _ darr2)
 --   The two arrays must have the same length, else `error`. 
 zip :: PArray a -> PArray b -> PArray (a, b)
 zip (PArray n# pdata1) (PArray _ pdata2)
- = trace "zip"
+ = traceOp (OpZip (I# n#))
  $ PArray n# $ zipPD pdata1 pdata2
 {-# INLINE_PA zip #-}
 
@@ -463,7 +484,7 @@ zip (PArray n# pdata1) (PArray _ pdata2)
 zipl    :: (PA a, PA b)
         => PArray (PArray a) -> PArray (PArray b) -> PArray (PArray (a, b))
 zipl (PArray n# xs) (PArray _ ys)
- = trace "zipl"
+ = traceOp (OpZipL (I# n#))
  $ PArray n# $ ziplPA xs ys
 {-# INLINE_PA zipl #-}
 
@@ -472,8 +493,7 @@ zipl (PArray n# xs) (PArray _ ys)
 --   All arrays must have the same length, else `error`. 
 zip3 :: PArray a -> PArray b -> PArray c -> PArray (a, b, c)
 zip3 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3)
- = trace "zip3"
- $ PArray n# $ zip3PD pdata1 pdata2 pdata3
+ = PArray n# $ zip3PD pdata1 pdata2 pdata3
 {-# INLINE_PA zip3 #-}
 
 
@@ -481,8 +501,7 @@ zip3 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3)
 --   All arrays must have the same length, else `error`. 
 zip4 :: PArray a -> PArray b -> PArray c -> PArray d -> PArray (a, b, c, d)
 zip4 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4)
- = trace "zip4"
- $ PArray n# $ zip4PD pdata1 pdata2 pdata3 pdata4
+ = PArray n# $ zip4PD pdata1 pdata2 pdata3 pdata4
 {-# INLINE_PA zip4 #-}
 
 
@@ -490,23 +509,21 @@ zip4 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4)
 --   All arrays must have the same length, else `error`. 
 zip5 :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray (a, b, c, d, e)
 zip5 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4) (PArray _ pdata5)
- = trace "zip5"
- $ PArray n# $ zip5PD pdata1 pdata2 pdata3 pdata4 pdata5
+ = PArray n# $ zip5PD pdata1 pdata2 pdata3 pdata4 pdata5
 {-# INLINE_PA zip5 #-}
 
 
 -- | O(1). Unzip an array of pairs into a pair of arrays.
 unzip :: PArray (a, b) -> (PArray a, PArray b)
 unzip (PArray n# (PTuple2 xs ys))
- = trace "unzip"
- $ (PArray n# xs, PArray n# ys)
+ = (PArray n# xs, PArray n# ys)
 {-# INLINE_PA unzip #-}
 
 
 -- | Lifted unzip
 unzipl :: PArray (PArray (a, b)) -> PArray (PArray a, PArray b)
 unzipl (PArray n# pdata)
- = trace "unzipl"
+ = traceOp (OpZipL (I# n#))
  $ PArray n# $ unziplPD pdata
 {-# INLINE_PA unzipl #-}
 
@@ -515,8 +532,7 @@ unzipl (PArray n# pdata)
 -- | Convert a `Vector` to a `PArray`
 fromVector :: PA a => Vector a -> PArray a
 fromVector vec
- = trace "fromVector"
- $ let !(I# n#) = V.length vec
+ = let !(I# n#) = V.length vec
    in  PArray n#  (fromVectorPA vec)
 {-# INLINE_PA fromVector #-}
 
@@ -524,16 +540,14 @@ fromVector vec
 -- | Convert a `PArray` to a `Vector`        
 toVector   :: PA a => PArray a -> Vector a
 toVector (PArray _ arr)
- = trace "toVector"
- $ toVectorPA arr
+ = toVectorPA arr
 {-# INLINE_PA toVector #-}
 
 
 -- | Convert a list to a `PArray`.
 fromList :: PA a => [a] -> PArray a
 fromList xx
- = trace "fromList"
- $ let  !(I# n#) = P.length xx
+ = let  !(I# n#) = P.length xx
    in   PArray n# (fromVectorPA $ V.fromList xx)
 {-# INLINE_PA fromList #-}
 
@@ -541,7 +555,6 @@ fromList xx
 -- | Convert a `PArray` to a list.
 toList   :: PA a => PArray a -> [a]
 toList (PArray _ arr)
- = trace "toList"
- $ V.toList $ toVectorPA arr
+ = V.toList $ toVectorPA arr
 {-# INLINE_PA toList #-}
 

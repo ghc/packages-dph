@@ -15,9 +15,11 @@ import Data.Array.Parallel.PArray.Types
 import Data.Array.Parallel.Base                 (intToTag)
 import Data.Array.Parallel.Unlifted             as U
 import qualified Data.Vector                    as V
+import qualified Data.Typeable                  as T
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
+import Debug.Trace
 
 -------------------------------------------------------------------------------
 data instance PData (Sum2 a b)
@@ -76,6 +78,24 @@ instance (PR a, PR b) => PR (Sum2 a b)  where
         [ pprp sel
         , text "ALTS0: " <+> pprp pdatas1
         , text "ALTS1: " <+> pprp pdatas2])
+
+  {-# NOINLINE typeRepPR #-}
+  typeRepPR ss
+   = case ss of
+        Alt2_1 x -> T.typeOf2 ss `T.mkAppTy` typeRepPR x `T.mkAppTy` typeRepPR x
+        Alt2_2 y -> T.typeOf2 ss `T.mkAppTy` typeRepPR y `T.mkAppTy` typeRepPR y
+
+  {-# NOINLINE typeRepDataPR #-}
+  typeRepDataPR (PSum2 _ xs ys)
+   = T.typeOf2 (Alt2_1 ())
+        `T.mkAppTy` typeRepDataPR xs 
+        `T.mkAppTy` typeRepDataPR ys
+
+  {-# NOINLINE typeRepDatasPR #-}
+  typeRepDatasPR (PSum2s _ pdatas1 pdatas2)
+   = T.typeOf2 (Alt2_1 ())
+        `T.mkAppTy` typeRepDatasPR pdatas1
+        `T.mkAppTy` typeRepDatasPR pdatas2
 
 
   -- Constructors -------------------------------
