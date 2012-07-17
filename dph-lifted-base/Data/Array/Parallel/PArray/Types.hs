@@ -27,6 +27,7 @@ module Data.Array.Parallel.PArray.Types
 where
 import Data.Array.Parallel.Base (Tag)
 import Data.Array.Parallel.Pretty
+import Data.Typeable
 
 
 -- Void -----------------------------------------------------------------------
@@ -36,6 +37,8 @@ import Data.Array.Parallel.Pretty
 --   only care about the tag of the data constructor and not its argumnent.
 -- 
 data Void
+
+deriving instance Typeable Void
 
 -- | A 'value' with the void type. Used as a placholder like `undefined`.
 --   Forcing this yields `error`. 
@@ -60,6 +63,9 @@ fromVoid = error $ unlines
 data Sum2 a b
         = Alt2_1 a | Alt2_2 b
 
+deriving instance Typeable2 Sum2
+
+
 tagOfSum2 :: Sum2 a b -> Tag
 tagOfSum2 ss
  = case ss of
@@ -79,6 +85,9 @@ instance (PprPhysical a, PprPhysical b)
 -- Sum3 -----------------------------------------------------------------------
 data Sum3 a b c
         = Alt3_1 a | Alt3_2 b | Alt3_3 c
+
+deriving instance Typeable3 Sum3
+
 
 tagOfSum3 :: Sum3 a b c -> Tag
 tagOfSum3 ss
@@ -114,3 +123,4 @@ tagOfSum3 ss
 --
 newtype Wrap a = Wrap { unWrap :: a }
 
+deriving instance Typeable1 Wrap
