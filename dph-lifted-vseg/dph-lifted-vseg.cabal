@@ -54,6 +54,7 @@ Library
         Data.Array.Parallel.Prelude.Tuple
         Data.Array.Parallel.Prelude.Ordering
         Data.Array.Parallel.Prelude
+        Data.Array.Parallel.Trace
         Data.Array.Parallel
         Data.Array.Parallel.Prim
         
@@ -82,7 +83,8 @@ Library
         ExistentialQuantification,
         ScopedTypeVariables,
         PatternGuards,
-        PackageImports
+        PackageImports,
+        DeriveDataTypeable
 
   GHC-Options:
         -Odph

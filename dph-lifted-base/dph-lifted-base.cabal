@@ -43,7 +43,8 @@ Library
         ExistentialQuantification,
         ScopedTypeVariables,
         PatternGuards,
-        PackageImports
+        PackageImports,
+        DeriveDataTypeable
 
   GHC-Options:
         -Odph 

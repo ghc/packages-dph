@@ -21,7 +21,7 @@ Executable dph-smoke-bool
   Main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/smoke/data/Bool
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 -- examples/smoke/prims
@@ -30,7 +30,7 @@ Executable dph-smoke-concat
   main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/smoke/prims/Concat
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 Executable dph-smoke-sumsq
@@ -40,7 +40,7 @@ Executable dph-smoke-sumsq
                   Vectorised
                   Timing Randomish
   hs-source-dirs: examples/smoke/prims/SumSquares/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
  
  
 Executable dph-smoke-evens
@@ -50,7 +50,7 @@ Executable dph-smoke-evens
                   Vectorised
                   Timing Randomish
   hs-source-dirs: examples/smoke/prims/Evens/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 -- examples/smoke/sharing
@@ -59,7 +59,7 @@ Executable dph-smoke-indices
   Main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/smoke/sharing/Indices lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
  
  
 Executable dph-smoke-rank
@@ -67,7 +67,7 @@ Executable dph-smoke-rank
   Main-is:        Main.hs
   other-modules:  Vectorised Util Timing Randomish
   hs-source-dirs: examples/smoke/sharing/Rank lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 Executable dph-smoke-reverse
@@ -75,7 +75,7 @@ Executable dph-smoke-reverse
   Main-is:        Main.hs
   other-modules:  Vectorised Randomish
   hs-source-dirs: examples/smoke/sharing/Reverse lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 -- Imaginary ------------------------------------------------------------------
@@ -84,14 +84,14 @@ Executable dph-smoke-reverse
 --   Main-is:        Main.hs
 --   other-modules:  Vectorised
 --   hs-source-dirs: examples/imaginary/Primes lib
---   ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+--   ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 Executable dph-imaginary-words
   Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/imaginary/Words lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 -- Spectral -------------------------------------------------------------------
@@ -102,7 +102,7 @@ Executable dph-spectral-dotp
                   Vectorised
                   Timing Randomish
   hs-source-dirs: examples/spectral/DotProduct/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 Executable dph-spectral-smvm
@@ -111,9 +111,10 @@ Executable dph-spectral-smvm
   other-modules:  Vectorised
                   Timing
   hs-source-dirs: examples/spectral/SMVM/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
+<<<<<<< HEAD
 --Executable dph-spectral-quickhull
 --  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
 --  Main-is:        Main.hs
@@ -132,6 +133,26 @@ Executable dph-spectral-smvm
 --                  Timing Points2D.Types SVG
 --  hs-source-dirs: examples/spectral/QuickHull/vector examples/spectral/QuickHull/lib lib
 --  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+=======
+Executable dph-spectral-quickhull
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Main-is:        Main.hs
+  other-modules:  Vectorised
+                  Timing Points2D.Types SVG
+  hs-source-dirs: examples/spectral/QuickHull/dph examples/spectral/QuickHull/lib lib
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+
+
+Executable dph-spectral-quickhull-vector
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Main-is:        Main.hs
+  other-modules:  QuickHullIO
+                  QuickHullSplit
+                  QuickHullVector
+                  Timing Points2D.Types SVG
+  hs-source-dirs: examples/spectral/QuickHull/vector examples/spectral/QuickHull/lib lib
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+>>>>>>> Cabal file wibbles
 
 
 Executable dph-spectral-quicksort
@@ -140,7 +161,7 @@ Executable dph-spectral-quicksort
   other-modules:  Vectorised
                   Timing
   hs-source-dirs: examples/spectral/QuickSort/dph lib
-  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
 -- Real -----------------------------------------------------------------------
@@ -156,7 +177,7 @@ Executable dph-spectral-quicksort
 --                     Gloss.MainArgs Gloss.Draw Gloss.Config
 --    Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*, gloss == 1.6.*
 --    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
---    ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+--    ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 Executable dph-real-nbody
     Main-is:        MainBatch.hs
@@ -169,5 +190,5 @@ Executable dph-real-nbody
                     Batch.MainArgs Batch.Config
     Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
-    ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+    ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
