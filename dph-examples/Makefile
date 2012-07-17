@@ -15,6 +15,7 @@ DPH_DEPENDS = \
 
 # Options for compiling DPH examples.
 DPH_OPTIONS= \
+	-eventlog \
 	-rtsopts \
 	-threaded \
 	-fllvm \
