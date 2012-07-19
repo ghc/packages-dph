@@ -62,7 +62,7 @@ Library
   Build-Depends:  
         base             == 4.6.*,
         ghc              == 7.*,
-        array            == 0.3.*,
+        array            == 0.4.*,
         pretty           == 1.1.*,
         vector           == 0.9.*,
         containers       == 0.5.*,

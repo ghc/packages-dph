@@ -17,7 +17,7 @@ Synopsis:            Data Parallel Haskell example programs.
 -- Smoke ----------------------------------------------------------------------
 -- examples/smoke/data
 Executable dph-smoke-bool
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/smoke/data/Bool
@@ -26,7 +26,7 @@ Executable dph-smoke-bool
 
 -- examples/smoke/prims
 Executable dph-smoke-concat
-  build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/smoke/prims/Concat
@@ -34,7 +34,7 @@ Executable dph-smoke-concat
 
 
 Executable dph-smoke-sumsq
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vector
                   Vectorised
@@ -44,7 +44,7 @@ Executable dph-smoke-sumsq
  
  
 Executable dph-smoke-evens
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vector
                   Vectorised
@@ -55,7 +55,7 @@ Executable dph-smoke-evens
 
 -- examples/smoke/sharing
 Executable dph-smoke-indices
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/smoke/sharing/Indices lib
@@ -63,7 +63,7 @@ Executable dph-smoke-indices
  
  
 Executable dph-smoke-rank
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised Util Timing Randomish
   hs-source-dirs: examples/smoke/sharing/Rank lib
@@ -71,7 +71,7 @@ Executable dph-smoke-rank
 
 
 Executable dph-smoke-reverse
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised Randomish
   hs-source-dirs: examples/smoke/sharing/Reverse lib
@@ -80,14 +80,14 @@ Executable dph-smoke-reverse
 
 -- Imaginary ------------------------------------------------------------------
 -- Executable dph-imaginary-primes
---   Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+--   Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
 --   Main-is:        Main.hs
 --   other-modules:  Vectorised
 --   hs-source-dirs: examples/imaginary/Primes lib
 --   ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 Executable dph-imaginary-words
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
   hs-source-dirs: examples/imaginary/Words lib
@@ -96,7 +96,7 @@ Executable dph-imaginary-words
 
 -- Spectral -------------------------------------------------------------------
 Executable dph-spectral-dotp
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vector
                   Vectorised
@@ -106,7 +106,7 @@ Executable dph-spectral-dotp
 
 
 Executable dph-spectral-smvm
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
                   Timing
@@ -115,7 +115,7 @@ Executable dph-spectral-smvm
 
 
 --Executable dph-spectral-quickhull
---  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+--  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
 --  Main-is:        Main.hs
 --  other-modules:  Vectorised
 --                  Timing Points2D.Types SVG
@@ -124,7 +124,7 @@ Executable dph-spectral-smvm
 
 
 --Executable dph-spectral-quickhull-vector
---  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+--  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
 --  Main-is:        Main.hs
 --  other-modules:  QuickHullIO
 --                  QuickHullSplit
@@ -135,7 +135,7 @@ Executable dph-spectral-smvm
 
 
 Executable dph-spectral-quicksort
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
                   Timing
@@ -154,7 +154,7 @@ Executable dph-spectral-quicksort
 --                     Timing Points2D.Types Points2D.Generate
 --                     System.Console.ParseArgs
 --                     Gloss.MainArgs Gloss.Draw Gloss.Config
---    Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*, gloss == 1.6.*
+--    Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*, gloss == 1.6.*
 --    hs-source-dirs: examples/real/NBody examples/real/NBody/Gloss lib
 --    ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
@@ -167,7 +167,7 @@ Executable dph-real-nbody
                            Solver.VectorNaive.Solver
                     Timing Points2D.Types Points2D.Generate
                     Batch.MainArgs Batch.Config
-    Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+    Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
     hs-source-dirs: examples/real/NBody examples/real/NBody/Batch lib
     ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 

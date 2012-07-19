@@ -55,9 +55,9 @@ Library
   Build-Depends:  
         base                    == 4.6.*,
         ghc                     == 7.*,
-        array                   == 0.3.*,
+        array                   == 0.4.*,
         random                  == 1.0.*,
-        template-haskell        == 2.6.*,
+        template-haskell        == 2.8.*,
         dph-base                == 0.6.*,
         dph-prim-par            == 0.6.*,
         vector                  == 0.9.*,
