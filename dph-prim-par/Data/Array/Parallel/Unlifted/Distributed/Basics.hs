@@ -6,7 +6,8 @@ module Data.Array.Parallel.Unlifted.Distributed.Basics
 where
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Distributed.Combinators 
-import Data.Array.Parallel.Unlifted.Distributed.Scalars
+import Data.Array.Parallel.Unlifted.Distributed.Data.Bool
+import Data.Array.Parallel.Unlifted.Distributed.Data.Scalar
 import Control.Monad ( zipWithM_ )
 
 here :: String -> String

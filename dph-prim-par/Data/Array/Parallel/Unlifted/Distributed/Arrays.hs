@@ -23,13 +23,13 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays
           -- * Carry
         , carryD)
  where
-import Data.Array.Parallel.Base (ST, runST)
-import Data.Array.Parallel.Unlifted.Distributed.Primitive
-import Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
+import Data.Array.Parallel.Unlifted.Distributed.Data.Scalar
 import Data.Array.Parallel.Unlifted.Distributed.Data.Vector
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
-import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Sequential.Vector   (Vector, MVector, Unbox)
+import Data.Array.Parallel.Base (ST, runST)
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import GHC.Base      ( quotInt, remInt )
 import Control.Monad

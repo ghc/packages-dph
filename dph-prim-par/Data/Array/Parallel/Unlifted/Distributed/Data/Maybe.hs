@@ -1,8 +1,10 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Distribution of Maybes.
-module Data.Array.Parallel.Unlifted.Distributed.Data.Maybe where
-import Data.Array.Parallel.Unlifted.Distributed.Data.Prim      ()
+module Data.Array.Parallel.Unlifted.Distributed.Data.Maybe 
+where
+import Data.Array.Parallel.Unlifted.Distributed.Data.Bool
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.DPrim
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Control.Monad
 

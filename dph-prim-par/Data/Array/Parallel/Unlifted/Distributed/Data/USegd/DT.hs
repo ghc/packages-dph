@@ -2,7 +2,7 @@
 module Data.Array.Parallel.Unlifted.Distributed.Data.USegd.DT
 where
 import Data.Array.Parallel.Unlifted.Distributed.Data.Vector             ()
-import Data.Array.Parallel.Unlifted.Distributed.Data.Prim
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
