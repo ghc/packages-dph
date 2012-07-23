@@ -21,9 +21,10 @@ import Data.Array.Parallel.Pretty
 import Control.Monad
 import Prelude                                                          as P
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
-import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USSegd  as DUSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USSegd   as DUSegd
 
 
+-------------------------------------------------------------------------------
 instance DT UVSegd where
   data Dist UVSegd   
         = DUVSegd  !(Dist (Vector Int))         -- vsegids
@@ -37,41 +38,58 @@ instance DT UVSegd where
    = UVSegd.mkUVSegd
         (indexD (str P.++ "/indexD[UVSegd]") vsegids i)
         (indexD (str P.++ "/indexD[UVSegd]") ussegds i)
+  {-# INLINE_DIST indexD #-}
 
   newMD g
    = liftM2 MDUVSegd (newMD g) (newMD g)
+  {-# INLINE_DIST newMD #-}
 
   readMD (MDUVSegd vsegids ussegds) i
    = liftM2 UVSegd.mkUVSegd (readMD vsegids i) (readMD ussegds i)
+  {-# INLINE_DIST readMD #-}
 
   writeMD (MDUVSegd vsegids ussegds) i uvsegd
    = do writeMD vsegids  i (UVSegd.takeVSegids  uvsegd)
         writeMD ussegds  i (UVSegd.takeUSSegd   uvsegd)
+  {-# INLINE_DIST writeMD #-}
 
   unsafeFreezeMD (MDUVSegd vsegids ussegds)
    = liftM2 DUVSegd (unsafeFreezeMD vsegids)
                     (unsafeFreezeMD ussegds)
+  {-# INLINE_DIST unsafeFreezeMD #-}
 
   deepSeqD uvsegd z
    = deepSeqD (UVSegd.takeVSegids  uvsegd)
    $ deepSeqD (UVSegd.takeUSSegd   uvsegd) z
+  {-# INLINE_DIST deepSeqD #-}
 
-  sizeD  (DUVSegd  _ ussegd) = sizeD ussegd
-  sizeMD (MDUVSegd _ ussegd) = sizeMD ussegd
+  sizeD  (DUVSegd  _ ussegd) 
+   = sizeD ussegd
+  {-# INLINE_DIST sizeD #-}
+
+  sizeMD (MDUVSegd _ ussegd) 
+   = sizeMD ussegd
+  {-# INLINE_DIST sizeMD #-}
 
   measureD uvsegd 
    = "UVSegd " P.++ show (UVSegd.takeVSegids    uvsegd)
    P.++ " "    P.++ measureD (UVSegd.takeUSSegd uvsegd)
+  {-# NOINLINE measureD #-}
+  --  NOINLINE because this is only used during debugging.
 
 
+-------------------------------------------------------------------------------
 instance PprPhysical (Dist UVSegd) where
  pprp (DUVSegd vsegids ussegds)
   =  text "DUVSegd"
   $$ (nest 7 $ vcat
         [ text "vsegids: " <+> pprp vsegids
         , text "ussegds: " <+> pprp ussegds])
+ {-# NOINLINE pprp #-}
+ --  NOINLINE because this is only used during debugging.
 
 
+-------------------------------------------------------------------------------
 -- | O(1). Yield the overall number of segments.
 lengthD :: Dist UVSegd -> Dist Int
 lengthD (DUVSegd _ ussegd) 
@@ -126,3 +144,4 @@ takeUSSegdD :: Dist UVSegd -> Dist USSegd
 takeUSSegdD (DUVSegd _ ussegd)
         = ussegd
 {-# INLINE_DIST takeUSSegdD #-}
+

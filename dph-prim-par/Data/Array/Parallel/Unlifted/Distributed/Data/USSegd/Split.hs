@@ -220,8 +220,8 @@ chunk !ussegd !nStart !nElems is_last
                 , text ""]) lens'
 -}
 
-{-# INLINE chunk #-}
---  INLINE even though it should be inlined into splitSSegdOnElemsD anyway
+{-# INLINE_DIST chunk #-}
+--  INLINE_DIST even though it should be inlined into splitSSegdOnElemsD anyway
 --  because that function contains the only use.
 
 
@@ -243,3 +243,6 @@ search !x ys = go 0 (Seq.length ys)
       where
         half = n `shiftR` 1
         mid  = i + half
+{-# INLINE_DIST search #-}
+--  INLINE_DIST because we want it inlined into both uses in 'chunk' above.
+

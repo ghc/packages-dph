@@ -25,6 +25,7 @@ mkDUSegdD
         -> Dist USegd
 
 mkDUSegdD = DUSegd
+{-# INLINE_DIST mkDUSegdD #-}
 
 
 -- | O(1). Yield the overall number of segments.

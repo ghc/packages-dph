@@ -15,8 +15,6 @@ where
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Base
-import Data.Array.Parallel.Pretty
-import Data.Word
 import Control.Monad
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import qualified Data.Vector.Unboxed.Mutable                    as MV
@@ -85,11 +83,4 @@ primSizeD = V.length . unDPrim
 primSizeMD :: DPrim a => MDist a s -> Int
 primSizeMD = MV.length . unMDPrim
 {-# INLINE primSizeMD #-}
-
-
-
-
-
-
-
 

@@ -55,14 +55,14 @@ instance Monad (DistST s) where
 -- Primitives -----------------------------------------------------------------
 -- | Yields the index of the current thread within its gang.
 myIndex :: DistST s Int
-myIndex = DistST return
+myIndex         = DistST return
 {-# INLINE myIndex #-}
 
 
 -- | Lifts an 'ST' computation into the 'DistST' monad.
 --   The lifted computation should be data parallel.
 stToDistST :: ST s a -> DistST s a
-stToDistST p = DistST $ \_ -> p
+stToDistST p    = DistST $ \_ -> p
 {-# INLINE stToDistST #-}
 
 
@@ -127,7 +127,9 @@ runDistST_seq g p = runST (
 
 
 traceDistST :: String -> DistST s ()
-traceDistST s = DistST $ \n -> traceGangST ("Worker " ++ show n ++ ": " ++ s)
+traceDistST s 
+        = DistST $ \n -> traceGangST ("Worker " ++ show n ++ ": " ++ s)
+{-# INLINE traceDistST #-}
 
 
 -- Combinators ----------------------------------------------------------------
@@ -158,6 +160,7 @@ mapDST' :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
 mapDST' g p !d 
  = checkGangD (here "mapDST_") g d 
  $ distST g (myD d >>= p)
+{-# INLINE mapDST' #-}
 
 
 zipWithDST_ 

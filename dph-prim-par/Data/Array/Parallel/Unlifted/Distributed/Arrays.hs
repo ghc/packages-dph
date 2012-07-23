@@ -282,7 +282,7 @@ bpermuteD :: Unbox a
 
 bpermuteD gang !as ds 
         = mapD WhatBpermute gang (Seq.bpermute as) ds
-{-# INLINE bpermuteD #-}
+{-# INLINE_DIST bpermuteD #-}
 
 
 -- Update ---------------------------------------------------------------------
@@ -299,7 +299,7 @@ atomicUpdateD g darr upd
  where
         update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()
         update marr arr = stToDistST (Seq.mupdate marr arr)
-{-# INLINE atomicUpdateD #-}
+{-# INLINE_DIST atomicUpdateD #-}
 
 
 -- Carry ----------------------------------------------------------------------

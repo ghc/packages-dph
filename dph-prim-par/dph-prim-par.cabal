@@ -16,13 +16,16 @@ Build-Type:     Simple
 Library
   Exposed-Modules:
         Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
+        Data.Array.Parallel.Unlifted.Distributed.Primitive.DPrim
         Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
         Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
         Data.Array.Parallel.Unlifted.Distributed.Primitive.Operators
         Data.Array.Parallel.Unlifted.Distributed.Primitive
 
+        Data.Array.Parallel.Unlifted.Distributed.Data.Bool
         Data.Array.Parallel.Unlifted.Distributed.Data.Maybe
-        Data.Array.Parallel.Unlifted.Distributed.Data.Prim
+        Data.Array.Parallel.Unlifted.Distributed.Data.Ordering
+        Data.Array.Parallel.Unlifted.Distributed.Data.Scalar
         Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
         Data.Array.Parallel.Unlifted.Distributed.Data.Unit
         Data.Array.Parallel.Unlifted.Distributed.Data.USegd.DT
@@ -39,7 +42,6 @@ Library
         Data.Array.Parallel.Unlifted.Distributed.Arrays
         Data.Array.Parallel.Unlifted.Distributed.Basics
         Data.Array.Parallel.Unlifted.Distributed.Combinators
-        Data.Array.Parallel.Unlifted.Distributed.Scalars
         Data.Array.Parallel.Unlifted.Distributed.What
         Data.Array.Parallel.Unlifted.Distributed
 

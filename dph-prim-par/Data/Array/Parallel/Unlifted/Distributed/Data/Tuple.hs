@@ -27,30 +27,42 @@ instance (DT a, DT b) => DT (a,b) where
   indexD str d i
    = ( indexD (str ++ "/indexD[Tuple2]") (fstD d) i
      , indexD (str ++ "/indexD[Tuple2]") (sndD d) i)
+  {-# INLINE_DIST indexD #-}
 
   newMD g
    = liftM2 MDProd (newMD g) (newMD g)
+  {-# INLINE_DIST newMD #-}
 
   readMD  (MDProd xs ys) i
    = liftM2 (,) (readMD xs i) (readMD ys i)
+  {-# INLINE_DIST readMD #-}
 
   writeMD (MDProd xs ys) i (x,y)
    = do writeMD xs i x
         writeMD ys i y
+  {-# INLINE_DIST writeMD #-}
 
   unsafeFreezeMD (MDProd xs ys)
    = liftM2 DProd (unsafeFreezeMD xs)
                   (unsafeFreezeMD ys)
+  {-# INLINE_DIST unsafeFreezeMD #-}
 
-  {-# INLINE deepSeqD #-}
   deepSeqD (x, y) z 
    = deepSeqD x (deepSeqD y z)
+  {-# INLINE deepSeqD #-}
 
-  sizeD  (DProd  x _) = sizeD  x
-  sizeMD (MDProd x _) = sizeMD x
+  sizeD  (DProd  x _) 
+   = sizeD  x
+  {-# INLINE_DIST sizeD #-}
+
+  sizeMD (MDProd x _) 
+   = sizeMD x
+  {-# INLINE_DIST sizeMD #-}
 
   measureD (x, y) 
    = "Pair " ++ "(" ++ measureD x ++ ") (" ++  measureD y ++ ")"
+  {-# NOINLINE measureD #-}
+  --  NOINLINE beacuse this is only used during debugging.
 
 
 instance (PprPhysical (Dist a), PprPhysical (Dist b)) 
@@ -60,6 +72,8 @@ instance (PprPhysical (Dist a), PprPhysical (Dist b))
   $$ (nest 8 $ vcat
         [ pprp xs
         , pprp ys ])
+ {-# NOINLINE pprp #-}
+ --  NOINLINE because this is only used during debugging.
 
 
 -- | Pairing of distributed values.
@@ -68,7 +82,7 @@ zipD :: (DT a, DT b) => Dist a -> Dist b -> Dist (a,b)
 zipD !x !y 
         = checkEq (here "zipDT") "Size mismatch" (sizeD x) (sizeD y) 
         $ DProd x y
-{-# INLINE [0] zipD #-}
+{-# INLINE [0] zipD #-}                                                 -- TODO: why is this INLINE [0]???
 
 
 -- | Unpairing of distributed values.
@@ -98,35 +112,47 @@ instance (DT a, DT b, DT c) => DT (a,b,c) where
    = ( indexD (here $ "indexD[Tuple3]/" ++ str) xs i
      , indexD (here $ "indexD[Tuple3]/" ++ str) ys i
      , indexD (here $ "indexD[Tuple3]/" ++ str) zs i)
+  {-# INLINE_DIST indexD #-}
 
   newMD g
    = liftM3 MDProd3 (newMD g) (newMD g) (newMD g)
+  {-# INLINE_DIST newMD #-}
 
   readMD  (MDProd3 xs ys zs) i
    = liftM3 (,,) (readMD xs i) (readMD ys i) (readMD zs i)
+  {-# INLINE_DIST readMD #-}
 
   writeMD (MDProd3 xs ys zs) i (x,y,z)
    = do writeMD xs i x
         writeMD ys i y
         writeMD zs i z
+  {-# INLINE_DIST writeMD #-}
 
   unsafeFreezeMD (MDProd3 xs ys zs)
    = liftM3 DProd3 (unsafeFreezeMD xs)
                    (unsafeFreezeMD ys)
                    (unsafeFreezeMD zs)
+  {-# INLINE_DIST unsafeFreezeMD #-}
 
-  {-# INLINE deepSeqD #-}
   deepSeqD (x,y,z) k 
    = deepSeqD x (deepSeqD y (deepSeqD z k))
+  {-# INLINE_DIST deepSeqD #-}
 
-  sizeD  (DProd3  x _ _) = sizeD  x
-  sizeMD (MDProd3 x _ _) = sizeMD x
+  sizeD  (DProd3  x _ _) 
+   = sizeD  x
+  {-# INLINE_DIST sizeD #-}
+
+  sizeMD (MDProd3 x _ _) 
+   = sizeMD x
+  {-# INLINE_DIST sizeMD #-}
 
   measureD (x,y,z)
    = "Triple " 
         ++ "(" ++ measureD x ++ ") "
         ++ "(" ++ measureD y ++ ") "
         ++ "(" ++ measureD z ++ ")"
+  {-# NOINLINE measureD #-}
+  --  NOINLINE because this is only used for debugging.
 
 
 -- | Pairing of distributed values.
@@ -136,10 +162,12 @@ zip3D !x !y !z
         = checkEq (here "zip3DT") "Size mismatch" (sizeD x) (sizeD y) 
         $ checkEq (here "zip3DT") "Size mismatch" (sizeD x) (sizeD z) 
         $ DProd3 x y z
-{-# INLINE [0] zip3D #-}
+{-# INLINE [0] zip3D #-}                                                 -- TODO: Why is this INLINE[0]??
 
 
 -- | Unpairing of distributed values.
 unzip3D  :: (DT a, DT b, DT c) => Dist (a,b,c) -> (Dist a, Dist b, Dist c)
-unzip3D (DProd3 dx dy dz) = (dx,dy,dz)
+unzip3D (DProd3 dx dy dz) 
+        = (dx,dy,dz)
 {-# INLINE_DIST unzip3D #-}
+

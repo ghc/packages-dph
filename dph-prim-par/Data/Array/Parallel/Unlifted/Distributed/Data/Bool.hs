@@ -1,5 +1,7 @@
-
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
+{-# LANGUAGE CPP #-}
+#include "fusion-phases.h"
+
 module Data.Array.Parallel.Unlifted.Distributed.Data.Bool
         ( orD
         , andD)
@@ -13,34 +15,35 @@ import Prelude as P
 
 
 instance DPrim Bool where
-  mkDPrim           = DBool
-  unDPrim (DBool a) = a
+  mkDPrim               = DBool
+  unDPrim (DBool a)     = a
 
-  mkMDPrim            = MDBool
-  unMDPrim (MDBool a) = a
+  mkMDPrim              = MDBool
+  unMDPrim (MDBool a)   = a
 
 
 instance DT Bool where
-  data Dist  Bool   = DBool  !(V.Vector    Bool)
-  data MDist Bool s = MDBool !(MV.STVector s Bool)
+  data Dist  Bool       = DBool  !(V.Vector    Bool)
+  data MDist Bool s     = MDBool !(MV.STVector s Bool)
 
-  indexD         = primIndexD
-  newMD          = primNewMD
-  readMD         = primReadMD
-  writeMD        = primWriteMD
-  unsafeFreezeMD = primUnsafeFreezeMD
-  sizeD          = primSizeD
-  sizeMD         = primSizeMD
-
+  indexD                = primIndexD
+  newMD                 = primNewMD
+  readMD                = primReadMD
+  writeMD               = primWriteMD
+  unsafeFreezeMD        = primUnsafeFreezeMD
+  sizeD                 = primSizeD
+  sizeMD                = primSizeMD
 
 
 -- | OR together all instances of a distributed 'Bool'.
 orD :: Gang -> Dist Bool -> Bool
 orD g   = foldD g (||)
+{-# INLINE_DIST orD #-}
 
 
 -- | AND together all instances of a distributed 'Bool'.
 andD :: Gang -> Dist Bool -> Bool
 andD g  = foldD g (&&)
+{-# INLINE_DIST andD #-}
 
 

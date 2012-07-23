@@ -77,6 +77,7 @@ splitSegdOnSegsD g !segd
       where
         m = Seq.index (here "splitSegdOnSegsD") lens i
 {-# NOINLINE splitSegdOnSegsD #-}
+--  NOINLINE because it won't fuse with anything.
 
 
 -------------------------------------------------------------------------------
@@ -130,8 +131,7 @@ splitSegdOnElemsD g !segd
             (# lens, l, o #) -> ((USegd.fromLengths lens, l), o)
 
 {-# NOINLINE splitSegdOnElemsD #-}
---  NOINLINE because this function has a large body of code and we don't want
---  to blow up the client modules by inlining it everywhere.
+--  NOINLINE because it won't fuse with anything.
 
 
 -------------------------------------------------------------------------------
@@ -252,10 +252,9 @@ getChunk !segd !nStart !nElems is_last
                 , text ""]) lens'
 -}
 
-{-# INLINE getChunk #-}
---  INLINE even though it should be inlined into splitSSegdOnElemsD anyway
---  because that function contains the only use.
-
+{-# INLINE_DIST getChunk #-}
+--  INLINE_DIST because we want this inlined into splitSegdOnElemsD
+--              above, which is the only use.
 
 -------------------------------------------------------------------------------
 -- O(log n). Given a monotonically increasing vector of `Int`s,
@@ -276,6 +275,8 @@ search !x ys = go 0 (Seq.length ys)
       where
         half = n `shiftR` 1
         mid  = i + half
+{-# INLINE_DIST search #-}
+--  INLINE_DIST because we want this inlined into both uses in getChunk.
 
 
 -------------------------------------------------------------------------------
@@ -332,8 +333,8 @@ glueSegdD gang bundle
 {-# INLINE_DIST glueSegdD #-}
 
 
---------------------------------------------------------------------------------
--- TODO: Shift this into a separate Fusion.hs module
+                                                                        -- TODO: Shift this into a
+                                                                        --      separate Fusion.hs module
 
 splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
 splitSD g dsegd xs
