@@ -6,60 +6,22 @@
 -- | Standard combinators for distributed types.
 module Data.Array.Parallel.Unlifted.Distributed.Combinators 
         ( What (..)
-        , generateD, generateD_cheap
         , imapD, mapD
         , zipD, unzipD
         , fstD, sndD
         , zipWithD, izipWithD
         , foldD
         , scanD
-        , mapAccumLD
-
-           -- * Monadic combinators
-        , mapDST_, mapDST, zipWithDST_, zipWithDST)
+        , mapAccumLD)
 where
 import Data.Array.Parallel.Base ( ST, runST)
-import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Distributed.Types
-import Data.Array.Parallel.Unlifted.Distributed.DistST
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
+import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
+import Data.Array.Parallel.Unlifted.Distributed.Data.Maybe      ()
 import Data.Array.Parallel.Unlifted.Distributed.What
 import Debug.Trace
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
-
-
--- | Create a distributed value, given a function to create the instance
---   for each thread.
-generateD 
-        :: DT a 
-        => What         -- ^ What is the worker function doing.
-        -> Gang 
-        -> (Int -> a) 
-        -> Dist a
-generateD what g f 
-        = traceEvent (show $ CompGenerate False what) 
-        $ runDistST g (myIndex >>= return . f)
-{-# NOINLINE generateD #-}
-
-
--- | Create a distributed value, but do it sequentially.
---  
---   This function is used when we want to operate on a distributed value, but
---   there isn't much data involved. For example, if we want to distribute 
---   a single integer to each thread, then there's no need to fire up the 
---   gang for this.
---   
-generateD_cheap 
-        :: DT a 
-        => What          -- ^ What is the worker function doing.
-        -> Gang 
-        -> (Int -> a) 
-        -> Dist a
-
-generateD_cheap what g f 
-        = traceEvent (show $ CompGenerate True what) 
-        $ runDistST_seq g (myIndex >>= return . f)
-{-# NOINLINE generateD_cheap #-}
 
 
 -- Mapping --------------------------------------------------------------------
@@ -110,20 +72,6 @@ imapD wFn gang f d
 --  INLINE [0] because we want to wait until phase [0] before introducing
 --  the call to imapD'. Our rewrite rules operate directly on the imapD
 --  formp, so once imapD is inlined no more fusion can take place.
-
-
--- | Map a function across all elements of a distributed value.
---   The worker function also gets the current thread index.
-imapD'  :: (DT a, DT b) 
-        => What -> Gang -> (Int -> a -> b) -> Dist a -> Dist b
-imapD' what gang f !d 
-  = traceEvent (show (CompMap $ what))
-  $ runDistST gang 
-        (do i <- myIndex
-            x <- myD d
-            return (f i x))
-{-# NOINLINE imapD' #-}
--- NOINLINE 
 
 
 {-# RULES
@@ -196,42 +144,6 @@ izipWithD what g f dx dy
   #-}
 
 
--- Folding --------------------------------------------------------------------
--- | Fold all the instances of a distributed value.
-foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
-foldD g f !d 
-  = checkGangD ("here foldD") g d 
-  $ fold 1 (indexD (here "foldD") d 0)
-  where
-    !n = gangSize g
-    --
-    fold i x | i == n    = x
-             | otherwise = fold (i+1) (f x $ indexD (here "foldD") d i)
-{-# NOINLINE foldD #-}
-
-
--- | Prefix sum of the instances of a distributed value.
-scanD :: forall a. DT a => Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
-scanD g f z !d
-  = checkGangD (here "scanD") g d 
-  $ runST (do
-          md <- newMD g
-          s  <- scan md 0 z
-          d' <- unsafeFreezeMD md
-          return (d',s))
-  where
-    !n = gangSize g
-    
-    scan :: forall s. MDist a s -> Int -> a -> ST s a
-    scan md i !x
-        | i == n    = return x
-        | otherwise
-        = do    writeMD md i x
-                scan md (i+1) (f x $ indexD (here "scanD") d i)
-{-# NOINLINE scanD #-}
-
-
-
 -- MapAccumL ------------------------------------------------------------------
 -- | Combination of map and fold.
 mapAccumLD 
@@ -260,49 +172,3 @@ mapAccumLD g f acc !d
                       go md (i+1) acc''
 {-# INLINE_DIST mapAccumLD #-}
                                 
-
--- Versions that work on DistST -----------------------------------------------
--- NOTE: The following combinators must be strict in the Dists because if they
--- are not, the Dist might be evaluated (in parallel) when it is requested in
--- the current computation which, again, is parallel. This would break our
--- model andlead to a deadlock. Hence the bangs.
-
-mapDST_ :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
-mapDST_ g p d 
- = mapDST_' g (\x -> x `deepSeqD` p x) d
-{-# INLINE mapDST_ #-}
-
-
-mapDST_' :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
-mapDST_' g p !d 
- = checkGangD (here "mapDST_") g d 
- $ distST_ g (myD d >>= p)
-
-
-mapDST :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
-mapDST g p !d = mapDST' g (\x -> x `deepSeqD` p x) d
-{-# INLINE mapDST #-}
-
-
-mapDST' :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
-mapDST' g p !d 
- = checkGangD (here "mapDST_") g d 
- $ distST g (myD d >>= p)
-
-
-zipWithDST_ 
-        :: (DT a, DT b)
-        => Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
-zipWithDST_ g p !dx !dy 
- = mapDST_ g (uncurry p) (zipD dx dy)
-{-# INLINE zipWithDST_ #-}
-
-
-zipWithDST 
-        :: (DT a, DT b, DT c)
-        => Gang
-        -> (a -> b -> DistST s c) -> Dist a -> Dist b -> ST s (Dist c)
-zipWithDST g p !dx !dy 
- = mapDST g (uncurry p) (zipD dx dy)
-{-# INLINE zipWithDST #-}
-

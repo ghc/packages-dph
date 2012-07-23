@@ -1,5 +1,6 @@
+
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
-module Data.Array.Parallel.Unlifted.Distributed.Types.Base 
+module Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
         ( -- * Distributable Types
           DT(..)
         
@@ -11,9 +12,10 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.Base
         , newD
         , debugD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Gang    (Gang, gangSize)
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
 import Data.Array.Parallel.Base
-import Data.List                                        (intercalate)
+import Data.List
+import Control.Monad.ST
 
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Base." ++ s
@@ -105,4 +107,3 @@ debugD d = "["
          ++ intercalate "," [measureD (indexD (here "debugD") d i) 
                             | i <- [0 .. sizeD d-1]]
          ++ "]"
-

@@ -8,9 +8,10 @@ module Data.Array.Parallel.Unlifted.Distributed.Scalars
         , orD, andD
         , sumD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Distributed.Types
+import Data.Array.Parallel.Unlifted.Distributed.Data.Unit
+import Data.Array.Parallel.Unlifted.Distributed.Data.Prim
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 
 
 -- | Distribute a scalar.

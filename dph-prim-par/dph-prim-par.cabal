@@ -15,32 +15,30 @@ Build-Type:     Simple
 
 Library
   Exposed-Modules:
-        Data.Array.Parallel.Unlifted.Distributed
-        Data.Array.Parallel.Unlifted.Distributed.Gang
-        Data.Array.Parallel.Unlifted.Distributed.TheGang
-        Data.Array.Parallel.Unlifted.Parallel
-        Data.Array.Parallel.Unlifted.Parallel.UPSegd
-        Data.Array.Parallel.Unlifted.Parallel.UPSSegd
-        Data.Array.Parallel.Unlifted.Parallel.UPVSegd
-        Data.Array.Parallel.Unlifted.Parallel.UPSel
-        Data.Array.Parallel.Unlifted
-        Data.Array.Parallel.Unlifted.Distributed.DistST
-        Data.Array.Parallel.Unlifted.Distributed.Types
+        Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
+        Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
+        Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
+        Data.Array.Parallel.Unlifted.Distributed.Primitive.Operators
+        Data.Array.Parallel.Unlifted.Distributed.Primitive
+
+        Data.Array.Parallel.Unlifted.Distributed.Data.Maybe
+        Data.Array.Parallel.Unlifted.Distributed.Data.Prim
+        Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
+        Data.Array.Parallel.Unlifted.Distributed.Data.Unit
+        Data.Array.Parallel.Unlifted.Distributed.Data.USegd
+        Data.Array.Parallel.Unlifted.Distributed.Data.USSegd
+        Data.Array.Parallel.Unlifted.Distributed.Data.UVSegd
+        Data.Array.Parallel.Unlifted.Distributed.Data.Vector
+
+        Data.Array.Parallel.Unlifted.Distributed.Arrays
+        Data.Array.Parallel.Unlifted.Distributed.Basics
         Data.Array.Parallel.Unlifted.Distributed.Combinators
         Data.Array.Parallel.Unlifted.Distributed.Scalars
-        Data.Array.Parallel.Unlifted.Distributed.Arrays
         Data.Array.Parallel.Unlifted.Distributed.USegd
         Data.Array.Parallel.Unlifted.Distributed.USSegd
-        Data.Array.Parallel.Unlifted.Distributed.Basics
-        Data.Array.Parallel.Unlifted.Distributed.Types.USegd
-        Data.Array.Parallel.Unlifted.Distributed.Types.USSegd
-        Data.Array.Parallel.Unlifted.Distributed.Types.UVSegd
-        Data.Array.Parallel.Unlifted.Distributed.Types.Vector
-        Data.Array.Parallel.Unlifted.Distributed.Types.Maybe
-        Data.Array.Parallel.Unlifted.Distributed.Types.Tuple
-        Data.Array.Parallel.Unlifted.Distributed.Types.Prim
-        Data.Array.Parallel.Unlifted.Distributed.Types.Unit
-        Data.Array.Parallel.Unlifted.Distributed.Types.Base
+        Data.Array.Parallel.Unlifted.Distributed.What
+        Data.Array.Parallel.Unlifted.Distributed
+
         Data.Array.Parallel.Unlifted.Parallel.Basics
         Data.Array.Parallel.Unlifted.Parallel.Combinators
         Data.Array.Parallel.Unlifted.Parallel.Enum
@@ -50,6 +48,13 @@ Library
         Data.Array.Parallel.Unlifted.Parallel.Subarrays
         Data.Array.Parallel.Unlifted.Parallel.Sums
         Data.Array.Parallel.Unlifted.Parallel.Text
+        Data.Array.Parallel.Unlifted.Parallel.UPSegd
+        Data.Array.Parallel.Unlifted.Parallel.UPSSegd
+        Data.Array.Parallel.Unlifted.Parallel.UPVSegd
+        Data.Array.Parallel.Unlifted.Parallel.UPSel
+        Data.Array.Parallel.Unlifted.Parallel
+
+        Data.Array.Parallel.Unlifted
 
   Exposed: False
 
@@ -60,7 +65,7 @@ Library
 
   GHC-Options:
         -Odph -funbox-strict-fields
-        -fcpr-off -Wall
+        -fcpr-off -Wall -eventlog
 
   Build-Depends:  
         base               == 4.6.*,

@@ -12,14 +12,13 @@ module Data.Array.Parallel.Unlifted.Distributed.USegd
 where
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
-import Data.Array.Parallel.Unlifted.Distributed.Types
-import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector, Unbox)
 import Data.Array.Parallel.Base
 import Data.Bits                                                        (shiftR)
 import Control.Monad                                                    (when)
-import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USegd   as DUSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USegd   as DUSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 

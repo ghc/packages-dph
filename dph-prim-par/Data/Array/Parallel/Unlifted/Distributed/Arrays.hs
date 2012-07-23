@@ -24,9 +24,9 @@ module Data.Array.Parallel.Unlifted.Distributed.Arrays
         , carryD)
  where
 import Data.Array.Parallel.Base (ST, runST)
-import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Distributed.DistST
-import Data.Array.Parallel.Unlifted.Distributed.Types
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
+import Data.Array.Parallel.Unlifted.Distributed.Data.Vector
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Sequential.Vector   (Vector, MVector, Unbox)

@@ -3,11 +3,10 @@
 #include "fusion-phases.h"
 
 -- | Distribution of unit values.
-module Data.Array.Parallel.Unlifted.Distributed.Types.Unit 
+module Data.Array.Parallel.Unlifted.Distributed.Data.Unit 
         (unitD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Base
 
 here :: String -> String

@@ -4,8 +4,7 @@
 module Data.Array.Parallel.Unlifted.Distributed.Basics 
         (eqD, neqD, toD, fromD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Gang 
-import Data.Array.Parallel.Unlifted.Distributed.Types
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Distributed.Combinators 
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Control.Monad ( zipWithM_ )

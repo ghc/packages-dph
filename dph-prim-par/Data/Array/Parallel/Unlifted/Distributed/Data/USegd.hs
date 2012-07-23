@@ -3,19 +3,19 @@
 #include "fusion-phases.h"
 
 -- | Distribution of Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.Types.USegd 
+module Data.Array.Parallel.Unlifted.Distributed.Data.USegd 
         ( mkDUSegd
         , lengthD
         , takeLengthsD
         , takeIndicesD
         , takeElementsD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Base
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import Data.Array.Parallel.Pretty
 import Control.Monad
-import qualified Data.Array.Parallel.Unlifted.Distributed.Types.Vector  as DV
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.Vector  as DV
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import Prelude                                                          as P
 

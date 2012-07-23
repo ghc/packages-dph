@@ -9,7 +9,7 @@
 #define TRACE_GANG 0
 
 -- | Gang primitives.
-module Data.Array.Parallel.Unlifted.Distributed.Gang 
+module Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
         ( Gang
         , seqGang
         , forkGang
@@ -29,24 +29,25 @@ import Debug.Trace              (traceEventIO)
 import System.Time ( ClockTime(..), getClockTime )
 #endif 
 
+
 -- Requests and operations on them --------------------------------------------
 -- | The 'Req' type encapsulates work requests for individual members of a gang. 
 data Req 
-	-- | Instruct the worker to run the given action then signal it's done
-	--   by writing to the MVar.
-	= ReqDo	       (Int -> IO ()) (MVar ())
+        -- | Instruct the worker to run the given action then signal it's done
+        --   by writing to the MVar.
+        = ReqDo        (Int -> IO ()) (MVar ())
 
-	-- | Tell the worker that we're shutting the gang down.
+        -- | Tell the worker that we're shutting the gang down.
         --   The worker should signal that it's received the equest down by
-        --   writing to the MVar before returning to its caller (forkGang) 	
-	| ReqShutdown  (MVar ())
+        --   writing to the MVar before returning to its caller (forkGang)      
+        | ReqShutdown  (MVar ())
 
 
 -- | Create a new request for the given action.
 newReq :: (Int -> IO ()) -> IO Req
 newReq p 
- = do	mv	<- newEmptyMVar
-	return	$ ReqDo p mv
+ = do   mv      <- newEmptyMVar
+        return  $ ReqDo p mv
 
 
 -- | Block until a thread request has been executed.
@@ -54,8 +55,8 @@ newReq p
 waitReq :: Req -> IO ()
 waitReq req
  = case req of
-	ReqDo     _ varDone	-> takeMVar varDone
-	ReqShutdown varDone	-> takeMVar varDone
+        ReqDo     _ varDone     -> takeMVar varDone
+        ReqShutdown varDone     -> takeMVar varDone
 
 
 -- Thread gangs and operations on them ----------------------------------------
@@ -68,7 +69,7 @@ data Gang
 
 instance Show Gang where
   showsPrec p (Gang n _ _) 
-	= showString "<<"
+        = showString "<<"
         . showsPrec p n
         . showString " threads>>"
 
@@ -82,24 +83,24 @@ seqGang (Gang n _ mv) = Gang n [] mv
 --   The threads blocks on the MVar waiting for a work request.
 gangWorker :: Int -> MVar Req -> IO ()
 gangWorker threadId varReq
- = do	traceGang $ "Worker " ++ show threadId ++ " waiting for request."
-	req	<- takeMVar varReq
-	
-	case req of
-	 ReqDo action varDone
-	  -> do	traceGang $ "Worker " ++ show threadId ++ " begin"
-		start 	<- getGangTime
-		action threadId
-		end 	<- getGangTime
-		traceGang $ "Worker " ++ show threadId 
+ = do   traceGang $ "Worker " ++ show threadId ++ " waiting for request."
+        req     <- takeMVar varReq
+        
+        case req of
+         ReqDo action varDone
+          -> do traceGang $ "Worker " ++ show threadId ++ " begin"
+                start   <- getGangTime
+                action threadId
+                end     <- getGangTime
+                traceGang $ "Worker " ++ show threadId 
                           ++ " end (" ++ diffTime start end ++ ")"
-		
-		putMVar varDone ()
-		gangWorker threadId varReq
+                
+                putMVar varDone ()
+                gangWorker threadId varReq
 
-	 ReqShutdown varDone
-	  -> do	traceGang $ "Worker " ++ show threadId ++ " shutting down."
-		putMVar varDone ()
+         ReqShutdown varDone
+          -> do traceGang $ "Worker " ++ show threadId ++ " shutting down."
+                putMVar varDone ()
 
 
 -- | Finaliser for worker threads.
@@ -119,32 +120,32 @@ gangWorker threadId varReq
 --
 finaliseWorker :: MVar Req -> IO ()
 finaliseWorker varReq
- = do	varDone <- newEmptyMVar
-	putMVar varReq (ReqShutdown varDone) 
-	takeMVar varDone
-	return ()
+ = do   varDone <- newEmptyMVar
+        putMVar varReq (ReqShutdown varDone) 
+        takeMVar varDone
+        return ()
 
 
 -- | Fork a 'Gang' with the given number of threads (at least 1).
 forkGang :: Int -> IO Gang
 forkGang n
  = assert (n > 0) 
- $ do	
-	-- Create the vars we'll use to issue work requests.
-	mvs	<- sequence . replicate n $ newEmptyMVar
-	
-	-- Add finalisers so we can shut the workers down cleanly if they
+ $ do   
+        -- Create the vars we'll use to issue work requests.
+        mvs     <- sequence . replicate n $ newEmptyMVar
+        
+        -- Add finalisers so we can shut the workers down cleanly if they
         -- become unreachable.
-	mapM_ (\var -> addMVarFinalizer var (finaliseWorker var)) mvs
+        mapM_ (\var -> addMVarFinalizer var (finaliseWorker var)) mvs
 
-	-- Create all the worker threads
-	zipWithM_ forkOn [0..] 
-		$ zipWith gangWorker [0 .. n-1] mvs
+        -- Create all the worker threads
+        zipWithM_ forkOn [0..] 
+                $ zipWith gangWorker [0 .. n-1] mvs
 
-	-- The gang is currently idle.
-	busy	<- newMVar False
-	
-	return $ Gang n mvs busy
+        -- The gang is currently idle.
+        busy    <- newMVar False
+        
+        return $ Gang n mvs busy
 
 
 -- | O(1). Yield the number of threads in the 'Gang'.
@@ -155,52 +156,52 @@ gangSize (Gang n _ _) = n
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
 --   If the gang is already busy then just run the action in the requesting
 --   thread. 
-gangIO	:: Gang
-	-> (Int -> IO ())
-	-> IO ()
+gangIO  :: Gang
+        -> (Int -> IO ())
+        -> IO ()
 
 gangIO (Gang n [] _)  p 
  = mapM_ p [0 .. n-1]
 
 #if SEQ_IF_GANG_BUSY
 gangIO (Gang n mvs busy) p 
- = do	traceGang   "gangIO: issuing work requests (SEQ_IF_GANG_BUSY)"
-	b <- swapMVar busy True
+ = do   traceGang   "gangIO: issuing work requests (SEQ_IF_GANG_BUSY)"
+        b <- swapMVar busy True
 
-	traceGang $ "gangIO: gang is currently " ++ (if b then "busy" else "idle")
-	if b
-	 then mapM_ p [0 .. n-1]
-	 else do
-		parIO n mvs p
-		_ <- swapMVar busy False
-		return ()
+        traceGang $ "gangIO: gang is currently " ++ (if b then "busy" else "idle")
+        if b
+         then mapM_ p [0 .. n-1]
+         else do
+                parIO n mvs p
+                _ <- swapMVar busy False
+                return ()
 #else
 gangIO (Gang n mvs busy) p = parIO n mvs p
 #endif
 
 
 -- | Issue some requests to the worker threads and wait for them to complete.
-parIO 	:: Int			-- ^ Number of threads in the gang.
-	-> [MVar Req]		-- ^ Request vars for worker threads.
-	-> (Int -> IO ())	-- ^ Action to run in all the workers, it's
+parIO   :: Int                  -- ^ Number of threads in the gang.
+        -> [MVar Req]           -- ^ Request vars for worker threads.
+        -> (Int -> IO ())       -- ^ Action to run in all the workers, it's
                                 --   given the ix of the particular worker
                                 ---  thread it's running on.
-	-> IO ()
+        -> IO ()
 
 parIO n mvs p 
- = do	traceGang "parIO: begin"
+ = do   traceGang "parIO: begin"
 
-	start 	<- getGangTime
-	reqs	<- sequence . replicate n $ newReq p
+        start   <- getGangTime
+        reqs    <- sequence . replicate n $ newReq p
 
-	traceGang "parIO: issuing requests"
-	zipWithM_ putMVar mvs reqs
+        traceGang "parIO: issuing requests"
+        zipWithM_ putMVar mvs reqs
 
-	traceGang "parIO: waiting for requests to complete"
-	mapM_ waitReq reqs
-	end 	<- getGangTime
+        traceGang "parIO: waiting for requests to complete"
+        mapM_ waitReq reqs
+        end     <- getGangTime
 
-	traceGang $ "parIO: end " ++ diffTime start end
+        traceGang $ "parIO: end " ++ diffTime start end
 
 
 -- | Same as 'gangIO' but in the 'ST' monad.
@@ -212,8 +213,8 @@ gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
 #if TRACE_GANG
 getGangTime :: IO Integer
 getGangTime
- = do	TOD sec pico <- getClockTime
-	return (pico + sec * 1000000000000)
+ = do   TOD sec pico <- getClockTime
+        return (pico + sec * 1000000000000)
 
 diffTime :: Integer -> Integer -> String
 diffTime x y = show (y-x)
@@ -221,8 +222,8 @@ diffTime x y = show (y-x)
 -- | Emit a GHC event for debugging.
 traceGang :: String -> IO ()
 traceGang s
- = do	t <- getGangTime
-	traceEventIO $ show t ++ " @ " ++ s
+ = do   t <- getGangTime
+        traceEventIO $ show t ++ " @ " ++ s
 
 #else
 getGangTime :: IO ()
@@ -240,4 +241,3 @@ traceGang _ = return ()
 -- | Emit a GHC event for debugging, in the `ST` monad.
 traceGangST :: String -> ST s ()
 traceGangST s = unsafeIOToST (traceGang s)
-

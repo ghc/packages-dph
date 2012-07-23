@@ -1,12 +1,12 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Distribution of Vectors.
-module Data.Array.Parallel.Unlifted.Distributed.Types.Vector
+module Data.Array.Parallel.Unlifted.Distributed.Data.Vector
         (lengthD)
 where
 import qualified Data.Array.Parallel.Base               as B
-import Data.Array.Parallel.Unlifted.Distributed.Types.Prim
-import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Data.Prim
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Pretty
 import Data.Array.Parallel.Unlifted.Sequential.Vector   as V
 import qualified Data.Vector                            as BV

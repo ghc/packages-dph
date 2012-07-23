@@ -1,13 +1,12 @@
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 
 -- | Distribution of values of primitive types.
-module Data.Array.Parallel.Unlifted.Distributed.Types.Prim 
+module Data.Array.Parallel.Unlifted.Distributed.Data.Prim 
         ( DPrim (..)
         , DT    (..)
         , Dist  (..))
 where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Base
-import Data.Array.Parallel.Unlifted.Distributed.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Pretty

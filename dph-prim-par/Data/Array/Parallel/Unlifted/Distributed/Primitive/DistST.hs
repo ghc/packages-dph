@@ -1,3 +1,4 @@
+
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | Distributed ST computations.
@@ -8,21 +9,31 @@
 --  thread.
 --
 -- /TODO:/ Add facilities for implementing parallel scans etc.
-module Data.Array.Parallel.Unlifted.Distributed.DistST 
+--
+--  TODO: 
+--
+module Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST 
         ( DistST
+
+          -- * Primitives.
         , stToDistST
         , distST_, distST
         , runDistST, runDistST_seq
         , traceDistST
         , myIndex
         , myD
-        , readMyMD, writeMyMD)
+        , readMyMD, writeMyMD
+
+          -- * Monadic combinators
+        , mapDST_, mapDST, zipWithDST_, zipWithDST)
 where
 import Data.Array.Parallel.Base (ST, runST)
-import Data.Array.Parallel.Unlifted.Distributed.Gang
-import Data.Array.Parallel.Unlifted.Distributed.Types (DT(..), Dist, MDist)
-
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
+import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
 import Control.Monad (liftM)
+
+here s = "Data.Array.Parallel.Unlifted.Distributed.DistST." ++ s
 
 
 -- | Data-parallel computations.
@@ -41,6 +52,7 @@ instance Monad (DistST s) where
                                     unDistST (f x) i
 
 
+-- Primitives -----------------------------------------------------------------
 -- | Yields the index of the current thread within its gang.
 myIndex :: DistST s Int
 myIndex = DistST return
@@ -63,16 +75,16 @@ myD dt = liftM (indexD "myD" dt) myIndex
 -- | Yields the 'MDist' element owned by the current thread.
 readMyMD :: DT a => MDist a s -> DistST s a
 readMyMD mdt 
- = do	i <- myIndex
-	stToDistST $ readMD mdt i
+ = do   i <- myIndex
+        stToDistST $ readMD mdt i
 {-# NOINLINE readMyMD #-}
 
 
 -- | Writes the 'MDist' element owned by the current thread.
 writeMyMD :: DT a => MDist a s -> a -> DistST s ()
 writeMyMD mdt x 
- = do	i <- myIndex
-	stToDistST $ writeMD mdt i x
+ = do   i <- myIndex
+        stToDistST $ writeMD mdt i x
 {-# NOINLINE writeMyMD #-}
 
 
@@ -86,7 +98,7 @@ distST_ g = gangST g . unDistST
 -- | Execute a data-parallel computation, yielding the distributed result.
 distST :: DT a => Gang -> DistST s a -> ST s (Dist a)
 distST g p 
- = do	md <- newMD g
+ = do   md <- newMD g
         distST_ g $ writeMyMD md =<< p
         unsafeFreezeMD md
 {-# INLINE distST #-}
@@ -116,4 +128,51 @@ runDistST_seq g p = runST (
 
 traceDistST :: String -> DistST s ()
 traceDistST s = DistST $ \n -> traceGangST ("Worker " ++ show n ++ ": " ++ s)
+
+
+-- Combinators ----------------------------------------------------------------
+-- Versions that work on DistST -----------------------------------------------
+-- NOTE: The following combinators must be strict in the Dists because if they
+-- are not, the Dist might be evaluated (in parallel) when it is requested in
+-- the current computation which, again, is parallel. This would break our
+-- model andlead to a deadlock. Hence the bangs.
+
+mapDST_ :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+mapDST_ g p d 
+ = mapDST_' g (\x -> x `deepSeqD` p x) d
+{-# INLINE mapDST_ #-}
+
+
+mapDST_' :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+mapDST_' g p !d 
+ = checkGangD (here "mapDST_") g d 
+ $ distST_ g (myD d >>= p)
+
+
+mapDST :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+mapDST g p !d = mapDST' g (\x -> x `deepSeqD` p x) d
+{-# INLINE mapDST #-}
+
+
+mapDST' :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+mapDST' g p !d 
+ = checkGangD (here "mapDST_") g d 
+ $ distST g (myD d >>= p)
+
+
+zipWithDST_ 
+        :: (DT a, DT b)
+        => Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
+zipWithDST_ g p !dx !dy 
+ = mapDST_ g (uncurry p) (zipD dx dy)
+{-# INLINE zipWithDST_ #-}
+
+
+zipWithDST 
+        :: (DT a, DT b, DT c)
+        => Gang
+        -> (a -> b -> DistST s c) -> Dist a -> Dist b -> ST s (Dist c)
+zipWithDST g p !dx !dy 
+ = mapDST g (uncurry p) (zipD dx dy)
+{-# INLINE zipWithDST #-}
 

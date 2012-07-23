@@ -3,14 +3,14 @@
 #include "fusion-phases.h"
 
 -- | Distribution of Tuples
-module Data.Array.Parallel.Unlifted.Distributed.Types.Tuple 
+module Data.Array.Parallel.Unlifted.Distributed.Data.Tuple 
         ( -- * Pairs
           zipD, unzipD, fstD, sndD
         
            -- * Triples
         , zip3D, unzip3D)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Base
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Pretty
 import Control.Monad

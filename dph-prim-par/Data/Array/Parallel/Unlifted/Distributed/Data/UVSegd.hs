@@ -3,7 +3,7 @@
 #include "fusion-phases.h"
 
 -- | Distribution of Virtual Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.Types.UVSegd 
+module Data.Array.Parallel.Unlifted.Distributed.Data.UVSegd 
         ( lengthD
         , takeLengthsD
         , takeIndicesD
@@ -13,7 +13,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Types.UVSegd
         , takeVSegidsD
         , takeUSSegdD)
 where
-import Data.Array.Parallel.Unlifted.Distributed.Types.Base
+import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd                   (UVSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd                   (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector
@@ -21,7 +21,7 @@ import Data.Array.Parallel.Pretty
 import Control.Monad
 import Prelude                                                          as P
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
-import qualified Data.Array.Parallel.Unlifted.Distributed.Types.USSegd  as DUSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USSegd  as DUSegd
 
 
 instance DT UVSegd where
