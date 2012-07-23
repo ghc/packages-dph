@@ -13,6 +13,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Combinators
 where
 import Data.Array.Parallel.Base
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Parallel.UPSel
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 
@@ -23,7 +24,8 @@ here s = "Data.Array.Parallel.Unlifted.Parallel.Combinators." Prelude.++ s
 -- | Apply a worker to all elements of an array.
 mapUP :: (Unbox a, Unbox b) => (a -> b) -> Vector a -> Vector b
 mapUP f xs 
-        = splitJoinD theGang (mapD theGang (Seq.map f)) xs
+        = splitJoinD theGang 
+                (mapD (What "mapUP/map") theGang (Seq.map f)) xs
 {-# INLINE_UP mapUP #-}
 
 
@@ -31,7 +33,7 @@ mapUP f xs
 filterUP :: Unbox a => (a -> Bool) -> Vector a -> Vector a
 filterUP f
         = joinD  theGang unbalanced
-        . mapD   theGang (Seq.filter f)
+        . mapD   (What "filterUP/filter") theGang (Seq.filter f)
         . splitD theGang unbalanced
 {-# INLINE_UP filterUP #-}
 
@@ -75,7 +77,7 @@ combine2UP tags rep !xs !ys
                 ("tags length /= sum of args length")
                 (Seq.length tags) (Seq.length xs + Seq.length ys)
         $ joinD    theGang balanced
-        $ zipWithD theGang go rep
+        $ zipWithD (What "combine2UP/go") theGang go rep
         $ splitD   theGang balanced tags
         where   go ((i,j), (m,n)) ts 
                  = Seq.combine2ByTag ts 
@@ -89,7 +91,7 @@ zipWithUP :: (Unbox a, Unbox b, Unbox c)
           => (a -> b -> c) -> Vector a -> Vector b -> Vector c
 zipWithUP f xs ys
         = splitJoinD theGang 
-                (mapD theGang (Seq.map (uncurry f))) 
+                (mapD (What "zipWithUP/map") theGang (Seq.map (uncurry f))) 
                 (Seq.zip xs ys)
 {-# INLINE_UP zipWithUP #-}
 
@@ -110,7 +112,7 @@ zipWithUP f xs ys
 foldUP  :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
 foldUP f !z xs
         = foldD theGang f
-                (mapD   theGang (Seq.fold f z)
+                (mapD   (What "foldUP/fold") theGang (Seq.fold f z)
                 (splitD theGang unbalanced xs))
 {-# INLINE_UP foldUP #-}
 
@@ -151,7 +153,7 @@ foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 foldl1UP f arr 
         = (maybe z (f z)
         . foldD  theGang combine'
-        . mapD   theGang (Seq.foldl1Maybe f)
+        . mapD   (What "fold1UP/fold1Maybe") theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
         where
                 z = Seq.index (here "fold1UP") arr 0
@@ -172,8 +174,8 @@ foldl1UP f arr
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 scanUP f z 
         = splitJoinD theGang go
-        where   go xs = let (ds,zs) = unzipD $ mapD theGang (Seq.scanRes f z) xs
+        where   go xs = let (ds,zs) = unzipD $ mapD (What "scanUP/scanRes") theGang (Seq.scanRes f z) xs
                             zs'     = fst (scanD theGang f z zs)
-                        in  zipWithD theGang (Seq.map . f) zs' ds
+                        in  zipWithD (What "scanUP/map") theGang (Seq.map . f) zs' ds
 {-# INLINE_UP scanUP #-}
 

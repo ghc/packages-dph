@@ -65,9 +65,10 @@ unbalanced = error $ here "unbalanced: touched"
 --      = [128,128,128,127]@
 -- 
 splitLenD :: Gang -> Int -> Dist Int
-splitLenD g n = generateD_cheap g len
-  where
-    !p = gangSize g
+splitLenD gang n 
+ = generateD_cheap WhatLength gang len
+ where
+    !p = gangSize gang
     !l = n `quotInt` p
     !m = n `remInt`  p
 
@@ -87,9 +88,10 @@ splitLenD g n = generateD_cheap g len
 --      = [(128,0),(128,128),(128,256),(127,384)]@
 --
 splitLenIdxD :: Gang -> Int -> Dist (Int, Int)
-splitLenIdxD g n = generateD_cheap g len_idx
-  where
-    !p = gangSize g
+splitLenIdxD gang n 
+ = generateD_cheap WhatLengthIdx gang len_idx
+ where
+    !p = gangSize gang
     !l = n `quotInt` p
     !m = n `remInt` p
 
@@ -119,11 +121,14 @@ joinLengthD g = sumD g . lengthD
 --   @splitAsD theGangN4 (splitLenD theGangN4 10) [1 2 3 4 5 6 7 8 9 0]
 --      = [[1 2 3] [4 5 6] [7 8] [9 0]]@
 -- 
-splitAsD :: Unbox a => Gang -> Dist Int -> Vector a -> Dist (Vector a)
-splitAsD g dlen !arr 
-  = zipWithD (seqGang g) (Seq.slice "splitAsD" arr) is dlen
+splitAsD 
+        :: Unbox a 
+        => Gang -> Dist Int -> Vector a -> Dist (Vector a)
+
+splitAsD gang dlen !arr 
+  = zipWithD WhatSlice (seqGang gang) (Seq.slice "splitAsD" arr) is dlen
   where
-    is = fst $ scanD g (+) 0 dlen
+    is = fst $ scanD gang (+) 0 dlen
 {-# INLINE_DIST splitAsD #-}
 
 
@@ -133,26 +138,28 @@ splitAsD g dlen !arr
 --         through RULES. Without it, splitJoinD would be a loop breaker.
 -- 
 splitD :: Unbox a => Gang -> Distribution -> Vector a -> Dist (Vector a)
-splitD g _ arr = splitD_impl g arr
+splitD g _ arr 
+        = splitD_impl g arr
 {-# INLINE_DIST splitD #-}
 
 
 splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
 splitD_impl g !arr 
-  = generateD_cheap g (\i -> Seq.slice "splitD_impl" arr (idx i) (len i))
-  where
-    n  = Seq.length arr
-    !p = gangSize g
-    !l = n `quotInt` p
-    !m = n `remInt` p
+  = generateD_cheap WhatSlice g 
+        (\i -> Seq.slice "splitD_impl" arr (idx i) (len i))
 
-    {-# INLINE [0] idx #-}
-    idx i | i < m     = (l+1)*i
-          | otherwise = l*i + m
+  where n       = Seq.length arr
+        !p      = gangSize g
+        !l      = n `quotInt` p
+        !m      = n `remInt` p
 
-    {-# INLINE [0] len #-}
-    len i | i < m     = l+1
-          | otherwise = l
+        {-# INLINE [0] idx #-}
+        idx i   | i < m     = (l+1)*i
+                | otherwise = l*i + m
+
+        {-# INLINE [0] len #-}
+        len i   | i < m     = l+1
+                | otherwise = l
 {-# INLINE_DIST splitD_impl #-}
 
 
@@ -231,17 +238,21 @@ joinDM g darr
 
 "Seq.zip/joinD[1]" forall g xs ys.
   Seq.zip (joinD g balanced xs) ys
-    = joinD g balanced (zipWithD g Seq.zip xs (splitD g balanced ys))
+    = joinD g balanced (zipWithD WhatZip g Seq.zip xs (splitD g balanced ys))
 
 "Seq.zip/joinD[2]" forall g xs ys.
   Seq.zip xs (joinD g balanced ys)
-    = joinD g balanced (zipWithD g Seq.zip (splitD g balanced xs) ys)
+    = joinD g balanced (zipWithD WhatZip g Seq.zip (splitD g balanced xs) ys)
 
-"Seq.zip/splitJoinD" forall gang f g xs ys.
-  Seq.zip (splitJoinD gang (imapD gang f) xs) (splitJoinD gang (imapD gang g) ys)
-    = splitJoinD gang (imapD gang (\i zs -> let (as,bs) = Seq.unzip zs
-                                            in Seq.zip (f i as) (g i bs)))
-                      (Seq.zip xs ys)
+"Seq.zip/splitJoinD" 
+  forall what1 what2 gang f g xs ys
+  . Seq.zip (splitJoinD gang (imapD what1 gang f) xs) 
+            (splitJoinD gang (imapD what2 gang g) ys)
+  = splitJoinD gang 
+        (imapD (WhatFusedZipMap what1 what2)
+               gang (\i zs -> let (as,bs) = Seq.unzip zs
+                              in Seq.zip (f i as) (g i bs)))
+                    (Seq.zip xs ys)
 
   #-}
 
@@ -263,8 +274,14 @@ permuteD g darr dis
 
 -- NOTE: The bang is necessary because the array must be fully evaluated
 -- before we pass it to the parallel computation.
-bpermuteD :: Unbox a => Gang -> Vector a -> Dist (Vector Int) -> Dist (Vector a)
-bpermuteD g !as ds = mapD g (Seq.bpermute as) ds
+bpermuteD :: Unbox a 
+        => Gang 
+        -> Vector a 
+        -> Dist (Vector Int) 
+        -> Dist (Vector a)
+
+bpermuteD gang !as ds 
+        = mapD WhatBpermute gang (Seq.bpermute as) ds
 {-# INLINE bpermuteD #-}
 
 

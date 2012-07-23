@@ -23,6 +23,7 @@ where
 import Data.Array.Parallel.Unlifted.Sequential.Vector   as US
 import Data.Array.Parallel.Unlifted.Sequential.USel
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Base (Tag, tagToInt)
 
 
@@ -88,7 +89,7 @@ repUPSel2       = upsel2_rep
 mkUPSelRep2 :: Vector Tag -> UPSelRep2
 mkUPSelRep2 tags = zipD idxs lens
   where
-    lens = mapD   theGang count
+    lens = mapD   (What "UPSelRep2.mkUPSelRep2/count") theGang count
          $ splitD theGang balanced tags
 
     idxs = fst
@@ -104,7 +105,7 @@ mkUPSelRep2 tags = zipD idxs lens
 indicesUPSelRep2 :: Vector Tag -> UPSelRep2 -> Vector Int
 indicesUPSelRep2 tags rep 
         = joinD theGang balanced
-        $ zipWithD theGang indices
+        $ zipWithD (What "UPSel.indicesUPSelRep2/split") theGang indices
              (splitD theGang balanced tags)
               rep
   where

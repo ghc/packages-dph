@@ -38,6 +38,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSSegd
 where
 import Data.Array.Parallel.Pretty                                 hiding (empty)
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd               (UPSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USSegd             (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector             (Vector,  MVector, Unbox)
@@ -283,7 +284,8 @@ foldSegsWithP fElem fSeg segd xss
 
  where  (dcarry,drs)
           = unzipD
-          $ mapD theGang partial (takeDistributed segd)
+          $ mapD (What "UPSSegd.foldSegsWithP/partial") theGang 
+                partial (takeDistributed segd)
 
         partial ((ssegd, k), off)
          = let rs = fSeg ssegd xss

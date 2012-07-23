@@ -11,6 +11,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Segmented
         , sumRUP)
 where
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Parallel.Basics
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd                     (UPSegd)
 import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
@@ -59,7 +60,7 @@ appendSUP
 
 appendSUP segd !xd !xs !yd !ys
   = joinD theGang balanced
-  . mapD  theGang append
+  . mapD  (What "appendSUP/append") theGang append
   $ UPSegd.takeDistributed segd
   where append ((segd',seg_off),el_off)
          = Seq.unstream
@@ -192,7 +193,7 @@ appendSUPV
 
 appendSUPV segd !xd !xs !yd !ys
   = joinD theGang balanced
-  . mapD  theGang append
+  . mapD  (What "appendSUPV/append") theGang append
   $ UPSegd.takeDistributed segd
   where append ((segd',seg_off),el_off)
          = Seq.unstream
@@ -378,7 +379,7 @@ appendSUP_old
 
 appendSUP_old segd !xd !xs !yd !ys
   = joinD theGang balanced
-  . mapD  theGang append
+  . mapD  (What "appendSUP_old/append") theGang append
   $ UPSegd.takeDistributed segd
   where append ((segd',seg_off),el_off)
          = Seq.unstream
@@ -453,9 +454,9 @@ appendSegS_old !xd !xs !yd !ys !n seg_off el_off
 foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
 foldRUP f z !segSize xs 
   = joinD theGang unbalanced
-          (mapD theGang 
+          (mapD (What "foldRUP/foldRU") theGang 
               (Seq.foldlRU f z segSize)
-              (splitAsD theGang (mapD theGang (*segSize) dlen) xs))
+              (splitAsD theGang (mapD (What "foldRUP/segSize") theGang (*segSize) dlen) xs))
   where
     noOfSegs    = Seq.length xs `div` segSize
     dlen        = splitLenD theGang noOfSegs

@@ -18,21 +18,22 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Basics." ++ s
 --   This requires a 'Gang' and hence can't be defined in terms of 'Eq'.
 eqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
 eqD g dx dy 
-        = andD g (zipWithD g (==) dx dy)
+        = andD g (zipWithD (What "eq") g (==) dx dy)
 
 
 -- | Test whether to distributed values are not equal.
 --   This requires a 'Gang' and hence can't be defined in terms of 'Eq'.
 neqD :: (Eq a, DT a) => Gang -> Dist a -> Dist a -> Bool
 neqD g dx dy 
-        = orD g (zipWithD g (/=) dx dy)
+        = orD g (zipWithD (What "neq") g (/=) dx dy)
 
 
 -- | Generate a distributed value from the first @p@ elements of a list.
 -- 
 --   * For debugging only, don't use in production code.
 toD :: DT a => Gang -> [a] -> Dist a
-toD g xs = newD g (\md -> zipWithM_ (writeMD md) [0 .. gangSize g - 1] xs)
+toD g xs
+        = newD g (\md -> zipWithM_ (writeMD md) [0 .. gangSize g - 1] xs)
 
 
 -- | Yield all elements of a distributed value.

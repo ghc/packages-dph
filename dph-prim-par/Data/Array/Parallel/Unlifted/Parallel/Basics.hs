@@ -13,6 +13,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Basics
 where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (mapUP)
 import Data.Array.Parallel.Unlifted.Parallel.Enum        (enumFromToUP)
 import Data.Array.Parallel.Unlifted.Parallel.Permute     (bpermuteUP)
@@ -29,7 +30,7 @@ emptyUP = Seq.new 0 (const $ return ())
 replicateUP :: Unbox e => Int -> e -> Vector e
 replicateUP n !e 
         = joinD theGang balanced
-        . mapD theGang (\n' ->Seq.replicate n' e)
+        . mapD  (What "replicateUP/replicate") theGang (\n' ->Seq.replicate n' e)
         $ splitLenD theGang n
 {-# INLINE_UP replicateUP #-}
 
@@ -62,7 +63,7 @@ nullUP  = (== 0) . Seq.length
 interleaveUP :: Unbox e => Vector e -> Vector e -> Vector e
 interleaveUP xs ys
         = joinD theGang unbalanced
-        $ zipWithD theGang Seq.interleave
+        $ zipWithD (What "interleaveUP/interleave") theGang Seq.interleave
                 (splitD theGang balanced xs)
                 (splitD theGang balanced ys)
 {-# INLINE_UP interleaveUP #-}
@@ -74,8 +75,8 @@ indexedUP
  = splitJoinD theGang indexedFn 
  where
     sizes  arr   = fst $ scanD theGang (+) 0 $ lengthD arr
-    indexedFn    = \arr -> zipWithD theGang 
+    indexedFn    = \arr -> zipWithD (What "indexedUP.map") theGang 
                                 (\o -> Seq.map (\(x,y) -> (x + o, y)))
                                 (sizes arr) 
-                         $  mapD theGang Seq.indexed arr
+                         $  mapD (What "indexedUP/indexed") theGang Seq.indexed arr
 {-# INLINE_UP indexedUP #-}

@@ -56,7 +56,7 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.USegd." ++ s
 --
 splitSegdOnSegsD :: Gang -> USegd -> Dist USegd
 splitSegdOnSegsD g !segd 
-  = mapD g USegd.fromLengths
+  = mapD (What "USegd.splitSegdOnSegds/fromLengths") g USegd.fromLengths
   $ splitAsD g d lens
   where
     !d   = snd
@@ -113,7 +113,8 @@ splitSegdOnSegsD g !segd
 splitSegdOnElemsD :: Gang -> USegd -> Dist ((USegd,Int),Int)
 splitSegdOnElemsD g !segd 
   = {-# SCC "splitSegdOnElemsD" #-} 
-    imapD g mk (splitLenIdxD g (USegd.takeElements segd))
+    imapD (What "USegd.splitSegdOnElemsD/splitLenIdx") g mk 
+        (splitLenIdxD g (USegd.takeElements segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g
@@ -299,7 +300,7 @@ joinSegdD :: Gang -> Dist USegd -> USegd
 joinSegdD gang
         = USegd.fromLengths
         . joinD gang unbalanced
-        . mapD  gang USegd.takeLengths
+        . mapD  (What "joinSegdD/takeLengths") gang USegd.takeLengths
 {-# INLINE_DIST joinSegdD #-}
 
 
@@ -319,13 +320,14 @@ glueSegdD gang bundle
         -- | Whether the last segment in this chunk extends into the next chunk.
         segSplits :: Dist Bool
         !segSplits
-         = generateD_cheap gang $ \ix 
+         = generateD_cheap (What "glueSegdD/segd_offsegs") gang $ \ix 
          -> if ix >= sizeD lengths - 1
              then False
              else indexD (here "glueSegdD") firstSegOffsets (ix + 1) /= 0
 
         !lengths'       = fst $ carryD gang (+)                  0 segSplits lengths
-        !dusegd'        = mapD gang USegd.fromLengths lengths'
+        !dusegd'        = mapD (What "glueSegdD/fromLenghts") gang 
+                                USegd.fromLengths lengths'
 
   in    dusegd'
 {-# INLINE_DIST glueSegdD #-}
@@ -339,11 +341,16 @@ splitSD g dsegd xs
 
 {-# RULES
 
-"splitSD/splitJoinD" forall g d f xs.
-  splitSD g d (splitJoinD g f xs) = f (splitSD g d xs)
+"splitSD/splitJoinD" 
+  forall g d f xs
+  . splitSD g d (splitJoinD g f xs)
+  = f (splitSD g d xs)
 
-"splitSD/Seq.zip" forall g d xs ys.
-  splitSD g d (Seq.zip xs ys) = zipWithD g Seq.zip (splitSD g d xs)
-                                             (splitSD g d ys)
+"splitSD/Seq.zip" 
+  forall g d xs ys
+  . splitSD g d (Seq.zip xs ys) 
+  = zipWithD WhatZip g Seq.zip 
+        (splitSD g d xs)
+        (splitSD g d ys)
 
   #-}

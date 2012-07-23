@@ -10,6 +10,7 @@ module Data.Array.Parallel.Unlifted.Parallel.Enum
 where
 import Data.Array.Parallel.Unlifted.Sequential.Vector as Seq
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Parallel.Combinators (mapUP)
 import GHC.Base                                          (divInt)
 
@@ -45,7 +46,7 @@ enumFromThenToUP start next end
 enumFromStepLenUP :: Int -> Int -> Int -> Vector Int
 enumFromStepLenUP start delta len =
   joinD theGang balanced
-  (mapD theGang gen
+  (mapD (What "enumFromStepLenUP/gen") theGang gen
   (splitLenIdxD theGang len))
   where
     gen (n,i) = Seq.enumFromStepLen (i * delta + start) delta n
@@ -56,7 +57,7 @@ enumFromStepLenEachUP
         :: Int -> Vector Int -> Vector Int -> Vector Int -> Vector Int
 enumFromStepLenEachUP _n starts steps lens
   = joinD theGang unbalanced
-  $ mapD theGang enum
+  $ mapD  (What "enumFromStepLenEachUP/enum") theGang enum
   $ splitD theGang unbalanced (Seq.zip (Seq.zip starts steps) lens)
   where
     enum ps = let (qs, llens) = Seq.unzip ps

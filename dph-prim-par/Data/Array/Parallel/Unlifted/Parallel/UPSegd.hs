@@ -35,6 +35,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd
         , foldSegsWithP)
 where
 import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Sequential.USegd             (USegd)
 import qualified Data.Array.Parallel.Unlifted.Distributed.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential         as Seq
@@ -183,7 +184,7 @@ takeElements    = USegd.takeElements . upsegd_usegd
 indicesP :: UPSegd -> Vector Int
 indicesP
         = joinD theGang balanced
-        . mapD  theGang indices
+        . mapD  (What "UPSegd.indicesP/indices") theGang indices
         . takeDistributed
   where
     indices ((segd,_k),off) = Seq.indicesSU' off segd
@@ -200,7 +201,7 @@ indicesP
 replicateWithP :: Unbox a => UPSegd -> Vector a -> Vector a
 replicateWithP segd !xs 
   = joinD theGang balanced
-  . mapD  theGang rep
+  . mapD  (What "UPSegd.replicateWithP/replicateSU") theGang rep
   $ takeDistributed segd
   where
     rep ((dsegd,di),_)
@@ -254,7 +255,7 @@ foldSegsWithP fElem fSeg segd xs
 
  where  (dcarry,drs)
           = unzipD
-          $ mapD theGang partial
+          $ mapD (What "UPSegd.foldSegsWithP/partial") theGang partial
           $ zipD (takeDistributed segd)
                  (splitD theGang balanced xs)
 

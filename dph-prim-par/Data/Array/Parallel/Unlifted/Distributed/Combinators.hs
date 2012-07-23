@@ -5,7 +5,8 @@
 
 -- | Standard combinators for distributed types.
 module Data.Array.Parallel.Unlifted.Distributed.Combinators 
-        ( generateD, generateD_cheap
+        ( What (..)
+        , generateD, generateD_cheap
         , imapD, mapD
         , zipD, unzipD
         , fstD, sndD
@@ -21,15 +22,23 @@ import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Types
 import Data.Array.Parallel.Unlifted.Distributed.DistST
-
+import Data.Array.Parallel.Unlifted.Distributed.What
+import Debug.Trace
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 
+
 -- | Create a distributed value, given a function to create the instance
 --   for each thread.
-generateD :: DT a => Gang -> (Int -> a) -> Dist a
-generateD g f 
-        = runDistST g (myIndex >>= return . f)
+generateD 
+        :: DT a 
+        => What         -- ^ What is the worker function doing.
+        -> Gang 
+        -> (Int -> a) 
+        -> Dist a
+generateD what g f 
+        = traceEvent (show $ CompGenerate False what) 
+        $ runDistST g (myIndex >>= return . f)
 {-# NOINLINE generateD #-}
 
 
@@ -40,33 +49,30 @@ generateD g f
 --   a single integer to each thread, then there's no need to fire up the 
 --   gang for this.
 --   
-generateD_cheap :: DT a => Gang -> (Int -> a) -> Dist a
-generateD_cheap g f 
-        = runDistST_seq g (myIndex >>= return . f)
+generateD_cheap 
+        :: DT a 
+        => What          -- ^ What is the worker function doing.
+        -> Gang 
+        -> (Int -> a) 
+        -> Dist a
+
+generateD_cheap what g f 
+        = traceEvent (show $ CompGenerate True what) 
+        $ runDistST_seq g (myIndex >>= return . f)
 {-# NOINLINE generateD_cheap #-}
 
 
 -- Mapping --------------------------------------------------------------------
--- | Map a function across all elements of a distributed value.
---   The worker function also gets the current thread index.
---   As opposed to `imapD'` this version also deepSeqs each element before
---   passing it to the function.
-imapD :: (DT a, DT b) => Gang -> (Int -> a -> b) -> Dist a -> Dist b
-imapD g f d = imapD' g (\i x -> x `deepSeqD` f i x) d
-{-# INLINE [0] imapD #-}
-
-
--- | Map a function across all elements of a distributed value.
---   The worker function also gets the current thread index.
-imapD' :: (DT a, DT b) => Gang -> (Int -> a -> b) -> Dist a -> Dist b
-imapD' g f !d 
-  = checkGangD (here "imapD") g d
-  $ runDistST g 
-        (do i <- myIndex
-            x <- myD d
-            return (f i x))
-{-# NOINLINE imapD' #-}
-
+--
+-- Fusing maps
+-- ~~~~~~~~~~~
+--  The staging here is important. 
+--  Our rewrite rules only operate on the imapD form, so fusion between the worker
+--  functions of consecutive maps takes place before phase [0]. 
+--
+--  At phase [0] we then inline imapD which introduces the call to imapD' which
+--  uses the gang to evaluate its (now fused) worker.
+--
 
 -- | Map a function to every instance of a distributed value.
 --
@@ -75,21 +81,67 @@ imapD' g f !d
 -- 
 --   @mapD theGang (V.map (+ 1)) :: Dist (Vector Int) -> Dist (Vector Int)@
 --
-mapD :: (DT a, DT b) => Gang -> (a -> b) -> Dist a -> Dist b
-mapD g = imapD g . const
+mapD    :: (DT a, DT b) 
+        => What         -- ^ What is the worker function doing.
+        -> Gang 
+        -> (a -> b) 
+        -> Dist a 
+        -> Dist b
+
+mapD wFn gang
+        = imapD wFn gang . const
 {-# INLINE mapD #-}
+--  INLINE because this is just a convenience wrapper for imapD.
+--  None of our rewrite rules are particular to mapD.
+
+
+-- | Map a function across all elements of a distributed value.
+--   The worker function also gets the current thread index.
+--   As opposed to `imapD'` this version also deepSeqs each element before
+--   passing it to the function.
+imapD   :: (DT a, DT b) 
+        => What         -- ^ What is the worker function doing.
+        -> Gang 
+        -> (Int -> a -> b) 
+        -> Dist a -> Dist b
+imapD wFn gang f d 
+        = imapD' wFn gang (\i x -> x `deepSeqD` f i x) d
+{-# INLINE [0] imapD #-}
+--  INLINE [0] because we want to wait until phase [0] before introducing
+--  the call to imapD'. Our rewrite rules operate directly on the imapD
+--  formp, so once imapD is inlined no more fusion can take place.
+
+
+-- | Map a function across all elements of a distributed value.
+--   The worker function also gets the current thread index.
+imapD'  :: (DT a, DT b) 
+        => What -> Gang -> (Int -> a -> b) -> Dist a -> Dist b
+imapD' what gang f !d 
+  = traceEvent (show (CompMap $ what))
+  $ runDistST gang 
+        (do i <- myIndex
+            x <- myD d
+            return (f i x))
+{-# NOINLINE imapD' #-}
+-- NOINLINE 
 
 
 {-# RULES
 
-"imapD/generateD" forall gang f g.
-  imapD gang f (generateD gang g) = generateD gang (\i -> f i (g i))
+"imapD/generateD" 
+  forall wMap wGen gang f g
+  . imapD wMap gang f (generateD wGen gang g) 
+  = generateD (WhatFusedMapGen wMap wGen) gang (\i -> f i (g i))
 
-"imapD/generateD_cheap" forall gang f g.
-  imapD gang f (generateD_cheap gang g) = generateD gang (\i -> f i (g i))
+"imapD/generateD_cheap" 
+  forall wMap wGen gang f g
+  . imapD wMap gang f (generateD_cheap wGen gang g) 
+  = generateD (WhatFusedMapGen wMap wGen) gang (\i -> f i (g i))
 
-"imapD/imapD" forall gang f g d.
-  imapD gang f (imapD gang g d) = imapD gang (\i x -> f i (g i x)) d
+"imapD/imapD" 
+  forall wMap1 wMap2 gang f g d
+  . imapD wMap1 gang f (imapD wMap2 gang g d) 
+  = imapD (WhatFusedMapMap wMap1 wMap2) gang (\i x -> f i (g i x)) d
 
   #-}
 
@@ -97,35 +149,49 @@ mapD g = imapD g . const
 -- Zipping --------------------------------------------------------------------
 -- | Combine two distributed values with the given function.
 zipWithD :: (DT a, DT b, DT c)
-         => Gang -> (a -> b -> c) -> Dist a -> Dist b -> Dist c
-zipWithD g f dx dy = mapD g (uncurry f) (zipD dx dy)
+        => What                 -- ^ What is the worker function doing.
+        -> Gang 
+        -> (a -> b -> c) 
+        -> Dist a -> Dist b -> Dist c
+
+zipWithD what g f dx dy 
+        = mapD what g (uncurry f) (zipD dx dy)
 {-# INLINE zipWithD #-}
 
 
 -- | Combine two distributed values with the given function.
 --   The worker function also gets the index of the current thread.
 izipWithD :: (DT a, DT b, DT c)
-          => Gang -> (Int -> a -> b -> c) -> Dist a -> Dist b -> Dist c
-izipWithD g f dx dy = imapD g (\i -> uncurry (f i)) (zipD dx dy)
+          => What               -- ^ What is the worker function doing.
+          -> Gang 
+          -> (Int -> a -> b -> c) 
+          -> Dist a -> Dist b -> Dist c
+
+izipWithD what g f dx dy 
+        = imapD what g (\i -> uncurry (f i)) (zipD dx dy)
 {-# INLINE izipWithD #-}
 
 
 {-# RULES
-"zipD/imapD[1]" forall gang f xs ys.
-  zipD (imapD gang f xs) ys
-    = imapD gang (\i (x,y) -> (f i x,y)) (zipD xs ys)
+"zipD/imapD[1]" 
+  forall gang f xs ys what
+  . zipD (imapD what gang f xs) ys
+  = imapD what gang (\i (x,y) -> (f i x, y)) (zipD xs ys)
 
-"zipD/imapD[2]" forall gang f xs ys.
-  zipD xs (imapD gang f ys)
-    = imapD gang (\i (x,y) -> (x, f i y)) (zipD xs ys)
+"zipD/imapD[2]" 
+  forall gang f xs ys what
+  . zipD xs (imapD what gang f ys)
+  = imapD what gang (\i (x,y) -> (x, f i y)) (zipD xs ys)
 
-"zipD/generateD[1]" forall gang f xs.
-  zipD (generateD gang f) xs
-    = imapD gang (\i x -> (f i, x)) xs
+"zipD/generateD[1]" 
+  forall gang f xs what
+  . zipD (generateD what gang f) xs
+  = imapD what gang (\i x -> (f i, x)) xs
 
-"zipD/generateD[2]" forall gang f xs.
-  zipD xs (generateD gang f)
-    = imapD gang (\i x -> (x, f i)) xs
+"zipD/generateD[2]" 
+  forall gang f xs what
+  . zipD xs (generateD what gang f)
+  = imapD what gang (\i x -> (x, f i)) xs
 
   #-}
 
@@ -165,6 +231,8 @@ scanD g f z !d
 {-# NOINLINE scanD #-}
 
 
+
+-- MapAccumL ------------------------------------------------------------------
 -- | Combination of map and fold.
 mapAccumLD 
         :: forall a b acc. (DT a, DT b)

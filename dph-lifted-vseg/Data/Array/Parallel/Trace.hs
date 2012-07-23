@@ -9,8 +9,8 @@ import Data.Typeable
 import qualified Debug.Trace
 
 traceOp :: Op -> a -> a
-traceOp op x
-        = Debug.Trace.trace (Prelude.show op) x
+traceOp op x = x
+--        = Debug.Trace.trace (Prelude.show op) x
 
 data Trace
         = Trace Op
