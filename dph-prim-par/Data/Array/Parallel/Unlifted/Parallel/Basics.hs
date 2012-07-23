@@ -74,9 +74,13 @@ indexedUP :: (DT e, Unbox e) => Vector e -> Vector (Int,e)
 indexedUP 
  = splitJoinD theGang indexedFn 
  where
-    sizes  arr   = fst $ scanD theGang (+) 0 $ lengthD arr
-    indexedFn    = \arr -> zipWithD (What "indexedUP.map") theGang 
-                                (\o -> Seq.map (\(x,y) -> (x + o, y)))
-                                (sizes arr) 
-                         $  mapD (What "indexedUP/indexed") theGang Seq.indexed arr
+    sizes  arr   
+        = fst 
+        $ scanD (What "indexedUP/length") theGang (+) 0 $ lengthD arr
+
+    indexedFn    
+        = \arr -> zipWithD (What "indexedUP.map") theGang 
+                    (\o -> Seq.map (\(x,y) -> (x + o, y)))
+                    (sizes arr) 
+               $  mapD     (What "indexedUP/indexed") theGang Seq.indexed arr
 {-# INLINE_UP indexedUP #-}

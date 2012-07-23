@@ -111,9 +111,9 @@ zipWithUP f xs ys
 --
 foldUP  :: (Unbox a, DT a) => (a -> a -> a) -> a -> Vector a -> a
 foldUP f !z xs
-        = foldD theGang f
-                (mapD   (What "foldUP/fold") theGang (Seq.fold f z)
-                (splitD theGang unbalanced xs))
+        = foldD (What "foldUP/f")    theGang f
+        $ mapD  (What "foldUP/fold") theGang (Seq.fold f z)
+        $ splitD theGang unbalanced xs
 {-# INLINE_UP foldUP #-}
 
 
@@ -152,7 +152,7 @@ fold1UP = foldl1UP
 foldl1UP :: (DT a, Unbox a) => (a -> a -> a) -> Vector a -> a
 foldl1UP f arr 
         = (maybe z (f z)
-        . foldD  theGang combine'
+        . foldD  (What "fold1UP/foldD")      theGang combine'
         . mapD   (What "fold1UP/fold1Maybe") theGang (Seq.foldl1Maybe f)
         . splitD theGang unbalanced) arr
         where
@@ -173,9 +173,14 @@ foldl1UP f arr
 --
 scanUP :: (DT a, Unbox a) => (a -> a -> a) -> a -> Vector a -> Vector a
 scanUP f z 
-        = splitJoinD theGang go
-        where   go xs = let (ds,zs) = unzipD $ mapD (What "scanUP/scanRes") theGang (Seq.scanRes f z) xs
-                            zs'     = fst (scanD theGang f z zs)
-                        in  zipWithD (What "scanUP/map") theGang (Seq.map . f) zs' ds
+ = splitJoinD theGang go
+ where  go xs 
+         = let (ds,zs)  = unzipD 
+                        $ mapD  (What "scanUP/scanRes") theGang (Seq.scanRes f z) xs
+
+               zs'      = fst 
+                        $ scanD (What "scanUP/scan") theGang f z zs
+
+           in  zipWithD (What "scanUP/map") theGang (Seq.map . f) zs' ds
 {-# INLINE_UP scanUP #-}
 

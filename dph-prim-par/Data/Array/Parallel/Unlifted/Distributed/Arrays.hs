@@ -128,7 +128,7 @@ splitAsD
 splitAsD gang dlen !arr 
   = zipWithD WhatSlice (seqGang gang) (Seq.slice "splitAsD" arr) is dlen
   where
-    is = fst $ scanD gang (+) 0 dlen
+    is  = fst $ scanD (What "splitAsD") gang (+) 0 dlen
 {-# INLINE_DIST splitAsD #-}
 
 
@@ -180,10 +180,12 @@ joinD_impl g !darr
   = checkGangD (here "joinD") g darr 
   $ Seq.new n (\ma -> zipWithDST_ g (copy ma) di darr)
   where
-    (!di,!n)      = scanD g (+) 0 $ lengthD darr
+    (!di,!n)    = scanD (What "joinD_impl") g (+) 0 
+                $ lengthD darr
 
     copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
-    copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
+    copy ma i arr 
+        = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 {-# INLINE_DIST joinD_impl #-}
 
 
@@ -209,9 +211,10 @@ joinDM g darr
         zipWithDST_ g (copy marr) di darr
         return marr
  where
-        (!di,!n) = scanD g (+) 0 $ lengthD darr
+        (!di,!n) = scanD (What "joinDM") g (+) 0 
+                 $ lengthD darr
 
-        copy ma i arr = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
+        copy ma i arr   = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 {-# INLINE joinDM #-}
 
 

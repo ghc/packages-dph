@@ -77,29 +77,33 @@ imapD' what gang f !d
 
 -- Folding --------------------------------------------------------------------
 -- | Fold all the instances of a distributed value.
-foldD :: DT a => Gang -> (a -> a -> a) -> Dist a -> a
-foldD g f !d 
-  = checkGangD ("here foldD") g d 
+foldD :: DT a => What -> Gang -> (a -> a -> a) -> Dist a -> a
+foldD what gang f !d 
+  = traceEvent (show (CompFold what))
+  $ checkGangD ("here foldD") gang d 
   $ fold 1 (indexD (here "foldD") d 0)
   where
-    !n = gangSize g
-    --
-    fold i x | i == n    = x
-             | otherwise = fold (i+1) (f x $ indexD (here "foldD") d i)
+    !n  = gangSize gang
+
+    fold i x 
+        | i == n    = x
+        | otherwise = fold (i+1) (f x $ indexD (here "foldD") d i)
 {-# NOINLINE foldD #-}
 
 
+-- Scanning -------------------------------------------------------------------
 -- | Prefix sum of the instances of a distributed value.
-scanD :: forall a. DT a => Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
-scanD g f z !d
-  = checkGangD (here "scanD") g d 
+scanD :: forall a. DT a => What -> Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
+scanD what gang f z !d
+  = traceEvent (show (CompScan what))
+  $ checkGangD (here "scanD") gang d 
   $ runST (do
-          md <- newMD g
-          s  <- scan md 0 z
-          d' <- unsafeFreezeMD md
-          return (d',s))
+        md <- newMD gang
+        s  <- scan md 0 z
+        d' <- unsafeFreezeMD md
+        return (d',s))
   where
-    !n = gangSize g
+    !n  = gangSize gang
     
     scan :: forall s. MDist a s -> Int -> a -> ST s a
     scan md i !x

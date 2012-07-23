@@ -8,12 +8,12 @@ where
 
 -- | What computation we are doing.
 data Comp
-        = CompGenerate
-                { compCheap     :: Bool
-                , compWhat      :: What}
+        = CompGenerate  { compCheap     :: Bool
+                        , compWhat      :: What}
 
-        | CompMap
-                { compWhat      :: What }
+        | CompMap       { compWhat      :: What }
+        | CompFold      { compWhat      :: What }
+        | CompScan      { compWhat      :: What }
         deriving Show
 
 -- | What sort of thing is being computed.

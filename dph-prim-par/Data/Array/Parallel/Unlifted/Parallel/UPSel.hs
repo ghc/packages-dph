@@ -93,7 +93,7 @@ mkUPSelRep2 tags = zipD idxs lens
          $ splitD theGang balanced tags
 
     idxs = fst
-         $ scanD theGang add (0,0) lens
+         $ scanD  (What "UPSelRep2.mkUPSelRep2/add")   theGang add (0,0) lens
 
     count bs = let ones = US.sum (US.map tagToInt bs)
                in (US.length bs - ones,ones)

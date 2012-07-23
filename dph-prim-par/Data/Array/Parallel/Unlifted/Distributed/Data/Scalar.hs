@@ -12,6 +12,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Data.Scalar.Base
 import Data.Array.Parallel.Unlifted.Distributed.Data.Unit
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Pretty
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import Prelude as P
@@ -33,5 +34,5 @@ scalarD gang x
 
 -- | Sum all instances of a distributed number.
 sumD :: (Num a, DT a) => Gang -> Dist a -> a
-sumD g  = foldD g (+)
+sumD g  = foldD (What "sumD") g (+)
 {-# INLINE_DIST sumD #-}
