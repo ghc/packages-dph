@@ -2,8 +2,7 @@
 -- Primitive Gang Operators are fundamental computations that run on the gang.
 --   At runtime we can record how long each one runs using GHC events.
 --   As Gang Operators are not inlined, fusion between them is done via GHC rewrite rules.
-
--- TODO: rename these to generateG etc, to highlight the fusion level.
+--
 {-# OPTIONS -Wall -fno-warn-orphans -fno-warn-missing-signatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE CPP #-}

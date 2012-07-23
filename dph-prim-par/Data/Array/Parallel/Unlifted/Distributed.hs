@@ -58,6 +58,7 @@ where
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Data.Bool
 import Data.Array.Parallel.Unlifted.Distributed.Data.Scalar
+import Data.Array.Parallel.Unlifted.Distributed.Data.Ordering   ()
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Primitive

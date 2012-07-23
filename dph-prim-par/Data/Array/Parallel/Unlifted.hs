@@ -18,10 +18,9 @@
 --   @dph-prim-par@ and @dph-prim-seq@ packages.
 --
 #include "DPH_Header.h"
-import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Base.TracePrim
+import Data.Array.Parallel.Unlifted.Parallel
 import Data.Array.Parallel.Unlifted.Distributed ( DT )
-
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Unbox,   Vector)
 import Data.Array.Parallel.Unlifted.Vectors                     (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Parallel.UPSel

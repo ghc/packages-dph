@@ -25,6 +25,7 @@ Library
         Data.Array.Parallel.Unlifted.Distributed.Data.Bool
         Data.Array.Parallel.Unlifted.Distributed.Data.Maybe
         Data.Array.Parallel.Unlifted.Distributed.Data.Ordering
+        Data.Array.Parallel.Unlifted.Distributed.Data.Scalar.Base
         Data.Array.Parallel.Unlifted.Distributed.Data.Scalar
         Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
         Data.Array.Parallel.Unlifted.Distributed.Data.Unit
