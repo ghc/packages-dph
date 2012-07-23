@@ -25,7 +25,13 @@ Library
         Data.Array.Parallel.Unlifted.Distributed.Data.Prim
         Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
         Data.Array.Parallel.Unlifted.Distributed.Data.Unit
+        Data.Array.Parallel.Unlifted.Distributed.Data.USegd.DT
+        Data.Array.Parallel.Unlifted.Distributed.Data.USegd.Base
+        Data.Array.Parallel.Unlifted.Distributed.Data.USegd.Split
         Data.Array.Parallel.Unlifted.Distributed.Data.USegd
+        Data.Array.Parallel.Unlifted.Distributed.Data.USSegd.DT
+        Data.Array.Parallel.Unlifted.Distributed.Data.USSegd.Base
+        Data.Array.Parallel.Unlifted.Distributed.Data.USSegd.Split
         Data.Array.Parallel.Unlifted.Distributed.Data.USSegd
         Data.Array.Parallel.Unlifted.Distributed.Data.UVSegd
         Data.Array.Parallel.Unlifted.Distributed.Data.Vector
@@ -34,8 +40,6 @@ Library
         Data.Array.Parallel.Unlifted.Distributed.Basics
         Data.Array.Parallel.Unlifted.Distributed.Combinators
         Data.Array.Parallel.Unlifted.Distributed.Scalars
-        Data.Array.Parallel.Unlifted.Distributed.USegd
-        Data.Array.Parallel.Unlifted.Distributed.USSegd
         Data.Array.Parallel.Unlifted.Distributed.What
         Data.Array.Parallel.Unlifted.Distributed
 

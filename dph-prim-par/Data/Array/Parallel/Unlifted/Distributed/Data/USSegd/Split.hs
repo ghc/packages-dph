@@ -3,7 +3,7 @@
 #include "fusion-phases.h"
 
 -- | Operations on Distributed Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.USSegd 
+module Data.Array.Parallel.Unlifted.Distributed.Data.USSegd.Split 
         (splitSSegdOnElemsD)
 where
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
@@ -14,7 +14,7 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector)
 import Data.Array.Parallel.Base
 import Data.Bits                                                        (shiftR)
 import Control.Monad                                                    (when)
-import Data.Array.Parallel.Unlifted.Distributed.Data.USSegd            ()
+import Data.Array.Parallel.Unlifted.Distributed.Data.USSegd.DT          ()
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq

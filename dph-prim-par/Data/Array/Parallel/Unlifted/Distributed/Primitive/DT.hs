@@ -15,10 +15,9 @@ where
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
 import Data.Array.Parallel.Base
 import Data.List
-import Control.Monad.ST
 
 here :: String -> String
-here s = "Data.Array.Parallel.Unlifted.Distributed.Types.Base." ++ s
+here s = "Data.Array.Parallel.Unlifted.Distributed.Primitive.DT" ++ s
 
 
 -- Distributed Types ----------------------------------------------------------

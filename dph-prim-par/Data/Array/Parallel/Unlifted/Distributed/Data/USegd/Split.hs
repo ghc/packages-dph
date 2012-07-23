@@ -3,13 +3,14 @@
 #include "fusion-phases.h"
 
 -- | Operations on Distributed Segment Descriptors
-module Data.Array.Parallel.Unlifted.Distributed.USegd 
+module Data.Array.Parallel.Unlifted.Distributed.Data.USegd.Split
         ( splitSegdOnSegsD
         , splitSegdOnElemsD
         , splitSD
         , joinSegdD
         , glueSegdD)
 where
+import Data.Array.Parallel.Unlifted.Distributed.Data.USegd.Base
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
@@ -18,7 +19,6 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector                   (Vector,
 import Data.Array.Parallel.Base
 import Data.Bits                                                        (shiftR)
 import Control.Monad                                                    (when)
-import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USegd   as DUSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
 
@@ -312,7 +312,7 @@ joinSegdD gang
 glueSegdD :: Gang -> Dist ((USegd, Int), Int)  -> Dist USegd
 glueSegdD gang bundle
  = let  !usegd           = fstD $ fstD $ bundle
-        !lengths         = DUSegd.takeLengthsD usegd
+        !lengths         = takeLengthsD usegd
                 
         !firstSegOffsets = sndD bundle
 
@@ -332,10 +332,12 @@ glueSegdD gang bundle
 {-# INLINE_DIST glueSegdD #-}
 
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- TODO: Shift this into a separate Fusion.hs module
+
 splitSD :: Unbox a => Gang -> Dist USegd -> Vector a -> Dist (Vector a)
 splitSD g dsegd xs
-        = splitAsD g (DUSegd.takeElementsD dsegd) xs
+        = splitAsD g (takeElementsD dsegd) xs
 {-# INLINE_DIST splitSD #-}
 
 {-# RULES

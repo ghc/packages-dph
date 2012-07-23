@@ -36,8 +36,8 @@ module Data.Array.Parallel.Unlifted.Parallel.UPSegd
 where
 import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Distributed.What
-import Data.Array.Parallel.Unlifted.Sequential.USegd             (USegd)
-import qualified Data.Array.Parallel.Unlifted.Distributed.USegd  as USegd
+import Data.Array.Parallel.Unlifted.Sequential.USegd                    (USegd)
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential         as Seq
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector  as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd   as USegd

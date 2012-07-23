@@ -40,7 +40,6 @@ module Data.Array.Parallel.Unlifted.Distributed
         , joinD
         , splitJoinD
         , joinDM
-        , glueSegdD
         , carryD
 
         , Distribution
@@ -59,7 +58,6 @@ where
 import Data.Array.Parallel.Unlifted.Distributed.Combinators
 import Data.Array.Parallel.Unlifted.Distributed.Scalars
 import Data.Array.Parallel.Unlifted.Distributed.Arrays
-import Data.Array.Parallel.Unlifted.Distributed.USegd
 import Data.Array.Parallel.Unlifted.Distributed.Basics
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
 

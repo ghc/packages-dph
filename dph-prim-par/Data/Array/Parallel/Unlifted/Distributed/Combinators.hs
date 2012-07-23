@@ -19,7 +19,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
 import Data.Array.Parallel.Unlifted.Distributed.Data.Maybe      ()
 import Data.Array.Parallel.Unlifted.Distributed.What
-import Debug.Trace
+
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 

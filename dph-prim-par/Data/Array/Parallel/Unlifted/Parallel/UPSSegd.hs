@@ -44,7 +44,7 @@ import Data.Array.Parallel.Unlifted.Sequential.USSegd             (USSegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector             (Vector,  MVector, Unbox)
 import Data.Array.Parallel.Unlifted.Vectors                       (Vectors, Unboxes)
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd     as UPSegd
-import qualified Data.Array.Parallel.Unlifted.Distributed.USSegd  as DUSSegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USSegd  as DUSSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd   as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector   as US
 import qualified Data.Array.Parallel.Unlifted.Sequential          as Seq
