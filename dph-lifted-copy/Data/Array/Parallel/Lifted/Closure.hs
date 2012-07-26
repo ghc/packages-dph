@@ -77,7 +77,7 @@ closure fv fl e = Clo fv fl e
 -- | Apply a closure to its argument.
 --
 ($:) :: forall a b. (a :-> b) -> a -> b
-{-# INLINE ($:) #-}
+{-# INLINE [1] ($:) #-}
 Clo f _ e $: a = f e a
 
 {-# RULES
