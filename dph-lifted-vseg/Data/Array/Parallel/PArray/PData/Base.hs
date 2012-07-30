@@ -160,9 +160,9 @@ class PR a where
   --
   --   The first descriptor defines the segmentation of the result, 
   --   and the others define the segmentation of each source array.
-  appendsPR     :: U.Segd
-                -> U.Segd -> PData a
-                -> U.Segd -> PData a
+  appendvsPR    :: U.Segd
+                -> U.VSegd -> PDatas a
+                -> U.VSegd -> PDatas a
                 -> PData a
 
 

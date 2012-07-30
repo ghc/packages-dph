@@ -16,6 +16,8 @@ module Data.Array.Parallel.Unlifted.Vectors
         , empty
         , singleton
         , length
+        , index
+        , index2
         , unsafeIndex
         , unsafeIndex2
         , unsafeIndexUnpack
@@ -23,6 +25,7 @@ module Data.Array.Parallel.Unlifted.Vectors
         , fromVector
         , toVector)
 where
+import qualified Data.Array.Parallel.Base       as B
 import qualified Data.Array.Parallel.Unlifted.ArrayArray as AA
 import qualified Data.Primitive.ByteArray                as P
 import qualified Data.Primitive.Types                    as P
@@ -116,6 +119,15 @@ unsafeIndex (Vectors _ starts lens arrs) ix
         R.unsafeFreeze mvec
 {-# INLINE_U unsafeIndex #-}
 
+-- | Take one of the outer vectors from a `Vectors`, with bounds checking
+index   :: (Unboxes a, Unbox a)
+        => String -- ^ source position
+        -> Vectors a -> Int -> U.Vector a
+index here vec ix
+        = B.check here (length vec) ix
+        $ unsafeIndex  vec ix
+{-# INLINE_U index #-}
+
 
 -- | Retrieve a single element from a `Vectors`, 
 --   given the outer and inner indices.
@@ -123,6 +135,17 @@ unsafeIndex2 :: Unboxes a => Vectors a -> Int -> Int -> a
 unsafeIndex2 (Vectors _ starts _ arrs) ix1 ix2
  = (arrs `AA.indexArrayArray` ix1) `P.indexByteArray` ((starts `P.indexByteArray` ix1) + ix2)
 {-# INLINE_U unsafeIndex2 #-}
+
+-- | Retrieve a single element from a `Vectors`, 
+--   given the outer and inner indices, with bounds checking.
+index2  :: Unboxes a
+        => String -- ^ source position
+        -> Vectors a -> Int -> Int -> a
+index2 here vec@(Vectors _ _ lens _) ix1 ix2
+        = B.check (here++"(index2.ix1)") (length vec) ix1
+        $ B.check (here++"(index2.ix2)") (lens `P.indexByteArray` ix1) ix2
+        $ unsafeIndex2 vec ix1 ix2
+{-# INLINE_U index2 #-}
 
 
 -- | Retrieve an inner array from a `Vectors`, returning the array data, 

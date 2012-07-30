@@ -42,6 +42,7 @@ type Array a    = [a]
 empty                           = notImplemented "empty"
 (+:+)                           = notImplemented "(+:+)"
 append_s                        = notImplemented "append_s"
+append_vs                       = notImplemented "append_vs"
 replicate                       = notImplemented "replicate"
 replicate_s                     = notImplemented "replicate_s"
 replicate_rs                    = notImplemented "replicate_rs"

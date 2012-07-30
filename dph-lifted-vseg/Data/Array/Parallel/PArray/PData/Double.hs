@@ -68,9 +68,9 @@ instance PR Double where
   appendPR (PDouble arr1) (PDouble arr2)
         = PDouble $ arr1 U.+:+ arr2
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PDouble arr1) segd2 (PDouble arr2)
-        = PDouble $ U.append_s segdResult segd1 arr1 segd2 arr2
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult segd1 (PDoubles arr1) segd2 (PDoubles arr2)
+        = PDouble $ U.append_vs segdResult segd1 arr1 segd2 arr2
 
 
   -- Projections --------------------------------                

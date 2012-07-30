@@ -84,10 +84,10 @@ instance (PR a, PR b) => PR (a, b) where
                   (arr12 `appendPR` arr22)
 
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PTuple2 arrs11 arrs12) segd2 (PTuple2 arrs21 arrs22)
-        = PTuple2 (appendsPR segdResult segd1 arrs11 segd2 arrs21)
-                  (appendsPR segdResult segd1 arrs12 segd2 arrs22)
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult segd1 (PTuple2s arrs11 arrs12) segd2 (PTuple2s arrs21 arrs22)
+        = PTuple2 (appendvsPR segdResult segd1 arrs11 segd2 arrs21)
+                  (appendvsPR segdResult segd1 arrs12 segd2 arrs22)
 
 
   -- Projections ---------------------------------

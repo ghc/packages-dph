@@ -580,7 +580,7 @@ instance PR (a :-> b) where
   -- right now. Note that the problematic functions are all constructors, and
   -- we can't know that all the parameters contain the same function.
   appendPR      = dieHetroFunctions "appendPR"
-  appendsPR     = dieHetroFunctions "appendsPR"
+  appendvsPR    = dieHetroFunctions "appendsPR"
   combine2PR    = dieHetroFunctions "combine2PR"
   fromVectorPR  = dieHetroFunctions "fromVectorPR"
   appenddPR     = dieHetroFunctions "appenddPR"

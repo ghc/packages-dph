@@ -62,8 +62,8 @@ instance PA a => PR (Wrap a) where
   appendPR (PWrap xs) (PWrap ys)
         = PWrap $ appendPA xs ys
         
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PWrap xs) segd2 (PWrap ys)
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult segd1 (PWraps xs) segd2 (PWraps ys)
         = PWrap $ appendsPA segdResult segd1 xs segd2 ys
         
 

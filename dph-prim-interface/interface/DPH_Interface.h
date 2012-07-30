@@ -173,6 +173,17 @@ append_s
 
   #-}
 
+append_vs 
+        :: (Elt a, Elts a)
+        => Segd         -- ^ Segment descriptor of result aarray.
+        -> VSegd        -- ^ Segment descriptor of first array.
+        -> Arrays a     -- ^ Data of first array.
+        -> VSegd        -- ^ Segment descriptor of second array.
+        -> Arrays a     -- ^ Data of second array.
+        -> Array a
+{-# INLINE_BACKEND append_vs #-}
+
+
 
 -- Indexed ----------------------------
 -- | O(length result). Tag each element of an array with its index.

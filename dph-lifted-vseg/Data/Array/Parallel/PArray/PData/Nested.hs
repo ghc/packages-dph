@@ -256,36 +256,80 @@ instance PR a => PR (PArray a) where
   -- Performing segmented append requires segments from the physical arrays to
   -- be interspersed, so we need to copy data from the second level of nesting.  
   --
-  -- In the implementation we can safely flatten out replication in the vsegs
-  -- because the source program result would have this same physical size
-  -- anyway. Once this is done we use copying segmented append on the flat 
-  -- arrays, and then reconstruct the segment descriptor.
+  -- Each element of @xarr@ is a @PData (PArray a)@, and contains a vector of @PData a@.
+  -- We collect all the @PData a@s in @xarr@ and @yarr@ into one vector,
+  -- then do segmented append (@U.append_vs@) for the lengths and starts.
   --
-  {-# NOINLINE appendsPR #-}
-  appendsPR rsegd segd1 xarr segd2 yarr
-   = let (xsegd, xs)    = flattenPR xarr
-         (ysegd, ys)    = flattenPR yarr
-   
-         xsegd' = U.lengthsToSegd 
-                $ U.sum_s segd1 (U.lengthsSegd xsegd)
-                
-         ysegd' = U.lengthsToSegd
-                $ U.sum_s segd2 (U.lengthsSegd ysegd)
-                
+  -- The sources are segmented append of the input sources summed with the
+  -- scan of the length of each @PDatas a@ in @xarr@ and @yarr@,
+  -- to find the index into the concatenated source arrays.
+  {-# NOINLINE appendvsPR #-}
+  appendvsPR rsegd segd1 (PNesteds xarr) segd2 (PNesteds yarr)
+   = let 
+         -- lengths of flattened segments
+         flen           = U.lengthsSegd . takeSegdPD
+         xlens          = U.fromVectors $ V.map flen xarr
+         ylens          = U.fromVectors $ V.map flen yarr
+
+         -- scattered segment starts
+         fstart         = U.startsOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+         xstarts        = U.fromVectors $ V.map fstart xarr
+         ystarts        = U.fromVectors $ V.map fstart yarr
+
+         -- input sources (without sum of scan)
+         fsource        = U.sourcesOfSSegd . U.takeSSegdOfVSegd . pnested_uvsegd
+         xsources       = U.fromVectors $ V.map fsource xarr
+         ysources       = U.fromVectors $ V.map fsource yarr
+
+         -- data arrays, the result will have these concatenated
+         -- scan of lengths is used to generate new source indices
+         fdata          = toVectordPR . pnested_psegdata
+         xdata          = V.map fdata xarr
+         ydata          = V.map fdata yarr
+
+         -- why does V.concat take list, not vector?
+         ccat   = V.concatMap id
+
+         -- concatenate input data arrays
+         datas' = fromVectordPR (ccat xdata V.++ ccat ydata)
+
+         -- get data lengths to generate new source indices
+         xdatalens = V.map V.length xdata
+         ydatalens = V.map V.length ydata
+
+         -- increase each source by scan so far
+         getsrc srcs inc = U.map (+inc) srcs
+
+         -- increase x's sources by scan of lengths
+         xsrc'  = U.fromVectors $ V.zipWith getsrc (U.toVectors xsources)
+                $ V.prescanl (+) 0 xdatalens
+
+         -- increase y's sources, starting from sum of xdatalens
+         ysrc'  = U.fromVectors $ V.zipWith getsrc (U.toVectors ysources)
+                $ V.prescanl (+) (V.sum xdatalens) ydatalens
+
+
+         -- segmented append to get new sources, lengths, and starts.
+         -- TODO: would be nice if append_vs could do triples.
+         src'   = U.append_vs rsegd segd1 xsrc'
+                                    segd2 ysrc'
+
          segd'  = U.lengthsToSegd
-                $ U.append_s rsegd segd1 (U.lengthsSegd xsegd)
-                                   segd2 (U.lengthsSegd ysegd)
+                $ U.append_vs rsegd segd1 xlens
+                                    segd2 ylens
 
+         start' = U.append_vs rsegd segd1 xstarts
+                                    segd2 ystarts
 
-         -- The pdatas only contains a single flat chunk.
-         vsegd'  = U.promoteSegdToVSegd segd'
-         flat'   = appendsPR (U.plusSegd xsegd' ysegd')
-                            xsegd' xs
-                            ysegd' ys
+         -- generate vseg with new sources etc
+         vsegd' = U.promoteSSegdToVSegd
+                $ U.mkSSegd start' src' segd'
 
-         pdatas' = singletondPR flat'
+         -- lazy flattening of data
+         flat'  = extractvs_delay datas' vsegd'
 
-     in  PNested vsegd' pdatas' segd' flat'
+     in PNested vsegd' datas' segd' flat'
+
 
 
   -- Projections ------------------------------------------
@@ -651,13 +695,13 @@ unconcatPR (PNested _ _ segd _) pdata
 -- | Lifted append.
 --   Both arrays must contain the same number of elements.
 appendlPR :: PR a => PData (PArray a) -> PData (PArray a) -> PData (PArray a)
-appendlPR  arr1 arr2
- = let  (segd1, darr1)  = flattenPR arr1
-        (segd2, darr2)  = flattenPR arr2
+appendlPR  arr1@(PNested vsegd1 darr1 _ _) arr2@(PNested vsegd2 darr2 _ _)
+ = let  segd1           = takeSegdPD arr1
+        segd2           = takeSegdPD arr2
         segd'           = U.plusSegd segd1 segd2
         vsegd'          = U.promoteSegdToVSegd segd'
 
-        flat'           = appendsPR segd' segd1 darr1 segd2 darr2
+        flat'           = appendvsPR segd' vsegd1 darr1 vsegd2 darr2
         pdatas'         = singletondPR flat'
    in   PNested vsegd' pdatas' segd' flat'
 {-# INLINE_PDATA appendlPR #-}

@@ -78,6 +78,7 @@ data TracePrim
         | TraceReplicate_s         { traceSrcLength   :: Int }
         | TraceReplicate_rs        { traceCount       :: Int, traceSrcLength   :: Int }
         | TraceAppend_s            { traceDstLength   :: Int }
+        | TraceAppend_vs           { traceDstLength   :: Int }
         | TraceFold_s              { traceSrcLength   :: Int }
         | TraceFold1_s             { traceSrcLength   :: Int }
         | TraceFold_r              { traceSrcLength   :: Int }

@@ -32,6 +32,8 @@ import qualified DPH.Operators.List             as L
 import System.IO.Unsafe
 import Debug.Trace
 
+import DPH.Arbitrary.VSegd
+
 -- NOTE:
 -- The 'b' element type contains one less level of nesting compared with the
 -- 'a' type. We use 'b' when we're checking properties of functions that
@@ -295,17 +297,41 @@ $(testcases [ ""        <@ [t|  PArray Int |]
      in   validPR pdata'' && toVectors2 pdata == toVectors2 pdata''
 
 
-  -- TODO: Joint22 requires second level lengths to be the same, but this isn't nessesary.
-  --       Want to allow this to vary, while still constraining level size.
   -- | Lifted append
   prop_appendl
         :: (PR b, PA b, Eq b)
-        => Joint22 (PData (PArray b)) (PData (PArray b)) ->  Bool
-  prop_appendl (Joint22 pdata1 pdata2)
+        => Joint2n (PData (PArray b)) (PData (PArray b)) ->  Bool
+  prop_appendl (Joint2n pdata1 pdata2)
    = let vec'   = V.zipWith (V.++) (toVectors2 pdata1) (toVectors2 pdata2)
          pdata' = appendlPR pdata1 pdata2 
 
      in  validPR pdata'  && vec' == toVectors2 pdata'
+
+  -- | Lifted append, but with more interesting kinds of data (more sharing, separate sources, etc)
+  prop_appendlV
+        :: (PR b, PA b, Eq b, Arbitrary b, Show b, Show (PData b), Show (PDatas b))
+        => b -> Property
+  prop_appendlV phantom
+   = forAll (sized (\n -> return n)) $ \len ->
+     forAll (vsegdOfLength len) $ \segd1 ->
+     forAll (pdataForVSegd segd1 phantom) $ \pdata1 ->
+     forAll (vsegdOfLength len) $ \segd2 ->
+     forAll (pdataForVSegd segd2 phantom) $ \pdata2 ->
+
+     let vec'   = V.zipWith (V.++) (toVectors2 pdata1) (toVectors2 pdata2)
+         pdata' = appendlPR pdata1 pdata2 
+
+     in  validPR pdata'  && vec' == toVectors2 pdata'
+
+  prop_fromvec1 :: Vector Int -> Bool
+  prop_fromvec1 pdata
+   = let vec'   = toVector $ (fromVector pdata :: PData Int)
+     in  vec' == pdata
+
+  prop_fromvec2 :: Vector (PArray Int) -> Bool
+  prop_fromvec2 pdata
+   = let vec'   = toVector $ (fromVector pdata :: PData (PArray Int))
+     in  vec' == pdata
 
 
   ---------------------------------------------------------

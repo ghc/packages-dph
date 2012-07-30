@@ -57,9 +57,9 @@ instance PR Int where
   appendPR (PInt arr1) (PInt arr2)
         = PInt $ arr1 U.+:+ arr2
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PInt arr1) segd2 (PInt arr2)
-        = PInt $ U.append_s segdResult segd1 arr1 segd2 arr2
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult segd1 (PInts arr1) segd2 (PInts arr2)
+        = PInt $ U.append_vs segdResult segd1 arr1 segd2 arr2
 
 
   -- Projections --------------------------------                

@@ -70,8 +70,8 @@ instance PR () where
   appendPR (PUnit len1) (PUnit len2)
         = PUnit (len1 + len2)
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult _ _ _ _
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult _ _ _ _
         = PUnit (U.lengthSegd segdResult)
 
 

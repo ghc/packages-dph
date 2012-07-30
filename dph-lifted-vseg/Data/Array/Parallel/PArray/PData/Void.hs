@@ -77,8 +77,8 @@ instance PR Void where
   {-# INLINE_PDATA appendPR #-}
   appendPR      = nope "append"
   
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR     = nope "appends"
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR     = nope "appendvs"
 
 
   -- Projections --------------------------------

@@ -62,6 +62,10 @@ append_s segd xd xs yd ys
  = let  arr     = appendSUP segd xd xs yd ys
    in   tracePrim (TraceAppend_s (Seq.length arr)) arr
 
+append_vs segd xd xs yd ys
+ = let  arr     = appendSUPV segd xd xs yd ys
+   in   tracePrim (TraceAppend_vs (Seq.length arr)) arr
+
 replicate n val 
         =  tracePrim (TraceReplicate n)
         $! replicateUP n val

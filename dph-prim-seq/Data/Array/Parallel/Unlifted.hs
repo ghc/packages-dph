@@ -34,7 +34,13 @@ type Array                      = U.Vector
 -- Constructors ---------------------------------------------------------------
 empty                           = U.empty
 (+:+)                           = (U.++)
-append_s _                      = appendSU
+append_s _ xd xs yd ys          = appendSU xd xs yd ys
+append_vs _ xd xs yd ys         = appendSU xd' xs' yd' ys'
+ where  xd' = unsafeDemoteToSegdOfVSegd xd
+        yd' = unsafeDemoteToSegdOfVSegd yd
+        xs' = extractsFromVectorsUVSegd xd xs
+        ys' = extractsFromVectorsUVSegd yd ys
+
 replicate                       = U.replicate
 replicate_s                     = replicateSU
 replicate_rs                    = replicateRSU

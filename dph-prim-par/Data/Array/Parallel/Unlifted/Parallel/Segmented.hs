@@ -226,9 +226,9 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
 
     -- get physical segment id
     {-#INLINE xpseg #-}
-    xpseg s = xvsegs `index1` s
+    xpseg s = index1 xvsegs "xpseg" s
     {-#INLINE ypseg #-}
-    ypseg s = yvsegs `index1` s
+    ypseg s = index1 yvsegs "ypseg" s
 
     !xseglens = USegd.takeLengths xsegd
     !yseglens = USegd.takeLengths ysegd
@@ -241,9 +241,9 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
 
     -- physical lengths
     {-#INLINE xplen #-}
-    xplen s = xseglens `index1` (xsrc `index1` xpseg s)
+    xplen s = index1 xseglens "xplen1" (xpseg s)
     {-#INLINE yplen #-}
-    yplen s = yseglens `index1` (ysrc `index1` ypseg s)
+    yplen s = index1 yseglens "yplen1" (ypseg s)
 
     -- get actual data
     {-# INLINE gdata #-}
@@ -251,18 +251,23 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
               = let !src  = avs_ssrc     st
                     !strt = avs_sstart   st
                     !ix   = avs_index    st
-                in  Vs.unsafeIndex2 gs (I# src) (I# (strt +# ix))
+                in  index2 gs (I# src) (I# (strt +# ix))
 
     -- get scattered segment source and starts
     {-# INLINE getscatter #-}
     getscatter gpseg gsrcs gstrts segid
               = let !phys = gpseg segid                                  in
-                let !src  = gsrcs  `index1` phys                         in
-                let !strt = gstrts `index1` phys                         in
-                    (phys,src, strt)
+                let !src  = index1 gsrcs  "src" phys                         in
+                let !strt = index1 gstrts "strt" phys                         in
+                    (src, strt)
 
     {-# INLINE index1 #-}
-    index1 v i = Seq.index (here "appendUVSegS") v i
+    --index1 v i = Seq.index (here "appendUVSegS") v i
+
+    index1 v h i = Seq.index (here $ "appendUVSegS:" Prelude.++ h) v i
+
+    {-# INLINE index2 #-}
+    index2 v i1 i2 = Vs.index2 (here "appendUVSegS") v i1 i2
 
 
     {-# INLINE unbox #-}
@@ -281,7 +286,7 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
 
       -- Start returning data from xs
       | el_off < xplen seg_off
-      = let (phys,src,strt) = getscatter xpseg xsrc xstrt seg_off
+      = let (src,strt)      = getscatter xpseg xsrc xstrt seg_off
             swap            = (xplen seg_off) - el_off
         in  ASUPVDo
             -- start reading from xs, then read from ys at end of this xs segment
@@ -295,7 +300,7 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
 
       -- Start with ys
       | otherwise
-      = let (phys,src,strt) = getscatter ypseg ysrc ystrt seg_off
+      = let (src,strt)      = getscatter ypseg ysrc ystrt seg_off
             el_off'         = el_off        - xplen seg_off
             swap            = (yplen seg_off) - el_off'
         in  ASUPVDo
@@ -315,7 +320,7 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
       -- Done reading xs, so read the rest of this segment from ys.
       | avs_next_swap s  ==# 0#  =
         let     seg'            = I# (avs_seg_off s)
-                (phys,src,strt) = getscatter ypseg ysrc ystrt seg'
+                (src,strt)      = getscatter ypseg ysrc ystrt seg'
         in      return $ Skip $
                 s {
                   avs_takefrom  = 1#
@@ -331,7 +336,7 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
       -- Done reading ys, so we need to look at the next segment's xs
       | avs_next_swap s  ==# 0#
       = let     seg'            = I# (avs_seg_off s +# 1#)
-                (phys,src,strt) = getscatter xpseg xsrc xstrt seg'
+                (src,strt)      = getscatter xpseg xsrc xstrt seg'
         in      return $ Skip $
                 s {
                   avs_takefrom  = 0#
@@ -360,7 +365,6 @@ data AppendUPVState
         , avs_sstart   :: Int#   -- ^ scattered segment start
         , avs_ssrc     :: Int#   -- ^ scattered segment source
         }
-
 
 -- Append ---------------------------------------------------------------------
 -- | Segmented append.

@@ -133,16 +133,16 @@ instance (PR a, PR b, PR c, PR d, PR e, PR f, PR g) => PR (a, b, c, d, e, f, g) 
                   (arr17 `appendPR` arr27) 
 
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PTuple7 arrs11 arrs12 arrs13 arrs14 arrs15 arrs16 arrs17)
-                       segd2 (PTuple7 arrs21 arrs22 arrs23 arrs24 arrs25 arrs26 arrs27)
-        = PTuple7 (appendsPR segdResult segd1 arrs11 segd2 arrs21)
-                  (appendsPR segdResult segd1 arrs12 segd2 arrs22)
-                  (appendsPR segdResult segd1 arrs13 segd2 arrs23)
-                  (appendsPR segdResult segd1 arrs14 segd2 arrs24)
-                  (appendsPR segdResult segd1 arrs15 segd2 arrs25)
-                  (appendsPR segdResult segd1 arrs16 segd2 arrs26)
-                  (appendsPR segdResult segd1 arrs17 segd2 arrs27)
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult segd1 (PTuple7s arrs11 arrs12 arrs13 arrs14 arrs15 arrs16 arrs17)
+                       segd2 (PTuple7s arrs21 arrs22 arrs23 arrs24 arrs25 arrs26 arrs27)
+        = PTuple7 (appendvsPR segdResult segd1 arrs11 segd2 arrs21)
+                  (appendvsPR segdResult segd1 arrs12 segd2 arrs22)
+                  (appendvsPR segdResult segd1 arrs13 segd2 arrs23)
+                  (appendvsPR segdResult segd1 arrs14 segd2 arrs24)
+                  (appendvsPR segdResult segd1 arrs15 segd2 arrs25)
+                  (appendvsPR segdResult segd1 arrs16 segd2 arrs26)
+                  (appendvsPR segdResult segd1 arrs17 segd2 arrs27)
 
   -- Projections ---------------------------------
   {-# INLINE_PDATA lengthPR #-}

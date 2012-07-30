@@ -65,9 +65,9 @@ instance PR Word8 where
   appendPR (PWord8 arr1) (PWord8 arr2)
         = PWord8 $ arr1 U.+:+ arr2
 
-  {-# INLINE_PDATA appendsPR #-}
-  appendsPR segdResult segd1 (PWord8 arr1) segd2 (PWord8 arr2)
-        = PWord8 $ U.append_s segdResult segd1 arr1 segd2 arr2
+  {-# INLINE_PDATA appendvsPR #-}
+  appendvsPR segdResult segd1 (PWord8s arr1) segd2 (PWord8s arr2)
+        = PWord8 $ U.append_vs segdResult segd1 arr1 segd2 arr2
 
 
   -- Projections --------------------------------                

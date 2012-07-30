@@ -170,11 +170,11 @@ appendPA xs ys
 
 
 {-# INLINE_PA appendsPA #-}
-appendsPA       :: PA a => U.Segd -> U.Segd -> PData a -> U.Segd 
-                        -> PData a -> PData a
+appendsPA       :: PA a => U.Segd -> U.VSegd -> PDatas a -> U.VSegd 
+                        -> PDatas a -> PData a
 appendsPA segdResult segd1 xs segd2 ys
  = fromArrPRepr
- $ appendsPR segdResult segd1 (toArrPRepr xs) segd2 (toArrPRepr ys)
+ $ appendvsPR segdResult segd1 (toArrPReprs xs) segd2 (toArrPReprs ys)
 
 
 -- Projections ----------------------------------

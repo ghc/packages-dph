@@ -31,14 +31,14 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
             arr' = toList arr
 
     -- compute sum of each segment
-    prop_sum_s :: (Num num, Elt num) => Array num -> Property
+    prop_sum_s :: (Eq num, Num num, Elt num) => Array num -> Property
     prop_sum_s arr = forAll (segdForArray arr) $ \segd ->
       let lens' = toList $ lengthsSegd segd
           arr'  = toList $ arr
       in toList (sum_s segd arr) == P.map P.sum (nest lens' arr')
 
     -- compute sum of each (complete) sequence of @n@ elements
-    prop_sum_r :: (Num num, Elt num) => SizedInt -> Array num -> Property
+    prop_sum_r :: (Eq num, Num num, Elt num) => SizedInt -> Array num -> Property
     prop_sum_r (SizedInt n) arr =
       n > 0 -- other cases are not (yet) handled
       ==> toList (sum_r n arr) == P.map P.sum (arr' `nestBy` n)
@@ -59,7 +59,9 @@ $(testcases [ ""        <@ [t| ( Bool, Int ) |]
           lens2' = toList lens2
           arr'   = toList arr
           brr'   = toList brr
-      in toList (append_s (segdFrom lens1 lens2) segd1 arr segd2 brr) ==
+      in 
+         P.length lens1' == P.length lens2' ==>
+         toList (append_s (segdFrom lens1 lens2) segd1 arr segd2 brr) ==
          concat (interleave (nest lens1' arr') (nest lens2' brr'))
       where segdFrom lens1 lens2 = lengthsToSegd $ U.interleave lens1 lens2
             lengthsToSegd lens = mkSegd lens (scan (+) 0 lens) (U.sum lens)
