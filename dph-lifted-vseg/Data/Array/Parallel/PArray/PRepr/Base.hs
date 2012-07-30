@@ -55,7 +55,7 @@ import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
 import qualified Data.Typeable                  as T
-import Debug.Trace
+
 
 -- PRepr / PA -----------------------------------------------------------------
 -- | Family of Representable types. These are the types that we know how to

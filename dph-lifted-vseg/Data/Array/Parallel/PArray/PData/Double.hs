@@ -55,10 +55,10 @@ instance PR Double where
   typeRepPR x           = T.typeOf x
 
   {-# NOINLINE typeRepDataPR #-}
-  typeRepDataPR xx      = T.typeOf (5 :: Double)
+  typeRepDataPR _       = T.typeOf (5 :: Double)
 
   {-# NOINLINE typeRepDatasPR #-}
-  typeRepDatasPR xx     = T.typeOf (5 :: Double)
+  typeRepDatasPR _      = T.typeOf (5 :: Double)
 
 
   -- Constructors -------------------------------

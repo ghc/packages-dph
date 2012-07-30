@@ -6,10 +6,9 @@ module Data.Array.Parallel.Trace
         , traceOp)
 where
 import Data.Typeable
-import qualified Debug.Trace
 
 traceOp :: Op -> a -> a
-traceOp op x = x
+traceOp _op x = x
 --        = Debug.Trace.trace (Prelude.show op) x
 
 data Trace

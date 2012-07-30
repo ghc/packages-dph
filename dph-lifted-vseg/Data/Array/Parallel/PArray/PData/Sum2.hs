@@ -19,7 +19,7 @@ import qualified Data.Typeable                  as T
 import Text.PrettyPrint
 import Prelude                                  as P
 import Data.Array.Parallel.Pretty
-import Debug.Trace
+
 
 -------------------------------------------------------------------------------
 data instance PData (Sum2 a b)

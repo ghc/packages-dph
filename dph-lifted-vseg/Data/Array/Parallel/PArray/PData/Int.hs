@@ -44,10 +44,10 @@ instance PR Int where
   typeRepPR x           = T.typeOf x
 
   {-# NOINLINE typeRepDataPR #-}
-  typeRepDataPR xx      = T.typeOf (5 :: Int)
+  typeRepDataPR _       = T.typeOf (5 :: Int)
 
   {-# NOINLINE typeRepDatasPR #-}
-  typeRepDatasPR xx     = T.typeOf (5 :: Int)
+  typeRepDatasPR _      = T.typeOf (5 :: Int)
 
 
   -- Constructors -------------------------------
