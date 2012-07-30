@@ -114,28 +114,8 @@ Executable dph-spectral-smvm
   ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
 
 
-<<<<<<< HEAD
---Executable dph-spectral-quickhull
---  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
---  Main-is:        Main.hs
---  other-modules:  Vectorised
---                  Timing Points2D.Types SVG
---  hs-source-dirs: examples/spectral/QuickHull/dph examples/spectral/QuickHull/lib lib
---  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
-
-
---Executable dph-spectral-quickhull-vector
---  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
---  Main-is:        Main.hs
---  other-modules:  QuickHullIO
---                  QuickHullSplit
---                  QuickHullVector
---                  Timing Points2D.Types SVG
---  hs-source-dirs: examples/spectral/QuickHull/vector examples/spectral/QuickHull/lib lib
---  ghc-options:    -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
-=======
 Executable dph-spectral-quickhull
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  Vectorised
                   Timing Points2D.Types SVG
@@ -144,7 +124,7 @@ Executable dph-spectral-quickhull
 
 
 Executable dph-spectral-quickhull-vector
-  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
   Main-is:        Main.hs
   other-modules:  QuickHullIO
                   QuickHullSplit
@@ -152,7 +132,6 @@ Executable dph-spectral-quickhull-vector
                   Timing Points2D.Types SVG
   hs-source-dirs: examples/spectral/QuickHull/vector examples/spectral/QuickHull/lib lib
   ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
->>>>>>> Cabal file wibbles
 
 
 Executable dph-spectral-quicksort
