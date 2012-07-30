@@ -35,9 +35,10 @@ generateD
         -> (Int -> a) 
         -> Dist a
 
-generateD what g f 
-        = traceEvent (show $ CompGenerate False what) 
-        $ runDistST g (myIndex >>= return . f)
+generateD what gang f 
+ = runDistST (CompGen False what) 
+        gang 
+        (myIndex >>= return . f)
 {-# NOINLINE generateD #-}
 
 
@@ -56,7 +57,7 @@ generateD_cheap
         -> Dist a
 
 generateD_cheap what g f 
-        = traceEvent (show $ CompGenerate True what) 
+        = traceEvent (show $ CompGen True what) 
         $ runDistST_seq g (myIndex >>= return . f)
 {-# NOINLINE generateD_cheap #-}
 
@@ -67,11 +68,12 @@ generateD_cheap what g f
 imapD'  :: (DT a, DT b) 
         => What -> Gang -> (Int -> a -> b) -> Dist a -> Dist b
 imapD' what gang f !d 
-  = traceEvent (show (CompMap $ what))
-  $ runDistST gang 
-        (do i <- myIndex
-            x <- myD d
-            return (f i x))
+  = runDistST (CompMap what) gang 
+  $ do  i               <- myIndex
+        x               <- myD d
+        let result      = f i x
+        deepSeqD result (return ())
+        return result
 {-# NOINLINE imapD' #-}
 
 
@@ -113,3 +115,13 @@ scanD what gang f z !d
                 scan md (i+1) (f x $ indexD (here "scanD") d i)
 {-# NOINLINE scanD #-}
 
+
+-- | Emit a GHC event for debugging, in the `ST` monad.
+{-
+traceGangST :: String -> ST s ()
+traceGangST s = unsafeIOToST (traceGang s)
+
+traceDistIO :: String -> IO ()
+traceDistIO s
+ = do   traceEventIO $ "DIST " ++ s
+-}

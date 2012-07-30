@@ -3,7 +3,8 @@
 module Data.Array.Parallel.Unlifted.Stream.Segments
         ( streamSegsFromNestedUSSegd
         , streamSegsFromVectorsUSSegd
-        , streamSegsFromVectorsUVSegd)
+        , streamSegsFromVectorsUVSegd
+        , streamSegsFromVectorsUSSegdSegmap)
 where
 import Data.Vector.Fusion.Stream.Size
 import Data.Vector.Fusion.Stream.Monadic
@@ -14,8 +15,7 @@ import Data.Array.Parallel.Unlifted.Sequential.UVSegd           (UVSegd(..))
 import qualified Data.Array.Parallel.Unlifted.Vectors           as US
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
-import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd as UVSegd
-import qualified Data.Vector.Unboxed                            as U
+import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import qualified Data.Vector                                    as V
 import qualified Data.Primitive.ByteArray                       as P
 import System.IO.Unsafe
@@ -55,7 +55,7 @@ streamSegsFromNestedUSSegd
          = return $ Done
          
          -- Current pseg is done
-         | ix   >= pseglens `U.unsafeIndex` pseg 
+         | ix   >= U.index here pseglens pseg 
          = return $ Skip (pseg + 1, 0)
 
          -- Stream an element from this pseg
@@ -164,14 +164,29 @@ streamSegsFromVectorsUVSegd
 
 streamSegsFromVectorsUVSegd
         vectors
-        uvsegd@(UVSegd _ _ vsegids _ (USSegd _ segStarts segSources usegd) )
- = segStarts `seq` segSources `seq` uvsegd `seq` vectors `seq`
+        (UVSegd _ _ segmap _ ussegd)
+ = streamSegsFromVectorsUSSegdSegmap vectors ussegd segmap
+{-# INLINE_STREAM streamSegsFromVectorsUVSegd #-}
+
+
+streamSegsFromVectorsUSSegdSegmap
+        :: (Unboxes a, Monad m)
+        => Vectors a            -- ^ Vectors holding source data.
+        -> USSegd               -- ^ Scattered segment descriptor
+        -> Vector Int           -- ^ Segmap
+        -> Stream m a
+
+streamSegsFromVectorsUSSegdSegmap
+        vectors ussegd@(USSegd _ segStarts segSources usegd) segmap
+ = segStarts `seq` segSources `seq` usegd `seq` segmap `seq`
    let  here            = "stremSegsFromVectorsUVSegd"
 
-        !elemsTotal     = U.sum $ UVSegd.takeLengths uvsegd
+        -- Total number of elements to be streamed
+        !lengths        = USSegd.takeLengths ussegd
+        !elemsTotal     = U.sum $ U.map (U.index here lengths) segmap
 
         -- Total number of segments.
-        !segsTotal      = UVSegd.length uvsegd
+        !segsTotal      = U.length segmap
  
         -- Length of each physical segment.
         !segLens        = USegd.takeLengths usegd
@@ -188,7 +203,7 @@ streamSegsFromVectorsUVSegd
                   
                        -- Move to the next seg.
                   else let ixSeg'       = ixSeg + 1
-                           ixPSeg       = index here vsegids    ixSeg'
+                           ixPSeg       = index here segmap     ixSeg'
                            sourceSeg    = index here segSources ixPSeg
                            startSeg     = index here segStarts  ixPSeg
                            lenSeg       = index here segLens    ixPSeg
@@ -217,6 +232,6 @@ streamSegsFromVectorsUVSegd
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
    in   Stream fnSeg initState (Exact elemsTotal)
-{-# INLINE_STREAM streamSegsFromVectorsUVSegd #-}
+{-# INLINE_STREAM streamSegsFromVectorsUSSegdSegmap #-}
 
 

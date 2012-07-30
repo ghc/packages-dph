@@ -19,7 +19,6 @@ module Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
         , stToDistST
         , distST_, distST
         , runDistST, runDistST_seq
-        , traceDistST
         , myIndex
         , myD
         , readMyMD, writeMyMD
@@ -27,13 +26,12 @@ module Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
           -- * Monadic combinators
         , mapDST_, mapDST, zipWithDST_, zipWithDST)
 where
-import Data.Array.Parallel.Base (ST, runST)
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
+import Data.Array.Parallel.Base (ST, runST)
 import Control.Monad (liftM)
-
-here s = "Data.Array.Parallel.Unlifted.Distributed.DistST." ++ s
 
 
 -- | Data-parallel computations.
@@ -88,34 +86,24 @@ writeMyMD mdt x
 {-# NOINLINE writeMyMD #-}
 
 
--- | Execute a data-parallel computation on a 'Gang'.
---   The same DistST comutation runs on each thread.
-distST_ :: Gang -> DistST s () -> ST s ()
-distST_ g = gangST g . unDistST
-{-# INLINE distST_ #-}
 
-
--- | Execute a data-parallel computation, yielding the distributed result.
-distST :: DT a => Gang -> DistST s a -> ST s (Dist a)
-distST g p 
- = do   md <- newMD g
-        distST_ g $ writeMyMD md =<< p
-        unsafeFreezeMD md
-{-# INLINE distST #-}
-
-
+-- Running --------------------------------------------------------------------
 -- | Run a data-parallel computation, yielding the distributed result.
-runDistST :: DT a => Gang -> (forall s. DistST s a) -> Dist a
-runDistST g p = runST (distST g p)
+runDistST :: DT a => Comp -> Gang -> (forall s. DistST s a) -> Dist a
+runDistST comp g p 
+ = runST $ distST comp g p
 {-# NOINLINE runDistST #-}
 
 
-runDistST_seq :: forall a. DT a => Gang -> (forall s. DistST s a) -> Dist a
-runDistST_seq g p = runST (
-  do
+runDistST_seq 
+        :: forall a. DT a 
+        => Gang -> (forall s. DistST s a) -> Dist a
+runDistST_seq g p 
+ = runST 
+ $ do
      md <- newMD g
      go md 0
-     unsafeFreezeMD md)                           
+     unsafeFreezeMD md
   where
     !n = gangSize g
     go :: forall s. MDist a s -> Int -> ST s ()
@@ -126,11 +114,41 @@ runDistST_seq g p = runST (
 {-# NOINLINE runDistST_seq #-}
 
 
-traceDistST :: String -> DistST s ()
-traceDistST s 
-        = DistST $ \n -> traceGangST ("Worker " ++ show n ++ ": " ++ s)
-{-# INLINE traceDistST #-}
+-- | Execute a data-parallel computation, yielding the distributed result.
+distST  :: DT a 
+        => Comp -> Gang 
+        -> DistST s a -> ST s (Dist a)
+distST comp g p 
+ = do   md <- newMD g
 
+        distST_ comp g 
+         $ writeMyMD md =<< p
+
+        unsafeFreezeMD md
+{-# INLINE distST #-}
+
+
+-- | Execute a data-parallel computation on a 'Gang'.
+--   The same DistST comutation runs on each thread.
+distST_ :: Comp -> Gang -> DistST s () -> ST s ()
+distST_ comp gang proc
+        = gangST gang 
+                (show comp) 
+                (workloadOfComp comp)
+        $ unDistST proc
+{-# INLINE distST_ #-}
+
+workloadOfComp :: Comp -> Workload
+workloadOfComp cc
+ = case cc of
+        CompDist w              -> workloadOfWhat w
+        _                       -> WorkUnknown
+
+workloadOfWhat :: What -> Workload
+workloadOfWhat ww
+ = case ww of
+        WhatJoinCopy elems      -> WorkCopy elems 
+        _                       -> WorkUnknown
 
 -- Combinators ----------------------------------------------------------------
 -- Versions that work on DistST -----------------------------------------------
@@ -139,43 +157,49 @@ traceDistST s
 -- the current computation which, again, is parallel. This would break our
 -- model andlead to a deadlock. Hence the bangs.
 
-mapDST_ :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
-mapDST_ g p d 
- = mapDST_' g (\x -> x `deepSeqD` p x) d
-{-# INLINE mapDST_ #-}
-
-
-mapDST_' :: DT a => Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
-mapDST_' g p !d 
- = checkGangD (here "mapDST_") g d 
- $ distST_ g (myD d >>= p)
-
-
-mapDST :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
-mapDST g p !d = mapDST' g (\x -> x `deepSeqD` p x) d
+mapDST  :: (DT a, DT b) 
+        => What -> Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+mapDST what g p !d 
+ = mapDST' what g (\x -> x `deepSeqD` p x) d
 {-# INLINE mapDST #-}
 
 
-mapDST' :: (DT a, DT b) => Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
-mapDST' g p !d 
- = checkGangD (here "mapDST_") g d 
- $ distST g (myD d >>= p)
+mapDST_ :: DT a => What -> Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+mapDST_ what g p !d 
+ = mapDST_' what g (\x -> x `deepSeqD` p x) d
+{-# INLINE mapDST_ #-}
+
+
+mapDST' :: (DT a, DT b) => What -> Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+mapDST' what g p !d 
+ = distST (CompDist what) g (myD d >>= p)
 {-# INLINE mapDST' #-}
 
 
-zipWithDST_ 
-        :: (DT a, DT b)
-        => Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
-zipWithDST_ g p !dx !dy 
- = mapDST_ g (uncurry p) (zipD dx dy)
-{-# INLINE zipWithDST_ #-}
+mapDST_' 
+        :: DT a 
+        => What -> Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+mapDST_' what g p !d 
+ = distST_ (CompDist what) g (myD d >>= p)
+{-# INLINE mapDST_' #-}
 
 
 zipWithDST 
         :: (DT a, DT b, DT c)
-        => Gang
+        => What 
+        -> Gang
         -> (a -> b -> DistST s c) -> Dist a -> Dist b -> ST s (Dist c)
-zipWithDST g p !dx !dy 
- = mapDST g (uncurry p) (zipD dx dy)
+zipWithDST what g p !dx !dy 
+ = mapDST what g (uncurry p) (zipD dx dy)
 {-# INLINE zipWithDST #-}
+
+
+zipWithDST_ 
+        :: (DT a, DT b)
+        => What -> Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
+zipWithDST_ what g p !dx !dy 
+ = mapDST_ what g (uncurry p) (zipD dx dy)
+{-# INLINE zipWithDST_ #-}
+
+
 

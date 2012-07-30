@@ -6,16 +6,16 @@
 #define SEQ_IF_GANG_BUSY 1
 
 -- Trace all work requests sent to the gang.
-#define TRACE_GANG 0
+#define TRACE_GANG 1
 
 -- | Gang primitives.
 module Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
         ( Gang
+        , Workload      (..)
         , seqGang
         , forkGang
         , gangSize
-        , gangIO, gangST
-        , traceGang, traceGangST )
+        , gangIO, gangST)
 where
 import GHC.IO
 import GHC.ST
@@ -83,24 +83,31 @@ seqGang (Gang n _ mv) = Gang n [] mv
 --   The threads blocks on the MVar waiting for a work request.
 gangWorker :: Int -> MVar Req -> IO ()
 gangWorker threadId varReq
- = do   traceGang $ "Worker " ++ show threadId ++ " waiting for request."
+ = do   traceWorker threadId $ "ready."
         req     <- takeMVar varReq
         
         case req of
          ReqDo action varDone
-          -> do traceGang $ "Worker " ++ show threadId ++ " begin"
+          -> do traceWorker threadId $ " begin."
                 start   <- getGangTime
                 action threadId
                 end     <- getGangTime
-                traceGang $ "Worker " ++ show threadId 
-                          ++ " end (" ++ diffTime start end ++ ")"
+                traceWorker threadId $ " end (" ++ diffTime start end ++ ")."
                 
                 putMVar varDone ()
                 gangWorker threadId varReq
 
          ReqShutdown varDone
-          -> do traceGang $ "Worker " ++ show threadId ++ " shutting down."
+          -> do traceWorker threadId $ " shutting down."
                 putMVar varDone ()
+
+traceWorker :: Int -> String -> IO ()
+traceWorker threadId str
+ = traceGang 
+        $ "Worker " ++ show threadId 
+        ++ " "
+        ++ replicate (threadId * 10) ' '
+        ++ str
 
 
 -- | Finaliser for worker threads.
@@ -153,68 +160,103 @@ gangSize :: Gang -> Int
 gangSize (Gang n _ _) = n
 
 
+-------------------------------------------------------------------------------
+data Workload
+        -- | Unknown workload. Just run it in parallel.
+        = WorkUnknown
+
+        -- | Memory bound copy-like workload, 
+        --   of the given number of bytes.
+        | WorkCopy      Int
+        deriving (Eq, Show)
+
+
+-- | Decide whether a workload is too small to bother running in parallel.
+--   TODO: We want to determine this based on similar workloads that 
+--         we have run before. The gang should know what its minumum latency is.
+workloadIsSmall :: Workload -> Bool
+workloadIsSmall ww
+ = case ww of
+        WorkUnknown     -> False
+        WorkCopy bytes  -> bytes < 1000
+
+
+
 -- | Issue work requests for the 'Gang' and wait until they have been executed.
 --   If the gang is already busy then just run the action in the requesting
 --   thread. 
 gangIO  :: Gang
+        -> String 
+        -> Workload
         -> (Int -> IO ())
         -> IO ()
 
-gangIO (Gang n [] _)  p 
+-- Hrm. Gang hasn't been created yet. 
+-- Just run the requests in the main thread.
+gangIO (Gang n [] _) _what _workload p 
  = mapM_ p [0 .. n-1]
 
 #if SEQ_IF_GANG_BUSY
-gangIO (Gang n mvs busy) p 
- = do   traceGang   "gangIO: issuing work requests (SEQ_IF_GANG_BUSY)"
-        b <- swapMVar busy True
-
-        traceGang $ "gangIO: gang is currently " ++ (if b then "busy" else "idle")
-        if b
-         then mapM_ p [0 .. n-1]
+gangIO (Gang n mvs busy) what workload p 
+ = do   let !small      = workloadIsSmall workload
+        if small 
+         then do
+                traceGang $ "Issuing  small " ++ what
+                mapM_ p [0 .. n-1]
          else do
-                parIO n mvs p
-                _ <- swapMVar busy False
-                return ()
+                isBusy          <- swapMVar busy True
+                if isBusy 
+                 then do 
+                        traceGang $ "WARNING: Gang was already busy, running sequentially "
+                        mapM_ p [0 .. n-1]
+                 else do
+                        traceGang $ "Issuing  par   " ++ what
+                        parIO what n mvs p
+                        _ <- swapMVar busy False
+                        return ()
 #else
-gangIO (Gang n mvs busy) p = parIO n mvs p
+gangIO (Gang n mvs busy) what _workload p 
+        = parIO n mvs p
 #endif
 
 
 -- | Issue some requests to the worker threads and wait for them to complete.
-parIO   :: Int                  -- ^ Number of threads in the gang.
+parIO   :: String
+        -> Int                  -- ^ Number of threads in the gang.
         -> [MVar Req]           -- ^ Request vars for worker threads.
         -> (Int -> IO ())       -- ^ Action to run in all the workers, it's
                                 --   given the ix of the particular worker
                                 ---  thread it's running on.
         -> IO ()
 
-parIO n mvs p 
- = do   traceGang "parIO: begin"
-
-        start   <- getGangTime
+parIO what n mvs p 
+ = do   start   <- getGangTime
         reqs    <- sequence . replicate n $ newReq p
 
-        traceGang "parIO: issuing requests"
         zipWithM_ putMVar mvs reqs
 
-        traceGang "parIO: waiting for requests to complete"
+        traceGang $ "Running."
         mapM_ waitReq reqs
         end     <- getGangTime
 
-        traceGang $ "parIO: end " ++ diffTime start end
+        traceGang $ "Complete par   " ++ what ++ " in " ++ diffTime start end ++ "us."
 
 
 -- | Same as 'gangIO' but in the 'ST' monad.
-gangST :: Gang -> (Int -> ST s ()) -> ST s ()
-gangST g p = unsafeIOToST . gangIO g $ unsafeSTToIO . p
+gangST :: Gang -> String -> Workload -> (Int -> ST s ()) -> ST s ()
+gangST gang what workload p 
+        = unsafeIOToST 
+        $ gangIO gang what workload
+        $ unsafeSTToIO . p
 
 
 -- Tracing -------------------------------------------------------------------
 #if TRACE_GANG
 getGangTime :: IO Integer
 getGangTime
- = do   TOD sec pico <- getClockTime
-        return (pico + sec * 1000000000000)
+ = do   TOD sec pico    <- getClockTime
+        let !micro      = pico `div` 1000000
+        return (micro + sec * 1000000)
 
 diffTime :: Integer -> Integer -> String
 diffTime x y = show (y-x)
@@ -222,8 +264,7 @@ diffTime x y = show (y-x)
 -- | Emit a GHC event for debugging.
 traceGang :: String -> IO ()
 traceGang s
- = do   t <- getGangTime
-        traceEventIO $ show t ++ " @ " ++ s
+ = do   traceEventIO $ "GANG " ++ s
 
 #else
 getGangTime :: IO ()
@@ -236,8 +277,3 @@ diffTime _ _ = ""
 traceGang :: String -> IO ()
 traceGang _ = return ()
 #endif
-
-
--- | Emit a GHC event for debugging, in the `ST` monad.
-traceGangST :: String -> ST s ()
-traceGangST s = unsafeIOToST (traceGang s)

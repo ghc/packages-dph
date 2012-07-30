@@ -111,7 +111,7 @@ enumFromStepLenEach n starts steps lens
 length          = Seq.length
 index           = Seq.index
 indexs          = indexsFromVector
-indexs_avs      = indexsFromVectorsUPVSegd
+indexs_avs      = indexsFromVectorsUPVSegdP
 
 extract arr i n
         =  tracePrim (TraceExtract (Seq.length arr) i n)

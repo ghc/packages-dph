@@ -27,6 +27,7 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
+import Debug.Trace
 
 here :: String -> String 
 here s = "Data.Array.Parallel.Unlifted.Sequential.USegd." ++ s
@@ -138,11 +139,12 @@ getSeg (USegd lengths indices _ ) ix
 --   two arrays.
 append :: USegd -> USegd -> USegd
 append (USegd lengths1 indices1 elems1)
-            (USegd lengths2 indices2 elems2)
- = USegd (lengths1 U.++ lengths2)
+       (USegd lengths2 indices2 elems2)
+ = traceEvent ("dph-prim-seq: USegd.append")
+ $ USegd (lengths1 U.++ lengths2)
          (indices1 U.++ U.map (+ elems1) indices2)
          (elems1 + elems2)
-{-# INLINE_U append #-}
+{-# NOINLINE append #-}
 
 
 -- | O(segs) Extract a slice of a segment descriptor, avoiding copying where possible.

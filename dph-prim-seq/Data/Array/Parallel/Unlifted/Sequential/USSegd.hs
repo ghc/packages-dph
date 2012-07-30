@@ -36,6 +36,7 @@ import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
+import Debug.Trace
 
 here :: String -> String 
 here s = "Data.Array.Parallel.Unlifted.Sequential.USSegd." ++ s
@@ -215,10 +216,13 @@ appendWith
 appendWith
         (USSegd _ starts1 srcs1 usegd1) pdatas1
         (USSegd _ starts2 srcs2 usegd2) _
-        = USSegd False
-                 (starts1  U.++  starts2)
-                 (srcs1    U.++  U.map (+ pdatas1) srcs2)
-                 (USegd.append usegd1 usegd2)
+ = traceEvent 
+        (  "dph-prim-seq: USSegd.appendWith."
+        ++ " length(result) = " ++ show (U.length starts1 + U.length starts2))
+ $ USSegd False
+        (starts1  U.++  starts2)
+        (srcs1    U.++  U.map (+ pdatas1) srcs2)
+        (USegd.append usegd1 usegd2)
 {-# NOINLINE appendWith #-}
 --  NOINLINE because we're worried about code explosion. Might be useful though.
 
@@ -230,7 +234,10 @@ appendWith
 cullOnVSegids :: Vector Int -> USSegd -> (Vector Int, USSegd)
 cullOnVSegids vsegids (USSegd _ starts sources usegd)
  = {-# SCC "cullOnVSegids" #-}
- let    -- Determine which of the psegs are still reachable from the vsegs.
+   traceEvent 
+        (  "dph-prim-seq: USSegd.cullOnVSegids."
+        ++ " length(segmap) = " ++ show (U.length vsegids))
+ $ let  -- Determine which of the psegs are still reachable from the vsegs.
         -- This produces an array of flags, 
         --    with reachable   psegs corresponding to 1
         --    and  unreachable psegs corresponding to 0
@@ -239,7 +246,7 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
         --   => psegids_used:   [1 1 0 1 0 1 1]
         --  
         --  Note that psegids '2' and '4' are not in vsegids_packed.
-        psegids_used
+        !psegids_used
          = U.bpermuteDft (USegd.length usegd)
                          (const False)
                          (U.zip vsegids (U.replicate (U.length vsegids) True))
@@ -247,7 +254,7 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
         -- Produce an array of used psegs.
         --  eg  psegids_used:   [1 1 0 1 0 1 1]
         --      psegids_packed: [0 1 3 5 6]
-        psegids_packed
+        !psegids_packed
          = U.pack (U.enumFromTo 0 (U.length psegids_used)) psegids_used
 
         -- Produce an array that maps psegids in the source array onto
@@ -260,7 +267,7 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
         --  eg  psegids_packed: [0 1 3 5 6]
         --                      [0 1 2 3 4]
         --      psegids_map:    [0 1 -1 2 -1 3 4]
-        psegids_map
+        !psegids_map
          = U.bpermuteDft (USegd.length usegd)
                          (const (-1))
                          (U.zip psegids_packed (U.enumFromTo 0 (U.length psegids_packed - 1)))
@@ -273,18 +280,18 @@ cullOnVSegids vsegids (USSegd _ starts sources usegd)
         -- 
         --      vsegids':       [0 1 1 2 3 3 4 4]
         --
-        vsegids'  = U.map (U.index (here "cullOnVSegids") psegids_map) vsegids
+        !vsegids'  = U.map (U.index (here "cullOnVSegids") psegids_map) vsegids
 
         -- Rebuild the usegd.
-        starts'   = U.pack starts  psegids_used
-        sources'  = U.pack sources psegids_used
+        !starts'   = U.pack starts  psegids_used
+        !sources'  = U.pack sources psegids_used
 
-        lengths'  = U.pack (USegd.takeLengths usegd) psegids_used
-        usegd'    = USegd.fromLengths lengths'
+        !lengths'  = U.pack (USegd.takeLengths usegd) psegids_used
+        !usegd'    = USegd.fromLengths lengths'
         
-        ussegd'   = USSegd False starts' sources' usegd'
+        !ussegd'   = USSegd False starts' sources' usegd'
 
-     in  (vsegids', ussegd')
+     in (vsegids', ussegd')
 
 {-# NOINLINE cullOnVSegids #-}
 --  NOINLINE because it's complicated and won't fuse with anything

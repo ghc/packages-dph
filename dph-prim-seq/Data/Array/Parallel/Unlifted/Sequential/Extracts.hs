@@ -10,7 +10,8 @@ module Data.Array.Parallel.Unlifted.Sequential.Extracts
           -- * Scattered extracts
         , extractsFromNestedUSSegd
         , extractsFromVectorsUSSegd
-        , extractsFromVectorsUVSegd)
+        , extractsFromVectorsUVSegd
+        , extractsFromVectorsUSSegdSegmap)
 where
 import Data.Array.Parallel.Unlifted.Stream                      as US
 import Data.Array.Parallel.Unlifted.Vectors                     as US
@@ -76,3 +77,16 @@ extractsFromVectorsUVSegd
 extractsFromVectorsUVSegd uvsegd vectors
         = U.unstream  $ US.streamSegsFromVectorsUVSegd vectors uvsegd
 {-# INLINE_U extractsFromVectorsUVSegd #-}
+
+
+-- | Copy segments defined by a segmap and `USSegd` into a new array.
+extractsFromVectorsUSSegdSegmap
+        :: (Unbox a, US.Unboxes a)
+        => USSegd
+        -> Vector  Int
+        -> Vectors a
+        -> Vector  a
+
+extractsFromVectorsUSSegdSegmap ussegd segmap vectors
+        = U.unstream $ US.streamSegsFromVectorsUSSegdSegmap vectors ussegd segmap
+

@@ -5,17 +5,23 @@
 module Data.Array.Parallel.Unlifted.Parallel.Extracts 
         ( -- * Scattered indexing
           indexsFromVector
+        , indexsFromVectorsUPVSegdP
         , indexsFromVectorsUPVSegd
 
           -- * Scattered extracts
         , extractsFromNestedUPSSegd
         , extractsFromVectorsUPSSegd
-        , extractsFromVectorsUPVSegd)
+
+        , extractsFromVectorsUPVSegdP
+        , extractsFromVectorsUPVSegd
+        , extractsFromVectorsUPSSegdSegmap)
 where
+import Data.Array.Parallel.Unlifted.Distributed
+import Data.Array.Parallel.Unlifted.Distributed.What
 import Data.Array.Parallel.Unlifted.Parallel.UPSSegd                    (UPSSegd)
 import Data.Array.Parallel.Unlifted.Parallel.UPVSegd                    (UPVSegd)
-import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
 import Data.Array.Parallel.Unlifted.Vectors                             (Vectors)
+import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
@@ -23,7 +29,8 @@ import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
 import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
 import qualified Data.Vector                                            as V
-
+import Debug.Trace
+import Prelude  as P
 
 -- Indexvs --------------------------------------------------------------------
 -- | Lookup elements from a `Vector`.
@@ -41,6 +48,19 @@ indexsFromVector = Seq.indexsFromVector
 --
 --   TODO: make this parallel.
 --
+indexsFromVectorsUPVSegdP 
+        :: (Unbox a, US.Unboxes a)
+        => Vectors a -> UPVSegd -> Vector (Int, Int) -> Vector a
+
+indexsFromVectorsUPVSegdP vectors upvsegd vsrcixs
+ = splitJoinD theGang 
+        (mapD   (What "indexsFromVectorsUPVSegdP") theGang
+                (indexsFromVectorsUPVSegd vectors upvsegd))
+        vsrcixs
+{-# INLINE_UP indexsFromVectorsUPVSegdP #-}
+
+
+-- | Lookup elements from some Vectors through a `UPVSegd`
 indexsFromVectorsUPVSegd 
         :: (Unbox a, US.Unboxes a)
         => Vectors a -> UPVSegd -> Vector (Int, Int) -> Vector a
@@ -51,7 +71,7 @@ indexsFromVectorsUPVSegd vectors upvsegd vsrcixs
         !vsegids  = UPVSegd.takeVSegidsRedundant upvsegd
         !upssegd  = UPVSegd.takeUPSSegdRedundant upvsegd
         !ussegd   = UPSSegd.takeUSSegd upssegd
-   in   Seq.unstream
+   in  Seq.unstream
          $ US.streamElemsFromVectors     vectors
          $ US.streamSrcIxsThroughUSSegd  ussegd
          $ US.streamSrcIxsThroughVSegids vsegids
@@ -72,7 +92,6 @@ extractsFromNestedUPSSegd upssegd vectors
                 (UPSSegd.takeUSSegd upssegd)
 {-# INLINE_U extractsFromNestedUPSSegd #-}
 
-
 -- | TODO: make this parallel.
 extractsFromVectorsUPSSegd
         :: (Unbox a, US.Unboxes a)
@@ -87,7 +106,36 @@ extractsFromVectorsUPSSegd upssegd vectors
 {-# INLINE_UP extractsFromVectorsUPSSegd #-}
 
 
--- | TODO: make this parallel.
+
+-- From UPVSegd ---------------------------------------------------------------
+-- | Parallel extracts from UPVSegd and Segmap
+--   TODO: This just distributes the segmap over the gang, and will be unbalanced
+--         if there aren't many segments, or they have varying sizes.
+extractsFromVectorsUPVSegdP
+        :: (Unbox a, US.Unboxes a)
+        => UPVSegd
+        -> Vectors a
+        -> Vector a
+
+extractsFromVectorsUPVSegdP upvsegd vectors
+ =      splitJoinD theGang 
+                (mapD   (what upvsegd)
+                        theGang
+                        (extractsFromVectorsUPSSegdSegmap 
+                                (UPVSegd.takeUPSSegdRedundant upvsegd)
+                                vectors))
+                (UPVSegd.takeVSegidsRedundant upvsegd)
+
+ where  what upvsegd
+         = let  lens    = UPVSegd.takeLengths upvsegd
+           in   (What $ "dph-prim-par: extractsFromVectorsUPVSegdP." 
+                      P.++ show (UPVSegd.takeLengths upvsegd))
+        {-# NOINLINE what #-}
+
+{-# INLINE_UP extractsFromVectorsUPVSegdP #-}
+
+
+-- | Sequential extracts from UPVSegd.
 extractsFromVectorsUPVSegd
         :: (Unbox a, US.Unboxes a)
         => UPVSegd
@@ -102,3 +150,18 @@ extractsFromVectorsUPVSegd upvsegd vectors
                 (UPSSegd.takeUSSegd $ UPVSegd.takeUPSSegdRedundant upvsegd)
 {-# INLINE_UP extractsFromVectorsUPVSegd #-}
 
+
+-- | Sequential extracts from USSegd and Segmap
+extractsFromVectorsUPSSegdSegmap
+        :: (Unbox a, US.Unboxes a)
+        => UPSSegd
+        -> Vectors a
+        -> Vector Int
+        -> Vector a
+
+extractsFromVectorsUPSSegdSegmap upssegd vectors segmap
+        = Seq.unstream 
+        $ US.streamSegsFromVectorsUSSegdSegmap vectors
+                (UPSSegd.takeUSSegd upssegd)
+                segmap
+{-# INLINE_UP extractsFromVectorsUPSSegdSegmap #-}

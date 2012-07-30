@@ -115,7 +115,7 @@ instance PprPhysical UPVSegd where
 -- | O(1). Check the internal consistency of a virutal segmentation descriptor.
 ---
 --   * TODO: this doesn't do any checks yet.
---
+--
 valid :: UPVSegd -> Bool
 valid UPVSegd{} = True
 {-# NOINLINE valid #-}

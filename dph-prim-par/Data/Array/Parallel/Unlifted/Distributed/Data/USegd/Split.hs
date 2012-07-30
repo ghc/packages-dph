@@ -21,6 +21,7 @@ import Data.Bits                                                        (shiftR)
 import Control.Monad                                                    (when)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import Debug.Trace
 
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.USegd." ++ s
@@ -55,7 +56,8 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.USegd." ++ s
 --
 splitSegdOnSegsD :: Gang -> USegd -> Dist USegd
 splitSegdOnSegsD g !segd 
-  = mapD (What "USegd.splitSegdOnSegds/fromLengths") g USegd.fromLengths
+  = traceEvent ("dph-prim-par: USegd.splitSegdOnSegsD")
+  $ mapD (What "USegd.splitSegdOnSegds/fromLengths") g USegd.fromLengths
   $ splitAsD g d lens
   where
     !d   = snd
@@ -113,8 +115,9 @@ splitSegdOnSegsD g !segd
 splitSegdOnElemsD :: Gang -> USegd -> Dist ((USegd,Int),Int)
 splitSegdOnElemsD g !segd 
   = {-# SCC "splitSegdOnElemsD" #-} 
-    imapD (What "USegd.splitSegdOnElemsD/splitLenIdx") g mk 
-        (splitLenIdxD g (USegd.takeElements segd))
+    traceEvent ("dph-prim-par: USegd.splitSegdOnElemsD")
+  $ imapD      (What "USegd.splitSegdOnElemsD/splitLenIdx") 
+        g mk (splitLenIdxD g (USegd.takeElements segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g

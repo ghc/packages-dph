@@ -6,14 +6,15 @@ where
         
 
 
--- | What computation we are doing.
+-- | What distributed computation we are doing.
 data Comp
-        = CompGenerate  { compCheap     :: Bool
+        = CompGen       { compCheap     :: Bool
                         , compWhat      :: What}
 
         | CompMap       { compWhat      :: What }
         | CompFold      { compWhat      :: What }
         | CompScan      { compWhat      :: What }
+        | CompDist      What
         deriving Show
 
 -- | What sort of thing is being computed.
@@ -25,6 +26,9 @@ data What
         | WhatLength
         | WhatLengthIdx
         | WhatBpermute
+
+        -- Copy due to a join instruction.
+        | WhatJoinCopy  { whatElems     :: Int }
 
         | WhatFusedMapMap What What
         | WhatFusedMapGen What What

@@ -18,6 +18,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Data.USSegd.DT          ()
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector         as Seq
+import Debug.Trace
 
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Distributed.USSegd." ++ s
@@ -55,8 +56,9 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.USSegd." ++ s
 splitSSegdOnElemsD :: Gang -> USSegd -> Dist ((USSegd,Int),Int)
 splitSSegdOnElemsD g !segd 
   = {-# SCC "splitSSegdOnElemsD" #-}
-    imapD (What "UPSSegd.splitSSegdOnElems/splitLenIx") g mk 
-        (splitLenIdxD g (USegd.takeElements $ USSegd.takeUSegd segd))
+    traceEvent ("dph-prim-par: USSegd.splitSSegdOnElems")
+  $ imapD (What "UPSSegd.splitSSegdOnElems/splitLenIx") g mk 
+          (splitLenIdxD g (USegd.takeElements $ USSegd.takeUSegd segd))
   where 
         -- Number of threads in gang.
         !nThreads = gangSize g

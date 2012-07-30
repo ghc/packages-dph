@@ -163,32 +163,7 @@ splitD_impl g !arr
 {-# INLINE_DIST splitD_impl #-}
 
 
--- | Join a distributed array.
---   Join sums up the array lengths of each chunk, allocates a new result array, 
---   and copies each chunk into the result.
---
---   NOTE: This is defined in terms of joinD_impl to avoid introducing loops
---         through RULES. Without it, splitJoinD would be a loop breaker.
---
-joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
-joinD g _ darr  = joinD_impl g darr
-{-# INLINE CONLIKE [1] joinD #-}
-
-
-joinD_impl :: forall a. Unbox a => Gang -> Dist (Vector a) -> Vector a
-joinD_impl g !darr 
-  = checkGangD (here "joinD") g darr 
-  $ Seq.new n (\ma -> zipWithDST_ g (copy ma) di darr)
-  where
-    (!di,!n)    = scanD (What "joinD_impl") g (+) 0 
-                $ lengthD darr
-
-    copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
-    copy ma i arr 
-        = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
-{-# INLINE_DIST joinD_impl #-}
-
-
+-- SplitJoin ------------------------------------------------------------------
 -- | Split a vector over a gang, run a distributed computation, then
 --   join the pieces together again.
 splitJoinD
@@ -202,19 +177,51 @@ splitJoinD g f !xs
 {-# INLINE_DIST splitJoinD #-}
 
 
+-- Join -----------------------------------------------------------------------
+-- | Join a distributed array.
+--   Join sums up the array lengths of each chunk, allocates a new result array, 
+--   and copies each chunk into the result.
+--
+--   NOTE: This is defined in terms of joinD_impl to avoid introducing loops
+--         through RULES. Without it, splitJoinD would be a loop breaker.
+--
+joinD :: Unbox a => Gang -> Distribution -> Dist (Vector a) -> Vector a
+joinD g _ darr  = joinD_impl g darr
+{-# INLINE CONLIKE [1] joinD #-}
+
+
+joinD_impl :: forall a. Unbox a => Gang -> Dist (Vector a) -> Vector a
+joinD_impl gang !darr 
+ = let  -- Determine where each thread's local chunk should go
+        -- in the result vector, and count the total number of elements.
+        (!di,!n) = scanD (What "joinD_impl/count") gang (+) 0 
+                 $ lengthD darr
+
+        copy :: forall s. MVector s a -> Int -> Vector a -> DistST s ()
+        copy ma i arr 
+         = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
+        {-# INLINE copy #-}
+
+   in   Seq.new n $ \ma 
+         -> zipWithDST_ 
+                (WhatJoinCopy n) 
+                gang (copy ma) di darr
+{-# INLINE_DIST joinD_impl #-}
+
 
 -- | Join a distributed array, yielding a mutable global array
 joinDM :: Unbox a => Gang -> Dist (Vector a) -> ST s (MVector s a)
-joinDM g darr 
- = checkGangD (here "joinDM") g darr 
+joinDM gang darr 
+ = checkGangD (here "joinDM") gang darr 
  $ do   marr <- Seq.newM n
-        zipWithDST_ g (copy marr) di darr
+        zipWithDST_ (WhatJoinCopy n) gang (copy marr) di darr
         return marr
  where
-        (!di,!n) = scanD (What "joinDM") g (+) 0 
+        (!di,!n) = scanD (What "joinDM/count") gang (+) 0 
                  $ lengthD darr
 
-        copy ma i arr   = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
+        copy ma i arr   
+                 = stToDistST (Seq.copy (Seq.mslice i (Seq.length arr) ma) arr)
 {-# INLINE joinDM #-}
 
 
@@ -266,7 +273,7 @@ permuteD
         :: forall a. Unbox a 
         => Gang -> Dist (Vector a) -> Dist (Vector Int) -> Vector a
 permuteD g darr dis 
-  = Seq.new n (\ma -> zipWithDST_ g (permute ma) darr dis)
+  = Seq.new n (\ma -> zipWithDST_ (What "permuteD") g (permute ma) darr dis)
   where
     n = joinLengthD g darr
 
@@ -297,7 +304,7 @@ atomicUpdateD :: forall a. Unbox a
 atomicUpdateD g darr upd 
  = runST 
  $ do   marr <- joinDM g darr
-        mapDST_ g (update marr) upd
+        mapDST_ (What "atomicUpdateD") g (update marr) upd
         Seq.unsafeFreeze marr
  where
         update :: forall s. MVector s a -> Vector (Int,a) -> DistST s ()

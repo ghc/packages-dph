@@ -50,9 +50,13 @@ module Data.Array.Parallel.Unlifted.Parallel
           -- * Index and Extracts
         , indexsFromVector
         , indexsFromVectorsUPVSegd
+        , indexsFromVectorsUPVSegdP
+
         , extractsFromNestedUPSSegd
         , extractsFromVectorsUPSSegd
+
         , extractsFromVectorsUPVSegd
+        , extractsFromVectorsUPVSegdP
 
           -- * Subarrays
         , dropUP

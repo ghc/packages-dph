@@ -49,6 +49,7 @@ import Prelude                                                  hiding (length)
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as U
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
+import Debug.Trace
 
 here :: String -> String 
 here s = "Data.Array.Parallel.Unlifted.Sequential.UVSegd." ++ s
@@ -307,9 +308,13 @@ getSeg uvsegd ix
 -- 
 unsafeDemoteToUSSegd :: UVSegd -> USSegd
 unsafeDemoteToUSSegd uvsegd
- | uvsegd_manifest uvsegd       = uvsegd_ussegd_culled uvsegd           -- TODO: take the redundant ones
- | otherwise
- = let  vsegids         = uvsegd_vsegids_culled uvsegd
+ = traceEvent 
+        (  "dph-prim-seq: UVSegd.unsafeDemoteToUSSSegd"
+        ++ " length(segmap) = " ++ show (U.length $ takeVSegids uvsegd))
+ $ if uvsegd_manifest uvsegd    
+    then uvsegd_ussegd_culled uvsegd           -- TODO: take the redundant ones
+    else let 
+        vsegids         = uvsegd_vsegids_culled uvsegd
         ussegd          = uvsegd_ussegd_culled  uvsegd
         starts'         = U.bpermute (USSegd.takeStarts  ussegd) vsegids
         sources'        = U.bpermute (USSegd.takeSources ussegd) vsegids
@@ -333,7 +338,10 @@ unsafeDemoteToUSSegd uvsegd
 --
 unsafeDemoteToUSegd :: UVSegd -> USegd
 unsafeDemoteToUSegd (UVSegd _ _ vsegids _ ussegd)
-        = USegd.fromLengths
+ = traceEvent
+        (  "dph-prim-seq: UVSegd.unsafeDemoteToUSegd"
+        ++ " length(segmap) = " ++ show (U.length vsegids))
+ $ USegd.fromLengths
         $ U.bpermute (USSegd.takeLengths ussegd) vsegids
 {-# NOINLINE unsafeDemoteToUSegd #-}
 --  NOINLINE because it won't fuse with anything.
@@ -433,7 +441,11 @@ appendWith
         (UVSegd _ _ vsegids1 _ ussegd1) pdatas1
         (UVSegd _ _ vsegids2 _ ussegd2) pdatas2
 
- = let  -- vsegids releative to appended psegs
+ = traceEvent 
+        (  "dph-prim-seq: UVSegd.appendWith"
+        ++ "length(result) = " ++ (show $ U.length vsegids1 + U.length vsegids2))
+ $ let  
+        -- vsegids releative to appended psegs
         vsegids1' = vsegids1
         vsegids2' = U.map (+ USSegd.length ussegd1) vsegids2
         
@@ -446,7 +458,7 @@ appendWith
                                 ussegd2 pdatas2
                                  
    in   UVSegd False vsegids' vsegids' ussegd' ussegd'
-{-# INLINE_U appendWith #-}
+{-# NOINLINE appendWith #-}
 
 
 -- combine --------------------------------------------------------------------
@@ -484,16 +496,20 @@ appendWith
 combine2
         :: USel2       -- ^ Selector for the combine operation.
         -> UVSegd      -- ^ Descriptor of first array.
-        -> Int          -- ^ Number of flat physical arrays for first descriptor.
+        -> Int         -- ^ Number of flat physical arrays for first descriptor.
         -> UVSegd      -- ^ Descriptor of second array.
-        -> Int          -- ^ Number of flat physical arrays for second descriptor.
+        -> Int         -- ^ Number of flat physical arrays for second descriptor.
         -> UVSegd
         
 combine2  usel2
         (UVSegd _ _ vsegids1 _ ussegd1) pdatas1
         (UVSegd _ _ vsegids2 _ ussegd2) pdatas2
 
- = let  -- vsegids relative to combined psegs
+ = traceEvent
+        (  "dph-prim-seq: UVSegd.combine2"
+        ++ "length(result) = " ++ show (U.length $ tagsUSel2 usel2))
+ $ let  
+        -- vsegids relative to combined psegs
         vsegids1' = vsegids1
         vsegids2' = U.map (+ (U.length vsegids1)) vsegids2
 
@@ -507,4 +523,5 @@ combine2  usel2
                                 ussegd2 pdatas2
                                   
    in   UVSegd False vsegids' vsegids' ussegd' ussegd'
-{-# INLINE_U combine2 #-}
+{-# NOINLINE combine2 #-}
+
