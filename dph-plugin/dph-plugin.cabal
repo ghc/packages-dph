@@ -1,0 +1,24 @@
+Name:           dph-plugin
+Version:        0.6.1
+License:        BSD3
+License-File:   LICENSE
+Synopsis:       Data Parallel Haskell Simplifier Plugin
+Cabal-Version:  >= 1.10
+Build-Type:     Simple
+Author:         The DPH Team
+Maintainer:     The DPH Team
+
+source-repository head
+        type: git
+        location: http://darcs.haskell.org/libraries/dph.git
+
+Library
+  Exposed-Modules:
+        DPH.Plugin
+
+  Build-Depends:
+        base    == 4.6.*,
+        ghc     >= 7.5
+
+  Default-Language:
+        Haskell2010
