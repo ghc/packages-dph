@@ -32,7 +32,7 @@ vectoriserPipeline
 
         -- Run the vectoriser.
    ,    CoreDoVectorisation 
-   ,    CoreDoPluginPass "Dump" (passDump "vectorised")
+   ,    CoreDoPluginPass "Dump" (passDump "1-vectorised")
 
         ---------------------
         -- In the following stages we inline the different combinator
@@ -50,7 +50,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "closures")
+   ,    CoreDoPluginPass "Dump" (passDump "2-closures")
 
         -- Inline PArray and PData combinators.
    ,    CoreDoSimplify 10
@@ -62,7 +62,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "parray")
+   ,    CoreDoPluginPass "Dump" (passDump "3-parray")
 
         -- Inline unlifted backend.
    ,    CoreDoSimplify 10
@@ -74,7 +74,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "backend")
+   ,    CoreDoPluginPass "Dump" (passDump "4-backend")
 
         -- Inline stream functions.
    ,    CoreDoSimplify 10
@@ -86,7 +86,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "stream")
+   ,    CoreDoPluginPass "Dump" (passDump "5-stream")
 
         -- Inline inner loops and everything else.
    ,    CoreDoSimplify 10
@@ -98,7 +98,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "inner")
+   ,    CoreDoPluginPass "Dump" (passDump "6-inner")
 
 
         ---------------------

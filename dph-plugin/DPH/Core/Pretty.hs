@@ -12,6 +12,8 @@ import Name
 import OccName
 import DataCon
 import Literal
+import Id
+import Unique
 
 
 -- Top Binds ------------------------------------------------------------------
@@ -44,21 +46,25 @@ pprBinding (binder, x)
               
 
 
-
 -- Expr -----------------------------------------------------------------------
 instance Pretty a => Pretty (Expr a) where
  pprPrec d xx
   = case xx of
-        Var  name       -> ppr name
-        Type _          -> empty        -- Discard Types
-        Coercion _      -> empty        -- Discard Coercions
+        Var  ident
+         -> pprBound ident 
+
+        -- Discard types and coersions
+        Type _          -> empty 
+        Coercion _      -> empty
+
+        -- Literals.
         Lit ll          -> ppr ll
 
+        -- Suppress Casts completely.
         Cast x _co
          -> pprPrec d x
---         pprParen' (d > 10)
---         $  pprPrec 11 x <+> text "`cast`" <+> text "..."
 
+        -- Abstractions.
         Lam{}
          -> pprParen' (d > 2)
          $  let (bndrs, body) = collectBinders xx
@@ -68,6 +74,7 @@ instance Pretty a => Pretty (Expr a) where
                         $ (breakWhen $ not $ isSimpleX body)
                          <> ppr body)
 
+        -- Applications.
         App x1 x2
          |  isTypeArg x2
          -> pprPrec d x1
@@ -78,12 +85,13 @@ instance Pretty a => Pretty (Expr a) where
                 <> nest 4 (breakWhen (not $ isSimpleX x2) 
                                 <> pprPrec 11 x2)
 
+        -- Destructors.
         Case x1 var ty [(con, binds, x2)]
          -> pprParen' (d > 2)
          $  text "let" 
                 <+> (fill 12 (ppr con <+> hsep (map ppr binds)))
 --                <>  breakWhen (not $ isSimpleX x1)
-                        <>  text "<-"
+                        <+>  text "<-"
                         <+> ppr x1
                         <+> text "in"
                 <$$> ppr x2
@@ -97,7 +105,7 @@ instance Pretty a => Pretty (Expr a) where
                         <> vcat (punctuate semi $ map pprAlt alts))
          <>  line <> rbrace
 
-
+        -- Binding.
         Let (NonRec b x1) x2
          -> pprParen' (d > 2)
          $  text "let" 
@@ -127,6 +135,19 @@ instance Pretty AltCon where
         DEFAULT         -> text "_"
 
 
+-- | Pretty print bound occurrences of an identifier
+pprBound :: Id -> Doc
+pprBound i
+        -- Suppress uniqueids from primops, dictionary functions and data constructors
+        -- These are unlikely to have conflicting base names.
+        |   isPrimOpId i || isDFunId i || isDataConWorkId i
+        =  ppr (idName i)
+
+        | otherwise
+        = ppr (idName i) <> text "_" <> text (show $ idUnique i)
+
+
+
 -- Literal --------------------------------------------------------------------
 instance Pretty Literal where
  ppr _  = text "<LITERAL>"
@@ -143,15 +164,16 @@ instance Pretty Coercion where
 
 
 -- Names ----------------------------------------------------------------------
+instance Pretty CoreBndr where
+ ppr bndr
+        =  ppr (idName bndr)
+        <> text "_"
+        <> text (show $ idUnique bndr)
+
+
 instance Pretty DataCon where
  ppr con 
         = ppr (dataConName con)
-
-
-instance Pretty CoreBndr where
- ppr bndr
-        = ppr (Var.varName bndr)
-
 
 instance Pretty Name where
  ppr name
