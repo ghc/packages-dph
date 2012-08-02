@@ -19,6 +19,7 @@ Library
   Other-Modules:
         DPH.Pipeline
         DPH.Pass.Dump
+        DPH.Pass.Summon
         DPH.Core.Pretty
         DPH.Base.Pretty
 
