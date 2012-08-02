@@ -11,10 +11,8 @@ import System.IO.Unsafe
 passDump :: String -> ModGuts -> CoreM ModGuts
 passDump name guts
  = unsafePerformIO
- $ do   let mdl = mg_module guts
-        let binds = mg_binds guts 
-
+ $ do
         writeFile ("dump." ++ name ++ ".hs")
-         $ render RenderIndent (pprTopBinds binds)
+         $ render RenderIndent (pprModGuts guts)
 
         return (return guts)

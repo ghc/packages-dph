@@ -2,6 +2,7 @@
 module DPH.Pipeline 
         (vectoriserPipeline)
 where
+import DPH.Pass.Summon
 import DPH.Pass.Dump
 import GhcPlugins
 
@@ -50,7 +51,10 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "2-closures")
+   ,    CoreDoPluginPass "Dump"   (passDump "2-closures")
+   ,    CoreDoPluginPass "Summon"  passSummon
+   ,    CoreDoPluginPass "Dump"   (passDump "2-closures-summoned")
+
 
         -- Inline PArray and PData combinators.
    ,    CoreDoSimplify 10

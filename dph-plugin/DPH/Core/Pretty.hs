@@ -1,9 +1,12 @@
 
 module DPH.Core.Pretty 
         ( module DPH.Base.Pretty
+        , pprModGuts
         , pprTopBinds)
 where
 import DPH.Base.Pretty
+import HscTypes
+import Avail
 import CoreSyn
 import Type
 import Coercion
@@ -14,6 +17,35 @@ import DataCon
 import Literal
 import Id
 import Unique
+import qualified UniqFM as UFM
+
+-- Guts -----------------------------------------------------------------------
+pprModGuts :: ModGuts -> Doc
+pprModGuts guts
+ = vcat
+ [ text "Exports:" 
+        <+> ppr (mg_exports guts)
+ , empty
+
+ , text "VectInfo:"
+        <+> ppr (mg_vect_info guts)
+ , empty
+
+ , pprTopBinds $ mg_binds guts]
+
+
+-- | An AvailInfo carries an exported name.
+instance Pretty AvailInfo where
+ ppr aa
+  = case aa of
+        Avail n         -> ppr n
+        AvailTC n _     -> ppr n
+
+
+-- | The VectInfo maps names to their vectorised versions. 
+instance Pretty VectInfo where
+ ppr vi
+  = ppr $ UFM.eltsUFM (vectInfoVar vi)
 
 
 -- Top Binds ------------------------------------------------------------------
