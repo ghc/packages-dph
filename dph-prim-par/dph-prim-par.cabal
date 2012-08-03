@@ -72,7 +72,7 @@ Library
 
   GHC-Options:
         -Odph -funbox-strict-fields
-        -fcpr-off -Wall -eventlog
+        -fcpr-off -Wall
 
   Build-Depends:  
         base               == 4.6.*,
