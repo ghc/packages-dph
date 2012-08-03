@@ -114,7 +114,7 @@ instance Pretty a => Pretty (Expr a) where
          |  otherwise
          -> pprParen' (d > 10)
          $  ppr x1
-                <> nest 4 (breakWhen (not $ isSimpleX x2) 
+                <> nest 2 (breakWhen (not $ isSimpleX x2) 
                                 <> pprPrec 11 x2)
 
         -- Destructors.
@@ -148,7 +148,14 @@ instance Pretty a => Pretty (Expr a) where
                 <$$> ppr x2
 
         Let (Rec bxs) x2
-          -> text "LETREC"
+          -> pprParen' (d > 2)
+          $  text "letrec {"
+                <+> vcat [ fill 12 (ppr b)
+                                 <+> equals
+                                 <+> ppr x
+                         | (b, x) <- bxs]
+                <+> text "} in"
+                <$$> ppr x2
 
         _ -> text "DUNNO"
 

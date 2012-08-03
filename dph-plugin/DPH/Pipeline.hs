@@ -146,6 +146,9 @@ vectoriserPipeline
    ,    CoreCSE
    ,    CoreDoFloatInwards
 
+   ,    CoreDoStrictness
+   ,    CoreDoStaticArgs
+
         -- Final simplification.
    ,    CoreDoSimplify 20
                 SimplMode
@@ -155,4 +158,6 @@ vectoriserPipeline
                 , sm_eta_expand = True
                 , sm_inline     = True
                 , sm_case_case  = True }
+
+   ,    CoreDoPluginPass "Dump"   (passDump "7-final")
    ]
