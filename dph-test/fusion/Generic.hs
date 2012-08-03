@@ -27,7 +27,7 @@ lockedZip
 
 lockedZip aa bb
         = unstream $ lockedStream2 aa bb 
-{-# INLINE [1] lockedZip #-}
+{-# INLINE lockedZip #-}
 
 
 -- | Zip three vectors of the same length.
@@ -39,6 +39,6 @@ lockedZip3
 
 lockedZip3 aa bb cc
         = unstream $ lockedStream3 aa bb cc
-{-# INLINE [1] lockedZip3 #-}
+{-# INLINE lockedZip3 #-}
 
 
