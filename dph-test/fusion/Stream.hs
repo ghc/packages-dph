@@ -56,61 +56,58 @@ repeatM x
 
 
 -- Locked Streamers -----------------------------------------------------------
-lockedStream2 
-        :: (Monad m, Vector v a, Vector v b)
+stream2 :: (Monad m, Vector v a, Vector v b)
         => v a -> v b
         -> Stream m (a, b)
 
-lockedStream2 aa bb
- = lockedZip2S (G.length aa) (swallow aa) (swallow bb)
-{-# INLINE [1] lockedStream2 #-}
+stream2 aa bb
+ = map2S (G.length aa) (swallow aa) (swallow bb)
+{-# INLINE [1] stream2 #-}
 
 
 -- | Stream three things.
-lockedStream3
-        :: (Monad m, Vector v a, Vector v b, Vector v c)
+stream3 :: (Monad m, Vector v a, Vector v b, Vector v c)
         => v a -> v b -> v c 
         -> Stream m (a, b, c)
 
-lockedStream3 aa bb cc
- = lockedZip3S (G.length aa) (swallow aa) (swallow bb) (swallow cc)
-{-# INLINE [1] lockedStream3 #-}
+stream3 aa bb cc
+ = map3S (G.length aa) (swallow aa) (swallow bb) (swallow cc)
+{-# INLINE [1] stream3 #-}
 
 
-{-# RULES "lockedStream3/new_1"
+{-# RULES "stream3/new_1"
     forall as bs cs
-    . lockedStream3 (G.new as) bs cs
+    . stream3 (G.new as) bs cs
     = S.map (\((b, c), a) -> (a, b, c))
-    $ lockedZip2S (G.length bs) (lockedSwallow2 bs cs) (swallow (G.new as))
+    $ map2S (G.length bs) (swallow2 bs cs) (swallow (G.new as))
   #-}
 
-{-# RULES "lockedStream3/new_2"
+{-# RULES "stream3/new_2"
     forall as bs cs
-    . lockedStream3 as (G.new bs) cs
+    . stream3 as (G.new bs) cs
     = S.map (\((a, c), b) -> (a, b, c))
-    $ lockedZip2S (G.length as) (lockedSwallow2 as cs) (swallow (G.new bs))
+    $ map2S (G.length as) (swallow2 as cs) (swallow (G.new bs))
   #-}
 
-{-# RULES "lockedStream3/new_3"
+{-# RULES "stream3/new_3"
     forall as bs cs
-    . lockedStream3 as bs (G.new cs)
+    . stream3 as bs (G.new cs)
     = S.map (\((a, b), c) -> (a, b, c))
-    $ lockedZip2S (G.length as) (lockedSwallow2 as bs) (swallow (G.new cs))
+    $ map2S (G.length as) (swallow2 as bs) (swallow (G.new cs))
   #-}
 
 
 
 -- Locked Swallowers ---------------------------------------------------------
-
 -- | Swallow two things.
 --   There is no end-of vector check.
 --   The context needs to know how many elements to demand.
-lockedSwallow2 
+swallow2 
         :: (Monad m, Vector v a, Vector v b)
         => v a -> v b 
         -> Stream m (a, b)
 
-lockedSwallow2 aa bb
+swallow2 aa bb
  = aa `seq` bb `seq` n `seq` (S.unfoldr get 0 `S.sized` Unknown)
  where  n        = G.length aa
 
@@ -119,17 +116,16 @@ lockedSwallow2 aa bb
          | Box a        <- basicUnsafeIndexM aa i
          , Box b        <- basicUnsafeIndexM bb i
          = Just ((a, b), i + 1)
-{-# INLINE [1] lockedSwallow2 #-}
+{-# INLINE [1] swallow2 #-}
 
 
--- Locked Stream Zippers -----------------------------------------------------
-lockedZip2S 
-        :: Monad m 
+-- Locked maps ----------------------------------------------------------------
+map2S   :: Monad m 
         => Int
         -> Stream m a -> Stream m b 
         -> Stream m (a, b)
 
-lockedZip2S len
+map2S len
         (Stream mkStep1 sa1 _)
         (Stream mkStep2 sa2 _)
  = Stream step (sa1, sa2, 0) (S.Exact len)
@@ -143,16 +139,16 @@ lockedZip2S len
                           (Yield x1 s1', Yield x2 s2')
                             | i < len   -> Yield (x1, x2) (s1', s2', i + 1)
                           _             -> Done
-{-# INLINE [1] lockedZip2S #-}
+{-# INLINE [1] map2S #-}
 
 
-lockedZip3S 
+map3S 
         :: Monad m 
         => Int
         -> Stream m a -> Stream m b -> Stream m c
         -> Stream m (a, b, c)
 
-lockedZip3S len
+map3S len
         (Stream mkStep1 sa1 _)
         (Stream mkStep2 sa2 _)
         (Stream mkStep3 sa3 _)
@@ -169,5 +165,5 @@ lockedZip3S len
                            | i < len    -> Yield (x1, x2, x3) (s1', s2', s3', i + 1)
 
                           _ -> Done
-{-# INLINE [1] lockedZip3S #-}
+{-# INLINE [1] map3S #-}
 

@@ -23,8 +23,7 @@ test2   :: Vector Int
         -> Vector Int
 
 test2 aa bb 
-        = lockedZipWith3 
-                (\x y z -> x + y + z)
+        = map3  (\x y z -> x + y + z)
                 aa 
                 bb
                 (V.replicate (V.length aa) 12345)

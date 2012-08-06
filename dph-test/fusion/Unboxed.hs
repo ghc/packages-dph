@@ -23,24 +23,22 @@ lockedZip3 = G.lockedZip3
 {-# INLINE lockedZip3 #-}
 
 
--- Locked ZipWiths ------------------------------------------------------------
-lockedZipWith2 
-        :: (Unbox a, Unbox b, Unbox c)
+-- Locked Maps ----------------------------------------------------------------
+map2    :: (Unbox a, Unbox b, Unbox c)
         => (a -> b -> c)
         -> Vector a -> Vector b -> Vector c
 
-lockedZipWith2 f aa bb
+map2 f aa bb
         = U.map (\(a, b) -> f a b)
         $ lockedZip aa bb
-{-# INLINE lockedZipWith2 #-}
+{-# INLINE map2 #-}
 
 
-lockedZipWith3
-        :: (Unbox a, Unbox b, Unbox c, Unbox d)
+map3    :: (Unbox a, Unbox b, Unbox c, Unbox d)
         => (a -> b -> c -> d)
         -> Vector a -> Vector b -> Vector c -> Vector d
 
-lockedZipWith3 f aa bb cc
+map3 f aa bb cc
         = U.map (\(a, b, c) -> f a b c)
         $ lockedZip3 aa bb cc
-{-# INLINE lockedZipWith3 #-}
+{-# INLINE map3 #-}

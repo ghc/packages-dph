@@ -32,17 +32,29 @@ Library
         Data.Array.Parallel.Unlifted.Sequential.Combinators
         Data.Array.Parallel.Unlifted.Sequential.Sums
         Data.Array.Parallel.Unlifted.Sequential.Extracts
+        Data.Array.Parallel.Unlifted.Sequential.Locked
         Data.Array.Parallel.Unlifted.Stream.Segmented
         Data.Array.Parallel.Unlifted.Stream.Ixs
         Data.Array.Parallel.Unlifted.Stream.Elems
         Data.Array.Parallel.Unlifted.Stream.Segments
+        Data.Array.Parallel.Unlifted.Stream.Swallow
+        Data.Array.Parallel.Unlifted.Stream.Locked
   
 
   Exposed: False
 
-  Extensions: TypeFamilies, GADTs, RankNTypes,
-              BangPatterns, MagicHash, UnboxedTuples, TypeOperators,
-              NoMonomorphismRestriction
+  Extensions: 
+        TypeFamilies
+        GADTs
+        RankNTypes
+        BangPatterns
+        MagicHash
+        UnboxedTuples
+        TypeOperators
+        NoMonomorphismRestriction
+        PatternGuards
+        FlexibleContexts
+
   GHC-Options:
         -Odph -Wall
         -funbox-strict-fields -fcpr-off
@@ -52,6 +64,12 @@ Library
         random    == 1.0.*,
         vector    == 0.9.*,
         primitive == 0.4.*,
+<<<<<<< HEAD
         ghc-prim  == 0.3.*,
         dph-base  == 0.8.*,
         dph-prim-interface == 0.8.*
+=======
+        ghc-prim  == 0.2.*,
+        dph-base  == 0.6.*,
+        dph-prim-interface == 0.6.*
+>>>>>>> dph-prim-seq: Add lockedZipWiths up to 8
