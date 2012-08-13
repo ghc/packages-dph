@@ -4,12 +4,14 @@ module Data.Array.Parallel.Unlifted.Stream.Segments
         ( streamSegsFromNestedUSSegd
         , streamSegsFromVectorsUSSegd
         , streamSegsFromVectorsUVSegd
-        , streamSegsFromVectorsUSSegdSegmap)
+        , streamSegsFromVectorsUSSegdSegmap
+        , streamSegsFromVectorsUSSegd_split)
 where
 import Data.Vector.Fusion.Stream.Size
 import Data.Vector.Fusion.Stream.Monadic
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Unbox,   Vector, index)
 import Data.Array.Parallel.Unlifted.Vectors                     (Unboxes, Vectors)
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd(..))
 import Data.Array.Parallel.Unlifted.Sequential.USSegd           (USSegd(..))
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd           (UVSegd(..))
 import qualified Data.Array.Parallel.Unlifted.Vectors           as US
@@ -234,4 +236,73 @@ streamSegsFromVectorsUSSegdSegmap
    in   Stream fnSeg initState (Exact elemsTotal)
 {-# INLINE_STREAM streamSegsFromVectorsUSSegdSegmap #-}
 
+
+
+
+streamSegsFromVectorsUSSegd_split
+        :: (Unboxes a, Monad m)
+        => Vectors a            -- ^ Vectors holding source data.
+        -> USSegd               -- ^ Scattered segment descriptor
+        -> Vector Int           -- ^ Virtual segment ids
+        -> ((USegd,Int),Int)    -- ^ Segmap
+        -> Stream m a
+
+streamSegsFromVectorsUSSegd_split
+        vectors (USSegd _ segStarts segSources usegd)
+        vsegids ((segd,seg_off),el_off)
+ = segStarts `seq` segSources `seq` usegd `seq` segd `seq` seg_off `seq` el_off `seq`
+   let  here            = "streamSegsFromVectorsUSSegd_split"
+
+        -- Total number of elements to be streamed
+        !lengths        = USegd.takeLengths segd
+        !elemsTotal     = U.sum lengths
+
+
+
+        -- Total number of segments.
+        !segsTotal      = U.length lengths
+        
+        -- seg, ix of that seg in usegd, length of seg, elem in seg
+        {-# INLINE_INNER fnSeg #-}
+        fnSeg (ixSeg, baSeg, ixEnd, ixElem)
+         = ixSeg `seq` baSeg `seq`
+           if ixElem >= ixEnd                   -- Was that the last elem in the current seg?
+            then if ixSeg + 1 >= segsTotal      -- Was that last seg?
+
+                       -- That was the last seg, we're done.
+                  then return $ Done
+                  
+                       -- Move to the next seg.
+                  else let ixSeg'       = ixSeg + 1
+                           ixPSeg       = index here vsegids (ixSeg' + seg_off)
+                           sourceSeg    = index here segSources ixPSeg
+                           startSeg     = index here segStarts  ixPSeg
+                           lenSeg       = index here lengths ixSeg'
+                           el_off'      = if ixSeg' == 0 then el_off else 0
+                           (arr, startArr, _) 
+                                        = US.unsafeIndexUnpack vectors sourceSeg
+                       in  return $ Skip
+                                  ( ixSeg'
+                                  , arr
+                                  , startArr + startSeg + lenSeg
+                                  , startArr + startSeg + el_off')
+
+                 -- Stream the next element from the segment.
+            else let !result  = P.indexByteArray baSeg ixElem
+                 in  return   $ Yield result (ixSeg, baSeg, ixEnd, ixElem + 1)
+                                 
+        -- Starting state of the stream.
+        !dummy  = unsafePerformIO 
+                $ P.newByteArray 0 >>= P.unsafeFreezeByteArray
+
+        !initState
+         =      ( -1    -- force fnSeg loop to load first seg
+                , dummy -- dummy array data to start with
+                , 0     -- force fnSeg loop to load first seg
+                , 0)           
+
+        -- It's important that we set the result stream size, so Data.Vector
+        -- doesn't need to add code to grow the result when it overflows.
+   in   Stream fnSeg initState (Exact elemsTotal)
+{-# INLINE_STREAM streamSegsFromVectorsUSSegd_split #-}
 

@@ -119,7 +119,7 @@ extract arr i n
 
 extracts_nss    = extractsFromNestedUPSSegd
 extracts_ass    = extractsFromVectorsUPSSegd
-extracts_avs    = extractsFromVectorsUPVSegd
+extracts_avs    = extractsFromVectorsUPVSegdP
 
 drop n arr
         =  tracePrim (TraceDrop n (Seq.length arr))

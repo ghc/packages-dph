@@ -26,7 +26,7 @@ module Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
           -- * Monadic combinators
         , mapDST_, mapDST, zipWithDST_, zipWithDST)
 where
-import Data.Array.Parallel.Unlifted.Distributed.What
+import qualified Data.Array.Parallel.Unlifted.Distributed.What as W
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
@@ -89,7 +89,7 @@ writeMyMD mdt x
 
 -- Running --------------------------------------------------------------------
 -- | Run a data-parallel computation, yielding the distributed result.
-runDistST :: DT a => Comp -> Gang -> (forall s. DistST s a) -> Dist a
+runDistST :: DT a => W.Comp -> Gang -> (forall s. DistST s a) -> Dist a
 runDistST comp g p 
  = runST $ distST comp g p
 {-# NOINLINE runDistST #-}
@@ -116,7 +116,7 @@ runDistST_seq g p
 
 -- | Execute a data-parallel computation, yielding the distributed result.
 distST  :: DT a 
-        => Comp -> Gang 
+        => W.Comp -> Gang 
         -> DistST s a -> ST s (Dist a)
 distST comp g p 
  = do   md <- newMD g
@@ -130,7 +130,7 @@ distST comp g p
 
 -- | Execute a data-parallel computation on a 'Gang'.
 --   The same DistST comutation runs on each thread.
-distST_ :: Comp -> Gang -> DistST s () -> ST s ()
+distST_ :: W.Comp -> Gang -> DistST s () -> ST s ()
 distST_ comp gang proc
         = gangST gang 
                 (show comp) 
@@ -138,16 +138,16 @@ distST_ comp gang proc
         $ unDistST proc
 {-# INLINE distST_ #-}
 
-workloadOfComp :: Comp -> Workload
+workloadOfComp :: W.Comp -> Workload
 workloadOfComp cc
  = case cc of
-        CompDist w              -> workloadOfWhat w
+        W.CDist w               -> workloadOfWhat w
         _                       -> WorkUnknown
 
-workloadOfWhat :: What -> Workload
+workloadOfWhat :: W.What -> Workload
 workloadOfWhat ww
  = case ww of
-        WhatJoinCopy elems      -> WorkCopy elems 
+        W.WJoinCopy elems       -> WorkCopy elems 
         _                       -> WorkUnknown
 
 -- Combinators ----------------------------------------------------------------
@@ -158,35 +158,35 @@ workloadOfWhat ww
 -- model andlead to a deadlock. Hence the bangs.
 
 mapDST  :: (DT a, DT b) 
-        => What -> Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+        => W.What -> Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
 mapDST what g p !d 
  = mapDST' what g (\x -> x `deepSeqD` p x) d
 {-# INLINE mapDST #-}
 
 
-mapDST_ :: DT a => What -> Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+mapDST_ :: DT a => W.What -> Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
 mapDST_ what g p !d 
  = mapDST_' what g (\x -> x `deepSeqD` p x) d
 {-# INLINE mapDST_ #-}
 
 
-mapDST' :: (DT a, DT b) => What -> Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
+mapDST' :: (DT a, DT b) => W.What -> Gang -> (a -> DistST s b) -> Dist a -> ST s (Dist b)
 mapDST' what g p !d 
- = distST (CompDist what) g (myD d >>= p)
+ = distST (W.CDist what) g (myD d >>= p)
 {-# INLINE mapDST' #-}
 
 
 mapDST_' 
         :: DT a 
-        => What -> Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
+        => W.What -> Gang -> (a -> DistST s ()) -> Dist a -> ST s ()
 mapDST_' what g p !d 
- = distST_ (CompDist what) g (myD d >>= p)
+ = distST_ (W.CDist what) g (myD d >>= p)
 {-# INLINE mapDST_' #-}
 
 
 zipWithDST 
         :: (DT a, DT b, DT c)
-        => What 
+        => W.What 
         -> Gang
         -> (a -> b -> DistST s c) -> Dist a -> Dist b -> ST s (Dist c)
 zipWithDST what g p !dx !dy 
@@ -196,7 +196,7 @@ zipWithDST what g p !dx !dy
 
 zipWithDST_ 
         :: (DT a, DT b)
-        => What -> Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
+        => W.What -> Gang -> (a -> b -> DistST s ()) -> Dist a -> Dist b -> ST s ()
 zipWithDST_ what g p !dx !dy 
  = mapDST_ what g (uncurry p) (zipD dx dy)
 {-# INLINE zipWithDST_ #-}

@@ -8,29 +8,29 @@ where
 
 -- | What distributed computation we are doing.
 data Comp
-        = CompGen       { compCheap     :: Bool
-                        , compWhat      :: What}
+        = CGen          Bool            -- ^ cheap
+                        What
 
-        | CompMap       { compWhat      :: What }
-        | CompFold      { compWhat      :: What }
-        | CompScan      { compWhat      :: What }
-        | CompDist      What
-        deriving Show
+        | CMap          What
+        | CFold         What
+        | CScan         What
+        | CDist         What
+        deriving (Eq,Ord,Read,Show)
 
 -- | What sort of thing is being computed.
 data What
-        = What            String
-        | WhatScalar 
-        | WhatZip
-        | WhatSlice
-        | WhatLength
-        | WhatLengthIdx
-        | WhatBpermute
+        = What          String
+        | WScalar 
+        | WZip
+        | WSlice
+        | WLength
+        | WLengthIdx
+        | WBpermute
 
         -- Copy due to a join instruction.
-        | WhatJoinCopy  { whatElems     :: Int }
+        | WJoinCopy     Int             -- ^ number elements
 
-        | WhatFusedMapMap What What
-        | WhatFusedMapGen What What
-        | WhatFusedZipMap What What
-        deriving Show
+        | WFMapMap      What What
+        | WFMapGen      What What
+        | WFZipMap      What What
+        deriving (Eq,Ord,Read,Show)

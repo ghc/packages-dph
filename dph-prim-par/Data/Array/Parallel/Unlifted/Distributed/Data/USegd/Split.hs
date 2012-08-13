@@ -354,7 +354,7 @@ splitSD g dsegd xs
 "splitSD/Seq.zip" 
   forall g d xs ys
   . splitSD g d (Seq.zip xs ys) 
-  = zipWithD WhatZip g Seq.zip 
+  = zipWithD WZip g Seq.zip 
         (splitSD g d xs)
         (splitSD g d ys)
 

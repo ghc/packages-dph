@@ -20,7 +20,7 @@ import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.DistST
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
-import Data.Array.Parallel.Unlifted.Distributed.What
+import qualified Data.Array.Parallel.Unlifted.Distributed.What as W
 import Debug.Trace
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
@@ -30,13 +30,13 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 --   for each thread.
 generateD 
         :: DT a 
-        => What         -- ^ What is the worker function doing.
+        => W.What         -- ^ What is the worker function doing.
         -> Gang 
         -> (Int -> a) 
         -> Dist a
 
 generateD what gang f 
- = runDistST (CompGen False what) 
+ = runDistST (W.CGen False what) 
         gang 
         (myIndex >>= return . f)
 {-# NOINLINE generateD #-}
@@ -51,13 +51,13 @@ generateD what gang f
 --   
 generateD_cheap 
         :: DT a 
-        => What          -- ^ What is the worker function doing.
+        => W.What          -- ^ What is the worker function doing.
         -> Gang 
         -> (Int -> a) 
         -> Dist a
 
 generateD_cheap what g f 
-        = traceEvent (show $ CompGen True what) 
+        = traceEvent (show $ W.CGen True what) 
         $ runDistST_seq g (myIndex >>= return . f)
 {-# NOINLINE generateD_cheap #-}
 
@@ -66,9 +66,9 @@ generateD_cheap what g f
 -- | Map a function across all elements of a distributed value.
 --   The worker function also gets the current thread index.
 imapD'  :: (DT a, DT b) 
-        => What -> Gang -> (Int -> a -> b) -> Dist a -> Dist b
+        => W.What -> Gang -> (Int -> a -> b) -> Dist a -> Dist b
 imapD' what gang f !d 
-  = runDistST (CompMap what) gang 
+  = runDistST (W.CMap what) gang 
   $ do  i               <- myIndex
         x               <- myD d
         let result      = f i x
@@ -79,9 +79,9 @@ imapD' what gang f !d
 
 -- Folding --------------------------------------------------------------------
 -- | Fold all the instances of a distributed value.
-foldD :: DT a => What -> Gang -> (a -> a -> a) -> Dist a -> a
+foldD :: DT a => W.What -> Gang -> (a -> a -> a) -> Dist a -> a
 foldD what gang f !d 
-  = traceEvent (show (CompFold what))
+  = traceEvent (show (W.CFold what))
   $ checkGangD ("here foldD") gang d 
   $ fold 1 (indexD (here "foldD") d 0)
   where
@@ -95,9 +95,9 @@ foldD what gang f !d
 
 -- Scanning -------------------------------------------------------------------
 -- | Prefix sum of the instances of a distributed value.
-scanD :: forall a. DT a => What -> Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
+scanD :: forall a. DT a => W.What -> Gang -> (a -> a -> a) -> a -> Dist a -> (Dist a, a)
 scanD what gang f z !d
-  = traceEvent (show (CompScan what))
+  = traceEvent (show (W.CScan what))
   $ checkGangD (here "scanD") gang d 
   $ runST (do
         md <- newMD gang

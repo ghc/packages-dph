@@ -1,5 +1,5 @@
 Name:                dph-event-seer
-Version:             0.0.0.1
+Version:             0.6.0.1
 License:             BSD3
 License-file:        LICENSE
 Author:              The DPH Team
@@ -15,8 +15,10 @@ Synopsis:            Analyse eventlog files for time spent in garbage collection
 Executable dph-event-seer
   Build-depends:
         base                == 4.*,
-        containers          == 0.4.*,
-        ghc-events          == 0.4.*
+        dph-prim-par        == 0.6.*,
+        containers          == 0.5.*,
+        ghc-events          == 0.4.*,
+        pretty              >= 1.1
 
   Main-is:        Main.hs
   hs-source-dirs: src

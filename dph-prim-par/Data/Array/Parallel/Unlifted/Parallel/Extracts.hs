@@ -25,6 +25,9 @@ import Data.Array.Parallel.Unlifted.Sequential.Vector                   as Seq
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd         as UVSegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USegd    as USegd
+import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Vectors                   as US
 import qualified Data.Array.Parallel.Unlifted.Stream                    as US
 import qualified Data.Array.Parallel.Unlifted.Sequential                as Seq
@@ -118,21 +121,48 @@ extractsFromVectorsUPVSegdP
         -> Vector a
 
 extractsFromVectorsUPVSegdP upvsegd vectors
- =      splitJoinD theGang 
-                (mapD   (what upvsegd)
-                        theGang
-                        (extractsFromVectorsUPSSegdSegmap 
-                                (UPVSegd.takeUPSSegdRedundant upvsegd)
-                                vectors))
-                (UPVSegd.takeVSegidsRedundant upvsegd)
-
+ = joinD theGang balanced
+ $ mapD (what upvsegd)
+        theGang
+        (extractsFromVectorsUPSSegd_split
+                ussegd
+                vsegids
+                vectors)
+        segs
  where  what upvsegd
          = let  lens    = UPVSegd.takeLengths upvsegd
            in   (What $ "dph-prim-par: extractsFromVectorsUPVSegdP." 
                       P.++ show (UPVSegd.takeLengths upvsegd))
         {-# NOINLINE what #-}
 
+        segs    = USegd.splitSegdOnElemsD theGang
+                $ USegd.fromLengths
+                $ UPVSegd.takeLengths upvsegd
+        {-# INLINE segs #-}
+
+        vsegids = UPVSegd.takeVSegids upvsegd
+        ussegd  = UPSSegd.takeUSSegd 
+                $ UPVSegd.takeUPSSegdRedundant upvsegd
+        --        $ UPVSegd.unsafeDemoteToUPSSegd upvsegd
+        -- TODO fixme
+        --      $ UPVSegd.takeUPSSegdRedundant upvsegd
+
 {-# INLINE_UP extractsFromVectorsUPVSegdP #-}
+
+-- | Sequential extracts from USSegd and Segmap
+extractsFromVectorsUPSSegd_split
+        :: (Unbox a, US.Unboxes a)
+        => USSegd.USSegd
+        -> Vector Int
+        -> Vectors a
+        -> ((USegd.USegd,Int),Int)
+        -> Vector a
+
+extractsFromVectorsUPSSegd_split ussegd vsegids vectors which
+        = Seq.unstream 
+        $ US.streamSegsFromVectorsUSSegd_split vectors
+                ussegd vsegids which
+{-# INLINE_UP extractsFromVectorsUPSSegd_split #-}
 
 
 -- | Sequential extracts from UPVSegd.

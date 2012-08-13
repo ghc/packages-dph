@@ -9,6 +9,8 @@ import qualified Data.Vector                             as V
 import qualified Data.Array.Parallel.PArray.PData        as PD
 import qualified Data.Array.Parallel.PArray.PData.Nested as PDN
 
+import qualified Data.Array.Parallel.Unlifted.Parallel.Extracts as Ex
+
 import Debug.Trace
 
 $(testcases [ ""        <@ [t| ( Int, Float, Double ) |]
@@ -39,5 +41,15 @@ $(testcases [ ""        <@ [t| ( Int, Float, Double ) |]
             interleave (x : xs) (y : ys) = x : y : interleave xs ys
             interleave (x : xs) _        = [x]
             interleave _        _        = []
+
+    prop_extracts :: (Eq a, Elt a, Elts a, Arbitrary a, Show a) => a -> Property
+    prop_extracts phantom =
+      forAll (sized (\n -> return n)) $ \len ->
+      forAll (vsegdOfLength len) $ \segd ->
+      forAll (arraysForVSegd segd phantom) $ \arr ->
+      let xPar   = toList $ Ex.extractsFromVectorsUPVSegdP segd arr
+          xSeq   = toList $ Ex.extractsFromVectorsUPVSegd  segd arr
+      in 
+          xPar == xSeq
   |])
 

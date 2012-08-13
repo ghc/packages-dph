@@ -66,7 +66,7 @@ unbalanced = error $ here "unbalanced: touched"
 -- 
 splitLenD :: Gang -> Int -> Dist Int
 splitLenD gang n 
- = generateD_cheap WhatLength gang len
+ = generateD_cheap WLength gang len
  where
     !p = gangSize gang
     !l = n `quotInt` p
@@ -89,7 +89,7 @@ splitLenD gang n
 --
 splitLenIdxD :: Gang -> Int -> Dist (Int, Int)
 splitLenIdxD gang n 
- = generateD_cheap WhatLengthIdx gang len_idx
+ = generateD_cheap WLengthIdx gang len_idx
  where
     !p = gangSize gang
     !l = n `quotInt` p
@@ -126,7 +126,7 @@ splitAsD
         => Gang -> Dist Int -> Vector a -> Dist (Vector a)
 
 splitAsD gang dlen !arr 
-  = zipWithD WhatSlice (seqGang gang) (Seq.slice "splitAsD" arr) is dlen
+  = zipWithD WSlice (seqGang gang) (Seq.slice "splitAsD" arr) is dlen
   where
     is  = fst $ scanD (What "splitAsD") gang (+) 0 dlen
 {-# INLINE_DIST splitAsD #-}
@@ -145,7 +145,7 @@ splitD g _ arr
 
 splitD_impl :: Unbox a => Gang -> Vector a -> Dist (Vector a)
 splitD_impl g !arr 
-  = generateD_cheap WhatSlice g 
+  = generateD_cheap WSlice g 
         (\i -> Seq.slice "splitD_impl" arr (idx i) (len i))
 
   where n       = Seq.length arr
@@ -204,7 +204,7 @@ joinD_impl gang !darr
 
    in   Seq.new n $ \ma 
          -> zipWithDST_ 
-                (WhatJoinCopy n) 
+                (WJoinCopy n) 
                 gang (copy ma) di darr
 {-# INLINE_DIST joinD_impl #-}
 
@@ -214,7 +214,7 @@ joinDM :: Unbox a => Gang -> Dist (Vector a) -> ST s (MVector s a)
 joinDM gang darr 
  = checkGangD (here "joinDM") gang darr 
  $ do   marr <- Seq.newM n
-        zipWithDST_ (WhatJoinCopy n) gang (copy marr) di darr
+        zipWithDST_ (WJoinCopy n) gang (copy marr) di darr
         return marr
  where
         (!di,!n) = scanD (What "joinDM/count") gang (+) 0 
@@ -248,18 +248,18 @@ joinDM gang darr
 
 "Seq.zip/joinD[1]" forall g xs ys.
   Seq.zip (joinD g balanced xs) ys
-    = joinD g balanced (zipWithD WhatZip g Seq.zip xs (splitD g balanced ys))
+    = joinD g balanced (zipWithD WZip g Seq.zip xs (splitD g balanced ys))
 
 "Seq.zip/joinD[2]" forall g xs ys.
   Seq.zip xs (joinD g balanced ys)
-    = joinD g balanced (zipWithD WhatZip g Seq.zip (splitD g balanced xs) ys)
+    = joinD g balanced (zipWithD WZip g Seq.zip (splitD g balanced xs) ys)
 
 "Seq.zip/splitJoinD" 
   forall what1 what2 gang f g xs ys
   . Seq.zip (splitJoinD gang (imapD what1 gang f) xs) 
             (splitJoinD gang (imapD what2 gang g) ys)
   = splitJoinD gang 
-        (imapD (WhatFusedZipMap what1 what2)
+        (imapD (WFZipMap what1 what2)
                gang (\i zs -> let (as,bs) = Seq.unzip zs
                               in Seq.zip (f i as) (g i bs)))
                     (Seq.zip xs ys)
@@ -291,7 +291,7 @@ bpermuteD :: Unbox a
         -> Dist (Vector a)
 
 bpermuteD gang !as ds 
-        = mapD WhatBpermute gang (Seq.bpermute as) ds
+        = mapD WBpermute gang (Seq.bpermute as) ds
 {-# INLINE_DIST bpermuteD #-}
 
 

@@ -5,6 +5,8 @@ module HecUsage where
 import GHC.RTS.Events
 import GHC.RTS.Events.Analysis
 
+import Pretty
+
 import Data.Map (Map)
 import qualified Data.Map as M
 
@@ -68,23 +70,20 @@ hecUsageMachine = Machine
 
   update !counts !k !v = M.insertWith' (+) k v counts
 
+instance Pretty HecCurrentCap where
+  ppr (HecCap n) = ppr n <> text " caps"
+  ppr (HecGC)    = text "In GC"
 
-showValidate :: (s -> String) -> (i -> String) -> Either (s, i) s -> String
-showValidate showState showInput (Left (state, input)) =
-  "Invalid eventlog:"
-  ++ "\nState:\n" ++ ( showState state )
-  ++ "\nInput:\n" ++ ( showInput input )
-showValidate showState _ (Right state) =
-  "Valid eventlog: " ++ ( showState state )
-
-showMap :: Ord k => (k -> String) -> (a -> String) -> M.Map k a -> String
-showMap showKey showValue m =
-  concat $ zipWith (++)
-    (map showKey . M.keys $ m :: [String])
-    (map (showValue . (M.!) m) . M.keys $ m :: [String])
-
-showHecUsage :: HecUsageState -> String
-showHecUsage (HecUsageState counts runR runG _ total) = "\n" ++ counts' ++ running'
+pprHecUsage :: HecUsageState -> Doc
+pprHecUsage (HecUsageState counts runR runG _ total) = vcat [ counts', running' ]
  where
-  counts' = showMap show (\v -> ":\t" ++ show (v * 100 `div` total) ++ "%\t(" ++ show v ++ ")\n") counts
-  running'= if (runR,runG) == (0,0) then "" else "\nSome threads still running? " ++ show (runR,runG)
+  counts'        = pprMap (padL 10 . (<>text ":") . ppr) pprTimestamp counts
+  pprTimestamp v = pprPercent v <> text " " <> pprTime v
+  pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
+  pprTime      v = padR 10 $ cat
+                [ text "("
+                , pprTimestampEng v
+                , text ")"
+                ]
+
+  running'= if (runR,runG) == (0,0) then text "" else text "Some threads still running? " <> (text $ show (runR,runG))

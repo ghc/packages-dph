@@ -5,7 +5,7 @@
 
 -- | Standard combinators for distributed types.
 module Data.Array.Parallel.Unlifted.Distributed.Combinators 
-        ( What (..)
+        ( W.What (..)
         , imapD, mapD
         , zipD, unzipD
         , fstD, sndD
@@ -18,7 +18,7 @@ import Data.Array.Parallel.Base ( ST, runST)
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
 import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
 import Data.Array.Parallel.Unlifted.Distributed.Data.Maybe      ()
-import Data.Array.Parallel.Unlifted.Distributed.What
+import qualified Data.Array.Parallel.Unlifted.Distributed.What as W
 
 
 here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
@@ -44,7 +44,7 @@ here s = "Data.Array.Parallel.Unlifted.Distributed.Combinators." ++ s
 --   @mapD theGang (V.map (+ 1)) :: Dist (Vector Int) -> Dist (Vector Int)@
 --
 mapD    :: (DT a, DT b) 
-        => What         -- ^ What is the worker function doing.
+        => W.What         -- ^ What is the worker function doing.
         -> Gang 
         -> (a -> b) 
         -> Dist a 
@@ -62,7 +62,7 @@ mapD wFn gang
 --   As opposed to `imapD'` this version also deepSeqs each element before
 --   passing it to the function.
 imapD   :: (DT a, DT b) 
-        => What         -- ^ What is the worker function doing.
+        => W.What         -- ^ What is the worker function doing.
         -> Gang 
         -> (Int -> a -> b) 
         -> Dist a -> Dist b
@@ -79,17 +79,17 @@ imapD wFn gang f d
 "imapD/generateD" 
   forall wMap wGen gang f g
   . imapD wMap gang f (generateD wGen gang g) 
-  = generateD (WhatFusedMapGen wMap wGen) gang (\i -> f i (g i))
+  = generateD (W.WFMapGen wMap wGen) gang (\i -> f i (g i))
 
 "imapD/generateD_cheap" 
   forall wMap wGen gang f g
   . imapD wMap gang f (generateD_cheap wGen gang g) 
-  = generateD (WhatFusedMapGen wMap wGen) gang (\i -> f i (g i))
+  = generateD (W.WFMapGen wMap wGen) gang (\i -> f i (g i))
 
 "imapD/imapD" 
   forall wMap1 wMap2 gang f g d
   . imapD wMap1 gang f (imapD wMap2 gang g d) 
-  = imapD (WhatFusedMapMap wMap1 wMap2) gang (\i x -> f i (g i x)) d
+  = imapD (W.WFMapMap wMap1 wMap2) gang (\i x -> f i (g i x)) d
 
   #-}
 
@@ -97,7 +97,7 @@ imapD wFn gang f d
 -- Zipping --------------------------------------------------------------------
 -- | Combine two distributed values with the given function.
 zipWithD :: (DT a, DT b, DT c)
-        => What                 -- ^ What is the worker function doing.
+        => W.What                 -- ^ What is the worker function doing.
         -> Gang 
         -> (a -> b -> c) 
         -> Dist a -> Dist b -> Dist c
@@ -110,7 +110,7 @@ zipWithD what g f dx dy
 -- | Combine two distributed values with the given function.
 --   The worker function also gets the index of the current thread.
 izipWithD :: (DT a, DT b, DT c)
-          => What               -- ^ What is the worker function doing.
+          => W.What               -- ^ What is the worker function doing.
           -> Gang 
           -> (Int -> a -> b -> c) 
           -> Dist a -> Dist b -> Dist c

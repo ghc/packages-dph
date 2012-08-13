@@ -9,7 +9,7 @@ where
 import Data.Array.Parallel.Unlifted.Distributed.Data.Scalar.Base        ()
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.DPrim
 import Data.Array.Parallel.Unlifted.Distributed.Primitive
-import Data.Array.Parallel.Unlifted.Distributed.What
+import qualified Data.Array.Parallel.Unlifted.Distributed.What  as W
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as V
 import qualified Data.Vector.Unboxed.Mutable                    as MV
 import Prelude as P
@@ -38,13 +38,13 @@ instance DT Bool where
 
 -- | OR together all instances of a distributed 'Bool'.
 orD :: Gang -> Dist Bool -> Bool
-orD g   = foldD (What "orD") g (||)
+orD g   = foldD (W.What "orD") g (||)
 {-# INLINE_DIST orD #-}
 
 
 -- | AND together all instances of a distributed 'Bool'.
 andD :: Gang -> Dist Bool -> Bool
-andD g  = foldD (What "andD") g (&&)
+andD g  = foldD (W.What "andD") g (&&)
 {-# INLINE_DIST andD #-}
 
 

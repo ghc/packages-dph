@@ -239,7 +239,7 @@ parIO what n mvs p
         mapM_ waitReq reqs
         end     <- getGangTime
 
-        traceGang $ "Complete par   " ++ what ++ " in " ++ diffTime start end ++ "us."
+        traceGangSplit $ "Complete par   " ++ what ++ " in " ++ diffTime start end ++ "us."
 
 
 -- | Same as 'gangIO' but in the 'ST' monad.
@@ -261,10 +261,22 @@ getGangTime
 diffTime :: Integer -> Integer -> String
 diffTime x y = show (y-x)
 
--- | Emit a GHC event for debugging.
+-- | Emit a GHC event for debugging, but don't mind if it gets truncated
 traceGang :: String -> IO ()
 traceGang s
  = do   traceEventIO $ "GANG " ++ s
+
+-- | Emit a GHC event for debugging. Split across multiple events if necessary.
+traceGangSplit :: String -> IO ()
+traceGangSplit s
+ = do   let xs = chunks 500 s
+        let max= show $ length xs
+        mapM_ (\(x,i) -> traceEventIO $ "GANG[" ++ show i ++ "/" ++ max ++ "] " ++ x) (xs `zip` [1..])
+ where
+        chunks len [] = []
+        chunks len str
+         = let (f,r) = splitAt len str
+           in  f : chunks len r
 
 #else
 getGangTime :: IO ()
@@ -276,4 +288,7 @@ diffTime _ _ = ""
 -- | Emit a GHC event for debugging.
 traceGang :: String -> IO ()
 traceGang _ = return ()
+
+traceGangSplit :: String -> IO ()
+traceGangSplit _ = return ()
 #endif

@@ -10,6 +10,8 @@ import qualified Data.Map as M
 
 import Data.List (sortBy)
 
+import Pretty
+
 
 -- | A single wake-up event. List of these used for results.
 data HecWake = HecWake
@@ -51,27 +53,27 @@ hecWakeMachine = Machine
 
 
 
-showHecWake :: HecWakeState -> String
-showHecWake (HecWakeState waketimes lens) = waketimes' ++ "\n" ++ lens'
+pprHecWake :: HecWakeState -> Doc
+pprHecWake (HecWakeState waketimes lens) = vcat [ waketimes', lens' ]
  where
-  waketimes' = if M.null waketimes then "" else "not all threads scheduled to wake up actually woke up!"
+  waketimes' = if M.null waketimes then text "" else text "not all threads scheduled to wake up actually woke up!"
 
   lens'
    = if null lens
-        then "No wakes"
-        else concat
-            [   "Min: ", show minL
-            , "\nMax: ", show maxL
-            , "\nMed: ", show medianL
-            , "\nAvg: ", show avgL
-            , "\nCount: ", show (length lens)
+        then text "No wakes"
+        else vcat
+            [ text "Min:   " <> ppr minL
+            , text "Max:   " <> ppr maxL
+            , text "Med:   " <> (padR 10 $ pprTimestampEng medianL)
+            , text "Avg:   " <> (padR 10 $ pprTimestampEng avgL)
+            , text "Count: " <> (padR 10 $ ppr lenL)
             ]
   sorted  = sortBy cmp lens
   lenL    = length sorted
 
   minL    = head sorted
   maxL    = last sorted
-  avgL    = fromEnum (sum $ map lenOf sorted) `div` lenL
+  avgL    = (sum $ map lenOf sorted) `div` fromIntegral lenL
 
   medianL = if lenL `mod` 2 == 0
             then (lenOf (sorted !! lenL_2) + lenOf (sorted !! (lenL_2 - 1))) `div` 2
@@ -81,5 +83,12 @@ showHecWake (HecWakeState waketimes lens) = waketimes' ++ "\n" ++ lens'
   cmp x y = lenOf x `compare` lenOf y
   lenOf (HecWake len _ _) = len
 
-instance Show HecWake where
-  show (HecWake len when what) = concat [show len, " (@", show when, ", thread " , show what, ")"]
+instance Pretty HecWake where
+  ppr (HecWake len when what) = cat
+        [ padR 10 $ pprTimestampEng len
+        , text " (@"
+        , padR 10 $ pprTimestampAbs when
+        , text ", thread "
+        , text $ show what
+        , text ")"
+        ]
