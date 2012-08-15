@@ -46,7 +46,7 @@ simpleFunD name pats xx
 
 
 inlineD :: Name -> DecQ
-inlineD name = pragInlD name (inlineSpecNoPhase Inline False)
+inlineD name = pragInlD name Inline FunLike AllPhases
 
 
 instance_PData :: TypeQ -> [Name] -> Name -> [TypeQ] -> DecQ
