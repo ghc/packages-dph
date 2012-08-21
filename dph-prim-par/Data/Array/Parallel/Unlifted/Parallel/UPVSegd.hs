@@ -29,6 +29,7 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd
         , length
         , takeVSegids, takeVSegidsRedundant
         , takeUPSSegd, takeUPSSegdRedundant
+        , takeDistributed
         , takeLengths
         , getSeg
 
@@ -43,14 +44,18 @@ module Data.Array.Parallel.Unlifted.Parallel.UPVSegd
         , appendWith
         , combine2)
 where
+import Data.Array.Parallel.Unlifted.Distributed
 import Data.Array.Parallel.Unlifted.Parallel.Permute
 import Data.Array.Parallel.Unlifted.Parallel.UPSel              (UPSel2)
 import Data.Array.Parallel.Unlifted.Parallel.UPSSegd            (UPSSegd)
 import Data.Array.Parallel.Unlifted.Parallel.UPSegd             (UPSegd)
+import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Vector)
 import Data.Array.Parallel.Pretty                               hiding (empty)
 import Prelude                                                  hiding (length)
+import qualified Data.Array.Parallel.Unlifted.Distributed.Data.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.Vector as US
+import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd as USSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSel    as UPSel
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSegd   as UPSegd
@@ -78,6 +83,13 @@ data UPVSegd
           --   are layed out in memory.
         , upvsegd_upssegd_redundant     :: UPSSegd              -- LAZY FIELD
         , upvsegd_upssegd_culled        :: UPSSegd              -- LAZY FIELD
+
+          -- | Segment descriptors distributed over the gang,
+          --   along with logical segment id and element offsets.
+          --   Note that segment ids here refer to a vsegid,
+          --   not a physical or scattered segment id.
+          --   See `splitSegdOfElemsD` for an example.
+        , upvsegd_dsegd                 :: Dist ((USegd,Int),Int) -- LAZY FIELD
         
         -- IMPORTANT:
         -- When vsegids are transformed due to a segmented replication operation, 
@@ -106,7 +118,7 @@ data UPVSegd
 
 -- | Pretty print the physical representation of a `UVSegd`
 instance PprPhysical UPVSegd where
- pprp (UPVSegd _ _ vsegids _ upssegd)
+ pprp (UPVSegd _ _ vsegids _ upssegd _)
   = vcat
   [ text "UPVSegd" $$ (nest 7 $ text "vsegids: " <+> (text $ show $ US.toList vsegids))
   , pprp upssegd ]
@@ -136,8 +148,19 @@ mkUPVSegd
 
 mkUPVSegd vsegids ussegd
         = UPVSegd False vsegids vsegids ussegd ussegd
+        -- Lazy, so doesn't contribute to big-O
+        $ mkDist vsegids ussegd
 {-# INLINE_UP mkUPVSegd #-}
 
+-- | O(segs). Distribute the logical over the gang.
+mkDist
+        :: Vector Int   -- ^ vsegids
+        -> UPSSegd      -- ^ Scattered segment descriptor
+        -> Dist ((USegd,Int),Int)
+mkDist vsegids ussegd
+        = USegd.splitSegdOnElemsD theGang
+        $ USegd.fromLengths
+        $ takeLengths' vsegids ussegd 
 
 -- | O(segs). Promote a `UPSSegd` to a `UPVSegd`.
 --   The result contains one virtual segment for every physical segment
@@ -149,6 +172,7 @@ fromUPSSegd :: UPSSegd -> UPVSegd
 fromUPSSegd upssegd
  = let  vsegids = US.enumFromTo 0 (UPSSegd.length upssegd - 1)
    in   UPVSegd True vsegids vsegids upssegd upssegd
+        (mkDist vsegids upssegd)
 {-# INLINE_UP fromUPSSegd #-}
 
 
@@ -168,6 +192,7 @@ empty
  = let  vsegids = US.empty
         upssegd = UPSSegd.empty
    in   UPVSegd True vsegids vsegids upssegd upssegd
+        (mkDist vsegids upssegd)
 {-# INLINE_UP empty #-}
 
 
@@ -179,6 +204,7 @@ singleton n
  = let  vsegids = US.singleton 0
         upssegd = UPSSegd.singleton n
    in   UPVSegd True vsegids vsegids upssegd upssegd
+        (mkDist vsegids upssegd)
 {-# INLINE_UP singleton #-}
 
 
@@ -273,19 +299,34 @@ takeUPSSegdRedundant    = upvsegd_upssegd_redundant
 {-# INLINE takeUPSSegdRedundant #-}
 
 
+-- | O(1) or O(segs). Yield `USegd`s distributed over a logical view of this `UPVSegd`.
+--   The complexity is only O(1) if this has already been evaluated.
+takeDistributed :: UPVSegd -> Dist ((USegd,Int),Int)
+takeDistributed = upvsegd_dsegd
+{-# INLINE takeDistributed #-}
+
+
 -- | O(segs). Yield the lengths of the segments described by a `UPVSegd`.
 ---
 --   * TODO: This is slow and sequential.
 --
 takeLengths :: UPVSegd -> Vector Int
-takeLengths (UPVSegd manifest _ vsegids _ upssegd)
+takeLengths (UPVSegd manifest _ vsegids _ upssegd _)
  | manifest     = UPSSegd.takeLengths upssegd
  | otherwise    
- = let !lengths        = (UPSSegd.takeLengths upssegd)
-   in  US.map (US.index (here "takeLengths") lengths) vsegids
+ = takeLengths' vsegids upssegd
 {-# NOINLINE takeLengths #-}
 --  NOINLINE because we don't want a case expression due to the test on the 
 --  manifest flag to appear in the core program.
+
+takeLengths'
+        :: Vector Int   -- ^ Vsegids
+        -> UPSSegd      -- ^ Scattered segment descriptor
+        -> Vector Int
+takeLengths' vsegids upssegd
+ = let !lengths        = (UPSSegd.takeLengths upssegd)
+   in  US.map (US.index (here "takeLengths") lengths) vsegids
+{-# INLINE takeLengths' #-}
 
 
 -- | O(1). Get the length, starting index, and source id of a segment.
@@ -343,7 +384,7 @@ unsafeDemoteToUPSSegd upvsegd
 --   * TODO: if the upvsegd is manifest and contiguous this can be O(1).
 --
 unsafeDemoteToUPSegd :: UPVSegd -> UPSegd
-unsafeDemoteToUPSegd (UPVSegd _ _ vsegids _ upssegd)
+unsafeDemoteToUPSegd (UPVSegd _ _ vsegids _ upssegd _)
         = {-# SCC "unsafeDemoteToUPSegd" #-}
           UPSegd.fromLengths
         $ bpermuteUP (UPSSegd.takeLengths upssegd) vsegids
@@ -365,7 +406,7 @@ unsafeDemoteToUPSegd (UPVSegd _ _ vsegids _ upssegd)
 --     It runs the sequential 'cull' then reconstructs the UPSSegd.
 -- 
 updateVSegs :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _)
+updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _ _)
  = let  
         -- When we transform the vsegids, we don't know whether they all 
         -- made it into the result. 
@@ -383,6 +424,7 @@ updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _)
    in   UPVSegd False
                 vsegids_redundant vsegids_culled
                 upssegd           upssegd_culled
+                (mkDist vsegids_redundant upssegd)
 {-# NOINLINE updateVSegs #-}
 --  NOINLINE because we want to see this happening in core.
 
@@ -399,9 +441,10 @@ updateVSegs fUpdate (UPVSegd _ vsegids _ upssegd _)
 --     like segmented fold will have the wrong work complexity.
 --
 updateVSegsReachable :: (Vector Int -> Vector Int) -> UPVSegd -> UPVSegd
-updateVSegsReachable fUpdate (UPVSegd _ _ vsegids _ upssegd)
+updateVSegsReachable fUpdate (UPVSegd _ _ vsegids _ upssegd _)
  = let  vsegids' = fUpdate vsegids
    in   UPVSegd False vsegids' vsegids' upssegd upssegd
+        (mkDist vsegids' upssegd)
 {-# NOINLINE updateVSegsReachable #-}
 --  NOINLINE because we want to see this happening in core.
 
@@ -419,8 +462,8 @@ appendWith
         -> UPVSegd
 
 appendWith
-        (UPVSegd _ _ vsegids1 _ upssegd1) pdatas1
-        (UPVSegd _ _ vsegids2 _ upssegd2) pdatas2
+        (UPVSegd _ _ vsegids1 _ upssegd1 _) pdatas1
+        (UPVSegd _ _ vsegids2 _ upssegd2 _) pdatas2
 
  = let  -- vsegids releative to appended psegs
         vsegids1' = vsegids1
@@ -435,6 +478,7 @@ appendWith
                                 upssegd2 pdatas2
                                  
    in   UPVSegd False vsegids' vsegids' upssegd' upssegd'
+        (mkDist vsegids' upssegd')
 {-# NOINLINE appendWith #-}
 --  NOINLINE because it doesn't need to be specialised
 --           and we're worried about code explosion.
@@ -455,8 +499,8 @@ combine2
         
 combine2
         upsel2
-        (UPVSegd _ _ vsegids1 _ upssegd1) pdatas1
-        (UPVSegd _ _ vsegids2 _ upssegd2) pdatas2
+        (UPVSegd _ _ vsegids1 _ upssegd1 _) pdatas1
+        (UPVSegd _ _ vsegids2 _ upssegd2 _) pdatas2
 
  = let  -- vsegids relative to combined psegs
         vsegids1' = vsegids1
@@ -472,6 +516,7 @@ combine2
                                 upssegd2 pdatas2
                                   
    in   UPVSegd False vsegids' vsegids' upssegd' upssegd'
+        (mkDist vsegids' upssegd')
 {-# NOINLINE combine2 #-}
 --  NOINLINE because it doesn't need to be specialised
 --           and we're worried about code explosion.

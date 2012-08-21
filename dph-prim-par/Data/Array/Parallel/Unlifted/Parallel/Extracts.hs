@@ -122,30 +122,25 @@ extractsFromVectorsUPVSegdP
 
 extractsFromVectorsUPVSegdP upvsegd vectors
  = joinD theGang balanced
- $ mapD (what upvsegd)
+ $ mapD what
         theGang
         (extractsFromVectorsUPSSegd_split
                 ussegd
                 vsegids
                 vectors)
         segs
- where  what upvsegd
+ where  what
          = let  lens    = UPVSegd.takeLengths upvsegd
            in   (What $ "dph-prim-par: extractsFromVectorsUPVSegdP." 
-                      P.++ show (UPVSegd.takeLengths upvsegd))
+                      P.++ show lens)
         {-# NOINLINE what #-}
 
-        segs    = USegd.splitSegdOnElemsD theGang
-                $ USegd.fromLengths
-                $ UPVSegd.takeLengths upvsegd
+        segs    = UPVSegd.takeDistributed upvsegd
         {-# INLINE segs #-}
 
-        vsegids = UPVSegd.takeVSegids upvsegd
+        vsegids = UPVSegd.takeVSegidsRedundant upvsegd
         ussegd  = UPSSegd.takeUSSegd 
                 $ UPVSegd.takeUPSSegdRedundant upvsegd
-        --        $ UPVSegd.unsafeDemoteToUPSSegd upvsegd
-        -- TODO fixme
-        --      $ UPVSegd.takeUPSSegdRedundant upvsegd
 
 {-# INLINE_UP extractsFromVectorsUPVSegdP #-}
 
