@@ -4,11 +4,9 @@ module Data.Array.Parallel.Unlifted.Distributed.What
         , What  (..))
 where
         
-
-
 -- | What distributed computation we are doing.
 data Comp
-        = CGen          Bool            -- ^ cheap
+        = CGen          Bool            -- cheap
                         What
 
         | CMap          What
@@ -28,7 +26,7 @@ data What
         | WBpermute
 
         -- Copy due to a join instruction.
-        | WJoinCopy     Int             -- ^ number elements
+        | WJoinCopy     Int             -- number elements
 
         | WFMapMap      What What
         | WFMapGen      What What
