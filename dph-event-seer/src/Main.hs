@@ -12,6 +12,8 @@ import System.IO
 import System.Exit
 
 import DphOps
+import DphOpsHecs
+import Events
 import HecUsage
 import HecWake
 import Pretty
@@ -37,17 +39,14 @@ command ["ops-sum", file]       = runOnFile' file
         (runMachine dphOpsSumMachine . getGangEvents)
         pprDphOpsSumState
 
+command ["ops-hecs", file]      = runOnFile' file dphOpsHecs pprDphOpsHecsState
+
 command ["gang-events", file]   = runOnFile' file getGangEvents pprGangEvents
 
 command _                       = putStr usage >> die "Unrecognized command"
 
 runOnFile :: String -> Machine s CapEvent -> (s -> Doc) -> IO ()
 runOnFile file machine pprState = runOnFile' file (runMachine machine) pprState
-
-runMachine machine = getState . validate machine
- where
-  getState (Left (s,_)) = s
-  getState (Right s)    = s
 
 runOnFile' :: String -> ([CapEvent] -> s) -> (s -> Doc) -> IO ()
 runOnFile' file process pprState = do

@@ -13,12 +13,17 @@ module Pretty
 	, pprEngDouble
 	, pprEngInteger
 
-        , pprTimestampAbs
-        , pprTimestampEng
+    , pprTimestampAbs
+    , pprTimestampEng
 
-        , pprValidate
-        , pprMap
-        , renderLong)
+    , pprValidate
+    , pprMap
+    , renderLong
+    
+    , padLines
+    , chunks'
+    , chunks
+    , trunc)
 where
 import Text.PrettyPrint
 import Text.Printf
@@ -173,3 +178,25 @@ pprMap pprKey pprValue m =
 
 renderLong :: Doc -> String
 renderLong = renderStyle (style { lineLength = 200 })
+
+padLines left right
+ = let (x:xs) = chunks' trunc_len right
+       pad'   = text $ replicate (length (render left)) ' '
+   in  vcat ((left <> text x) : map (\x-> pad' <> text x) xs)
+
+trunc_len = 100
+trunc l
+  | length l > trunc_len
+  = take (trunc_len-4) l ++ " ..."
+  | otherwise
+  = l
+
+chunks' len str
+ = case chunks len str of
+        (x:xs) -> (x:xs)
+        []     -> [""]
+
+chunks len [] = []
+chunks len str
+ = let (f,r) = splitAt len str
+   in  f : chunks len r

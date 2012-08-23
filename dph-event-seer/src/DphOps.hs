@@ -3,8 +3,13 @@ module DphOps
         , dphOpsSumMachine
         , pprDphOpsState
         , pprDphOpsSumState
+        , DphTrace(..)
+        , ParseComp(..)
+        , parseComp
         , getGangEvents
-        , pprGangEvents)
+        , pprGangEvents
+        , clearJoinComp
+        , clearJoinWhat)
 where
 
 import qualified Data.Array.Parallel.Unlifted.Distributed.What as W
@@ -16,33 +21,50 @@ import Data.Map (Map)
 import qualified Data.Map as M
 
 import Data.List        (sortBy, stripPrefix)
-import Data.Function    (on)
 
 import Pretty
 
 import Debug.Trace
 
+-- | set of interesting things that DPH might tell us
+data DphTrace
+    = DTComplete W.Comp Timestamp
+    | DTIssuing  W.Comp
+    deriving (Eq,Show)
+
 -- | result of attempting to parse a CapEvent
 data ParseComp
-    = POk W.Comp Timestamp -- ^ valid Comp and its duration
+    = POk DphTrace Timestamp -- ^ valid event and its time
     | PUnparsable        -- ^ looks like a comp, but invalid
     | PIgnored           -- ^ not a comp at all, just ignore
+
 -- | attempt to get a Comp
 -- eg "GANG Complete par CompMap{...} in 44us"
 parseComp :: GangEvent -> ParseComp
-parseComp (GangEvent _ _ msg)
-   | Just compStr   <- stripPrefix "Complete par " msg
+parseComp (GangEvent _ ts gmsg)
+
+   -- "Complete par Map (Join ...) in 44us."
+   | Just compStr   <- stripPrefix "Complete par " gmsg
    , (comp,inStr):_ <- reads compStr
    , Just muStr     <- stripPrefix " in " inStr
    , (mus,"us."):_  <- reads muStr
-   = POk comp (mus*10^3)
+   = POk (DTComplete comp (mus * 10^(3 :: Int))) ts
+
    -- prefix is there, but the rest didn't parse properly
-   | Just compStr   <- stripPrefix "Complete par " msg
+   | Just _         <- stripPrefix "Complete par " gmsg
    = PUnparsable
+
+   -- "Issuing  par   Map (Join ...)"
+   | Just issuStr   <- stripPrefix "Issuing  par " gmsg
+   , (comp,""):_    <- reads issuStr
+   = POk (DTIssuing  comp) ts
+
+   -- prefix is there, but the rest didn't parse properly
+   | Just _         <- stripPrefix "Issuing  par " gmsg
+   = PUnparsable
+
    -- prefix isn't there, so just ignore it
    | otherwise
-   = PIgnored
-parseComp _
    = PIgnored
 
 data GangEvent = GangEvent (Maybe Int) Timestamp String
@@ -53,9 +75,9 @@ getGangEvents :: [CapEvent] -> [GangEvent]
 getGangEvents xs = snd $ foldl (flip gang) (Nothing,[]) xs
  where
   -- GANG[1/4] Complete par ...
-  gang (CapEvent c (Event t (UserMessage msg)))
+  gang (CapEvent c (Event t (UserMessage gmsg)))
        (no,ls)
-   | Just numS      <- stripPrefix "GANG[" msg
+   | Just numS      <- stripPrefix "GANG[" gmsg
    , [(n,'/':n2S)]  <- reads numS :: [(Int,String)]
    , [(m,']':' ':restS)]<- reads n2S  :: [(Int,String)]
    = app (n,m) no (GangEvent c t restS) ls
@@ -102,12 +124,13 @@ dphOpsMachine = Machine
 
   delt (DphOpsState ops total unparse) evt
    = case parseComp evt of
-     POk comp duration  ->
+     POk (DTComplete comp duration) _ ->
       Just $ DphOpsState (update ops duration comp) (total + duration) unparse
      PUnparsable        ->
       Just $ DphOpsState ops total (unparse+1)
-     PIgnored           ->
+     _                  ->
       Just $ DphOpsState ops total unparse
+
   delt s _ = Just s
 
   update !counts !k !v = M.insertWith' (++) k [v] counts
@@ -132,18 +155,6 @@ pprDphOpsState (DphOpsState ops total unparse) = vcat [unparse', ops']
         ]) (show $ ppr c)
   pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
 
-padLines left right
- = let (x:xs) = chunks' trunc_len right
-       pad'   = text $ replicate (length (render left)) ' '
-   in  vcat ((left <> text x) : map (\x-> pad' <> text x) xs)
-
-trunc_len = 100
-trunc l
-  | length l > trunc_len
-  = take (trunc_len-4) l ++ " ..."
-  | otherwise
-  = l
-
 data DphOpsSumState = DphOpsSumState (Map W.Comp (Int,Timestamp)) Timestamp Int
 
 dphOpsSumMachine :: Machine DphOpsSumState GangEvent
@@ -159,29 +170,29 @@ dphOpsSumMachine = Machine
   -- "GANG Complete par CompMap{...} in 44us"
   delt (DphOpsSumState ops total unparse) evt
    = case parseComp evt of
-     POk comp duration  ->
+     POk (DTComplete comp duration) _ ->
       Just $ DphOpsSumState (update ops (clearJoinComp comp) (1,duration)) (total + duration) unparse
      PUnparsable        ->
       Just $ DphOpsSumState ops total (unparse+1)
-     PIgnored           ->
+     _                  ->
       Just $ DphOpsSumState ops total unparse
   delt s _ = Just s
 
   update !counts !k !v = M.insertWith' pairAdd k v counts
   pairAdd (aa,ab) (ba,bb) = (aa+ba, ab+bb)
 
-  -- reset the elements arg of all JoinCopies so they show up as total
-  clearJoinComp (W.CGen c w)   = W.CGen c $ clearJoinWhat w
-  clearJoinComp (W.CMap  w)    = W.CMap   $ clearJoinWhat w
-  clearJoinComp (W.CFold w)    = W.CFold  $ clearJoinWhat w
-  clearJoinComp (W.CScan w)    = W.CScan  $ clearJoinWhat w
-  clearJoinComp (W.CDist w)    = W.CDist  $ clearJoinWhat w
+-- reset the elements arg of all JoinCopies so they show up as total
+clearJoinComp (W.CGen c w)   = W.CGen c $ clearJoinWhat w
+clearJoinComp (W.CMap  w)    = W.CMap   $ clearJoinWhat w
+clearJoinComp (W.CFold w)    = W.CFold  $ clearJoinWhat w
+clearJoinComp (W.CScan w)    = W.CScan  $ clearJoinWhat w
+clearJoinComp (W.CDist w)    = W.CDist  $ clearJoinWhat w
 
-  clearJoinWhat (W.WJoinCopy _)= W.WJoinCopy (-1)
-  clearJoinWhat (W.WFMapMap p q) = W.WFMapMap (clearJoinWhat p) (clearJoinWhat q)
-  clearJoinWhat (W.WFMapGen p q) = W.WFMapGen (clearJoinWhat p) (clearJoinWhat q)
-  clearJoinWhat (W.WFZipMap p q) = W.WFZipMap (clearJoinWhat p) (clearJoinWhat q)
-  clearJoinWhat w = w
+clearJoinWhat (W.WJoinCopy _)= W.WJoinCopy (-1)
+clearJoinWhat (W.WFMapMap p q) = W.WFMapMap (clearJoinWhat p) (clearJoinWhat q)
+clearJoinWhat (W.WFMapGen p q) = W.WFMapGen (clearJoinWhat p) (clearJoinWhat q)
+clearJoinWhat (W.WFZipMap p q) = W.WFZipMap (clearJoinWhat p) (clearJoinWhat q)
+clearJoinWhat w = w
 
 
 
@@ -240,12 +251,3 @@ instance Pretty W.What where
   ppr (W.WFMapGen p q) = text "(" <> ppr p <> text " mapGen " <> ppr q <> text ")"
   ppr (W.WFZipMap p q) = text "(" <> ppr p <> text " zipMap " <> ppr q <> text ")"
 
-chunks' len str
- = case chunks len str of
-        (x:xs) -> (x:xs)
-        []     -> [""]
-
-chunks len [] = []
-chunks len str
- = let (f,r) = splitAt len str
-   in  f : chunks len r

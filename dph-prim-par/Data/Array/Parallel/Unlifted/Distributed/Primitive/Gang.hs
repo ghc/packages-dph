@@ -210,7 +210,7 @@ gangIO (Gang n mvs busy) what workload p
                         traceGang $ "WARNING: Gang was already busy, running sequentially "
                         mapM_ p [0 .. n-1]
                  else do
-                        traceGang $ "Issuing  par   " ++ what
+                        traceGangSplit $ "Issuing  par   " ++ what
                         parIO what n mvs p
                         _ <- swapMVar busy False
                         return ()

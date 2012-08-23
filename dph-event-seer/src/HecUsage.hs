@@ -21,9 +21,17 @@ data HecUsageState = HecUsageState
     Timestamp                     -- ^ time of previous event
     Timestamp                     -- ^ total time spent
 
+emptyHecS :: HecUsageState
+emptyHecS = HecUsageState M.empty 0 0 0 0
+
+mergeHecS :: HecUsageState -> HecUsageState -> HecUsageState
+mergeHecS (HecUsageState lmap _ _ _ ltot)
+          (HecUsageState rmap _ _ _ rtot)
+ =  HecUsageState (M.unionWith (+) lmap rmap) 0 0 0 (ltot+rtot)
+
 hecUsageMachine :: Machine HecUsageState CapEvent
 hecUsageMachine = Machine
-    { initial = HecUsageState M.empty 0 0 0 0
+    { initial = emptyHecS
     , final   = const False
     , alpha   = alph
     , delta   = delt
@@ -74,16 +82,21 @@ instance Pretty HecCurrentCap where
   ppr (HecCap n) = ppr n <> text " caps"
   ppr (HecGC)    = text "In GC"
 
-pprHecUsage :: HecUsageState -> Doc
-pprHecUsage (HecUsageState counts runR runG _ total) = vcat [ counts', running' ]
- where
-  counts'        = pprMap (padL 10 . (<>text ":") . ppr) pprTimestamp counts
-  pprTimestamp v = pprPercent v <> text " " <> pprTime v
-  pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
-  pprTime      v = padR 10 $ cat
-                [ text "("
-                , pprTimestampEng v
-                , text ")"
-                ]
+instance Pretty HecUsageState where
+  ppr (HecUsageState counts runR runG _ total) = vcat [ counts', running' ]
+   where
+    counts'        = pprMap (padL 10 . (<>text ":") . ppr) pprTimestamp counts
 
-  running'= if (runR,runG) == (0,0) then text "" else text "Some threads still running? " <> (text $ show (runR,runG))
+    pprTimestamp v = pprPercent v <> text " " <> pprTime v
+
+    pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
+
+    pprTime      v = padR 10
+                   $ cat
+                   [ text "("
+                   , pprTimestampEng v
+                   , text ")" ]
+
+    running'       = if (runR,runG) == (0,0)
+                     then text ""
+                     else text "Some threads still running? " <> (text $ show (runR,runG))
