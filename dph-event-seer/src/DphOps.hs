@@ -117,7 +117,7 @@ instance Pretty GangEvent where
         text s
 
 -- Display all operations and duration, ordered decreasing
-data DphOpsState = DphOpsState (Map Timestamp [W.Comp]) Timestamp Int
+data DphOpsState = DphOpsState (Map Timestamp [(W.Comp, Timestamp)]) Timestamp Int
 
 dphOpsMachine :: Machine DphOpsState GangEvent
 dphOpsMachine = Machine
@@ -131,8 +131,8 @@ dphOpsMachine = Machine
 
   delt (DphOpsState ops total unparse) evt
    = case parseComp evt of
-     POk (DTComplete comp duration) _ ->
-      Just $ DphOpsState (update ops duration comp) (total + duration) unparse
+     POk (DTComplete comp duration) t ->
+      Just $ DphOpsState (update ops duration (comp,t)) (total + duration) unparse
      PUnparsable        ->
       Just $ DphOpsState ops total (unparse+1)
      _                  ->
@@ -154,10 +154,12 @@ instance Pretty DphOpsState where
    ops' = vcat $ map pprOps $ reverse $ M.assocs ops
 
    pprOps (duration,cs) = vcat $ map (pprOp duration) cs
-   pprOp duration c     = padLines (cat
+   pprOp duration (c,t) = padLines (cat
         [ pprPercent duration
         , text " "
         , padR 10 (text "(" <> pprTimestampEng duration <> text ")")
+        , text " "
+        , padR 15 $ pprTimestampAbs t
         , text " "
         ]) (show $ ppr c)
    pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
