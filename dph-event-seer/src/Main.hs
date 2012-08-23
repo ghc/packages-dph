@@ -30,16 +30,16 @@ command ["show", file] = do
     eventLog <- readLogOrDie file
     putStrLn $ ppEventLog eventLog
 
-command ["usage", file]         = runOnFile file hecUsageMachine pprHecUsage
+command ["usage", file]         = runOnFile file hecUsageMachine ppr
 command ["wake", file]          = runOnFile file hecWakeMachine pprHecWake
 command ["ops", file]           = runOnFile' file
         (runMachine dphOpsMachine . getGangEvents)
-        pprDphOpsState
+        ppr
 command ["ops-sum", file]       = runOnFile' file
         (runMachine dphOpsSumMachine . getGangEvents)
-        pprDphOpsSumState
+        ppr
 
-command ["ops-hecs", file]      = runOnFile' file dphOpsHecs pprDphOpsHecsState
+command ["ops-usage", file]     = runOnFile' file dphOpsHecs ppr
 
 command ["gang-events", file]   = runOnFile' file getGangEvents pprGangEvents
 
@@ -69,6 +69,7 @@ usage = unlines $ map pad strings
               , ("dph-event-seer wake <file>:",         "Times between waking a thread on a different HEC and it starting")
               , ("dph-event-seer ops <file>:",          "All DPH operations ordered by duration")
               , ("dph-event-seer ops-sum <file>:",      "DPH operations total times")
+              , ("dph-event-seer ops-usage <file>:",    "DPH operation totals, with the amount of time spent with n HECs active.")
               , ("dph-event-seer gang-events <file>:",  "Show all gang events, un-split")
               , ("", "")
               , ("", "Compile your program with '-eventlog' then run with '+RTS -l' to produce a .eventlog.")

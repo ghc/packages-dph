@@ -179,23 +179,30 @@ pprMap pprKey pprValue m =
 renderLong :: Doc -> String
 renderLong = renderStyle (style { lineLength = 200 })
 
+padLines :: Doc -> String -> Doc
 padLines left right
  = let (x:xs) = chunks' trunc_len right
        pad'   = text $ replicate (length (render left)) ' '
-   in  vcat ((left <> text x) : map (\x-> pad' <> text x) xs)
+   in  vcat
+    $ (left <> text x) : map (\s -> pad' <> text s) xs
 
+trunc_len :: Int
 trunc_len = 100
+
+trunc :: String -> String
 trunc l
   | length l > trunc_len
   = take (trunc_len-4) l ++ " ..."
   | otherwise
   = l
 
+chunks' :: Int -> String -> [String]
 chunks' len str
  = case chunks len str of
         (x:xs) -> (x:xs)
         []     -> [""]
 
+chunks :: Int -> String -> [String]
 chunks len [] = []
 chunks len str
  = let (f,r) = splitAt len str

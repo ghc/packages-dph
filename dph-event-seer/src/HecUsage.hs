@@ -1,5 +1,5 @@
--- HEC usage analysis.
---      Count time spent with none, some and all HECs active or in garbage collection.
+-- | HEC usage analysis.
+--   Count time spent with none, some and all HECs active or in garbage collection.
 module HecUsage where
 
 import GHC.RTS.Events
@@ -10,24 +10,40 @@ import Pretty
 import Data.Map (Map)
 import qualified Data.Map as M
 
+
 -- | Count results as either N HECs active, or some GC going on
 data HecCurrentCap = HecCap Int | HecGC
     deriving (Show,Eq,Ord)
 
+
+data HecUsageReport = HecUsageReport
+    { hrResults :: Map HecCurrentCap Timestamp
+    , hrTotal   :: Timestamp }
+
+
 data HecUsageState = HecUsageState
-    (Map HecCurrentCap Timestamp) -- ^ results map of active HECs to total time spent
-    Int                           -- ^ threads running
-    Int                           -- ^ threads in GC
-    Timestamp                     -- ^ time of previous event
-    Timestamp                     -- ^ total time spent
+    { hsReport  :: HecUsageReport
+    , hsRunThr  :: Int
+    , hsRunGc   :: Int
+    , hsPrevEvt :: Timestamp }
 
+
+-- | An empty usage report
+emptyHecR :: HecUsageReport
+emptyHecR = HecUsageReport M.empty 0
+
+
+-- | An empty state
 emptyHecS :: HecUsageState
-emptyHecS = HecUsageState M.empty 0 0 0 0
+emptyHecS = HecUsageState emptyHecR 0 0 0
 
-mergeHecS :: HecUsageState -> HecUsageState -> HecUsageState
-mergeHecS (HecUsageState lmap _ _ _ ltot)
-          (HecUsageState rmap _ _ _ rtot)
- =  HecUsageState (M.unionWith (+) lmap rmap) 0 0 0 (ltot+rtot)
+
+-- | Merge two usage reports, just summing their elements
+mergeHecR :: HecUsageReport -> HecUsageReport -> HecUsageReport
+mergeHecR (HecUsageReport lmap ltot)
+          (HecUsageReport rmap rtot)
+ =  HecUsageReport (M.unionWith (+) lmap rmap) (ltot+rtot)
+
 
 hecUsageMachine :: Machine HecUsageState CapEvent
 hecUsageMachine = Machine
@@ -38,9 +54,8 @@ hecUsageMachine = Machine
     }
  where
   -- Ignore events with no HEC associated
-  alph (CapEvent Nothing _) = False
-  alph (CapEvent _ (Event _ evt)) = alph_evt evt
-  alph _ = False
+  alph (CapEvent (Just _) (Event _ evt)) = alph_evt evt
+  alph _                                 = False
 
   -- Only interested in threads starting, stopping, and GC events
   alph_evt (RunThread _)        = True
@@ -50,7 +65,7 @@ hecUsageMachine = Machine
   alph_evt _                    = False
 
   {-# INLINE delt #-}
-  delt (HecUsageState counts runR runG timelast timetotal)
+  delt (HecUsageState (HecUsageReport counts timetotal) runR runG timelast)
         (CapEvent (Just _cap) (Event timenow evtinfo))
    = let
         -- Update number of active threads and GCs
@@ -67,7 +82,7 @@ hecUsageMachine = Machine
         -- Count total time
         total'  = timetotal + diff
      in
-        Just $ HecUsageState counts' runR' runG' timenow total'
+        Just $ HecUsageState (HecUsageReport counts' total') runR' runG' timenow
   delt _ _ = Nothing
 
   -- If HECs are active and GC is running, count it as active time.
@@ -76,14 +91,29 @@ hecUsageMachine = Machine
   hecCapOf 0 n | n > 0  = HecGC
   hecCapOf n _          = HecCap n
 
-  update !counts !k !v = M.insertWith' (+) k v counts
+  update !counts !k !v  = M.insertWith' (+) k v counts
+
 
 instance Pretty HecCurrentCap where
-  ppr (HecCap n) = ppr n <> text " caps"
-  ppr (HecGC)    = text "In GC"
+  ppr h = case h of
+          HecCap n
+           -> ppr n <> text " caps"
+          HecGC
+           -> text "In GC"
+
 
 instance Pretty HecUsageState where
-  ppr (HecUsageState counts runR runG _ total) = vcat [ counts', running' ]
+  ppr (HecUsageState report runR runG _) = vcat [ ppr report, running' ]
+   where
+    running'       = if (runR,runG) == (0,0)
+                     then text ""
+                     else text "Some threads still running? "
+                          <> (text $ show (runR,runG))
+
+
+
+instance Pretty HecUsageReport where
+  ppr (HecUsageReport counts total) = counts'
    where
     counts'        = pprMap (padL 10 . (<>text ":") . ppr) pprTimestamp counts
 
@@ -97,6 +127,3 @@ instance Pretty HecUsageState where
                    , pprTimestampEng v
                    , text ")" ]
 
-    running'       = if (runR,runG) == (0,0)
-                     then text ""
-                     else text "Some threads still running? " <> (text $ show (runR,runG))

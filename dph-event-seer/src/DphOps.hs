@@ -1,8 +1,7 @@
+-- | DPH operations: how long they took, totals, etc
 module DphOps
         ( dphOpsMachine
         , dphOpsSumMachine
-        , pprDphOpsState
-        , pprDphOpsSumState
         , DphTrace(..)
         , ParseComp(..)
         , parseComp
@@ -24,21 +23,22 @@ import Data.List        (sortBy, stripPrefix)
 
 import Pretty
 
-import Debug.Trace
 
--- | set of interesting things that DPH might tell us
+-- | Set of interesting things that DPH might tell us
 data DphTrace
     = DTComplete W.Comp Timestamp
     | DTIssuing  W.Comp
     deriving (Eq,Show)
 
--- | result of attempting to parse a CapEvent
+
+-- | Result of attempting to parse a CapEvent
 data ParseComp
     = POk DphTrace Timestamp -- ^ valid event and its time
     | PUnparsable        -- ^ looks like a comp, but invalid
     | PIgnored           -- ^ not a comp at all, just ignore
 
--- | attempt to get a Comp
+
+-- | Attempt to get a Comp
 -- eg "GANG Complete par CompMap{...} in 44us"
 parseComp :: GangEvent -> ParseComp
 parseComp (GangEvent _ ts gmsg)
@@ -67,10 +67,16 @@ parseComp (GangEvent _ ts gmsg)
    | otherwise
    = PIgnored
 
+
 data GangEvent = GangEvent (Maybe Int) Timestamp String
         deriving Show
 
--- | potentially merge multiple CapEvents into single GangEvent
+
+-- | Potentially merge multiple CapEvents into single GangEvent
+--   Because each event can only be 500 or so characters,
+--   and our comps are quite large, so they must be split across events.
+--   "GANG[1/2] Complete par xxx"
+--   "GANG[2/2] yyy zzz"
 getGangEvents :: [CapEvent] -> [GangEvent]
 getGangEvents xs = snd $ foldl (flip gang) (Nothing,[]) xs
  where
@@ -95,14 +101,15 @@ getGangEvents xs = snd $ foldl (flip gang) (Nothing,[]) xs
         | otherwise
         = (Just $ se `merge` ge, ls)
         
-
   merge Nothing ge
         = ge
   merge (Just (GangEvent c t s)) (GangEvent _ _ s')
         = GangEvent c t (s++s')
 
+
 pprGangEvents :: [GangEvent] -> Doc
 pprGangEvents gs = vcat $ map ppr gs
+
 instance Pretty GangEvent where
   ppr (GangEvent c t s) =
         padL 10 (text $ show c) <>
@@ -136,26 +143,28 @@ dphOpsMachine = Machine
   update !counts !k !v = M.insertWith' (++) k [v] counts
 
 
-pprDphOpsState :: DphOpsState -> Doc
-pprDphOpsState (DphOpsState ops total unparse) = vcat [unparse', ops']
- where
-  unparse'
+instance Pretty DphOpsState where
+ ppr (DphOpsState ops total unparse) = vcat [unparse', ops']
+  where
+   unparse'
         = if unparse == 0
           then text ""
           else text "Errors: " <> ppr unparse <> text " events unable to be parsed"
 
-  ops' = vcat $ map pprOps $ reverse $ M.assocs ops
+   ops' = vcat $ map pprOps $ reverse $ M.assocs ops
 
-  pprOps (duration,cs) = vcat $ map (pprOp duration) cs
-  pprOp duration c     = padLines (cat
+   pprOps (duration,cs) = vcat $ map (pprOp duration) cs
+   pprOp duration c     = padLines (cat
         [ pprPercent duration
         , text " "
         , padR 10 (text "(" <> pprTimestampEng duration <> text ")")
         , text " "
         ]) (show $ ppr c)
-  pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
+   pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
+
 
 data DphOpsSumState = DphOpsSumState (Map W.Comp (Int,Timestamp)) Timestamp Int
+
 
 dphOpsSumMachine :: Machine DphOpsSumState GangEvent
 dphOpsSumMachine = Machine
@@ -181,13 +190,16 @@ dphOpsSumMachine = Machine
   update !counts !k !v = M.insertWith' pairAdd k v counts
   pairAdd (aa,ab) (ba,bb) = (aa+ba, ab+bb)
 
--- reset the elements arg of all JoinCopies so they show up as total
+
+-- Reset the elements arg of all JoinCopies so they show up as total
+clearJoinComp :: W.Comp -> W.Comp
 clearJoinComp (W.CGen c w)   = W.CGen c $ clearJoinWhat w
 clearJoinComp (W.CMap  w)    = W.CMap   $ clearJoinWhat w
 clearJoinComp (W.CFold w)    = W.CFold  $ clearJoinWhat w
 clearJoinComp (W.CScan w)    = W.CScan  $ clearJoinWhat w
 clearJoinComp (W.CDist w)    = W.CDist  $ clearJoinWhat w
 
+clearJoinWhat :: W.What -> W.What
 clearJoinWhat (W.WJoinCopy _)= W.WJoinCopy (-1)
 clearJoinWhat (W.WFMapMap p q) = W.WFMapMap (clearJoinWhat p) (clearJoinWhat q)
 clearJoinWhat (W.WFMapGen p q) = W.WFMapGen (clearJoinWhat p) (clearJoinWhat q)
@@ -195,23 +207,22 @@ clearJoinWhat (W.WFZipMap p q) = W.WFZipMap (clearJoinWhat p) (clearJoinWhat q)
 clearJoinWhat w = w
 
 
-
-pprDphOpsSumState :: DphOpsSumState -> Doc
-pprDphOpsSumState (DphOpsSumState ops total unparse) = vcat [unparse', ops']
- where
-  unparse'
+instance Pretty DphOpsSumState where
+ ppr (DphOpsSumState ops total unparse) = vcat [unparse', ops']
+  where
+   unparse'
         = if unparse == 0
           then text ""
           else text "Errors: " <> ppr unparse <> text " events unable to be parsed"
 
-  ops' = vcat $ map pprOp $ sortBy cmp $ M.assocs ops
-  cmp (_,(_,p)) (_,(_,q))
+   ops' = vcat $ map pprOp $ sortBy cmp $ M.assocs ops
+   cmp (_,(_,p)) (_,(_,q))
         = case compare p q of
           GT -> LT
           EQ -> EQ
           LT -> GT
 
-  pprOp (c,(calls,duration)) = padLines (cat
+   pprOp (c,(calls,duration)) = padLines (cat
         [ pprPercent duration
         , text " "
         , padR 10 (text "(" <> pprTimestampEng duration <> text ")")
@@ -219,15 +230,16 @@ pprDphOpsSumState (DphOpsSumState ops total unparse) = vcat [unparse', ops']
         , padR 10 (ppr calls)
         , text " "
         ]) (show $ ppr c)
-  pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
+   pprPercent   v = padR 5  $ ppr (v * 100 `div` total) <> text "%"
+
 
 instance Pretty W.Comp where
   ppr (W.CGen cheap what)
         = cheap' <> ppr what
-        where
-        cheap' = if cheap
-                 then text "GenC "
-                 else text "Gen  "
+   where
+    cheap' = if cheap
+             then text "GenC "
+             else text "Gen  "
   ppr (W.CMap what)
         = text "Map  " <> ppr what
   ppr (W.CFold what)
@@ -237,8 +249,9 @@ instance Pretty W.Comp where
   ppr (W.CDist what)
         = text "Dist " <> ppr what
 
+
 instance Pretty W.What where
-  ppr (W.What str)            = text $ show str
+  ppr (W.What what)        = text $ show what
   ppr (W.WScalar)          = text "Scalar"
   ppr (W.WZip)             = text "Zip"
   ppr (W.WSlice)           = text "Slice"
