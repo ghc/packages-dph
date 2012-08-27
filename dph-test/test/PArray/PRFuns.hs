@@ -14,7 +14,7 @@ import DPH.Testsuite
 import Data.Array.Parallel.Array
 import Data.Array.Parallel.Base                 (Tag)
 import Data.Array.Parallel.Pretty
-import "dph-lifted-vseg" Data.Array.Parallel.PArray               (PA(..))
+import Data.Array.Parallel.PArray               (PA(..))
 import Data.Array.Parallel.PArray.PData.Base    ()
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PData.Nested
@@ -27,7 +27,7 @@ import Text.PrettyPrint                         as T
 import Prelude                                  as P
 import qualified Data.Vector                    as V
 import qualified Data.Array.Parallel.Unlifted   as U
-import qualified "dph-lifted-vseg" Data.Array.Parallel.PArray     as PA
+import qualified Data.Array.Parallel.PArray     as PA
 import qualified DPH.Operators.List             as L
 import System.IO.Unsafe
 import Debug.Trace

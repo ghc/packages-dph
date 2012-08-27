@@ -83,7 +83,6 @@ Library
         ExistentialQuantification,
         ScopedTypeVariables,
         PatternGuards,
-        PackageImports,
         DeriveDataTypeable
 
   GHC-Options:

@@ -39,28 +39,10 @@ jobCompile (JobCompile
 	(time, (code, strOut, strErr))
 	  <- runTimedCommand
 	  $  systemTee False
-		("ghc " ++ " -XCPP"
-		        ++ " -XBangPatterns"
-		        ++ " -XNoMonomorphismRestriction"
-                        ++ " -XTypeOperators"
-                        ++ " -XExistentialQuantification"
-		        ++ " -XRankNTypes"
-		        ++ " -XTypeFamilies"
-                        ++ " -XMultiParamTypeClasses"
-		        ++ " -XFlexibleInstances"
-		        ++ " -XFlexibleContexts"
-		        ++ " -XMagicHash"
-		        ++ " -XUnboxedTuples"
-		        ++ " -XTemplateHaskell"
-		        ++ " -XStandaloneDeriving"
+		("ghc " ++ ghc_exts
 		        ++ " -Idph-prim-interface/interface"
 		        ++ " -Idph-base/include"
-		        ++ " -idph-test/framework"
-		        ++ " -idph-lifted-base"
-		        ++ " -idph-base"
-		        ++ " -idph-prim-par"
-		        ++ " -idph-prim-seq"
-		        ++ " -idph-lifted-vseg"
+			++ dph_code_includes
 		        ++ " -package ghc"
 		        ++ " -Odph -fno-liberate-case"
 		        ++ " -outputdir " ++ buildDir 
@@ -83,3 +65,40 @@ jobCompile (JobCompile
 	return  $  [ ResultAspect $ Time TotalWall `secs` ftime]
 	        ++ (if success then [] else [ResultUnexpectedFailure])
 
+
+ghc_exts :: String
+ghc_exts = concat
+	[ "-XBangPatterns "
+	, "-XCPP "
+	, "-XDeriveDataTypeable "
+	, "-XEmptyDataDecls "
+	, "-XExistentialQuantification "
+	, "-XExplicitForAll "
+	, "-XFlexibleContexts "
+	, "-XFlexibleInstances "
+	, "-XGADTs "
+	, "-XMagicHash "
+	, "-XMultiParamTypeClasses "
+	, "-XNoMonomorphismRestriction "
+	, "-XParallelListComp "
+	, "-XPatternGuards "
+	, "-XRankNTypes "
+	, "-XScopedTypeVariables "
+	, "-XStandaloneDeriving "
+	, "-XTemplateHaskell "
+	, "-XTypeFamilies "
+	, "-XTypeOperators "
+	, "-XUnboxedTuples "]
+
+
+dph_code_includes :: String
+dph_code_includes = concat $ map (" -i"++)
+	[ "dph-test/framework"
+	, "dph-base"
+	-- not dph-prim-interface
+	--
+	-- put prim-par before so par's Data.Array.Parallel.Unlifted is used
+	, "dph-prim-par"
+	, "dph-prim-seq"
+	, "dph-lifted-base"
+	, "dph-lifted-vseg" ]

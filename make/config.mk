@@ -28,18 +28,34 @@ GHC_OPTS = \
 
 # GHC language extensions that DPH code needs.
 GHC_EXTS = \
-        -XCPP \
+	-XCPP \
+	-XFlexibleInstances \
+	-XGADTs \
+	-XMagicHash \
+	-XRankNTypes \
+	-XTypeFamilies \
+	-XTypeOperators \
+	-XUnboxedTuples \
         -XBangPatterns \
-        -XNoMonomorphismRestriction \
-        -XTypeOperators \
+        -XCPP \
+        -XDeriveDataTypeable \
+        -XEmptyDataDecls \
         -XExistentialQuantification \
-        -XRankNTypes \
-        -XTypeFamilies \
-        -XFlexibleInstances \
+        -XExplicitForAll \
         -XFlexibleContexts \
+        -XFlexibleInstances \
         -XMagicHash \
-        -XUnboxedTuples \
-        -XTemplateHaskell
+        -XMultiParamTypeClasses \
+        -XNoMonomorphismRestriction \
+        -XParallelListComp \
+        -XPatternGuards \
+        -XRankNTypes \
+        -XScopedTypeVariables \
+        -XStandaloneDeriving \
+        -XTemplateHaskell \
+        -XTypeFamilies \
+        -XTypeOperators \
+        -XUnboxedTuples
 
 # External packages that we need
 GHC_PACKAGES = \

@@ -69,19 +69,19 @@ import Data.Array.Parallel.Trace
 import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
-import Data.Array.Parallel.PArray.Reference
+import Data.Array.Parallel.PArray.Reference.Convert
 import GHC.Exts
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
-import qualified Data.Array.Parallel.Pretty     as T
-import qualified Data.Array.Parallel.Array      as A
-import qualified Data.Array.Parallel.Unlifted   as U
-import qualified Data.Vector                    as V
-import qualified "dph-lifted-base" Data.Array.Parallel.PArray           as R
-import qualified "dph-lifted-base" Data.Array.Parallel.PArray.Reference as R
+import qualified Data.Array.Parallel.Pretty			as T
+import qualified Data.Array.Parallel.Array			as A
+import qualified Data.Array.Parallel.Unlifted			as U
+import qualified Data.Vector					as V
+import qualified Data.Array.Parallel.PArray.Reference		as R
+import qualified Data.Array.Parallel.PArray.Reference.Convert	as R
 import Data.Typeable
 
-import qualified Prelude                        as P
+import qualified Prelude					as P
 import Prelude hiding 
         ( length, replicate, concat
         , enumFromTo

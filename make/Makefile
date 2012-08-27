@@ -55,8 +55,10 @@ lifted-vseg : dph-lifted-vseg/Data/Array/Parallel/PArray.o
 # Dirs that contain real source files that we want to build.
 dph_src_dirs \
  =      dph-base \
+        dph-prim-interface \
         dph-prim-seq \
         dph-prim-par \
+        dph-lifted-base \
         dph-lifted-$(FRONTEND)
 
 # Dirs that contain .h files that we may way to #include

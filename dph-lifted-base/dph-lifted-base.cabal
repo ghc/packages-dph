@@ -15,7 +15,7 @@ Library
   Exposed-Modules:
         Data.Array.Parallel.PArray.Types
         Data.Array.Parallel.PArray.Reference
-        Data.Array.Parallel.PArray
+        Data.Array.Parallel.PArray.Reference.Convert
         Data.Array.Parallel.PArr
         
   Exposed:
@@ -43,7 +43,6 @@ Library
         ExistentialQuantification,
         ScopedTypeVariables,
         PatternGuards,
-        PackageImports,
         DeriveDataTypeable
 
   GHC-Options:

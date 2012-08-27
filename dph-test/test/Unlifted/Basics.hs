@@ -3,8 +3,10 @@ import DPH.Testsuite
 import DPH.Arbitrary.Int
 import Data.Array.Parallel.Unlifted as U
 import Prelude as P
-
 import System.Random as R ( Random, StdGen, randoms, randomRs )
+
+(!:) = index "test:Basics"
+
 
 $(testcases [ ""        <@ [t| ( Bool, Int ) |]
             , "acc"     <@ [t| ( Int       ) |]

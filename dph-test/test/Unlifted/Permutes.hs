@@ -5,8 +5,10 @@ import DPH.Arbitrary.Perm
 import Data.Array.Parallel.Unlifted as U
 import qualified Data.Vector        as V
 import Prelude as P
-
 import Data.List ( sort )
+
+(!:) = index "test:Permutes"
+
 
 $(testcases [ ""        <@ [t| ( Bool, Int ) |]
             , "acc"     <@ [t| ( Int       ) |]
