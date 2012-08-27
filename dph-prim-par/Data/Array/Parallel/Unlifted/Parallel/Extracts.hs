@@ -120,27 +120,19 @@ extractsFromVectorsUPVSegdP
         -> Vectors a
         -> Vector a
 
-extractsFromVectorsUPVSegdP upvsegd vectors
- = joinD theGang balanced
- $ mapD what
+extractsFromVectorsUPVSegdP !upvsegd !vectors
+ = let !segs    = UPVSegd.takeDistributed       upvsegd
+       !vsegids = UPVSegd.takeVSegidsRedundant  upvsegd
+       !ussegd  = UPSSegd.takeUSSegd
+                $ UPVSegd.takeUPSSegdRedundant  upvsegd
+   in joinD theGang balanced
+    $ mapD (What "extractsFromVectorsUPVSegdP")
         theGang
         (extractsFromVectorsUPSSegd_split
                 ussegd
                 vsegids
                 vectors)
         segs
- where  what
-         = let  lens    = UPVSegd.takeLengths upvsegd
-           in   (What $ "dph-prim-par: extractsFromVectorsUPVSegdP." 
-                      P.++ show lens)
-        {-# NOINLINE what #-}
-
-        segs    = UPVSegd.takeDistributed upvsegd
-        {-# INLINE segs #-}
-
-        vsegids = UPVSegd.takeVSegidsRedundant upvsegd
-        ussegd  = UPSSegd.takeUSSegd 
-                $ UPVSegd.takeUPSSegdRedundant upvsegd
 
 {-# INLINE_UP extractsFromVectorsUPVSegdP #-}
 
@@ -153,7 +145,7 @@ extractsFromVectorsUPSSegd_split
         -> ((USegd.USegd,Int),Int)
         -> Vector a
 
-extractsFromVectorsUPSSegd_split ussegd vsegids vectors which
+extractsFromVectorsUPSSegd_split !ussegd !vsegids !vectors !which
         = Seq.unstream 
         $ US.streamSegsFromVectorsUSSegd_split vectors
                 ussegd vsegids which

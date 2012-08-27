@@ -248,8 +248,8 @@ streamSegsFromVectorsUSSegd_split
         -> Stream m a
 
 streamSegsFromVectorsUSSegd_split
-        vectors (USSegd _ !segStarts !segSources _)
-        vsegids ((!segd,!seg_off),!el_off)
+        !vectors !ussegd
+        !vsegids ((!segd,!seg_off),!el_off)
  = let  here            = "streamSegsFromVectorsUSSegd_split"
 
         -- Total number of elements to be streamed
@@ -258,6 +258,18 @@ streamSegsFromVectorsUSSegd_split
 
         -- Total number of segments.
         !segsTotal      = U.length lengths
+
+        !segStarts      = USSegd.takeStarts  ussegd
+        !segSources     = USSegd.takeSources ussegd
+
+        vsegid seg      = index here vsegids    (seg + seg_off)
+        {-# INLINE vsegid #-}
+        source pseg     = index here segSources  pseg
+        {-# INLINE source #-}
+        start  pseg     = index here segStarts   pseg
+        {-# INLINE start #-}
+        len    seg      = index here lengths     seg
+        {-# INLINE len #-}
 
         -- seg, ix of that seg in usegd, length of seg, elem in seg
         {-# INLINE_INNER fnSeg #-}
@@ -270,10 +282,10 @@ streamSegsFromVectorsUSSegd_split
 
                   -- Move to the next seg.
                   else let ixSeg'       = ixSeg + 1
-                           ixPSeg       = index here vsegids (ixSeg' + seg_off)
-                           sourceSeg    = index here segSources ixPSeg
-                           startSeg     = index here segStarts  ixPSeg
-                           lenSeg       = index here lengths    ixSeg'
+                           ixPSeg       = vsegid ixSeg'
+                           sourceSeg    = source ixPSeg
+                           startSeg     = start  ixPSeg
+                           lenSeg       = len    ixSeg'
                            el_off'      = if ixSeg' == 0 then el_off else 0
                            (arr, startArr, _) 
                                         = US.unsafeIndexUnpack vectors sourceSeg
