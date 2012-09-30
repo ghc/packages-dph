@@ -1,0 +1,960 @@
+Result size of Tidy Core
+  = {terms: 1,345, types: 1,337, coercions: 732}
+
+lvl_r611
+lvl_r611 = empty $fEltInt
+
+int0
+int0 = I# 0
+
+segd_r613
+segd_r613 = mkSegd lvl_r611 lvl_r611 int0
+
+a_r614
+a_r614 = P_2 $fPRDouble_$cemptyPR $fPRDouble_$cemptyPR
+
+a1_r615
+a1_r615 = PNested segd_r613 (a_r614 `cast` ...)
+
+lvl2_r616
+lvl2_r616 = $fDT(,) $fDTInt $fDTDouble
+
+lvl3_r617
+lvl3_r617 = sum_s $fNumInt $fEltInt
+
+lvl4_r618
+lvl4_r618 = packByTag $fEltInt
+
+packByTagDbl
+packByTagDbl = packByTag $fEltDouble
+
+int1
+int1 = I# 1
+
+dbl0.0#
+dbl0.0# = D# 0.0
+
+a2_r61c
+a2_r61c =
+  absentError
+    "ww_s5Pu{v} [lid] Dist{tc rE4}\n\
+    \                   ((USegd{tc rLh}, Int{(w) tc 3J}), Int{(w) tc 3J})"#
+
+$dMVector_r61d
+$dMVector_r61d = $fMVectorMVector(,) $fUnboxInt $fUnboxDouble
+
+lvl8_r61e
+lvl8_r61e =
+  $fVectorVector(,)
+    ($dMVector_r61d `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl9_r61f
+lvl9_r61f =
+  $fUnbox(,) lvl8_r61e $dMVector_r61d $fUnboxInt $fUnboxDouble
+
+lvl10_r61g
+lvl10_r61g = $fElt(,) lvl9_r61f lvl2_r616 $fEltInt $fEltDouble
+
+Rec {
+$wlhsplit_r61h
+$wlhsplit_r61h =
+  \ nlines# points_s lines ->
+    case nlines# of nlines#' {
+      __DEFAULT ->
+        case lines `cast` ... of _ { P_2 line_starts line_ends ->
+        let {
+          cross
+          cross =
+            case points_s `cast` ... of _ { PNested segd pts ->
+            (PNested
+               segd
+               (case pts `cast` ... of _ { P_2 xos yos ->
+                case line_starts `cast` ... of _ { P_2 x1s y1s ->
+                case line_ends `cast` ... of _ { P_2 x2s y2s ->
+                (zipWith
+                   $fEltDouble
+                   $fEltDouble
+                   $fEltDouble
+                   minusDouble
+                   (zipWith
+                      $fEltDouble
+                      $fEltDouble
+                      $fEltDouble
+                      timesDouble
+                      (zipWith
+                         $fEltDouble
+                         $fEltDouble
+                         $fEltDouble
+                         minusDouble
+                         (replicate_s $fEltDouble segd (x1s `cast` ...))
+                         (xos `cast` ...))
+                      (zipWith
+                         $fEltDouble
+                         $fEltDouble
+                         $fEltDouble
+                         minusDouble
+                         (replicate_s $fEltDouble segd (y2s `cast` ...))
+                         (yos `cast` ...)))
+                   (zipWith
+                      $fEltDouble
+                      $fEltDouble
+                      $fEltDouble
+                      timesDouble
+                      (zipWith
+                         $fEltDouble
+                         $fEltDouble
+                         $fEltDouble
+                         minusDouble
+                         (replicate_s $fEltDouble segd (y1s `cast` ...))
+                         (yos `cast` ...))
+                      (zipWith
+                         $fEltDouble
+                         $fEltDouble
+                         $fEltDouble
+                         minusDouble
+                         (replicate_s $fEltDouble segd (x2s `cast` ...))
+                         (xos `cast` ...))))
+                `cast` ...
+                }
+                }
+                }))
+            `cast` ...
+            } } in
+        let {
+          packed
+          packed =
+            case points_s `cast` ... of _ { PNested segd1 points_s_data ->
+            case cross `cast` ... of _ { PNested _ cross' ->
+            case elementsSegd segd1 of _ { I# k#nelts ->
+            let {
+              selGZ
+              selGZ =
+                tagsToSel2
+                  (map
+                     $fEltBool
+                     $fEltInt
+                     fromBool
+                     (zipWith
+                        $fEltDouble
+                        $fEltDouble
+                        $fEltBool
+                        $fOrdDouble_$c>
+                        (cross' `cast` ...)
+                        (replicate $fEltDouble (I# k#nelts) dbl0.0#))) } in
+            let {
+              segdGZ
+              segdGZ =
+                lengthsToSegd
+                  (count_s
+                     $fEltInt $fEqInt segd1 (tagsSel2 selGZ) int1) } in
+            (PNested
+               segdGZ
+               (case segdGZ
+                of _ { UPSegd lensGZ idxsGZ neltsGZ psegdGZ ->
+                case elementsSel2_1 selGZ of _ { I# _ ->
+                case points_s_data `cast` ... of _ { P_2 xos yos ->
+                let {
+                  tagsGZ
+                  tagsGZ = tagsSel2 selGZ } in
+                (P_2
+                   ((packByTagDbl (xos `cast` ...) tagsGZ int1) `cast` ...)
+                   ((packByTagDbl (yos `cast` ...) tagsGZ int1) `cast` ...))
+                `cast` ...
+                }
+                }
+                }))
+            `cast` ...
+            }
+            }
+            } } in
+        case tagsToSel2
+               (case packed `cast` ... of _ { PNested segdGZ _ ->
+                map
+                  $fEltBool
+                  $fEltInt
+                  fromBool
+                  (zipWith
+                     $fEltInt
+                     $fEltInt
+                     $fEltBool
+                     eqInt
+                     (lengthsSegd segdGZ)
+                     (replicate $fEltInt (I# nlines#') int0))
+                })
+        of _ { UPSel2 usel2 upselrep2 ->
+        case usel2
+        of ww2_X5PN { Usel22 usel2_tags usel2_idxs usel2_n0s usel2_n1s ->
+        let {
+          a5_X4Y6
+          a5_X4Y6 = UPSel2 ww2_X5PN upselrep2 } in
+        case elementsSel2_0 a5_X4Y6 of wild2_d3oN { I# n#_d3oP ->
+        case mkSegd
+               (replicate $fEltInt wild2_d3oN int1)
+               (enumFromStepLen int0 int1 wild2_d3oN)
+               wild2_d3oN
+        of _ { UPSegd ww7_s5Pr ww8_s5Ps ww9_s5Pt _ ->
+        let {
+          a7_s56m
+          a7_s56m =
+            mkSegd
+              (replicate $fEltInt wild2_d3oN int1)
+              (enumFromStepLen int0 int1 wild2_d3oN)
+              wild2_d3oN } in
+        let {
+          a8_X57a
+          a8_X57a = UPSegd ww7_s5Pr ww8_s5Ps ww9_s5Pt a2_r61c } in
+        let {
+          segd1_a4Ml
+          segd1_a4Ml = plusSegd a8_X57a a7_s56m } in
+        case elementsSegd segd1_a4Ml of _ { I# k#nelts_segd1_a4Ml ->
+        let {
+          packed1_d3mB
+          packed1_d3mB =
+            let {
+              packed2_s3CI
+              packed2_s3CI =
+                case packed `cast` ... of _ { PNested segd2_a4Xt xs_a4Xu ->
+                let {
+                  tags_a4XC
+                  tags_a4XC = tagsSel2 a5_X4Y6 } in
+                let {
+                  segd'_a4XG
+                  segd'_a4XG =
+                    lengthsToSegd
+                      (lvl4_r618 (lengthsSegd segd2_a4Xt) tags_a4XC int0) } in
+                (PNested
+                   segd'_a4XG
+                   (case segd'_a4XG
+                    of _ { UPSegd ipv_s5oB ipv1_s5oC ipv2_s5oD ipv3_s5oE ->
+                    case xs_a4Xu `cast` ... of _ { P_2 x1s y1s ->
+                    let {
+                      tags1_a4VN
+                      tags1_a4VN = replicate_s $fEltInt segd2_a4Xt tags_a4XC } in
+                    (P_2
+                       ((packByTagDbl (x1s `cast` ...) tags1_a4VN int0) `cast` ...)
+                       ((packByTagDbl (y1s `cast` ...) tags1_a4VN int0) `cast` ...))
+                    `cast` ...
+                    }
+                    }))
+                `cast` ...
+                } } in
+            case packed2_s3CI `cast` ... of _ { PNested segd2_a4Xt xs_a4Xu ->
+            let {
+              ns_a58G
+              ns_a58G =
+                replicate_s $fEltInt segd1_a4Ml (lengthsSegd segd2_a4Xt) } in
+            let {
+              xsegd'_a58K
+              xsegd'_a58K = lengthsToSegd ns_a58G } in
+            (PNested
+               xsegd'_a58K
+               (case xsegd'_a58K
+                of segd3_a5nC { UPSegd ipv_s5oS ipv1_s5oT ipv2_s5oU ipv3_s5oV ->
+                case xs_a4Xu `cast` ... of _ { P_2 x1s y1s ->
+                let {
+                  ixs_a54J
+                  ixs_a54J =
+                    enumFromStepLenEach
+                      (elementsSegd segd3_a5nC)
+                      (replicate_s $fEltInt segd1_a4Ml (indicesSegd segd2_a4Xt))
+                      (replicate $fEltInt (elementsSegd segd1_a4Ml) int1)
+                      ns_a58G } in
+                (P_2
+                   ((bpermute $fEltDouble (x1s `cast` ...) ixs_a54J) `cast` ...)
+                   ((bpermute $fEltDouble (y1s `cast` ...) ixs_a54J) `cast` ...))
+                `cast` ...
+                }
+                }))
+            `cast` ...
+            } } in
+        let {
+          packed2_a3iy
+          packed2_a3iy = packed1_d3mB } in
+        case ($wlhsplit_r61h
+                k#nelts_segd1_a4Ml
+                packed2_a3iy
+                (let {
+                   pm_s3CH
+                   pm_s3CH =
+                     case points_s `cast` ... of _ { PNested segd2_a4O9 xs_a4Oa ->
+                     case xs_a4Oa `cast` ... of _ { P_2 x1s y1s ->
+                     let {
+                       ixs_a54J
+                       ixs_a54J =
+                         case cross `cast` ... of _ { PNested segd3_a54a xs1_a54b ->
+                         zipWith
+                           $fEltInt
+                           $fEltInt
+                           $fEltInt
+                           $fNumInt_$c+
+                           (indicesSegd segd2_a4O9)
+                           (fsts
+                              $fEltInt
+                              $fEltDouble
+                              (fold1_s
+                                 lvl10_r61g
+                                 ($vmaxIndexP_$smax')
+                                 segd3_a54a
+                                 (zip
+                                    $fEltInt
+                                    $fEltDouble
+                                    (indices_s segd3_a54a)
+                                    (xs1_a54b `cast` ...))))
+                         } } in
+                     let {
+                       a9_s5QL
+                       a9_s5QL = bpermute $fEltDouble (y1s `cast` ...) ixs_a54J } in
+                     let {
+                       a10_s5QH
+                       a10_s5QH = bpermute $fEltDouble (x1s `cast` ...) ixs_a54J } in
+                     let {
+                       a11_s5QN
+                       a11_s5QN = P_2 (a10_s5QH `cast` ...) (a9_s5QL `cast` ...) } in
+                     let {
+                       pm1_s3CJ
+                       pm1_s3CJ = a11_s5QN `cast` ... } in
+                     case pm1_s3CJ `cast` ... of _ { P_2 as1_s5Ue bs1_s5Uf ->
+                     let {
+                       tagsGZ
+                       tagsGZ = tagsSel2 a5_X4Y6 } in
+                     (P_2
+                        ((packByTagDbl (as1_s5Ue `cast` ...) tagsGZ int0) `cast` ...)
+                        ((packByTagDbl (bs1_s5Uf `cast` ...) tagsGZ int0) `cast` ...))
+                     `cast` ...
+                     }
+                     }
+                     } } in
+                 (P_2
+                    (case line_starts `cast` ... of _ { P_2 x1s y1s ->
+                     case pm_s3CH `cast` ... of _ { P_2 as1_X6OI bs1_X6OL ->
+                     let {
+                       tagsGZ
+                       tagsGZ = tagsSel2 a5_X4Y6 } in
+                     (P_2
+                        ((append_s
+                            $fEltDouble
+                            segd1_a4Ml
+                            a8_X57a
+                            (packByTagDbl (x1s `cast` ...) tagsGZ int0)
+                            a7_s56m
+                            (as1_X6OI `cast` ...))
+                         `cast` ...)
+                        ((append_s
+                            $fEltDouble
+                            segd1_a4Ml
+                            a8_X57a
+                            (packByTagDbl (y1s `cast` ...) tagsGZ int0)
+                            a7_s56m
+                            (bs1_X6OL `cast` ...))
+                         `cast` ...))
+                     `cast` ...
+                     }
+                     })
+                    (case pm_s3CH `cast` ... of _ { P_2 as_X5Rg bs_X5Ri ->
+                     case line_ends `cast` ... of _ { P_2 as1_a4TX bs1_a4TY ->
+                     let {
+                       tagsGZ
+                       tagsGZ = tagsSel2 a5_X4Y6 } in
+                     (P_2
+                        ((append_s
+                            $fEltDouble
+                            segd1_a4Ml
+                            a8_X57a
+                            (as_X5Rg `cast` ...)
+                            a7_s56m
+                            (packByTagDbl (as1_a4TX `cast` ...) tagsGZ int0))
+                         `cast` ...)
+                        ((append_s
+                            $fEltDouble
+                            segd1_a4Ml
+                            a8_X57a
+                            (bs_X5Ri `cast` ...)
+                            a7_s56m
+                            (packByTagDbl (bs1_a4TY `cast` ...) tagsGZ int0))
+                         `cast` ...))
+                     `cast` ...
+                     }
+                     }))
+                 `cast` ...))
+             `cast` ...
+        of _ { PNested segd2_a4N4 xs_a4N5 ->
+        case elementsSel2_1 a5_X4Y6 of wild5_d3B8 { I# n#1_d3Ba ->
+        let {
+          segd3_a5b7
+          segd3_a5b7 =
+            lengthsToSegd
+              (combine2
+                 $fEltInt
+                 (tagsSel2 a5_X4Y6)
+                 (repSel2 a5_X4Y6)
+                 (lvl3_r617 segd1_a4Ml (lengthsSegd segd2_a4N4))
+                 (replicate $fEltInt wild5_d3B8 int1)) } in
+        (PNested
+           segd3_a5b7
+           (case segd3_a5b7
+            of segd4_a5nC { UPSegd ipv_s5ph ipv1_s5pi ipv2_s5pj ipv3_s5pk ->
+            case xs_a4N5 `cast` ... of _ { P_2 x1s y1s ->
+            case line_starts `cast` ... of _ { P_2 as1_X595 bs1_X597 ->
+            let {
+              tagsGZ
+              tagsGZ = tagsSel2 a5_X4Y6 } in
+            let {
+              sel_a5bV
+              sel_a5bV =
+                tagsToSel2
+                  (replicate_s $fEltInt segd4_a5nC (tagsSel2 a5_X4Y6)) } in
+            (P_2
+               ((combine2
+                   $fEltDouble
+                   (tagsSel2 sel_a5bV)
+                   (repSel2 sel_a5bV)
+                   (x1s `cast` ...)
+                   (packByTagDbl (as1_X595 `cast` ...) tagsGZ int1))
+                `cast` ...)
+               ((combine2
+                   $fEltDouble
+                   (tagsSel2 sel_a5bV)
+                   (repSel2 sel_a5bV)
+                   (y1s `cast` ...)
+                   (packByTagDbl (bs1_X597 `cast` ...) tagsGZ int1))
+                `cast` ...))
+            `cast` ...
+            }
+            }
+            }))
+        `cast` ...
+        }
+        }
+        }
+        }
+        }
+        }
+        }
+        };
+      0 -> a1_r615 `cast` ...
+    }
+end Rec }
+
+lxs_r61i
+lxs_r61i =
+  \ _ ds_d3jD ->
+    case ds_d3jD `cast` ... of _ { P_2 x_a3iI _ -> x_a3iI }
+
+lvl11_r61j
+lvl11_r61j = unpackCString# "indexPRScalar"#
+
+lvl12_r61k
+lvl12_r61k =
+  $fVectorVector(,)
+    ($dMVector_r61d `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl13_r61l
+lvl13_r61l =
+  $fUnbox(,) lvl12_r61k $dMVector_r61d $fUnboxInt $fUnboxDouble
+
+lvl14_r61m
+lvl14_r61m = $fElt(,) lvl13_r61l lvl2_r616 $fEltInt $fEltDouble
+
+lvl15_r61n
+lvl15_r61n =
+  $fVectorVector(,)
+    ($dMVector_r61d `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl16_r61o
+lvl16_r61o =
+  $fUnbox(,) lvl15_r61n $dMVector_r61d $fUnboxInt $fUnboxDouble
+
+lvl17_r61p
+lvl17_r61p = $fElt(,) lvl16_r61o lvl2_r616 $fEltInt $fEltDouble
+
+lvl18_r61q
+lvl18_r61q = I# 2
+
+$wvquickHull
+$wvquickHull =
+  \ ww_s5PG ww1_s5PH ->
+    case ww_s5PG of wild_XhZ {
+      __DEFAULT ->
+        let {
+          a4_s5F8
+          a4_s5F8 =
+            case ww1_s5PH `cast` ... of _ { P_2 x_a3iI _ -> x_a3iI } } in
+        let {
+          xs_s3Cx
+          xs_s3Cx = PArray wild_XhZ a4_s5F8 } in
+        case xs_s3Cx of _ { PArray ds1_s5UO xs1_s5UN ->
+        case ($wlhsplit_r61h
+                2
+                ((PNested
+                    (mkSegd
+                       (replicate $fEltInt lvl18_r61q (I# wild_XhZ))
+                       (enumFromStepLen int0 (I# wild_XhZ) lvl18_r61q)
+                       (I# (*# 2 wild_XhZ)))
+                    (case ww1_s5PH `cast` ... of _ { P_2 x1s y1s ->
+                     (P_2
+                        ((repeat $fEltDouble lvl18_r61q (I# wild_XhZ) (x1s `cast` ...))
+                         `cast` ...)
+                        ((repeat $fEltDouble lvl18_r61q (I# wild_XhZ) (y1s `cast` ...))
+                         `cast` ...))
+                     `cast` ...
+                     }))
+                 `cast` ...)
+                (let {
+                   minx_s3Cw
+                   minx_s3Cw =
+                     case fold1
+                            lvl17_r61p
+                            ($vminIndexP_$smin')
+                            (indexed $fEltDouble (xs1_s5UN `cast` ...))
+                     of _ { (x1_a500, _) ->
+                     case x1_a500 of _ { I# i#_a4NW ->
+                     case ww1_s5PH `cast` ... of _ { P_2 x1s y1s ->
+                     (index $fEltDouble lvl11_r61j (x1s `cast` ...) (I# i#_a4NW),
+                      index $fEltDouble lvl11_r61j (y1s `cast` ...) (I# i#_a4NW))
+                     }
+                     }
+                     } } in
+                 let {
+                   maxx_s3Cv
+                   maxx_s3Cv =
+                     case fold1
+                            lvl14_r61m
+                            ($vmaxIndexP_$smax')
+                            (indexed $fEltDouble (xs1_s5UN `cast` ...))
+                     of _ { (x1_a500, _) ->
+                     case x1_a500 of _ { I# i#_a4NW ->
+                     case ww1_s5PH `cast` ... of _ { P_2 x1s y1s ->
+                     (index $fEltDouble lvl11_r61j (x1s `cast` ...) (I# i#_a4NW),
+                      index $fEltDouble lvl11_r61j (y1s `cast` ...) (I# i#_a4NW))
+                     }
+                     }
+                     } } in
+                 (P_2
+                    (case minx_s3Cw of _ { (a5_a5xi, b_a5xj) ->
+                     case maxx_s3Cv of _ { (a6_X5y6, b1_X5y8) ->
+                     (P_2
+                        ((+:+
+                            $fEltDouble
+                            (replicate $fEltDouble int1 a5_a5xi)
+                            (replicate $fEltDouble int1 a6_X5y6))
+                         `cast` ...)
+                        ((+:+
+                            $fEltDouble
+                            (replicate $fEltDouble int1 b_a5xj)
+                            (replicate $fEltDouble int1 b1_X5y8))
+                         `cast` ...))
+                     `cast` ...
+                     }
+                     })
+                    (case maxx_s3Cv of _ { (a5_a5xi, b_a5xj) ->
+                     case minx_s3Cw of _ { (a6_X5y6, b1_X5y8) ->
+                     (P_2
+                        ((+:+
+                            $fEltDouble
+                            (replicate $fEltDouble int1 a5_a5xi)
+                            (replicate $fEltDouble int1 a6_X5y6))
+                         `cast` ...)
+                        ((+:+
+                            $fEltDouble
+                            (replicate $fEltDouble int1 b_a5xj)
+                            (replicate $fEltDouble int1 b1_X5y8))
+                         `cast` ...))
+                     `cast` ...
+                     }
+                     }))
+                 `cast` ...))
+             `cast` ...
+        of _ { PNested segd1_a5yA xs2_a5yB ->
+        case elementsSegd segd1_a5yA of _ { I# n#_a5yF ->
+        (# n#_a5yF, xs2_a5yB #)
+        }
+        }
+        };
+      0 -> (# 0, ww1_s5PH #)
+    }
+
+$vquickhullPA6
+$vquickhullPA6 =
+  \ w_s5PE ->
+    case w_s5PE of _ { PArray ww_s5PG ww1_s5PH ->
+    case $wvquickHull ww_s5PG ww1_s5PH
+    of _ { (# ww3_s5Qa, ww4_s5Qb #) ->
+    PArray ww3_s5Qa ww4_s5Qb
+    }
+    }
+
+lvl19_r61r
+lvl19_r61r =
+  $fVectorVector(,)
+    ($dMVector_r61d `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl20_r61s
+lvl20_r61s =
+  $fUnbox(,) lvl19_r61r $dMVector_r61d $fUnboxInt $fUnboxDouble
+
+lvl21_r61t
+lvl21_r61t = $fElt(,) lvl20_r61s lvl2_r616 $fEltInt $fEltDouble
+
+lvl22_r61u
+lvl22_r61u =
+  $fVectorVector(,)
+    ($dMVector_r61d `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl23_r61v
+lvl23_r61v =
+  $fUnbox(,) lvl22_r61u $dMVector_r61d $fUnboxInt $fUnboxDouble
+
+lvl24_r61w
+lvl24_r61w = $fElt(,) lvl23_r61v lvl2_r616 $fEltInt $fEltDouble
+
+a3_r61x
+a3_r61x =
+  absentError
+    "wnlines#{v} [lid] Dist{tc rE4}\n\
+    \                   ((USegd{tc rLh}, Int{(w) tc 3J}), Int{(w) tc 3J})"#
+
+$wlquickHull
+$wlquickHull =
+  \ w_s5Q3 w1_s5Q4 ->
+    case tagsToSel2
+           (case w1_s5Q4 `cast` ... of _ { PNested segdGZ _ ->
+            map
+              $fEltBool
+              $fEltInt
+              fromBool
+              (zipWith
+                 $fEltInt
+                 $fEltInt
+                 $fEltBool
+                 eqInt
+                 (lengthsSegd segdGZ)
+                 (replicate $fEltInt (I# w_s5Q3) int0))
+            })
+    of _ { UPSel2 ww_s5PM ww1_s5PT ->
+    case ww_s5PM
+    of ww2_X5Qm { Usel22 ww3_s5PO ww4_s5PP ww5_s5PQ ww6_s5PR ->
+    let {
+      a5_X5gr
+      a5_X5gr = UPSel2 ww2_X5Qm ww1_s5PT } in
+    case elementsSel2_0 a5_X5gr of wild_d3oN { I# n#_d3oP ->
+    case mkSegd
+           (replicate $fEltInt wild_d3oN int1)
+           (enumFromStepLen int0 int1 wild_d3oN)
+           wild_d3oN
+    of _ { UPSegd ww7_s5PW ww8_s5PX ww9_s5PY _ ->
+    let {
+      a7_s5hP
+      a7_s5hP =
+        mkSegd
+          (replicate $fEltInt wild_d3oN int1)
+          (enumFromStepLen int0 int1 wild_d3oN)
+          wild_d3oN } in
+    let {
+      a8_X5iF
+      a8_X5iF = UPSegd ww7_s5PW ww8_s5PX ww9_s5PY a3_r61x } in
+    let {
+      segd1_a4Ml
+      segd1_a4Ml = plusSegd a8_X5iF a7_s5hP } in
+    case elementsSegd segd1_a4Ml of wild3_a2RP { I# k#nelts_segd1_a4Ml ->
+    case ($wlhsplit_r61h
+            k#nelts_segd1_a4Ml
+            (case w1_s5Q4 `cast` ... of _ { PNested segd2_a4Xt xs_a4Xu ->
+             let {
+               tags_a4XC
+               tags_a4XC = tagsSel2 a5_X5gr } in
+             let {
+               segd'_a4XG
+               segd'_a4XG =
+                 lengthsToSegd
+                   (lvl4_r618 (lengthsSegd segd2_a4Xt) tags_a4XC int0) } in
+             let {
+               ns_a58G
+               ns_a58G =
+                 replicate_s $fEltInt segd1_a4Ml (lengthsSegd segd'_a4XG) } in
+             let {
+               xsegd'_a58K
+               xsegd'_a58K = lengthsToSegd ns_a58G } in
+             (PNested
+                xsegd'_a58K
+                (case xsegd'_a58K
+                 of segd3_a5nC { UPSegd ipv_s5qk ipv1_s5ql ipv2_s5qm ipv3_s5qn ->
+                 case segd'_a4XG
+                 of segd4_X5FV { UPSegd ipv4_s5q9 ipv5_s5qa ipv6_s5qb ipv7_s5qc ->
+                 case xs_a4Xu `cast` ... of _ { P_2 x1s y1s ->
+                 let {
+                   tags1_a4VN
+                   tags1_a4VN = replicate_s $fEltInt segd2_a4Xt tags_a4XC } in
+                 let {
+                   ixs_a54J
+                   ixs_a54J =
+                     enumFromStepLenEach
+                       (elementsSegd segd3_a5nC)
+                       (replicate_s $fEltInt segd1_a4Ml (indicesSegd segd4_X5FV))
+                       (replicate $fEltInt wild3_a2RP int1)
+                       ns_a58G } in
+                 (P_2
+                    ((bpermute
+                        $fEltDouble
+                        (packByTagDbl (x1s `cast` ...) tags1_a4VN int0)
+                        ixs_a54J)
+                     `cast` ...)
+                    ((bpermute
+                        $fEltDouble
+                        (packByTagDbl (y1s `cast` ...) tags1_a4VN int0)
+                        ixs_a54J)
+                     `cast` ...))
+                 `cast` ...
+                 }
+                 }
+                 }))
+             `cast` ...
+             })
+            (let {
+               xs_s3Cr
+               xs_s3Cr =
+                 case w1_s5Q4 `cast` ... of _ { PNested segdGZ xs1_a2RN ->
+                 (PNested
+                    segdGZ
+                    (case elementsSegd segdGZ of _ { I# k#1_X2WC ->
+                     lxs_r61i k#1_X2WC xs1_a2RN
+                     }))
+                 `cast` ...
+                 } } in
+             let {
+               minx_s3Co
+               minx_s3Co =
+                 case w1_s5Q4 `cast` ... of _ { PNested segd2_a4O9 xs1_a4Oa ->
+                 case xs1_a4Oa `cast` ... of _ { P_2 x1s y1s ->
+                 let {
+                   ixs_a54J
+                   ixs_a54J =
+                     case xs_s3Cr `cast` ... of _ { PNested segd3_a54a xs2_a54b ->
+                     zipWith
+                       $fEltInt
+                       $fEltInt
+                       $fEltInt
+                       $fNumInt_$c+
+                       (indicesSegd segd2_a4O9)
+                       (fsts
+                          $fEltInt
+                          $fEltDouble
+                          (fold1_s
+                             lvl24_r61w
+                             ($vminIndexP_$smin')
+                             segd3_a54a
+                             (zip
+                                $fEltInt
+                                $fEltDouble
+                                (indices_s segd3_a54a)
+                                (xs2_a54b `cast` ...))))
+                     } } in
+                 let {
+                   a9_s5RY
+                   a9_s5RY = bpermute $fEltDouble (y1s `cast` ...) ixs_a54J } in
+                 let {
+                   a10_s5RU
+                   a10_s5RU = bpermute $fEltDouble (x1s `cast` ...) ixs_a54J } in
+                 let {
+                   a11_s5S0
+                   a11_s5S0 = P_2 (a10_s5RU `cast` ...) (a9_s5RY `cast` ...) } in
+                 let {
+                   minx1_s3Cq
+                   minx1_s3Cq = a11_s5S0 `cast` ... } in
+                 case minx1_s3Cq `cast` ... of _ { P_2 as1_s5VM bs1_s5VN ->
+                 let {
+                   tagsGZ
+                   tagsGZ = tagsSel2 a5_X5gr } in
+                 (P_2
+                    ((packByTagDbl (as1_s5VM `cast` ...) tagsGZ int0) `cast` ...)
+                    ((packByTagDbl (bs1_s5VN `cast` ...) tagsGZ int0) `cast` ...))
+                 `cast` ...
+                 }
+                 }
+                 } } in
+             let {
+               maxx_s3Cn
+               maxx_s3Cn =
+                 case w1_s5Q4 `cast` ... of _ { PNested segd2_a4O9 xs1_a4Oa ->
+                 case xs1_a4Oa `cast` ... of _ { P_2 x1s y1s ->
+                 let {
+                   ixs_a54J
+                   ixs_a54J =
+                     case xs_s3Cr `cast` ... of _ { PNested segd3_a54a xs2_a54b ->
+                     zipWith
+                       $fEltInt
+                       $fEltInt
+                       $fEltInt
+                       $fNumInt_$c+
+                       (indicesSegd segd2_a4O9)
+                       (fsts
+                          $fEltInt
+                          $fEltDouble
+                          (fold1_s
+                             lvl21_r61t
+                             ($vmaxIndexP_$smax')
+                             segd3_a54a
+                             (zip
+                                $fEltInt
+                                $fEltDouble
+                                (indices_s segd3_a54a)
+                                (xs2_a54b `cast` ...))))
+                     } } in
+                 let {
+                   a9_s5RK
+                   a9_s5RK = bpermute $fEltDouble (y1s `cast` ...) ixs_a54J } in
+                 let {
+                   a10_s5RG
+                   a10_s5RG = bpermute $fEltDouble (x1s `cast` ...) ixs_a54J } in
+                 let {
+                   a11_s5RM
+                   a11_s5RM = P_2 (a10_s5RG `cast` ...) (a9_s5RK `cast` ...) } in
+                 let {
+                   maxx1_s3Cp
+                   maxx1_s3Cp = a11_s5RM `cast` ... } in
+                 case maxx1_s3Cp `cast` ... of _ { P_2 as1_s5Vw bs1_s5Vx ->
+                 let {
+                   tagsGZ
+                   tagsGZ = tagsSel2 a5_X5gr } in
+                 (P_2
+                    ((packByTagDbl (as1_s5Vw `cast` ...) tagsGZ int0) `cast` ...)
+                    ((packByTagDbl (bs1_s5Vx `cast` ...) tagsGZ int0) `cast` ...))
+                 `cast` ...
+                 }
+                 }
+                 } } in
+             (P_2
+                (case minx_s3Co `cast` ... of _ { P_2 as_X67i bs_X67k ->
+                 case maxx_s3Cn `cast` ... of _ { P_2 as1_X7kM bs1_X7kP ->
+                 (P_2
+                    ((append_s
+                        $fEltDouble
+                        segd1_a4Ml
+                        a8_X5iF
+                        (as_X67i `cast` ...)
+                        a7_s5hP
+                        (as1_X7kM `cast` ...))
+                     `cast` ...)
+                    ((append_s
+                        $fEltDouble
+                        segd1_a4Ml
+                        a8_X5iF
+                        (bs_X67k `cast` ...)
+                        a7_s5hP
+                        (bs1_X7kP `cast` ...))
+                     `cast` ...))
+                 `cast` ...
+                 }
+                 })
+                (case maxx_s3Cn `cast` ... of _ { P_2 as_X67i bs_X67k ->
+                 case minx_s3Co `cast` ... of _ { P_2 as1_X7kM bs1_X7kP ->
+                 (P_2
+                    ((append_s
+                        $fEltDouble
+                        segd1_a4Ml
+                        a8_X5iF
+                        (as_X67i `cast` ...)
+                        a7_s5hP
+                        (as1_X7kM `cast` ...))
+                     `cast` ...)
+                    ((append_s
+                        $fEltDouble
+                        segd1_a4Ml
+                        a8_X5iF
+                        (bs_X67k `cast` ...)
+                        a7_s5hP
+                        (bs1_X7kP `cast` ...))
+                     `cast` ...))
+                 `cast` ...
+                 }
+                 }))
+             `cast` ...))
+         `cast` ...
+    of _ { PNested segd2_a4N4 xs_a4N5 ->
+    case elementsSel2_1 a5_X5gr of _ { I# _ ->
+    case w1_s5Q4 `cast` ... of _ { PNested segd3_a4Xt xs1_a4Xu ->
+    let {
+      tags_a4XC
+      tags_a4XC = tagsSel2 a5_X5gr } in
+    let {
+      segd'_a4XG
+      segd'_a4XG =
+        lengthsToSegd
+          (lvl4_r618 (lengthsSegd segd3_a4Xt) tags_a4XC int1) } in
+    let {
+      segd4_a5b7
+      segd4_a5b7 =
+        lengthsToSegd
+          (combine2
+             $fEltInt
+             tags_a4XC
+             (repSel2 a5_X5gr)
+             (lvl3_r617 segd1_a4Ml (lengthsSegd segd2_a4N4))
+             (lengthsSegd segd'_a4XG)) } in
+    (PNested
+       segd4_a5b7
+       (case segd4_a5b7
+        of segd5_a5nC { UPSegd ipv_s5qC ipv1_s5qD ipv2_s5qE ipv3_s5qF ->
+        case xs_a4N5 `cast` ... of _ { P_2 x1s y1s ->
+        case segd'_a4XG
+        of _ { UPSegd ipv4_s5qJ ipv5_s5qK ipv6_s5qL ipv7_s5qM ->
+        case xs1_a4Xu `cast` ... of _ { P_2 as1_X5cv bs1_X5cx ->
+        let {
+          tags1_a4VN
+          tags1_a4VN = replicate_s $fEltInt segd3_a4Xt tags_a4XC } in
+        let {
+          sel_a5bV
+          sel_a5bV =
+            tagsToSel2 (replicate_s $fEltInt segd5_a5nC tags_a4XC) } in
+        (P_2
+           ((combine2
+               $fEltDouble
+               (tagsSel2 sel_a5bV)
+               (repSel2 sel_a5bV)
+               (x1s `cast` ...)
+               (packByTagDbl (as1_X5cv `cast` ...) tags1_a4VN int1))
+            `cast` ...)
+           ((combine2
+               $fEltDouble
+               (tagsSel2 sel_a5bV)
+               (repSel2 sel_a5bV)
+               (y1s `cast` ...)
+               (packByTagDbl (bs1_X5cx `cast` ...) tags1_a4VN int1))
+            `cast` ...))
+        `cast` ...
+        }
+        }
+        }
+        }))
+    `cast` ...
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+
+$vquickhullPA3
+$vquickhullPA3 = $wlquickHull
+
+$vquickhullPA2
+$vquickhullPA2 = $vquickhullPA3
+
+$vquickhullPA1
+$vquickhullPA1 =
+  \ lc_X4wP _ arg_d3nB -> $wlquickHull lc_X4wP arg_d3nB
+
+$vquickhullPA5
+$vquickhullPA5 = $vquickhullPA6
+
+$vquickhullPA4
+$vquickhullPA4 = \ _ arg_d3nA -> $vquickhullPA6 arg_d3nA
+
+$vquickhullPA
+$vquickhullPA = Clo $fPAVoid $vquickhullPA4 $vquickhullPA1 void
+
+quickhullPA
+quickhullPA = $vquickhullPA6
+
+

@@ -1,0 +1,1838 @@
+Result size of Tidy Core
+  = {terms: 2,610, types: 3,535, coercions: 2,108}
+
+distance
+distance =
+  \ y2_afeU x2_afeT y1_afeS x1_afeR yo_afeQ xo_afeP ->
+    case x1_afeR of _ { D# x_a1yx ->
+    case xo_afeP of _ { D# y_a1yB ->
+    case y2_afeU of _ { D# x3_X26g ->
+    case yo_afeQ of _ { D# y3_X26o ->
+    case y1_afeS of _ { D# x4_X26q ->
+    case x2_afeT of _ { D# x5_X26w ->
+    D#
+      (-##
+         (*## (-## x_a1yx y_a1yB) (-## x3_X26g y3_X26o))
+         (*## (-## x4_X26q y3_X26o) (-## x5_X26w y_a1yB)))
+    }
+    }
+    }
+    }
+    }
+    }
+
+fn1_rk5l
+fn1_rk5l =
+  \ c_aff4 -> case c_aff4 of _ { D# x_agDs -> >## x_agDs 0.0 }
+
+a_rk5m
+a_rk5m = PTuple2s $fPRDouble_$cemptydPR $fPRDouble_$cemptydPR
+
+a1_rk5n
+a1_rk5n = PTuple2 $fPRDouble_$cemptyPR $fPRDouble_$cemptyPR
+
+a2_rk5o
+a2_rk5o =
+  PNested
+    emptyVSegd (a_rk5m `cast` ...) emptySegd (a1_rk5n `cast` ...)
+
+lvl_rk5p
+lvl_rk5p = I# 0
+
+lvl1_rk5q
+lvl1_rk5q = $fPRWrap $fPADouble
+
+lvl2_rk5r
+lvl2_rk5r = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl3_rk5s
+lvl3_rk5s = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl4_rk5t
+lvl4_rk5t = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl5_rk5u
+lvl5_rk5u = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl6_rk5v
+lvl6_rk5v = $fPA(,) (lvl5_rk5u `cast` ...) $fPADouble $fPADouble
+
+lvl7_rk5w
+lvl7_rk5w = packByTag $fEltInt
+
+lvl8_rk5x
+lvl8_rk5x = $fDT(,) $fDTInt $fDTDouble
+
+lvl9_rk5y
+lvl9_rk5y =
+  absentError
+    "ww_sjyj{v} [lid] Dist{tc r5AF}\n\
+    \                   ((USegd{tc r5H3}, Int{(w) tc 3J}), Int{(w) tc 3J})"#
+
+lvl10_rk5z
+lvl10_rk5z = PTuple2s (a_rk5m `cast` ...) (a_rk5m `cast` ...)
+
+lvl11_rk5A
+lvl11_rk5A = PTuple2 (a1_rk5n `cast` ...) (a1_rk5n `cast` ...)
+
+lvl12_rk5B
+lvl12_rk5B =
+  PNested
+    emptyVSegd
+    (lvl10_rk5z `cast` ...)
+    emptySegd
+    (lvl11_rk5A `cast` ...)
+
+lvl13_rk5C
+lvl13_rk5C = PTuple2s (a_rk5m `cast` ...) (a_rk5m `cast` ...)
+
+lvl14_rk5D
+lvl14_rk5D = sum_s $fNumInt $fEltInt
+
+lvl15_rk5E
+lvl15_rk5E = unpackCString# "concatlPR"#
+
+lvl16_rk5F
+lvl16_rk5F =
+  PTuple2s
+    ($fPRDouble_$cemptydPR `cast` ...)
+    ($fPRDouble_$cemptydPR `cast` ...)
+
+lvl17_rk5G
+lvl17_rk5G = ziplPA lvl6_rk5v $fPADouble
+
+zipWith6Dbl
+zipWith6Dbl =
+  zipWith6
+    $fEltDouble
+    $fEltDouble
+    $fEltDouble
+    $fEltDouble
+    $fEltDouble
+    $fEltDouble
+    $fEltDouble
+
+$dMVector_rk5I
+$dMVector_rk5I = $fMVectorMVector(,) $fUnboxInt $fUnboxDouble
+
+lvl19_rk5J
+lvl19_rk5J =
+  $fVectorVector(,)
+    ($dMVector_rk5I `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl20_rk5K
+lvl20_rk5K =
+  $fUnbox(,) lvl19_rk5J $dMVector_rk5I $fUnboxInt $fUnboxDouble
+
+lvl21_rk5L
+lvl21_rk5L = $fElt(,) lvl20_rk5K lvl8_rk5x $fEltInt $fEltDouble
+
+tag_rk5M
+tag_rk5M = I# 1
+
+Rec {
+lhsplit_rk5N
+lhsplit_rk5N =
+  \ lc_Xgd1 points_afeV line_afeW ->
+    case lc_Xgd1 of wild_X1z {
+      __DEFAULT ->
+        case line_afeW `cast` ... of _ { PTuple2 line_starts line_ends ->
+        let {
+          cross_sfqp
+          cross_sfqp =
+            case points_afeV `cast` ...
+            of _ { PNested _ _ segd points_s ->
+            case segd
+            of segd' { UPSegd segd_lens segd_idxs segd_elts dsegd ->
+            case points_s `cast` ... of _ { PTuple2 xos yos ->
+            case xos `cast` ... of _ { PDouble xos' ->
+            case length $fEltDouble xos' of _ { I# _ ->
+            let {
+              distances
+              distances =
+                case line_starts `cast` ... of _ { PTuple2 x1s y1s ->
+                case line_ends `cast` ... of _ { PTuple2 x2s y2s ->
+                (PDouble
+                   (zipWith6Dbl
+                      distance
+                      (case y2s `cast` ... of _ { PDouble arr_agIt ->
+                       replicate_s $fEltDouble segd' arr_agIt
+                       })
+                      (case x2s `cast` ... of _ { PDouble arr_agIt ->
+                       replicate_s $fEltDouble segd' arr_agIt
+                       })qh
+                      (case y1s `cast` ... of _ { PDouble arr_agIt ->
+                       replicate_s $fEltDouble segd' arr_agIt
+                       })
+                      (case x1s `cast` ... of _ { PDouble arr_agIt ->
+                       replicate_s $fEltDouble segd' arr_agIt
+                       })
+                      (case yos `cast` ... of _ { PDouble xs_agCs -> xs_agCs })
+                      xos'))
+                `cast` ...
+                }
+                } } in
+            (PNested
+               (promoteSegdToVSegd segd')
+               (case distances `cast` ... of _ { PDouble pdata_a7C1 ->
+                (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                `cast` ...
+                })
+               segd'
+               distances)
+            `cast` ...
+            }
+            }
+            }
+            }
+            } } in
+        let {
+          packed_sfqo
+          packed_sfqo =
+            case points_afeV `cast` ...
+            of nt_a7JI { PNested ipv_a7JK ipv1_a7JL ipv2_a7JM ipv3_a7JN ->
+            case cross_sfqp `cast` ...
+            of nt1_a7JP { PNested ipv4_a7JR ipv5_a7JS ipv6_a7JT ipv7_a7JU ->
+            case (lvl17_rk5G (nt_a7JI `cast` ...) (nt1_a7JP `cast` ...))
+                 `cast` ...
+            of _ { PNested _ _ ipv10_shka ipv11_shkb ->
+            case ipv10_shka
+            of segd'
+            { UPSegd ipv12_siL9 ipv13_siLa ipv14_siLb ipv15_siLc ->
+            case ipv11_shkb `cast` ... of _ { PTuple2 xos yos ->
+            case xos `cast` ... of _ { PTuple2 as1_X8xX bs1_X8xZ ->
+            case as1_X8xX `cast` ... of wild4_a7Ay { PDouble xos' ->
+            case length $fEltDouble xos' of _ { I# _ ->
+            let {
+              tags_ah40
+              tags_ah40 =
+                tagsSel2
+                  (tagsToSel2
+                     (case yos `cast` ... of _ { PDouble xs_agCs ->
+                      map
+                        $fEltBool
+                        $fEltInt
+                        fromBool
+                        (map $fEltDouble $fEltBool fn1_rk5l xs_agCs)
+                      })) } in
+            case lengthsToSegd
+                   (count_s $fEltInt $fEqInt segd' tags_ah40 tag_rk5M)
+            of segd2_X7zd
+            { UPSegd ipv16_siDF ipv17_siDG ipv18_siDH ipv19_siDI ->
+            case ($fPRDouble_$cpackByTagPR
+                    (wild4_a7Ay `cast` ...) tags_ah40 tag_rk5M)
+                 `cast` ...
+            of wild6_X8zN { PDouble uarr1_X8zU ->
+            case length $fEltDouble uarr1_X8zU of _ { I# _ ->
+            let {
+              bs2_X8z2
+              bs2_X8z2 =
+                $fPRDouble_$cpackByTagPR bs1_X8xZ tags_ah40 tag_rk5M } in
+            (PNested
+               (promoteSegdToVSegd segd2_X7zd)
+               ((PTuple2s
+                   ((PDoubles (singletons $fEltDouble $fEltsDouble uarr1_X8zU))
+                    `cast` ...)
+                   (case bs2_X8z2 `cast` ... of _ { PDouble pdata_a7C1 ->
+                    (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                    `cast` ...
+                    }))
+                `cast` ...)
+               segd2_X7zd
+               ((PTuple2 (wild6_X8zN `cast` ...) bs2_X8z2) `cast` ...))
+            `cast` ...
+            }
+            }
+            }
+            }
+            }
+            }
+            }
+            }
+            }
+            }
+            } } in
+        let {
+          sel_dfj3
+          sel_dfj3 =
+            tagsToSel2
+              (case packed_sfqo `cast` ... of _ { PNested vsegd_agFn _ _ _ ->
+               map
+                 $fEltBool
+                 $fEltInt
+                 fromBool
+                 (zipWith
+                    $fEltInt
+                    $fEltInt
+                    $fEltBool
+                    eqInt
+                    (takeLengthsOfVSegd vsegd_agFn)
+                    (replicate $fEltInt (I# wild_X1z) lvl_rk5p))
+               }) } in
+        case elementsSel2_0 sel_dfj3 of wild2_dfoN { I# n#_dfoP ->
+        case elementsSel2_1 sel_dfj3 of wild3_dfp9 { I# n#1_dfpb ->
+        let {
+          $j_shKq
+          $j_shKq =
+            \ vsegd2_ahH5 pdatas2_ahH6 ->
+              let {
+                ds_agXv
+                ds_agXv =
+                  let {
+                    pm_sfql
+                    pm_sfql =
+                      case points_afeV `cast` ...
+                      of _ { PNested ipv_agZK ipv1_agZL _ _ ->
+                      case ipv1_agZL `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+                      let {
+                        srcixs_ah0T
+                        srcixs_ah0T =
+                          let {
+                            ipv4_agZR
+                            ipv4_agZR =
+                              case cross_sfqp `cast` ...
+                              of _ { PNested _ _ segd1_ahtb flat_ahtc ->
+                              case flat_ahtc `cast` ... of _ { PDouble xs1_agCs ->
+                              fsts
+                                $fEltInt
+                                $fEltDouble
+                                (fold1_s
+                                   lvl21_rk5L
+                                   ($vmaxIndexP_$smax')
+                                   segd1_ahtb
+                                   (zip $fEltInt $fEltDouble (indices_s segd1_ahtb) xs1_agCs))
+                              }
+                              } } in
+                          case length $fEltInt ipv4_agZR of _ { I# x_ah0H ->
+                          zip
+                            $fEltInt
+                            $fEltInt
+                            (enumFromTo lvl_rk5p (I# (-# x_ah0H 1)))
+                            ipv4_agZR
+                          } } in
+                      let {
+                        a4_sjzX
+                        a4_sjzX =
+                          case bs_a7BJ `cast` ... of _ { PDoubles arrs_ah1f ->
+                          (PDouble
+                             (indexs_avs
+                                $fEltDouble $fEltsDouble arrs_ah1f ipv_agZK srcixs_ah0T))
+                          `cast` ...
+                          } } in
+                      let {
+                        a5_sjzV
+                        a5_sjzV =
+                          case as_a7BI `cast` ... of _ { PDoubles arrs_ah1f ->
+                          (PDouble
+                             (indexs_avs
+                                $fEltDouble $fEltsDouble arrs_ah1f ipv_agZK srcixs_ah0T))
+                          `cast` ...
+                          } } in
+                      let {
+                        a6_sjzY
+                        a6_sjzY = PTuple2 a5_sjzV a4_sjzX } in
+                      let {
+                        pm1_sfqn
+                        pm1_sfqn = a6_sjzY `cast` ... } in
+                      case pm1_sfqn `cast` ... of _ { PTuple2 as1_sjOr bs1_sjOs ->
+                      let {
+                        tags_ah7H
+                        tags_ah7H = tagsSel2 sel_dfj3 } in
+                      (PTuple2
+                         ($fPRDouble_$cpackByTagPR as1_sjOr tags_ah7H lvl_rk5p)
+                         ($fPRDouble_$cpackByTagPR bs1_sjOs tags_ah7H lvl_rk5p))
+                      `cast` ...
+                      }
+                      }
+                      } } in
+                  let {
+                    $w$j_sjyS
+                    $w$j_sjyS =
+                      \ w_sjyc w1_sjyd ww_sjyg ww1_sjyh ww2_sjyi ->
+                        let {
+                          $j1_shyE
+                          $j1_shyE =
+                            \ pdata'_agHm ->
+                              case pdata'_agHm `cast` ...
+                              of _ { PNested ipv4_agQ2 ipv5_agQ3 ipv6_agQ4 _ ->
+                              let {
+                                segd'_agQW
+                                segd'_agQW =
+                                  plusSegd
+                                    (UPSegd ww_sjyg ww1_sjyh ww2_sjyi lvl9_rk5y) ipv6_agQ4 } in
+                              case elementsSegd segd'_agQW of _ { I# n#2_a7E9 ->
+                              case w1_sjyd `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+                              case ipv5_agQ3 `cast` ... of _ { PTuple2s as1_X8Af bs1_X8Ah ->
+                              case as_a7BI `cast` ... of _ { PTuple2s as2_X8An bs2_X8Ap ->
+                              case as1_X8Af `cast` ... of _ { PTuple2s as3_X9zb bs3_X9ze ->
+                              case as2_X8An `cast` ... of _ { PDoubles arr1_agRP ->
+                              case as3_X9zb `cast` ... of _ { PDoubles arr2_agRU ->
+                              let {
+                                xos'
+                                xos' =
+                                  append_vs
+                                    $fEltDouble
+                                    $fEltsDouble
+                                    segd'_agQW
+                                    w_sjyc
+                                    arr1_agRP
+                                    ipv4_agQ2
+                                    arr2_agRU } in
+                              case length $fEltDouble xos' of _ { I# _ ->
+                              let {
+                                packed1_dfj8
+                                packed1_dfj8 =
+                                  let {
+                                    packed2_sfqm
+                                    packed2_sfqm =
+                                      case packed_sfqo `cast` ...
+                                      of _ { PNested vsegd_agTj xs_agTk _ _ ->
+                                      let {
+                                        vsegd'_ahqq
+                                        vsegd'_ahqq =
+                                          let {
+                                            tags_ahqm
+                                            tags_ahqm = tagsSel2 sel_dfj3 } in
+                                          updateVSegsOfVSegd
+                                            (\ vsegids_ahqr ->
+                                               lvl7_rk5w vsegids_ahqr tags_ahqm lvl_rk5p)
+                                            vsegd_agTj } in
+                                      let {
+                                        pdatas_ahqu
+                                        pdatas_ahqu =
+                                          case xs_agTk `cast` ...
+                                          of _ { PTuple2s as4_X7FZ bs4_X7G1 ->
+                                          (PTuple2s (as4_X7FZ `cast` ...) (bs4_X7G1 `cast` ...))
+                                          `cast` ...
+                                          } } in
+                                      (PNested
+                                         vsegd'_ahqq
+                                         (case pdatas_ahqu `cast` ...
+                                          of _ { PTuple2s ds1_agJr ds2_agJs ->
+                                          (PTuple2s (ds1_agJr `cast` ...) (ds2_agJs `cast` ...))
+                                          `cast` ...
+                                          })
+                                         (unsafeDemoteToSegdOfVSegd vsegd'_ahqq)
+                                         (case (extractvs_delay
+                                                  (lvl3_rk5s `cast` ...) pdatas_ahqu vsegd'_ahqq)
+                                               `cast` ...
+                                          of _ { PTuple2 ds1_a7A9 ds2_a7Aa ->
+                                          (PTuple2 (ds1_a7A9 `cast` ...) (ds2_a7Aa `cast` ...))
+                                          `cast` ...
+                                          }))
+                                      `cast` ...
+                                      } } in
+                                  case packed2_sfqm `cast` ...
+                                  of _ { PNested vsegd_agTj xs_agTk _ _ ->
+                                  let {
+                                    vsegd'_ahCi
+                                    vsegd'_ahCi =
+                                      updateVSegsOfVSegd
+                                        (replicate_s $fEltInt segd'_agQW) vsegd_agTj } in
+                                  let {
+                                    pdatas_ahCk
+                                    pdatas_ahCk =
+                                      case xs_agTk `cast` ... of _ { PTuple2s as4_X7Ei bs4_X7Ek ->
+                                      (PTuple2s (as4_X7Ei `cast` ...) (bs4_X7Ek `cast` ...))
+                                      `cast` ...
+                                      } } in
+                                  (PNested
+                                     vsegd'_ahCi
+                                     (case pdatas_ahCk `cast` ...
+                                      of _ { PTuple2s ds1_agJr ds2_agJs ->
+                                      (PTuple2s (ds1_agJr `cast` ...) (ds2_agJs `cast` ...))
+                                      `cast` ...
+                                      })
+                                     (unsafeDemoteToSegdOfVSegd vsegd'_ahCi)
+                                     (case (extractvs_delay
+                                              (lvl2_rk5r `cast` ...) pdatas_ahCk vsegd'_ahCi)
+                                           `cast` ...
+                                      of _ { PTuple2 ds1_X7CM ds2_X7CO ->
+                                      (PTuple2 (ds1_X7CM `cast` ...) (ds2_X7CO `cast` ...))
+                                      `cast` ...
+                                      }))
+                                  `cast` ...
+                                  } } in
+                              let {
+                                packed2_aff0
+                                packed2_aff0 = packed1_dfj8 } in
+                              let {
+                                a4_sjXo
+                                a4_sjXo =
+                                  lhsplit_rk5N
+                                    n#2_a7E9
+                                    packed2_aff0
+                                    ((PTuple2
+                                        ((PTuple2
+                                            ((PDouble xos') `cast` ...)
+                                            (case bs2_X8Ap `cast` ... of _ { PDoubles arr3_XgTZ ->
+                                             case bs3_X9ze `cast` ... of _ { PDoubles arr4_XgU7 ->
+                                             (PDouble
+                                                (append_vs
+                                                   $fEltDouble
+                                                   $fEltsDouble
+                                                   segd'_agQW
+                                                   w_sjyc
+                                                   arr3_XgTZ
+                                                   ipv4_agQ2
+                                                   arr4_XgU7))
+                                             `cast` ...
+                                             }
+                                             }))
+                                         `cast` ...)
+                                        (case bs_a7BJ `cast` ...
+                                         of _ { PTuple2s as4_X8Cw bs4_X8Cz ->
+                                         case bs1_X8Ah `cast` ...
+                                         of _ { PTuple2s as5_X9Bo bs5_X9Bs ->
+                                         (PTuple2
+                                            (case as4_X8Cw `cast` ... of _ { PDoubles arr3_XgU7 ->
+                                             case as5_X9Bo `cast` ... of _ { PDoubles arr4_XgUf ->
+                                             (PDouble
+                                                (append_vs
+                                                   $fEltDouble
+                                                   $fEltsDouble
+                                                   segd'_agQW
+                                                   w_sjyc
+                                                   arr3_XgU7
+                                                   ipv4_agQ2
+                                                   arr4_XgUf))
+                                             `cast` ...
+                                             }
+                                             })
+                                            (case bs4_X8Cz `cast` ... of _ { PDoubles arr3_XgU7 ->
+                                             case bs5_X9Bs `cast` ... of _ { PDoubles arr4_XgUf ->
+                                             (PDouble
+                                                (append_vs
+                                                   $fEltDouble
+                                                   $fEltsDouble
+                                                   segd'_agQW
+                                                   w_sjyc
+                                                   arr3_XgU7
+                                                   ipv4_agQ2
+                                                   arr4_XgUf))
+                                             `cast` ...
+                                             }
+                                             }))
+                                         `cast` ...
+                                         }
+                                         }))
+                                     `cast` ...) } in
+                              (PNested
+                                 (promoteSegdToVSegd segd'_agQW)
+                                 ((PNesteds
+                                     (runSTRep
+                                        (\ @ s_a1og s_a1oh ->
+                                           case newArray# 1 (uninitialised) (s_a1oh `cast` ...)
+                                           of _ { (# ipv_aiXC, ipv1_aiXD #) ->
+                                           letrec {
+                                             $wa_sjyT
+                                             $wa_sjyT =
+                                               \ w2_sjy1 ww3_sjy4 w3_sjy6 w4_sjy7 ->
+                                                 case w2_sjy1 of _ { __DEFAULT ->
+                                                 case w3_sjy6 of _ {
+                                                   False -> (# w4_sjy7, I# ww3_sjy4 #);
+                                                   True ->
+                                                     $wa_sjyT
+                                                       SPEC
+                                                       (+# ww3_sjy4 1)
+                                                       False
+                                                       ((writeArray#
+                                                           ipv1_aiXD
+                                                           ww3_sjy4
+                                                           a4_sjXo
+                                                           (w4_sjy7 `cast` ...))
+                                                        `cast` ...)
+                                                 }
+                                                 }; } in
+                                           case $wa_sjyT SPEC 0 True (ipv_aiXC `cast` ...)
+                                           of _ { (# ipv2_a1Dd, ipv3_a1De #) ->
+                                           case ipv3_a1De of _ { I# tpl3_aiYD ->
+                                           case unsafeFreezeArray# ipv1_aiXD (ipv2_a1Dd `cast` ...)
+                                           of _ { (# ipv8_aiZ1, ipv9_aiZ2 #) ->
+                                           (# ipv8_aiZ1 `cast` ..., Vector 0 tpl3_aiYD ipv9_aiZ2 #)
+                                           }
+                                           }
+                                           }
+                                           })))
+                                  `cast` ...)
+                                 segd'_agQW
+                                 a4_sjXo)
+                              `cast` ...
+                              }
+                              }
+                              }
+                              }
+                              }
+                              }
+                              }
+                              }
+                              } } in
+                        case n#_dfoP of _ {
+                          __DEFAULT ->
+                            case lengthsToSegd (replicate $fEltInt wild2_dfoN tag_rk5M)
+                            of segd_agHE { UPSegd ipv_agHG ipv1_agHH ipv2_agHI ipv3_agHJ ->
+                            case promoteSegdToVSegd segd_agHE
+                            of vsegd_agHL
+                            { UPVSegd ipv4_agHN
+                                      ipv5_agHO
+                                      ipv6_agHP
+                                      ipv7_agHQ
+                                      ipv8_agHR
+                                      ipv9_agHS ->
+                            case pm_sfql `cast` ... of _ { PTuple2 ipv10_shbg ipv11_shbh ->
+                            case line_ends `cast` ... of _ { PTuple2 xos yos ->
+                            let {
+                              tags_ah7H
+                              tags_ah7H = tagsSel2 sel_dfj3 } in
+                            let {
+                              a4_siFa
+                              a4_siFa =
+                                case ($fPRDouble_$cpackByTagPR yos tags_ah7H lvl_rk5p)
+                                     `cast` ...
+                                of _ { PDouble arr_agIt ->
+                                (PDouble (replicate_s $fEltDouble segd_agHE arr_agIt)) `cast` ...
+                                } } in
+                            let {
+                              a5_siF8
+                              a5_siF8 =
+                                case ($fPRDouble_$cpackByTagPR xos tags_ah7H lvl_rk5p)
+                                     `cast` ...
+                                of _ { PDouble arr_agIt ->
+                                (PDouble (replicate_s $fEltDouble segd_agHE arr_agIt)) `cast` ...
+                                } } in
+                            let {
+                              a6_siF2
+                              a6_siF2 =
+                                case ipv11_shbh `cast` ... of _ { PDouble arr_agIt ->
+                                (PDouble (replicate_s $fEltDouble segd_agHE arr_agIt)) `cast` ...
+                                } } in
+                            let {
+                              a7_siF0
+                              a7_siF0 =
+                                case ipv10_shbg `cast` ... of _ { PDouble arr_agIt ->
+                                (PDouble (replicate_s $fEltDouble segd_agHE arr_agIt)) `cast` ...
+                                } } in
+                            case ($j1_shyE
+                                    ((PNested
+                                        vsegd_agHL
+                                        ((PTuple2s
+                                            ((PTuple2s
+                                                (case a7_siF0 `cast` ...
+                                                 of _ { PDouble pdata_a7C1 ->
+                                                 (PDoubles
+                                                    (singletons
+                                                       $fEltDouble $fEltsDouble pdata_a7C1))
+                                                 `cast` ...
+                                                 })
+                                                (case a6_siF2 `cast` ...
+                                                 of _ { PDouble pdata_a7C1 ->
+                                                 (PDoubles
+                                                    (singletons
+                                                       $fEltDouble $fEltsDouble pdata_a7C1))
+                                                 `cast` ...
+                                                 }))
+                                             `cast` ...)
+                                            ((PTuple2s
+                                                (case a5_siF8 `cast` ...
+                                                 of _ { PDouble pdata_a7C1 ->
+                                                 (PDoubles
+                                                    (singletons
+                                                       $fEltDouble $fEltsDouble pdata_a7C1))
+                                                 `cast` ...
+                                                 })
+                                                (case a4_siFa `cast` ...
+                                                 of _ { PDouble pdata_a7C1 ->
+                                                 (PDoubles
+                                                    (singletons
+                                                       $fEltDouble $fEltsDouble pdata_a7C1))
+                                                 `cast` ...
+                                                 }))
+                                             `cast` ...))
+                                         `cast` ...)
+                                        segd_agHE
+                                        ((PTuple2
+                                            ((PTuple2 a7_siF0 a6_siF2) `cast` ...)
+                                            ((PTuple2 a5_siF8 a4_siFa) `cast` ...))
+                                         `cast` ...))
+                                     `cast` ...))
+                                 `cast` ...
+                            of _ { PNested _ _ segd1_agWV flat_agWW ->
+                            (segd1_agWV,
+                             case flat_agWW `cast` ...
+                             of _ { PNested vsegd3_agXg xs1_agXh segd2_agXi flat1_agXj ->
+                             (PNested
+                                vsegd3_agXg
+                                (case xs1_agXh `cast` ... of _ { PTuple2s as1_a7BI bs1_a7BJ ->
+                                 (PTuple2s (as1_a7BI `cast` ...) (bs1_a7BJ `cast` ...)) `cast` ...
+                                 })
+                                segd2_agXi
+                                (case flat1_agXj `cast` ... of _ { PTuple2 as1_X7CH bs1_X7CJ ->
+                                 (PTuple2 (as1_X7CH `cast` ...) (bs1_X7CJ `cast` ...)) `cast` ...
+                                 }))
+                             `cast` ...
+                             })
+                            }
+                            }
+                            }
+                            }
+                            };
+                          0 ->
+                            case ($j1_shyE (lvl12_rk5B `cast` ...)) `cast` ...
+                            of _ { PNested _ _ segd_agWV flat_agWW ->
+                            (segd_agWV,
+                             case flat_agWW `cast` ...
+                             of _ { PNested vsegd1_agXg xs1_agXh segd1_agXi flat1_agXj ->
+                             (PNested
+                                vsegd1_agXg
+                                (case xs1_agXh `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+                                 (PTuple2s (as_a7BI `cast` ...) (bs_a7BJ `cast` ...)) `cast` ...
+                                 })
+                                segd1_agXi
+                                (case flat1_agXj `cast` ... of _ { PTuple2 xos yos ->
+                                 (PTuple2 (xos `cast` ...) (yos `cast` ...)) `cast` ...
+                                 }))
+                             `cast` ...
+                             })
+                            }
+                        } } in
+                  case n#_dfoP of _ {
+                    __DEFAULT ->
+                      case lengthsToSegd (replicate $fEltInt wild2_dfoN tag_rk5M)
+                      of segd_agHE { UPSegd ipv_agHG ipv1_agHH ipv2_agHI ipv3_agHJ ->
+                      case promoteSegdToVSegd segd_agHE
+                      of vsegd_agHL
+                      { UPVSegd ipv4_agHN
+                                ipv5_agHO
+                                ipv6_agHP
+                                ipv7_agHQ
+                                ipv8_agHR
+                                ipv9_agHS ->
+                      case line_starts `cast` ... of _ { PTuple2 xos yos ->
+                      case pm_sfql `cast` ... of _ { PTuple2 ipv10_shdq ipv11_shdr ->
+                      $w$j_sjyS
+                        vsegd_agHL
+                        ((PTuple2s
+                            (let {
+                               tags_ah7H
+                               tags_ah7H = tagsSel2 sel_dfj3 } in
+                             (PTuple2s
+                                (case ($fPRDouble_$cpackByTagPR xos tags_ah7H lvl_rk5p)
+                                      `cast` ...
+                                 of _ { PDouble arr_agIt ->
+                                 (PDoubles
+                                    (singletons
+                                       $fEltDouble
+                                       $fEltsDouble
+                                       (replicate_s $fEltDouble segd_agHE arr_agIt)))
+                                 `cast` ...
+                                 })
+                                (case ($fPRDouble_$cpackByTagPR yos tags_ah7H lvl_rk5p)
+                                      `cast` ...
+                                 of _ { PDouble arr_agIt ->
+                                 (PDoubles
+                                    (singletons
+                                       $fEltDouble
+                                       $fEltsDouble
+                                       (replicate_s $fEltDouble segd_agHE arr_agIt)))
+                                 `cast` ...
+                                 }))
+                             `cast` ...)
+                            ((PTuple2s
+                                (case ipv10_shdq `cast` ... of _ { PDouble arr_agIt ->
+                                 (PDoubles
+                                    (singletons
+                                       $fEltDouble
+                                       $fEltsDouble
+                                       (replicate_s $fEltDouble segd_agHE arr_agIt)))
+                                 `cast` ...
+                                 })
+                                (case ipv11_shdr `cast` ... of _ { PDouble arr_agIt ->
+                                 (PDoubles
+                                    (singletons
+                                       $fEltDouble
+                                       $fEltsDouble
+                                       (replicate_s $fEltDouble segd_agHE arr_agIt)))
+                                 `cast` ...
+                                 }))
+                             `cast` ...))
+                         `cast` ...)
+                        ipv_agHG
+                        ipv1_agHH
+                        ipv2_agHI
+                      }
+                      }
+                      }
+                      };
+                    0 ->
+                      case emptySegd of _ { UPSegd ww_sjyg ww1_sjyh ww2_sjyi ww3_sjyj ->
+                      $w$j_sjyS
+                        emptyVSegd (lvl13_rk5C `cast` ...) ww_sjyg ww1_sjyh ww2_sjyi
+                      }
+                  } } in
+              let {
+                ds1_agXJ
+                ds1_agXJ =
+                  case ds_agXv of _ { (segd2_agXM, darr1_agXN) ->
+                  case darr1_agXN `cast` ...
+                  of _ { PNested _ _ segd_agXT flat_agXU ->
+                  (segd_agXT, flat_agXU)
+                  }
+                  } } in
+              let {
+                pdatas1_ahGY
+                pdatas1_ahGY =
+                  case ds1_agXJ of _ { (segd3_agY7, darr2_agY8) ->
+                  case darr2_agY8 `cast` ... of _ { PTuple2 x_agJ6 y_agJ7 ->
+                  (PTuple2s
+                     (case x_agJ6 `cast` ... of _ { PDouble pdata_a7C1 ->
+                      (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                      `cast` ...
+                      })
+                     (case y_agJ7 `cast` ... of _ { PDouble pdata_a7C1 ->
+                      (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                      `cast` ...
+                      }))
+                  `cast` ...
+                  }
+                  } } in
+              let {
+                vsegd'_ahHa
+                vsegd'_ahHa =
+                  combine2VSegd
+                    sel_dfj3
+                    (promoteSegdToVSegd
+                       (let {
+                          segd2_agXW
+                          segd2_agXW =
+                            case ds1_agXJ of _ { (segd3_agXZ, darr2_agY0) -> segd3_agXZ } } in
+                        let {
+                          segd1_agXD
+                          segd1_agXD =
+                            case ds_agXv of _ { (segd3_agXG, darr1_agXH) -> segd3_agXG } } in
+                        let {
+                          ixs2_agY2
+                          ixs2_agY2 = indicesSegd segd2_agXW } in
+                        let {
+                          len2_agY3
+                          len2_agY3 = length $fEltInt ixs2_agY2 } in
+                        mkSegd
+                          (lvl14_rk5D segd1_agXD (lengthsSegd segd2_agXW))
+                          (map
+                             $fEltInt
+                             $fEltInt
+                             (\ ix_agYc ->
+                                case ix_agYc of wild4_agYd { I# x_agYf ->
+                                case len2_agY3 of _ { I# y_agYj ->
+                                case >=# x_agYf y_agYj of _ {
+                                  False -> index $fEltInt lvl15_rk5E ixs2_agY2 wild4_agYd;
+                                  True -> lvl_rk5p
+                                }
+                                }
+                                })
+                             (indicesSegd segd1_agXD))
+                          (elementsSegd segd2_agXW)))
+                    (case pdatas1_ahGY `cast` ... of _ { PTuple2s xs_ahK8 _ ->
+                     $fPRDouble_$clengthdPR (xs_ahK8 `cast` ...)
+                     })
+                    vsegd2_ahH5
+                    (case pdatas2_ahH6 `cast` ... of _ { PTuple2s xs_ahK8 _ ->
+                     $fPRDouble_$clengthdPR (xs_ahK8 `cast` ...)
+                     }) } in
+              let {
+                pdatas'_ahH4
+                pdatas'_ahH4 =
+                  case pdatas1_ahGY `cast` ... of _ { PTuple2s xs1_ahJr ys1_ahJs ->
+                  case pdatas2_ahH6 `cast` ... of _ { PTuple2s xs2_ahJw ys2_ahJx ->
+                  (PTuple2s
+                     (case xs1_ahJr `cast` ... of _ { PDoubles xs_ahJM ->
+                      case xs2_ahJw `cast` ... of _ { PDoubles ys_ahJR ->
+                      (PDoubles (appends $fEltDouble $fEltsDouble xs_ahJM ys_ahJR))
+                      `cast` ...
+                      }
+                      })
+                     (case ys1_ahJs `cast` ... of _ { PDoubles xs_ahJM ->
+                      case ys2_ahJx `cast` ... of _ { PDoubles ys_ahJR ->
+                      (PDoubles (appends $fEltDouble $fEltsDouble xs_ahJM ys_ahJR))
+                      `cast` ...
+                      }
+                      }))
+                  `cast` ...
+                  }
+                  } } in
+              (PNested
+                 vsegd'_ahHa
+                 pdatas'_ahH4
+                 (unsafeDemoteToSegdOfVSegd vsegd'_ahHa)
+                 (extractvs_delay (lvl4_rk5t `cast` ...) pdatas'_ahH4 vsegd'_ahHa))
+              `cast` ... } in
+        case n#1_dfpb of _ {
+          __DEFAULT ->
+            case lengthsToSegd (replicate $fEltInt wild3_dfp9 tag_rk5M)
+            of segd_agHE { UPSegd ipv_agHG ipv1_agHH ipv2_agHI ipv3_agHJ ->
+            case promoteSegdToVSegd segd_agHE
+            of vsegd_agHL
+            { UPVSegd ipv4_agHN
+                      ipv5_agHO
+                      ipv6_agHP
+                      ipv7_agHQ
+                      ipv8_agHR
+                      ipv9_agHS ->
+            case line_starts `cast` ... of _ { PTuple2 xos yos ->
+            case ($j_shKq
+                    vsegd_agHL
+                    (let {
+                       tags_ah7H
+                       tags_ah7H = tagsSel2 sel_dfj3 } in
+                     (PTuple2s
+                        (case ($fPRDouble_$cpackByTagPR xos tags_ah7H tag_rk5M)
+                              `cast` ...
+                         of _ { PDouble arr_agIt ->
+                         (PDoubles
+                            (singletons
+                               $fEltDouble
+                               $fEltsDouble
+                               (replicate_s $fEltDouble segd_agHE arr_agIt)))
+                         `cast` ...
+                         })
+                        (case ($fPRDouble_$cpackByTagPR yos tags_ah7H tag_rk5M)
+                              `cast` ...
+                         of _ { PDouble arr_agIt ->
+                         (PDoubles
+                            (singletons
+                               $fEltDouble
+                               $fEltsDouble
+                               (replicate_s $fEltDouble segd_agHE arr_agIt)))
+                         `cast` ...
+                         }))
+                     `cast` ...))
+                 `cast` ...
+            of _ { PNested vsegd1_XhTF xs_XhTH segd1_XhTJ flat_XhTL ->
+            (PNested
+               vsegd1_XhTF
+               (case xs_XhTH `cast` ... of _ { PTuple2s ds1_agJr ds2_agJs ->
+                (PTuple2s (ds1_agJr `cast` ...) (ds2_agJs `cast` ...)) `cast` ...
+                })
+               segd1_XhTJ
+               (case flat_XhTL `cast` ... of _ { PTuple2 ds1_a7A9 ds2_a7Aa ->
+                (PTuple2 (ds1_a7A9 `cast` ...) (ds2_a7Aa `cast` ...)) `cast` ...
+                }))
+            `cast` ...
+            }
+            }
+            }
+            };
+          0 ->
+            case ($j_shKq emptyVSegd (lvl16_rk5F `cast` ...)) `cast` ...
+            of _ { PNested vsegd_XhTF xs_XhTH segd_XhTJ flat_XhTL ->
+            (PNested
+               vsegd_XhTF
+               (case xs_XhTH `cast` ... of _ { PTuple2s ds1_agJr ds2_agJs ->
+                (PTuple2s (ds1_agJr `cast` ...) (ds2_agJs `cast` ...)) `cast` ...
+                })
+               segd_XhTJ
+               (case flat_XhTL `cast` ... of _ { PTuple2 ds1_a7A9 ds2_a7Aa ->
+                (PTuple2 (ds1_a7A9 `cast` ...) (ds2_a7Aa `cast` ...)) `cast` ...
+                }))
+            `cast` ...
+            }
+        }
+        }
+        }
+        };
+      0 -> a2_rk5o `cast` ...
+    }
+end Rec }
+
+lvl22_rk5O
+lvl22_rk5O = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl23_rk5P
+lvl23_rk5P =
+  $fVectorVector(,)
+    ($dMVector_rk5I `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl24_rk5Q
+lvl24_rk5Q =
+  $fUnbox(,) lvl23_rk5P $dMVector_rk5I $fUnboxInt $fUnboxDouble
+
+lvl25_rk5R
+lvl25_rk5R = $fElt(,) lvl24_rk5Q lvl8_rk5x $fEltInt $fEltDouble
+
+lvl26_rk5S
+lvl26_rk5S = unpackCString# "indexPR[Double]"#
+
+lvl27_rk5T
+lvl27_rk5T =
+  $fVectorVector(,)
+    ($dMVector_rk5I `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl28_rk5U
+lvl28_rk5U =
+  $fUnbox(,) lvl27_rk5T $dMVector_rk5I $fUnboxInt $fUnboxDouble
+
+lvl29_rk5V
+lvl29_rk5V = $fElt(,) lvl28_rk5U lvl8_rk5x $fEltInt $fEltDouble
+
+lvl30_rk5W
+lvl30_rk5W = I# 2
+
+$wvquickHull
+$wvquickHull =
+  \ ww_sjyp ww1_sjyq ->
+    case ww_sjyp of wild_X11N {
+      __DEFAULT ->
+        let {
+          a4_si4s
+          a4_si4s =
+            case ww1_sjyq `cast` ... of _ { PTuple2 x_affa _ -> x_affa } } in
+        let {
+          xs_sfqb
+          xs_sfqb = PArray wild_X11N a4_si4s } in
+        case xs_sfqb of _ { PArray ds1_sjOZ pdata_sjOY ->
+        case (lhsplit_rk5N
+                2
+                (let {
+                   vsegd_ahTy
+                   vsegd_ahTy = replicatedVSegd (I# wild_X11N) lvl30_rk5W } in
+                 let {
+                   pdatas_ahTu
+                   pdatas_ahTu =
+                     case ww1_sjyq `cast` ... of _ { PTuple2 xos yos ->
+                     (PTuple2s
+                        (case xos `cast` ... of _ { PDouble pdata1_a7C1 ->
+                         (PDoubles (singletons $fEltDouble $fEltsDouble pdata1_a7C1))
+                         `cast` ...
+                         })
+                        (case yos `cast` ... of _ { PDouble pdata1_a7C1 ->
+                         (PDoubles (singletons $fEltDouble $fEltsDouble pdata1_a7C1))
+                         `cast` ...
+                         }))
+                     `cast` ...
+                     } } in
+                 (PNested
+                    vsegd_ahTy
+                    (case pdatas_ahTu `cast` ... of _ { PTuple2s ds2_agJr ds3_agJs ->
+                     (PTuple2s (ds2_agJr `cast` ...) (ds3_agJs `cast` ...)) `cast` ...
+                     })
+                    (unsafeDemoteToSegdOfVSegd vsegd_ahTy)
+                    (case (extractvs_delay
+                             (lvl22_rk5O `cast` ...) pdatas_ahTu vsegd_ahTy)
+                          `cast` ...
+                     of _ { PTuple2 ds2_a7A9 ds3_a7Aa ->
+                     (PTuple2 (ds2_a7A9 `cast` ...) (ds3_a7Aa `cast` ...)) `cast` ...
+                     }))
+                 `cast` ...)
+                (let {
+                   minx_sfqa
+                   minx_sfqa =
+                     case ww1_sjyq `cast` ... of _ { PTuple2 xos yos ->
+                     let {
+                       ix_ahQa
+                       ix_ahQa =
+                         case pdata_sjOY `cast` ... of _ { PDouble xs1_agCs ->
+                         case fold1
+                                lvl29_rk5V ($vminIndexP_$smin') (indexed $fEltDouble xs1_agCs)
+                         of _ { (x1_ahs3, _) ->
+                         x1_ahs3
+                         }
+                         } } in
+                     (case xos `cast` ... of _ { PDouble arr_ahQw ->
+                      index $fEltDouble lvl26_rk5S arr_ahQw ix_ahQa
+                      },
+                      case yos `cast` ... of _ { PDouble arr_ahQw ->
+                      index $fEltDouble lvl26_rk5S arr_ahQw ix_ahQa
+                      })
+                     } } in
+                 let {
+                   maxx_sfq9
+                   maxx_sfq9 =
+                     case ww1_sjyq `cast` ... of _ { PTuple2 xos yos ->
+                     let {
+                       ix_ahQa
+                       ix_ahQa =
+                         case pdata_sjOY `cast` ... of _ { PDouble xs1_agCs ->
+                         case fold1
+                                lvl25_rk5R ($vmaxIndexP_$smax') (indexed $fEltDouble xs1_agCs)
+                         of _ { (x1_ahs3, _) ->
+                         x1_ahs3
+                         }
+                         } } in
+                     (case xos `cast` ... of _ { PDouble arr_ahQw ->
+                      index $fEltDouble lvl26_rk5S arr_ahQw ix_ahQa
+                      },
+                      case yos `cast` ... of _ { PDouble arr_ahQw ->
+                      index $fEltDouble lvl26_rk5S arr_ahQw ix_ahQa
+                      })
+                     } } in
+                 (PTuple2
+                    (case minx_sfqa of _ { (a5_ahNl, b_ahNm) ->
+                     case maxx_sfq9 of _ { (a6_XhOT, b1_XhOV) ->
+                     (PTuple2
+                        ((PDouble
+                            (+:+
+                               $fEltDouble
+                               (replicate $fEltDouble tag_rk5M a5_ahNl)
+                               (replicate $fEltDouble tag_rk5M a6_XhOT)))
+                         `cast` ...)
+                        ((PDouble
+                            (+:+
+                               $fEltDouble
+                               (replicate $fEltDouble tag_rk5M b_ahNm)
+                               (replicate $fEltDouble tag_rk5M b1_XhOV)))
+                         `cast` ...))
+                     `cast` ...
+                     }
+                     })
+                    (case maxx_sfq9 of _ { (a5_ahNl, b_ahNm) ->
+                     case minx_sfqa of _ { (a6_XhOT, b1_XhOV) ->
+                     (PTuple2
+                        ((PDouble
+                            (+:+
+                               $fEltDouble
+                               (replicate $fEltDouble tag_rk5M a5_ahNl)
+                               (replicate $fEltDouble tag_rk5M a6_XhOT)))
+                         `cast` ...)
+                        ((PDouble
+                            (+:+
+                               $fEltDouble
+                               (replicate $fEltDouble tag_rk5M b_ahNm)
+                               (replicate $fEltDouble tag_rk5M b1_XhOV)))
+                         `cast` ...))
+                     `cast` ...
+                     }
+                     }))
+                 `cast` ...))
+             `cast` ...
+        of _ { PNested _ _ _ flat_a7F6 ->
+        case flat_a7F6 `cast` ...
+        of wild3_a7zP { PTuple2 xos yos ->
+        case xos `cast` ... of _ { PDouble xos' ->
+        case length $fEltDouble xos' of _ { I# n2#_a7Fa ->
+        PArray n2#_a7Fa (wild3_a7zP `cast` ...)
+        }
+        }
+        }
+        }
+        };
+      0 -> PArray 0 ww1_sjyq
+    }
+
+$vquickhullPA5
+$vquickhullPA5 =
+  \ w_sjyn ->
+    case w_sjyn of _ { PArray ww_sjyp ww1_sjyq ->
+    $wvquickHull ww_sjyp ww1_sjyq
+    }
+
+lvl31_rk5X
+lvl31_rk5X = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl32_rk5Y
+lvl32_rk5Y = $fPR(,) lvl1_rk5q lvl1_rk5q
+
+lvl33_rk5Z
+lvl33_rk5Z =
+  $fVectorVector(,)
+    ($dMVector_rk5I `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl34_rk60
+lvl34_rk60 =
+  $fUnbox(,) lvl33_rk5Z $dMVector_rk5I $fUnboxInt $fUnboxDouble
+
+lvl35_rk61
+lvl35_rk61 = $fElt(,) lvl34_rk60 lvl8_rk5x $fEltInt $fEltDouble
+
+lvl36_rk62
+lvl36_rk62 =
+  $fVectorVector(,)
+    ($dMVector_rk5I `cast` ...) $fUnboxInt $fUnboxDouble
+
+lvl37_rk63
+lvl37_rk63 =
+  $fUnbox(,) lvl36_rk62 $dMVector_rk5I $fUnboxInt $fUnboxDouble
+
+lvl38_rk64
+lvl38_rk64 = $fElt(,) lvl37_rk63 lvl8_rk5x $fEltInt $fEltDouble
+
+lvl39_rk65
+lvl39_rk65 =
+  absentError
+    "ww_sjyP{v} [lid] Dist{tc r5AF}\n\
+    \                   ((USegd{tc r5H3}, Int{(w) tc 3J}), Int{(w) tc 3J})"#
+
+lvl40_rk66
+lvl40_rk66 = PTuple2s (a_rk5m `cast` ...) (a_rk5m `cast` ...)
+
+lvl41_rk67
+lvl41_rk67 = PTuple2 (a1_rk5n `cast` ...) (a1_rk5n `cast` ...)
+
+lvl42_rk68
+lvl42_rk68 =
+  PNested
+    emptyVSegd
+    (lvl40_rk66 `cast` ...)
+    emptySegd
+    (lvl41_rk67 `cast` ...)
+
+lvl43_rk69
+lvl43_rk69 = PTuple2s (a_rk5m `cast` ...) (a_rk5m `cast` ...)
+
+$vquickhullPA2
+$vquickhullPA2 =
+  \ lc_Xgvj ps_affd ->
+    let {
+      sel_dfjI
+      sel_dfjI =
+        tagsToSel2
+          (case ps_affd `cast` ... of _ { PNested vsegd_agFn _ _ _ ->
+           map
+             $fEltBool
+             $fEltInt
+             fromBool
+             (zipWith
+                $fEltInt
+                $fEltInt
+                $fEltBool
+                eqInt
+                (takeLengthsOfVSegd vsegd_agFn)
+                (replicate $fEltInt (I# lc_Xgvj) lvl_rk5p))
+           }) } in
+    case elementsSel2_0 sel_dfjI of wild_dfoN { I# n#_dfoP ->
+    case elementsSel2_1 sel_dfjI of _ { I# _ ->
+    case ps_affd `cast` ...
+    of _ { PNested vsegd_agTj xs_agTk segd_agTl flat_agTm ->
+    let {
+      pdatas_ahqu
+      pdatas_ahqu =
+        case xs_agTk `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+        (PTuple2s (as_a7BI `cast` ...) (bs_a7BJ `cast` ...)) `cast` ...
+        } } in
+    let {
+      ds_agXv
+      ds_agXv =
+        let {
+          xs1_sfq5
+          xs1_sfq5 =
+            case segd_agTl
+            of segd' { UPSegd ipv_siHB ipv1_siHC ipv2_siHD ipv3_siHE ->
+            case flat_agTm `cast` ... of _ { PTuple2 xos _ ->
+            case xos `cast` ... of wild4_a7Ay { PDouble xos' ->
+            case length $fEltDouble xos' of _ { I# _ ->
+            (PNested
+               (promoteSegdToVSegd segd')
+               ((PDoubles (singletons $fEltDouble $fEltsDouble xos'))
+                `cast` ...)
+               segd'
+               (wild4_a7Ay `cast` ...))
+            `cast` ...
+            }
+            }
+            }
+            } } in
+        let {
+          minx_sfq2
+          minx_sfq2 =
+            case xs_agTk `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+            let {
+              srcixs_ah0T
+              srcixs_ah0T =
+                let {
+                  ipv4_agZR
+                  ipv4_agZR =
+                    case xs1_sfq5 `cast` ...
+                    of _ { PNested _ _ segd1_ahtb flat1_ahtc ->
+                    case flat1_ahtc `cast` ... of _ { PDouble xs3_agCs ->
+                    fsts
+                      $fEltInt
+                      $fEltDouble
+                      (fold1_s
+                         lvl38_rk64
+                         ($vminIndexP_$smin')
+                         segd1_ahtb
+                         (zip $fEltInt $fEltDouble (indices_s segd1_ahtb) xs3_agCs))
+                    }
+                    } } in
+                case length $fEltInt ipv4_agZR of _ { I# x_ah0H ->
+                zip
+                  $fEltInt
+                  $fEltInt
+                  (enumFromTo lvl_rk5p (I# (-# x_ah0H 1)))
+                  ipv4_agZR
+                } } in
+            let {
+              a4_sjCG
+              a4_sjCG =
+                case bs_a7BJ `cast` ... of _ { PDoubles arrs_ah1f ->
+                (PDouble
+                   (indexs_avs
+                      $fEltDouble $fEltsDouble arrs_ah1f vsegd_agTj srcixs_ah0T))
+                `cast` ...
+                } } in
+            let {
+              a5_sjCE
+              a5_sjCE =
+                case as_a7BI `cast` ... of _ { PDoubles arrs_ah1f ->
+                (PDouble
+                   (indexs_avs
+                      $fEltDouble $fEltsDouble arrs_ah1f vsegd_agTj srcixs_ah0T))
+                `cast` ...
+                } } in
+            let {
+              a6_sjCH
+              a6_sjCH = PTuple2 a5_sjCE a4_sjCG } in
+            let {
+              minx1_sfq4
+              minx1_sfq4 = a6_sjCH `cast` ... } in
+            case minx1_sfq4 `cast` ... of _ { PTuple2 as1_sjPR bs1_sjPS ->
+            let {
+              tags_ah7H
+              tags_ah7H = tagsSel2 sel_dfjI } in
+            (PTuple2
+               ($fPRDouble_$cpackByTagPR as1_sjPR tags_ah7H lvl_rk5p)
+               ($fPRDouble_$cpackByTagPR bs1_sjPS tags_ah7H lvl_rk5p))
+            `cast` ...
+            }
+            } } in
+        let {
+          maxx_sfq1
+          maxx_sfq1 =
+            case xs_agTk `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+            let {
+              srcixs_ah0T
+              srcixs_ah0T =
+                let {
+                  ipv4_agZR
+                  ipv4_agZR =
+                    case xs1_sfq5 `cast` ...
+                    of _ { PNested _ _ segd1_ahtb flat1_ahtc ->
+                    case flat1_ahtc `cast` ... of _ { PDouble xs3_agCs ->
+                    fsts
+                      $fEltInt
+                      $fEltDouble
+                      (fold1_s
+                         lvl35_rk61
+                         ($vmaxIndexP_$smax')
+                         segd1_ahtb
+                         (zip $fEltInt $fEltDouble (indices_s segd1_ahtb) xs3_agCs))
+                    }
+                    } } in
+                case length $fEltInt ipv4_agZR of _ { I# x_ah0H ->
+                zip
+                  $fEltInt
+                  $fEltInt
+                  (enumFromTo lvl_rk5p (I# (-# x_ah0H 1)))
+                  ipv4_agZR
+                } } in
+            let {
+              a4_sjCr
+              a4_sjCr =
+                case bs_a7BJ `cast` ... of _ { PDoubles arrs_ah1f ->
+                (PDouble
+                   (indexs_avs
+                      $fEltDouble $fEltsDouble arrs_ah1f vsegd_agTj srcixs_ah0T))
+                `cast` ...
+                } } in
+            let {
+              a5_sjCp
+              a5_sjCp =
+                case as_a7BI `cast` ... of _ { PDoubles arrs_ah1f ->
+                (PDouble
+                   (indexs_avs
+                      $fEltDouble $fEltsDouble arrs_ah1f vsegd_agTj srcixs_ah0T))
+                `cast` ...
+                } } in
+            let {
+              a6_sjCs
+              a6_sjCs = PTuple2 a5_sjCp a4_sjCr } in
+            let {
+              maxx1_sfq3
+              maxx1_sfq3 = a6_sjCs `cast` ... } in
+            case maxx1_sfq3 `cast` ... of _ { PTuple2 as1_sjPC bs1_sjPD ->
+            let {
+              tags_ah7H
+              tags_ah7H = tagsSel2 sel_dfjI } in
+            (PTuple2
+               ($fPRDouble_$cpackByTagPR as1_sjPC tags_ah7H lvl_rk5p)
+               ($fPRDouble_$cpackByTagPR bs1_sjPD tags_ah7H lvl_rk5p))
+            `cast` ...
+            }
+            } } in
+        let {
+          $w$j_sjyV
+          $w$j_sjyV =
+            \ w_sjyI w1_sjyJ ww_sjyM ww1_sjyN ww2_sjyO ->
+              let {
+                $j_sire
+                $j_sire =
+                  \ pdata'_agHm ->
+                    case pdata'_agHm `cast` ...
+                    of _ { PNested ipv4_agQ2 ipv5_agQ3 ipv6_agQ4 _ ->
+                    let {
+                      segd'_agQW
+                      segd'_agQW =
+                        plusSegd
+                          (UPSegd ww_sjyM ww1_sjyN ww2_sjyO lvl39_rk65) ipv6_agQ4 } in
+                    case elementsSegd segd'_agQW of _ { I# n#2_a7E9 ->
+                    case w1_sjyJ `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+                    case ipv5_agQ3 `cast` ... of _ { PTuple2s as1_X8R5 bs1_X8R7 ->
+                    case as_a7BI `cast` ... of _ { PTuple2s as2_X8Rd bs2_X8Rf ->
+                    case as1_X8R5 `cast` ... of _ { PTuple2s as3_Xa6R bs3_Xa6U ->
+                    case as2_X8Rd `cast` ... of _ { PDoubles arr1_agRP ->
+                    case as3_Xa6R `cast` ... of _ { PDoubles arr2_agRU ->
+                    let {
+                      xos'
+                      xos' =
+                        append_vs
+                          $fEltDouble
+                          $fEltsDouble
+                          segd'_agQW
+                          w_sjyI
+                          arr1_agRP
+                          ipv4_agQ2
+                          arr2_agRU } in
+                    case length $fEltDouble xos' of _ { I# _ ->
+                    let {
+                      a4_sjZI
+                      a4_sjZI =
+                        lhsplit_rk5N
+                          n#2_a7E9
+                          (let {
+                             vsegd'_ahCi
+                             vsegd'_ahCi =
+                               let {
+                                 tags_ahqm
+                                 tags_ahqm = tagsSel2 sel_dfjI } in
+                               updateVSegsOfVSegd
+                                 (\ x_abDC ->
+                                    replicate_s
+                                      $fEltInt segd'_agQW (lvl7_rk5w x_abDC tags_ahqm lvl_rk5p))
+                                 vsegd_agTj } in
+                           let {
+                             pdatas1_XhvD
+                             pdatas1_XhvD =
+                               case xs_agTk `cast` ... of _ { PTuple2s as4_X7Et bs4_X7Ev ->
+                               (PTuple2s (as4_X7Et `cast` ...) (bs4_X7Ev `cast` ...)) `cast` ...
+                               } } in
+                           (PNested
+                              vsegd'_ahCi
+                              (case pdatas1_XhvD `cast` ... of _ { PTuple2s ds1_agJr ds2_agJs ->
+                               (PTuple2s (ds1_agJr `cast` ...) (ds2_agJs `cast` ...)) `cast` ...
+                               })
+                              (unsafeDemoteToSegdOfVSegd vsegd'_ahCi)
+                              (case (extractvs_delay
+                                       (lvl32_rk5Y `cast` ...) pdatas1_XhvD vsegd'_ahCi)
+                                    `cast` ...
+                               of _ { PTuple2 ds1_X7D2 ds2_X7D4 ->
+                               (PTuple2 (ds1_X7D2 `cast` ...) (ds2_X7D4 `cast` ...)) `cast` ...
+                               }))
+                           `cast` ...)
+                          ((PTuple2
+                              ((PTuple2
+                                  ((PDouble xos') `cast` ...)
+                                  (case bs2_X8Rf `cast` ... of _ { PDoubles arr3_XgTX ->
+                                   case bs3_Xa6U `cast` ... of _ { PDoubles arr4_XgU5 ->
+                                   (PDouble
+                                      (append_vs
+                                         $fEltDouble
+                                         $fEltsDouble
+                                         segd'_agQW
+                                         w_sjyI
+                                         arr3_XgTX
+                                         ipv4_agQ2
+                                         arr4_XgU5))
+                                   `cast` ...
+                                   }
+                                   }))
+                               `cast` ...)
+                              (case bs_a7BJ `cast` ... of _ { PTuple2s as4_X8Tk bs4_X8Tn ->
+                               case bs1_X8R7 `cast` ... of _ { PTuple2s as5_Xa92 bs5_Xa96 ->
+                               (PTuple2
+                                  (case as4_X8Tk `cast` ... of _ { PDoubles arr3_XgU5 ->
+                                   case as5_Xa92 `cast` ... of _ { PDoubles arr4_XgUd ->
+                                   (PDouble
+                                      (append_vs
+                                         $fEltDouble
+                                         $fEltsDouble
+                                         segd'_agQW
+                                         w_sjyI
+                                         arr3_XgU5
+                                         ipv4_agQ2
+                                         arr4_XgUd))
+                                   `cast` ...
+                                   }
+                                   })
+                                  (case bs4_X8Tn `cast` ... of _ { PDoubles arr3_XgU5 ->
+                                   case bs5_Xa96 `cast` ... of _ { PDoubles arr4_XgUd ->
+                                   (PDouble
+                                      (append_vs
+                                         $fEltDouble
+                                         $fEltsDouble
+                                         segd'_agQW
+                                         w_sjyI
+                                         arr3_XgU5
+                                         ipv4_agQ2
+                                         arr4_XgUd))
+                                   `cast` ...
+                                   }
+                                   }))
+                               `cast` ...
+                               }
+                               }))
+                           `cast` ...) } in
+                    (PNested
+                       (promoteSegdToVSegd segd'_agQW)
+                       ((PNesteds
+                           (runSTRep
+                              (\ @ s_a1og s_a1oh ->
+                                 case newArray# 1 (uninitialised) (s_a1oh `cast` ...)
+                                 of _ { (# ipv_aiXC, ipv1_aiXD #) ->
+                                 letrec {
+                                   $wa_sjyW
+                                   $wa_sjyW =
+                                     \ w2_sjyx ww3_sjyA w3_sjyC w4_sjyD ->
+                                       case w2_sjyx of _ { __DEFAULT ->
+                                       case w3_sjyC of _ {
+                                         False -> (# w4_sjyD, I# ww3_sjyA #);
+                                         True ->
+                                           $wa_sjyW
+                                             SPEC
+                                             (+# ww3_sjyA 1)
+                                             False
+                                             ((writeArray#
+                                                 ipv1_aiXD ww3_sjyA a4_sjZI (w4_sjyD `cast` ...))
+                                              `cast` ...)
+                                       }
+                                       }; } in
+                                 case $wa_sjyW SPEC 0 True (ipv_aiXC `cast` ...)
+                                 of _ { (# ipv2_a1Dd, ipv3_a1De #) ->
+                                 case ipv3_a1De of _ { I# tpl3_aiYD ->
+                                 case unsafeFreezeArray# ipv1_aiXD (ipv2_a1Dd `cast` ...)
+                                 of _ { (# ipv8_aiZ1, ipv9_aiZ2 #) ->
+                                 (# ipv8_aiZ1 `cast` ..., Vector 0 tpl3_aiYD ipv9_aiZ2 #)
+                                 }
+                                 }
+                                 }
+                                 })))
+                        `cast` ...)
+                       segd'_agQW
+                       a4_sjZI)
+                    `cast` ...
+                    }
+                    }
+                    }
+                    }
+                    }
+                    }
+                    }
+                    }
+                    } } in
+              case n#_dfoP of _ {
+                __DEFAULT ->
+                  case lengthsToSegd (replicate $fEltInt wild_dfoN tag_rk5M)
+                  of segd1_agHE { UPSegd ipv_agHG ipv1_agHH ipv2_agHI ipv3_agHJ ->
+                  case promoteSegdToVSegd segd1_agHE
+                  of vsegd1_agHL
+                  { UPVSegd ipv4_agHN
+                            ipv5_agHO
+                            ipv6_agHP
+                            ipv7_agHQ
+                            ipv8_agHR
+                            ipv9_agHS ->
+                  case maxx_sfq1 `cast` ... of _ { PTuple2 ipv10_siia ipv11_siib ->
+                  case minx_sfq2 `cast` ... of _ { PTuple2 ipv12_siig ipv13_siih ->
+                  let {
+                    a4_siIZ
+                    a4_siIZ =
+                      case ipv13_siih `cast` ... of _ { PDouble arr_agIt ->
+                      (PDouble (replicate_s $fEltDouble segd1_agHE arr_agIt)) `cast` ...
+                      } } in
+                  let {
+                    a5_siIX
+                    a5_siIX =
+                      case ipv12_siig `cast` ... of _ { PDouble arr_agIt ->
+                      (PDouble (replicate_s $fEltDouble segd1_agHE arr_agIt)) `cast` ...
+                      } } in
+                  let {
+                    a6_siIR
+                    a6_siIR =
+                      case ipv11_siib `cast` ... of _ { PDouble arr_agIt ->
+                      (PDouble (replicate_s $fEltDouble segd1_agHE arr_agIt)) `cast` ...
+                      } } in
+                  let {
+                    a7_siIP
+                    a7_siIP =
+                      case ipv10_siia `cast` ... of _ { PDouble arr_agIt ->
+                      (PDouble (replicate_s $fEltDouble segd1_agHE arr_agIt)) `cast` ...
+                      } } in
+                  case ($j_sire
+                          ((PNested
+                              vsegd1_agHL
+                              ((PTuple2s
+                                  ((PTuple2s
+                                      (case a7_siIP `cast` ... of _ { PDouble pdata_a7C1 ->
+                                       (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                                       `cast` ...
+                                       })
+                                      (case a6_siIR `cast` ... of _ { PDouble pdata_a7C1 ->
+                                       (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                                       `cast` ...
+                                       }))
+                                   `cast` ...)
+                                  ((PTuple2s
+                                      (case a5_siIX `cast` ... of _ { PDouble pdata_a7C1 ->
+                                       (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                                       `cast` ...
+                                       })
+                                      (case a4_siIZ `cast` ... of _ { PDouble pdata_a7C1 ->
+                                       (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+                                       `cast` ...
+                                       }))
+                                   `cast` ...))
+                               `cast` ...)
+                              segd1_agHE
+                              ((PTuple2
+                                  ((PTuple2 a7_siIP a6_siIR) `cast` ...)
+                                  ((PTuple2 a5_siIX a4_siIZ) `cast` ...))
+                               `cast` ...))
+                           `cast` ...))
+                       `cast` ...
+                  of _ { PNested _ _ segd2_agWV flat1_agWW ->
+                  (segd2_agWV,
+                   case flat1_agWW `cast` ...
+                   of _ { PNested vsegd3_agXg xs3_agXh segd3_agXi flat2_agXj ->
+                   (PNested
+                      vsegd3_agXg
+                      (case xs3_agXh `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+                       (PTuple2s (as_a7BI `cast` ...) (bs_a7BJ `cast` ...)) `cast` ...
+                       })
+                      segd3_agXi
+                      (case flat2_agXj `cast` ... of _ { PTuple2 as_X7CI bs_X7CK ->
+                       (PTuple2 (as_X7CI `cast` ...) (bs_X7CK `cast` ...)) `cast` ...
+                       }))
+                   `cast` ...
+                   })
+                  }
+                  }
+                  }
+                  }
+                  };
+                0 ->
+                  case ($j_sire (lvl42_rk68 `cast` ...)) `cast` ...
+                  of _ { PNested _ _ segd1_agWV flat1_agWW ->
+                  (segd1_agWV,
+                   case flat1_agWW `cast` ...
+                   of _ { PNested vsegd2_agXg xs3_agXh segd2_agXi flat2_agXj ->
+                   (PNested
+                      vsegd2_agXg
+                      (case xs3_agXh `cast` ... of _ { PTuple2s as_a7BI bs_a7BJ ->
+                       (PTuple2s (as_a7BI `cast` ...) (bs_a7BJ `cast` ...)) `cast` ...
+                       })
+                      segd2_agXi
+                      (case flat2_agXj `cast` ... of _ { PTuple2 xos yos ->
+                       (PTuple2 (xos `cast` ...) (yos `cast` ...)) `cast` ...
+                       }))
+                   `cast` ...
+                   })
+                  }
+              } } in
+        case n#_dfoP of _ {
+          __DEFAULT ->
+            case lengthsToSegd (replicate $fEltInt wild_dfoN tag_rk5M)
+            of segd1_agHE { UPSegd ipv_agHG ipv1_agHH ipv2_agHI ipv3_agHJ ->
+            case promoteSegdToVSegd segd1_agHE
+            of vsegd1_agHL
+            { UPVSegd ipv4_agHN
+                      ipv5_agHO
+                      ipv6_agHP
+                      ipv7_agHQ
+                      ipv8_agHR
+                      ipv9_agHS ->
+            case minx_sfq2 `cast` ... of _ { PTuple2 ipv10_sig6 ipv11_sig7 ->
+            case maxx_sfq1 `cast` ... of _ { PTuple2 ipv12_sigc ipv13_sigd ->
+            $w$j_sjyV
+              vsegd1_agHL
+              ((PTuple2s
+                  ((PTuple2s
+                      (case ipv10_sig6 `cast` ... of _ { PDouble arr_agIt ->
+                       (PDoubles
+                          (singletons
+                             $fEltDouble
+                             $fEltsDouble
+                             (replicate_s $fEltDouble segd1_agHE arr_agIt)))
+                       `cast` ...
+                       })
+                      (case ipv11_sig7 `cast` ... of _ { PDouble arr_agIt ->
+                       (PDoubles
+                          (singletons
+                             $fEltDouble
+                             $fEltsDouble
+                             (replicate_s $fEltDouble segd1_agHE arr_agIt)))
+                       `cast` ...
+                       }))
+                   `cast` ...)
+                  ((PTuple2s
+                      (case ipv12_sigc `cast` ... of _ { PDouble arr_agIt ->
+                       (PDoubles
+                          (singletons
+                             $fEltDouble
+                             $fEltsDouble
+                             (replicate_s $fEltDouble segd1_agHE arr_agIt)))
+                       `cast` ...
+                       })
+                      (case ipv13_sigd `cast` ... of _ { PDouble arr_agIt ->
+                       (PDoubles
+                          (singletons
+                             $fEltDouble
+                             $fEltsDouble
+                             (replicate_s $fEltDouble segd1_agHE arr_agIt)))
+                       `cast` ...
+                       }))
+                   `cast` ...))
+               `cast` ...)
+              ipv_agHG
+              ipv1_agHH
+              ipv2_agHI
+            }
+            }
+            }
+            };
+          0 ->
+            case emptySegd of _ { UPSegd ww_sjyM ww1_sjyN ww2_sjyO ww3_sjyP ->
+            $w$j_sjyV
+              emptyVSegd (lvl43_rk69 `cast` ...) ww_sjyM ww1_sjyN ww2_sjyO
+            }
+        } } in
+    let {
+      ds1_agXJ
+      ds1_agXJ =
+        case ds_agXv of _ { (segd2_agXM, darr1_agXN) ->
+        case darr1_agXN `cast` ...
+        of _ { PNested _ _ segd1_agXT flat1_agXU ->
+        (segd1_agXT, flat1_agXU)
+        }
+        } } in
+    let {
+      pdatas1_ahGY
+      pdatas1_ahGY =
+        case ds1_agXJ of _ { (segd3_agY7, darr2_agY8) ->
+        case darr2_agY8 `cast` ... of _ { PTuple2 x_agJ6 y_agJ7 ->
+        (PTuple2s
+           (case x_agJ6 `cast` ... of _ { PDouble pdata_a7C1 ->
+            (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+            `cast` ...
+            })
+           (case y_agJ7 `cast` ... of _ { PDouble pdata_a7C1 ->
+            (PDoubles (singletons $fEltDouble $fEltsDouble pdata_a7C1))
+            `cast` ...
+            }))
+        `cast` ...
+        }
+        } } in
+    let {
+      vsegd'_ahHa
+      vsegd'_ahHa =
+        let {
+          tags_ahqm
+          tags_ahqm = tagsSel2 sel_dfjI } in
+        combine2VSegd
+          sel_dfjI
+          (promoteSegdToVSegd
+             (let {
+                segd2_agXW
+                segd2_agXW =
+                  case ds1_agXJ of _ { (segd3_agXZ, darr2_agY0) -> segd3_agXZ } } in
+              let {
+                segd1_agXD
+                segd1_agXD =
+                  case ds_agXv of _ { (segd3_agXG, darr1_agXH) -> segd3_agXG } } in
+              let {
+                ixs2_agY2
+                ixs2_agY2 = indicesSegd segd2_agXW } in
+              let {
+                len2_agY3
+                len2_agY3 = length $fEltInt ixs2_agY2 } in
+              mkSegd
+                (lvl14_rk5D segd1_agXD (lengthsSegd segd2_agXW))
+                (map
+                   $fEltInt
+                   $fEltInt
+                   (\ ix_agYc ->
+                      case ix_agYc of wild3_agYd { I# x_agYf ->
+                      case len2_agY3 of _ { I# y_agYj ->
+                      case >=# x_agYf y_agYj of _ {
+                        False -> index $fEltInt lvl15_rk5E ixs2_agY2 wild3_agYd;
+                        True -> lvl_rk5p
+                      }
+                      }
+                      })
+                   (indicesSegd segd1_agXD))
+                (elementsSegd segd2_agXW)))
+          (case pdatas1_ahGY `cast` ... of _ { PTuple2s xs1_ahK8 _ ->
+           $fPRDouble_$clengthdPR (xs1_ahK8 `cast` ...)
+           })
+          (updateVSegsOfVSegd
+             (\ vsegids_ahqr -> lvl7_rk5w vsegids_ahqr tags_ahqm tag_rk5M)
+             vsegd_agTj)
+          (case pdatas_ahqu `cast` ... of _ { PTuple2s xs1_ahK8 _ ->
+           $fPRDouble_$clengthdPR (xs1_ahK8 `cast` ...)
+           }) } in
+    let {
+      pdatas'_ahH4
+      pdatas'_ahH4 =
+        case pdatas1_ahGY `cast` ... of _ { PTuple2s xs1_ahJr ys1_ahJs ->
+        case pdatas_ahqu `cast` ... of _ { PTuple2s xs2_ahJw ys2_ahJx ->
+        (PTuple2s
+           (case xs1_ahJr `cast` ... of _ { PDoubles xs3_ahJM ->
+            case xs2_ahJw `cast` ... of _ { PDoubles ys_ahJR ->
+            (PDoubles (appends $fEltDouble $fEltsDouble xs3_ahJM ys_ahJR))
+            `cast` ...
+            }
+            })
+           (case ys1_ahJs `cast` ... of _ { PDoubles xs3_ahJM ->
+            case ys2_ahJx `cast` ... of _ { PDoubles ys_ahJR ->
+            (PDoubles (appends $fEltDouble $fEltsDouble xs3_ahJM ys_ahJR))
+            `cast` ...
+            }
+            }))
+        `cast` ...
+        }
+        } } in
+    (PNested
+       vsegd'_ahHa
+       (case pdatas'_ahH4 `cast` ... of _ { PTuple2s ds2_agJr ds3_agJs ->
+        (PTuple2s (ds2_agJr `cast` ...) (ds3_agJs `cast` ...)) `cast` ...
+        })
+       (unsafeDemoteToSegdOfVSegd vsegd'_ahHa)
+       (case (extractvs_delay
+                (lvl31_rk5X `cast` ...) pdatas'_ahH4 vsegd'_ahHa)
+             `cast` ...
+        of _ { PTuple2 ds2_a7A9 ds3_a7Aa ->
+        (PTuple2 (ds2_a7A9 `cast` ...) (ds3_a7Aa `cast` ...)) `cast` ...
+        }))
+    `cast` ...
+    }
+    }
+    }
+
+$vquickhullPA1
+$vquickhullPA1 =
+  \ lc_Xgvk _ arg_dfk8 -> $vquickhullPA2 lc_Xgvk arg_dfk8
+
+$vquickhullPA4
+$vquickhullPA4 = $vquickhullPA5
+
+$vquickhullPA3
+$vquickhullPA3 = \ _ arg_dfk7 -> $vquickhullPA5 arg_dfk7
+
+a3_rk6a
+a3_rk6a =
+  \ ds_d7k8 _ x_d7ka ->
+    case ds_d7k8 of _ { I# c_d7kd -> $vquickhullPA2 c_d7kd x_d7ka }
+
+$vquickhullPA
+$vquickhullPA = Clo $fPAVoid $vquickhullPA3 a3_rk6a void
+
+quickhullPA
+quickhullPA = \ x_dfke -> $: $vquickhullPA x_dfke
+
+
