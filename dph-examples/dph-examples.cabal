@@ -153,6 +153,16 @@ Executable dph-spectral-quickhull-vector
   ghc-options: -eventlog -rtsopts -threaded -fllvm -optlo-O3 -Odph -package dph-lifted-vseg -fcpr-off -fsimpl-tick-factor=1000
 
 
+Executable dph-spectral-quickhull-handvec
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.0.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-copy == 0.6.*, HUnit == 1.2.*
+  Main-is:        Main.hs
+  other-modules:  Handvec
+                  HandvecWrp
+                  Timing Points2D.Types SVG
+  hs-source-dirs: examples/spectral/QuickHull/handvec examples/spectral/QuickHull/lib lib
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-copy -fcpr-off -fsimpl-tick-factor=1000
+
+
 Executable dph-spectral-quicksort
   Build-depends: base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.8.*, dph-prim-par == 0.8.*, dph-lifted-vseg == 0.8.*, HUnit == 1.2.*, repa-flow == 3.2.*
   Main-is: Main.hs
