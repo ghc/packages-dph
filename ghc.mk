@@ -54,9 +54,9 @@ $(foreach pkg, $(DPH_PACKAGES), $(eval $(call dph_package,$(pkg))))
 #
 define dph_th_deps
 # $1 = way
-ifneq "$1" "v"
-libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.o
-libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${v_osuf}
+ifneq "$1" "$${GHCI_WAY}"
+libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$${$${GHCI_WAY}_osuf}
+libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$${GHCI_WAY}_osuf}
 endif
 
 # The following modules use Template Haskell, or contain ANN pragmas. Both of
