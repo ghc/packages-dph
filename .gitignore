@@ -5,7 +5,6 @@
 /dph-base/GNUmakefile
 /dph-common/ghc.mk
 /dph-common/GNUmakefile
-/dph-par/
 /dph-prim-interface/dist-install/
 /dph-prim-interface/ghc.mk
 /dph-prim-interface/GNUmakefile
@@ -15,11 +14,9 @@
 /dph-prim-seq/dist-install/
 /dph-prim-seq/ghc.mk
 /dph-prim-seq/GNUmakefile
-dph-seq/
 
 *.o
 *.hi
-war-std-std
 /dph-test/bin/
 /dph-common-vseg/dist/
 /dph-lifted-copy-seq/
