@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, Rank2Types #-}
+{-# LANGUAGE TemplateHaskell, RankNTypes #-}
 module Data.Array.Parallel.Lifted.TH.Repr (
   scalarInstances, tupleInstances,
   voidPRInstance, unitPRInstance, wrapPRInstance
