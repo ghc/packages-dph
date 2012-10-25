@@ -1,5 +1,5 @@
 Name:           dph-plugin
-Version:        0.6.1
+Version:        0.8.1
 License:        BSD3
 License-File:   LICENSE
 Synopsis:       Data Parallel Haskell Simplifier Plugin

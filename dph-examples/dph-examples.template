@@ -1,5 +1,5 @@
 Name:                dph-examples
-Version:             0.6.0.1
+Version:             0.8.0.1
 License:             BSD3
 License-file:        LICENSE
 Author:              The DPH Team
@@ -55,7 +55,7 @@ Executable dph-smoke-evens
 Executable dph-smoke-indices
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  Vectorised
+  other-modules:  Vectorised Vector
   hs-source-dirs: examples/smoke/sharing/Indices lib
   ghc-options:    DPH_OPTIONS
  
@@ -71,7 +71,7 @@ Executable dph-smoke-rank
 Executable dph-smoke-reverse
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
-  other-modules:  Vectorised Randomish
+  other-modules:  Vectorised Vector Randomish
   hs-source-dirs: examples/smoke/sharing/Reverse lib
   ghc-options:    DPH_OPTIONS
 
@@ -107,6 +107,7 @@ Executable dph-spectral-smvm
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
   other-modules:  Vectorised
+                  Vector
                   Timing
   hs-source-dirs: examples/spectral/SMVM/dph lib
   ghc-options:    DPH_OPTIONS

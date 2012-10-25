@@ -7,9 +7,9 @@ DPH_DEPENDS = \
 	random       	== 1.0.*, \
 	old-time     	== 1.1.*, \
 	containers      == 0.5.*, \
-	dph-base     	== 0.6.*, \
-	dph-prim-par	== 0.6.*, \
-	dph-lifted-vseg	== 0.6.*, \
+	dph-base     	== 0.8.*, \
+	dph-prim-par	== 0.8.*, \
+	dph-lifted-vseg	== 0.8.*, \
 	HUnit           == 1.2.*
 
 
