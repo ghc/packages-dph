@@ -5,7 +5,7 @@ DPH_DEPENDS = \
 	base         	== 4.6.*, \
 	vector       	== 0.9.*, \
 	random       	== 1.0.*, \
-	old-time     	== 1.0.*, \
+	old-time     	== 1.1.*, \
 	containers      == 0.5.*, \
 	dph-base     	== 0.6.*, \
 	dph-prim-par	== 0.6.*, \
