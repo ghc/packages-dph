@@ -6,7 +6,8 @@ module Data.Array.Parallel.Unlifted.Stream.Elems
         , streamElemsFromVectorsVSegd)
 where
 import Data.Array.Parallel.Unlifted.Stream.Ixs
-import Data.Vector.Fusion.Stream.Monadic
+import Data.Vector.Fusion.Bundle.Monadic                         (Bundle(..), fromStream)
+import Data.Vector.Fusion.Stream.Monadic                         (Stream(..), Step(..))
 import Data.Array.Parallel.Unlifted.Sequential.Vector            (Unbox, Vector)
 import Data.Array.Parallel.Unlifted.Vectors                      (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Sequential.UVSegd            (UVSegd(..))
@@ -19,10 +20,10 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.UVSegd  as UVSegd
 --    and produce a stream of elements.
 streamElemsFromVector
         :: (Monad m, Unbox a)
-        => Vector a -> Stream m Int -> Stream m a
+        => Vector a -> Bundle m v Int -> Bundle m v a
 
-streamElemsFromVector vector (Stream mkStep s0 size0)
- = vector `seq` Stream mkStep' s0 size0
+streamElemsFromVector vector Bundle{sElems=Stream mkStep s0,sSize=size0}
+ = vector `seq` fromStream (Stream mkStep' s0) size0
  where
         {-# INLINE_INNER mkStep' #-}
         mkStep' s
@@ -42,10 +43,10 @@ streamElemsFromVector vector (Stream mkStep s0 size0)
 --    and produce a stream of elements.
 streamElemsFromVectors 
         :: (Monad m, Unboxes a) 
-        => Vectors a -> Stream m (Int, Int) -> Stream m a
+        => Vectors a -> Bundle m v (Int, Int) -> Bundle m v a
 
-streamElemsFromVectors vectors (Stream mkStep s0 size0)
- = vectors `seq` Stream mkStep' s0 size0
+streamElemsFromVectors vectors Bundle{sElems=Stream mkStep s0,sSize=size0}
+ = vectors `seq` fromStream (Stream mkStep' s0) size0
   where
         {-# INLINE_INNER mkStep' #-}
         mkStep' s
@@ -65,7 +66,7 @@ streamElemsFromVectors vectors (Stream mkStep s0 size0)
 --   and produce a stream of elements.
 streamElemsFromVectorsVSegd
         :: (Monad m, Unboxes a)
-        => Vectors a -> UVSegd -> Stream m (Int, Int) -> Stream m a
+        => Vectors a -> UVSegd -> Bundle m v (Int, Int) -> Bundle m v a
 
 streamElemsFromVectorsVSegd vectors uvsegd vsrcixs
  = let  -- Because we're just doing indexing here, we don't need the culled

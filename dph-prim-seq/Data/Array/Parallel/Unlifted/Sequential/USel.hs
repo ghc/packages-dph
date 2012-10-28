@@ -17,8 +17,10 @@ module Data.Array.Parallel.Unlifted.Sequential.USel
         , tagsToIndices2)
 where
 import Data.Array.Parallel.Unlifted.Sequential.Vector   as V
-import qualified Data.Vector.Fusion.Stream              as S
+import qualified Data.Vector.Fusion.Bundle              as S
+import qualified Data.Vector.Fusion.Bundle.Monadic      as M
 import Data.Vector.Fusion.Stream.Monadic                ( Stream(..) )
+import Data.Vector.Fusion.Bundle.Monadic                ( Bundle(..) )
 import Data.Array.Parallel.Base                         (Tag)
 
 
@@ -86,9 +88,9 @@ tagsToIndices2 tags
 {-# INLINE_STREAM tagsToIndices2 #-}
 
 
-mapAccumS :: (acc -> a -> (acc,b)) -> acc -> S.Stream a -> S.Stream b
-mapAccumS f acc0 (Stream step s0 n)
-  = Stream step' (acc0,s0) n
+mapAccumS :: (acc -> a -> (acc,b)) -> acc -> S.Bundle v a -> S.Bundle v b
+mapAccumS f acc0 (Bundle{sElems=Stream step s0,sSize=n})
+  = M.fromStream (Stream step' (acc0,s0)) n
   where
    {-# INLINE_INNER step' #-}
    step' (acc,s) 

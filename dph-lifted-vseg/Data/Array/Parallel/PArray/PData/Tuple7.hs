@@ -20,9 +20,10 @@ import qualified Data.List                      as P
 -- The following are only imported for zip7,
 -- remove once that's where it's supposed to be
 import qualified Data.Vector as DV
-import qualified Data.Vector.Fusion.Stream.Monadic  as MS 
+import qualified Data.Vector.Fusion.Bundle.Monadic  as MB
+import qualified Data.Vector.Fusion.Stream.Monadic  as MS
 import qualified Data.Vector.Generic                as G
-import Data.Vector.Fusion.Stream (inplace)
+import Data.Vector.Fusion.Bundle (inplace)
 
 -------------------------------------------------------------------------------
 data instance PData (a, b, c, d, e, f, g)
@@ -399,8 +400,8 @@ instance ( PR a, PR b, PR c, PR d, PR e, PR f, PR g, Show a, Show b, Show c, Sho
 -- should be in Data.Vector
 
 zipWith7MS :: Monad m => (a -> b -> c -> d -> e -> f -> g -> h)
-                    -> MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
-                    -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m h
+                    -> MB.Bundle m v a -> MB.Bundle m v b -> MB.Bundle m v c -> MB.Bundle m v d
+                    -> MB.Bundle m v e -> MB.Bundle m v f -> MB.Bundle m v g -> MB.Bundle m v h
 {-# INLINE zipWith7MS #-}
 zipWith7MS fn = zipWith7M (\a b c d e f g -> return (fn a b c d e f g))
 
@@ -440,27 +441,27 @@ unzip7Generic xs =
     -- | /O(n)/ Map a function over a vector
     mapG :: (G.Vector v a, G.Vector v b) => (a -> b) -> v a -> v b
     {-# INLINE mapG #-}
-    mapG f = G.unstream . inplace (MS.map f) . G.stream
+    mapG f = G.unstream . inplace (MS.map f) id . G.stream
 
 zipWith7M :: Monad m => (a -> b -> c -> d -> e -> f -> g -> m h)
-                     -> MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
-                     -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m h
+                     -> MB.Bundle m v a -> MB.Bundle m v b -> MB.Bundle m v c -> MB.Bundle m v d
+                     -> MB.Bundle m v e -> MB.Bundle m v f -> MB.Bundle m v g -> MB.Bundle m v h
 {-# INLINE zipWith7M #-}
 zipWith7M fn sa sb sc sd se sf sg
-  = MS.zipWithM (\(a,b,c) (d,e,(f, g)) -> fn a b c d e f g) (MS.zip3 sa sb sc)
-                                                  (MS.zip3 sd se (MS.zip sf sg))
+  = MB.zipWithM (\(a,b,c) (d,e,(f, g)) -> fn a b c d e f g) (MB.zip3 sa sb sc)
+                                                  (MB.zip3 sd se (MB.zip sf sg))
 
 {-}                                                  
 zipWith7Monad :: Monad m => (a -> b -> c -> d -> e -> f -> g -> h)
-                    -> MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
-                    -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m h
+                    -> MB.Bundle m a -> MB.Bundle m b -> MB.Bundle m c -> MB.Bundle m d
+                    -> MB.Bundle m e -> MB.Bundle m f -> MB.Bundle m g -> MB.Bundle m h
 {-# INLINE zipWith7Monad #-}
 zipWith7Monad fn = zipWith7M (\a b c d e f g -> return (fn a b c d e f g))
 
 
 
-zip7Monad :: Monad m => MS.Stream m a -> MS.Stream m b -> MS.Stream m c -> MS.Stream m d
-                -> MS.Stream m e -> MS.Stream m f -> MS.Stream m g -> MS.Stream m (a,b,c,d,e,f,g)
+zip7Monad :: Monad m => MB.Bundle m a -> MB.Bundle m b -> MB.Bundle m c -> MB.Bundle m d
+                -> MB.Bundle m e -> MB.Bundle m f -> MB.Bundle m g -> MB.Bundle m (a,b,c,d,e,f,g)
 {-# INLINE zip7Monad #-}
 zip7Monad = zipWith7Monad (,,,,,,)
 -}

@@ -7,8 +7,9 @@ module Data.Array.Parallel.Unlifted.Stream.Segments
         , streamSegsFromVectorsUSSegdSegmap
         , streamSegsFromVectorsUSSegd_split)
 where
-import Data.Vector.Fusion.Stream.Size
-import Data.Vector.Fusion.Stream.Monadic
+import Data.Vector.Fusion.Bundle.Monadic                        (Bundle(..), fromStream)
+import Data.Vector.Fusion.Bundle.Size
+import Data.Vector.Fusion.Stream.Monadic                        (Stream(..), Step(..))
 import Data.Array.Parallel.Unlifted.Sequential.Vector           (Unbox,   Vector, index)
 import Data.Array.Parallel.Unlifted.Vectors                     (Unboxes, Vectors)
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd(..))
@@ -38,7 +39,7 @@ streamSegsFromNestedUSSegd
         :: (Unbox a, Monad m)
         => V.Vector (Vector a)  -- ^ Source arrays.
         -> USSegd               -- ^ Segment descriptor defining segments base on source vectors.
-        -> Stream m a
+        -> Bundle m v a
 
 streamSegsFromNestedUSSegd
         pdatas
@@ -68,7 +69,7 @@ streamSegsFromNestedUSSegd
                 !result  = index here pdata  (start + ix)
            in   return $ Yield result (pseg, ix + 1)
 
-   in   Stream fn (0, 0) Unknown
+   in   fromStream (Stream fn (0, 0)) Unknown
 {-# INLINE_STREAM streamSegsFromNestedUSSegd #-}
 
 
@@ -83,7 +84,7 @@ streamSegsFromVectorsUSSegd
         :: (Unboxes a, Monad m)
         => Vectors a            -- ^ Vectors holding source data.
         -> USSegd               -- ^ Scattered segment descriptor
-        -> Stream m a
+        -> Bundle m v a
 
 streamSegsFromVectorsUSSegd
         vectors
@@ -146,7 +147,7 @@ streamSegsFromVectorsUSSegd
 
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
-   in   Stream fnSeg initState (Exact elements)
+   in   fromStream (Stream fnSeg initState) (Exact elements)
 {-# INLINE_STREAM streamSegsFromVectorsUSSegd #-}
 
 
@@ -162,7 +163,7 @@ streamSegsFromVectorsUVSegd
         :: (Unboxes a, Monad m)
         => Vectors a            -- ^ Vectors holding source data.
         -> UVSegd               -- ^ Scattered segment descriptor
-        -> Stream m a
+        -> Bundle m v a
 
 streamSegsFromVectorsUVSegd
         vectors
@@ -176,7 +177,7 @@ streamSegsFromVectorsUSSegdSegmap
         => Vectors a            -- ^ Vectors holding source data.
         -> USSegd               -- ^ Scattered segment descriptor
         -> Vector Int           -- ^ Segmap
-        -> Stream m a
+        -> Bundle m v a
 
 streamSegsFromVectorsUSSegdSegmap
         vectors ussegd@(USSegd _ segStarts segSources usegd) segmap
@@ -233,7 +234,7 @@ streamSegsFromVectorsUSSegdSegmap
 
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
-   in   Stream fnSeg initState (Exact elemsTotal)
+   in   fromStream (Stream fnSeg initState) (Exact elemsTotal)
 {-# INLINE_STREAM streamSegsFromVectorsUSSegdSegmap #-}
 
 
@@ -245,7 +246,7 @@ streamSegsFromVectorsUSSegd_split
         -> USSegd               -- ^ Scattered segment descriptor
         -> Vector Int           -- ^ Virtual segment ids
         -> ((USegd,Int),Int)    -- ^ Segmap
-        -> Stream m a
+        -> Bundle m v a
 
 streamSegsFromVectorsUSSegd_split
         !vectors !ussegd
@@ -311,6 +312,6 @@ streamSegsFromVectorsUSSegd_split
 
         -- It's important that we set the result stream size, so Data.Vector
         -- doesn't need to add code to grow the result when it overflows.
-   in   Stream fnSeg initState (Exact elemsTotal)
+   in   fromStream (Stream fnSeg initState) (Exact elemsTotal)
 {-# INLINE_STREAM streamSegsFromVectorsUSSegd_split #-}
 

@@ -23,9 +23,10 @@ import qualified Data.Array.Parallel.Unlifted.Sequential.USegd          as USegd
 import qualified Data.Array.Parallel.Unlifted.Sequential.USSegd         as USSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPVSegd          as UPVSegd
 import qualified Data.Array.Parallel.Unlifted.Parallel.UPSSegd          as UPSSegd
+import Data.Vector.Fusion.Bundle.Monadic ( Bundle(..), fromStream )
 import Data.Vector.Fusion.Stream.Monadic ( Stream(..), Step(..) )
-import Data.Vector.Fusion.Stream.Size    ( Size(..) )
-import qualified Data.Vector.Fusion.Stream                              as S
+import Data.Vector.Fusion.Bundle.Size    ( Size(..) )
+import qualified Data.Vector.Fusion.Bundle                              as S
 
 import GHC.Exts -- for unboxed primops
 import GHC.Base ( isTrue# )
@@ -82,10 +83,10 @@ appendSegS
         -> Int          -- ^ How many elements to return
         -> Int          -- ^ Segment offset
         -> Int          -- ^ Element offset
-        -> S.Stream a
+        -> S.Bundle v a
 
 appendSegS !xd !xs !yd !ys !n seg_off el_off
-  = Stream next state (Exact n)
+  = fromStream (Stream next state) (Exact n)
   where
     !xlens = USegd.takeLengths xd
     !ylens = USegd.takeLengths yd
@@ -212,10 +213,10 @@ appendUPVSegS
         -> Int              -- ^ How many elements to return
         -> Int              -- ^ Segment offset
         -> Int              -- ^ Element offset
-        -> S.Stream a
+        -> S.Bundle v a
 
 appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
-  = Stream next state (Exact n)
+  = fromStream (Stream next state) (Exact n)
   where
     !xvsegs= UPVSegd.takeVSegidsRedundant xd
     !yvsegs= UPVSegd.takeVSegidsRedundant yd
@@ -401,10 +402,10 @@ appendSegS_old
         -> Int
         -> Int
         -> Int
-        -> S.Stream a
+        -> S.Bundle v a
 
 appendSegS_old !xd !xs !yd !ys !n seg_off el_off
-  = Stream next state (Exact n)
+  = fromStream (Stream next state) (Exact n)
   where
     !xlens = USegd.takeLengths xd
     !ylens = USegd.takeLengths yd

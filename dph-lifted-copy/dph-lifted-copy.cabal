@@ -69,4 +69,4 @@ Library
         template-haskell == 2.10.*,
         dph-base         == 0.8.*,
         dph-prim-par     == 0.8.*,
-        vector           == 0.10.*
+        vector           == 0.11.*

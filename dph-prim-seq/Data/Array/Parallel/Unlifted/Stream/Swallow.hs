@@ -15,7 +15,8 @@ module Data.Array.Parallel.Unlifted.Stream.Swallow
 where
 import Data.Vector.Generic               as G
 import Data.Vector.Fusion.Stream.Monadic as S
-import Data.Vector.Fusion.Stream.Size    as S
+import Data.Vector.Fusion.Bundle.Monadic as B
+import Data.Vector.Fusion.Bundle.Size    ( Size(..) )
 import Data.Vector.Fusion.Util           as S
 import qualified Data.Vector.Generic.New as New
 
@@ -28,11 +29,11 @@ import qualified Data.Vector.Generic.New as New
 --
 --   Trying to swallow more elements than are in the vector is undefined.
 --
-swallow :: Monad m => Vector v a => v a -> Stream m a
+swallow :: Monad m => Vector v a => v a -> Bundle m v a
 swallow v 
  = v 
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where
         n   = G.length v
 
@@ -47,12 +48,12 @@ swallow v
 swallow2 
         :: (Monad m, Vector v a, Vector v b)
         => v a -> v b 
-        -> Stream m (a, b)
+        -> Bundle m v (a, b)
 
 swallow2 aa bb
  = aa `seq` bb 
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -67,12 +68,12 @@ swallow2 aa bb
 swallow3
         :: (Monad m, Vector v a, Vector v b, Vector v c)
         => v a -> v b -> v c
-        -> Stream m (a, b, c)
+        -> Bundle m v (a, b, c)
 
 swallow3 aa bb cc
  = aa `seq` bb `seq` cc
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -88,12 +89,12 @@ swallow3 aa bb cc
 swallow4
         :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d)
         => v a -> v b -> v c -> v d
-        -> Stream m (a, b, c, d)
+        -> Bundle m v (a, b, c, d)
 
 swallow4 aa bb cc dd
  = aa `seq` bb `seq` cc `seq` dd
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -110,12 +111,12 @@ swallow4 aa bb cc dd
 swallow5
         :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e)
         => v a -> v b -> v c -> v d -> v e
-        -> Stream m (a, b, c, d, e)
+        -> Bundle m v (a, b, c, d, e)
 
 swallow5 aa bb cc dd ee
  = aa `seq` bb `seq` cc `seq` dd `seq` ee
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -133,12 +134,12 @@ swallow5 aa bb cc dd ee
 swallow6
         :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e, Vector v f)
         => v a -> v b -> v c -> v d -> v e -> v f
-        -> Stream m (a, b, c, d, e, f)
+        -> Bundle m v (a, b, c, d, e, f)
 
 swallow6 aa bb cc dd ee ff
  = aa `seq` bb `seq` cc `seq` dd `seq` ee `seq` ff
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -157,12 +158,12 @@ swallow6 aa bb cc dd ee ff
 swallow7
         :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e, Vector v f, Vector v g)
         => v a -> v b -> v c -> v d -> v e -> v f -> v g
-        -> Stream m (a, b, c, d, e, f, g)
+        -> Bundle m v (a, b, c, d, e, f, g)
 
 swallow7 aa bb cc dd ee ff gg
  = aa `seq` bb `seq` cc `seq` dd `seq` ee `seq` ff `seq` gg
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -182,12 +183,12 @@ swallow7 aa bb cc dd ee ff gg
 swallow8
         :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e, Vector v f, Vector v g, Vector v h)
         => v a -> v b -> v c -> v d -> v e -> v f -> v g -> v h
-        -> Stream m (a, b, c, d, e, f, g, h)
+        -> Bundle m v (a, b, c, d, e, f, g, h)
 
 swallow8 aa bb cc dd ee ff gg hh
  = aa `seq` bb `seq` cc `seq` dd `seq` ee `seq` ff `seq` gg `seq` hh
  `seq` n 
- `seq` (S.unfoldr get 0 `S.sized` Unknown)
+ `seq` (B.fromStream (S.unfoldr get 0) Unknown)
  where  n        = G.length aa
 
         {-# INLINE_INNER get #-}
@@ -205,9 +206,9 @@ swallow8 aa bb cc dd ee ff gg hh
 
 
 -- Repeat ---------------------------------------------------------------------
-repeatS :: Monad m => m a -> Stream m a
+repeatS :: Monad m => m a -> Bundle m v a
 repeatS x
- = Stream step () Unknown
+ = B.fromStream (Stream step ()) Unknown
  where
         {-# INLINE_INNER step #-}
         step _
@@ -218,7 +219,7 @@ repeatS x
 
 -- | Swallow a whole stream.
 --   Indicates that the consumer knows how many elements to demand.
-swallowS :: Stream m a -> Stream m a
+swallowS :: Bundle m v a -> Bundle m v a
 swallowS s = s
 {-# INLINE [1] swallowS #-}
 
@@ -238,5 +239,5 @@ swallowS s = s
 -- be generated.
 {-# RULES "swallowS/replicate"
     forall len x
-    . swallowS (S.replicateM len x) = repeatS x
+    . swallowS (B.replicateM len x) = repeatS x
     #-}

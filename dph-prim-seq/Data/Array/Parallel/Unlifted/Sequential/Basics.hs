@@ -11,7 +11,7 @@ import Data.Array.Parallel.Unlifted.Stream
 import Data.Array.Parallel.Unlifted.Sequential.Vector
 import Data.Array.Parallel.Unlifted.Sequential.USegd            (USegd)
 import qualified Data.Array.Parallel.Unlifted.Sequential.USegd  as USegd
-import qualified Data.Vector.Fusion.Stream as S
+import qualified Data.Vector.Fusion.Bundle as S
 
 
 -- | Segmented replicate of a vector based on the lengths of the segments

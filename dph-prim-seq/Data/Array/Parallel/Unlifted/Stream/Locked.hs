@@ -20,7 +20,8 @@ where
 import Data.Array.Parallel.Unlifted.Stream.Swallow
 import Data.Vector.Generic               as G
 import Data.Vector.Fusion.Stream.Monadic as S
-import Data.Vector.Fusion.Stream.Size    as S
+import Data.Vector.Fusion.Bundle.Monadic as B
+import Data.Vector.Fusion.Bundle.Size    as S
 
 
 -------------------------------------------
@@ -32,7 +33,7 @@ import Data.Vector.Fusion.Stream.Size    as S
 --
 stream2 :: (Monad m, Vector v a, Vector v b)
         => v a -> v b
-        -> Stream m (a, b)
+        -> Bundle m v (a, b)
 
 stream2 aa bb
  = lockedZip2S (G.length aa) (swallow aa) (swallow bb)
@@ -43,7 +44,7 @@ stream2 aa bb
 -- | Stream three vectors of the same length.
 stream3 :: (Monad m, Vector v a, Vector v b, Vector v c)
         => v a -> v b -> v c 
-        -> Stream m (a, b, c)
+        -> Bundle m v (a, b, c)
 
 stream3 aa bb cc
  = lockedZip3S (G.length aa) (swallow aa) (swallow bb) (swallow cc)
@@ -58,21 +59,21 @@ stream3 aa bb cc
 {-# RULES "stream3/new_1"
     forall as bs cs
     . stream3 (G.new as) bs cs
-    = S.map (\((b, c), a) -> (a, b, c))
+    = B.map (\((b, c), a) -> (a, b, c))
     $ lockedZip2S (G.length bs) (swallow2 bs cs) (swallow (G.new as))
   #-}
 
 {-# RULES "stream3/new_2"
     forall as bs cs
     . stream3 as (G.new bs) cs
-    = S.map (\((a, c), b) -> (a, b, c))
+    = B.map (\((a, c), b) -> (a, b, c))
     $ lockedZip2S (G.length as) (swallow2 as cs) (swallow (G.new bs))
   #-}
 
 {-# RULES "stream3/new_3"
     forall as bs cs
     . stream3 as bs (G.new cs)
-    = S.map (\((a, b), c) -> (a, b, c))
+    = B.map (\((a, b), c) -> (a, b, c))
     $ lockedZip2S (G.length as) (swallow2 as bs) (swallow (G.new cs))
   #-}
 
@@ -81,7 +82,7 @@ stream3 aa bb cc
 -- | Stream four vectors of the same length.
 stream4 :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d)
         => v a -> v b -> v c -> v d
-        -> Stream m (a, b, c, d)
+        -> Bundle m v (a, b, c, d)
 
 stream4 aa bb cc dd
  = lockedZip4S (G.length aa) 
@@ -91,28 +92,28 @@ stream4 aa bb cc dd
 {-# RULES "stream4/new_1"
     forall as bs cs ds
     . stream4 (G.new as) bs cs ds
-    = S.map (\((b, c, d), a) -> (a, b, c, d))
+    = B.map (\((b, c, d), a) -> (a, b, c, d))
     $ lockedZip2S (G.length bs) (swallow3 bs cs ds) (swallow (G.new as))
   #-}
 
 {-# RULES "stream4/new_2"
     forall as bs cs ds
     . stream4 as (G.new bs) cs ds
-    = S.map (\((a, c, d), b) -> (a, b, c, d))
+    = B.map (\((a, c, d), b) -> (a, b, c, d))
     $ lockedZip2S (G.length as) (swallow3 as cs ds) (swallow (G.new bs))
   #-}
 
 {-# RULES "stream4/new_3"
     forall as bs cs ds
     . stream4 as bs (G.new cs) ds
-    = S.map (\((a, b, d), c) -> (a, b, c, d))
+    = B.map (\((a, b, d), c) -> (a, b, c, d))
     $ lockedZip2S (G.length as) (swallow3 as bs ds) (swallow (G.new cs))
   #-}
 
 {-# RULES "stream4/new_4"
     forall as bs cs ds
     . stream4 as bs cs (G.new ds)
-    = S.map (\((a, b, c), d) -> (a, b, c, d))
+    = B.map (\((a, b, c), d) -> (a, b, c, d))
     $ lockedZip2S (G.length as) (swallow3 as bs cs) (swallow (G.new ds))
   #-}
 
@@ -121,7 +122,7 @@ stream4 aa bb cc dd
 -- | Stream five vectors of the same length.
 stream5 :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e)
         => v a -> v b -> v c -> v d -> v e
-        -> Stream m (a, b, c, d, e)
+        -> Bundle m v (a, b, c, d, e)
 
 stream5 aa bb cc dd ee
  = lockedZip5S (G.length aa) 
@@ -132,35 +133,35 @@ stream5 aa bb cc dd ee
 {-# RULES "stream5/new_1"
     forall as bs cs ds es
     . stream5 (G.new as) bs cs ds es
-    = S.map (\((b, c, d, e), a) -> (a, b, c, d, e))
+    = B.map (\((b, c, d, e), a) -> (a, b, c, d, e))
     $ lockedZip2S (G.length bs) (swallow4 bs cs ds es) (swallow (G.new as))
   #-}
 
 {-# RULES "stream5/new_2"
     forall as bs cs ds es
     . stream5 as (G.new bs) cs ds es
-    = S.map (\((a, c, d, e), b) -> (a, b, c, d, e))
+    = B.map (\((a, c, d, e), b) -> (a, b, c, d, e))
     $ lockedZip2S (G.length as) (swallow4 as cs ds es) (swallow (G.new bs))
   #-}
 
 {-# RULES "stream5/new_3"
     forall as bs cs ds es
     . stream5 as bs (G.new cs) ds es
-    = S.map (\((a, b, d, e), c) -> (a, b, c, d, e))
+    = B.map (\((a, b, d, e), c) -> (a, b, c, d, e))
     $ lockedZip2S (G.length as) (swallow4 as bs ds es) (swallow (G.new cs))
   #-}
 
 {-# RULES "stream5/new_4"
     forall as bs cs ds es
     . stream5 as bs cs (G.new ds) es
-    = S.map (\((a, b, c, e), d) -> (a, b, c, d, e))
+    = B.map (\((a, b, c, e), d) -> (a, b, c, d, e))
     $ lockedZip2S (G.length as) (swallow4 as bs cs es) (swallow (G.new ds))
   #-}
 
 {-# RULES "stream5/new_5"
     forall as bs cs ds es
     . stream5 as bs cs ds (G.new es)
-    = S.map (\((a, b, c, d), e) -> (a, b, c, d, e))
+    = B.map (\((a, b, c, d), e) -> (a, b, c, d, e))
     $ lockedZip2S (G.length as) (swallow4 as bs cs ds) (swallow (G.new es))
   #-}
 
@@ -169,7 +170,7 @@ stream5 aa bb cc dd ee
 -- | Stream six vectors of the same length.
 stream6 :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e, Vector v f)
         => v a -> v b -> v c -> v d -> v e -> v f
-        -> Stream m (a, b, c, d, e, f)
+        -> Bundle m v (a, b, c, d, e, f)
 
 stream6 aa bb cc dd ee ff
  = lockedZip6S (G.length aa) 
@@ -180,42 +181,42 @@ stream6 aa bb cc dd ee ff
 {-# RULES "stream6/new_1"
     forall as bs cs ds es fs
     . stream6 (G.new as) bs cs ds es fs
-    = S.map (\((b, c, d, e, f), a) -> (a, b, c, d, e, f))
+    = B.map (\((b, c, d, e, f), a) -> (a, b, c, d, e, f))
     $ lockedZip2S (G.length bs) (swallow5 bs cs ds es fs) (swallow (G.new as))
   #-}
 
 {-# RULES "stream6/new_2"
     forall as bs cs ds es fs
     . stream6 as (G.new bs) cs ds es fs
-    = S.map (\((a, c, d, e, f), b) -> (a, b, c, d, e, f))
+    = B.map (\((a, c, d, e, f), b) -> (a, b, c, d, e, f))
     $ lockedZip2S (G.length as) (swallow5 as cs ds es fs) (swallow (G.new bs))
   #-}
 
 {-# RULES "stream6/new_3"
     forall as bs cs ds es fs
     . stream6 as bs (G.new cs) ds es fs
-    = S.map (\((a, b, d, e, f), c) -> (a, b, c, d, e, f))
+    = B.map (\((a, b, d, e, f), c) -> (a, b, c, d, e, f))
     $ lockedZip2S (G.length as) (swallow5 as bs ds es fs) (swallow (G.new cs))
   #-}
 
 {-# RULES "stream6/new_4"
     forall as bs cs ds es fs
     . stream6 as bs cs (G.new ds) es fs
-    = S.map (\((a, b, c, e, f), d) -> (a, b, c, d, e, f))
+    = B.map (\((a, b, c, e, f), d) -> (a, b, c, d, e, f))
     $ lockedZip2S (G.length as) (swallow5 as bs cs es fs) (swallow (G.new ds))
   #-}
 
 {-# RULES "stream6/new_5"
     forall as bs cs ds es fs
     . stream6 as bs cs ds (G.new es) fs
-    = S.map (\((a, b, c, d, f), e) -> (a, b, c, d, e, f))
+    = B.map (\((a, b, c, d, f), e) -> (a, b, c, d, e, f))
     $ lockedZip2S (G.length as) (swallow5 as bs cs ds fs) (swallow (G.new es))
   #-}
 
 {-# RULES "stream6/new_6"
     forall as bs cs ds es fs
     . stream6 as bs cs ds es (G.new fs)
-    = S.map (\((a, b, c, d, e), f) -> (a, b, c, d, e, f))
+    = B.map (\((a, b, c, d, e), f) -> (a, b, c, d, e, f))
     $ lockedZip2S (G.length as) (swallow5 as bs cs ds es) (swallow (G.new fs))
   #-}
 
@@ -224,7 +225,7 @@ stream6 aa bb cc dd ee ff
 -- | Stream seven vectors of the same length.
 stream7 :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e, Vector v f, Vector v g)
         => v a -> v b -> v c -> v d -> v e -> v f -> v g
-        -> Stream m (a, b, c, d, e, f, g)
+        -> Bundle m v (a, b, c, d, e, f, g)
 
 stream7 aa bb cc dd ee ff gg
  = lockedZip7S (G.length aa) 
@@ -235,49 +236,49 @@ stream7 aa bb cc dd ee ff gg
 {-# RULES "stream7/new_1"
     forall as bs cs ds es fs gs
     . stream7 (G.new as) bs cs ds es fs gs
-    = S.map (\((b, c, d, e, f, g), a) -> (a, b, c, d, e, f, g))
+    = B.map (\((b, c, d, e, f, g), a) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length bs) (swallow6 bs cs ds es fs gs) (swallow (G.new as))
   #-}
 
 {-# RULES "stream7/new_2"
     forall as bs cs ds es fs gs
     . stream7 as (G.new bs) cs ds es fs gs
-    = S.map (\((a, c, d, e, f, g), b) -> (a, b, c, d, e, f, g))
+    = B.map (\((a, c, d, e, f, g), b) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length as) (swallow6 as cs ds es fs gs) (swallow (G.new bs))
   #-}
 
 {-# RULES "stream7/new_3"
     forall as bs cs ds es fs gs
     . stream7 as bs (G.new cs) ds es fs gs
-    = S.map (\((a, b, d, e, f, g), c) -> (a, b, c, d, e, f, g))
+    = B.map (\((a, b, d, e, f, g), c) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length as) (swallow6 as bs ds es fs gs) (swallow (G.new cs))
   #-}
 
 {-# RULES "stream7/new_4"
     forall as bs cs ds es fs gs
     . stream7 as bs cs (G.new ds) es fs gs
-    = S.map (\((a, b, c, e, f, g), d) -> (a, b, c, d, e, f, g))
+    = B.map (\((a, b, c, e, f, g), d) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length as) (swallow6 as bs cs es fs gs) (swallow (G.new ds))
   #-}
 
 {-# RULES "stream7/new_5"
     forall as bs cs ds es fs gs
     . stream7 as bs cs ds (G.new es) fs gs
-    = S.map (\((a, b, c, d, f, g), e) -> (a, b, c, d, e, f, g))
+    = B.map (\((a, b, c, d, f, g), e) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length as) (swallow6 as bs cs ds fs gs) (swallow (G.new es))
   #-}
 
 {-# RULES "stream7/new_6"
     forall as bs cs ds es fs gs
     . stream7 as bs cs ds es (G.new fs) gs
-    = S.map (\((a, b, c, d, e, g), f) -> (a, b, c, d, e, f, g))
+    = B.map (\((a, b, c, d, e, g), f) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length as) (swallow6 as bs cs ds es gs) (swallow (G.new fs))
   #-}
 
 {-# RULES "stream7/new_7"
     forall as bs cs ds es fs gs
     . stream7 as bs cs ds es fs (G.new gs)
-    = S.map (\((a, b, c, d, e, f), g) -> (a, b, c, d, e, f, g))
+    = B.map (\((a, b, c, d, e, f), g) -> (a, b, c, d, e, f, g))
     $ lockedZip2S (G.length as) (swallow6 as bs cs ds es fs) (swallow (G.new gs))
   #-}
 
@@ -286,7 +287,7 @@ stream7 aa bb cc dd ee ff gg
 -- | Stream seven vectors of the same length.
 stream8 :: (Monad m, Vector v a, Vector v b, Vector v c, Vector v d, Vector v e, Vector v f, Vector v g, Vector v h)
         => v a -> v b -> v c -> v d -> v e -> v f -> v g -> v h
-        -> Stream m (a, b, c, d, e, f, g, h)
+        -> Bundle m v (a, b, c, d, e, f, g, h)
 
 stream8 aa bb cc dd ee ff gg hh
  = lockedZip8S (G.length aa) 
@@ -297,56 +298,56 @@ stream8 aa bb cc dd ee ff gg hh
 {-# RULES "stream8/new_1"
     forall as bs cs ds es fs gs hs
     . stream8 (G.new as) bs cs ds es fs gs hs
-    = S.map (\((b, c, d, e, f, g, h), a) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((b, c, d, e, f, g, h), a) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length bs) (swallow7 bs cs ds es fs gs hs) (swallow (G.new as))
   #-}
 
 {-# RULES "stream8/new_2"
     forall as bs cs ds es fs gs hs
     . stream8 as (G.new bs) cs ds es fs gs hs
-    = S.map (\((a, c, d, e, f, g, h), b) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, c, d, e, f, g, h), b) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as cs ds es fs gs hs) (swallow (G.new bs))
   #-}
 
 {-# RULES "stream8/new_3"
     forall as bs cs ds es fs gs hs
     . stream8 as bs (G.new cs) ds es fs gs hs
-    = S.map (\((a, b, d, e, f, g, h), c) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, b, d, e, f, g, h), c) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as bs ds es fs gs hs) (swallow (G.new cs))
   #-}
 
 {-# RULES "stream8/new_4"
     forall as bs cs ds es fs gs hs
     . stream8 as bs cs (G.new ds) es fs gs hs
-    = S.map (\((a, b, c, e, f, g, h), d) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, b, c, e, f, g, h), d) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as bs cs es fs gs hs) (swallow (G.new ds))
   #-}
 
 {-# RULES "stream8/new_5"
     forall as bs cs ds es fs gs hs
     . stream8 as bs cs ds (G.new es) fs gs hs
-    = S.map (\((a, b, c, d, f, g, h), e) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, b, c, d, f, g, h), e) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as bs cs ds fs gs hs) (swallow (G.new es))
   #-}
 
 {-# RULES "stream8/new_6"
     forall as bs cs ds es fs gs hs
     . stream8 as bs cs ds es (G.new fs) gs hs
-    = S.map (\((a, b, c, d, e, g, h), f) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, b, c, d, e, g, h), f) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as bs cs ds es gs hs) (swallow (G.new fs))
   #-}
 
 {-# RULES "stream8/new_7"
     forall as bs cs ds es fs gs hs
     . stream8 as bs cs ds es fs (G.new gs) hs
-    = S.map (\((a, b, c, d, e, f, h), g) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, b, c, d, e, f, h), g) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as bs cs ds es fs hs) (swallow (G.new gs))
   #-}
 
 {-# RULES "stream8/new_8"
     forall as bs cs ds es fs gs hs
     . stream8 as bs cs ds es fs gs (G.new hs)
-    = S.map (\((a, b, c, d, e, f, h), g) -> (a, b, c, d, e, f, g, h))
+    = B.map (\((a, b, c, d, e, f, h), g) -> (a, b, c, d, e, f, g, h))
     $ lockedZip2S (G.length as) (swallow7 as bs cs ds es fs gs) (swallow (G.new hs))
   #-}
 
@@ -358,13 +359,13 @@ stream8 aa bb cc dd ee ff gg hh
 lockedZip2S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b 
-        -> Stream m (a, b)
+        -> Bundle m v a -> Bundle m v b 
+        -> Bundle m v (a, b)
 
 lockedZip2S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
- = Stream step (sa1, sa2, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+ = B.fromStream (Stream step (sa1, sa2, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, i)
@@ -383,14 +384,14 @@ lockedZip2S len
 lockedZip3S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b -> Stream m c
-        -> Stream m (a, b, c)
+        -> Bundle m v a -> Bundle m v b -> Bundle m v c
+        -> Bundle m v (a, b, c)
 
 lockedZip3S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
-        (Stream mkStep3 sa3 _)
- = Stream step (sa1, sa2, sa3, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+        (Bundle {sElems=Stream mkStep3 sa3})
+ = B.fromStream (Stream step (sa1, sa2, sa3, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, s3, i)
@@ -411,15 +412,15 @@ lockedZip3S len
 lockedZip4S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b -> Stream m c -> Stream m d
-        -> Stream m (a, b, c, d)
+        -> Bundle m v a -> Bundle m v b -> Bundle m v c -> Bundle m v d
+        -> Bundle m v (a, b, c, d)
 
 lockedZip4S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
-        (Stream mkStep3 sa3 _)
-        (Stream mkStep4 sa4 _)
- = Stream step (sa1, sa2, sa3, sa4, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+        (Bundle {sElems=Stream mkStep3 sa3})
+        (Bundle {sElems=Stream mkStep4 sa4})
+ = B.fromStream (Stream step (sa1, sa2, sa3, sa4, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, s3, s4, i)
@@ -441,16 +442,16 @@ lockedZip4S len
 lockedZip5S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b -> Stream m c -> Stream m d -> Stream m e
-        -> Stream m (a, b, c, d, e)
+        -> Bundle m v a -> Bundle m v b -> Bundle m v c -> Bundle m v d -> Bundle m v e
+        -> Bundle m v (a, b, c, d, e)
 
 lockedZip5S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
-        (Stream mkStep3 sa3 _)
-        (Stream mkStep4 sa4 _)
-        (Stream mkStep5 sa5 _)
- = Stream step (sa1, sa2, sa3, sa4, sa5, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+        (Bundle {sElems=Stream mkStep3 sa3})
+        (Bundle {sElems=Stream mkStep4 sa4})
+        (Bundle {sElems=Stream mkStep5 sa5})
+ = B.fromStream (Stream step (sa1, sa2, sa3, sa4, sa5, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, s3, s4, s5, i)
@@ -473,17 +474,17 @@ lockedZip5S len
 lockedZip6S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b -> Stream m c -> Stream m d -> Stream m e -> Stream m f
-        -> Stream m (a, b, c, d, e, f)
+        -> Bundle m v a -> Bundle m v b -> Bundle m v c -> Bundle m v d -> Bundle m v e -> Bundle m v f
+        -> Bundle m v (a, b, c, d, e, f)
 
 lockedZip6S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
-        (Stream mkStep3 sa3 _)
-        (Stream mkStep4 sa4 _)
-        (Stream mkStep5 sa5 _)
-        (Stream mkStep6 sa6 _)
- = Stream step (sa1, sa2, sa3, sa4, sa5, sa6, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+        (Bundle {sElems=Stream mkStep3 sa3})
+        (Bundle {sElems=Stream mkStep4 sa4})
+        (Bundle {sElems=Stream mkStep5 sa5})
+        (Bundle {sElems=Stream mkStep6 sa6})
+ = B.fromStream (Stream step (sa1, sa2, sa3, sa4, sa5, sa6, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, s3, s4, s5, s6, i)
@@ -507,18 +508,18 @@ lockedZip6S len
 lockedZip7S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b -> Stream m c -> Stream m d -> Stream m e -> Stream m f -> Stream m g
-        -> Stream m (a, b, c, d, e, f, g)
+        -> Bundle m v a -> Bundle m v b -> Bundle m v c -> Bundle m v d -> Bundle m v e -> Bundle m v f -> Bundle m v g
+        -> Bundle m v (a, b, c, d, e, f, g)
 
 lockedZip7S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
-        (Stream mkStep3 sa3 _)
-        (Stream mkStep4 sa4 _)
-        (Stream mkStep5 sa5 _)
-        (Stream mkStep6 sa6 _)
-        (Stream mkStep7 sa7 _)
- = Stream step (sa1, sa2, sa3, sa4, sa5, sa6, sa7, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+        (Bundle {sElems=Stream mkStep3 sa3})
+        (Bundle {sElems=Stream mkStep4 sa4})
+        (Bundle {sElems=Stream mkStep5 sa5})
+        (Bundle {sElems=Stream mkStep6 sa6})
+        (Bundle {sElems=Stream mkStep7 sa7})
+ = B.fromStream (Stream step (sa1, sa2, sa3, sa4, sa5, sa6, sa7, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, s3, s4, s5, s6, s7, i)
@@ -543,19 +544,19 @@ lockedZip7S len
 lockedZip8S
         :: Monad m 
         => Int
-        -> Stream m a -> Stream m b -> Stream m c -> Stream m d -> Stream m e -> Stream m f -> Stream m g -> Stream m h
-        -> Stream m (a, b, c, d, e, f, g, h)
+        -> Bundle m v a -> Bundle m v b -> Bundle m v c -> Bundle m v d -> Bundle m v e -> Bundle m v f -> Bundle m v g -> Bundle m v h
+        -> Bundle m v (a, b, c, d, e, f, g, h)
 
 lockedZip8S len
-        (Stream mkStep1 sa1 _)
-        (Stream mkStep2 sa2 _)
-        (Stream mkStep3 sa3 _)
-        (Stream mkStep4 sa4 _)
-        (Stream mkStep5 sa5 _)
-        (Stream mkStep6 sa6 _)
-        (Stream mkStep7 sa7 _)
-        (Stream mkStep8 sa8 _)
- = Stream step (sa1, sa2, sa3, sa4, sa5, sa6, sa7, sa8, 0) (S.Exact len)
+        (Bundle {sElems=Stream mkStep1 sa1})
+        (Bundle {sElems=Stream mkStep2 sa2})
+        (Bundle {sElems=Stream mkStep3 sa3})
+        (Bundle {sElems=Stream mkStep4 sa4})
+        (Bundle {sElems=Stream mkStep5 sa5})
+        (Bundle {sElems=Stream mkStep6 sa6})
+        (Bundle {sElems=Stream mkStep7 sa7})
+        (Bundle {sElems=Stream mkStep8 sa8})
+ = B.fromStream (Stream step (sa1, sa2, sa3, sa4, sa5, sa6, sa7, sa8, 0)) (S.Exact len)
  where 
         {-# INLINE_INNER step #-}
         step (s1, s2, s3, s4, s5, s6, s7, s8, i)

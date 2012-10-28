@@ -28,10 +28,12 @@ module Data.Array.Parallel.Unlifted.Stream.Segmented
         , appendSS
         , indicesSS)
 where
-import Data.Array.Parallel.Base                 (Tag)
-import qualified Data.Vector.Fusion.Stream      as S
-import Data.Vector.Fusion.Stream.Monadic        (Stream(..), Step(..))
-import Data.Vector.Fusion.Stream.Size           (Size(..))
+import Data.Array.Parallel.Base                    (Tag)
+import qualified Data.Vector.Fusion.Bundle         as B
+import qualified Data.Vector.Fusion.Bundle.Monadic as M
+import Data.Vector.Fusion.Bundle.Monadic           (Bundle(..))
+import Data.Vector.Fusion.Stream.Monadic           (Stream(..), Step(..))
+import Data.Vector.Fusion.Bundle.Size              (Size(..))
 
 
 -- Indexed --------------------------------------------------------------------
@@ -41,9 +43,10 @@ import Data.Vector.Fusion.Stream.Size           (Size(..))
 -- indexed [42,93,13]
 --  = [(0,42), (1,93), (2,13)]
 -- @
-indexedS :: S.Stream a -> S.Stream (Int,a)
+indexedS :: B.Bundle v a -> B.Bundle v (Int,a)
 {-# INLINE_STREAM indexedS #-}
-indexedS (Stream next s n) = Stream next' (0,s) n
+indexedS Bundle{sElems=Stream next s,sSize=n} =
+    M.fromStream (Stream next' (0,s)) n
   where
     {-# INLINE_INNER next' #-}
     next' (i,s) = do
@@ -64,10 +67,10 @@ indexedS (Stream next s n) = Stream next' (0,s) n
 -- replicateEach 10 [(2,10), (5,20), (3,30)]
 --   = [10,10,20,20,20,20,20,30,30,30]
 -- @
-replicateEachS :: Int -> S.Stream (Int,a) -> S.Stream a
+replicateEachS :: Int -> B.Bundle v (Int,a) -> B.Bundle v a
 {-# INLINE_STREAM replicateEachS #-}
-replicateEachS n (Stream next s _) =
-  Stream next' (0,Nothing,s) (Exact n)
+replicateEachS n Bundle{sElems=Stream next s} =
+  M.fromStream (Stream next' (0,Nothing,s)) (Exact n)
   where
     {-# INLINE next' #-}
     next' (0, _, s) =
@@ -88,10 +91,10 @@ replicateEachS n (Stream next s _) =
 --  = [10,10,20,20,30,30]
 -- @
 --
-replicateEachRS :: Int -> S.Stream a -> S.Stream a
+replicateEachRS :: Int -> B.Bundle v a -> B.Bundle v a
 {-# INLINE_STREAM replicateEachRS #-}
-replicateEachRS !n (Stream next s sz)
-  = Stream next' (0,Nothing,s) (sz `multSize` n)
+replicateEachRS !n Bundle{sElems=Stream next s,sSize=sz}
+  = M.fromStream (Stream next' (0,Nothing,s)) (sz `multSize` n)
   where
     next' (0,_,s) =
       do
@@ -121,10 +124,11 @@ multSize Unknown   _ = Unknown
 -- interleave [2,3,4] [10,20]    = [2,10,3,20,4]
 -- @
 --
-interleaveS :: S.Stream a -> S.Stream a -> S.Stream a
+interleaveS :: B.Bundle v a -> B.Bundle v a -> B.Bundle v a
 {-# INLINE_STREAM interleaveS #-}
-interleaveS (Stream next1 s1 n1) (Stream next2 s2 n2)
-  = Stream next (False,s1,s2) (n1+n2)
+interleaveS (Bundle{sElems=Stream next1 s1,sSize=n1})
+            (Bundle{sElems=Stream next2 s2,sSize=n2})
+  = M.fromStream (Stream next (False,s1,s2)) (n1+n2)
   where
     {-# INLINE next #-}
     next (False,s1,s2) =
@@ -156,11 +160,12 @@ interleaveS (Stream next1 s1 n1) (Stream next2 s2 n2)
 --  = [1,4,5,2,3,6]
 -- @
 --
-combine2ByTagS :: S.Stream Tag -> S.Stream a -> S.Stream a -> S.Stream a
+combine2ByTagS :: B.Bundle v Tag -> B.Bundle v a -> B.Bundle v a -> B.Bundle v a
 {-# INLINE_STREAM combine2ByTagS #-}
-combine2ByTagS (Stream next_tag s m) (Stream next0 s0 _)
-                                     (Stream next1 s1 _)
-  = Stream next (Nothing,s,s0,s1) m
+combine2ByTagS (Bundle{sElems=Stream next_tag s,sSize=m})
+               (Bundle{sElems=Stream next0 s0})
+               (Bundle{sElems=Stream next1 s1})
+  = M.fromStream (Stream next (Nothing,s,s0,s1)) m
   where
     {-# INLINE_INNER next #-}
     next (Nothing,s,s0,s1)
@@ -203,19 +208,19 @@ combine2ByTagS (Stream next_tag s m) (Stream next0 s0 _)
 --   elements from the first stream...
 --
 combineSS 
-        :: S.Stream Bool        -- ^ tag values
-        -> S.Stream Int         -- ^ segment lengths for first data stream
-        -> S.Stream a           -- ^ first data stream
-        -> S.Stream Int         -- ^ segment lengths for second data stream
-        -> S.Stream a           -- ^ second data stream
-        -> S.Stream a
+        :: B.Bundle v Bool      -- ^ tag values
+        -> B.Bundle v Int       -- ^ segment lengths for first data stream
+        -> B.Bundle v a         -- ^ first data stream
+        -> B.Bundle v Int       -- ^ segment lengths for second data stream
+        -> B.Bundle v a         -- ^ second data stream
+        -> B.Bundle v a
 
 {-# INLINE_STREAM combineSS #-}
-combineSS (Stream nextf sf _) 
-          (Stream nexts1 ss1 _) (Stream nextv1 vs1 nv1)
-          (Stream nexts2 ss2 _) (Stream nextv2 vs2 nv2)
-  = Stream next (Nothing,True,sf,ss1,vs1,ss2,vs2)
-                (nv1+nv2)
+combineSS (Bundle{sElems=Stream nextf sf})
+          (Bundle{sElems=Stream nexts1 ss1}) (Bundle{sElems=Stream nextv1 vs1,sSize=nv1})
+          (Bundle{sElems=Stream nexts2 ss2}) (Bundle{sElems=Stream nextv2 vs2,sSize=nv2})
+  = M.fromStream (Stream next (Nothing,True,sf,ss1,vs1,ss2,vs2))
+                 (nv1+nv2)
   where
     {-# INLINE next #-}
     next (Nothing,f,sf,ss1,vs1,ss2,vs2) =
@@ -272,10 +277,10 @@ combineSS (Stream nextf sf _)
 --  = [2,3,4,5,10,11,12,13,14,15,16,20,21,22]
 -- @
 --
-enumFromToEachS :: Int -> S.Stream (Int,Int) -> S.Stream Int
+enumFromToEachS :: Int -> B.Bundle v (Int,Int) -> B.Bundle v Int
 {-# INLINE_STREAM enumFromToEachS #-}
-enumFromToEachS n (Stream next s _) 
-  = Stream next' (Nothing,s) (Exact n)
+enumFromToEachS n (Bundle{sElems=Stream next s})
+  = M.fromStream (Stream next' (Nothing,s)) (Exact n)
   where
     {-# INLINE_INNER next' #-}
     next' (Nothing,s)
@@ -301,10 +306,10 @@ enumFromToEachS n (Stream next s _)
 --  = [1,2,3,4,5,10,12,14,16,20,23,26,29,32]
 -- @
 --               
-enumFromStepLenEachS :: Int -> S.Stream (Int,Int,Int) -> S.Stream Int 
+enumFromStepLenEachS :: Int -> B.Bundle v (Int,Int,Int) -> B.Bundle v Int 
 {-# INLINE_STREAM enumFromStepLenEachS #-}
-enumFromStepLenEachS len (Stream next s _)
-  = Stream next' (Nothing,s) (Exact len)
+enumFromStepLenEachS len (Bundle{sElems=Stream next s})
+  = M.fromStream (Stream next' (Nothing,s)) (Exact len)
   where
     {-# INLINE_INNER next' #-}
     next' (Nothing,s) 
@@ -331,13 +336,13 @@ enumFromStepLenEachS len (Stream next s _)
 --
 foldSS  :: (a -> b -> a)        -- ^ function to perform the fold
         -> a                    -- ^ initial element of each fold
-        -> S.Stream Int         -- ^ stream of segment lengths
-        -> S.Stream b           -- ^ stream of input data
-        -> S.Stream a           -- ^ stream of fold results
+        -> B.Bundle v Int       -- ^ stream of segment lengths
+        -> B.Bundle v b         -- ^ stream of input data
+        -> B.Bundle v a         -- ^ stream of fold results
         
 {-# INLINE_STREAM foldSS #-}
-foldSS f z (Stream nexts ss sz) (Stream nextv vs _) =
-  Stream next (Nothing,z,ss,vs) sz
+foldSS f z (Bundle{sElems=Stream nexts ss,sSize=sz}) (Bundle{sElems=Stream nextv vs}) =
+  M.fromStream (Stream next (Nothing,z,ss,vs)) sz
   where
     {-# INLINE next #-}
     next (Nothing,x,ss,vs) =
@@ -362,10 +367,10 @@ foldSS f z (Stream nexts ss sz) (Stream nextv vs _) =
 
 -- | Like `foldSS`, but use the first member of each chunk as the initial
 --   element for the fold.
-fold1SS :: (a -> a -> a) -> S.Stream Int -> S.Stream a -> S.Stream a
+fold1SS :: (a -> a -> a) -> B.Bundle v Int -> B.Bundle v a -> B.Bundle v a
 {-# INLINE_STREAM fold1SS #-}
-fold1SS f (Stream nexts ss sz) (Stream nextv vs _) =
-  Stream next (Nothing,Nothing,ss,vs) sz
+fold1SS f (Bundle{sElems=Stream nexts ss,sSize=sz}) (Bundle{sElems=Stream nextv vs}) =
+  M.fromStream (Stream next (Nothing,Nothing,ss,vs)) sz
   where
     {-# INLINE [0] next #-}
     next (Nothing,Nothing,ss,vs) =
@@ -405,12 +410,13 @@ foldValuesR
         :: (a -> b -> a)        -- ^ function to perform the fold
         -> a                    -- ^ initial element for fold
         -> Int                  -- ^ length of each segment
-        -> S.Stream b           -- ^ data stream
-        -> S.Stream a
+        -> B.Bundle v b         -- ^ data stream
+        -> B.Bundle v a
+
 
 {-# INLINE_STREAM foldValuesR #-}
-foldValuesR f z segSize (Stream nextv vs nv) =
-  Stream next (segSize,z,vs) (nv `divSize` segSize)
+foldValuesR f z segSize (Bundle{sElems=Stream nextv vs,sSize=nv}) =
+  M.fromStream (Stream next (segSize,z,vs)) (nv `divSize` segSize)
   where
     {-# INLINE next #-}  
     next (0,x,vs) = return $ Yield x (segSize,z,vs)
@@ -442,16 +448,16 @@ divSize Unknown   _ = Unknown
 -- @
 --
 appendSS
-        :: S.Stream Int         -- ^ segment lengths for first data stream
-        -> S.Stream a           -- ^ first data stream
-        -> S.Stream Int         -- ^ segment lengths for second data stream
-        -> S.Stream a           -- ^ second data stream
-        -> S.Stream a
+        :: B.Bundle v Int         -- ^ segment lengths for first data stream
+        -> B.Bundle v a           -- ^ first data stream
+        -> B.Bundle v Int         -- ^ segment lengths for second data stream
+        -> B.Bundle v a           -- ^ second data stream
+        -> B.Bundle v a
 
 {-# INLINE_STREAM appendSS #-}
-appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
-         (Stream nexts2 ss2 ns2) (Stream nextv2 sv2 nv2)
-  = Stream next (True,Nothing,ss1,sv1,ss2,sv2) (nv1 + nv2)
+appendSS (Bundle{sElems=Stream nexts1 ss1,sSize=ns1}) (Bundle{sElems=Stream nextv1 sv1,sSize=nv1})
+         (Bundle{sElems=Stream nexts2 ss2,sSize=ns2}) (Bundle{sElems=Stream nextv2 sv2,sSize=nv2})
+  = M.fromStream (Stream next (True,Nothing,ss1,sv1,ss2,sv2)) (nv1 + nv2)
   where
     {-# INLINE next #-}
     next (True,Nothing,ss1,sv1,ss2,sv2) =
@@ -510,12 +516,12 @@ appendSS (Stream nexts1 ss1 ns1) (Stream nextv1 sv1 nv1)
 indicesSS 
         :: Int
         -> Int
-        -> S.Stream Int
-        -> S.Stream Int
+        -> B.Bundle v Int
+        -> B.Bundle v Int
 
 {-# INLINE_STREAM indicesSS #-}
-indicesSS n i (Stream next s _) =
-  Stream next' (i,Nothing,s) (Exact n)
+indicesSS n i (Bundle{sElems=Stream next s}) =
+  M.fromStream (Stream next' (i,Nothing,s)) (Exact n)
   where
     {-# INLINE next' #-}
     next' (i,Nothing,s) =

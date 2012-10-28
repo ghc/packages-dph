@@ -97,19 +97,20 @@ module Data.Array.Parallel.Unlifted.Sequential.Vector (
 where
 import Data.Array.Parallel.Unlifted.Stream.Segmented
 import Data.Array.Parallel.Base ( Tag, checkEq, ST )
-import qualified Data.Array.Parallel.Base       as B
-import qualified Data.Vector.Unboxed            as V
-import qualified Data.Vector.Unboxed.Mutable    as M
-import qualified Data.Vector.Unboxed.Base       as VBase
-import qualified Data.Vector.Generic            as G
-import qualified Data.Vector.Generic.Mutable    as MG
-import qualified Data.Vector.Storable           as Storable
-import qualified Data.Vector.Storable.Mutable   as MStorable
-import qualified Data.Vector.Generic.New        as New
-import qualified Data.Vector.Fusion.Stream      as S
-import Data.Vector.Fusion.Stream.Monadic        ( Stream(..), Step(..) )
-import Data.Vector.Fusion.Stream.Size           ( Size(..) )
-import Data.Vector.Generic                      ( stream, unstream )
+import qualified Data.Array.Parallel.Base          as B
+import qualified Data.Vector.Unboxed               as V
+import qualified Data.Vector.Unboxed.Mutable       as M
+import qualified Data.Vector.Unboxed.Base          as VBase
+import qualified Data.Vector.Generic               as G
+import qualified Data.Vector.Generic.Mutable       as MG
+import qualified Data.Vector.Storable              as Storable
+import qualified Data.Vector.Storable.Mutable      as MStorable
+import qualified Data.Vector.Generic.New           as New
+import qualified Data.Vector.Fusion.Bundle         as S
+import qualified Data.Vector.Fusion.Bundle.Monadic as SM
+import Data.Vector.Fusion.Stream.Monadic           ( Stream(..), Step(..) )
+import Data.Vector.Fusion.Bundle.Size              ( Size(..) )
+import Data.Vector.Generic                         ( stream, unstream )
 
 import Data.Vector.Unboxed 
         hiding ( slice, zip, unzip, zip3, unzip3, foldl, foldl1, scanl, scanl1,
@@ -170,9 +171,9 @@ repeat n xs = unstream (repeatS n xs)
 {-# INLINE_U repeat #-}
 
 
-repeatS :: Unbox e => Int -> Vector e -> S.Stream e
+repeatS :: Unbox e => Int -> Vector e -> S.Bundle v e
 {-# INLINE_STREAM repeatS #-}
-repeatS k !xs = Stream next (0,k) (Exact (k*n))
+repeatS k !xs = SM.fromStream (Stream next (0,k)) (Exact (k*n))
   where
     !n = length xs
 
@@ -250,13 +251,13 @@ mbpermute f es is
 {-# INLINE_STREAM mbpermute #-}
 
 
-bpermuteS :: Unbox e => Vector e -> S.Stream Int -> S.Stream e
+bpermuteS :: Unbox e => Vector e -> S.Bundle v Int -> S.Bundle v e
 bpermuteS !a s 
         = S.map (a!) s
 {-# INLINE_STREAM bpermuteS #-}
 
 
-mbpermuteS:: Unbox e => (e -> d) -> Vector e -> S.Stream Int -> S.Stream d
+mbpermuteS:: Unbox e => (e -> d) -> Vector e -> S.Bundle v Int -> S.Bundle v d
 mbpermuteS f !a 
         = S.map (f . (a!))
 {-# INLINE_STREAM mbpermuteS #-}
@@ -452,9 +453,9 @@ randomR n r = unstream . randomRS n r
 {-# INLINE_U randomR #-}
 
 
-randomS :: (R.RandomGen g, R.Random a) => Int -> g -> S.Stream a
+randomS :: (R.RandomGen g, R.Random a) => Int -> g -> S.Bundle v a
 randomS n g 
-  = Stream step (g,n) (Exact n)
+  = SM.fromStream (Stream step (g,n)) (Exact n)
   where
     {-# INLINE step #-}
     step (g,0) = return Done
@@ -463,9 +464,9 @@ randomS n g
 {-# INLINE_STREAM randomS #-}
 
 
-randomRS :: (R.RandomGen g, R.Random a) => Int -> (a,a) -> g -> S.Stream a
-randomRS n r g 
-  = Stream step (g,n) (Exact n)
+randomRS :: (R.RandomGen g, R.Random a) => Int -> (a,a) -> g -> S.Bundle v a
+randomRS n r g
+  = SM.fromStream (Stream step (g,n)) (Exact n)
   where
     {-# INLINE step #-}
     step (g,0) = return Done
