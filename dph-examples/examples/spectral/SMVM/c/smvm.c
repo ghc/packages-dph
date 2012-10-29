@@ -66,7 +66,7 @@ HsDouble checksum( Array * arr )
 
 int usage()
 {
-  printf("usage: smvm FILE\n");
+  printf("usage: smvm <reps> <file>\n");
   exit(0);
 }
 
@@ -74,11 +74,14 @@ int usage()
 int main( int argc, char * argv[] )
 {
   int file;
+  int i;
 
-  if (argc != 2) usage();
+  if (argc != 3) usage();
+  // Repetitions for benchmarking.
+  int reps      = atoi(argv[1]);
 
   // Load in file.
-  char* fileName = argv[1];
+  char* fileName = argv[2];
   file  = open( fileName, O_RDONLY );
   if(file == -1) {
     printf ("can't open file '%s'\n", fileName);
@@ -111,7 +114,10 @@ int main( int argc, char * argv[] )
   // Do the deed
   new( lengths.size, &result, sizeof(HsDouble) );
   struct benchtime *bt	= bench_begin();
-  compute();
+
+  for (i = 0; i < reps; i++)
+        compute(reps);
+
   bench_done(bt);
 
   // Print checksum of resulting vector.
