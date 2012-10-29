@@ -47,13 +47,13 @@ module Data.Array.Parallel.Unlifted (
 
   -- * Map and ZipWith
   map,
-  zipWith,      lockedZipWith,
-  zipWith3,     lockedZipWith3,
-  zipWith4,     lockedZipWith4,
-  zipWith5,     lockedZipWith5,
-  zipWith6,     lockedZipWith6,
-  zipWith7,     lockedZipWith7,
-  zipWith8,     lockedZipWith8,
+  zipWith,
+  zipWith3,
+  zipWith4,
+  zipWith5,
+  zipWith6,
+  zipWith7,
+  zipWith8,
 
   -- * Scans and Folds
   scan,
