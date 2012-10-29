@@ -11,6 +11,6 @@ smvm    :: Int
         -> U.Vector Double
 
 smvm _ matrix vector
- = let term (ix, coeff) = coeff * (vector U.! ix)
+ = let term (ix, coeff) = coeff * (vector `U.unsafeIndex` ix)
        sumRow row       = U.sum (U.map term row)
    in  U.convert $ V.map sumRow matrix

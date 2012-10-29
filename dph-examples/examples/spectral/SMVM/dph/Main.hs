@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns #-}
 
 import Timing
 import Vectorised
@@ -7,8 +7,11 @@ import Foreign.Storable
 import Foreign.Marshal.Alloc
 import Data.Array.Parallel
 import System.Environment
+
 import qualified Data.Vector                    as V
 import qualified Vector                         as V
+import qualified Flow                           as F
+
 import Control.Exception                        (evaluate)
 import qualified Data.Vector.Unboxed            as U
 import qualified Data.Array.Parallel.Unlifted   as P
@@ -33,11 +36,6 @@ run "vectorised" reps fileName
 	matrix `seq` return ()
 	vector `seq` return ()
 
---	-- Multiply sparse matrix by the dense vector.
---	(vResult, tElapsed)
---	 <- time $ let result	= smvmPA 0 matrix vector
---		   in  PA.nf result `seq` return result
-					
         -- Multiply sparse matrix by the dense vector
         (vResult, tElapsed)
          <- time $ let loop n
@@ -58,8 +56,6 @@ run "vectorised" reps fileName
 	-- Print some info about the test setup.
 	putStrLn $ "vector length   = " ++ show (U.length (PA.toUArray vector))
 	
---        putStrLn $ "matrix          = " ++ show matrix
-
 	-- Print checksum of resulting vector.
 	putStrLn $ "result sum      = " ++ show (U.sum    (PA.toUArray vResult))
 
@@ -104,8 +100,42 @@ run "vector" reps fileName
         -- Print some info about the test setup.
         putStrLn $ "vector length   = " ++ show (U.length vector)
         
---        putStrLn $ "matrix          = " ++ show matrix
+        -- Print checksum of resulting vector.
+        putStrLn $ "result sum      = " ++ show (U.sum   vResult)
 
+
+-- Sequential version using Repa Flows
+run "flow" reps fileName
+ = do   (segd, uaMatrix, uaVector) <- loadUArr fileName
+        let vRowLens    = U.convert  $ P.lengthsSegd segd
+        let vMatrix     = U.fromList $ P.toList uaMatrix
+        let vVector     = U.fromList $ P.toList uaVector
+
+        vRowLens `seq` return ()
+        vMatrix  `seq` return ()
+        vVector  `seq` return ()
+
+        -- Multiply sparse matrix by the dense vector
+        (vResult, tElapsed)
+         <- time $ let loop n
+                         | n == 0    
+                         = do   !result <- F.smvm vRowLens vMatrix vVector
+                                return result
+
+                         | otherwise 
+                         = do   !result <- F.smvm vRowLens vMatrix vVector
+                                loop (n - 1)
+
+                   in do        
+                        !final   <- loop reps
+                        return final
+                                        
+        -- Print how long it took.
+        putStr $ prettyTime tElapsed
+
+        -- Print some info about the test setup.
+        putStrLn $ "vector length   = " ++ show (U.length vVector)
+        
         -- Print checksum of resulting vector.
         putStrLn $ "result sum      = " ++ show (U.sum   vResult)
 
