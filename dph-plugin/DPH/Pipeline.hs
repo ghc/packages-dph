@@ -8,9 +8,11 @@ import GhcPlugins
 
 -- DPH Compilation phase numbers. 
 -- These are defined in dph-base:include/fusion-phases.h
-dphPhaseClosures        = 4
-dphPhasePA              = 3
-dphPhaseBackend         = 2
+dphPhaseClosures        = 6
+dphPhasePA              = 5
+dphPhasePar             = 4
+dphPhaseDist            = 3
+dphPhaseSeq             = 2
 dphPhaseStream          = 1
 dphPhaseInner           = 0
 
@@ -33,7 +35,7 @@ vectoriserPipeline
 
         -- Run the vectoriser.
    ,    CoreDoVectorisation 
-   ,    CoreDoPluginPass "Dump" (passDump "1-vectorised")
+   ,    CoreDoPluginPass "Dump" (passDump "9-vectorised")
 
         ---------------------
         -- In the following stages we inline the different combinator
@@ -51,9 +53,9 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump"   (passDump "2-closures")
+   ,    CoreDoPluginPass "Dump"   (passDump "6-closures")
    ,    CoreDoPluginPass "Summon"  passSummon
-   ,    CoreDoPluginPass "Dump"   (passDump "2-closures-summoned")
+   ,    CoreDoPluginPass "Dump"   (passDump "6-closures-summoned")
 
 
         -- Inline PArray and PData combinators.
@@ -66,19 +68,46 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "3-parray")
+   ,    CoreDoPluginPass "Dump" (passDump "5-parray")
 
-        -- Inline unlifted backend.
+        -- Inline parallel combinators.
    ,    CoreDoSimplify 10
                 SimplMode
-                { sm_names      = ["Vectorise", "Backend"]
-                , sm_phase      = Phase dphPhaseBackend
+                { sm_names      = ["Vectorise", "Parallel"]
+                , sm_phase      = Phase dphPhasePar
                 , sm_rules      = True
                 , sm_eta_expand = True
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "4-backend")
+   ,    CoreDoPluginPass "Dump" (passDump "4-parallel")
+
+
+        -- Inline distributed combinators
+   ,    CoreDoSimplify 10
+                SimplMode
+                { sm_names      = ["Vectorise", "Dist"]
+                , sm_phase      = Phase dphPhaseDist
+                , sm_rules      = True
+                , sm_eta_expand = True
+                , sm_inline     = True
+                , sm_case_case  = True } 
+
+   ,    CoreDoPluginPass "Dump" (passDump "3-dist")
+
+
+        -- Inline sequential combinators.
+   ,    CoreDoSimplify 10
+                SimplMode
+                { sm_names      = ["Vectorise", "Sequential"]
+                , sm_phase      = Phase dphPhaseSeq
+                , sm_rules      = True
+                , sm_eta_expand = True
+                , sm_inline     = True
+                , sm_case_case  = True } 
+
+   ,    CoreDoPluginPass "Dump" (passDump "2-sequential")
+
 
         -- Inline stream functions.
    ,    CoreDoSimplify 10
@@ -90,7 +119,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "5-stream")
+   ,    CoreDoPluginPass "Dump" (passDump "1-stream")
 
         -- Inline inner loops and everything else.
    ,    CoreDoSimplify 10
@@ -102,7 +131,7 @@ vectoriserPipeline
                 , sm_inline     = True
                 , sm_case_case  = True } 
 
-   ,    CoreDoPluginPass "Dump" (passDump "6-inner")
+   ,    CoreDoPluginPass "Dump" (passDump "0-inner")
 
 
         ---------------------
