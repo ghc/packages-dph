@@ -10,7 +10,8 @@ DPH_DEPENDS = \
 	dph-base     	== 0.8.*, \
 	dph-prim-par	== 0.8.*, \
 	dph-lifted-vseg	== 0.8.*, \
-	HUnit           == 1.2.*
+	HUnit           == 1.2.*, \
+	repa-flow       == 3.2.*
 
 
 # Options for compiling DPH examples.
@@ -19,6 +20,7 @@ DPH_OPTIONS= \
 	-rtsopts \
 	-threaded \
 	-fllvm \
+	-optlo-O3 \
 	-Odph \
 	-package dph-lifted-vseg \
 	-fcpr-off \

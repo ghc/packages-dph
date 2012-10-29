@@ -7,9 +7,10 @@ import Data.Array.Parallel.Prelude.Double as D
 import Data.Array.Parallel.Prelude.Int    as I
 import qualified Prelude as P
 
-{-# NOINLINE smvmPA #-}
+
 smvmPA :: Int -> PArray (PArray (Int, Double)) -> PArray Double -> PArray Double
 smvmPA _ m v = toPArrayP (smvm (fromNestedPArrayP m) (fromPArrayP v))
+{-# NOINLINE smvmPA #-}
 
 
 smvm :: [:[: (Int, Double) :]:] -> [:Double:] -> [:Double:]

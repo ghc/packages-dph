@@ -26,10 +26,11 @@ main
 	
 usage	
  = putStr $ unlines
-	[ "usage: smvm <alg> <reps> <file>" ]
+	[ "usage: smvm <alg> <reps> <file>" 
+        , " alg one of " ++ show ["vectorised", "vector", "flow" ] ]
 
 
--- Vectorised Nested Data Parallel Version
+-- Vectorised Nested Data Parallel Version ------------------------------------
 run "vectorised" reps fileName
  = do	(matrix, vector)    <- loadPA fileName
 
@@ -38,17 +39,19 @@ run "vectorised" reps fileName
 
         -- Multiply sparse matrix by the dense vector
         (vResult, tElapsed)
-         <- time $ let loop n
-                         | n == 0    
-                         = let  result   = smvmPA n matrix vector
-                           in   PA.nf result `seq` result
+         <- time 
+         $  let loop n
+                 = do   -- Fake dependency on 'n' to prevent this being
+                        -- floated out of the loop.
+                        let !result     = smvmPA n matrix vector
+                        PA.nf result `seq` return ()
 
-                         | otherwise 
-                         = let  result   = smvmPA n matrix vector
-                           in   PA.nf result `seq` loop (n - 1)
-
-                       final       = loop reps
-                   in  final `seq` return final
+                        if n <= 1
+                         then return result
+                         else loop (n - 1)
+            in do
+                final   <- loop reps
+                return final
 
 	-- Print how long it took.
 	putStr $ prettyTime tElapsed
@@ -60,7 +63,7 @@ run "vectorised" reps fileName
 	putStrLn $ "result sum      = " ++ show (U.sum    (PA.toUArray vResult))
 
 
--- Sequential version using Data.Vector
+-- Sequential version using Data.Vector ---------------------------------------
 run "vector" reps fileName
  = do   (segd, uaMatrix, uaVector) <- loadUArr fileName
         let vMatrix     = U.fromList $ P.toList uaMatrix
@@ -81,19 +84,18 @@ run "vector" reps fileName
 
         -- Multiply sparse matrix by the dense vector
         (vResult, tElapsed)
-         <- time $ let loop n
-                         | n == 0    
-                         = let  result   = U.force $ V.smvm n matrix vector
-                           in   result `seq` result
+         <- time 
+         $  let loop n
+                 = do   -- Fake dependency on 'n' to prevent this being
+                        -- floated out of the loop.
+                        let !result  = U.force $ V.smvm n matrix vector
+                        if n <= 1
+                         then return result
+                         else loop (n - 1)
+            in do
+                final   <- loop reps
+                return final
 
-                         | otherwise 
-                         = let  result   = U.force $ V.smvm n matrix vector
-                           in   result `seq` loop (n - 1)
-
-                       final       = loop reps
-
-                   in  final `seq` return final
-                                        
         -- Print how long it took.
         putStr $ prettyTime tElapsed
 
@@ -104,7 +106,7 @@ run "vector" reps fileName
         putStrLn $ "result sum      = " ++ show (U.sum   vResult)
 
 
--- Sequential version using Repa Flows
+-- Sequential version using Repa Flows ----------------------------------------
 run "flow" reps fileName
  = do   (segd, uaMatrix, uaVector) <- loadUArr fileName
         let vRowLens    = U.convert  $ P.lengthsSegd segd
@@ -117,18 +119,15 @@ run "flow" reps fileName
 
         -- Multiply sparse matrix by the dense vector
         (vResult, tElapsed)
-         <- time $ let loop n
-                         | n == 0    
-                         = do   !result <- F.smvm vRowLens vMatrix vVector
-                                return result
-
-                         | otherwise 
-                         = do   !result <- F.smvm vRowLens vMatrix vVector
-                                loop (n - 1)
-
-                   in do        
-                        !final   <- loop reps
-                        return final
+         <- time 
+         $  let loop n
+                 = do   !result <- F.smvm vRowLens vMatrix vVector
+                        if n <= 1
+                         then return result
+                         else loop (n - 1)
+            in do
+                !final   <- loop reps
+                return final
                                         
         -- Print how long it took.
         putStr $ prettyTime tElapsed
