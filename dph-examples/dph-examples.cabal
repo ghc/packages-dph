@@ -144,6 +144,16 @@ Executable dph-spectral-quicksort
   ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fsimpl-tick-factor=1000
 
 
+Executable dph-spectral-quickselect
+  Build-depends:  base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.6.*, dph-prim-par == 0.6.*, dph-lifted-vseg == 0.6.*, HUnit == 1.2.*
+  Main-is:        Main.hs
+  other-modules:  Vectorised
+                  Vector
+                  Timing
+  hs-source-dirs: examples/spectral/QuickSelect/dph lib
+  ghc-options:    -eventlog -rtsopts -threaded -fllvm -Odph -package dph-lifted-vseg -fcpr-off -fno-liberate-case -fsimpl-tick-factor=1000
+
+
 -- Real -----------------------------------------------------------------------
 --Executable dph-real-nbody-gloss
 --    Main-is:        MainGloss.hs
