@@ -195,12 +195,16 @@ crossMapPP
 crossMapPP = closure2' crossMapPP_v crossMapPP_l
  where
         {-# INLINE crossMapPP_v #-}
-        crossMapPP_v _ _
-                = error "crossMapP: not implemented"
+        crossMapPP_v as f
+                = let bss = mapPP_v f as
+                  in  PA.zip (PA.replicates (PA.takeUSegd bss) as) (PA.concat bss)
 
         {-# INLINE crossMapPP_l #-}
-        crossMapPP_l _ _
-                = error "crossMapP: not implemented"
+        crossMapPP_l ass fs
+                = let bsss = mapPP_l fs ass
+                      bss  = PA.concat bsss
+                      as'  = PA.replicates (PA.takeUSegd bss) (PA.concat ass)
+                  in  PA.unconcat bss (PA.zip as' (PA.concat bss))
 
 {-# INLINE_PA crossMapPP #-}
 
