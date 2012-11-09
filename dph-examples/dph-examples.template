@@ -93,6 +93,17 @@ Executable dph-imaginary-words
 
 
 -- Spectral -------------------------------------------------------------------
+Executable dph-spectral-closestpairs
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vector
+                  Vector1
+                  Vectorised1
+                  Timing
+                  Points2D.Types
+  hs-source-dirs: examples/spectral/ClosestPairs/dph lib
+  ghc-options:    DPH_OPTIONS
+
 Executable dph-spectral-dotp
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
