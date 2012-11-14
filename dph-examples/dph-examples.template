@@ -84,6 +84,15 @@ Executable dph-smoke-reverse
 --   hs-source-dirs: examples/imaginary/Primes lib
 --   ghc-options:    DPH_OPTIONS
 
+Executable dph-imaginary-stringsearch
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vectorised
+                  Vector
+                  Timing
+  hs-source-dirs: examples/imaginary/StringSearch lib
+  ghc-options:    DPH_OPTIONS
+
 Executable dph-imaginary-words
   Build-depends:  DPH_DEPENDS
   Main-is:        Main.hs
@@ -150,6 +159,16 @@ Executable dph-spectral-quicksort
   other-modules:  Vectorised
                   Timing
   hs-source-dirs: examples/spectral/QuickSort/dph lib
+  ghc-options:    DPH_OPTIONS
+
+
+Executable dph-spectral-quickselect
+  Build-depends:  DPH_DEPENDS
+  Main-is:        Main.hs
+  other-modules:  Vectorised
+                  Vector
+                  Timing
+  hs-source-dirs: examples/spectral/QuickSelect/dph lib
   ghc-options:    DPH_OPTIONS
 
 

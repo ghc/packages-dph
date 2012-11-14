@@ -84,6 +84,15 @@ Executable dph-smoke-reverse
 -- hs-source-dirs: examples/imaginary/Primes lib
 -- ghc-options: -eventlog -rtsopts -threaded -fllvm -optlo-O3 -Odph -package dph-lifted-vseg -fcpr-off -fsimpl-tick-factor=1000
 
+Executable dph-imaginary-stringsearch
+  Build-depends: base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.8.*, dph-prim-par == 0.8.*, dph-lifted-vseg == 0.8.*, HUnit == 1.2.*, repa-flow == 3.2.*
+  Main-is: Main.hs
+  other-modules: Vectorised
+                  Vector
+                  Timing
+  hs-source-dirs: examples/imaginary/StringSearch lib
+  ghc-options: -eventlog -rtsopts -threaded -fllvm -optlo-O3 -Odph -package dph-lifted-vseg -fcpr-off -fsimpl-tick-factor=1000
+
 Executable dph-imaginary-words
   Build-depends: base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.8.*, dph-prim-par == 0.8.*, dph-lifted-vseg == 0.8.*, HUnit == 1.2.*, repa-flow == 3.2.*
   Main-is: Main.hs
@@ -150,6 +159,16 @@ Executable dph-spectral-quicksort
   other-modules: Vectorised
                   Timing
   hs-source-dirs: examples/spectral/QuickSort/dph lib
+  ghc-options: -eventlog -rtsopts -threaded -fllvm -optlo-O3 -Odph -package dph-lifted-vseg -fcpr-off -fsimpl-tick-factor=1000
+
+
+Executable dph-spectral-quickselect
+  Build-depends: base == 4.6.*, vector == 0.9.*, random == 1.0.*, old-time == 1.1.*, containers == 0.5.*, dph-base == 0.8.*, dph-prim-par == 0.8.*, dph-lifted-vseg == 0.8.*, HUnit == 1.2.*, repa-flow == 3.2.*
+  Main-is: Main.hs
+  other-modules: Vectorised
+                  Vector
+                  Timing
+  hs-source-dirs: examples/spectral/QuickSelect/dph lib
   ghc-options: -eventlog -rtsopts -threaded -fllvm -optlo-O3 -Odph -package dph-lifted-vseg -fcpr-off -fsimpl-tick-factor=1000
 
 
