@@ -121,7 +121,7 @@ run "flow" reps fileName
         (vResult, tElapsed)
          <- time 
          $  let loop n
-                 = do   !result <- F.smvm vRowLens vMatrix vVector
+                 = do   let !result = F.smvm vRowLens vMatrix vVector
                         if n <= 1
                          then return result
                          else loop (n - 1)
