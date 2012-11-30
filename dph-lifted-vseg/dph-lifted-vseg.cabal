@@ -93,11 +93,11 @@ Library
         -fno-warn-orphans
 
   Build-Depends:  
-        base                    == 4.6.*,
+        base                    == 4.7.*,
         ghc                     == 7.*,
         array                   == 0.4.*,
         random                  == 1.0.*,
-        template-haskell        == 2.8.*,
+        template-haskell        == 2.9.*,
         dph-base                == 0.8.*,
         dph-prim-par            == 0.8.*,
         dph-lifted-base         == 0.8.*,

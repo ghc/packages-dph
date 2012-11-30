@@ -75,7 +75,7 @@ Library
         -fcpr-off -Wall
 
   Build-Depends:  
-        base               == 4.6.*,
+        base               == 4.7.*,
         random             == 1.0.*,
         vector             == 0.9.*,
         old-time           == 1.1.*,
