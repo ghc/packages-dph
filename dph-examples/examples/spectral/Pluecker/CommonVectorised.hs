@@ -72,7 +72,7 @@ inside p (a,b,c)
        ca = pr (c,a) < 0
    in  (ab && bc && ca) || not' (ab || bc || ca)
  where
-  -- TODO ISSUE WTF
+  -- TODO ISSUE
   -- Vectoriser bug?
   -- Before, I was just using "not (ab || ...)". It compiled fine but when running it I got this error.
   -- MainGloss: Data.Array.Parallel.Unlifted.Sequential.Flat.combine2ByTag: tags length /= sum of args length (first = 50000; second = 148577)
