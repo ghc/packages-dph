@@ -11,13 +11,13 @@ import qualified Data.Array.Parallel	as P
 import qualified Data.Array.Parallel.PArray	as P
 
 
-type Solver = VU.Vector Vec3 -> VU.Vector (Int,Int,Int) -> VU.Vector Vec3 -> VU.Vector (Vec3, Double)
+type Solver = VU.Vector Vec3 -> VU.Vector (Int,Int,Int) -> VU.Vector Vec3 -> Double -> VU.Vector (Vec3, Double)
 
 solvers :: [(String,Solver)]
 solvers =
  [("vectorised", solverPA)
  ,("vector",     SV.solveV)]
 
-solverPA verts tris rays
+solverPA verts tris rays time
  = let fv a = P.fromVector (VU.convert a)
-   in  VU.convert (P.toVector (SPA.solvePA (fv verts) (fv tris) (fv rays)))
+   in  VU.convert (P.toVector (SPA.solvePA (fv verts) (fv tris) (fv rays) time))

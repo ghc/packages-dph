@@ -18,7 +18,6 @@ type Triangle = (Vec3, Vec3, Vec3)
 -- Normal and distance of normal from (0,0,0)
 type Plane = (Vec3,Double)
 
-
 {-# INLINE dot #-}
 dot :: Vec3 -> Vec3 -> Double
 dot (u,v,w) (x,y,z) = u*x + v*y + w*z
@@ -96,3 +95,23 @@ lineOnPlane (p,q) (n,d)
 lineOnTriangle :: Line -> Triangle -> Double
 lineOnTriangle p t
  = lineOnPlane p (planeOfTriangle t)
+
+-- matrix mult
+{-# INLINE mvecmul #-}
+mvecmul :: (Vec3,Vec3,Vec3) -> Vec3 -> Vec3
+mvecmul
+   ((xx, xy, xz)
+   ,(yx, yy, yz)
+   ,(zx, zy, zz))
+    (x,   y,  z)
+ = ( x * xx + y * yx + z * zx
+   , x * xy + y * yy + z * zz
+   , x * xz + y * yz + z * zz)
+
+{-# INLINE rotate #-}
+rotate :: Vec3 -> Double -> Vec3
+rotate v d
+ =(mvecmul ((   cos d, 0, sin d)
+           ,(       0, 1,     0)
+           ,(-(sin d), 0, cos d))
+           (v `vsub` (0,0,5))) `vadd` (0,0,15)

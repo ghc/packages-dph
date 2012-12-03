@@ -21,8 +21,8 @@ model numverts numtris
    return (vs,ts)
  where
    mkvec _ = do
-     x <- randomRIO (-30,30)
-     y <- randomRIO (-30,30)
+     x <- randomRIO (-10,10)
+     y <- randomRIO (-10,10)
      z <- randomRIO (0,10)
      return (x,y,z)
    mktri _ = do
@@ -67,13 +67,13 @@ mainGloss
         
 mainGloss v t numr solver windowSize
  = let  mkray _
-         = do   x <- randomRIO (-10,10)
-                y <- randomRIO (-10,10)
+         = do   x <- randomRIO (-3,3)
+                y <- randomRIO (-3,3)
                 return (x,y,1)
             
-        draw _
+        draw time
          = do   rays <- VU.generateM numr mkray
-                let pts = solver v t rays
+                let pts = solver v t rays (realToFrac time)
                 return $ Pictures $ map drawPoint $ VU.toList pts
 
    in   animateIO
@@ -85,11 +85,15 @@ mainGloss v t numr solver windowSize
 
 
 
-pointSize = 20
+pointSize = 15
 
 drawPoint :: (Vec3, Double) -> Picture
 drawPoint ((x,y,z), d)
-	= Translate (realToFrac x * 50) (realToFrac y * 50) 
-    $ Color (makeColor d' d' d' 1)
-	$ ThickCircle (pointSize / 2) pointSize
- where d' = 1 - (realToFrac $ d / 10)
+	= Translate (realToFrac x * 200) (realToFrac y * 200) 
+    $ Color (makeColor d' d' d' 0.5)
+    $ Polygon [ (-pointSize, -pointSize)
+              , ( pointSize, -pointSize)
+              , ( pointSize,  pointSize)
+              , (-pointSize,  pointSize) ]
+	-- $ ThickCircle (pointSize / 2) pointSize
+ where d' = 1 - (realToFrac $ d / 20)
