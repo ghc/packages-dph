@@ -22,7 +22,6 @@ type Triangle = (Vec3, Vec3, Vec3)
 -- Normal and distance of normal from (0,0,0)
 type Plane = (Vec3,Double)
 
-
 {-# INLINE dot #-}
 dot :: Vec3 -> Vec3 -> Double
 dot (u,v,w) (x,y,z) = u*x + v*y + w*z
@@ -71,7 +70,14 @@ inside p (a,b,c)
        ab = pr (a,b) < 0
        bc = pr (b,c) < 0
        ca = pr (c,a) < 0
-   in  (ab && bc && ca) || not (ab || bc || ca)
+   in  (ab && bc && ca) || not' (ab || bc || ca)
+ where
+  -- TODO ISSUE WTF
+  -- Vectoriser bug?
+  -- Before, I was just using "not (ab || ...)". It compiled fine but when running it I got this error.
+  -- MainGloss: Data.Array.Parallel.Unlifted.Sequential.Flat.combine2ByTag: tags length /= sum of args length (first = 50000; second = 148577)
+  not' True  = False
+  not' False = True
 
 
 -- Get plane from triangle, eg for projection
