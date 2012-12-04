@@ -64,7 +64,7 @@ Library
         -fno-warn-missing-signatures
 
   Build-Depends:  
-        base             == 4.6.*,
+        base             == 4.7.*,
         ghc              == 7.*,
         array            == 0.4.*,
         random           == 1.0.*,

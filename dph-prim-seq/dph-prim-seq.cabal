@@ -60,7 +60,7 @@ Library
         -funbox-strict-fields -fcpr-off
 
   Build-Depends:  
-        base      == 4.6.*,
+        base      == 4.7.*,
         random    == 1.0.*,
         vector    == 0.9.*,
         primitive == 0.4.*,
