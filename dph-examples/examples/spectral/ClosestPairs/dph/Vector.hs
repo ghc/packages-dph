@@ -26,6 +26,9 @@ closeststupid pts
   m2 a b c = distancex a b `compare` distancex a c
 
 
+-- | Find the points within distance @d@ of the edge along x=@x0@.
+-- Only the first element of each pair is checked.
+-- Returns pairs with indices within original input array.
 near_boundary :: U.Vector (Point,Point) -> Double -> Double -> U.Vector (Int,(Point,Point))
 near_boundary a x0 d
  = U.filter check (U.indexed a)
@@ -33,6 +36,8 @@ near_boundary a x0 d
   check (_,((x1,_),_)) = abs (x1 - x0) < d
 
 
+-- | Given two arrays of pairs where the firsts are both near some boundary,
+-- update the first array with any closer points in the second array.
 new_nearest :: U.Vector (Int,(Point,Point)) -> U.Vector (Int,(Point,Point)) -> U.Vector (Int,(Point,Point))
 new_nearest a b
  | U.length b == 0 = a
@@ -48,6 +53,11 @@ new_nearest a b
      then pn
      else pt2
 
+-- | Merge two arrays of pairs that have been split on the x axis.
+-- To do this, we find the maximum distance between any two points,
+-- then find the points in each array within that distance of the split.
+-- We check each of these boundary points against the other boundary
+-- to see if they are closer.
 merge_pairs :: Double -> U.Vector (Point,Point) -> U.Vector (Point,Point) -> U.Vector (Point,Point)
 merge_pairs x0 a b
  = let d  = sqrt (max (U.maximum (U.map dist a)) (U.maximum (U.map dist b)))
@@ -60,6 +70,11 @@ merge_pairs x0 a b
   dist (a,b) = distancex a b
 
 
+-- | For each point, find its closest neighbour.
+-- Once there are few enough points, we use a naive n^2 algorithm.
+-- Otherwise, the median x is found and the array is split into
+-- those below and those above.
+-- The two halves are recursed upon and then the results merged (see @merge_pairs@).
 closest :: U.Vector Point -> U.Vector (Point,Point)
 closest pts
  | U.length pts < 250 = closeststupid pts
@@ -90,9 +105,17 @@ closeststupidV :: U.Vector Point -> U.Vector (Point,Point)
 closeststupidV = closeststupid
 
 
+-- | Find median of an array, using quickselect
 median :: U.Vector Double -> Double
 median xs = median' xs (U.length xs `div` 2)
 
+-- | Find the @k@th smallest element.
+-- A pivot is selected and the array is partitioned into those smaller and larger than the pivot.
+-- If the number of elements smaller than pivot is greater or equal to @k@, then the pivot must be larger than the
+-- @k@th smallest element, and we recurse into the smaller elements.
+-- Otherwise the @k@th element must be larger or equal to the pivot.
+-- Since lesser elements are not in the greater array, we are no longer looking for the
+-- @k@th smallest element, but the @k - (length xs - length gs)@th smallest.
 median':: U.Vector Double -> Int -> Double 
 median' xs k =
   let p  = xs U.! (U.length xs `div` 2)

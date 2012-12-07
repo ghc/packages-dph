@@ -24,6 +24,8 @@ solvePA
 solvePA vertices triangles rays time
  = toPArrayP (solveV (fromPArrayP vertices) (fromPArrayP triangles) (fromPArrayP rays) time)
 
+
+-- | Cast all rays into triangle mesh
 solveV 
     :: [:Vec3:]             -- ^ vertices of the surface
     -> [:(Int,Int,Int):]    -- ^ triangles, each 3 vertex indices
@@ -36,6 +38,7 @@ solveV vertices triangles rays time
   cast' = cast vertices triangles time
 
 
+-- | Cast a single ray into the rotated triangle mesh
 cast 
     :: [:Vec3:]          -- ^ vertices of the surface
     -> [:(Int,Int,Int):] -- ^ triangles, each 3 vertex indices
@@ -49,10 +52,13 @@ cast vertices triangles time ray
             (mapP (\t -> check r' pl (tri vertices t time)) triangles)
    in  (ray, mi)
 
+-- | Return scale / distance along line's direction for intersection. Or a large number if there is no intersection.
+check :: Line -> Pluecker -> Triangle -> Double
 check r pl t
   | inside pl t = lineOnTriangle r t
   | otherwise = 1e100
 
+-- Get all triangle points from mesh, rotated depending on time
 tri :: [:Vec3:] -> (Int,Int,Int) -> Double -> Triangle
 tri v (a,b,c) time = (get a, get b, get c)
  where

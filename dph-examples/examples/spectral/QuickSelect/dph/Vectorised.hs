@@ -13,6 +13,13 @@ quickselectPA:: PArray Double -> Int -> Double
 quickselectPA xs k = qselectVect' (fromPArrayP xs) k
 
 
+-- | Find the @k@th smallest element.
+-- A pivot is selected and the array is partitioned into those smaller and larger than the pivot.
+-- If the number of elements smaller than pivot is greater or equal to @k@, then the pivot must be larger than the
+-- @k@th smallest element, and we recurse into the smaller elements.
+-- Otherwise the @k@th element must be larger or equal to the pivot.
+-- Since lesser elements are not in the greater array, we are no longer looking for the
+-- @k@th smallest element, but the @k - (length xs - length gs)@th smallest.
 qselectVect':: [: Double :] -> Int -> Double 
 qselectVect' xs k =
   let p  = xs !: (lengthP xs `I.div` 2)
