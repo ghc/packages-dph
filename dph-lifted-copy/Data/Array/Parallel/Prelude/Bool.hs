@@ -87,9 +87,7 @@ orP_v = closure1 (scalar_fold (||) False) (scalar_folds (||) False)
 fromBool :: Bool -> Int
 fromBool False = 0
 fromBool True  = 1
-{-# VECTORISE SCALAR fromBool #-}
 
 toBool :: Int -> Bool
 toBool 0 = False
 toBool _ = True
-{-# VECTORISE SCALAR toBool #-}

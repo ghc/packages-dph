@@ -21,19 +21,14 @@ module Data.Array.Parallel.Prelude.Int
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim                         ()      
-import Data.Array.Parallel.Prelude.Base                 (Bool, Int, Eq, Ord, Num)
+import Data.Array.Parallel.Prelude.Base                 (Bool)
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Lifted                       ((:->)(..))
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
-        
-
-{-# VECTORISE SCALAR instance Eq  Int #-}
-{-# VECTORISE SCALAR instance Ord Int #-}
-{-# VECTORISE SCALAR instance Num Int #-}
-
+import Prelude (Int)
 
 infixl 7 *
 infixl 6 +, -
@@ -42,34 +37,18 @@ infixl 7 `div`, `mod`
 
 -- Ord ------------------------------------------------------------------------
 (==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
-
 (==) = (P.==)
-{-# VECTORISE SCALAR (==) #-}
-
 (/=) = (P./=)
-{-# VECTORISE SCALAR (/=) #-}
-
 (<=) = (P.<=)
-{-# VECTORISE SCALAR (<=) #-}
-
 (<)  = (P.<)
-{-# VECTORISE SCALAR (<) #-}
-
 (>=) = (P.>=)
-{-# VECTORISE SCALAR (>=) #-}
-
 (>)  = (P.>)
-{-# VECTORISE SCALAR (>) #-}
 
 
 -- min/max ----------------------------
 min, max :: Int -> Int -> Int
-
 min = P.min
-{-# VECTORISE SCALAR min #-}
-
 max = P.max
-{-# VECTORISE SCALAR max #-}
 
 
 -- minimum/maximum --------------------
@@ -128,26 +107,15 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 -- Num ------------------------------------------------------------------------
 (+), (-), (*) :: Int -> Int -> Int
-
 (+) = (P.+)
-{-# VECTORISE SCALAR (+) #-}
-
 (-) = (P.-)
-{-# VECTORISE SCALAR (-) #-}
-
 (*) = (P.*)
-{-# VECTORISE SCALAR (*) #-}
 
 
 -- negate/abs -------------------------
 negate, abs :: Int -> Int
-
 negate  = P.negate
-{-# VECTORISE SCALAR negate #-}
-
 abs     = P.abs
-{-# VECTORISE SCALAR abs #-}
-
 
 -- sum/product ------------------------
 sumP, productP :: PArr Int -> Int
@@ -172,18 +140,11 @@ productPP      = L.closure1' (SC.fold (*) 1) (SC.folds (*) 1)
 
 -- Integral -------------------------------------------------------------------
 div, mod :: Int -> Int -> Int
-
 div = P.div
-{-# VECTORISE SCALAR div #-}
-
 mod = P.mod
-{-# VECTORISE SCALAR mod #-}
-
 
 sqrt :: Int -> Int 
 sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
-{-# VECTORISE SCALAR sqrt #-}
-
 
 -- Enum -----------------------------------------------------------------------
 enumFromToP :: Int -> Int -> PArr Int

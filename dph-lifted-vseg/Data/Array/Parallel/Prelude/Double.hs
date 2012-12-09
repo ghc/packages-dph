@@ -28,18 +28,14 @@ module Data.Array.Parallel.Prelude.Double
 where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim                 ()      
-import Data.Array.Parallel.Prelude.Base         (Bool, Int, Double, Eq, Ord, Num)
+import Data.Array.Parallel.Prelude.Base         (Bool)
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.PArray
 import Data.Array.Parallel.Lifted                       ((:->)(..))
 import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 import qualified Prelude as P
-
-
-{-# VECTORISE SCALAR instance Eq  Double #-}
-{-# VECTORISE SCALAR instance Ord Double #-}
-{-# VECTORISE SCALAR instance Num Double #-}
+import Prelude                                          (Int, Double)
 
 
 infixl 7 *, /
@@ -48,35 +44,17 @@ infix  4 ==, /=, <, <=, >, >=
 
 -- Ord ------------------------------------------------------------------------
 (==), (/=), (<), (<=), (>), (>=) :: Double -> Double -> Bool
-
 (==) = (P.==)
-{-# VECTORISE SCALAR (==) #-}
-
 (/=) = (P./=)
-{-# VECTORISE SCALAR (/=) #-}
-
 (<=) = (P.<=)
-{-# VECTORISE SCALAR (<=) #-}
-
 (<)  = (P.<)
-{-# VECTORISE SCALAR (<) #-}
-
 (>=) = (P.>=)
-{-# VECTORISE SCALAR (>=) #-}
-
 (>)  = (P.>)
-{-# VECTORISE SCALAR (>) #-}
-
 
 -- min/max ----------------------------
 min, max :: Double -> Double -> Double
-
 min = P.min
-{-# VECTORISE SCALAR min #-}
-
 max = P.max
-{-# VECTORISE SCALAR max #-}
-
 
 -- minimum/maximum --------------------
 minimumP, maximumP :: PArr Double -> Double
@@ -134,28 +112,15 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 -- Num ---------------------------------------------------------------------
 (+), (-), (*), (/) :: Double -> Double -> Double
-
 (+) = (P.+)
-{-# VECTORISE SCALAR (+) #-}
-
 (-) = (P.-)
-{-# VECTORISE SCALAR (-) #-}
-
 (*) = (P.*)
-{-# VECTORISE SCALAR (*) #-}
-
 (/) = (P./)
-{-# VECTORISE SCALAR (/) #-}
 
 -- negate/abs -------------------------
 negate, abs :: Double -> Double
-
 negate  = P.negate
-{-# VECTORISE SCALAR negate #-}
-
 abs     = P.abs
-{-# VECTORISE SCALAR abs #-}
-
 
 -- sum/product ------------------------
 sumP, productP :: PArr Double -> Double
@@ -190,61 +155,25 @@ sqrt,    exp,  log,
  asinh, atanh, acosh  :: Double -> Double
 
 exp = P.exp
-{-# VECTORISE SCALAR exp #-}
-
 sqrt = P.sqrt
-{-# VECTORISE SCALAR sqrt #-}
-
 log = P.log
-{-# VECTORISE SCALAR log #-}
-
 sin = P.sin
-{-# VECTORISE SCALAR sin #-}
-
 tan = P.tan
-{-# VECTORISE SCALAR tan #-}
-
 cos = P.cos
-{-# VECTORISE SCALAR cos #-}
-
 asin = P.asin
-{-# VECTORISE SCALAR asin #-}
-
 atan = P.atan
-{-# VECTORISE SCALAR atan #-}
-
 acos = P.acos
-{-# VECTORISE SCALAR acos #-}
-
 sinh = P.sinh
-{-# VECTORISE SCALAR sinh #-}
-
 tanh = P.tanh
-{-# VECTORISE SCALAR tanh #-}
-
 cosh = P.cosh
-{-# VECTORISE SCALAR cosh #-}
-
 asinh = P.asinh
-{-# VECTORISE SCALAR asinh #-}
-
 atanh = P.atanh
-{-# VECTORISE SCALAR atanh #-}
-
 acosh = P.acosh
-{-# VECTORISE SCALAR acosh #-}
-
 
 (**), logBase :: Double -> Double -> Double
-
 (**)    = (P.**)
-{-# VECTORISE SCALAR (**) #-}
-
 logBase = P.logBase
-{-# VECTORISE SCALAR logBase #-}
-
 
 -- RealFrac -------------------------------------------------------------------
 fromInt :: Int -> Double
-fromInt         = P.fromIntegral
-{-# VECTORISE SCALAR fromInt #-}
+fromInt = P.fromIntegral

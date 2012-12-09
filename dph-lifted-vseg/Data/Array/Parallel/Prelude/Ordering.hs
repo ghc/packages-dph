@@ -14,10 +14,6 @@ import qualified Data.Array.Parallel.Lifted             as L
 import qualified Data.Array.Parallel.PArray.Scalar      as SC
 
 
-{-# VECTORISE SCALAR instance Eq  Ordering #-}
-{-# VECTORISE SCALAR instance Ord Ordering #-}
-
-
 isLT, isEQ, isGT :: Ordering -> Bool
 
 isLT _  = False

@@ -9,7 +9,7 @@ where
 -- Primitives needed by the vectoriser.
 import Data.Array.Parallel.Prim
 import Data.Array.Parallel.PArr
-import Data.Array.Parallel.Prelude.Base                 (Bool(..), Int, Eq, Ord)
+import Data.Array.Parallel.Prelude.Base                 (Bool(..))
 import Data.Array.Parallel.Prelude.Int as I             (sumP, (==), (/=))  -- just temporary
 import Data.Array.Parallel.Lifted                       (mapPP, lengthPP)   -- just temporary
 import Data.Array.Parallel.PArray.PRepr
@@ -17,11 +17,8 @@ import Data.Array.Parallel.PArray.PData.Base
 import qualified Data.Array.Parallel.Unlifted           as U
 import Data.Bits
 import qualified Prelude as P
-        
-        
--- instances of standard type classes from the Prelude 
-{-# VECTORISE SCALAR instance Eq Bool #-}
-{-# VECTORISE SCALAR instance Ord Bool #-}
+import Prelude                                          (Int)
+
 
 -- and ------------------------------------------------------------------------
 {-# VECTORISE (P.&&) = (&&*) #-}
@@ -130,9 +127,7 @@ lengthP = lengthPArr
 fromBool :: Bool -> Int
 fromBool False = 0
 fromBool True  = 1
-{-# VECTORISE SCALAR fromBool #-}
 
 toBool :: Int -> Bool
 toBool 0 = False
 toBool _ = True
-{-# VECTORISE SCALAR toBool #-}

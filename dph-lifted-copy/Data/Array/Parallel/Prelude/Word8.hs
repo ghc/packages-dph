@@ -28,6 +28,9 @@ import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 
 import qualified Prelude as P
+import Prelude (Int)
+
+import Data.Word (Word8)
 
 
 infixl 7 *
@@ -38,23 +41,15 @@ infixl 7 `div`, `mod`
 
 (==), (/=), (<), (<=), (>), (>=) :: Word8 -> Word8 -> Bool
 (==) = (P.==)
-{-# VECTORISE SCALAR (==) #-}
 (/=) = (P./=)
-{-# VECTORISE SCALAR (/=) #-}
 (<=) = (P.<=)
-{-# VECTORISE SCALAR (<=) #-}
 (<)  = (P.<)
-{-# VECTORISE SCALAR (<) #-}
 (>=) = (P.>=)
-{-# VECTORISE SCALAR (>=) #-}
 (>)  = (P.>)
-{-# VECTORISE SCALAR (>) #-}
 
 min, max :: Word8 -> Word8 -> Word8
 min = P.min
-{-# VECTORISE SCALAR min #-}
 max = P.max
-{-# VECTORISE SCALAR max #-}
 
 minimumP, maximumP :: PArr Word8 -> Word8
 {-# NOINLINE minimumP #-}
@@ -102,17 +97,12 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 (+), (-), (*) :: Word8 -> Word8 -> Word8
 (+) = (P.+)
-{-# VECTORISE SCALAR (+) #-}
 (-) = (P.-)
-{-# VECTORISE SCALAR (-) #-}
 (*) = (P.*)
-{-# VECTORISE SCALAR (*) #-}
 
 negate, abs :: Word8 -> Word8
 negate = P.negate
-{-# VECTORISE SCALAR negate #-}
 abs = P.abs
-{-# VECTORISE SCALAR abs #-}
 
 sumP, productP :: PArr Word8 -> Word8
 {-# NOINLINE sumP #-}
@@ -132,18 +122,13 @@ productP_v = closure1 (scalar_fold (*) 1) (scalar_folds (*) 1)
 
 div, mod :: Word8 -> Word8 -> Word8
 div = P.div
-{-# VECTORISE SCALAR div #-}
 mod = P.mod
-{-# VECTORISE SCALAR mod #-}
 
 sqrt ::  Word8 -> Word8
 sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
-{-# VECTORISE SCALAR sqrt #-}
 
 toInt :: Word8 -> Int
 toInt = P.fromIntegral
-{-# VECTORISE SCALAR toInt #-}
 
 fromInt :: Int -> Word8
 fromInt = P.fromIntegral
-{-# VECTORISE SCALAR fromInt #-}

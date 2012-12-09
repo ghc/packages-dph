@@ -6,8 +6,6 @@ module Data.Array.Parallel.Prelude.Base
   ( PArr
   -- , ()
   , Bool
-  , Word8, Int
-  , Float, Double
   )
 where
 
@@ -16,16 +14,10 @@ import Data.Array.Parallel.Prim ()       -- dependency required by the vectorise
 import Data.Array.Parallel.PArr
 import Data.Array.Parallel.Lifted.Closure
 
-import Data.Word (Word8)
+{-# VECTORISE type PArr = PArray #-}
+{-# VECTORISE type PArray = PArray #-}
 
-
-{-# VECTORISE SCALAR type PArr = PArray #-}
-{-# VECTORISE SCALAR type PArray = PArray #-}
 {-# VECTORISE SCALAR type (->) = (:->) #-}
 
-{-# VECTORISE type () = () #-}
-{-# VECTORISE type Bool = Bool #-}
-{-# VECTORISE SCALAR type Word8 #-}
-{-# VECTORISE SCALAR type Int #-}
-{-# VECTORISE SCALAR type Float #-}
-{-# VECTORISE SCALAR type Double #-}
+{-# VECTORISE SCALAR type () #-}
+{-# VECTORISE SCALAR type Bool #-}

@@ -30,6 +30,7 @@ import Data.Array.Parallel.Lifted.Scalar
 import Data.Array.Parallel.Lifted.Closure
 
 import qualified Prelude as P
+import Prelude (Int)
 
 
 infixl 7 *
@@ -40,23 +41,15 @@ infixl 7 `div`, `mod`
 
 (==), (/=), (<), (<=), (>), (>=) :: Int -> Int -> Bool
 (==) = (P.==)
-{-# VECTORISE SCALAR (==) #-}
 (/=) = (P./=)
-{-# VECTORISE SCALAR (/=) #-}
 (<=) = (P.<=)
-{-# VECTORISE SCALAR (<=) #-}
 (<)  = (P.<)
-{-# VECTORISE SCALAR (<) #-}
 (>=) = (P.>=)
-{-# VECTORISE SCALAR (>=) #-}
 (>)  = (P.>)
-{-# VECTORISE SCALAR (>) #-}
 
 min, max :: Int -> Int -> Int
 min = P.min
-{-# VECTORISE SCALAR min #-}
 max = P.max
-{-# VECTORISE SCALAR max #-}
 
 minimumP, maximumP :: PArr Int -> Int
 {-# NOINLINE minimumP #-}
@@ -104,17 +97,12 @@ max' (i,x) (j,y) | x P.>= y    = (i,x)
 
 (+), (-), (*) :: Int -> Int -> Int
 (+) = (P.+)
-{-# VECTORISE SCALAR (+) #-}
 (-) = (P.-)
-{-# VECTORISE SCALAR (-) #-}
 (*) = (P.*)
-{-# VECTORISE SCALAR (*) #-}
 
 negate, abs :: Int -> Int
 negate = P.negate
-{-# VECTORISE SCALAR negate #-}
 abs = P.abs
-{-# VECTORISE SCALAR abs #-}
 
 sumP, productP :: PArr Int -> Int
 {-# NOINLINE sumP #-}
@@ -134,13 +122,10 @@ productP_v = closure1 (scalar_fold (P.*) 1) (scalar_folds (P.*) 1)
 
 div, mod :: Int -> Int -> Int
 div = P.div
-{-# VECTORISE SCALAR div #-}
 mod = P.mod
-{-# VECTORISE SCALAR mod #-}
 
 sqrt ::  Int -> Int
 sqrt n = P.floor (P.sqrt (P.fromIntegral n) :: P.Double)
-{-# VECTORISE SCALAR sqrt #-}
 
 enumFromToP :: Int -> Int ->  PArr Int
 {-# NOINLINE enumFromToP #-}
