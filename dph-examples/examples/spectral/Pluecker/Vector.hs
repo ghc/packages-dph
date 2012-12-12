@@ -10,37 +10,57 @@ import Prelude hiding (map,filter,minimum)
 {-# NOINLINE solveV #-}
 solveV 
     :: Vector Vec3             -- ^ vertices of the surface
-    -> Vector (Int,Int,Int)    -- ^ triangles, each 3 vertex indices
+    -> Vector (Int,Int,Int,Colour) -- ^ triangles, each 3 vertex indices
     -> Vector Vec3             -- ^ rays to cast
     -> Double                  -- ^ time
-    -> Vector (Vec3,Double)    -- ^ rays and their distance
+    -> Vector Colour           -- ^ the colours of the ray results - in the same order as input rays
 solveV vertices triangles rays time
  = map cast' rays
  where
-  cast' = cast vertices triangles time
+  matrix = rotateY 0 -- (time / 4)
+  tris'  = map (triangleFull . tri vertices matrix) triangles
+  cast'  = cast tris'
 
 
 cast 
-    :: Vector Vec3          -- ^ vertices of the surface
-    -> Vector (Int,Int,Int) -- ^ triangles, each 3 vertex indices
-    -> Double               -- ^ time
+    :: Vector TriangleFull  -- ^ triangles with pluecker coords etc precomputed
     -> Vec3                 -- ^ ray
-    -> (Vec3,Double)
-cast vertices triangles time ray
+    -> Colour
+cast triangles ray
  = let r' = ((0,0,0), ray)
-       pl = plueckerOfLine r'
-       mi = minimum
-          $ filter (>0)
-          $ map (\t -> check r' pl $ tri vertices t time) triangles
-   in  (ray, mi)
+       (dist,tri) = mincast triangles r'
+   in  if dist < arbitraryLargeDouble
+       then lights triangles (ray `vsmul` (dist*0.999)) (colourOfTriangleF tri)
+       else (0,0,0)
 
-check r pl t
-  | inside pl t = lineOnTriangle r t
-  | otherwise = 1e100
+mincast :: Vector TriangleFull
+        -> Line
+        -> (Double,TriangleFull)
+mincast triangles ray
+ = let pl = plueckerOfLine ray
+       ch = map (check ray pl) triangles
+       mi = minIndex ch
+       dist = ch ! mi
+       tri  = triangles ! mi
+   in (dist, tri)
 
-tri :: Vector Vec3 -> (Int,Int,Int) -> Double -> Triangle
-tri v (a,b,c) time = (get a, get b, get c)
+lights :: Vector TriangleFull
+       -> Vec3
+       -> Colour
+       -> Colour
+lights triangles pt colour
+ = let (d1,_) = mincast triangles (pt,(-10,-10,-10))
+       (d2,_) = mincast triangles (pt,(50, 50, 0))
+       (d3,_) = mincast triangles (pt,((-5), 50, 0))
+       fix i = if   i < 1
+               then 0
+               else 1
+   in colour `vsmul` ((fix d1 + fix d2 + fix d3) / 3)
+       
+
+tri :: Vector Vec3 -> Matrix3 -> (Int,Int,Int,Colour) -> Triangle
+tri v matrix (a,b,c,colour) = (get a, get b, get c, colour)
  where
   {-# INLINE get #-}
-  get i = rotate (v `unsafeIndex` i) (time / 4)
+  get i = trans_disp matrix (v `unsafeIndex` i)
 

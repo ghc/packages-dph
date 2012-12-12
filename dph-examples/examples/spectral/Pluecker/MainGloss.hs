@@ -1,7 +1,9 @@
 {-# LANGUAGE BangPatterns #-}
 
 import Common
+import qualified Common as C
 import Solver
+import ObjImport
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Animate
@@ -13,25 +15,6 @@ import qualified Data.Vector.Unboxed            as VU
 
 import System.Random
 
-model :: Int -> Int -> IO (VU.Vector Vec3, VU.Vector (Int,Int,Int))
-model numverts numtris
- = do
-   vs <- VU.generateM numverts mkvec
-   ts <- VU.generateM numtris  mktri
-   return (vs,ts)
- where
-   mkvec _ = do
-     x <- randomRIO (-10,10)
-     y <- randomRIO (-10,10)
-     z <- randomRIO (0,10)
-     return (x,y,z)
-   mktri _ = do
-     a <- randomRIO (0,numverts - 1)
-     b <- randomRIO (0,numverts - 1)
-     c <- randomRIO (0,numverts - 1)
-     return (a,b,c)
-
-
 main :: IO ()
 main  
  = do   args    <- getArgs
@@ -39,45 +22,45 @@ main
         
 
 mainWithArgs :: [String] -> IO ()
-mainWithArgs [solverName,numv,numt,numr]
+mainWithArgs [solverName,numr]
  = let  -- The solver we're using to calculate the acclerations.
         solver      = fromMaybe (error $ unlines
                                         [ "unknown solver " ++ show solverName
                                         , "choose one of "  ++ (show $ map fst solvers) ])
                         $ lookup solverName solvers
     in do
-        (v,t)   <- model (read numv) (read numt)
-        --let v = VU.fromList [(0,0,0),(1,1,1),(1,0,1)]
-        --let t = VU.fromList [(0,1,2)]
+        (v,t)   <- model
         mainGloss v t (read numr) solver 400
 
-mainWithArgs [solverName] = mainWithArgs [solverName,"100","100","1000"]
+mainWithArgs [solverName] = mainWithArgs [solverName,"1000"]
 
-mainWithArgs _ = putStrLn "Usage: pluecker <vector|vectorised> <verts=100> <tris=100> <rays=1000>"
+mainWithArgs _ = putStrLn "Usage: pluecker <vector|vectorised> <rays=1000>"
 
 
 -- | Run the simulation in a gloss window.
 mainGloss 
         :: VU.Vector Vec3
-        -> VU.Vector (Int,Int,Int)
+        -> VU.Vector (Int,Int,Int,Colour)
         -> Int          -- ^ number of rays
         -> Solver       -- ^ Fn to calculate accels of each point.
         -> Int          -- ^ Size of window.
         -> IO ()
         
 mainGloss v t numr solver windowSize
- = let  mkray _
-         = do   x <- randomRIO (-3,3)
-                y <- randomRIO (-3,3)
-                return (x,y,1)
+ = let  screenSize = (640,480)
+        mkray _
+         = do   x <- randomRIO (0,fst screenSize)
+                y <- randomRIO (0,snd screenSize)
+                return (x,y)
             
         draw time
          = do   rays <- VU.generateM numr mkray
-                let pts = solver v t rays (realToFrac time)
-                return $ Pictures $ map drawPoint $ VU.toList pts
+                let rays' = VU.map (rayOfScreen screenSize) rays
+                let pts = solver v t rays' (realToFrac time)
+                return $ Pictures $ map drawPoint $ (VU.toList $ rays `VU.zip` pts)
 
    in   animateIO
-                (InWindow  "Silly"                    -- window name
+                (InWindow  "Raytracer"                -- window name
                            (windowSize, windowSize)   -- window size
                            (10, 10))                  -- window position
                 black                                 -- background color
@@ -85,15 +68,15 @@ mainGloss v t numr solver windowSize
 
 
 
-pointSize = 15
+pointSize = 5
 
-drawPoint :: (Vec3, Double) -> Picture
-drawPoint ((x,y,z), d)
-	= Translate (realToFrac x * 200) (realToFrac y * 200) 
-    $ Color (makeColor d' d' d' 0.5)
+drawPoint :: ((Double,Double), Colour) -> Picture
+drawPoint ((x,y), (cR,cG,cB))
+	= Translate (c x) (c y) 
+    $ Color (makeColor (c cR) (c cG) (c cB) 0.5)
     $ Polygon [ (-pointSize, -pointSize)
               , ( pointSize, -pointSize)
               , ( pointSize,  pointSize)
               , (-pointSize,  pointSize) ]
 	-- $ ThickCircle (pointSize / 2) pointSize
- where d' = 1 - (realToFrac $ d / 20)
+ where c = realToFrac

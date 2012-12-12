@@ -11,7 +11,7 @@ import qualified Data.Array.Parallel	as P
 import qualified Data.Array.Parallel.PArray	as P
 
 
-type Solver = VU.Vector Vec3 -> VU.Vector (Int,Int,Int) -> VU.Vector Vec3 -> Double -> VU.Vector (Vec3, Double)
+type Solver = VU.Vector Vec3 -> VU.Vector (Int,Int,Int,Colour) -> VU.Vector Vec3 -> Double -> VU.Vector Colour
 
 solvers :: [(String,Solver)]
 solvers =
