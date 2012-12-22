@@ -1,6 +1,7 @@
 
 import Vector
--- import Vectorised
+-- Disabled: see Vectorised
+--import Vectorised
 import Vector1
 import Vectorised1
 import Timing
@@ -32,9 +33,11 @@ run 	:: String
         -> Int 			-- ^ How many points to use.
 	-> IO ()
 	
-{-
+
 run "vectorised" pointCount
  = do
+   putStrLn "Disabled: see Vectorised.hs"
+ {-
 	vPoints	<- pointsPArrayOfUArray
 		$ genPointsDisc pointCount (400, 400) 350 
 
@@ -49,7 +52,8 @@ run "vectorised" pointCount
 					
 	-- Print how long it took.
 	putStr $ prettyTime tElapsed
--}
+    -}
+
 
 run "vector" pointCount
  = do

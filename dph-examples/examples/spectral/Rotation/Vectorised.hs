@@ -14,11 +14,10 @@ import Data.Array.Parallel.Prelude.Double        as D hiding (pi)
 import qualified Data.Array.Parallel.Prelude.Int as I
 import qualified Prelude    as P
 
-{-
-data NodeV = NodeV Double Double Double [:NodeV:]
--}
 
+-- pi: work around strange vectoriser error
 pi = 3.1415926535
+
 type Point = (Double,Double)
 
 {-# NOINLINE solvePA #-}
@@ -30,7 +29,13 @@ solvePA depth t
  = let s p   = solveV2 t depth p
    in toPArrayP (s 0 +:+ s (pi/2) +:+ s pi +:+ s (3*pi / 2))
 
-solveV2 :: Double -> Int -> Double -> [:Point:]
+
+-- | Draw a simple, rotated tree.
+solveV2
+    :: Double       -- ^ current time / rotation
+    -> Int          -- ^ number of children
+    -> Double       -- ^ phase offset
+    -> [:Point:]
 solveV2 t iG pG
  = let 
        {-# INLINE l #-}
@@ -50,30 +55,8 @@ solveV2 t iG pG
        {-# INLINE pts #-}
        pts       = concatP (mapP (\iG2 -> solveV2 t (iG I.- 1) (fromInt iG2 / l * 2 * pi - pi)) (I.enumFromToP 1 iG))
        {-# INLINE pts' #-}
+       -- Rotate children 
        pts'      = mapP (\(x,y) -> (x * cos' - y * sin' + px, x * sin' + y * cos' + py)) pts
    in singletonP (px, py) +:+ pts'
 
 
-{-
-mkNode :: Int -> Double -> NodeV
-mkNode i p
- = let i' = fromInt i
-   in  NodeV i' p (i' / 20)
-       (mapP (\i2 -> mkNode (i I.- 1) (fromInt i2 / i' * 2 * pi - pi)) (I.enumFromToP 1 i))
-
-
-{-# INLINE solveV #-}
-solveV :: Double -> NodeV -> [:Point:]
-solveV t (NodeV l p f c)
- = let r'        = p + f*t
-       cos'      = cos r'
-       sin'      = sin r'
-       rot (x,y) = (x * cos' - y * sin', x * sin' + y * cos')
-       (px, py)  = rot (0, l)
-       trn (x,y) = (x + px, y + py)
-
-       pts       = concatP (mapP (solveV t) c)
-       pts'      = mapP (\p -> trn (rot p)) pts
-   in singletonP (px, py) +:+ pts'
-
--}

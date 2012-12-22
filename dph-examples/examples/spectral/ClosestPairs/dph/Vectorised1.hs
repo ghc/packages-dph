@@ -28,19 +28,38 @@ closeststupid pts
  = let i = minIndexP [: distancex a b | a <- pts, b <- pts :]
    in  [: (a,b) | a <- pts, b <- pts :] !: i
 
-near_boundary :: [:Point:] -> Double -> Double -> [:Point:]
+
+-- | Find the points within distance @d@ of the edge along x=@x0@.
+near_boundary
+    :: [:Point:]    -- ^ array of points
+    -> Double       -- ^ split / x boundary
+    -> Double       -- ^ maximum distance
+    -> [:Point:]
 near_boundary pts x0 d
  = filterP check pts
  where
   check (x1,_) = D.abs (x1 D.- x0) D.< d
 
 
+-- | Find pair with minimum distance between tops * bots
 merge :: [:Point:] -> [:Point:] -> (Point,Point)
 merge tops bots
  = let i = minIndexP [: distancex a b | a <- tops, b <- bots :]
    in  [: (a,b) | a <- tops, b <- bots :] !: i
 
-merge_pairs :: Double -> [:Point:] -> [:Point:] -> (Point,Point) -> (Point,Point) -> (Point,Point)
+
+-- | Given closest pairs in points above and below split,
+-- we want to find the minimum of all points.
+-- To do this, we find the points within a certain distance
+-- from the split boundary, and check them against each other.
+-- We then take the minimum of all points.
+merge_pairs
+    :: Double           -- ^ split / x boundary
+    -> [:Point:]        -- ^ points above split
+    -> [:Point:]        -- ^ points below split
+    -> (Point,Point)    -- ^ closest pair in points above
+    -> (Point,Point)    -- ^ closest pair in points below
+    -> (Point,Point)
 merge_pairs x0 top bot (a1,a2) (b1,b2)
  = let da   = distancex a1 a2
        db   = distancex b1 b2
@@ -59,6 +78,10 @@ merge_pairs x0 top bot (a1,a2) (b1,b2)
             in if dm D.< mind then (m,n) else min2
 
 
+-- | Find closest two points in array of points.
+-- Use naive n^2 algorithm when there are few points,
+-- otherwise split along median X and do each half recursively.
+-- And merge the result of the two halves.
 closest :: [:Point:] -> (Point,Point)
 closest pts
  | lengthP pts I.< 250 = closeststupid pts
@@ -68,25 +91,17 @@ closest pts
        xd   = maximumP xs D.- minimumP xs
        yd   = maximumP ys D.- minimumP ys
 
-       pts' = pts -- if yd > xd then flip pts else pts
-
        mid  = median xs
        
-       top  = filterP (\(x,_) -> x D.>= mid) pts'
+       top  = filterP (\(x,_) -> x D.>= mid) pts
        -- NOTE was error here "combine2SPack" when "not (x >= mid)"
-       bot  = filterP (\(x,_) -> x D.< mid) pts'
+       bot  = filterP (\(x,_) -> x D.< mid) pts
 
        top' = closest top
        bot' = closest bot
 
        pair = merge_pairs mid top bot top' bot'
-   in  pair -- if yd > xd then flip2 pair else pair
-
-flip pts
- = let (xs,ys) = unzipP pts
-   in  zipP xs ys
-
-flip2 ((x1,y1),(x2,y2)) = ((y1,x1),(y2,x2))
+   in  pair
 
 
 closest1PA :: PArray Point -> (Point,Point)
