@@ -60,12 +60,10 @@ genPointsDisc
         -> U.Array (Double, Double)
 
 genPointsDisc n (originX, originY) radiusMax
- = let	radius1 = randomishDoubles n 0     radiusMax seed
-        radius2 = randomishDoubles n 0     radiusMax (seed + 4321)
-        radius  = U.map pack $ U.zipWith (+) radius1 radius2
-        pack r  | r > radiusMax = 2 * radiusMax - r
-                | otherwise     = r
-        angle   = randomishDoubles n (-pi) pi        (seed + 1234)
+ = let	radius = U.map sqrt
+               $ randomishDoubles n 0     (radiusMax^2) seed
+        angle  = randomishDoubles n (-pi) pi            (seed + 1234)
+
 	makeXY r a	
 	 	= ( originX + r * cos a
 		  , originY + r * sin a)	
