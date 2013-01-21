@@ -71,7 +71,10 @@ notPP_l :: PArray Bool -> PArray Bool
 notPP_l (PArray n# bs)
   = PArray n# P.$
       case bs of { PBool sel ->
-      PBool P.$ U.tagsToSel2 (U.map complement (U.tagsSel2 sel)) }
+      PBool P.$ U.tagsToSel2 (U.map negate (U.tagsSel2 sel)) }
+ where
+  -- We must return 1 for True, 0 for False
+  negate i = (complement i) .&. 1
 {-# NOVECTORISE notPP_l #-}
 {-# INLINE notPP_l #-}
 
