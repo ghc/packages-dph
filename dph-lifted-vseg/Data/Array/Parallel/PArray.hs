@@ -58,6 +58,9 @@ module Data.Array.Parallel.PArray
         , zip4
         , zip5
         , unzip,        unzipl
+        , unzip3
+        , unzip4
+        , unzip5
 
         -- * Conversions
         , fromVector,   toVector
@@ -85,7 +88,7 @@ import qualified Prelude					as P
 import Prelude hiding 
         ( length, replicate, concat
         , enumFromTo
-        , zip, zip3, unzip)
+        , zip, zip3, unzip, unzip3)
 
 
 -- Pretty ---------------------------------------------------------------------
@@ -518,6 +521,24 @@ unzip :: PArray (a, b) -> (PArray a, PArray b)
 unzip (PArray n# (PTuple2 xs ys))
  = (PArray n# xs, PArray n# ys)
 {-# INLINE_PA unzip #-}
+
+-- | O(1). Unzip an array of triples into a triple of arrays.
+unzip3 :: PArray (a, b, c) -> (PArray a, PArray b, PArray c)
+unzip3 (PArray n# (PTuple3 xs ys zs))
+ = (PArray n# xs, PArray n# ys, PArray n# zs)
+{-# INLINE_PA unzip3 #-}
+
+-- | O(1). Unzip an array of triples into a triple of arrays.
+unzip4 :: PArray (a, b, c, d) -> (PArray a, PArray b, PArray c, PArray d)
+unzip4 (PArray n# (PTuple4 ws xs ys zs))
+ = (PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
+{-# INLINE_PA unzip4 #-}
+
+-- | O(1). Unzip an array of triples into a triple of arrays.
+unzip5 :: PArray (a, b, c, d, e) -> (PArray a, PArray b, PArray c, PArray d, PArray e)
+unzip5 (PArray n# (PTuple5 vs ws xs ys zs))
+ = (PArray n# vs, PArray n# ws, PArray n# xs, PArray n# ys, PArray n# zs)
+{-# INLINE_PA unzip5 #-}
 
 
 -- | Lifted unzip
