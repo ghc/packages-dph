@@ -19,5 +19,22 @@ solvers =
  ,("vector",     SV.solveV)]
 
 solverPA verts tris rays time
- = let fv a = P.fromVector (VU.convert a)
-   in  VU.convert (P.toVector (SPA.solvePA (fv verts) (fv tris) (fv rays) time))
+ = tu3 (SPA.solvePA (fu3 verts) (fu4_3 tris) (fu3 rays) time)
+
+ 
+fu as = P.fromUArray as
+
+fu3 as
+ = let (xs,ys,zs) = VU.unzip3 as
+   in  P.zip3 (fu xs) (fu ys) (fu zs)
+
+fu4_3 as
+ = let (xs,ys,zs,bs) = VU.unzip4 as
+   in  P.zip4 (fu xs) (fu ys) (fu zs) (fu3 bs)
+
+
+tu as = P.toUArray as
+
+tu3 as
+ = let (xs,ys,zs) = P.unzip3 as
+   in  VU.zip3 (tu xs) (tu ys) (tu zs)
