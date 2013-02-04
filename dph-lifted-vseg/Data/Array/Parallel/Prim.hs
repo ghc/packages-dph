@@ -6,7 +6,7 @@
 --   natively by the library. This module performs the impedance matching.
 module Data.Array.Parallel.Prim 
         -- Core types
-        ( PData, PDatas, PRepr, PA(..), PR(..)
+        ( PArray, PData, PDatas, PRepr, PA(..), PR(..)
 
         -- Array Functions
         , emptyPD

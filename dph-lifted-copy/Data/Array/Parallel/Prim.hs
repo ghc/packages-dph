@@ -14,7 +14,7 @@
 
 -- #hide
 module Data.Array.Parallel.Prim (
-  PData, PDatas(..), PRepr, PA(..), PR(..),
+  PArray, PData, PDatas(..), PRepr, PA(..), PR(..),
   replicatePD, emptyPD, packByTagPD, combine2PD,
   Scalar(..),
   scalar_map, scalar_zipWith, scalar_zipWith3, scalar_zipWith4, scalar_zipWith5, scalar_zipWith6,
@@ -37,6 +37,7 @@ module Data.Array.Parallel.Prim (
 -- We use explicit import lists here to make the vectoriser interface explicit and keep it under
 -- tight control.
 --
+import Data.Array.Parallel.PArray.Base            (PArray)
 import Data.Array.Parallel.PArray.Scalar          (Scalar(..))
 import Data.Array.Parallel.PArray.ScalarInstances ( {-we require instances-} )
 import Data.Array.Parallel.PArray.PRepr           (PRepr, PA(..), replicatePD, emptyPD, packByTagPD,
