@@ -53,7 +53,7 @@ data (a :-> b)
                 (Int -> PData env -> PData a -> PData b)
                 env
 
-deriving instance T.Typeable2 (:->)
+deriving instance T.Typeable (:->)
 
 -- | Closure application.
 ($:) :: (a :-> b) -> a -> b

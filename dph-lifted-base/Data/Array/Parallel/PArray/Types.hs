@@ -63,7 +63,7 @@ fromVoid = error $ unlines
 data Sum2 a b
         = Alt2_1 a | Alt2_2 b
 
-deriving instance Typeable2 Sum2
+deriving instance Typeable Sum2
 
 
 tagOfSum2 :: Sum2 a b -> Tag
@@ -86,7 +86,7 @@ instance (PprPhysical a, PprPhysical b)
 data Sum3 a b c
         = Alt3_1 a | Alt3_2 b | Alt3_3 c
 
-deriving instance Typeable3 Sum3
+deriving instance Typeable Sum3
 
 
 tagOfSum3 :: Sum3 a b c -> Tag
@@ -123,4 +123,4 @@ tagOfSum3 ss
 --
 newtype Wrap a = Wrap { unWrap :: a }
 
-deriving instance Typeable1 Wrap
+deriving instance Typeable Wrap

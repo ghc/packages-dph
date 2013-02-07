@@ -39,7 +39,7 @@ import Prelude hiding (length)
 data PArray a
         = PArray Int# (PData  a)
 
-deriving instance T.Typeable1 PArray
+deriving instance T.Typeable PArray
 
 
 -- | Take the length field of a `PArray`.

@@ -82,7 +82,7 @@ import qualified Data.Array.Parallel.Unlifted			as U
 import qualified Data.Vector					as V
 import qualified Data.Array.Parallel.PArray.Reference		as R
 import qualified Data.Array.Parallel.PArray.Reference.Convert	as R
-import Data.Typeable
+import Data.Typeable hiding ( typeRep )
 
 import qualified Prelude					as P
 import Prelude hiding 

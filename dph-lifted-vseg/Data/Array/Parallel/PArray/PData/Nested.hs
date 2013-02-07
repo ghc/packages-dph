@@ -49,7 +49,7 @@ data instance PData (PArray a)
           --   then it should stash it here, otherwise build a thunk that makes it.
         }
 
-deriving instance T.Typeable1 PData
+deriving instance T.Typeable PData
 
 
 -- TODO: should we unpack the vsegd fields here?
