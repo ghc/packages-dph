@@ -26,23 +26,10 @@ hsplit_v :: PArray Point :-> Line :-> PArray Point
 hsplit_v = closure2 hsplit_s hsplit_l
 {-# NOINLINE hsplit_v #-}
 
--- | Scalar version of hsplit (generalised to lifted hsplit)
--- 1. construct a nested array out of 'points' array (single segment)
--- 2. construct a singleton array containing 'line'
---
--- UNUSED.
+
+-- | Scalar version of hsplit (unused).
 hsplit_s :: PArray Point -> Line -> PArray Point
-hsplit_s ps@(PArray n# pts) line
-  = let segd      = U.singletonSegd (I# n#)
-        pts_s     = PArray 1# (PNested segd pts)
-        lines     = PArray 1# (toPData line)
-        hull@(PArray _ (PNested segd' hull_pts))
-                  = hsplit_l pts_s lines
-        !(I# n'#) = U.lengthSegd segd'
-    in PArray n'# hull_pts
-  where toPData ((x1,y1), (x2,y2)) = P_2 (P_2 (r x1) (r y1))
-                                         (P_2 (r x2) (r y2))
-        r x = PDouble (U.replicate 1 x)
+hsplit_s ps _ = ps
 {-# NOINLINE hsplit_s #-}
 
 
