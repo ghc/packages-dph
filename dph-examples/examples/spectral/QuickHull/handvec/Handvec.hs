@@ -38,7 +38,7 @@ hsplit_s ps@(PArray n# pts) line
         lines     = PArray 1# (toPData line)
         hull@(PArray _ (PNested segd' hull_pts))
                   = hsplit_l pts_s lines
-        !(I# n'#) = U.elementsSegd segd'
+        !(I# n'#) = U.lengthSegd segd'
     in PArray n'# hull_pts
   where toPData ((x1,y1), (x2,y2)) = P_2 (P_2 (r x1) (r y1))
                                          (P_2 (r x2) (r y2))
@@ -51,9 +51,9 @@ hsplit_s ps@(PArray n# pts) line
 -- Wrapper for lifted hsplit with the type expected by the vectoriser
 -- (which we still go through to avoid hand vectorising 'HandvecWrp.quickHull'.
 hsplit_l :: PArray (PArray Point) -> PArray Line -> PArray (PArray Point)
-hsplit_l (PArray n# pts) (PArray _ lns)
-  = let result@(PNested segd _) = hsplit_l' n# pts lns
-        !(I# n'#) = U.elementsSegd segd
+hsplit_l (PArray _ points_s) (PArray nlines# lines)
+  = let result@(PNested segd _) = hsplit_l' nlines# points_s lines
+        !(I# n'#) = U.lengthSegd segd
     in  PArray n'# result
 {-# INLINE hsplit_l #-}
 
@@ -61,12 +61,11 @@ hsplit_l (PArray n# pts) (PArray _ lns)
 -- | Actually the heart of QuickHull.
 hsplit_l' :: Int# -> PData (PArray Point) -> PData Line -> PData (PArray Point)
 hsplit_l' n# (PNested segd (P_2 (PDouble xos) _)) (P_2 (P_2 (PDouble x1s) _) _)
-  | Debug.traceEvent ("GANG[1/1] Issuing hsplit_l_wrk: " ++
-                      "nlines#: "     ++ show (I# n#) ++
-                      ", eltsSegd: "  ++ show (U.elementsSegd segd) ++
-                      ", lensSegd: "  ++ show (U.toList (U.lengthsSegd segd)) ++
-                      ", npts: "      ++ show (U.length xos) ++
-                      ", nlines arr: "++ show (U.length x1s)) False = undefined
+  | Debug.traceEvent ("GANG[1/1] Issuing hsplit_l': " ++
+                      "nlines#: "        ++ show (I# n#) ++
+                      ", points: "       ++ show (U.elementsSegd segd) ++
+                      ", segmented by: " ++ show (U.toList (U.lengthsSegd segd)) ++
+                      ", nlines arr: "   ++ show (U.length x1s)) False = undefined
 hsplit_l' 0# _ _ = PNested U.emptySegd (P_2 (PDouble U.empty) (PDouble U.empty))
 hsplit_l' nlines# points_s                                     -- E.g.: nlines#: 6, npts >= 13
           lines@(P_2 (P_2 (PDouble line_x1s) (PDouble line_y1s))
@@ -179,8 +178,9 @@ hsplit_l' nlines# points_s                                     -- E.g.: nlines#:
         lines'      = P_2 line_1s' line_2s'                 -- 8 lines in total
 
         -- Finally make recursive call to compute convex hull from (when the recursion hasn't finished)
+        !(I# eltsNEx2#) = eltsNEx2
         hullNE@(PNested hullNE_segd (P_2 (PDouble hullNE_xs) (PDouble hullNE_ys)))
-                    = hsplit_l' nNE# above_dbl lines'
+                    = hsplit_l' eltsNEx2# above_dbl lines'
 
         -- hsplit returns *only* line starts. In the example above we had 4 lines with points above them
         (hullNE_lens,_,_) = unpackSegd hullNE_segd          -- Segd: [ 2, 1, 2, 2, 1, 1, 2, 1 ]
