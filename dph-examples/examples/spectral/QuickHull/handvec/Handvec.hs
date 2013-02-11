@@ -53,19 +53,18 @@ hsplit_s ps@(PArray n# pts) line
 hsplit_l :: PArray (PArray Point) -> PArray Line -> PArray (PArray Point)
 hsplit_l (PArray _ points_s) (PArray nlines# lines)
   = let result@(PNested segd _) = hsplit_l' nlines# points_s lines
-        !(I# n'#) = U.lengthSegd segd
-    in  PArray n'# result
+        !(I# nsegs#) = U.lengthSegd segd                        -- should be 2
+    in  PArray nsegs# result
 {-# INLINE hsplit_l #-}
 
 
 -- | Actually the heart of QuickHull.
 hsplit_l' :: Int# -> PData (PArray Point) -> PData Line -> PData (PArray Point)
-hsplit_l' n# (PNested segd (P_2 (PDouble xos) _)) (P_2 (P_2 (PDouble x1s) _) _)
-  | Debug.traceEvent ("GANG[1/1] Issuing hsplit_l': " ++
-                      "nlines#: "        ++ show (I# n#) ++
-                      ", points: "       ++ show (U.elementsSegd segd) ++
-                      ", segmented by: " ++ show (U.toList (U.lengthsSegd segd)) ++
-                      ", nlines arr: "   ++ show (U.length x1s)) False = undefined
+hsplit_l' nlines# (PNested segd _) _
+  | Debug.traceEvent ("GANG[1/1] Issuing hsplit_l' " ++
+                      "with " ++ show (I# nlines#) ++ " lines " ++
+                      "and " ++ show (U.elementsSegd segd) ++ " points, " ++
+                      "distributed as: " ++ show (U.toList $ U.lengthsSegd segd)) False = undefined
 hsplit_l' 0# _ _ = PNested U.emptySegd (P_2 (PDouble U.empty) (PDouble U.empty))
 hsplit_l' nlines# points_s                                     -- E.g.: nlines#: 6, npts >= 13
           lines@(P_2 (P_2 (PDouble line_x1s) (PDouble line_y1s))
