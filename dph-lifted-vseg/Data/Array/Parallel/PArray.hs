@@ -73,7 +73,7 @@ import Data.Array.Parallel.PArray.PData
 import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
 import Data.Array.Parallel.PArray.Reference.Convert
-import GHC.Exts
+import GHC.Exts (Int(I#), (==#), (+#))
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Pretty			as T
