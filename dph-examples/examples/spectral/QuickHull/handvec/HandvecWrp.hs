@@ -12,7 +12,7 @@ import qualified Data.Array.Parallel.Prelude.Int as I
 
 import Prelude as P
 
-import Handvec
+import Handvec ( hsplit_v )
 
 -- Manually override vectorisation of hsplit
 -- hsplit :: [:Point:] -> Line -> [:Point:]
@@ -26,7 +26,8 @@ quickHull :: [:Point:] -> [:Point:]
 quickHull points
   | lengthP points I.== 0 = points
   | otherwise
-  = concatP [: fromPArrayP (hsplit (toPArrayP points) ends) | ends <- [: (minx, maxx), (maxx, minx) :] :]
+  = concatP [: fromPArrayP (hsplit (toPArrayP points) ends)
+               | ends <- [: (minx, maxx), (maxx, minx) :] :]
   where
     xs   = [: x | (x, y) <- points :]
     minx = points PA.!: minIndexP xs
