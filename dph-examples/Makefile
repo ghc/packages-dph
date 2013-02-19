@@ -2,7 +2,7 @@
 
 # Package dependencies for DPH examples.
 DPH_DEPENDS = \
-	base         	== 4.6.*, \
+	base         	== 4.7.*, \
 	vector       	== 0.9.*, \
 	random       	== 1.0.*, \
 	old-time     	== 1.1.*, \
@@ -10,8 +10,7 @@ DPH_DEPENDS = \
 	dph-base     	== 0.8.*, \
 	dph-prim-par	== 0.8.*, \
 	dph-lifted-vseg	== 0.8.*, \
-	HUnit           == 1.2.*, \
-	repa-flow       == 3.2.*
+	HUnit           == 1.2.*
 
 
 # Options for compiling DPH examples.
@@ -39,5 +38,4 @@ dph-examples.cabal : dph-examples.template Makefile
 	@cpp 	-P -undef \
 		-DDPH_DEPENDS="$(DPH_DEPENDS)" \
 		-DDPH_OPTIONS="$(DPH_OPTIONS)" \
-		dph-examples.template dph-examples.cabal 
-	
+		dph-examples.template dph-examples.cabal
