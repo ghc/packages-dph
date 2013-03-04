@@ -113,6 +113,9 @@ libraries/dph/dph-lifted-vseg/dist-install/build/Data/Array/Parallel/PArray/PDat
 	$$(libraries/dph/dph-lifted-base_dist-install_GHCI_LIB)
 
 ifeq "$$(libraries/dph/dph-base_dist-install_GHCI_LIB)" ""
+ifeq "$(GhcProfiled)" "YES"
+$$(error Cannot build profiled GHC with DPH; try deleting libraries/dph and trying again)
+endif
 $$(error dph_th_deps($1): libraries/dph/dph-base_dist-install_GHCI_LIB not defined!)
 endif
 
