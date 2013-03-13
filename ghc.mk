@@ -54,7 +54,13 @@ $(foreach pkg, $(DPH_PACKAGES), $(eval $(call dph_package,$(pkg))))
 #
 define dph_th_deps
 # $1 = way
-ifneq "$1" "$${GHCI_WAY}"
+ifeq "$1" "$${GHCI_WAY}"
+# Do nothing: This way is the GHCi way
+else ifeq "$1 $${GHCI_WAY} $${DYNAMIC_TOO}" "v dyn YES"
+# Do nothing: This way is built at the same time as the GHCi way
+else ifeq "$1 $${GHCI_WAY} $${DYNAMIC_TOO}" "dyn v YES"
+# Do nothing: This way is built at the same time as the GHCi way
+else
 libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$$($1_osuf): libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/TH/Repr.$${$${GHCI_WAY}_osuf}
 libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$1_osuf} : libraries/dph/dph-lifted-copy/dist-install/build/Data/Array/Parallel/Lifted/PArray.$${$${GHCI_WAY}_osuf}
 endif
