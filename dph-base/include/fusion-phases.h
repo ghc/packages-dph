@@ -7,24 +7,22 @@
 
 -- Inline bindings in user code, and closure functions.
 -- This is dph-common-vseg:D.A.P.Lifted.Closure
-#define PHASE_USER      [6]
+#define PHASE_USER      [4]
 
 -- Inline combinators that work on PArray and PData.
 -- This is dph-common-vseg:D.A.P.PArray
-#define PHASE_PA        [5]
+#define PHASE_PA        [3]
 
 -- Inline combinators from the unlifted backends
 -- This is dph-prim-par:D.A.P.Unlifted.Parallel
---     and dph-prim-par:D.A.P.Unlifted.Sequential
-#define PHASE_BACKEND   [4]
-
-#define PHASE_PAR       [4]
+--     and dph-prim-seq:D.A.P.Unlifted.Sequential
+#define PHASE_BACKEND   [2]
+#define PHASE_PAR       PHASE_BACKEND
+#define PHASE_SEQ       PHASE_BACKEND
 
 -- Inline combinators for distributed arrays.
 -- This is dph-prim-par:D.A.P.Unlifted.Distributed
-#define PHASE_DIST      [3]
-
-#define PHASE_SEQ       [2]
+#define PHASE_DIST      [1]
 
 -- Inline combinators for Data.Vector
 #define PHASE_STREAM    [1]
