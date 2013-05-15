@@ -70,10 +70,16 @@ infixr 5 +:+
 
 
 -- Vectorise Prelude.undefined
+{-    SLPJ May 2013: Temporarily comment this out, because
+                     the type of undefined is now forall (a:OpenKind).a, like error
+                     and the vectoriser doesn't understand that.  I've emailed
+                     Manuel about this.
+
 {-# VECTORISE undefined = undefined_v #-}
 undefined_v :: forall a. PA a => a
 undefined_v = error "Data.Array.Parallel: undefined vectorised"
 {-# NOVECTORISE undefined_v #-}
+-}
 
 -- We only define the signatures of operations on parallel arrays (and bodies that convince GHC
 -- that these functions don't just return diverge).  The vectoriser rewrites them to entirely
