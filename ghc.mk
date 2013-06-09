@@ -1,4 +1,6 @@
 
+ifneq "$(libraries/dph_NOT_NEEDED)" "YES"
+
 DPH_DIR  = libraries/dph
 
 # -----------------------------------------------------------------------------
@@ -131,3 +133,6 @@ endef
 ifneq "$(CLEANING)" "YES"
 $(foreach way, $(GhcLibWays), $(eval $(call dph_th_deps,$(way))))
 endif
+
+endif
+
