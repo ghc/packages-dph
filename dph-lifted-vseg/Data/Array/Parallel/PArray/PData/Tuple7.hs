@@ -14,7 +14,6 @@ import GHC.Exts
 import Prelude hiding (zip, unzip)
 import qualified Data.Typeable                  as T
 import qualified Data.Vector                    as V
-import qualified Prelude                        as P
 import qualified Data.List                      as P
 
 
