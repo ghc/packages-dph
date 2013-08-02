@@ -12,8 +12,10 @@ import Language.Haskell.TH
 import Data.List                                (intercalate)
 
 tyBndrVar :: TyVarBndr -> Name
-tyBndrVar (PlainTV  n)   = n
-tyBndrVar (KindedTV n _) = n
+tyBndrVar (PlainTV  n)          = n
+tyBndrVar (KindedTV n _)        = n
+tyBndrVar (RoledTV n _)         = n
+tyBndrVar (KindedRoledTV n _ _) = n
 
 mkAppTs :: Type -> [Type] -> Type
 mkAppTs = foldl AppT

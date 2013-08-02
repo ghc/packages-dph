@@ -119,8 +119,10 @@ properties decs = [mkProp nm ty | SigD nm ty <- decs]
 names :: [TyVarBndr] -> [Name]
 names tvs = map name tvs
   where
-    name (PlainTV  n  ) = n
-    name (KindedTV n _) = n
+    name (PlainTV  n  )        = n
+    name (KindedTV n _)        = n
+    name (RoledTV n _)         = n
+    name (KindedRoledTV n _ _) = n
 
 -- | Create a list of mkTest expressions out of Inst expressions.
 --
