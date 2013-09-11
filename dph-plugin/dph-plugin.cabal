@@ -10,7 +10,7 @@ Maintainer:     The DPH Team
 
 source-repository head
         type: git
-        location: http://darcs.haskell.org/libraries/dph.git
+        location: http://git.haskell.org/libraries/dph.git
 
 Library
   Exposed-Modules:
