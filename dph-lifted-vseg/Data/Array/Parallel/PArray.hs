@@ -74,6 +74,7 @@ import Data.Array.Parallel.PArray.PRepr
 import Data.Array.Parallel.PArray.Scalar
 import Data.Array.Parallel.PArray.Reference.Convert
 import GHC.Exts (Int(I#), (==#), (+#))
+import GHC.Base ( isTrue# )
 import Data.Vector                              (Vector)
 import Data.Array.Parallel.Base                 (Tag)
 import qualified Data.Array.Parallel.Pretty			as T
@@ -216,7 +217,7 @@ replicatel reps arr@(PArray n# pdata)
 
 replicatel_ :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
- = if n# ==# 0# then empty else 
+ = if isTrue# (n# ==# 0#) then empty else
     let !segd    = U.lengthsToSegd lens
         !vsegd   = U.promoteSegdToVSegd segd
         !pdata'  = replicatesPA segd pdata

@@ -28,6 +28,7 @@ import Data.Vector.Fusion.Stream.Size    ( Size(..) )
 import qualified Data.Vector.Fusion.Stream                              as S
 
 import GHC.Exts -- for unboxed primops
+import GHC.Base ( isTrue# )
 
 here :: String -> String
 here s = "Data.Array.Parallel.Unlifted.Parallel.Segmented." Prelude.++ s
@@ -145,7 +146,7 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
     -- Reading from xs
     next s@ASDo{as_takefrom=0#}
       -- Done reading xs, so read the rest of this segment from ys.
-      | as_next_swap s  ==# 0#
+      | isTrue# (as_next_swap s  ==# 0#)
       = return $ Skip (s{as_takefrom=1#, as_next_swap= unbox (ylens `index1` I# (as_seg_off s))})
 
       -- Grab a value from xs
@@ -154,7 +155,7 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
     -- Reading from ys; takefrom nonzero
     next s
       -- Done reading ys, so we need to look at the next segment's xs
-      | as_next_swap s  ==# 0#
+      | isTrue# (as_next_swap s  ==# 0#)
       = let seg' = as_seg_off s +# 1#
         in  return $ Skip (s {as_takefrom=0#, as_seg_off=seg', as_next_swap= unbox (xlens `index1` I# seg')})
 
@@ -319,7 +320,7 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
     -- Reading from xs
     next s@ASUPVDo{avs_takefrom=0#}
       -- Done reading xs, so read the rest of this segment from ys.
-      | avs_next_swap s  ==# 0#  =
+      | isTrue# (avs_next_swap s  ==# 0#)  =
         let     seg'            = I# (avs_seg_off s)
                 (src,strt)      = getscatter ypseg ysrc ystrt seg'
         in      return $ Skip $
@@ -335,7 +336,7 @@ appendUPVSegS !xd !xs !yd !ys !n seg_off el_off
     -- Reading from ys, so avs_takefrom=1#
     next s
       -- Done reading ys, so we need to look at the next segment's xs
-      | avs_next_swap s  ==# 0#
+      | isTrue# (avs_next_swap s  ==# 0#)
       = let     seg'            = I# (avs_seg_off s +# 1#)
                 (src,strt)      = getscatter xpseg xsrc xstrt seg'
         in      return $ Skip $
