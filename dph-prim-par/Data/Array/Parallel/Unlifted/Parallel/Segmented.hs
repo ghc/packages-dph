@@ -2,7 +2,7 @@
 #include "fusion-phases.h"
 
 -- | Parallel combinators for segmented unboxed arrays
-module Data.Array.Parallel.Unlifted.Parallel.Segmented 
+module Data.Array.Parallel.Unlifted.Parallel.Segmented
         ( replicateRSUP
         , appendSUP
         , appendSUP_old
@@ -36,7 +36,7 @@ here s = "Data.Array.Parallel.Unlifted.Parallel.Segmented." Prelude.++ s
 -- replicate ------------------------------------------------------------------
 -- | Segmented replication.
 --   Each element in the vector is replicated the given number of times.
---   
+--
 --   @replicateRSUP 2 [1, 2, 3, 4, 5] = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5]@
 --
 
@@ -73,7 +73,7 @@ appendSUP segd !xd !xs !yd !ys
 
 -- append ---------------------------------------------------------------------
 appendSegS
-        :: Unbox a      
+        :: Unbox a
         => USegd        -- ^ Segment descriptor of first array.
         -> Vector a     -- ^ Data of first array
         -> USegd        -- ^ Segment descriptor of second array.
@@ -98,7 +98,7 @@ appendSegS !xd !xs !yd !ys !n seg_off el_off
 
     {-# INLINE unbox #-}
     unbox (I# i) = i
-    
+
     state
       -- Nothing to return
       | n == 0 = ASDo
@@ -392,7 +392,7 @@ appendSUP_old segd !xd !xs !yd !ys
 
 -- append ---------------------------------------------------------------------
 appendSegS_old
-        :: Unbox a      
+        :: Unbox a
         => USegd        -- ^ Segment descriptor of first array.
         -> Vector a     -- ^ Data of first array
         -> USegd        -- ^ Segment descriptor of second array.
@@ -413,7 +413,7 @@ appendSegS_old !xd !xs !yd !ys !n seg_off el_off
 
     {-# INLINE index2 #-}
     index2  = Seq.index (here "appendSegS")
-    
+
     state
       | n == 0 = Nothing
       | el_off < xlens `index1` seg_off
@@ -452,9 +452,9 @@ appendSegS_old !xd !xs !yd !ys !n seg_off el_off
 -- foldR ----------------------------------------------------------------------
 -- | Regular segmented fold.
 foldRUP :: (Unbox a, Unbox b) => (b -> a -> b) -> b -> Int -> Vector a -> Vector b
-foldRUP f z !segSize xs 
+foldRUP f z !segSize xs
   = joinD theGang unbalanced
-          (mapD (What "foldRUP/foldRU") theGang 
+          (mapD (What "foldRUP/foldRU") theGang
               (Seq.foldlRU f z segSize)
               (splitAsD theGang (mapD (What "foldRUP/segSize") theGang (*segSize) dlen) xs))
   where

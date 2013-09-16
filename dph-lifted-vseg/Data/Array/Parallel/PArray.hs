@@ -21,8 +21,8 @@
 --   functions should all be safe. In particular, the vectoriser guarantees
 --   that all arrays passed to lifted functions will have the same length, but
 --   the user may not obey this restriction.
--- 
-module Data.Array.Parallel.PArray 
+--
+module Data.Array.Parallel.PArray
         ( PArray, PA
         , valid
         , nf
@@ -85,7 +85,7 @@ import qualified Data.Array.Parallel.PArray.Reference.Convert	as R
 import Data.Typeable hiding ( typeRep )
 
 import qualified Prelude					as P
-import Prelude hiding 
+import Prelude hiding
         ( length, replicate, concat
         , enumFromTo
         , zip, zip3, unzip, unzip3)
@@ -95,7 +95,7 @@ import Prelude hiding
 instance PA a => T.PprPhysical (PArray a) where
  pprp (PArray n# pdata)
         =     ( T.text "PArray " T.<+> T.int (I# n#))
-        T.$+$ ( T.nest 4 
+        T.$+$ ( T.nest 4
               $ pprpDataPA pdata)
 
 instance PA a => Similar a where
@@ -108,7 +108,7 @@ instance PA a => R.PprPhysical1 a where
 -- Array -----------------------------------------------------------------------
 --  Generic interface to PArrays.
 --
---  NOTE: 
+--  NOTE:
 --  The toVector conversion is defined by looking up every index instead of
 --  using the bulk fromVectorPA function.
 --  We do this to convert arrays of type (PArray Void) properly, as although a
@@ -130,11 +130,11 @@ instance PA e => A.Array PArray e where
  fromVector     = fromVector
 
 -- Operators ==================================================================
--- Each of these operators is wrapped in withRef functions so that we can 
--- compare their outputs to the reference implementation. 
+-- Each of these operators is wrapped in withRef functions so that we can
+-- compare their outputs to the reference implementation.
 -- See D.A.P.Reference for details.
 
-        
+
 -- Basics ---------------------------------------------------------------------
 instance (Eq a, PA a)  => Eq (PArray a) where
  (==) (PArray _ xs) (PArray _ ys) = toVectorPA xs == toVectorPA ys
@@ -199,7 +199,7 @@ replicate n x
  $ withRef1 "replicate" (R.replicate n x)
  $ replicate_ n x
 {-# INLINE_PA replicate #-}
- 
+
 replicate_ :: PA a => Int -> a -> PArray a
 replicate_ (I# n#) x
  = PArray n# (replicatePA (I# n#) x)
@@ -209,7 +209,7 @@ replicate_ (I# n#) x
 -- | O(sum lengths). Lifted replicate.
 replicatel :: PA a => PArray Int -> PArray a -> PArray (PArray a)
 replicatel reps arr@(PArray n# pdata)
- = traceOp (OpReplicateL (typeRepDataPA pdata) 
+ = traceOp (OpReplicateL (typeRepDataPA pdata)
                          (I# n#))
  $ withRef2 "replicatel" (R.replicatel (toRef1 reps) (toRef1 arr))
  $ replicatel_ reps arr
@@ -220,7 +220,7 @@ replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
     let !segd    = U.lengthsToSegd lens
         !vsegd   = U.promoteSegdToVSegd segd
         !pdata'  = replicatesPA segd pdata
-        !pdatas' = singletondPA pdata'        
+        !pdatas' = singletondPA pdata'
      in PArray n# $ mkPNestedPA vsegd pdatas' segd pdata'
 {-# INLINE_PA replicatel_ #-}
 
@@ -228,7 +228,7 @@ replicatel_ (PArray n# (PInt lens)) (PArray _ pdata)
 -- | O(sum lengths). Segmented replicate.
 replicates :: PA a => U.Segd -> PArray a -> PArray a
 replicates segd arr@(PArray _ pdata)
- = traceOp (OpReplicateS (typeRepDataPA pdata) 
+ = traceOp (OpReplicateS (typeRepDataPA pdata)
                          (U.elementsSegd segd))
  $ withRef1 "replicates" (R.replicates segd (toRef1 arr))
  $ let  !(I# n#) = U.elementsSegd segd
@@ -242,13 +242,13 @@ replicates' :: PA a => PArray Int -> PArray a -> PArray a
 replicates' (PArray _ (PInt reps)) arr
  = replicates (U.lengthsToSegd reps) arr
 {-# INLINE_PA replicates' #-}
- 
- 
+
+
 -- Append ---------------------------------------------------------------------
 -- | Append two arrays.
 append :: PA a => PArray a -> PArray a -> PArray a
 append arr1@(PArray n1# pdata1) arr2@(PArray n2# pdata2)
- = traceOp (OpAppend    (typeRepDataPA pdata1) 
+ = traceOp (OpAppend    (typeRepDataPA pdata1)
                         (I# n1#) (I# n2#) (I# (n1# +# n2#)))
  $ withRef1 "append"    (R.append (toRef1 arr1) (toRef1 arr2))
  $ PArray (n1# +# n2#)  (appendPA pdata1 pdata2)
@@ -305,7 +305,7 @@ nestUSegd segd (PArray n# pdata)
         | U.elementsSegd segd     == I# n#
         , I# n2#                <- U.lengthSegd segd
         = PArray n2#
-	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata) segd pdata	
+	$ PNested (U.promoteSegdToVSegd segd) (singletondPA pdata) segd pdata
 
         | otherwise
         = error $ unlines
@@ -363,13 +363,13 @@ extracts arrs ssegd
 
 -- | Wrapper for `extracts` that takes arrays of sources, starts and lengths of
 --   the segments, and uses these to build the `U.SSegd`.
---   TODO: The lengths of the sources, starts and lengths arrays must be the same, 
+--   TODO: The lengths of the sources, starts and lengths arrays must be the same,
 --         but this is not checked.
 --         All sourceids must point to valid data arrays.
 --         Segments must be within their corresponding source array.
-extracts' 
-        :: PA a 
-        => Vector (PArray a) 
+extracts'
+        :: PA a
+        => Vector (PArray a)
         -> PArray Int           -- ^ id of source array for each segment.
         -> PArray Int           -- ^ starting index of each segment in its source array.
         -> PArray Int           -- ^ length of each segment.
@@ -379,7 +379,7 @@ extracts' arrs (PArray _ (PInt sources)) (PArray _ (PInt starts)) (PArray _ (PIn
        ssegd   = U.mkSSegd starts sources segd
    in  extracts arrs ssegd
 {-# INLINE_PA extracts' #-}
-        
+
 
 -- | Extract a range of elements from an arrary.
 --   Like `extract` but with the parameters in a different order.
@@ -430,22 +430,22 @@ packl xss@(PArray n# xdata@(PNested _ _ segd _))
       fss@(PArray _  fdata)
  = traceOp (OpPackL (I# n#))
  $ withRef2 "packl" (R.packl (toRef2 xss) (toRef2 fss))
- $ let  
+ $ let
         -- Concatenate both arrays to get the flat data.
         --   Although the virtual segmentation should be the same,
         --   the physical segmentation of both arrays may be different.
         xdata_flat      = concatPA xdata
         PBool sel       = concatPA fdata
         tags            = U.tagsSel2 sel
-        
-        -- Count how many elements go into each segment.        
+
+        -- Count how many elements go into each segment.
         segd'           = U.lengthsToSegd $ U.count_s segd tags 1
 
         -- Build the result array
         vsegd'          = U.promoteSegdToVSegd segd'
         flat'           = packByTagPA xdata_flat tags 1
         pdatas'         = singletondPA flat'
-        
+
    in   PArray n# (PNested vsegd' pdatas' segd' flat')
 {-# INLINE_PA packl #-}
 
@@ -475,7 +475,7 @@ combine2 sel arr1@(PArray _ darr1) arr2@(PArray _ darr2)
 
 -- Tuples ---------------------------------------------------------------------
 -- | O(1). Zip a pair of arrays into an array of pairs.
---   The two arrays must have the same length, else `error`. 
+--   The two arrays must have the same length, else `error`.
 zip :: PArray a -> PArray b -> PArray (a, b)
 zip (PArray n# pdata1) (PArray _ pdata2)
  = traceOp (OpZip (I# n#))
@@ -493,7 +493,7 @@ zipl (PArray n# xs) (PArray _ ys)
 
 
 -- | O(1). Zip three arrays.
---   All arrays must have the same length, else `error`. 
+--   All arrays must have the same length, else `error`.
 zip3 :: PArray a -> PArray b -> PArray c -> PArray (a, b, c)
 zip3 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3)
  = PArray n# $ zip3PD pdata1 pdata2 pdata3
@@ -501,7 +501,7 @@ zip3 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3)
 
 
 -- | O(1). Zip four arrays.
---   All arrays must have the same length, else `error`. 
+--   All arrays must have the same length, else `error`.
 zip4 :: PArray a -> PArray b -> PArray c -> PArray d -> PArray (a, b, c, d)
 zip4 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4)
  = PArray n# $ zip4PD pdata1 pdata2 pdata3 pdata4
@@ -509,7 +509,7 @@ zip4 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4)
 
 
 -- | O(1). Zip five arrays.
---   All arrays must have the same length, else `error`. 
+--   All arrays must have the same length, else `error`.
 zip5 :: PArray a -> PArray b -> PArray c -> PArray d -> PArray e -> PArray (a, b, c, d, e)
 zip5 (PArray n# pdata1) (PArray _ pdata2) (PArray _ pdata3) (PArray _ pdata4) (PArray _ pdata5)
  = PArray n# $ zip5PD pdata1 pdata2 pdata3 pdata4 pdata5
@@ -558,7 +558,7 @@ fromVector vec
 {-# INLINE_PA fromVector #-}
 
 
--- | Convert a `PArray` to a `Vector`        
+-- | Convert a `PArray` to a `Vector`
 toVector   :: PA a => PArray a -> Vector a
 toVector (PArray _ arr)
  = toVectorPA arr
