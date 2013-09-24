@@ -62,8 +62,8 @@ Library
   Build-Depends:  
         base      == 4.7.*,
         random    == 1.0.*,
-        vector    == 0.9.*,
-        primitive == 0.4.*,
+        vector    == 0.10.*,
+        primitive == 0.5.*,
         ghc-prim  == 0.3.*,
         dph-base  == 0.8.*,
         dph-prim-interface == 0.8.*

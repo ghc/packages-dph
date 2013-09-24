@@ -53,7 +53,7 @@ Library
         ghc-prim == 0.3.*,
         array    == 0.4.*,
         random   == 1.0.*,
-        vector   == 0.9.*,
+        vector   == 0.10.*,
         pretty   == 1.1.*
 
           

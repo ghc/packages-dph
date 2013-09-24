@@ -37,5 +37,5 @@ Library
         base     == 4.7.*,
         random   == 1.0.*,
         dph-base == 0.8.*,
-        vector   == 0.9.*
+        vector   == 0.10.*
 
