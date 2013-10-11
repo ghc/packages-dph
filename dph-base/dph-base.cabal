@@ -51,7 +51,7 @@ Library
   Build-Depends:  
         base     == 4.7.*,
         ghc-prim == 0.3.*,
-        array    == 0.4.*,
+        array    == 0.5.*,
         random   == 1.0.*,
         vector   == 0.10.*,
         pretty   == 1.1.*
