@@ -114,7 +114,7 @@ closeststupid1PA ps = closeststupid (fromPArrayP ps)
 median :: [: Double :] -> Double
 median xs = median' xs (lengthP xs `I.div` 2)
 
-median':: [: Double :] -> Int -> Double 
+median':: [: Double :] -> P.Int -> Double 
 median' xs k =
   let p  = xs !: (lengthP xs `I.div` 2)
       ls = [:x | x <- xs, x D.< p:]

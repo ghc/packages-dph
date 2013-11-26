@@ -4,7 +4,7 @@
 module Vectorised (quickselectPA) where
 import Data.Array.Parallel
 import Data.Array.Parallel.Prelude.Double        as D
-import qualified Data.Array.Parallel.Prelude.Int as I
+import Data.Array.Parallel.Prelude.Int           as I
 import qualified Prelude
 
 
