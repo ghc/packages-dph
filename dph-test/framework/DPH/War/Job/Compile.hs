@@ -43,6 +43,7 @@ jobCompile (JobCompile
 		        ++ " -Idph-prim-interface/interface"
 		        ++ " -Idph-base/include"
 			++ dph_code_includes
+		        ++ " -dynamic"
 		        ++ " -package ghc"
 		        ++ " -Odph -fno-liberate-case"
 		        ++ " -outputdir " ++ buildDir 
