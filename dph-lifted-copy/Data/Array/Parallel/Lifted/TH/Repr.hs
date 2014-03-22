@@ -88,7 +88,7 @@ normaliseTy ty
 
 
 substTy :: [(Name, Type)] -> Type -> Type
-substTy _ (ForallT _ _ _)
+substTy _ (ForallT _ _ _) 
         = error "DPH gen: can't substitute in forall ty"
 
 substTy env (VarT v)    = case lookup v env of
@@ -139,7 +139,7 @@ methodVals (ForallT (PlainTV vv : _) _ ty)
   where
     val v (VarT n) | v == n             = ScalarVal
 
-    val v (AppT (ConT c) (VarT n))
+    val v (AppT (ConT c) (VarT n)) 
         | c == ''PData && v == n        = PDataVal
         | c == ''[]    && v == n        = ListVal
 
@@ -182,7 +182,7 @@ recursiveMethod gen name avs res
     pat (PatSplit  p)     = p
     pat (CaseSplit p _ _) = p
 
-    split_arg (OtherVal,  g)
+    split_arg (OtherVal,  g) 
      = let v = mkName (g "")
        in  (PatSplit (varP v), OtherArg (varE v))
 
@@ -321,7 +321,7 @@ voidMethod void pvoid meth avs res
     result PDataVal     = varE pvoid
     result UnitVal      = conE '()
     result _            = error "DPH gen: voidMethod: no match"
-
+    
 -- --
 -- ()
 -- --
@@ -344,7 +344,7 @@ unitMethod punit meth avs res
     mkpat ScalarVal _   = (conP '() [], Nothing)
     mkpat PDataVal  _   = (conP punit [], Nothing)
 
-    mkpat ListVal   g
+    mkpat ListVal   g 
      = let xs = mkName (g "xs")
        in  (varP xs, Just $ \e -> varE 'foldr `appEs` [varE 'seq, e, varE xs])
 
@@ -367,14 +367,14 @@ wrapPRInstance :: Name -> Name -> Name -> Name -> Q [Dec]
 wrapPRInstance ty wrap unwrap pwrap
   = do
       methods <- genPR_methods (recursiveMethod (wrapGen wrap unwrap pwrap))
-      return [InstanceD [ConT ''PA `AppT` a]
+      return [InstanceD [ClassP ''PA [a]]
                         (ConT ''PR `AppT` (ConT ty `AppT` a))
                         methods]
   where
     a = VarT (mkName "a")
 
 wrapGen :: Name -> Name -> Name -> Gen
-wrapGen wrap unwrap pwrap
+wrapGen wrap unwrap pwrap 
  = Gen  { recursiveCalls = 1
         , recursiveName  = recursiveName'
         , split          = split'
@@ -437,7 +437,7 @@ instance_PR_tup :: Int -> DecQ
 instance_PR_tup arity
   = do
       methods <- genPR_methods (recursiveMethod (tupGen arity))
-      return $ InstanceD [ConT ''PR `AppT` ty | ty <- tys]
+      return $ InstanceD [ClassP ''PR [ty] | ty <- tys]
                          (ConT ''PR `AppT` (TupleT arity `mkAppTs` tys))
                          methods
   where
@@ -472,7 +472,7 @@ tupGen arity = Gen { recursiveCalls = arity
 
         mkunzip | arity == 2 = mkName "unzip"
                 | otherwise  = mkName ("unzip" ++ show arity)
-
+              
     split' _            = error "DPH Gen: tupGen/split: no match"
 
 
@@ -485,3 +485,4 @@ tupGen arity = Gen { recursiveCalls = arity
     pvs         = take arity [c : "s" | c <- ['a' ..]]
 
     tyname      = "(" ++ intercalate "," vs ++ ")"
+
