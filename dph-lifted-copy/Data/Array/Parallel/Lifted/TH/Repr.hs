@@ -162,7 +162,7 @@ data Gen = Gen {
              recursiveCalls :: Int
            , recursiveName  :: Name -> Name
            , split          :: ArgVal -> (Split, Arg)
-           , join           :: Val -> [ExpQ] -> ExpQ
+           , joinG          :: Val -> [ExpQ] -> ExpQ
            , typeName       :: String
            }
 
@@ -171,7 +171,7 @@ recursiveMethod gen name avs res
   = simpleFunD (mkName $ nameBase name) (map pat splits)
   $ appE (varE 'traceFn `appEs` [stringE (nameBase name), stringE (typeName gen)])
   $ foldr mk_case
-    (join gen res
+    (joinG gen res
      . recurse (recursiveCalls gen)
      . trans
      $ map expand args)
@@ -378,7 +378,7 @@ wrapGen wrap unwrap pwrap
  = Gen  { recursiveCalls = 1
         , recursiveName  = recursiveName'
         , split          = split'
-        , join           = join'
+        , joinG          = join'
         , typeName       = "Wrap a"
         }
   where
@@ -447,7 +447,7 @@ tupGen :: Int -> Gen
 tupGen arity = Gen { recursiveCalls = arity
                    , recursiveName  = id
                    , split          = split'
-                   , join           = join'
+                   , joinG          = join'
                    , typeName       = tyname
                    }
   where
