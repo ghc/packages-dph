@@ -31,7 +31,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
 import Data.Array.Parallel.Base (ST, runST)
-import Control.Monad (liftM)
+import Control.Monad (liftM, ap)
 
 
 -- | Data-parallel computations.
@@ -39,6 +39,13 @@ import Control.Monad (liftM)
 --   of the thread it's working on. Alternatively, if we know the thread index
 --   then we can make a regular ST computation.
 newtype DistST s a = DistST { unDistST :: Int -> ST s a }
+
+instance Functor (DistST s) where
+  fmap = liftM
+
+instance Applicative (DistST s) where
+  pure = return
+  (<*>) = ap
 
 instance Monad (DistST s) where
   {-# INLINE return #-}

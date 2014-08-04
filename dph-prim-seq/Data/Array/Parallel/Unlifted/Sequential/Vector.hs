@@ -133,7 +133,7 @@ import qualified Prelude
 import qualified System.Random as R
 import Foreign hiding ( new )
 import System.IO
-import Control.Monad
+import Control.Monad hiding (empty)
 
 here s = "Data.Array.Parallel.Unlifted.Sequential.Flat." Prelude.++ s
 

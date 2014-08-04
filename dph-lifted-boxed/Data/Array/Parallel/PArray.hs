@@ -59,7 +59,7 @@ import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Array.Parallel.Array      as A
 import qualified Data.Vector                    as V
-import Control.Monad
+import Control.Monad hiding (empty)
 import GHC.Exts (Int(I#), (+#))
 import qualified Prelude                        as P
 import Prelude hiding
