@@ -31,6 +31,7 @@ import Data.Array.Parallel.Unlifted.Distributed.Primitive.DT
 import Data.Array.Parallel.Unlifted.Distributed.Primitive.Gang
 import Data.Array.Parallel.Unlifted.Distributed.Data.Tuple
 import Data.Array.Parallel.Base (ST, runST)
+import Control.Applicative (Applicative(..))
 import Control.Monad (liftM, ap)
 
 

@@ -55,7 +55,7 @@ import Data.Array.Parallel.Base                 (Tag)
 import Data.Vector                              (Vector)
 import qualified Data.Array.Parallel.Unlifted   as U
 import qualified Data.Vector                    as V
-import Control.Monad hiding ( empty )
+import Control.Monad
 import Prelude hiding
         ( replicate, length, concat
         , enumFromTo
