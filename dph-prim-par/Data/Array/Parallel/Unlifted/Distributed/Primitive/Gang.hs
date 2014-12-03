@@ -26,7 +26,7 @@ import Control.Monad
 
 #if TRACE_GANG
 import Debug.Trace              (traceEventIO)
-import System.Time ( ClockTime(..), getClockTime )
+import System.CPUTime ( getCPUTime )
 #endif 
 
 
@@ -253,10 +253,7 @@ gangST gang what workload p
 -- Tracing -------------------------------------------------------------------
 #if TRACE_GANG
 getGangTime :: IO Integer
-getGangTime
- = do   TOD sec pico    <- getClockTime
-        let !micro      = pico `div` 1000000
-        return (micro + sec * 1000000)
+getGangTime = getCPUTime
 
 diffTime :: Integer -> Integer -> String
 diffTime x y = show (y-x)
