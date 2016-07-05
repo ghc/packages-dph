@@ -1,7 +1,7 @@
 
 -- The Summoner is a demand-driven inliner.
 --   We give it the name of a function we want summoned, and it will inline
---   everything it can find into it. 
+--   everything it can find into it.
 --
 --   The summoner ignores GHC generated inliner heuristics (UnfoldingGuidance)
 --   as well as NOINLINE pragmas for bindings in the module being compiled.
@@ -21,27 +21,27 @@ import CoreMonad
 import Avail
 import Data.Maybe
 import Data.Set                 (Set)
-import qualified UniqFM         as UFM
+import qualified UniqDFM        as UDFM
 import qualified Data.Set       as Set
 import Control.Monad
 import Debug.Trace
 
 -- Pass -----------------------------------------------------------------------
 passSummon :: ModGuts -> CoreM ModGuts
-passSummon guts 
+passSummon guts
  = do   let tops        = mg_binds guts
 
         -- Get the names of the vectorised versions of all exported bindings.
         let nsExported  = [ n | Avail n <- mg_exports guts]
-        let nsExported_vect     
+        let nsExported_vect
                 = catMaybes
-                $ map (UFM.lookupUFM (vectInfoVar $ mg_vect_info guts))
+                $ map (UDFM.lookupUDFM (vectInfoVar $ mg_vect_info guts))
                 $ nsExported
 
         -- Summon all of the vectorised things.
-        let summonMe    
-                = Set.fromList 
-                $ map snd 
+        let summonMe
+                = Set.fromList
+                $ map snd
                 $ nsExported_vect
 
         tops'   <- mapM (summonTop summonMe tops) tops
@@ -58,7 +58,7 @@ summonTop
 
 summonTop bsSet tops bind
  = case bind of
-        NonRec b x      
+        NonRec b x
          -> do  (b', x')        <- goSummon (b, x)
                 return $ NonRec b' x'
 
@@ -89,7 +89,7 @@ summonX :: [CoreBind]
 summonX tops xx
  = let down     = summonX tops
    in case xx of
-        Var n   
+        Var n
          -> trace (renderIndent $ text "look at " <> ppr n)
          $  case lookupBind tops n of
                 Nothing -> return xx
@@ -101,7 +101,7 @@ summonX tops xx
         Let bnd x       -> liftM2 Let (summonB tops bnd) (down x)
 
         Case x b t alts -> liftM4 Case  (down x)
-                                (return b) (return t) 
+                                (return b) (return t)
                                 (mapM (summonA tops) alts)
 
         Cast x co       -> liftM2 Cast  (down x)   (return co)
@@ -111,7 +111,7 @@ summonX tops xx
 
 
 -- | Summon into an alternative.
-summonA :: [CoreBind] 
+summonA :: [CoreBind]
         -> (AltCon, [CoreBndr], Expr CoreBndr)
         -> CoreM (AltCon, [CoreBndr], Expr CoreBndr)
 
@@ -127,7 +127,7 @@ summonB :: [CoreBind]
 
 summonB tops bb
  = case bb of
-        NonRec b x      
+        NonRec b x
          -> liftM2 NonRec (return b) (summonX tops x)
 
         Rec bxs
@@ -136,8 +136,8 @@ summonB tops bb
                 return          $ Rec $ zip bs xs
 
 
-lookupBind 
-        :: [CoreBind] 
+lookupBind
+        :: [CoreBind]
         -> CoreBndr
         -> Maybe (Expr CoreBndr)
 lookupBind tops b

@@ -1,5 +1,5 @@
 
-module DPH.Core.Pretty 
+module DPH.Core.Pretty
         ( module DPH.Base.Pretty
         , pprModGuts
         , pprTopBinds)
@@ -17,13 +17,13 @@ import DataCon
 import Literal
 import Id
 import Unique
-import qualified UniqFM as UFM
+import qualified UniqDFM as UDFM
 
 -- Guts -----------------------------------------------------------------------
 pprModGuts :: ModGuts -> Doc
 pprModGuts guts
  = vcat
- [ text "Exports:" 
+ [ text "Exports:"
         <+> ppr (mg_exports guts)
  , empty
 
@@ -42,10 +42,10 @@ instance Pretty AvailInfo where
         AvailTC n _     -> ppr n
 
 
--- | The VectInfo maps names to their vectorised versions. 
+-- | The VectInfo maps names to their vectorised versions.
 instance Pretty VectInfo where
  ppr vi
-  = ppr $ UFM.eltsUFM (vectInfoVar vi)
+  = ppr $ UDFM.eltsUDFM (vectInfoVar vi)
 
 
 -- Top Binds ------------------------------------------------------------------
@@ -55,14 +55,14 @@ pprTopBinds binds
 
 pprTopBind  :: Pretty a => Bind a -> Doc
 pprTopBind (NonRec binder expr)
-  =    pprBinding (binder, expr) 
+  =    pprBinding (binder, expr)
   <$$> empty
 
 pprTopBind (Rec [])
   = text "Rec { }"
 
 pprTopBind (Rec bb@(b:bs))
-  = vcat 
+  = vcat
   [ text "Rec {"
   , vcat [empty <$$> pprBinding b | b <- bb]
   , text "end Rec }"
@@ -75,7 +75,7 @@ pprBinding (binder, x)
         =   ppr binder
         <+> breakWhen (not $ isSimpleX x)
         <+> equals <+> align (ppr x)
-              
+
 
 
 -- Expr -----------------------------------------------------------------------
@@ -83,10 +83,10 @@ instance Pretty a => Pretty (Expr a) where
  pprPrec d xx
   = case xx of
         Var  ident
-         -> pprBound ident 
+         -> pprBound ident
 
         -- Discard types and coersions
-        Type _          -> empty 
+        Type _          -> empty
         Coercion _      -> empty
 
         -- Literals.
@@ -101,8 +101,8 @@ instance Pretty a => Pretty (Expr a) where
          -> pprParen' (d > 2)
          $  let (bndrs, body) = collectBinders xx
             in  text "\\" <> sep (map ppr bndrs)
-                 <> text "." 
-                 <> (nest 2 
+                 <> text "."
+                 <> (nest 2
                         $ (breakWhen $ not $ isSimpleX body)
                          <> ppr body)
 
@@ -114,13 +114,13 @@ instance Pretty a => Pretty (Expr a) where
          |  otherwise
          -> pprParen' (d > 10)
          $  ppr x1
-                <> nest 2 (breakWhen (not $ isSimpleX x2) 
+                <> nest 2 (breakWhen (not $ isSimpleX x2)
                                 <> pprPrec 11 x2)
 
         -- Destructors.
         Case x1 var ty [(con, binds, x2)]
          -> pprParen' (d > 2)
-         $  text "let" 
+         $  text "let"
                 <+> (fill 12 (ppr con <+> hsep (map ppr binds)))
 --                <>  breakWhen (not $ isSimpleX x1)
                         <+>  text "<-"
@@ -130,8 +130,8 @@ instance Pretty a => Pretty (Expr a) where
 
         Case x1 var ty alts
          -> pprParen' (d > 2)
-         $  (nest 2 
-                $ text "case" <+> ppr x1 <+> text "of" 
+         $  (nest 2
+                $ text "case" <+> ppr x1 <+> text "of"
                 <+> ppr var
                 <+> lbrace <> line
                         <> vcat (punctuate semi $ map pprAlt alts))
@@ -140,11 +140,11 @@ instance Pretty a => Pretty (Expr a) where
         -- Binding.
         Let (NonRec b x1) x2
          -> pprParen' (d > 2)
-         $  text "let" 
+         $  text "let"
                 <+> fill 12 (ppr b)
-                <+> equals 
-                <+> ppr x1 
-                <+> text "in" 
+                <+> equals
+                <+> ppr x1
+                <+> text "in"
                 <$$> ppr x2
 
         Let (Rec bxs) x2
@@ -163,7 +163,7 @@ instance Pretty a => Pretty (Expr a) where
 -- Alt ------------------------------------------------------------------------
 pprAlt :: Pretty a => (AltCon, [a], Expr a) -> Doc
 pprAlt (con, binds, x)
-        = ppr con <+> (hsep $ map ppr binds) 
+        = ppr con <+> (hsep $ map ppr binds)
         <+> nest 1 (line <> nest 3 (text "->" <+> ppr x))
 
 instance Pretty AltCon where
@@ -211,7 +211,7 @@ instance Pretty CoreBndr where
 
 
 instance Pretty DataCon where
- ppr con 
+ ppr con
         = ppr (dataConName con)
 
 instance Pretty Name where
